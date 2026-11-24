@@ -143,12 +143,12 @@ val removeTrackingPatch = bytecodePatch(
         if (zeroAdvertisingId.value == true) {
             // 2. Google Play Advertising ID (AAID) spoofing
             spoofAdvertisingId()
-            spoofMinifiedAdvertisingId("Ljj;", "Lij;")
+            spoofMinifiedAdvertisingId("Lyi;", "Lxi;")
         }
 
         if (disableHostAnalytics.value == true) {
             // 3. Host App Internal Analytics Engine
-            disableRequiredVoidMethods("Lnv;", "a", "b")
+            disableRequiredVoidMethods("Lyw;", "a", "b")
         }
 
         if (disableFirebaseAnalytics.value == true) {
@@ -156,8 +156,8 @@ val removeTrackingPatch = bytecodePatch(
             disableRequiredVoidMethods("Lcom/google/android/gms/measurement/AppMeasurement;", "logEventInternal")
             disableRequiredVoidMethods("Lcom/google/android/gms/measurement/api/AppMeasurementSdk;", "logEvent")
             disableRequiredVoidMethods("Lcom/google/firebase/analytics/FirebaseAnalytics;", "b", "c", "setCurrentScreen")
-            disableRequiredVoidMethods("Lg3q;", "c")
-            disableRequiredVoidMethods("Lhhd;", "logEvent", "setUserProperty")
+            disableRequiredVoidMethods("Luuq;", "c")
+            disableRequiredVoidMethods("Li5e;", "logEvent", "setUserProperty")
             returnEmptyList("Lcom/google/firebase/analytics/connector/internal/AnalyticsConnectorRegistrar;", "getComponents")
         }
 
@@ -165,7 +165,7 @@ val removeTrackingPatch = bytecodePatch(
             // 5. Firebase Performance Monitoring
             returnEmptyList("Lcom/google/firebase/perf/FirebasePerfRegistrar;", "getComponents")
             returnEmptyList("Lcom/google/firebase/perf/FirebasePerfKtxRegistrar;", "getComponents")
-            disableRequiredVoidMethods("Lmak;", "b", "c", "d")
+            disableRequiredVoidMethods("Lm8l;", "b", "c", "d")
             disableRequiredVoidMethods("Lcom/google/firebase/perf/metrics/AppStartTrace;", "onActivityCreated", "onActivityResumed", "onActivityStarted")
             disableRequiredVoidMethods("Lcom/google/firebase/perf/session/SessionManager;", "initializeGaugeCollection", "updatePerfSession")
         }
@@ -173,10 +173,10 @@ val removeTrackingPatch = bytecodePatch(
         if (disableUrbanAirshipTelemetry.value == true) {
             // 6. UrbanAirship Telemetry & Analytics
             disableRequiredVoidMethods("Lcom/urbanairship/analytics/InstallReceiver;", "onReceive")
-            disableRequiredVoidMethods("Lpo;", "a")
-            disableRequiredVoidMethods("Lrt;", "e", "g", "h")
-            returnRequiredBoolean("Lrt;", "f", false)
-            disableRequiredVoidMethods("Lqp;", "g", "h")
+            disableRequiredVoidMethods("Lxo;", "a")
+            disableRequiredVoidMethods("Lav;", "e", "g", "h")
+            returnRequiredBoolean("Lav;", "f", false)
+            disableRequiredVoidMethods("Lzp;", "g", "h")
         }
 
         if (disableBlazeTracking.value == true) {
@@ -212,14 +212,14 @@ val removeTrackingPatch = bytecodePatch(
 
         if (disableCrashlyticsAndSessions.value == true) {
             // 10. Firebase Crashlytics & Sessions Telemetry
-            disableRequiredVoidMethods("Lbn6;", "b", "c")
+            disableRequiredVoidMethods("Luy6;", "b", "c")
             returnEmptyList("Lcom/google/firebase/sessions/FirebaseSessionsRegistrar;", "getComponents")
             disableOptionalVoidMethods("Lcom/google/firebase/sessions/SessionLifecycleService;", "onCreate")
             returnRequiredNullObject("Lcom/google/firebase/sessions/SessionLifecycleService;", "onBind")
             returnInt("Lcom/google/firebase/sessions/SessionLifecycleService;", "onStartCommand", 2, optional = true)
 
             // 11. Google DataTransport Telemetry Uploader
-            disableRequiredVoidMethods("Lomk;", "a")
+            disableRequiredVoidMethods("Lpkl;", "a")
         }
     }
 }
@@ -228,17 +228,17 @@ val removeTrackingPatch = bytecodePatch(
  * Removes the Privacy Settings row from the Settings Preferences section.
  */
 private fun BytecodePatchContext.removeBrokenPrivacySettingsEntry() {
-    val settingsPreferencesClass = mutableClassDefByOrNull("Lbg8;")
-        ?: throw PatchException("Missing required class Lbg8; (Settings Preferences builder)")
+    val settingsPreferencesClass = mutableClassDefByOrNull("Lse9;")
+        ?: throw PatchException("Missing required class Lse9; (Settings Preferences builder)")
 
     val dMethod = settingsPreferencesClass.methods.singleOrNull { method ->
-        method.name == "d" &&
-            method.parameterTypes == listOf("Z", "Ljava/lang/String;", "Lkotlin/jvm/functions/Function1;", "Lpn3;", "I") &&
+        method.name == "k" &&
+            method.parameterTypes == listOf("Z", "Ljava/lang/String;", "Lkotlin/jvm/functions/Function1;", "Lbu3;", "I") &&
             method.returnType == "V"
-    } ?: throw PatchException("Missing required method Lbg8.d(ZLjava/lang/String;Lkotlin/jvm/functions/Function1;Lpn3;I)V")
+    } ?: throw PatchException("Missing required method Lse9.k(ZLjava/lang/String;Lkotlin/jvm/functions/Function1;Lbu3;I)V")
 
     val implementation = dMethod.implementation
-        ?: throw PatchException("Lbg8.d has no implementation")
+        ?: throw PatchException("Lse9.k has no implementation")
 
     val instructions = implementation.instructions.toList()
     val constIndex = instructions.indexOfFirst { instruction ->
@@ -246,7 +246,7 @@ private fun BytecodePatchContext.removeBrokenPrivacySettingsEntry() {
             (instruction as? NarrowLiteralInstruction)?.narrowLiteral == -0x3635e702
     }
     if (constIndex == -1) {
-        throw PatchException("Could not find Privacy Settings composable key anchor in Lbg8.d")
+        throw PatchException("Could not find Privacy Settings composable key anchor in Lse9.k")
     }
 
     val relativeAddIndex = instructions.subList(constIndex, instructions.size).indexOfFirst { instruction ->
@@ -263,9 +263,9 @@ private fun BytecodePatchContext.removeBrokenPrivacySettingsEntry() {
                 ref.name == "build"
         }
         if (buildIndex != -1) {
-            throw PatchException("Found CollectionsKt.build but could not find List.add invocation for Privacy Settings in Lbg8.d")
+            throw PatchException("Found CollectionsKt.build but could not find List.add invocation for Privacy Settings in Lse9.k")
         }
-        throw PatchException("Could not find List.add invocation for Privacy Settings in Lbg8.d")
+        throw PatchException("Could not find List.add invocation for Privacy Settings in Lse9.k")
     }
 
     val targetIndex = constIndex + relativeAddIndex
@@ -479,15 +479,15 @@ private fun BytecodePatchContext.returnEmptyList(
  * while denying tracking, ads, and telemetry in OneTrust CMP checks.
  */
 private fun BytecodePatchContext.patchSmartConsentRouting() {
-    // 1. Lgce;->c(Lqoj;)Z: Return true if push-consented, false otherwise
-    val gceClass = mutableClassDefByOrNull("Lgce;")
-        ?: throw PatchException("Missing required class Lgce; for smart consent routing")
-    val cMethod = gceClass.methods.singleOrNull { method ->
+    // 1. Lc2f;->c(Lhlk;)Z: Return true if push-consented, false otherwise
+    val c2fClass = mutableClassDefByOrNull("Lc2f;")
+        ?: throw PatchException("Missing required class Lc2f; for smart consent routing")
+    val cMethod = c2fClass.methods.singleOrNull { method ->
         method.name == "c" &&
-            method.parameterTypes == listOf("Lqoj;") &&
+            method.parameterTypes == listOf("Lhlk;") &&
             method.returnType == "Z" &&
             method.implementation != null
-    } ?: throw PatchException("Missing required method Lgce;->c(Lqoj;)Z")
+    } ?: throw PatchException("Missing required method Lc2f;->c(Lhlk;)Z")
     cMethod.addInstructions(
         0,
         """
@@ -497,25 +497,25 @@ private fun BytecodePatchContext.patchSmartConsentRouting() {
         """.trimIndent()
     )
 
-    // 2. Lqc8;->M(Lqoj;Lcom/onetrust/otpublishers/headless/Public/OTPublishersHeadlessSDK;)Lvu3;
-    val qc8Class = mutableClassDefByOrNull("Lqc8;")
-        ?: throw PatchException("Missing required class Lqc8; for smart consent routing")
-    val mMethod = qc8Class.methods.singleOrNull { method ->
-        method.name == "M" &&
-            method.parameterTypes == listOf("Lqoj;", "Lcom/onetrust/otpublishers/headless/Public/OTPublishersHeadlessSDK;") &&
-            method.returnType == "Lvu3;" &&
+    // 2. Lkp9;->z(Lhlk;Lcom/onetrust/otpublishers/headless/Public/OTPublishersHeadlessSDK;)Lk14;
+    val kp9Class = mutableClassDefByOrNull("Lkp9;")
+        ?: throw PatchException("Missing required class Lkp9; for smart consent routing")
+    val mMethod = kp9Class.methods.singleOrNull { method ->
+        method.name == "z" &&
+            method.parameterTypes == listOf("Lhlk;", "Lcom/onetrust/otpublishers/headless/Public/OTPublishersHeadlessSDK;") &&
+            method.returnType == "Lk14;" &&
             method.implementation != null
-    } ?: throw PatchException("Missing required method Lqc8;->M(Lqoj;Lcom/onetrust/otpublishers/headless/Public/OTPublishersHeadlessSDK;)Lvu3;")
+    } ?: throw PatchException("Missing required method Lkp9;->z(Lhlk;Lcom/onetrust/otpublishers/headless/Public/OTPublishersHeadlessSDK;)Lk14;")
     mMethod.addInstructions(
         0,
         """
         invoke-static {p0}, Lapp/aidan/extension/nhl/PushBridge;->isPushConsented(Ljava/lang/Object;)Z
         move-result p1
         if-eqz p1, :cond_denied
-        sget-object p0, Lvu3;->Granted:Lvu3;
+        sget-object p0, Lk14;->Granted:Lk14;
         return-object p0
         :cond_denied
-        sget-object p0, Lvu3;->Denied:Lvu3;
+        sget-object p0, Lk14;->Denied:Lk14;
         return-object p0
         """.trimIndent()
     )

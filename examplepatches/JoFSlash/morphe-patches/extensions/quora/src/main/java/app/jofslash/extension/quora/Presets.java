@@ -18,7 +18,8 @@ import java.util.Set;
  * Patch settings > More > Presets. A preset can only switch off patches, and switch back on the
  * ones that were patched in: what wasn't patched in stays out. Privacy patches can't be switched
  * at all, so every preset keeps them. A preset sets every switch in SettingsCatalog: on when it is
- * in the preset's list, off when it isn't.
+ * in the preset's list, off when it isn't. The personal ones in PERSONAL (text size, font, tabs,
+ * where links open and the like) are habits rather than part of a look, so no preset touches them.
  */
 final class Presets {
 
@@ -34,9 +35,10 @@ final class Presets {
             "hideSpacesSuggestions", "hidePeopleSuggestions", "hideSurveys", "hideAskBox", "hideMoreStories",
             "hideDismissedQuestions", "filterKeywords", "blockAuthors",
             "copyAnswerText", "shareAnswerText", "readingHistory", "bookmarks", "translateAnswerText", "readAloud",
-            "wordCount", "enableTextSelection", "disableVideoAutoplay", "dataSaverOnWifi",
-            "openLinksInBrowser", "disableTabPrefetching", "disableSignInPrompts", "blockPromotionalNotifications",
-            "filterUpdates"));
+            "wordCount", "enableTextSelection", "disableVideoAutoplay",
+            "readerView", "readingTime", "pickToHide",
+            "disableTabPrefetching", "disableSignInPrompts", "blockPromotionalNotifications",
+            "filterUpdates", "updateNotice"));
 
     /**
      * For reading: the clean feed, plus whole answers, more space, no numbers or credentials, and
@@ -50,10 +52,15 @@ final class Presets {
                 "hideCredentials", "hideCommentPreviews", "hideFollowButtons", "keepPlaceOnReturn"));
     }
 
+    /** Switches each person sets to their own liking: every preset leaves them as they are. */
+    static final Set<String> PERSONAL = new HashSet<>(Arrays.asList(
+            "textSize", "answerFont", "hideTabs", "startTab", "openLinksInBrowser", "keepScreenOn",
+            "dataSaver", "dataSaverOnWifi", "disableVibration", "disablePullToRefresh", "disableSwipeBetweenFeeds"));
+
     /** Ads and privacy only: everything you see is as in the official app, without ads. */
     static final Set<String> ADS_ONLY = new HashSet<>(Arrays.asList(
             "removeAds", "disableTabPrefetching", "disableSignInPrompts", "blockPromotionalNotifications",
-            "filterUpdates"));
+            "filterUpdates", "updateNotice"));
 
     private Presets() {
     }
@@ -145,6 +152,7 @@ final class Presets {
             SharedPreferences.Editor editor = prefs.edit();
             boolean restart = false;
             for (String key : SettingsCatalog.keys()) {
+                if (PERSONAL.contains(key)) continue;
                 boolean value = on == null || on.contains(key);
                 if (prefs.getBoolean(key, true) != value && SettingsCatalog.RESTART.contains(key)
                         && PatchSettings.isRegistered(key)) {

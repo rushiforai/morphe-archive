@@ -1,6 +1,6 @@
 /*
- * Copyright (C) 2026 Lokesh Sparrow
- * SPDX-License-Identifier: GPL-3.0-or-later
+ * Copyright 2026 amfakh
+ * SPDX-License-Identifier: GPL-3.0-only
  */
 
 package app.fakh.extension.linkedin;
@@ -9,176 +9,129 @@ import java.nio.ByteBuffer;
 import java.nio.charset.CharacterCodingException;
 import java.nio.charset.CodingErrorAction;
 import java.nio.charset.StandardCharsets;
+import java.util.Arrays;
 import java.util.List;
-import java.util.regex.Pattern;
 
 /**
- * The text of a feed post, for Copy text in the post's &#8943; menu.
- * <p>
- * The text is in the component whose view tracking (Component field 26, ViewTrackingAnnotations) is named
- * feed-commentary: TextBlock.text, a TextModel whose field 1 is the text. The earlier lookup went to the innermost
- * message containing "feed-commentary", which is the ViewTrackingAnnotations itself, and took its longest string: the
- * contentTrackingId (field 4), a 16 byte id in base64 such as 1oJRCzEhRL+9jybkyTUkyA==. That is what was copied.
- * It also could not see a text with line breaks, as the string scanner skips anything with a control character.
- * <p>
- * So: find that component, leave out its view tracking, its triggers and its state bindings, and take the longest
- * text left, line breaks allowed. Field numbers are those of LinkedIn 4.1.1270 (proto.sdui.components.core).
+ * Reads the text of a post or a comment out of the server-driven payload of a feed item, for Copy text.
+ *
+ * <p>A text sits in a component that carries a view-tracking message (field 26) whose first field is the view name:
+ * {@code feed-commentary} for a post, {@code feed-commentary-expand} on the Video tab, {@code comment-commentary} for a
+ * comment. The component holds the text either in a CompactAny (field 35, text at 2/1/1) or in a TextBlock (field 29,
+ * text at 1/1). Field numbers are those of LinkedIn 4.1.1270.
  */
 final class PostCommentary {
-    static final String NAME = "feed-commentary";
-    private static final String EXPANDABLE = "feed-commentary-expand";
+    private static final int TEXT_BLOCK = 29;
+    private static final int COMPACT_DATA = 35;
     private static final int VIEW_TRACKING = 26;
-    private static final int TRIGGERS = 25;
-    private static final int VIEW_NAME = 1;
-    private static final String BINDING = "MemoryNamespace";
-    /** A contentTrackingId: 16 bytes in base64. Never a post. */
-    private static final Pattern TRACKING_ID = Pattern.compile("[A-Za-z0-9+/_-]{22}==");
     private static final int MAX_DEPTH = 48;
 
     private PostCommentary() {
     }
 
-    /** The post's text, or null when none could be found. */
+    /**
+     * The text of a post.
+     *
+     * @param payload the item's payload
+     * @return the text, or null when the payload has none
+     */
     static String text(byte[] payload) {
-        // The Video tab has no feed-commentary component: its text is in the expandable one.
-        byte[] component = component(payload, NAME, 0);
-        if (component == null) component = component(payload, EXPANDABLE, 0);
-        return textOf(component);
+        byte[] component = component(payload, "feed-commentary", 0);
+        return read(component != null ? component : component(payload, "feed-commentary-expand", 0));
     }
 
-    /** The text of a comment (the component named comment-commentary), or null when none could be found. */
+    /**
+     * The text of a comment.
+     *
+     * @param payload the item's payload
+     * @return the text, or null when the payload has none
+     */
     static String commentText(byte[] payload) {
-        return textOf(component(payload, "comment-commentary", 0));
+        return read(component(payload, "comment-commentary", 0));
     }
 
-    private static String textOf(byte[] component) {
-        if (component == null) return null;
-        List<ProtoEdit.Field> fields = ProtoEdit.parse(component);
+    /** The text of a component: the known place first, then the longest plain text under its content fields. */
+    private static String read(byte[] component) {
+        List<ProtoEdit.Field> fields = component == null ? null : ProtoEdit.parse(component);
         if (fields == null) return null;
-        String[] best = {null};
-        // The content of a component is its compactData (field 35, a CompactAny holding the TextBlock), or the
-        // TextBlock itself (field 29). The rest is the component's own machinery: key, view tracking, triggers, reuse
-        // ids, debug ids.
+        String longest = null;
         for (ProtoEdit.Field field : fields) {
-            if (field.wireType != 2) continue;
-            String exact;
-            if (field.number == COMPACT_DATA) {
-                // CompactAny.payload (2) is the TextBlock: TextBlock.text (1) is a TextModel, TextModel.text (1) the post.
-                exact = asText(path(path(path(field.data, 2), 1), 1));
-            } else if (field.number == TEXT_BLOCK) {
-                // The Video tab sends the TextBlock itself instead of a CompactAny.
-                exact = asText(path(path(field.data, 1), 1));
-            } else {
-                continue;
-            }
-            if (exact != null && !exact.trim().isEmpty()) return exact;
-            collect(field.data, best, 0);
+            if (field.wireType != 2 || (field.number != COMPACT_DATA && field.number != TEXT_BLOCK)) continue;
+            byte[] known = field.number == COMPACT_DATA
+                    ? ProtoEdit.nested(field.data, 2, 1, 1)
+                    : ProtoEdit.nested(field.data, 1, 1);
+            String text = plain(known);
+            if (text != null && !text.trim().isEmpty()) return text;
+            String guess = longestText(field.data, 0);
+            if (guess != null && (longest == null || guess.length() > longest.length())) longest = guess;
         }
-        return best[0];
+        return longest;
     }
 
-    /** The first length-delimited field with that number, or null. */
-    private static byte[] path(byte[] data, int number) {
-        List<ProtoEdit.Field> fields = parse(data);
+    /** The first message, outermost first, whose view tracking is named {@code name}. */
+    private static byte[] component(byte[] message, String name, int depth) {
+        if (message == null || depth > MAX_DEPTH || !ProtoEdit.contains(message, name)) return null;
+        List<ProtoEdit.Field> fields = ProtoEdit.parse(message);
         if (fields == null) return null;
         for (ProtoEdit.Field field : fields) {
-            if (field.number == number && field.wireType == 2) return field.data;
-        }
-        return null;
-    }
-
-    private static final int COMPACT_DATA = 35;
-    /** Component.textBlock, the content of the commentary in the Video tab. */
-    private static final int TEXT_BLOCK = 29;
-
-    /** A message, also when LinkedIn prefixes it with a single 0x00 byte, as it does for some embedded payloads. */
-    private static List<ProtoEdit.Field> parse(byte[] data) {
-        if (data == null || data.length == 0) return null;
-        List<ProtoEdit.Field> fields = ProtoEdit.parse(data);
-        if (fields == null && data.length > 1 && data[0] == 0) {
-            fields = ProtoEdit.parse(java.util.Arrays.copyOfRange(data, 1, data.length));
-        }
-        return fields;
-    }
-
-    /** Whether a string is a tracking id rather than writing: used to refuse one from the old lookup. */
-    static boolean isTrackingId(String text) {
-        return text != null && TRACKING_ID.matcher(text).matches();
-    }
-
-    /** The first component, in order, whose view tracking is named [name]. */
-    private static byte[] component(byte[] data, String name, int depth) {
-        if (data == null || depth > MAX_DEPTH || !ProtoEdit.contains(data, name)) return null;
-        List<ProtoEdit.Field> fields = ProtoEdit.parse(data);
-        if (fields == null) return null;
-        for (ProtoEdit.Field field : fields) {
-            if (field.number == VIEW_TRACKING && field.wireType == 2 && name.equals(viewName(field.data))) return data;
-        }
-        for (ProtoEdit.Field field : fields) {
-            if (field.wireType != 2 || !ProtoEdit.contains(field.data, name)) continue;
-            byte[] found = component(field.data, name, depth + 1);
-            if (found != null) return found;
-        }
-        return null;
-    }
-
-    private static String viewName(byte[] viewTracking) {
-        List<ProtoEdit.Field> fields = ProtoEdit.parse(viewTracking);
-        if (fields == null) return null;
-        for (ProtoEdit.Field field : fields) {
-            if (field.number == VIEW_NAME && field.wireType == 2) {
-                return new String(field.data, StandardCharsets.UTF_8);
+            if (field.number != VIEW_TRACKING || field.wireType != 2) continue;
+            List<ProtoEdit.Field> tracking = ProtoEdit.parse(field.data);
+            if (tracking != null && !tracking.isEmpty() && name.equals(new String(tracking.get(0).data, StandardCharsets.UTF_8))) {
+                return message;
             }
         }
+        for (ProtoEdit.Field field : fields) {
+            byte[] inner = field.wireType == 2 ? component(field.data, name, depth + 1) : null;
+            if (inner != null) return inner;
+        }
         return null;
     }
 
-    /** Keeps the longest piece of writing under this message, leaving state bindings out. */
-    private static void collect(byte[] data, String[] best, int depth) {
-        if (depth > MAX_DEPTH) return;
-        List<ProtoEdit.Field> fields = parse(data);
-        if (fields == null) {
-            consider(asText(data), best);
-            return;
+    /**
+     * The longest text below a message, for a layout the known places do not cover. Screen-state bindings (a field
+     * equal to "MemoryNamespace"), URNs, links and the view name hold ids, not writing, and are skipped.
+     */
+    private static String longestText(byte[] message, int depth) {
+        if (depth > MAX_DEPTH) return null;
+        List<ProtoEdit.Field> fields = ProtoEdit.parse(message);
+        if (fields == null && message.length > 1 && message[0] == 0) {
+            fields = ProtoEdit.parse(Arrays.copyOfRange(message, 1, message.length));
         }
-        // A binding to the screen's state ({2: "MemoryNamespace", 3: {1: key}}) holds keys, not writing.
-        for (ProtoEdit.Field field : fields) {
-            if (field.wireType == 2 && BINDING.equals(new String(field.data, StandardCharsets.UTF_8))) return;
-        }
-        String before = best[0];
+        if (fields == null) return writing(plain(message));
+        String longest = null;
         boolean nested = false;
         for (ProtoEdit.Field field : fields) {
-            if (field.wireType == 2) {
-                nested = true;
-                collect(field.data, best, depth + 1);
-            }
+            if (field.wireType != 2) continue;
+            if ("MemoryNamespace".equals(new String(field.data, StandardCharsets.UTF_8))) return null;
+            nested = true;
+            String inner = longestText(field.data, depth + 1);
+            if (inner != null && (longest == null || inner.length() > longest.length())) longest = inner;
         }
-        // Short writing can also read as a message ("Hi" is field 9 = 105): numbers only, nothing found, keep it.
-        if (!nested && best[0] == before) consider(asText(data), best);
+        // A short text can read as a message made of numbers only; with nothing found below it, it is the text.
+        return nested || longest != null ? longest : writing(plain(message));
     }
 
-    private static void consider(String candidate, String[] best) {
-        if (candidate == null) return;
-        String trimmed = candidate.trim();
-        if (trimmed.isEmpty() || trimmed.equals(NAME) || trimmed.startsWith("urn:li:") || trimmed.startsWith("http")
-                || isTrackingId(trimmed)) {
-            return;
-        }
-        if (best[0] == null || candidate.length() > best[0].length()) best[0] = candidate;
+    /** The text unless it is an id, a URN, a link or the view name itself. */
+    private static String writing(String text) {
+        if (text == null) return null;
+        String trimmed = text.trim();
+        boolean id = trimmed.matches("[A-Za-z0-9+/_-]{22}==");
+        boolean skipped = trimmed.isEmpty() || id || trimmed.startsWith("urn:li:") || trimmed.startsWith("http")
+                || trimmed.startsWith("feed-commentary");
+        return skipped ? null : text;
     }
 
-    /** The bytes as text: valid UTF-8 whose only control characters are line breaks and tabs. */
-    private static String asText(byte[] data) {
-        if (data == null || data.length == 0) return null;
-        for (byte b : data) {
-            int c = b & 0xff;
-            if ((c < 0x20 && c != '\n' && c != '\r' && c != '\t') || c == 0x7f) return null;
+    /** The bytes as UTF-8 text with no control characters but line breaks and tabs, or null. */
+    private static String plain(byte[] bytes) {
+        if (bytes == null || bytes.length == 0) return null;
+        for (byte b : bytes) {
+            if ((b >= 0 && b < 0x20 && b != '\n' && b != '\r' && b != '\t') || b == 0x7f) return null;
         }
         try {
             return StandardCharsets.UTF_8.newDecoder()
                     .onMalformedInput(CodingErrorAction.REPORT)
                     .onUnmappableCharacter(CodingErrorAction.REPORT)
-                    .decode(ByteBuffer.wrap(data)).toString();
+                    .decode(ByteBuffer.wrap(bytes)).toString();
         } catch (CharacterCodingException e) {
             return null;
         }

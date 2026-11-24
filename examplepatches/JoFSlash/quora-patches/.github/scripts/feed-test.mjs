@@ -1,5 +1,5 @@
 // Signs in to Quora with a test account in the patched app on an emulator and checks that the page
-// patches work on the feed and on an answer page. Run after check_quora_version.py --install, with a
+// patches work on the feed and on an answer page. Run after check_app.py quora --install, with a
 // bundle whose page scripts turn WebView debugging on (the feed test workflow builds one).
 //
 // Usage: QUORA_TEST_EMAIL=… QUORA_TEST_PASSWORD=… node .github/scripts/feed-test.mjs
@@ -11,7 +11,7 @@
 // than a password: a captcha or a code); 1 a check failed; 2 the app or its pages couldn't be reached.
 // The account's email and password are never printed.
 import { execFileSync } from 'node:child_process';
-import { writeFileSync } from 'node:fs';
+import { appendFileSync, readdirSync, readFileSync, writeFileSync } from 'node:fs';
 
 const ADB = process.env.ADB || 'adb';
 const PACKAGE = process.env.QUORA_PACKAGE || 'com.quora.android';
@@ -284,6 +284,42 @@ const ANSWER_CHECKS = `(async function(){
     out.addressInData=found;}
   return out;})()`;
 
+// Quora's class names the patches rely on, from the extension's sources: every dom_annotate_* and
+// puppeteer_test_* name (or the start of one, as in [class*="dom_annotate_multifeed_bundle_"]).
+// The ones PageCheck.java uses are on every feed or answer page, so missing one fails the test.
+// The others (ads, suggestions and the like) aren't on every feed: they are only listed.
+const EXTENSION = 'extensions/quora/src/main/java/app/jofslash/extension/quora';
+const CLASS_NAME = /(dom_annotate_[A-Za-z0-9_]+|puppeteer_test_[A-Za-z0-9_]+)/g;
+function quoraClasses() {
+  const used = new Map();
+  let required = new Set();
+  for (const file of readdirSync(EXTENSION).filter((f) => f.endsWith('.java'))) {
+    const names = new Set(readFileSync(`${EXTENSION}/${file}`, 'utf8').match(CLASS_NAME) || []);
+    for (const name of names) used.set(name, [...(used.get(name) || []), file.replace('.java', '')]);
+    if (file === 'PageCheck.java') required = names;
+  }
+  return { used, required };
+}
+const countClasses = (names) => `(function(){var out={};${JSON.stringify(names)}.forEach(function(n){
+  out[n]=document.querySelectorAll('[class*="'+n+'"]').length;});return out;})()`;
+
+/** Writes the table of class names seen on the feed and the answer page to the job summary. */
+function classSummary(used, feed, answer) {
+  const rows = [...used.keys()].sort().map((name) => {
+    const f = feed ? feed[name] ?? '?' : '?';
+    const a = answer ? answer[name] ?? '?' : '?';
+    const seen = (f !== '?' && f > 0) || (a !== '?' && a > 0);
+    return `| ${seen ? '' : '⚠️ '}\`${name}\` | ${f} | ${a} | ${used.get(name).join(', ')} |`;
+  });
+  const text = ['### Quora class names the patches use', '',
+    'Counted on the feed and on the answer page the test opened. A name not seen here may only be missing '
+    + 'from this feed (ads and suggestions don\'t show every time); when it stays missing over several runs, '
+    + 'Quora has probably renamed it: see filters/README.md.', '',
+    '| Class name | Feed | Answer | Used in |', '| --- | --- | --- | --- |', ...rows, ''].join('\n');
+  if (process.env.GITHUB_STEP_SUMMARY) appendFileSync(process.env.GITHUB_STEP_SUMMARY, `${text}\n`);
+  else console.log(text);
+}
+
 /** The screen position of the biggest WebView, from uiautomator. */
 function webViewBounds() {
   adb('shell', 'uiautomator', 'dump', '/sdcard/window.xml');
@@ -373,6 +409,9 @@ async function main() {
     return 2;
   }
   console.log('Feed:', JSON.stringify(result));
+  const { used, required } = quoraClasses();
+  const feedClasses = await evaluate(feed.page, countClasses([...used.keys()]));
+  let answerClasses = null;
 
   const failures = [];
   const expect = (ok, msg) => { if (!ok) failures.push(msg); };
@@ -409,6 +448,7 @@ async function main() {
   }
   if (opened) {
     const checks = await evaluate(opened.page, ANSWER_CHECKS);
+    answerClasses = await evaluate(opened.page, countClasses([...used.keys()]));
     console.log('Answer page:', JSON.stringify(checks));
     expect(checks && checks.bookmarkButton > 0, 'No bookmark button on the answer page (Bookmarks).');
     expect(checks && checks.copyButtons > 0, 'No Copy button on the answer page.');
@@ -417,6 +457,14 @@ async function main() {
     // A failure, not a skip: otherwise the answer patches are never checked and the test still passes.
     for (const line of tried) console.log(`  ${line}`);
     expect(false, 'No answer opened from the feed, so the answer page wasn\'t checked (the taps are listed above).');
+  }
+
+  classSummary(used, feedClasses, answerClasses);
+  const unseen = [...used.keys()].filter((n) => !((feedClasses || {})[n] > 0) && !((answerClasses || {})[n] > 0));
+  if (unseen.length) console.log(`Not seen on this feed or answer: ${unseen.join(', ')}`);
+  for (const name of required) {
+    expect(!unseen.includes(name), `Quora's class ${name} is on neither the feed nor the answer page, so `
+      + `these may not work: ${used.get(name).join(', ')} (see the job summary).`);
   }
 
   if (failures.length) {

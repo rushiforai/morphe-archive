@@ -9,14 +9,13 @@ bundle is replaced as soon as a new one is out.
 
 Please don't open a public issue. Report it privately through
 [GitHub's vulnerability reporting](https://github.com/JoFSlash/morphe-patches/security/advisories/new)
-with what you found, how to reproduce it, and the versions of the app (Quora, Booking.com or Google
-Health), the patches and Morphe Manager.
+with what you found, how to reproduce it, and the versions of the app, the patches and Morphe Manager.
 You'll get an answer within a week, and a fix goes out as an urgent release instead of waiting for
 the weekly one.
 
 ## What counts
 
-In scope is the code this repository adds to the Quora, Booking.com and Google Health apps:
+In scope is the code this repository adds to the apps it patches (the list is in the [README](README.md)):
 
 - the extension code in `extensions/`, for example the bridge Quora's page scripts use to talk to
   the app, the settings backup and restore, saving images and opening links, Booking.com's price
@@ -24,7 +23,7 @@ In scope is the code this repository adds to the Quora, Booking.com and Google H
 - the scripts and styles the page patches inject into Quora's pages,
 - the build and release workflows, and the signing of the published bundle.
 
-Out of scope are problems in Quora's, Booking.com's or Google Health's own apps or websites, in Morphe Manager or the Morphe CLI, and in
+Out of scope are problems in the patched apps themselves or their websites, in Morphe Manager or the Morphe CLI, and in
 MicroG-RE. Please report those to their own projects.
 
 ## Checking a release

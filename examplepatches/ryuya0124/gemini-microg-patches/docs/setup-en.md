@@ -20,7 +20,7 @@ No root operation or de-Googled ROM is required by the install procedure. The Is
 
 ## Morphe Manager configuration
 
-Use **v0.3.5 or newer** with the matching original APKs. This includes compatibility with optional update blocking, the Google startup fix from v0.3.3 and an explanation of the initial account permissions. Manager 2.5.0 / Patcher 2.3.0 generation and Android12 runtime were checked directly; the local pipeline also uses Morphe Desktop 1.15.0 / Patcher 1.12.0. See the [Manager regression](testing/issue-8-manager-registers.md). The official patches bundle is not needed for normal patching; 1.41.0 was used for Desktop compatibility tests and 2.2.0 in Android Manager.
+Use **v0.3.5 or newer** with the matching original APKs. This includes compatibility with optional update blocking, the Google startup fix from v0.3.3 and an explanation of the initial account permissions. Manager 2.5.0 / Patcher 2.3.0 generation and Android12 runtime were checked directly for v0.3.5. The bundle is now built for Morphe Patcher 2.5.0 (Manager 2.7.1, Desktop 2.3.0); see the [Patcher 2.5 migration](testing/issue-9-patcher-2.5.md). See the [Manager regression](testing/issue-8-manager-registers.md). The official patches bundle is not needed for normal patching; 1.41.0 was used for Desktop compatibility tests and 2.2.0 in Android Manager.
 
 For **both** Google and Gemini:
 

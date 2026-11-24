@@ -31,4 +31,18 @@ object Constants {
             AppTarget(version = null, isExperimental = true),
         )
     )
+
+    val COMPATIBILITY_SPOTIFY = Compatibility(
+        name = "Spotify",
+        packageName = "com.spotify.music",
+        // Play Store split install (base + config splits), merged by Morphe Manager.
+        apkFileType = ApkFileType.APKM,
+        appIconColor = 0x1DB954,
+        targets = listOf(
+            // Developed and verified against this version.
+            AppTarget(version = "9.2.0.2053"),
+            // Class names are obfuscated, but the fingerprints key on string literals and androidx calls; may survive other versions.
+            AppTarget(version = null, isExperimental = true),
+        )
+    )
 }

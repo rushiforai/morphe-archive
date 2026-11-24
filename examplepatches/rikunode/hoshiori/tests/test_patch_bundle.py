@@ -31,8 +31,8 @@ class MppTests(unittest.TestCase):
     def test_metadata(self):
         meta = json.loads((ROOT/"patches-list.json").read_text(encoding="utf-8"))
         self.assertEqual(meta["version"], VERSION)
-        self.assertEqual(len(meta["patches"]), 5)
-        self.assertEqual({p["name"] for p in meta["patches"]}, {"Hide native PR entries from article feeds", "Clone Hatena Bookmark for safe side-by-side testing", "Hide weekly bookmark ranking announcement", "Block ads in in-app article browser", "Preserve article WebView cookies and storage"})
+        self.assertEqual(len(meta["patches"]), 6)
+        self.assertEqual({p["name"] for p in meta["patches"]}, {"Hide native PR entries from article feeds", "Clone Hatena Bookmark for safe side-by-side testing", "Hide weekly bookmark ranking announcement", "Block ads in in-app article browser", "Preserve article WebView cookies and storage", "Open article from bookmark card"})
         patch = next(p for p in meta["patches"] if p["name"] == "Hide native PR entries from article feeds")
         packages = patch["compatiblePackages"]
         self.assertEqual(len(packages), 1)

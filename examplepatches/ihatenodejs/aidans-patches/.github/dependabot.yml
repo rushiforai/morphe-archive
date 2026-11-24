@@ -10,6 +10,10 @@ updates:
       github-actions:
         patterns: ['*']
         update-types: ['minor', 'patch']
+    ignore:
+      # Coupled to extensions/nhl-adblock-native/rust-toolchain.toml and
+      # updated by `bun run deps:update` (scripts/dependencies/apply.ts).
+      - dependency-name: "dtolnay/rust-toolchain"
 
   # Bun drives CI (`bun install --frozen-lockfile`). The npm-based release
   # workflow resolves package-lock.json at release time.

@@ -133,6 +133,7 @@ public class SettingsStatus {
     public static boolean messageSearchRebuildEnabled = false;
     public static boolean pinMoreChatsEnabled = false;
     public static boolean messageTimesEnabled = false;
+    public static boolean keepChatPlaceEnabled = false;
     public static boolean videoFitEnabled = false;
     public static boolean refreshRateEnabled = false;
     public static boolean cameraBrightnessEnabled = false;
@@ -243,6 +244,18 @@ public class SettingsStatus {
 
     public static void enableFeedFilter() {
         feedFilterEnabled = true;
+    }
+
+    /**
+     * Feed filter hooked TikTok past the feed's items: search results and tabs, the Friends and
+     * Following feeds, the offline videos list, the filtered count, and what's drawn around a
+     * video (the search strip, the playlist bar, the event badge). TikTok Lite's Feed filter
+     * (#48) only filters the feed's items, so its pages leave those rows out.
+     */
+    public static boolean fullFeedFilterEnabled = false;
+
+    public static void enableFullFeedFilter() {
+        fullFeedFilterEnabled = true;
     }
 
     public static void enableLiveFeedFilter() {
@@ -554,6 +567,13 @@ public class SettingsStatus {
         alwaysShowPublishDateEnabled = true;
     }
 
+    /** Always show publish date hooked TikTok's profile grids. TikTok Lite's are its own (#502). */
+    public static boolean publishDateGridsEnabled = false;
+
+    public static void enablePublishDateGrids() {
+        publishDateGridsEnabled = true;
+    }
+
     public static void enableDiagnostics() {
         diagnosticsEnabled = true;
     }
@@ -572,6 +592,16 @@ public class SettingsStatus {
 
     public static void enableAuthorRegion() {
         authorRegionEnabled = true;
+    }
+
+    /**
+     * Show author region decorates TikTok's own row and caption. TikTok Lite (#502) only adds the
+     * country after the date, so the caption line and handle options stay off its page.
+     */
+    public static boolean authorRegionFullRowEnabled = false;
+
+    public static void enableAuthorRegionFullRow() {
+        authorRegionFullRowEnabled = true;
     }
 
     public static void enableBlockAuthor() {
@@ -676,6 +706,11 @@ public class SettingsStatus {
         messageTimesEnabled = true;
     }
 
+    /** The chat list's move to its newest message was found and hooked (#503). */
+    public static void enableKeepChatPlace() {
+        keepChatPlaceEnabled = true;
+    }
+
     public static void enableCommentTools() {
         commentToolsEnabled = true;
     }
@@ -698,6 +733,20 @@ public class SettingsStatus {
 
     public static void enableGhostMode() {
         ghostModeEnabled = true;
+    }
+
+    /** Ghost mode held LIVE room enters (#420). TikTok Lite has no LIVE room to hold them in. */
+    public static boolean ghostModeLiveViewsEnabled = false;
+
+    public static void enableGhostModeLiveViews() {
+        ghostModeLiveViewsEnabled = true;
+    }
+
+    /** Ghost mode answers likes on the phone. TikTok Lite has no network lancet to answer them in. */
+    public static boolean ghostModeLocalLikesEnabled = false;
+
+    public static void enableGhostModeLocalLikes() {
+        ghostModeLocalLikesEnabled = true;
     }
 
     public static void enableDisableTelemetry() {

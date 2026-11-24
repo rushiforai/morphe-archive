@@ -8,7 +8,7 @@ import com.android.tools.smali.dexlib2.iface.reference.StringReference;
 import com.android.tools.smali.dexlib2.immutable.reference.ImmutableStringReference;
 import java.util.*;
 
-/** NuvioTV 1.1.0 native updater: same-width constants only; coroutine/installer code stays native. */
+/** NuvioTV 1.1.1 native updater: same-width constants only; coroutine/installer code stays native. */
 public final class NuvioApkUpdates {
     static final String JOB = "Lcom/nuvio/tv/updater/UpdateJobService;";
     public static final List<String> TYPES = List.of("Llb/j0;", "Llb/q0;", "Llb/m0;", "Llb/k;", "Llb/q;", JOB);
@@ -27,13 +27,13 @@ public final class NuvioApkUpdates {
     }
     static final List<Contract> CONTRACTS = List.of(
         new Contract("Llb/j0;", "a", "e94296c134810c7c31a065c43c2ac3396e3032427cd6bcf875402ae22342b897", 0),
-        new Contract("Llb/q0;", "a", "837da4364d647a5ddbd2abd17f269ec99d850192cd2946a763c80cff6fad10ee", 1),
-        new Contract("Llb/q0;", "b", "d89765688c69e921808e4f5bb15416f2273b8692e26be865d66bde113e680d68", 1),
-        new Contract("Llb/m0;", "invokeSuspend", "65d7f3eae8875858363ba5a206876cf87c7b259ae4dc0cebc1514b041342c296", 1),
-        new Contract("Llb/k;", "a", "5a7d2cb56a7cbe428b9ccc65fc9e7347bd5aa608550e38842ae3e6d27e3d8e40", 1),
-        new Contract("Llb/q;", "a", "f20c724f43c8b7415b17aadf4440f38850467f063709e68b503c2f9575abf107", 1),
-        new Contract("Llb/q;", "d", "1c1f64a2f2596471cd12f39fa3eaf7a25b552b9f674d1334f18fab0aa6bfd60b", 1),
-        new Contract(JOB, "a", "75ff81e338c62abded4f3c1629a66e0504bf43c6f06728f54760cc761046b5db", 1));
+        new Contract("Llb/q0;", "a", "deb7b51a09656d29fb4db753f2e42f23b74b576f1b8a8ec7d34b58994f84f1b7", 1),
+        new Contract("Llb/q0;", "b", "788cc681e3dc230c66869681503a5f0ede30fc4ae46f3091c2e76607dc763518", 1),
+        new Contract("Llb/m0;", "invokeSuspend", "b7abe79091a01e07eb218d85f4fe24e041ce16894debdf0fae026b9cd3fb9ab9", 1),
+        new Contract("Llb/k;", "a", "f43f5e7852d380920f517fc1494eee48248a83f7ab18ab558f86d63b14590ace", 1),
+        new Contract("Llb/q;", "a", "351e33178447034aede40e09e856a8e92e4357e32974d670d47e7c36e22864ae", 1),
+        new Contract("Llb/q;", "d", "8e03c19ad5ab422492cc190ad665b2922441a8808b7a18a0bce99056ea4c1fdc", 1),
+        new Contract(JOB, "a", "d1215c1181edde6d7f4979f51cd92354808c0d7701884361b6f84c5da17fd314", 1));
 
     public static boolean validVersion(String value) {
         return value.matches("(0|[1-9][0-9]{0,8})\\.(0|[1-9][0-9]{0,8})\\.(0|[1-9][0-9]{0,8})(?:-[0-9A-Za-z-]+(?:\\.[0-9A-Za-z-]+)*)?");

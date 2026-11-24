@@ -1,9 +1,13 @@
+/*
+ * Copyright 2026 amfakh
+ * SPDX-License-Identifier: GPL-3.0-only
+ */
+
 package app.fakh.extension.jira;
 
 import android.app.Application;
 import android.content.Context;
 import android.content.Intent;
-import android.content.SharedPreferences;
 import android.content.res.Configuration;
 import android.os.Build;
 import android.os.Process;
@@ -11,6 +15,7 @@ import android.os.Process;
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
+import app.fakh.extension.shared.Features;
 import app.fakh.extension.shared.AppRuntime;
 import app.fakh.extension.shared.AtlassianColors;
 
@@ -21,24 +26,15 @@ import app.fakh.extension.shared.AtlassianColors;
  */
 @SuppressWarnings("unused")
 public final class MaterialYou {
-    /** The settings file that holds the Fakh Patches switches. */
-    private static final String PREFS = "fakh_patches";
-    /** Switch keys: Material You is on unless turned off, pitch black off unless turned on. */
+    /** The keys of the Fakh Patches switches. */
     private static final String MATERIAL_YOU = "fakh_material_you";
     private static final String PITCH_BLACK = "fakh_pitch_black";
     private static final String HIDE_ROVO = "fakh_hide_rovo";
-    /** Pref key, label and default of each Fakh Patches switch, by the number its row is made with. */
-    static final String[] KEYS = {MATERIAL_YOU, PITCH_BLACK, HIDE_ROVO, "fakh_hide_tab_labels", "fakh_glass_navbar",
-            "fakh_liquid_glass",
-            "fakh_tab_Spaces", "fakh_tab_All work", "fakh_tab_Dashboards", "fakh_tab_Notifications"};
-    static final String[] LABELS = {"Material You", "Pitch black", "Hide Rovo", "Hide tab labels", "Liquid Glass navigation bar",
-            "Background blur",
-            "Spaces", "All work", "Dashboards", "Notifications"};
-    /** The line under a switch's label, for the switches whose label does not say what they cost. */
-    static final String[] SUBTITLES = {null, null, null, null, null,
-            "Blurs what's behind the glass. Uses more battery and might stutter.",
-            null, null, null, null};
-    static final boolean[] DEFAULTS = {true, false, true, false, true, false, true, true, true, true};
+    private static final String HIDE_TAB_LABELS = "fakh_hide_tab_labels";
+    private static final String GLASS_NAVBAR = "fakh_glass_navbar";
+    private static final String LIQUID_GLASS = "fakh_liquid_glass";
+    /** The section of the bottom bar's tab switches, which the page shows as one row that opens a picker sheet. */
+    static final String TABS_SECTION = "Navigation bar tabs";
 
     /** The darkest page background (0xRRGGBB), the canvas behind cards, which pitch black turns black. */
     private static final int DARK_CANVAS = 0x111213;
@@ -109,28 +105,17 @@ public final class MaterialYou {
         return (int) (paletteColor(pack(app.fakh.extension.shared.MaterialYou.night(context) ? 0xFF000000 | DARK_CARD : 0xFFFFFFFF)) >>> 32);
     }
 
-    /** Whether the Material You patch is in; the patch makes this return true. */
-    static boolean isMaterialYouIncluded() {
-        return false;
-    }
-
     /**
      * Whether Material You is patched in and its switch is on. Read when the palettes are built, so a change applies
      * after a restart. Without the patch the glass bar's pill stays neutral.
      */
     static boolean materialYou(Context context) {
-        return isMaterialYouIncluded() && prefs(context).getBoolean(MATERIAL_YOU, true);
+        return Features.on(MATERIAL_YOU);
     }
 
     /** Whether the pitch black switch is on. Read when the palettes are built, so a change applies after a restart. */
     private static boolean pitchBlack(Context context) {
-        return prefs(context).getBoolean(PITCH_BLACK, false);
-    }
-
-    static SharedPreferences prefs(Context context) {
-        return context.getApplicationContext() != null
-                ? context.getApplicationContext().getSharedPreferences(PREFS, Context.MODE_PRIVATE)
-                : context.getSharedPreferences(PREFS, Context.MODE_PRIVATE);
+        return Features.on(PITCH_BLACK);
     }
 
     /**
@@ -157,12 +142,7 @@ public final class MaterialYou {
 
     /** Whether the bottom bar hides the text under its icons. */
     static boolean hideTabLabels(Context context) {
-        return prefs(context).getBoolean(KEYS[3], false);
-    }
-
-    /** Whether the Glass navigation bar patch is in; the patch makes this return true. */
-    static boolean isGlassNavigationBarIncluded() {
-        return false;
+        return Features.on(HIDE_TAB_LABELS);
     }
 
     /**
@@ -172,24 +152,22 @@ public final class MaterialYou {
      * @return whether the bar is glass
      */
     public static boolean glassNavigationBar() {
-        Context context = AppRuntime.application();
-        return isGlassNavigationBarIncluded() && context != null && prefs(context).getBoolean(KEYS[4], true);
+        return Features.on(GLASS_NAVBAR);
     }
 
     /** Whether the glass bar blurs what's behind it. */
     static boolean liquidGlass(Context context) {
-        return prefs(context).getBoolean(KEYS[5], false);
+        return Features.on(LIQUID_GLASS);
     }
 
     /** Whether the bottom bar shows the tab with this label; tabs it has no switch for always show. */
     static boolean tabShown(Context context, CharSequence label) {
-        return label == null || prefs(context).getBoolean("fakh_tab_" + label, true);
+        return label == null || !Features.has("fakh_tab_" + label) || Features.on("fakh_tab_" + label);
     }
 
     /** Whether the Rovo button and icons are hidden. */
     public static boolean hideRovo() {
-        Context context = AppRuntime.application();
-        return context == null || prefs(context).getBoolean(HIDE_ROVO, true);
+        return Features.on(HIDE_ROVO);
     }
 
     /** The answers of the methods every object has, for proxies. */

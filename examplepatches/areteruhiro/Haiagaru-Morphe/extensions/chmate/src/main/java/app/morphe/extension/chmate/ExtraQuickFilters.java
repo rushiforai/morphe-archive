@@ -450,6 +450,11 @@ public final class ExtraQuickFilters {
             throw new IllegalStateException("Response adapter unavailable");
         FRAGMENTS.put(a,new WeakReference<>(fragment)); return a;
     }
+    static boolean filtering(Object fragment) throws Exception {
+        for (boolean selected : nativeSelected(adapter(fragment))) if (selected) return true;
+        return false;
+    }
+
     private static boolean[] nativeSelected(Object a) throws Exception {
         boolean[] result=new boolean[7]; Object m=model(a);
         if(legacy(a)) {

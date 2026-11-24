@@ -21,6 +21,31 @@ dependencies {
     patchListGeneratorClasspath(libs.gson)
 }
 
+// The patch version (gradle.properties, bumped by semantic-release before the build) is written into a Kotlin
+// constant, so the Morphe settings screen can show the version of the patches that built the app.
+val generatedVersionDir = layout.buildDirectory.dir("generated/patchVersion")
+val generatePatchVersion by tasks.registering {
+    val versionText = project.version.toString().takeUnless { it == "unspecified" } ?: ""
+    val outputDir = generatedVersionDir
+    inputs.property("version", versionText)
+    outputs.dir(outputDir)
+    doLast {
+        val file = outputDir.get().file("app/fblite/patches/shared/PatchVersion.kt").asFile
+        file.parentFile.mkdirs()
+        file.writeText(
+            "package app.fblite.patches.shared\n\n" +
+                "/** Generated from the Gradle version. Do not edit. */\n" +
+                "internal const val PATCH_VERSION = \"$versionText\"\n"
+        )
+    }
+}
+
+sourceSets["main"].java.srcDir(generatePatchVersion)
+
+tasks.configureEach {
+    if (name == "compileKotlin") dependsOn(generatePatchVersion)
+}
+
 tasks {
     register<JavaExec>("generatePatchesList") {
         description = "Build patch with patch list"

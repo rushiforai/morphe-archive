@@ -1,6 +1,6 @@
 <div align="center">
 
-![Repository Card](.github/assets/repo_card.png)
+![Repository Card](.github/assets/repo_banner.gif)
 
 <picture>
   <source media="(prefers-color-scheme: dark)" srcset="https://www.shieldcn.dev/github/release/vippium/brokenn-patches.svg?include_prereleases&amp;variant=ghost&amp;size=sm&amp;mode=dark&amp;font=jetbrains-mono&amp;logo=ri%3ATbBrandGithubFilled">
@@ -27,7 +27,7 @@
 ## <img src="https://cdn.simpleicons.org/android" height="20" /> Patches
 
 <!-- PATCHES_START EXPANDED -->
-> **[v1.4.1](https://github.com/vippium/brokenn-patches/releases/tag/v1.4.1)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;21 patches total
+> **[v1.5.0](https://github.com/vippium/brokenn-patches/releases/tag/v1.5.0)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;30 patches total
 <details open>
 <summary>📦 Office Reader&nbsp;&nbsp;•&nbsp;&nbsp;2 patches</summary>
 <br>
@@ -43,6 +43,37 @@
 |:----------|:----------------:|
 | [AMOLED theme](#amoled-theme) | Makes dark mode pure black for AMOLED screens. Light mode stays normal. | • AMOLED color<br>• Blacken Status Bar<br>• Blacken Navigation Bar<br>• Blacken Surfaces |
 | [Unlock premium](#unlock-premium) | Unlocks premium and removes Family-apps promos from the About screens. |  |
+
+</details>
+
+<details open>
+<summary>📦 JioHotstar&nbsp;&nbsp;•&nbsp;&nbsp;15 patches</summary>
+<br>
+
+**Package name:** `in.startv.hotstar`
+
+**🎯 Supported versions:**
+
+| 26.10.26.0 |
+| :---: |
+
+| Patch | Description |
+|:----------|:----------------:|
+| [Add Brokenn settings](#add-brokenn-settings) | Adds a hidden settings page, opened by double-tapping the Profile tab button. |  |
+| [Bypass signature check](#bypass-signature-check) | Bypasses app signature verification to allow API access. |  |
+| [Disable notification permission prompt](#disable-notification-permission-prompt) | Disables the recurring notification permission nag shown every few app launches enabled from My Space. |  |
+| [Enable all codecs](#enable-all-codecs) | Unlocks H.265, VP9, AV1 and 4K playback on capable devices. |  |
+| [Enable screen mirroring](#enable-screen-mirroring) | Allows playback while screen mirroring or HDMI is connected. |  |
+| [Enable screenshots](#enable-screenshots) | Allows screenshots and screen recording, including during playback. Will not work on DRM-protected content (Widevine L1). |  |
+| [Feed filter](#feed-filter) | Removes selected home feed trays by title, configured in Brokenn settings |  |
+| [Force HDR10](#force-hdr10) | Enables HDR10 and HDR10+ playback on compatible devices. |  |
+| [Hide player buttons](#hide-player-buttons) | Hides selected buttons from the video player. |  |
+| [Hide watch page elements](#hide-watch-page-elements) | Hides selected tabs and sponsored elements from the watch page. |  |
+| [Monochrome icon support](#monochrome-icon-support) | Adds a themed-icon version of the launcher icon for Android 13+. |  |
+| [Premium unlock](#premium-unlock) | Unlocks premium UI features, removes subscription nudges, and enables downloads. |  |
+| [Remove ChatGPT AI assistant](#remove-chatgpt-ai-assistant) | Strips out the integrated ChatGPT AI module entirely. |  |
+| [Remove ads](#remove-ads) | Removes pre-roll, mid-roll, live-match and home-feed ads. |  |
+| [Remove top bar switcher](#remove-top-bar-switcher) | Removes the JioHotstar/Tadka switcher from the top of Home and snaps the header expand/collapse on tab switches. |  |
 
 </details>
 
@@ -69,30 +100,24 @@
 </details>
 
 <details open>
-<summary>📦 JioHotstar&nbsp;&nbsp;•&nbsp;&nbsp;12 patches</summary>
+<summary>📦 Picasso&nbsp;&nbsp;•&nbsp;&nbsp;6 patches</summary>
 <br>
 
-**Package name:** `in.startv.hotstar`
+**Package name:** `com.offshore.picasso`
 
 **🎯 Supported versions:**
 
-| 26.10.26.0 |
+| 10.14.5 |
 | :---: |
 
 | Patch | Description |
 |:----------|:----------------:|
-| [Bypass signature check](#bypass-signature-check) | Bypasses app signature verification to allow API access. |  |
-| [Enable all codecs](#enable-all-codecs) | Unlocks H.265, VP9, AV1 and 4K playback on capable devices. |  |
-| [Enable screen mirroring](#enable-screen-mirroring) | Allows playback while screen mirroring or HDMI is connected. |  |
-| [Enable screenshots](#enable-screenshots) | Allows screenshots and screen recording, including during playback. Will not work on DRM-protected content (Widevine L1). |  |
-| [Force HDR10](#force-hdr10) | Enables HDR10 and HDR10+ playback on compatible devices. |  |
-| [Hide player buttons](#hide-player-buttons) | Hides selected buttons from the fullscreen player's bottom bar. | • Hide Watch Next<br>• Hide Episodes<br>• Hide Shop<br>• Hide Speed<br>• Hide Rate<br>• Hide Next Episode |
-| [Hide watch page elements](#hide-watch-page-elements) | Hides watch page tabs (except Episodes) and the floating sponsored pill. | • Hide For You tab<br>• Hide Jeeto tab<br>• Hide Memes tab<br>• Hide Live Chat tab<br>• Hide brand tabs<br>• Hide sponsored pills |
-| [Monochrome icon support](#monochrome-icon-support) | Adds a themed-icon version of the launcher icon for Android 13+. |  |
-| [Premium unlock](#premium-unlock) | Unlocks premium UI features, removes subscription nudges, and enables downloads. |  |
-| [Remove ChatGPT Voice Assistant](#remove-chatgpt-voice-assistant) | Strips out the integrated ChatGPT voice assistant module entirely. |  |
-| [Remove ads](#remove-ads) | Removes pre-roll, mid-roll, live-match and home-feed ads. |  |
-| [Remove top bar switcher](#remove-top-bar-switcher) | Removes the JioHotstar/Tadka switcher from the top of Home and snaps the header expand/collapse on tab switches. |  |
+| [Bypass VPN check](#bypass-vpn-check) | Skips the network interface check that blocks the app on a VPN or proxy. |  |
+| [Disable analytics](#disable-analytics) | Turns off Firebase Analytics collection and Crashlytics reporting. |  |
+| [Disable update prompt](#disable-update-prompt) | Skips the launch version check that shows the update dialog. |  |
+| [Remove ads](#remove-ads) | Removes banner, native, interstitial and rewarded ads. |  |
+| [Remove unused permissions](#remove-unused-permissions) | Removes phone state, advertising id, install referrer and badge permissions. |  |
+| [Skip login](#skip-login) | Treats the app as signed in and never shows the login screen. |  |
 
 </details>
 

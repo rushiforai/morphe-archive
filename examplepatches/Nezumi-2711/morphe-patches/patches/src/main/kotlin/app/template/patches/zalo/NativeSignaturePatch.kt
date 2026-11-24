@@ -70,7 +70,7 @@ private fun findSignerFailureOffset(bytes: ByteArray): Int {
 val nativeSignaturePatch = rawResourcePatch(
     name = "Native signature fix",
     description = "Allow Zalo 26.11.01 ARM64 to start after patching and re-signing. ARMv7 is not supported.",
-    default = false,
+    default = true,
 ) {
     compatibleWith(Compatibility(
         name = "Zalo",

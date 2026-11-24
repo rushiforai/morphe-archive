@@ -11,6 +11,9 @@ private const val STYLE = "Lapp/zonghome/extension/NavigationStyle;"
 internal val navigationStyleHook = bytecodePatch {
     dependsOn(sharedExtensionPatch)
     execute {
+        Fingerprint(definingClass="Lcom/zong/customercare/view/ui/FragHome;",name="onViewCreated",
+            returnType="V",parameters=listOf("Landroid/view/View;","Landroid/os/Bundle;"))
+            .method.addInstruction(0,"invoke-static/range {p1 .. p1}, Lapp/zonghome/extension/HomeControls;->prepare(Landroid/view/View;)V")
         val method = Fingerprint(
             definingClass = "Lcom/zong/customercare/HomeActivity;", name = "onCreate",
             returnType = "V", parameters = listOf("Landroid/os/Bundle;")
@@ -25,11 +28,13 @@ internal val navigationStyleHook = bytecodePatch {
 }
 
 private fun styleSwitch(title: String, detail: String, config: String, enabledByDefault: Boolean = true) = bytecodePatch(
-    name = title, description = detail, default = enabledByDefault
+    name = if (config == "coloredAllowances") title else null, description = detail, default = enabledByDefault
 ) {
+    category("Appearance")
     compatibleWith(myZongCompatibility)
     dependsOn(navigationStyleHook)
     execute {
+        if (config != "coloredAllowances" && !CustomizationSettings.enabled(config)) return@execute
         Fingerprint(definingClass = STYLE, name = config, returnType = "Z", parameters = emptyList())
             .method.addInstructions(0, "const/4 v0, 0x1\nreturn v0")
     }
@@ -41,27 +46,20 @@ val iconOnlyBottomNavigationPatch = styleSwitch(
 val materialAllowanceIconsPatch = styleSwitch(
     "Material allowance icons", "Use Material accent colors on Home and Usage allowance icons.", "coloredAllowances"
 )
-val customizeHeaderPatch = bytecodePatch(
-    name = "Customize header", description = "Choose header items to hide.", default = true
-) {
-    compatibleWith(myZongCompatibility)
+val customizeHeaderPatch = bytecodePatch {
     dependsOn(navigationStyleHook)
-    val choices = listOf("Notifications", "Menu", "Refresh", "Search", "Greeting")
-    val hidden by stringsOption(
-        key = "headerItemsToHide", title = "Header items to hide", default = choices,
-        description = "Available names: Notifications, Menu, Refresh, Search, Greeting. An empty list keeps all items.",
-        required = true, validator = { values -> values != null && values.all { it in choices } }
-    )
     execute {
-        val value = requireNotNull(hidden).distinct().joinToString("|")
+        val choices = mapOf("Notifications" to "hideNotifications", "Menu" to "hideMenu",
+            "Refresh" to "hideRefresh", "Search" to "hideSearch", "Greeting" to "hideGreeting")
+        val value = choices.filterValues { CustomizationSettings.enabled(it) }.keys.joinToString("|")
         Fingerprint(definingClass = STYLE, name = "hiddenHeaderItems", returnType = "Ljava/lang/String;", parameters = emptyList())
             .method.addInstructions(0, "const-string v0, \"$value\"\nreturn-object v0")
     }
 }
-
 val materialShapesPatch = bytecodePatch(
     name = "Material shapes", description = "Rounded Home and Usage cards, pill primary buttons and softer dialogs.", default = true
 ) {
+    category("Appearance")
     compatibleWith(myZongCompatibility)
     dependsOn(navigationStyleHook, dialogWindowThemePatch, rowStylingPatch)
     execute {
@@ -77,22 +75,24 @@ val homeHeaderTitlePatch = styleSwitch("Show Home header title", "Show Home when
 val homeBundlesShortcutPatch = styleSwitch("Home header Bundles shortcut", "Show a Bundles icon on Home when its bottom tab or the entire bottom bar is hidden.", "bundlesShortcut")
 val homeFreeMbsShortcutPatch = styleSwitch("Home header Free MBs shortcut", "Open daily rewards from a Home header icon.", "freeMbsShortcut", false)
 val hideHomeShortcutsCardPatch = bytecodePatch(
-    name = "Hide home shortcuts card", description = "Hide the entire Home shortcuts card.", default = false
+    name = null, description = "Hide the entire Home shortcuts card.", default = false
 ) {
     compatibleWith(myZongCompatibility)
     dependsOn(navigationStyleHook, initialHomeVisibility("hideShortcutCard"))
     execute {
+        if (!CustomizationSettings.enabled("hideShortcutCard")) return@execute
         Fingerprint(definingClass = STYLE, name = "hideShortcutCard", returnType = "Z", parameters = emptyList())
             .method.addInstructions(0, "const/4 v0, 0x1\nreturn v0")
     }
 }
 
 private fun homeControl(title: String, detail: String, config: String, selected: Boolean) = bytecodePatch(
-    name = title, description = detail, default = selected
+    name = null, description = detail, default = selected
 ) {
     compatibleWith(myZongCompatibility)
     dependsOn(navigationStyleHook, initialHomeVisibility(config))
     execute {
+        if (!CustomizationSettings.enabled(config)) return@execute
         Fingerprint(definingClass = STYLE, name = config, returnType = "Z", parameters = emptyList())
             .method.addInstructions(0, "const/4 v0, 0x1\nreturn v0")
     }

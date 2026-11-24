@@ -46,6 +46,8 @@ public final class MaterialShapes {
     private static String name(View view) { return ViewNames.name(view); }
     public static void apply(View root) {
         if (root.getVisibility() != View.VISIBLE) return;
+        if (OnboardingStyling.isRoot(root)) return;
+        if (BundleVisuals.isOfferList(root)) { BundleVisuals.stabilize(root); return; }
         style(root);
         if (root instanceof ViewGroup) {
             ViewGroup group = (ViewGroup) root;
@@ -218,7 +220,7 @@ public final class MaterialShapes {
             if (((Number)methods[2].invoke(view)).floatValue() != 0) methods[3].invoke(view, 0f);
         } catch (ReflectiveOperationException ignored) { }
     }
-    private static void buttonRadius(View view, int radius) {
+    static void buttonRadius(View view, int radius) {
         Class<?> type = view.getClass();
         java.lang.reflect.Method[] methods = BUTTON_METHODS.get(type);
         if (methods == null) {

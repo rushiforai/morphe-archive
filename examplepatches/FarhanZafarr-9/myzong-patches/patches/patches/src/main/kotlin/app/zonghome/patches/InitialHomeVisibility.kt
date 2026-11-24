@@ -5,6 +5,7 @@ import app.morphe.patcher.patch.rawResourcePatch
 /** Each existing optional hide patch supplies only its own inflation-time defaults. */
 internal fun initialHomeVisibility(hook:String)=rawResourcePatch {
     execute {
+        if (!CustomizationSettings.enabled(hook)) return@execute
         val names=when(hook) {
             "hideMatch" -> setOf("cardSports")
             "hidePrayers" -> setOf("cardRamadan")

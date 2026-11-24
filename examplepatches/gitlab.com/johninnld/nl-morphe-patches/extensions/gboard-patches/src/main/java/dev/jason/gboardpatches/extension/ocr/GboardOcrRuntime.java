@@ -250,7 +250,7 @@ public final class GboardOcrRuntime {
         try {
             Object previous = field.get(delegateReceiver);
             if (previous != null) {
-                Method release = delegateReceiver.getClass().getDeclaredMethod("b");
+                Method release = delegateReceiver.getClass().getDeclaredMethod("c");
                 release.setAccessible(true);
                 release.invoke(delegateReceiver);
             }
@@ -290,7 +290,7 @@ public final class GboardOcrRuntime {
         Method contextMethod = mlKitContextAccessorMethod;
         if (!isResolvedForClassLoader(singletonMethod, classLoader)
                 || !isResolvedForClassLoader(contextMethod, classLoader)) {
-            Class<?> mlKitContextClass = Class.forName("bcsy", false, classLoader);
+            Class<?> mlKitContextClass = Class.forName("azjo", false, classLoader);
             singletonMethod = mlKitContextClass.getDeclaredMethod("b");
             singletonMethod.setAccessible(true);
             contextMethod = mlKitContextClass.getDeclaredMethod("a");
@@ -309,7 +309,7 @@ public final class GboardOcrRuntime {
         }
         Method lookupMethod = moduleAvailabilityLookupMethod;
         if (!isResolvedForClassLoader(lookupMethod, classLoader)) {
-            Class<?> moduleAvailabilityClass = Class.forName("zkf", false, classLoader);
+            Class<?> moduleAvailabilityClass = Class.forName("yaz", false, classLoader);
             lookupMethod = moduleAvailabilityClass.getDeclaredMethod(
                     "a", Context.class, String.class);
             lookupMethod.setAccessible(true);
@@ -336,7 +336,7 @@ public final class GboardOcrRuntime {
         }
 
         if (!isResolvedForClassLoader(textRecognizerCreatorConstructor, classLoader)) {
-            Class<?> creatorClass = Class.forName("aatg", false, classLoader);
+            Class<?> creatorClass = Class.forName("bajh", false, classLoader);
             Constructor<?> constructor = creatorClass.getDeclaredConstructor(IBinder.class);
             constructor.setAccessible(true);
             textRecognizerCreatorConstructor = constructor;
@@ -357,7 +357,7 @@ public final class GboardOcrRuntime {
                 return null;
             }
             if (!isResolvedForClassLoader(textRecognizerConstructor, classLoader)) {
-                Class<?> recognizerClass = Class.forName("bcqz", false, classLoader);
+                Class<?> recognizerClass = Class.forName("bajg", false, classLoader);
                 Constructor<?> constructor = recognizerClass.getDeclaredConstructor(IBinder.class);
                 constructor.setAccessible(true);
                 textRecognizerConstructor = constructor;
@@ -370,9 +370,9 @@ public final class GboardOcrRuntime {
 
     private static Object createRemoteModuleLoader(ClassLoader classLoader, Context context,
             String moduleId) throws Throwable {
-        Class<?> moduleLoaderClass = Class.forName("zkf", false, classLoader);
+        Class<?> moduleLoaderClass = Class.forName("yaz", false, classLoader);
         if (!isResolvedForClassLoader(moduleLoaderFactoryMethod, classLoader)) {
-            Class<?> versionPolicyClass = Class.forName("zkd", false, classLoader);
+            Class<?> versionPolicyClass = Class.forName("yay", false, classLoader);
             Method method = moduleLoaderClass.getDeclaredMethod(
                     "d", Context.class, versionPolicyClass, String.class);
             method.setAccessible(true);
@@ -397,7 +397,7 @@ public final class GboardOcrRuntime {
 
     private static Object wrapContext(ClassLoader classLoader, Context context) throws Throwable {
         if (!isResolvedForClassLoader(contextWrapperConstructor, classLoader)) {
-            Class<?> contextWrapperClass = Class.forName("zjo", false, classLoader);
+            Class<?> contextWrapperClass = Class.forName("yak", false, classLoader);
             Constructor<?> constructor = contextWrapperClass.getDeclaredConstructor(Object.class);
             constructor.setAccessible(true);
             contextWrapperConstructor = constructor;
@@ -408,7 +408,7 @@ public final class GboardOcrRuntime {
     private static Object createThinPayload(ClassLoader classLoader, ThinPayloadSpec payloadSpec)
             throws Throwable {
         if (!isResolvedForClassLoader(payloadConstructor, classLoader)) {
-            Class<?> payloadClass = Class.forName("aatl", false, classLoader);
+            Class<?> payloadClass = Class.forName("bajq", false, classLoader);
             Constructor<?> constructor = payloadClass.getDeclaredConstructor(
                     String.class,
                     String.class,
@@ -439,15 +439,15 @@ public final class GboardOcrRuntime {
                 && isResolvedForClassLoader(writeParcelableMethod, classLoader)) {
             return;
         }
-        Class<?> creatorWrapperClass = Class.forName("aatg", false, classLoader);
-        Class<?> recognizerWrapperClass = Class.forName("bcqz", false, classLoader);
-        Class<?> parcelHelperClass = Class.forName("emv", false, classLoader);
+        Class<?> creatorWrapperClass = Class.forName("bajh", false, classLoader);
+        Class<?> recognizerWrapperClass = Class.forName("bajg", false, classLoader);
+        Class<?> parcelHelperClass = Class.forName("hrf", false, classLoader);
         parcelCreateMethod = findMethodInHierarchy(creatorWrapperClass, "a");
         parcelTransactMethod = findMethodInHierarchy(
-                creatorWrapperClass, "z", int.class, Parcel.class);
+                creatorWrapperClass, "J", int.class, Parcel.class);
         recognizerParcelCreateMethod = findMethodInHierarchy(recognizerWrapperClass, "a");
         recognizerReleaseMethod = findMethodInHierarchy(
-                recognizerWrapperClass, "C", int.class, Parcel.class);
+                recognizerWrapperClass, "K", int.class, Parcel.class);
         writeInterfaceMethod = parcelHelperClass.getDeclaredMethod(
                 "d", Parcel.class, android.os.IInterface.class);
         writeInterfaceMethod.setAccessible(true);
@@ -470,7 +470,7 @@ public final class GboardOcrRuntime {
             Parcel request = (Parcel) create.invoke(recognizer);
             release.invoke(recognizer, Integer.valueOf(2), request);
         } catch (Throwable ignored) {
-            // The formal zqb#b() cleanup is best effort as well.
+            // Stock bajx#c() cleanup is best effort as well.
         }
     }
 
@@ -488,10 +488,10 @@ public final class GboardOcrRuntime {
         if (fallbackClassLoader == null) {
             return null;
         }
-        // The optional-module spec class is renamed between Gboard builds: 18.5.x calls it lrf,
-        // 18.6.3 calls it kzf. Both can exist, so pick the one that really carries the
-        // (String, int, long, boolean) constructor instead of trusting a name.
-        for (String name : new String[]{"kzf", "lrf"}) {
+        // The optional-module spec class (Feature) is xli in 18.8 (kzf in 18.6.3, lrf in 18.5.x).
+        // Check that it really carries the (String, int, long, boolean) constructor instead of
+        // trusting the name.
+        for (String name : new String[]{"xli"}) {
             try {
                 Class<?> candidate = Class.forName(name, false, fallbackClassLoader);
                 candidate.getDeclaredConstructor(String.class, int.class, long.class, boolean.class);

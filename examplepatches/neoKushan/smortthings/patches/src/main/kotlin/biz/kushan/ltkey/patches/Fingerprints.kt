@@ -5,7 +5,7 @@ import com.android.tools.smali.dexlib2.AccessFlags
 
 /**
  * `EditDeviceActivity.onCreate(Bundle)` — our single injection site. The package
- * `com.samsung.android.oneconnect.editdevice.view` is not obfuscated in 1.8.52.23, so the full
+ * `com.samsung.android.oneconnect.editdevice.view` is not obfuscated in 1.8.52.23 / 1.8.54.23, so
  * class matches directly. If a future build renames/moves it, this fingerprint fails cleanly and
  * the patch simply does not apply (no mis-patch).
  */
@@ -18,7 +18,7 @@ object EditDeviceOnCreateFingerprint : Fingerprint(
 )
 
 /**
- * `mm.e.g()` in 1.8.52.23 — the app's "is this a Samsung device" gate
+ * `mm.e.g()` in 1.8.52.23 and 1.8.54.23 — the app's "is this a Samsung device" gate
  * (`"samsung".equals(Build.MANUFACTURER) && !MODEL.contains("Nexus")`, cached in a static int).
  * Every sign-in site branches on it: true → the on-device Samsung Account path (which validates the
  * APK signature and so fails for a re-signed app), false → the "Ged" web-OAuth path that works on

@@ -13,10 +13,10 @@ import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
-import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.content.res.ColorStateList;
 import android.content.res.Configuration;
+import android.content.res.Resources;
 import android.database.Cursor;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
@@ -108,8 +108,6 @@ public final class GboardPatchesSettingsActivity extends Activity
     private static final String ENTER_PREF_HEADER_EXTRA = "ENTER_PREF_HEADER";
     private static final String GBOARD_SETTINGS_ACTIVITY_CLASS =
             "com.google.android.apps.inputmethod.latin.preference.SettingsActivity";
-    private static final String SUPPORTED_DEVELOPER_OPTIONS_TARGET_VERSION =
-            "18.5.4.993608717-release-arm64-v8a";
     private static final String GBOARD_PACKAGE_STABLE =
             "com.google.android.inputmethod.latin";
     private static final String GBOARD_PACKAGE_JASON_DEV =
@@ -402,30 +400,31 @@ public final class GboardPatchesSettingsActivity extends Activity
         if (headerKeyResourceId == 0) {
             return;
         }
+        // The extension always runs inside the patched Gboard (whatever its package name after
+        // Change package name), so the current package is the target. The header key is the
+        // string resource Gboard's SettingsActivity matches ENTER_PREF_HEADER against.
         String currentPackage = getPackageName();
-        if (!isSupportedTargetPackage(currentPackage)) {
-            showUnsupportedDeveloperOptionsPackageDialog(currentPackage, headerKeyResourceId);
-            return;
+        try {
+            if (!isTargetHeaderKey(headerKeyResourceId)
+                    || !tryLaunchTargetSettingsHeader(currentPackage, headerKeyResourceId)) {
+                showDeveloperOptionsLaunchFailure(currentPackage);
+            }
+        } catch (Throwable throwable) {
+            Log.w(TAG, "Unable to open Gboard settings header " + headerKeyResourceId, throwable);
+            showDeveloperOptionsLaunchFailure(currentPackage);
         }
-        if (tryLaunchTargetSettingsHeader(currentPackage, headerKeyResourceId, false)) {
-            return;
+    }
+
+    private boolean isTargetHeaderKey(int headerKeyResourceId) {
+        try {
+            return "string".equals(getResources().getResourceTypeName(headerKeyResourceId))
+                    && !TextUtils.isEmpty(getString(headerKeyResourceId));
+        } catch (Resources.NotFoundException exception) {
+            return false;
         }
-        throw new ActivityNotFoundException(
-                "No supported Gboard Developer options entry is available");
     }
 
     private boolean tryLaunchTargetSettingsHeader(String packageName, int headerKeyResourceId) {
-        return tryLaunchTargetSettingsHeader(packageName, headerKeyResourceId, false);
-    }
-
-    private boolean tryLaunchTargetSettingsHeader(String packageName, int headerKeyResourceId,
-            boolean allowUnknownVersion) {
-        String targetVersionName = targetPackageVersionName(packageName);
-        if (!allowUnknownVersion
-                && !isSupportedDeveloperOptionsTargetVersion(targetVersionName)) {
-            return false;
-        }
-
         Intent intent = new Intent();
         intent.setComponent(new ComponentName(packageName, GBOARD_SETTINGS_ACTIVITY_CLASS));
         intent.putExtra(ENTER_PREF_HEADER_EXTRA, headerKeyResourceId);
@@ -434,46 +433,6 @@ public final class GboardPatchesSettingsActivity extends Activity
             return true;
         } catch (ActivityNotFoundException | SecurityException exception) {
             return false;
-        }
-    }
-
-    private void showUnsupportedDeveloperOptionsPackageDialog(String packageName,
-            int headerKeyResourceId) {
-        String safePackageName = packageName == null ? "" : packageName;
-        AlertDialog dialog = new AlertDialog.Builder(this)
-                .setTitle(GboardSettingsText.get(
-                        this, R.string.gboard_patches_developer_options_package_warning_title))
-                .setMessage(GboardSettingsText.format(
-                        this,
-                        R.string.gboard_patches_developer_options_package_warning_message,
-                        safePackageName))
-                .setNegativeButton(GboardSettingsText.get(this, R.string.gboard_patches_dialog_close), null)
-                .setPositiveButton(GboardSettingsText.get(
-                        this, R.string.gboard_patches_developer_options_try_anyway),
-                        (ignored, which) -> tryLaunchUnverifiedDeveloperOptions(
-                                safePackageName,
-                                headerKeyResourceId))
-                .create();
-        dialog.setOnDismissListener(ignored -> onManagedDialogDismissed());
-        try {
-            dialog.show();
-            onManagedDialogShown();
-            tintDialogButtons(dialog);
-        } catch (Throwable throwable) {
-            Log.w(TAG, "Unable to show unsupported Gboard package warning", throwable);
-            showDeveloperOptionsLaunchFailure(safePackageName);
-        }
-    }
-
-    private void tryLaunchUnverifiedDeveloperOptions(String packageName,
-            int headerKeyResourceId) {
-        try {
-            if (!tryLaunchTargetSettingsHeader(packageName, headerKeyResourceId, true)) {
-                showDeveloperOptionsLaunchFailure(packageName);
-            }
-        } catch (Throwable throwable) {
-            Log.w(TAG, "Unable to open Developer options for " + packageName, throwable);
-            showDeveloperOptionsLaunchFailure(packageName);
         }
     }
 
@@ -488,15 +447,6 @@ public final class GboardPatchesSettingsActivity extends Activity
                 .show();
     }
 
-    private String targetPackageVersionName(String packageName) {
-        try {
-            PackageInfo packageInfo = getPackageManager().getPackageInfo(packageName, 0);
-            return packageInfo.versionName;
-        } catch (PackageManager.NameNotFoundException | SecurityException exception) {
-            return null;
-        }
-    }
-
     private List<String> targetSettingsPackages() {
         Set<String> packageNames = new LinkedHashSet<String>();
         String currentPackage = getPackageName();
@@ -507,16 +457,6 @@ public final class GboardPatchesSettingsActivity extends Activity
         packageNames.add(GBOARD_PACKAGE_JASON_DEV);
         packageNames.add(GBOARD_PACKAGE_REVERSED_DEV);
         return new ArrayList<String>(packageNames);
-    }
-
-    static boolean isSupportedDeveloperOptionsTargetVersion(String versionName) {
-        return SUPPORTED_DEVELOPER_OPTIONS_TARGET_VERSION.equals(versionName);
-    }
-
-    private static boolean isSupportedTargetPackage(String packageName) {
-        return GBOARD_PACKAGE_STABLE.equals(packageName)
-                || GBOARD_PACKAGE_JASON_DEV.equals(packageName)
-                || GBOARD_PACKAGE_REVERSED_DEV.equals(packageName);
     }
 
     @Override

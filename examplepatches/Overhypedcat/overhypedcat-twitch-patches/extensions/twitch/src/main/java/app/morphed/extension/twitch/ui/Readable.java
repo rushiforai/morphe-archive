@@ -15,7 +15,11 @@ public final class Readable {
     private static final Pattern LONG = Pattern.compile("[A-Za-z0-9_\\-=+/.%]{40,}");
     /** The ad blocker's check of each new piece of the playlist, every two seconds: routine while no ad is in it. */
     private static final Pattern POLL = Pattern.compile("^Playlist .*: sequence \\d+, \\d+ segments, 0 ads.*$");
-    private static final Pattern STATUS = Pattern.compile("^Status: threads=(\\d+), memory=(\\d+)/(\\d+)MB, (.*)$");
+    /** The status line, every ten seconds: in the window only when the phone is short of memory or slowed by heat. */
+    private static final Pattern STATUS = Pattern.compile("^Status: (.*)$");
+    private static final Pattern STRAINED = Pattern.compile("\\(LOW\\)|SEVERE|CRITICAL|EMERGENCY|SHUTDOWN|battery saver ON");
+    /** The video's summary, every ten seconds: in the file only (its stalls, freezes and drops are shown). */
+    private static final Pattern VIDEO_SUMMARY = Pattern.compile("^Video: .* fps shown.*$");
 
     private Readable() {
     }
@@ -44,7 +48,13 @@ public final class Readable {
         if (PLAYLIST.matcher(text).matches() || POLL.matcher(text).matches()) return null;
         Matcher status = STATUS.matcher(text);
         if (status.matches()) {
-            return "Running, " + status.group(2) + " of " + status.group(3) + " MB memory used, " + shorten(status.group(4));
+            return STRAINED.matcher(text).find() ? "Phone strained: " + shorten(status.group(1)) : null;
+        }
+        if (VIDEO_SUMMARY.matcher(text).matches()) return null;
+        // What the blocked main thread was busy in: its top three frames (the file has ten).
+        if (text.startsWith("Screen: ") && text.contains(" < ")) {
+            String[] frames = text.split(" < ");
+            if (frames.length > 3) text = frames[0] + " < " + frames[1] + " < " + frames[2] + " < …";
         }
         String plain = reword(text);
         return plain == null ? null : shorten(plain);

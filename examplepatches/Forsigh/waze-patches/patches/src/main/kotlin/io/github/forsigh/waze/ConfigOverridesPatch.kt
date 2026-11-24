@@ -106,6 +106,62 @@ val configOverridesPatch = bytecodePatch(
             }
             println("configOverridesPatch: ${natives.size} key(s) written to the native config store on every sync")
         }
+        val absoluteLongs = Overrides.nativeLongs.onlyDeclared("Lcom/waze/config/c;")
+        if (absoluteLongs.isNotEmpty()) {
+            val helperName = "uaNativeLongOverrides"
+            val manager = mutableClassDefBy(CONFIG_MANAGER)
+            if (manager.methods.any { it.name == helperName }) {
+                throw PatchException("configOverridesPatch: $helperName already exists")
+            }
+            val helper = MutableMethod(
+                ImmutableMethod(
+                    CONFIG_MANAGER, helperName, emptyList(), "V",
+                    AccessFlags.PUBLIC.value or AccessFlags.STATIC.value,
+                    emptySet(), emptySet(),
+                    ImmutableMethodImplementation(8, emptyList(), emptyList(), emptyList()),
+                ),
+            )
+            helper.addInstructions(0, nativeLongSyncBlock(absoluteLongs))
+            manager.methods.add(helper)
+            SYNC_HOOKS.forEach { (cls, method) ->
+                val hook = runCatching { mutableClassDefBy(cls) }.getOrNull()
+                    ?.methods?.firstOrNull { it.name == method }
+                    ?: throw PatchException(
+                        "configOverridesPatch: $cls.$method is missing, so the native long values " +
+                            "could not be re-applied after a server sync"
+                    )
+                hook.addInstructions(0, "invoke-static {}, $CONFIG_MANAGER->$helperName()V")
+            }
+            println("configOverridesPatch: ${absoluteLongs.size} long key(s) written to the native config store on every sync")
+        }
+        val absoluteStrings = Overrides.nativeStrings.onlyDeclared("Lcom/waze/config/d;")
+        if (absoluteStrings.isNotEmpty()) {
+            val helperName = "uaNativeStringOverrides"
+            val manager = mutableClassDefBy(CONFIG_MANAGER)
+            if (manager.methods.any { it.name == helperName }) {
+                throw PatchException("configOverridesPatch: $helperName already exists")
+            }
+            val helper = MutableMethod(
+                ImmutableMethod(
+                    CONFIG_MANAGER, helperName, emptyList(), "V",
+                    AccessFlags.PUBLIC.value or AccessFlags.STATIC.value,
+                    emptySet(), emptySet(),
+                    ImmutableMethodImplementation(4, emptyList(), emptyList(), emptyList()),
+                ),
+            )
+            helper.addInstructions(0, nativeStringSyncBlock(absoluteStrings))
+            manager.methods.add(helper)
+            SYNC_HOOKS.forEach { (cls, method) ->
+                val hook = runCatching { mutableClassDefBy(cls) }.getOrNull()
+                    ?.methods?.firstOrNull { it.name == method }
+                    ?: throw PatchException(
+                        "configOverridesPatch: $cls.$method is missing, so the native string values " +
+                            "could not be re-applied after a server sync"
+                    )
+                hook.addInstructions(0, "invoke-static {}, $CONFIG_MANAGER->$helperName()V")
+            }
+            println("configOverridesPatch: ${absoluteStrings.size} string key(s) written to the native config store on every sync")
+        }
         if (skipped.isNotEmpty()) {
             println("configOverridesPatch: skipped ${skipped.size} key(s) absent on this build: ${skipped.sorted()}")
         }

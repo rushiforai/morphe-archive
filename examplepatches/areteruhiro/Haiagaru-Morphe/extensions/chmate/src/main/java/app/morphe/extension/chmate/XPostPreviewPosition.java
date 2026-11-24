@@ -15,6 +15,7 @@ final class XPostPreviewPosition {
     private static final WeakHashMap<View, Anchor> PENDING = new WeakHashMap<>();
     private static final WeakHashMap<View,Long> INTERACTIONS=new WeakHashMap<>();
     private static final WeakHashMap<View,Boolean> WATCHED=new WeakHashMap<>();
+    private static final WeakHashMap<View,Long> OPENED=new WeakHashMap<>();
     static void opening(View list){
         if(list==null)return;
         if(!WATCHED.containsKey(list)){
@@ -26,6 +27,7 @@ final class XPostPreviewPosition {
         }
         Anchor previous=PENDING.get(list);if(previous!=null)previous.close();
         INTERACTIONS.remove(list);
+        OPENED.put(list,android.os.SystemClock.uptimeMillis());
     }
     private static boolean enabled(View view){
         android.content.SharedPreferences prefs = FeatureSwitches.prefs(view.getContext());
@@ -68,6 +70,10 @@ final class XPostPreviewPosition {
     /** All display-only resizes share one anchor, including native thumbnail rebinds. */
     static void beforeListChange(View view) {
         if(!(view instanceof ViewGroup)||!view.isShown()||!enabled(view)||interacting(view)||ReadingPosition.nativeRestoring(view)||FilterPosition.changing(view))return;
+        Long opened=OPENED.get(view);
+        // Initial endpoint frames still belong to native unread restoration.
+        if(opened!=null&&android.os.SystemClock.uptimeMillis()-opened<1500
+                &&(!view.canScrollVertically(-1)||!view.canScrollVertically(1)))return;
         Anchor existing=PENDING.get(view);
         if(existing!=null){existing.changed();return;}
         try{
@@ -164,7 +170,7 @@ final class XPostPreviewPosition {
                 int currentCount=count();
                 if (!list.isShown() || interacting(list) || ReadingPosition.nativeRestoring(list)||FilterPosition.changing(list)
                         ||width!=list.getWidth()||height!=list.getHeight()||bounds[0]!=viewportTop||bounds[1]!=viewportBottom
-                        || adapter != call(list, "getAdapter", new Class<?>[0]) || currentCount<count||position>=currentCount
+                        || adapter != call(list, "getAdapter", new Class<?>[0]) || currentCount!=count||position>=currentCount
                         ||(responseNumber>0&&responseAt(position)!=responseNumber)){close();return true;}
                 View first=child(position);
                 int target = position, offset = top;

@@ -16,8 +16,8 @@ val COMPATIBILITY_NHL = Compatibility(
     ),
     targets = listOf(
         AppTarget(
-            version = "17.0.0",
-            minSdk = 29
+            version = "17.2.0",
+            minSdk = 32
         )
     )
 )

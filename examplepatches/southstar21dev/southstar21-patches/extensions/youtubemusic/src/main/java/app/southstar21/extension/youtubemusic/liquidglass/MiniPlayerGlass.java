@@ -109,6 +109,8 @@ final class MiniPlayerGlass implements ViewTreeObserver.OnPreDrawListener {
     private final ViewTreeObserver.OnGlobalLayoutListener layoutListener = () -> {
         layoutChanged = true;
         fullLayoutChanged = true;
+        dockPending = true;
+        lookupsStale = true;
     };
     /** Views of YouTube Music's this hid for the capsule, shown again when it undocks. */
     private final ArrayList<View> hidden = new ArrayList<>();
@@ -154,16 +156,30 @@ final class MiniPlayerGlass implements ViewTreeObserver.OnPreDrawListener {
         chip.setBackground(chipGlass);
     }
 
-    void install() {
+    /**
+     * @param bar  the glass tab bar, or null
+     * @param lens the tab bar's lens, stacked above it, or null
+     */
+    void install(View bar, View lens) {
         for (LiquidGlassDrawable g : new LiquidGlassDrawable[]{glass, chipGlass}) {
             g.setDark(true);
             g.setSouthstar21(NavbarStyle.miniPlayer().southstar21);
         }
         adoptBackground();
-        if (page.getParent() instanceof ViewGroup) {
+        ViewGroup.LayoutParams lp = new ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, dp(CHIP_HEIGHT_DP));
+        ViewGroup barParent = bar != null && bar.getParent() instanceof ViewGroup ? (ViewGroup) bar.getParent() : null;
+        if (barParent != null && isAncestor(barParent, page)) {
+            // Beside the tab bar, above it, rather than beside the page: the tab bar's glass and
+            // the edge blur record everything under them, and the chip's glass inside their
+            // recordings had the GPU redo its blur and refraction for each, every frame. (It
+            // never shows in them anyway: it sits above the tab bar's glass.) Its own glass
+            // looks past the tab bar and the lens.
+            barParent.addView(chip, lp);
+            chipGlass.exclude(bar);
+            chipGlass.exclude(lens);
+        } else if (page.getParent() instanceof ViewGroup) {
             ViewGroup parent = (ViewGroup) page.getParent();
-            parent.addView(chip, parent.indexOfChild(page) + 1,
-                    new ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, dp(CHIP_HEIGHT_DP)));
+            parent.addView(chip, parent.indexOfChild(page) + 1, lp);
         }
         page.getViewTreeObserver().addOnPreDrawListener(this);
         page.getViewTreeObserver().addOnGlobalLayoutListener(layoutListener);
@@ -372,6 +388,7 @@ final class MiniPlayerGlass implements ViewTreeObserver.OnPreDrawListener {
             boolean dock = Dock.resting && Dock.rightInset >= 0 && page.getWidth() > 0 && !pulled;
             if (mini != null && dock != docked) {
                 docked = dock;
+                dockPending = true;
                 if (!dock) undock(mini);
             }
             // The art follows the player's slide, not the mini player's fade: the mini player is
@@ -393,21 +410,27 @@ final class MiniPlayerGlass implements ViewTreeObserver.OnPreDrawListener {
                 }
                 fullGlass.apply(relayout, now);
                 // YouTube Music fades its own song color in over the page while swiping between
-                // songs, over the blurred cover: kept clear while the player is open.
+                // songs, over the blurred cover: kept clear while the player is open. Lightweight
+                // glass has no blurred cover: YouTube Music's own background stays as it is.
                 if (pageBackground == null || !isInside(pageBackground)) {
                     pageBackground = pageBackgroundId == 0 ? null : page.findViewById(pageBackgroundId);
                 }
-                if (pageBackground != null && pageBackground.getAlpha() != 0f) pageBackground.setAlpha(0f);
+                float pageAlpha = lightweight() ? 1f : 0f;
+                if (pageBackground != null && pageBackground.getAlpha() != pageAlpha) pageBackground.setAlpha(pageAlpha);
                 // Redrawn when the cover image changes (a new song), fading over from the old one.
-                // A video can't be drawn: the last cover stays behind it.
-                Drawable cover = coverImage();
-                boolean due = cover != null ? cover != lastCover : !background.hasBackdrop() && now - lastBackdrop > 1000;
-                if (due) {
-                    lastCover = cover;
-                    lastBackdrop = now;
-                    background.refreshBackdrop();
+                // A video can't be drawn: the last cover stays behind it. Never with lightweight
+                // glass, which shows no blurred cover.
+                if (!lightweight()) {
+                    Drawable cover = coverImage();
+                    boolean due = cover != null ? cover != lastCover
+                            : !background.hasBackdrop() && now - lastBackdrop > 1000;
+                    if (due) {
+                        lastCover = cover;
+                        lastBackdrop = now;
+                        background.refreshBackdrop();
+                    }
+                    if (due || background.fading()) fullGlass.backdropChanged();
                 }
-                if (due || background.fading()) fullGlass.backdropChanged();
             } else {
                 fullGlass.hide();
                 // Collapsed: YouTube Music's own background back as it was.
@@ -490,24 +513,52 @@ final class MiniPlayerGlass implements ViewTreeObserver.OnPreDrawListener {
         int right = Dock.rightInset;
         int left = page.getWidth() - right - dp(Dock.WIDTH_DP);
         setMargins(mini, left, right);
-        View spacer = spacerId == 0 ? null : mini.findViewById(spacerId);
-        if (spacer != null) setSlot(spacer, dp(ART_SIZE_DP), 0, 0);
-        View title = titleId == 0 ? null : mini.findViewById(titleId);
-        if (title != null && title.getParent() instanceof View) hide((View) title.getParent());
-        hide(routeId == 0 ? null : mini.findViewById(routeId));
-        hide(askId == 0 ? null : mini.findViewById(askId));
-        hide(playId == 0 ? null : mini.findViewById(playId));
-
-        // Some versions show a swipeable pager of songs over the mini player instead: keep it
-        // to the album art's slot.
-        View pager = pagerId == 0 ? null : page.findViewById(pagerId);
-        if (pager instanceof ViewGroup && pager.getVisibility() == View.VISIBLE) {
+        View pager = lookup(page, pagerId);
+        boolean pagerShown = pager instanceof ViewGroup && pager.getVisibility() == View.VISIBLE;
+        if (pagerShown) {
             setMargins(pager, left, right);
-            dockPagerItems((ViewGroup) pager);
             // Its thumbnails slide past whenever the song changes and poke out around the art
             // (YouTube Music's own art card covers the slot): keep it for its swipes, unseen.
             if (pager.getAlpha() != 0f) pager.setAlpha(0f);
         }
+        // What's below only changes the layout, and YouTube Music undoing it lays the player out
+        // again: done after each layout pass rather than every frame (each walks the views).
+        if (!dockPending) return;
+        dockPending = false;
+        View spacer = lookup(mini, spacerId);
+        if (spacer != null) setSlot(spacer, dp(ART_SIZE_DP), 0, 0);
+        View title = lookup(mini, titleId);
+        if (title != null && title.getParent() instanceof View) hide((View) title.getParent());
+        hide(lookup(mini, routeId));
+        hide(lookup(mini, askId));
+        hide(lookup(mini, playId));
+        // Some versions show a swipeable pager of songs over the mini player instead: keep it
+        // to the album art's slot.
+        if (pagerShown) dockPagerItems((ViewGroup) pager);
+    }
+
+    /** Set by a layout pass (and on docking): {@link #dock} checks the mini player's parts again. */
+    private boolean dockPending = true;
+
+    /** Views found by id, kept until the next layout pass: each lookup walks the page's views. */
+    private final android.util.SparseArray<View> lookups = new android.util.SparseArray<>();
+    private boolean lookupsStale = true;
+
+    /** The view with {@code id} under {@code root}, or null; cached until the next layout pass. */
+    private View lookup(View root, int id) {
+        if (id == 0) return null;
+        if (lookupsStale) {
+            lookupsStale = false;
+            lookups.clear();
+        }
+        int index = lookups.indexOfKey(id);
+        if (index >= 0) {
+            View cached = lookups.valueAt(index);
+            if (cached == null || isInside(cached)) return cached;
+        }
+        View found = root.findViewById(id);
+        lookups.put(id, found);
+        return found;
     }
 
     private void dockPagerItems(ViewGroup group) {
@@ -691,10 +742,16 @@ final class MiniPlayerGlass implements ViewTreeObserver.OnPreDrawListener {
         }
         int w = chip.getWidth(), h = chip.getHeight();
         if (w == 0 || h == 0) return;
-        // The chip is laid out at its parent's top left (the page's parent); the translation
-        // places it over the capsule, following the page as it slides.
-        float x = page.getLeft() + page.getTranslationX() + page.getWidth() - capsuleRightInset - w - chip.getLeft();
-        float y = page.getTop() + page.getTranslationY() + capsuleTop - dp(CHIP_GAP_DP) - h - chip.getTop();
+        // The chip is laid out at its parent's top left; the translation places it over the
+        // capsule, following the page as it slides.
+        float px = page.getLeft() + page.getTranslationX(), py = page.getTop() + page.getTranslationY();
+        for (ViewParent p = page.getParent(); p instanceof View && p != chip.getParent(); p = p.getParent()) {
+            View v = (View) p;
+            px += v.getLeft() + v.getTranslationX();
+            py += v.getTop() + v.getTranslationY();
+        }
+        float x = px + page.getWidth() - capsuleRightInset - w - chip.getLeft();
+        float y = py + capsuleTop - dp(CHIP_GAP_DP) - h - chip.getTop();
         if (chip.getTranslationX() != x) chip.setTranslationX(x);
         if (chip.getTranslationY() != y) chip.setTranslationY(y);
     }
@@ -818,6 +875,13 @@ final class MiniPlayerGlass implements ViewTreeObserver.OnPreDrawListener {
         return alpha;
     }
 
+    private static boolean isAncestor(ViewGroup ancestor, View view) {
+        for (ViewParent p = view.getParent(); p != null; p = p.getParent()) {
+            if (p == ancestor) return true;
+        }
+        return false;
+    }
+
     private boolean isInside(View view) {
         for (ViewParent p = view.getParent(); p != null; p = p.getParent()) {
             if (p == page) return true;
@@ -905,6 +969,11 @@ final class MiniPlayerGlass implements ViewTreeObserver.OnPreDrawListener {
         return controller;
     }
 
+    /** Lightweight glass (the settings menu's choice): no blurred cover behind the full player. */
+    private static boolean lightweight() {
+        return app.southstar21.extension.youtubemusic.settings.Settings.lightweightGlass();
+    }
+
     /**
      * The page's background: the glass capsule (or card) and the progress ring over YouTube
      * Music's own background, cross-faded.
@@ -939,8 +1008,14 @@ final class MiniPlayerGlass implements ViewTreeObserver.OnPreDrawListener {
 
         @Override
         public void draw(Canvas canvas) {
-            Rect b = getBounds();
-            if (glassAlpha < 1f) {
+            if (glassAlpha < 1f && lightweight()) {
+                // Lightweight glass: the full player keeps YouTube Music's own background, with
+                // no blurred cover recorded or drawn.
+                if (original != null) {
+                    original.setAlpha(Math.round((1f - glassAlpha) * 255));
+                    original.draw(canvas);
+                }
+            } else if (glassAlpha < 1f) {
                 // Under a full blurred cover YouTube Music's background can't be seen: not drawn
                 // (a whole screen less to paint each frame). It may have none (with the queue
                 // sheet up): the blurred cover is drawn all the same.
@@ -951,11 +1026,21 @@ final class MiniPlayerGlass implements ViewTreeObserver.OnPreDrawListener {
                 drawArtBackdrop(canvas, 1f - glassAlpha);
             }
             if (glassAlpha <= 0f) return;
-            int save = glassAlpha >= 1f ? -1
-                    : canvas.saveLayerAlpha(b.left, b.top, b.right, b.bottom, Math.round(glassAlpha * 255));
             // Docked, the album art stands alone, ringed by the progress: no glass behind it.
-            if (!docked) glass.draw(canvas);
-            if (docked) drawRing(canvas);
+            // The ring fades by its paint's alpha: a layer to fade it was an offscreen pass the
+            // size of the screen on every frame of the player opening and closing.
+            if (docked) {
+                drawRing(canvas, glassAlpha);
+                return;
+            }
+            // The glass card fades through a layer, only as large as the card.
+            int save = -1;
+            if (glassAlpha < 1f) {
+                RectF pill = glass.getPill();
+                save = canvas.saveLayerAlpha(pill.left - 2, pill.top - 2, pill.right + 2, pill.bottom + 2,
+                        Math.round(glassAlpha * 255));
+            }
+            glass.draw(canvas);
             if (save >= 0) canvas.restoreToCount(save);
         }
 
@@ -964,6 +1049,12 @@ final class MiniPlayerGlass implements ViewTreeObserver.OnPreDrawListener {
         // view is blank while a new song loads), and only when that image changes. Two of them,
         // the new one fading in over the old.
         private final android.graphics.RenderNode[] backdrops = new android.graphics.RenderNode[2];
+        /**
+         * The small cover each backdrop shows, blurred. The backdrops hold them in layers of
+         * their own (see Layers): the blur runs when a new cover is recorded, not wherever and
+         * whenever the backdrop is drawn (the page and each glass row show it).
+         */
+        private final android.graphics.RenderNode[] blurred = new android.graphics.RenderNode[2];
         private int current;
         private long fadeStart = -FADE_MS;
         private static final long FADE_MS = 450;
@@ -999,9 +1090,11 @@ final class MiniPlayerGlass implements ViewTreeObserver.OnPreDrawListener {
             if (!canRecord && !hasBackdrop()) return;
             if (backdrops[0] == null) {
                 for (int i = 0; i < 2; i++) {
-                    backdrops[i] = new android.graphics.RenderNode("FullPlayerBackdrop");
-                    backdrops[i].setRenderEffect(android.graphics.RenderEffect.createBlurEffect(
+                    blurred[i] = new android.graphics.RenderNode("FullPlayerCover");
+                    blurred[i].setRenderEffect(android.graphics.RenderEffect.createBlurEffect(
                             6 * density, 6 * density, android.graphics.Shader.TileMode.CLAMP));
+                    backdrops[i] = new android.graphics.RenderNode("FullPlayerBackdrop");
+                    backdrops[i].setUseCompositingLayer(true, null);
                 }
             }
             if (backdropDirty && canRecord) {
@@ -1009,11 +1102,11 @@ final class MiniPlayerGlass implements ViewTreeObserver.OnPreDrawListener {
                 if (fading()) {
                     // A second image while fading in (YouTube Music sets a first version, then the
                     // full one): replaces the one fading in, the fade still starting from the old song.
-                    record(backdrops[current], a);
+                    record(current, a);
                 } else {
                     boolean had = backdrops[current].hasDisplayList();
                     current ^= 1;
-                    record(backdrops[current], a);
+                    record(current, a);
                     fadeStart = had ? SystemClock.uptimeMillis() : -FADE_MS;
                 }
             }
@@ -1023,11 +1116,12 @@ final class MiniPlayerGlass implements ViewTreeObserver.OnPreDrawListener {
         }
 
         @android.annotation.SuppressLint("NewApi")
-        private void record(android.graphics.RenderNode backdrop, View a) {
+        private void record(int index, View a) {
             Rect b = getBounds();
             int w = Math.max(1, b.width() / 8), h = Math.max(1, b.height() / 8);
-            backdrop.setPosition(0, 0, w, h);
-            android.graphics.RecordingCanvas rc = backdrop.beginRecording(w, h);
+            android.graphics.RenderNode cover = blurred[index];
+            cover.setPosition(0, 0, w, h);
+            android.graphics.RecordingCanvas rc = cover.beginRecording(w, h);
             try {
                 // Opaque whatever the cover holds: the backdrop is all that's behind the player.
                 rc.drawColor(Color.BLACK);
@@ -1040,6 +1134,14 @@ final class MiniPlayerGlass implements ViewTreeObserver.OnPreDrawListener {
                 // Darkened, so white text and glass stay legible over light covers (in the small
                 // drawing, not as a layer over the whole screen).
                 rc.drawColor(Color.argb(0x70, 0, 0, 0));
+            } finally {
+                cover.endRecording();
+            }
+            android.graphics.RenderNode backdrop = backdrops[index];
+            backdrop.setPosition(0, 0, w, h);
+            android.graphics.RecordingCanvas bc = backdrop.beginRecording(w, h);
+            try {
+                bc.drawRenderNode(cover);
             } finally {
                 backdrop.endRecording();
             }
@@ -1100,8 +1202,12 @@ final class MiniPlayerGlass implements ViewTreeObserver.OnPreDrawListener {
             }
         }
 
-        /** The progress ring around the round thumbnail. */
-        private void drawRing(Canvas canvas) {
+        private int withAlpha(int color, float alpha) {
+            return (color & 0x00FFFFFF) | (Math.round((color >>> 24) * alpha) << 24);
+        }
+
+        /** The progress ring around the round thumbnail, faded by {@code alpha}. */
+        private void drawRing(Canvas canvas, float alpha) {
             View a = art;
             if (a == null || a.getWidth() == 0 || a.getVisibility() != View.VISIBLE) return;
             float progress = progress();
@@ -1119,10 +1225,10 @@ final class MiniPlayerGlass implements ViewTreeObserver.OnPreDrawListener {
                     + RING_GAP_DP * density;
             ring.set(cx - r, cy - r, cx + r, cy + r);
             ringPaint.setStrokeWidth(RING_WIDTH_DP * density);
-            ringPaint.setColor(RING_TRACK_COLOR);
+            ringPaint.setColor(withAlpha(RING_TRACK_COLOR, alpha));
             canvas.drawOval(ring, ringPaint);
             if (progress > 0f) {
-                ringPaint.setColor(RING_COLOR);
+                ringPaint.setColor(withAlpha(RING_COLOR, alpha));
                 canvas.drawArc(ring, -90f, 360f * progress, false, ringPaint);
             }
         }

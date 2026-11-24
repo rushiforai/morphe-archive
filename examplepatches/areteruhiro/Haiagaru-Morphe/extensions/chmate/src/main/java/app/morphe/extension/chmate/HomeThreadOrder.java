@@ -21,6 +21,43 @@ public final class HomeThreadOrder {
     private static final int KEYWORD_DISPLAY_MENU=0x48690139;
     private static final Map<Integer,List<?>> latest=new HashMap<>();
     private static final Map<Integer,List<?>> presented=new HashMap<>();
+    private static final ThreadLocal<List<?>> expandedForDisplay=new ThreadLocal<>();
+    private static final List<FoldProjection> foldProjections=new ArrayList<>();
+    private static final class FoldProjection {
+        final java.lang.ref.WeakReference<List<?>> rows;
+        final int size;
+        final List<String> sections=new ArrayList<>();final List<int[]> ranges=new ArrayList<>();
+        FoldProjection(List<?> values){
+            rows=new java.lang.ref.WeakReference<>(values);size=values.size();String section=null,run=null;int start=0;
+            for(int i=0;i<values.size();i++){
+                Object row=values.get(i);String id=key(row),part;
+                if(id==null||boardDivider(row)){section=row==null?null:categoryKey(row);part=null;}
+                else part=id.startsWith("board\n")?null:section;
+                if(!Objects.equals(run,part)){if(start<i){sections.add(run);ranges.add(new int[]{start,i});}start=i;run=part;}
+            }
+            if(start<values.size()){sections.add(run);ranges.add(new int[]{start,values.size()});}
+        }
+    }
+    private static FoldProjection projection(List<?> rows){
+        synchronized(foldProjections){
+            foldProjections.removeIf(p->{List<?> current=p.rows.get();return current==null||current.size()!=p.size;});
+            for(FoldProjection p:foldProjections)if(p.rows.get()==rows)return p;
+            FoldProjection p=new FoldProjection(rows);if(foldProjections.size()>=64)foldProjections.remove(0);foldProjections.add(p);return p;
+        }
+    }
+    static List<?> expandedForDisplay(){return expandedForDisplay.get();}
+    static List<?> refold(List<?> expanded,int mode){
+        if(expanded==null)return null;
+        Set<String> folded=foldedCategories(mode);
+        if(folded.isEmpty()){synchronized(presented){presented.put(mode,expanded);}return expanded;}
+        List<Object> result=new ArrayList<>(expanded.size());FoldProjection projection=projection(expanded);
+        for(int i=0;i<projection.ranges.size();i++){
+            if(folded.contains(projection.sections.get(i)))continue;
+            int[] range=projection.ranges.get(i);result.addAll(expanded.subList(range[0],range[1]));
+        }
+        synchronized(presented){presented.put(mode,result);}
+        return result;
+    }
     private static final Map<Object,Integer> modes=new WeakHashMap<>();
     private static final ThreadLocal<Integer> sortingMode=new ThreadLocal<>();
     private static final Set<Object> labelRows=Collections.newSetFromMap(new WeakHashMap<>());
@@ -38,11 +75,15 @@ public final class HomeThreadOrder {
             rankCache.put(key,new RankOrder(json,Collections.unmodifiableMap(ranks)));return ranks;
         }
     }
+    private static int tabMode(int mode){int value=Math.abs(mode);return value==105||value==106?102:value;}
     public static void selected(Object owner,int mode){
-        synchronized(modes){modes.put(owner,Math.abs(mode));}
-        sortingMode.set(Math.abs(mode));
+        synchronized(modes){modes.put(owner,tabMode(mode));}
+        sortingMode.set(tabMode(mode));
     }
     static int logicalMode(int mode){
+        // AdapterData uses 106 for the native starred/rating-ordered thread list.
+        // Its HOME tab and custom label settings use 102.
+        mode=tabMode(mode);
         Integer selected=sortingMode.get();
         return Math.abs(mode)==102&&selected!=null&&(selected==108||selected==109)?selected:Math.abs(mode);
     }
@@ -55,18 +96,20 @@ public final class HomeThreadOrder {
                 Object model=fragment.getClass().getMethod(middle?"i":"m").invoke(fragment);
                 Object flow=NativeFields.find(model.getClass(),middle?"s":"o").get(model);
                 java.lang.reflect.Method read=flow.getClass().getMethod(middle?"c":"d");read.setAccessible(true);
-                return Math.abs(((Number)read.invoke(flow)).intValue());
+                return tabMode(((Number)read.invoke(flow)).intValue());
             }
         }catch(Exception ignored){}
 
-        synchronized(modes){Integer value=modes.get(fragment);if(value!=null)return value;}
-        try{Object model=fragment.getClass().getMethod("m").invoke(fragment);synchronized(modes){Integer value=modes.get(model);if(value!=null)return value;}}catch(Exception ignored){}
+        synchronized(modes){Integer value=modes.get(fragment);if(value!=null)return tabMode(value);}
+        try{Object model=fragment.getClass().getMethod("m").invoke(fragment);synchronized(modes){Integer value=modes.get(model);if(value!=null)return tabMode(value);}}catch(Exception ignored){}
         return 0;
     }
     private static SharedPreferences prefs(){return Haiagaru.applicationContextForExtension().getSharedPreferences(PREFS,0);}
-    private static boolean target(int mode){int m=Math.abs(mode);return m==100||m==101||m==102||m==103||m==104||m==107||m==108||m==109;}
+    private static boolean target(int mode){int m=tabMode(mode);return m==100||m==101||m==102||m==103||m==104||m==107||m==108||m==109;}
     static String key(Object row){
-        if(row==null)return null;String type=row.getClass().getName(),board,id;
+        if(row==null)return null;
+        if("板一覧へ".equals(label(row)))return "board\n@navigation";
+        String type=row.getClass().getName(),board,id;
         if(type.equals("o.onAdDisplayed$setIcon")){board="g";id="h";}
         else if(type.equals("o.Yy2$open")){board="b";id="g";}
         else if(type.equals("o.getAvailabilityStatus$r8lambdawJ5MHcSJed_CjC7r4OWD0UxyJsQ")){board="e";id="b";}
@@ -78,17 +121,26 @@ public final class HomeThreadOrder {
         try{Object b=NativeFields.find(row.getClass(),board).get(row);long thread=NativeFields.find(row.getClass(),id).getLong(row);return b==null||thread<=0?null:b.toString()+"\n"+thread;}catch(Exception unavailable){return null;}
     }
     static List<?> apply(List<?> source,int mode){
+        mode=logicalMode(mode);
+        expandedForDisplay.remove();
         List<?> rows=apply(source,mode,true);
+        if(expandedForDisplay.get()==null)expandedForDisplay.set(rows);
         if(target(mode))synchronized(presented){presented.put(mode,rows);}
         return rows;
     }
 
-    static List<?> presented(int mode){
-        synchronized(presented){return presented.get(mode);}
+    // Search rows already have the native result order and no custom category projection.
+    static List<?> applyModernSearch(List<?> rows, int mode) {
+        expandedForDisplay.remove();
+        if (rows == null || !target(mode)) return rows;
+        List<?> result = uniqueRows(rows);
+        synchronized (presented) {
+            presented.put(tabMode(mode), result);
+        }
+        return result;
     }
-    private static List<?> apply(List<?> source,int mode,boolean respectFolds){
-        if(source==null||!target(mode)||Haiagaru.applicationContextForExtension()==null)return source;
 
+    private static List<?> uniqueRows(List<?> source) {
         ArrayList<Object> clean=new ArrayList<>();
         Set<String> seen=new HashSet<>();
         for(Object row:source){
@@ -96,12 +148,91 @@ public final class HomeThreadOrder {
             String id=key(row);
             if(id==null||seen.add(id))clean.add(row);
         }
-        source=clean;
+        return clean;
+    }
+
+    private static boolean searchActive(){
+        for(Activity activity:GlobalSearchHome.activitiesForLabels()){
+            if(activity!=null&&!activity.isFinishing()
+                    &&GlobalSearchHome.hasSearchText(activity.getWindow().getDecorView()))return true;
+        }
+        return false;
+    }
+
+    static List<?> presented(int mode){
+        synchronized(presented){return presented.get(tabMode(mode));}
+    }
+    /** Resolve positions against the adapter displaying them. The next model may already differ. */
+    static List<?> presented(View list, int mode) {
+        if (list == null) return presented(mode);
+        if (!(list instanceof ListView)) return modernPresented(list, mode);
+        ListView visible = (ListView) list;
+        ListAdapter adapter = visible.getAdapter();
+        if (adapter == null) return Collections.emptyList();
+        String field;
+        switch (adapter.getClass().getName()) {
+            case "o.r8lambdaXZREaGE4vvLAA2ZOtsKBd3knAPA": field = "j"; break;
+            case "o.bea1": field = "d"; break;
+            default: field = null;
+        }
+        if (field != null) {
+            try {
+                Object current = NativeFields.find(adapter.getClass(), field).get(adapter);
+                if (current instanceof List<?>) {
+                    List<?> rows = (List<?>) current;
+                    int size = rows.size();
+                    if (size == adapter.getCount() &&
+                            (size == 0 || (rows.get(0) == adapter.getItem(0)
+                                    && rows.get(size - 1) == adapter.getItem(size - 1)))) return rows;
+                }
+            } catch (ReflectiveOperationException ignored) {}
+        }
+        return new AbstractList<Object>() {
+            @Override public int size() { return adapter.getCount(); }
+            @Override public Object get(int index) { return adapter.getItem(index); }
+        };
+    }
+
+    private static List<?> modernPresented(View list, int mode) {
+        try {
+            Object adapter=list.getClass().getMethod("getAdapter").invoke(list);
+            if(adapter==null)return Collections.emptyList();
+            if(!adapter.getClass().getName().equals("o.ModuleInstallStatusCodes"))return presented(mode);
+            // 242's native adapter uses the committed AsyncListDiffer list. Its
+            // positions include native header rows and can lag the next model.
+            Object differ=NativeFields.find(adapter.getClass().getSuperclass(),"b").get(adapter);
+            Object rows=differ==null?null:NativeFields.find(differ.getClass(),"a").get(differ);
+            return rows instanceof List<?>?(List<?>)rows:Collections.emptyList();
+        }catch(ReflectiveOperationException unavailable){
+            return Collections.emptyList();
+        }
+    }
+
+    static boolean canReorder(int mode) { return target(mode); }
+
+    private static List<?> apply(List<?> source,int mode,boolean respectFolds){
+        if(source==null||!target(mode)||Haiagaru.applicationContextForExtension()==null)return source;
+
+        source = uniqueRows(source);
+        if(searchActive())return source;
         synchronized(latest){latest.put(mode,new ArrayList<>(source));}
         Map<String,Integer> ranks=ranks(mode);
         Set<String> pinned=prefs().getStringSet("pins:"+Math.abs(mode),Collections.emptySet());JSONObject labels=visibleLabels(mode);
         Set<String> folded=respectFolds?foldedCategories(mode):Collections.emptySet();
-        if(ranks.isEmpty()&&pinned.isEmpty()&&labels.length()==0&&folded.isEmpty())return source;
+        boolean customSectionOrder=prefs().contains("sectionOrder:"+Math.abs(mode))||prefs().contains("boardSectionOrder:"+Math.abs(mode));
+        if(mode==102&&containsBoardSections(source))
+            return applyBoardSections(source,mode,ranks,pinned,respectFolds);
+        if(ranks.isEmpty()&&pinned.isEmpty()&&labels.length()==0&&folded.isEmpty()&&!customSectionOrder)return source;
+        if(mode==107){
+            // Only board rows participate in board ordering. Navigation rows keep their native slots.
+            ArrayList<Object> boards=new ArrayList<>();
+            for(Object row:source)if(isBoard(key(row)))boards.add(row);
+            boards.sort(Comparator.comparingInt(row->ranks.getOrDefault(key(row),Integer.MAX_VALUE)));
+            ArrayList<Object> ordered=new ArrayList<>(source.size());
+            int boardIndex=0;
+            for(Object row:source)ordered.add(isBoard(key(row))?boards.get(boardIndex++):row);
+            return ordered;
+        }
         Map<String,String> labelForThread=new HashMap<>();
         Map<String,Object> labelHeadings=new LinkedHashMap<>();
         for(String name:orderedLabels(labels,mode)){
@@ -153,10 +284,54 @@ public final class HomeThreadOrder {
             }
             Object heading=sections.get(categoryKey);
             result.add(heading);
-            if(!folded.contains(categoryKey))result.addAll(buckets.getOrDefault(categoryKey,Collections.emptyList()));
+            result.addAll(buckets.getOrDefault(categoryKey,Collections.emptyList()));
         }
         result.addAll(buckets.getOrDefault("",Collections.emptyList()));
+        if(respectFolds){expandedForDisplay.set(result);return refold(result,mode);}
         return result;
+    }
+
+    private static boolean containsBoardSections(List<?> rows){
+        for(Object row:rows)if(boardDivider(row))return true;
+        return false;
+    }
+
+    /** Keep each native board heading with its thread rows while folding and reordering headings. */
+    private static List<?> applyBoardSections(List<?> source,int mode,Map<String,Integer> ranks,
+            Set<String> pinned,boolean respectFolds){
+        LinkedHashMap<String,Object> headings=new LinkedHashMap<>();
+        Map<String,List<Object>> members=new HashMap<>();
+        List<Object> loose=new ArrayList<>();String section=null;
+        for(Object row:source){
+            if(boardDivider(row)||isBoardSectionRow(row)){
+                section=categoryKey(row);headings.putIfAbsent(section,row);members.computeIfAbsent(section,k->new ArrayList<>());continue;
+            }
+            if(isFavoriteBoardsRow(row)){section=null;loose.add(row);continue;}
+            String id=key(row);
+            if(id==null){
+                if(row!=null){section=categoryKey(row);headings.putIfAbsent(section,row);members.computeIfAbsent(section,k->new ArrayList<>());}
+                else {section=null;loose.add(row);}
+            }else if(section==null||isBoard(id))loose.add(row);
+            else members.computeIfAbsent(section,k->new ArrayList<>()).add(row);
+        }
+        if(headings.isEmpty())return source;
+        Comparator<Object> comparator=Comparator
+            .comparing((Object row)->!pinned.contains(key(row)))
+            .thenComparingInt(row->ranks.getOrDefault(key(row),Integer.MAX_VALUE));
+        List<Object> result=new ArrayList<>(source.size());
+        result.addAll(loose);
+        List<String> order=new ArrayList<>(headings.keySet());
+        try{JSONArray saved=new JSONArray(prefs().getString("boardSectionOrder:"+mode,"[]"));
+            List<String> restored=new ArrayList<>();for(int i=0;i<saved.length();i++){String key=saved.optString(i);if(order.remove(key))restored.add(key);}restored.addAll(order);order=restored;
+        }catch(JSONException ignored){}
+        for(String key:order){
+            Object heading=headings.get(key);if(heading==null)continue;
+            result.add(heading);
+            List<Object> threads=members.get(key);
+            if(threads!=null){threads.sort(comparator);result.addAll(threads);}
+        }
+        expandedForDisplay.set(result);
+        return respectFolds?refold(result,mode):result;
     }
 
     private static Set<String> foldedCategories(int mode){
@@ -168,7 +343,7 @@ public final class HomeThreadOrder {
     static boolean toggleCategory(Object fragment,Object row){
         Activity activity=Haiagaru.toolbarActivity(fragment);
         if(activity==null||row==null||isFavoriteBoardsRow(row)||key(row)!=null)return false;
-        int mode=mode(fragment);
+        int mode=logicalMode(mode(fragment));
         if(!target(mode)||mode==107)return false;
         String title=label(row);
         boolean custom=customLabel(row,mode)!=null;
@@ -178,8 +353,23 @@ public final class HomeThreadOrder {
         Set<String> folded=new HashSet<>(foldedCategories(mode));
         if(!folded.remove(key))folded.add(key);
         prefs().edit().putStringSet(setting,folded).apply();
-        BrowsingHistory.refreshVisible(activity);
+        BrowsingHistory.refreshCategory(fragment,activity,mode);
         return true;
+    }
+
+    static boolean boardSection(Object row){return boardDivider(row);}
+    static boolean boardSectionFolded(Object row,int mode){
+        return row!=null&&foldedCategories(mode).contains(categoryKey(row));
+    }
+    static void setBoardSectionFolded(Object fragment,Object row,int mode,boolean collapse){
+        Activity activity=Haiagaru.toolbarActivity(fragment);
+        if(activity==null||row==null||!boardDivider(row))return;
+        String key=categoryKey(row),setting="foldedCategories:"+Math.abs(mode);
+        Set<String> folded=new HashSet<>(prefs().getStringSet(setting,Collections.emptySet()));
+        boolean changed=collapse?folded.add(key):folded.remove(key);
+        if(!changed)return;
+        prefs().edit().putStringSet(setting,folded).apply();
+        BrowsingHistory.refreshCategory(fragment,activity,mode);
     }
 
     private static boolean hasCategoryThreads(int mode,Object heading){
@@ -215,8 +405,9 @@ public final class HomeThreadOrder {
                 added.add(key);remaining.remove(key);
             }
         }
-        result.addAll(0,added);
-        if(remaining.remove(FAVORITE_BOARDS_SECTION))result.add(added.size(),FAVORITE_BOARDS_SECTION);
+        if(remaining.remove(FAVORITE_BOARDS_SECTION))result.add(0,FAVORITE_BOARDS_SECTION);
+        int afterBoards=result.indexOf(FAVORITE_BOARDS_SECTION)+1;
+        result.addAll(afterBoards,added);
         result.addAll(remaining);
         return result;
     }
@@ -264,7 +455,7 @@ public final class HomeThreadOrder {
         return true;
     }
 
-    private static JSONObject visibleLabels(int mode){
+    static JSONObject visibleLabels(int mode){
         JSONObject result=new JSONObject();
         for(int origin:new int[]{100,101,102,103,104,108,109}){
             JSONObject labels=readLabels(origin);
@@ -302,22 +493,36 @@ public final class HomeThreadOrder {
     private static boolean isFavoriteBoardsRow(Object row){
         return row!=null&&row.getClass().getName().equals("o.getAvailabilityStatus$write");
     }
+    private static boolean isBoardSectionRow(Object row){
+        if(row==null)return false;String type=row.getClass().getName();
+        return type.equals("o.onAdDisplayed$write")||type.equals("o.Yy2$write")
+            ||type.equals("o.getAvailabilityStatus$RemoteActionCompatParcelizer");
+    }
+    private static boolean boardDivider(Object row){
+        if(row==null||!isBoard(key(row)))return false;
+        for(java.lang.reflect.Field field:NativeFields.all(row.getClass()))if(field.getType()==boolean.class){
+            try{field.setAccessible(true);return field.getBoolean(row);}catch(Exception ignored){}
+        }
+        return false;
+    }
 
     static String sectionKey(Object row){
         if(row==null)return null;
+        if(boardDivider(row))return categoryKey(row);
+        if(isBoardSectionRow(row))return categoryKey(row);
         if(isFavoriteBoardsRow(row))return FAVORITE_BOARDS_SECTION;
         String id=key(row);
         return id==null?categoryKey(row):isBoard(id)?FAVORITE_BOARDS_SECTION:null;
     }
 
-    static boolean moveLabel(Object source,Object target,int mode){
-        List<?> rows=displayed(mode);
+    static boolean moveLabel(Object source,Object target,int mode,List<?> rows){
         if(rows==null)return false;
         List<String> order=displayedSections(rows,mode);
         int from=order.indexOf(sectionKey(source)),to=order.indexOf(sectionKey(target));
         if(from<0||to<0||from==to)return false;
         order.add(to,order.remove(from));
-        prefs().edit().putString("sectionOrder:"+mode,new JSONArray(order).toString()).apply();
+        boolean boardOrder=boardDivider(source)&&boardDivider(target);
+        prefs().edit().putString((boardOrder?"boardSectionOrder:":"sectionOrder:")+mode,new JSONArray(order).toString()).apply();
         return true;
     }
 
@@ -391,9 +596,9 @@ public final class HomeThreadOrder {
         for(Object row:source){
             if(row==null)continue;
             String name=row.getClass().getName();
-            String heading=name.startsWith("o.onAdDisplayed$")?"o.onAdDisplayed$read":
-                name.startsWith("o.Yy2$")?"o.Yy2$ComponentActivity":
-                name.startsWith("o.getAvailabilityStatus$")?"o.getAvailabilityStatus$IconCompatParcelizer":null;
+            String heading=name.startsWith("o.onAdDisplayed$")?"o.onAdDisplayed$write":
+                name.startsWith("o.Yy2$")?"o.Yy2$write":
+                name.startsWith("o.getAvailabilityStatus$")?"o.getAvailabilityStatus$RemoteActionCompatParcelizer":null;
             if(heading==null)continue;
             try{
                 Class<?> type=Class.forName(heading,false,row.getClass().getClassLoader());
@@ -516,6 +721,7 @@ public final class HomeThreadOrder {
     }
 
     public static void menu(Object fragment,Menu menu){
+        HomeBoardFoldLabels.menu(fragment,menu);
         ResponseNotes.homeMenu(fragment,menu);
         GlobalSearchHome.menu(fragment,menu);
         if(menu!=null&&menu.findItem(KEYWORD_DISPLAY_MENU)==null){
@@ -536,7 +742,7 @@ public final class HomeThreadOrder {
             HomeThreadDrag.toggle(activity,fragment,root,selected);
         }catch(Exception error){android.util.Log.w("Haiagaru","HOME drag unavailable",error);}
     }
-    static List<?> displayed(int mode){synchronized(latest){List<?> rows=latest.get(mode);return rows==null?null:new ArrayList<>(apply(rows,mode));}}
+    static List<?> displayed(int mode){List<?> rows=presented(mode);return rows==null?null:new ArrayList<>(rows);}
     static void confirmResetOrder(Activity activity,int mode){
         new HaiagaruDialog.Builder(activity).setTitle("元の並び順に戻す")
             .setMessage("この一覧のスレとカテゴリを、手動で並び替える前の順序に戻します。ラベルと所属スレは残ります。")
@@ -555,6 +761,7 @@ public final class HomeThreadOrder {
         if(!pins.remove(key))pins.add(key);prefs().edit().putStringSet("pins:"+Math.abs(mode),pins).apply();
     }
     static boolean dropThread(Object thread,Object destination,int mode,boolean downward){
+        if(mode==107&&(!isBoard(key(thread))||!isBoard(key(destination))))return false;
         List<?> source;
         synchronized(latest){source=latest.get(mode);}
         if(source==null)return false;

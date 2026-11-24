@@ -37,6 +37,8 @@ val autoZoomPatch = bytecodePatch(
     )
 
     execute {
-        recordString("azm", "CONFIG_VALUE_ROUTING_AUTO_ZOOM" to (mode ?: "speed"))
+        val chosen = mode ?: "speed"
+        requireChoice("autoZoomPatch", "mode", chosen, setOf("no", "yes", "speed"))
+        recordString("azm", "CONFIG_VALUE_ROUTING_AUTO_ZOOM" to chosen)
     }
 }

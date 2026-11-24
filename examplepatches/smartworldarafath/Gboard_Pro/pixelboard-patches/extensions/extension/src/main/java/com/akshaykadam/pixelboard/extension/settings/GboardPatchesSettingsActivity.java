@@ -30,11 +30,15 @@ import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.ColorFilter;
 import android.graphics.Insets;
+import android.graphics.LinearGradient;
 import android.graphics.Paint;
 import android.graphics.Path;
 import android.graphics.PixelFormat;
+import android.graphics.PorterDuff;
+import android.graphics.PorterDuffXfermode;
 import android.graphics.Rect;
 import android.graphics.RectF;
+import android.graphics.Shader;
 import android.graphics.Typeface;
 import android.graphics.drawable.ColorDrawable;
 import android.graphics.drawable.Drawable;
@@ -115,6 +119,8 @@ public final class GboardPatchesSettingsActivity extends Activity
     public static final String ACTION_BOARD_UI = "com.akshaykadam.pixelboard.action.BOARD_UI";
     public static final String ACTION_ABOUT = "com.akshaykadam.pixelboard.action.ABOUT";
     public static final String ACTION_PRO = "com.akshaykadam.pixelboard.action.PRO";
+    public static final String ACTION_ADDITIONAL = "com.akshaykadam.pixelboard.action.ADDITIONAL";
+    public static final String ACTION_HELP_FEEDBACK = "com.akshaykadam.pixelboard.action.HELP_FEEDBACK";
     private boolean standaloneFeatureMode = false;
     public static final String EXTRA_NAVIGATION_PATH =
             "com.akshaykadam.pixelboard.extension.extra.PATCHES_NAVIGATION_PATH";
@@ -160,7 +166,16 @@ public final class GboardPatchesSettingsActivity extends Activity
     private static final String DOCUMENT_WRITE_FAILED = "Failed to export file.";
     private static final String DOCUMENT_READ_FAILED = "Failed to import file.";
     private Palette palette;
+    private GboardM3Helper.Palette m3Palette;
+    private boolean lastRenderedAmoled;
+    private boolean lastRenderedLiquidGlass;
+    private String lastRenderedThemeKey;
+    private int lastRenderedAccent;
+    private int lastRenderedWindowBg;
+    private boolean skipNextResumeRebuild;
+    private FrameLayout rootView;
     private LinearLayout toolbarView;
+    private View backButtonView;
     private TextView toolbarTitleView;
     private View restartButton;
     private ObjectAnimator restartButtonAnimator;
@@ -171,6 +186,9 @@ public final class GboardPatchesSettingsActivity extends Activity
     private ScrollView contentScrollView;
     private LinearLayout contentColumn;
     private LinearLayout screenActionContainer;
+    private LinearLayout footerContainer;
+    private View footerLeftLine;
+    private View footerRightLine;
     private TextView footerVersionView;
     private GboardKeyboardPreviewController keyboardPreviewController;
     private List<GboardPatchesSettingsContract.Feature> features;
@@ -233,14 +251,22 @@ public final class GboardPatchesSettingsActivity extends Activity
         super.onCreate(savedInstanceState);
         try {
             scheduleRestartCrashRecoveryGuardRestore();
+            m3Palette = GboardM3Helper.Palette.forContext(this);
             palette = Palette.forContext(this, getResources().getConfiguration());
+            lastRenderedAmoled = GboardM3Helper.isAmoledBlackEnabled(this);
+            lastRenderedLiquidGlass = GboardM3Helper.isLiquidGlassUiEnabled(this);
+            lastRenderedThemeKey = GboardM3Helper.getSelectedThemeKey(this);
+            lastRenderedAccent = palette.accent;
+            lastRenderedWindowBg = palette.windowBackground;
             features = Collections.emptyList();
             featuresInitialized = false;
+            GboardM3Helper.applyActivityEnterTransition(this);
             configureWindow();
             View contentView = buildContentView();
             setContentView(contentView);
             installWindowInsetsHandling(contentView);
             registerBackCallback();
+            renderInitialScreenSynchronously();
             com.akshaykadam.pixelboard.extension.updater.GboardNotificationHelper.requestNotificationPermission(this);
             com.akshaykadam.pixelboard.extension.updater.GboardNotificationHelper.ensureNotificationChannel(this);
             if (com.akshaykadam.pixelboard.extension.updater.PixelBoardUpdateManager.isAutoCheckEnabled(this)) {
@@ -251,21 +277,244 @@ public final class GboardPatchesSettingsActivity extends Activity
         }
     }
 
+    private void renderInitialScreenSynchronously() {
+        try {
+            palette = Palette.forContext(this, getResources().getConfiguration());
+            ensureFeaturesInitialized();
+            Intent intent = getIntent();
+            List<GboardPatchesSettingsContract.Feature> initialPath = resolveInitialPathFromIntent(intent);
+            initialFeatureFromIntentHandled = true;
+            if (initialPath != null && !initialPath.isEmpty()) {
+                scrollState.resetForDirectPath(initialPath.size() - 1);
+                requestScrollPositionOnNextScreenApply(0);
+                GboardPatchesSettingsOrchestrator.Transition<
+                        GboardPatchesSettingsContract.Feature,
+                        GboardPatchesSettingsContract.Intent> replaceTr =
+                        settingsOrchestrator.accept(
+                                GboardPatchesSettingsOrchestrator.Event.replacePath(initialPath));
+                GboardPatchesSettingsContract.Feature top = initialPath.get(initialPath.size() - 1);
+                GboardPatchesSettingsContract.Screen screen = top.buildScreen(this);
+                int gen = settingsOrchestrator.snapshot().getRenderGeneration();
+                GboardPatchesSettingsOrchestrator.Transition<
+                        GboardPatchesSettingsContract.Feature,
+                        GboardPatchesSettingsContract.Intent> readyTr =
+                        settingsOrchestrator.accept(
+                                GboardPatchesSettingsOrchestrator.Event.renderReady(
+                                        gen, screen.getRefreshIntervalMs()));
+                applyScreen(screen);
+                applyOrchestration(replaceTr);
+                applyOrchestration(readyTr);
+                skipNextResumeRebuild = true;
+                return;
+            }
+            GboardPatchesSettingsContract.Screen rootScreen = buildRootScreen();
+            int gen = settingsOrchestrator.snapshot().getRenderGeneration();
+            GboardPatchesSettingsOrchestrator.Transition<
+                    GboardPatchesSettingsContract.Feature,
+                    GboardPatchesSettingsContract.Intent> readyTr =
+                    settingsOrchestrator.accept(
+                            GboardPatchesSettingsOrchestrator.Event.renderReady(
+                                    gen, rootScreen.getRefreshIntervalMs()));
+            applyScreen(rootScreen);
+            applyOrchestration(readyTr);
+            skipNextResumeRebuild = true;
+        } catch (Throwable throwable) {
+            Log.w(TAG, "Synchronous initial screen render fallback", throwable);
+        }
+    }
+
+    private List<GboardPatchesSettingsContract.Feature> resolveInitialPathFromIntent(Intent intent) {
+        if (intent == null) {
+            standaloneFeatureMode = false;
+            return null;
+        }
+        String action = intent.getAction();
+        GboardPatchesSettingsContract.Feature targetFeature = null;
+        if (ACTION_UPDATES.equals(action)) {
+            targetFeature = new com.akshaykadam.pixelboard.extension.updater.PixelBoardUpdateFeature(this);
+        } else if (ACTION_APPEARANCE.equals(action)) {
+            targetFeature = new GboardAppearanceFeature(this);
+        } else if (ACTION_BOARD_UI.equals(action)) {
+            targetFeature = new GboardBoardUiFeature(this);
+        } else if (ACTION_ABOUT.equals(action)) {
+            targetFeature = new GboardAboutFeature(this);
+        } else if (ACTION_PRO.equals(action)) {
+            targetFeature = new GboardProFeature(this);
+        } else if (ACTION_ADDITIONAL.equals(action)) {
+            targetFeature = new GboardAdditionalFeature(this);
+        } else if (ACTION_HELP_FEEDBACK.equals(action)) {
+            targetFeature = new GboardHelpFeedbackFeature(this);
+        }
+        if (targetFeature != null) {
+            standaloneFeatureMode = true;
+            return Collections.singletonList(targetFeature);
+        }
+        standaloneFeatureMode = false;
+        if (intent.hasExtra(EXTRA_NAVIGATION_PATH)) {
+            ArrayList<String> pathIds = intent.getStringArrayListExtra(EXTRA_NAVIGATION_PATH);
+            intent.removeExtra(EXTRA_NAVIGATION_PATH);
+            List<GboardPatchesSettingsContract.Feature> resolvedPath =
+                    GboardPatchesNavigationPath.resolve(this, features, pathIds);
+            if (pathIds != null && !pathIds.isEmpty() && resolvedPath.size() == pathIds.size()) {
+                return resolvedPath;
+            }
+        }
+        return null;
+    }
+
     @Override
     protected void onNewIntent(Intent intent) {
         super.onNewIntent(intent);
         setIntent(intent);
         setRestartButtonPending(false);
         initialFeatureFromIntentHandled = false;
+        skipNextResumeRebuild = false;
         scheduleDeferredRender();
     }
 
     @Override
     protected void onResume() {
         super.onResume();
+        GboardM3Helper.enforceHighRefreshRate(getWindow());
         featureLifecycleEnabled = true;
+        boolean currentAmoled = GboardM3Helper.isAmoledBlackEnabled(this);
+        boolean currentLiquidGlass = GboardM3Helper.isLiquidGlassUiEnabled(this);
+        String currentThemeKey = GboardM3Helper.getSelectedThemeKey(this);
+        Palette latestPalette = Palette.forContext(this, getResources().getConfiguration());
+        if (currentAmoled != lastRenderedAmoled
+                || currentLiquidGlass != lastRenderedLiquidGlass
+                || !TextUtils.equals(currentThemeKey, lastRenderedThemeKey)
+                || latestPalette.accent != lastRenderedAccent
+                || latestPalette.windowBackground != lastRenderedWindowBg) {
+            skipNextResumeRebuild = false;
+            refreshAfterThemeChange();
+            return;
+        }
+        if (skipNextResumeRebuild) {
+            skipNextResumeRebuild = false;
+            syncVisibleFeatureLifecycle();
+            return;
+        }
         applyOrchestration(settingsOrchestrator.accept(
                 GboardPatchesSettingsOrchestrator.Event.resume()));
+    }
+
+    public void animateThemeChangeTransition() {
+        if (Looper.myLooper() != Looper.getMainLooper()) {
+            runOnUiThread(this::animateThemeChangeTransition);
+            return;
+        }
+        final FrameLayout hostRoot = rootView;
+        if (hostRoot == null || hostRoot.getWidth() <= 0 || hostRoot.getHeight() <= 0) {
+            refreshAfterThemeChange();
+            return;
+        }
+        hostRoot.postDelayed(() -> {
+            if (isFinishing()) return;
+            Bitmap captured = null;
+            try {
+                captured = Bitmap.createBitmap(
+                        hostRoot.getWidth(), hostRoot.getHeight(), Bitmap.Config.ARGB_8888);
+                Canvas canvas = new Canvas(captured);
+                hostRoot.draw(canvas);
+            } catch (Throwable ignored) {
+                if (captured != null) {
+                    captured.recycle();
+                }
+                refreshAfterThemeChange();
+                return;
+            }
+            final Bitmap finalBitmap = captured;
+            final ImageView overlay = new ImageView(this);
+            overlay.setScaleType(ImageView.ScaleType.FIT_XY);
+            overlay.setImageBitmap(finalBitmap);
+            overlay.setClickable(false);
+            overlay.setFocusable(false);
+            hostRoot.addView(overlay, new FrameLayout.LayoutParams(
+                    ViewGroup.LayoutParams.MATCH_PARENT,
+                    ViewGroup.LayoutParams.MATCH_PARENT));
+
+            refreshAfterThemeChange();
+
+            overlay.animate()
+                    .alpha(0f)
+                    .scaleX(0.992f)
+                    .scaleY(0.992f)
+                    .setDuration(340L)
+                    .setInterpolator(Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP
+                            ? new android.view.animation.PathInterpolator(0.22f, 1f, 0.36f, 1f)
+                            : new android.view.animation.DecelerateInterpolator())
+                    .withLayer()
+                    .withEndAction(() -> {
+                        try {
+                            hostRoot.removeView(overlay);
+                            overlay.setImageDrawable(null);
+                            if (!finalBitmap.isRecycled()) {
+                                finalBitmap.recycle();
+                            }
+                        } catch (Throwable ignored) {
+                        }
+                    })
+                    .start();
+        }, 95L);
+    }
+
+    public void refreshAfterThemeChange() {
+        if (Looper.myLooper() != Looper.getMainLooper()) {
+            runOnUiThread(this::refreshAfterThemeChange);
+            return;
+        }
+        m3Palette = GboardM3Helper.Palette.forContext(this);
+        palette = Palette.forContext(this, getResources().getConfiguration());
+        lastRenderedAmoled = GboardM3Helper.isAmoledBlackEnabled(this);
+        lastRenderedLiquidGlass = GboardM3Helper.isLiquidGlassUiEnabled(this);
+        lastRenderedThemeKey = GboardM3Helper.getSelectedThemeKey(this);
+        lastRenderedAccent = palette.accent;
+        lastRenderedWindowBg = palette.windowBackground;
+        configureWindow();
+        if (rootView != null) {
+            rootView.setBackgroundColor(palette.windowBackground);
+        }
+        if (toolbarView != null) {
+            toolbarView.setBackgroundColor(palette.windowBackground);
+        }
+        if (backButtonView != null) {
+            backButtonView.setBackground(lastRenderedLiquidGlass
+                    ? GboardM3Helper.createLiquidGlassOrbWithRipple(this, m3Palette)
+                    : buildRippleDrawable(dp(22)));
+            backButtonView.setElevation(0f);
+            backButtonView.invalidate();
+        }
+        if (restartButton != null) {
+            restartButton.setBackground(lastRenderedLiquidGlass
+                    ? GboardM3Helper.createLiquidGlassOrbWithRipple(this, m3Palette)
+                    : buildRippleDrawable(dp(22)));
+            restartButton.setElevation(0f);
+            restartButton.invalidate();
+        }
+        if (toolbarTitleView != null) {
+            toolbarTitleView.setTextColor(palette.textPrimary);
+        }
+        if (footerVersionView != null) {
+            footerVersionView.setTextColor(palette.textSecondary);
+        }
+        int lineColor = GboardM3Helper.blendAlpha(palette.textSecondary, 0.25f);
+        if (footerLeftLine != null) {
+            footerLeftLine.setBackgroundColor(lineColor);
+        }
+        if (footerRightLine != null) {
+            footerRightLine.setBackgroundColor(lineColor);
+        }
+        if (headerTitleView != null) {
+            headerTitleView.setTextColor(palette.textPrimary);
+        }
+        if (headerSummaryView != null) {
+            headerSummaryView.setTextColor(palette.textSecondary);
+        }
+        if (headerBadgeView != null) {
+            headerBadgeView.setTextColor(palette.accent);
+        }
+        renderCurrentScreenSafely();
     }
 
     @Override
@@ -293,11 +542,6 @@ public final class GboardPatchesSettingsActivity extends Activity
         cancelDeferredRender();
         cancelOfflineSpeechLanguageQuery();
         unregisterBackCallback();
-            com.akshaykadam.pixelboard.extension.updater.GboardNotificationHelper.requestNotificationPermission(this);
-            com.akshaykadam.pixelboard.extension.updater.GboardNotificationHelper.ensureNotificationChannel(this);
-            if (com.akshaykadam.pixelboard.extension.updater.PixelBoardUpdateManager.isAutoCheckEnabled(this)) {
-                com.akshaykadam.pixelboard.extension.updater.GboardUpdateCheckReceiver.scheduleUpdateCheck(this);
-            }
         detachKeyboardPreviewSafely();
         screenBuildExecutor.shutdownNow();
         backgroundStateExecutor.shutdownNow();
@@ -1602,26 +1846,52 @@ public final class GboardPatchesSettingsActivity extends Activity
 
     private void configureWindow() {
         GboardM3Helper.enforceHighRefreshRate(getWindow());
-        GboardM3Helper.applyActivityEnterTransition(this);
         if (getActionBar() != null) {
             getActionBar().hide();
         }
         Window window = getWindow();
+        if (m3Palette == null) {
+            m3Palette = GboardM3Helper.Palette.forContext(this);
+        }
         window.setBackgroundDrawable(new ColorDrawable(palette.windowBackground));
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+            android.view.WindowManager.LayoutParams lp = window.getAttributes();
+            lp.layoutInDisplayCutoutMode =
+                    android.view.WindowManager.LayoutParams.LAYOUT_IN_DISPLAY_CUTOUT_MODE_SHORT_EDGES;
+            window.setAttributes(lp);
+        }
+        boolean nightMode = (getResources().getConfiguration().uiMode
+                & Configuration.UI_MODE_NIGHT_MASK) == Configuration.UI_MODE_NIGHT_YES;
+        boolean darkUi = nightMode || m3Palette.isAmoled;
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
             window.setDecorFitsSystemWindows(false);
             WindowInsetsController controller = window.getInsetsController();
             if (controller != null) {
-                boolean nightMode = (getResources().getConfiguration().uiMode
-                        & Configuration.UI_MODE_NIGHT_MASK) == Configuration.UI_MODE_NIGHT_YES;
-                controller.setSystemBarsAppearance(
-                        nightMode ? 0 : WindowInsetsController.APPEARANCE_LIGHT_STATUS_BARS,
-                        WindowInsetsController.APPEARANCE_LIGHT_STATUS_BARS);
+                int lightFlag = WindowInsetsController.APPEARANCE_LIGHT_STATUS_BARS
+                        | WindowInsetsController.APPEARANCE_LIGHT_NAVIGATION_BARS;
+                controller.setSystemBarsAppearance(darkUi ? 0 : lightFlag, lightFlag);
             }
+        } else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            View decor = window.getDecorView();
+            int flags = View.SYSTEM_UI_FLAG_LAYOUT_STABLE
+                    | View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
+                    | View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION;
+            if (!darkUi) {
+                flags |= View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR;
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                    flags |= View.SYSTEM_UI_FLAG_LIGHT_NAVIGATION_BAR;
+                }
+            }
+            decor.setSystemUiVisibility(flags);
+        }
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            window.setStatusBarContrastEnforced(false);
+            window.setNavigationBarContrastEnforced(false);
         }
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-            window.setStatusBarColor(palette.windowBackground);
-            window.setNavigationBarColor(palette.windowBackground);
+            window.addFlags(android.view.WindowManager.LayoutParams.FLAG_DRAWS_SYSTEM_BAR_BACKGROUNDS);
+            window.setStatusBarColor(Color.TRANSPARENT);
+            window.setNavigationBarColor(Color.TRANSPARENT);
         }
     }
 
@@ -1654,6 +1924,7 @@ public final class GboardPatchesSettingsActivity extends Activity
 
     private View buildContentView() {
         FrameLayout root = new FrameLayout(this);
+        rootView = root;
         root.setBackgroundColor(palette.windowBackground);
         root.setLayoutParams(new ViewGroup.LayoutParams(
                 ViewGroup.LayoutParams.MATCH_PARENT,
@@ -1702,13 +1973,33 @@ public final class GboardPatchesSettingsActivity extends Activity
                 ViewGroup.LayoutParams.MATCH_PARENT,
                 ViewGroup.LayoutParams.WRAP_CONTENT));
 
+        footerContainer = new LinearLayout(this);
+        footerContainer.setOrientation(LinearLayout.HORIZONTAL);
+        footerContainer.setGravity(Gravity.CENTER_VERTICAL);
+        footerContainer.setPadding(dp(24), dp(10), dp(24), dp(18));
+
+        int dividerColor = GboardM3Helper.blendAlpha(palette.textSecondary, 0.25f);
+        footerLeftLine = new View(this);
+        footerLeftLine.setBackgroundColor(dividerColor);
+        LinearLayout.LayoutParams leftLineLp = new LinearLayout.LayoutParams(0, dp(1), 1f);
+        footerContainer.addView(footerLeftLine, leftLineLp);
+
         footerVersionView = new TextView(this);
         footerVersionView.setText("Gboard_Pro " + resolvePatchVersion());
-        footerVersionView.setTextSize(TypedValue.COMPLEX_UNIT_SP, 13f);
+        footerVersionView.setTextSize(TypedValue.COMPLEX_UNIT_SP, 12.5f);
         footerVersionView.setTextColor(palette.textSecondary);
         footerVersionView.setGravity(Gravity.CENTER);
-        footerVersionView.setPadding(0, dp(12), 0, dp(24));
-        shell.addView(footerVersionView, new LinearLayout.LayoutParams(
+        footerVersionView.setPadding(dp(12), 0, dp(12), 0);
+        footerContainer.addView(footerVersionView, new LinearLayout.LayoutParams(
+                ViewGroup.LayoutParams.WRAP_CONTENT,
+                ViewGroup.LayoutParams.WRAP_CONTENT));
+
+        footerRightLine = new View(this);
+        footerRightLine.setBackgroundColor(dividerColor);
+        LinearLayout.LayoutParams rightLineLp = new LinearLayout.LayoutParams(0, dp(1), 1f);
+        footerContainer.addView(footerRightLine, rightLineLp);
+
+        shell.addView(footerContainer, new LinearLayout.LayoutParams(
                 ViewGroup.LayoutParams.MATCH_PARENT,
                 ViewGroup.LayoutParams.WRAP_CONTENT));
         keyboardPreviewController = new GboardKeyboardPreviewController(
@@ -1747,13 +2038,13 @@ public final class GboardPatchesSettingsActivity extends Activity
         toolbarView.setLayoutParams(new LinearLayout.LayoutParams(
                 ViewGroup.LayoutParams.MATCH_PARENT,
                 dp(TOOLBAR_HEIGHT_DP)));
-        toolbarView.setPadding(dp(4), 0, dp(12), 0);
+        toolbarView.setPadding(dp(14), 0, dp(14), 0);
 
         View backButton = buildBackButton();
 
         toolbarTitleView = new TextView(this);
         toolbarTitleView.setTextColor(palette.textPrimary);
-        toolbarTitleView.setTextSize(TypedValue.COMPLEX_UNIT_SP, 20f);
+        toolbarTitleView.setTextSize(TypedValue.COMPLEX_UNIT_SP, 21f);
         toolbarTitleView.setTypeface(Typeface.create("sans-serif-medium", Typeface.NORMAL));
         toolbarTitleView.setGravity(Gravity.START | Gravity.CENTER_VERTICAL);
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR1) {
@@ -1763,10 +2054,15 @@ public final class GboardPatchesSettingsActivity extends Activity
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
             toolbarTitleView.setAccessibilityHeading(true);
         }
-        toolbarTitleView.setLayoutParams(new LinearLayout.LayoutParams(
+        LinearLayout.LayoutParams titleLp = new LinearLayout.LayoutParams(
                 0,
                 ViewGroup.LayoutParams.WRAP_CONTENT,
-                1f));
+                1f);
+        titleLp.leftMargin = dp(12);
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR1) {
+            titleLp.setMarginStart(dp(12));
+        }
+        toolbarTitleView.setLayoutParams(titleLp);
 
         toolbarView.addView(backButton);
         toolbarView.addView(toolbarTitleView);
@@ -1796,7 +2092,7 @@ public final class GboardPatchesSettingsActivity extends Activity
                 float top = (getHeight() - iconSize) / 2f;
                 float scale = iconSize / 24f;
 
-                paint.setColor(palette.accent);
+                paint.setColor(palette.textPrimary);
                 path.reset();
                 path.moveTo(left + (4.48f * scale), top + (14.5f * scale));
                 path.cubicTo(
@@ -1830,8 +2126,12 @@ public final class GboardPatchesSettingsActivity extends Activity
             }
         };
         restartButton.setContentDescription(restartLabel);
-        restartButton.setLayoutParams(new LinearLayout.LayoutParams(dp(48), dp(48)));
-        restartButton.setBackground(buildRippleDrawable(dp(24)));
+        restartButton.setLayoutParams(new LinearLayout.LayoutParams(dp(44), dp(44)));
+        restartButton.setBackground(GboardM3Helper.isLiquidGlassUiEnabled(this)
+                ? GboardM3Helper.createLiquidGlassOrbWithRipple(
+                        this, m3Palette != null ? m3Palette : GboardM3Helper.Palette.forContext(this))
+                : buildRippleDrawable(dp(22)));
+        restartButton.setElevation(0f);
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             restartButton.setTooltipText(restartLabel);
         } else {
@@ -2049,9 +2349,14 @@ public final class GboardPatchesSettingsActivity extends Activity
             }
         };
         backButton.setContentDescription(text(R.string.gboard_patches_navigate_up));
-        backButton.setLayoutParams(new LinearLayout.LayoutParams(dp(48), dp(48)));
-        backButton.setBackground(buildRippleDrawable(dp(24)));
+        backButton.setLayoutParams(new LinearLayout.LayoutParams(dp(44), dp(44)));
+        backButton.setBackground(GboardM3Helper.isLiquidGlassUiEnabled(this)
+                ? GboardM3Helper.createLiquidGlassOrbWithRipple(
+                        this, m3Palette != null ? m3Palette : GboardM3Helper.Palette.forContext(this))
+                : buildRippleDrawable(dp(22)));
+        backButton.setElevation(0f);
         backButton.setOnClickListener(view -> goBackOrFinish());
+        backButtonView = backButton;
         return backButton;
     }
 
@@ -2472,7 +2777,9 @@ public final class GboardPatchesSettingsActivity extends Activity
                     screenActionContainer.setPadding(
                             dp(16), dp(8), dp(16), dp(16) + bottomInset);
                 }
-                if (footerVersionView != null) {
+                if (footerContainer != null) {
+                    footerContainer.setPadding(dp(24), dp(10), dp(24), dp(18) + bottomInset);
+                } else if (footerVersionView != null) {
                     footerVersionView.setPadding(0, dp(12), 0, dp(24) + bottomInset);
                 }
                 if (keyboardPreviewController != null) {
@@ -2748,7 +3055,7 @@ public final class GboardPatchesSettingsActivity extends Activity
             layoutParams.height = targetHeight;
             toolbarView.setLayoutParams(layoutParams);
         }
-        toolbarView.setPadding(dp(4), topInset, dp(12), 0);
+        toolbarView.setPadding(dp(14), topInset, dp(14), dp(4));
     }
 
     private int resolveTopInset(WindowInsets insets) {
@@ -2780,6 +3087,7 @@ public final class GboardPatchesSettingsActivity extends Activity
     }
 
     private void applyScreen(GboardPatchesSettingsContract.Screen screen) {
+        m3Palette = GboardM3Helper.Palette.forContext(this);
         GboardPatchesSettingsOrchestrator.State<GboardPatchesSettingsContract.Feature> state =
                 settingsOrchestrator.snapshot();
         int screenDepth = state.getBackStack().size() + (state.getCurrent() == null ? 0 : 1);
@@ -2788,6 +3096,9 @@ public final class GboardPatchesSettingsActivity extends Activity
         }
         rowViewsByAccessibilityKey.clear();
         toolbarTitleView.setText(screen.getToolbarTitle());
+        if (restartButton != null) {
+            restartButton.setVisibility(screen.isRestartActionVisible() ? View.VISIBLE : View.GONE);
+        }
         headerBadgeView.setText(screen.getHeaderBadge());
         headerTitleView.setText(screen.getHeaderTitle());
         headerSummaryView.setText(screen.getHeaderSummary());
@@ -2795,11 +3106,21 @@ public final class GboardPatchesSettingsActivity extends Activity
                 TextUtils.isEmpty(screen.getHeaderSummary()) ? View.GONE : View.VISIBLE);
         applyPanelStyle(screen.getPanelStyle());
         panelContainer.removeAllViews();
-        for (GboardPatchesSettingsContract.StatusBlock statusBlock : screen.getStatusBlocks()) {
-            panelContainer.addView(createStatusBlockView(statusBlock));
-        }
-        for (GboardPatchesSettingsContract.Section section : screen.getSections()) {
-            panelContainer.addView(createSectionView(section));
+        if (state.getCurrent() instanceof GboardHelpFeedbackFeature helpFeature) {
+            View formView = helpFeature.buildFormView(this, m3Palette);
+            LinearLayout.LayoutParams formLp = new LinearLayout.LayoutParams(
+                    ViewGroup.LayoutParams.MATCH_PARENT,
+                    ViewGroup.LayoutParams.WRAP_CONTENT);
+            formLp.setMargins(dp(16), dp(8), dp(16), dp(16));
+            panelContainer.addView(formView, formLp);
+        } else {
+            List<GboardPatchesSettingsContract.Section> sections = screen.getSections();
+            for (GboardPatchesSettingsContract.StatusBlock statusBlock : screen.getStatusBlocks()) {
+                panelContainer.addView(createStatusBlockView(statusBlock, sections));
+            }
+            for (GboardPatchesSettingsContract.Section section : sections) {
+                panelContainer.addView(createSectionView(section));
+            }
         }
         screenActionContainer.removeAllViews();
         GboardPatchesSettingsContract.CommandRow primaryAction = screen.getPrimaryAction();
@@ -2816,23 +3137,27 @@ public final class GboardPatchesSettingsActivity extends Activity
             scrollContentToPositionAfterLayout(requestedScrollY);
         }
         if (appliedScreenDepth >= 0 && contentColumn != null) {
+            android.view.animation.PathInterpolator smoothCurve =
+                    new android.view.animation.PathInterpolator(0.22f, 1f, 0.36f, 1f);
             if (screenDepth > appliedScreenDepth) {
-                contentColumn.setTranslationX(dp(120));
-                contentColumn.setAlpha(0.2f);
+                contentColumn.setTranslationX(dp(64));
+                contentColumn.setAlpha(0f);
                 contentColumn.animate()
+                        .withLayer()
                         .translationX(0f)
                         .alpha(1f)
-                        .setDuration(280)
-                        .setInterpolator(new android.view.animation.DecelerateInterpolator())
+                        .setDuration(240)
+                        .setInterpolator(smoothCurve)
                         .start();
             } else if (screenDepth < appliedScreenDepth) {
-                contentColumn.setTranslationX(-dp(120));
-                contentColumn.setAlpha(0.2f);
+                contentColumn.setTranslationX(-dp(64));
+                contentColumn.setAlpha(0f);
                 contentColumn.animate()
+                        .withLayer()
                         .translationX(0f)
                         .alpha(1f)
-                        .setDuration(280)
-                        .setInterpolator(new android.view.animation.DecelerateInterpolator())
+                        .setDuration(240)
+                        .setInterpolator(smoothCurve)
                         .start();
             }
         }
@@ -2940,6 +3265,10 @@ public final class GboardPatchesSettingsActivity extends Activity
             targetFeatureClass = GboardAboutFeature.class;
         } else if (ACTION_PRO.equals(action)) {
             targetFeatureClass = GboardProFeature.class;
+        } else if (ACTION_ADDITIONAL.equals(action)) {
+            targetFeatureClass = GboardAdditionalFeature.class;
+        } else if (ACTION_HELP_FEEDBACK.equals(action)) {
+            targetFeatureClass = GboardHelpFeedbackFeature.class;
         }
 
         if (targetFeatureClass != null) {
@@ -2955,6 +3284,10 @@ public final class GboardPatchesSettingsActivity extends Activity
                 targetFeature = new GboardAboutFeature(this);
             } else if (ACTION_PRO.equals(action)) {
                 targetFeature = new GboardProFeature(this);
+            } else if (ACTION_ADDITIONAL.equals(action)) {
+                targetFeature = new GboardAdditionalFeature(this);
+            } else if (ACTION_HELP_FEEDBACK.equals(action)) {
+                targetFeature = new GboardHelpFeedbackFeature(this);
             }
 
             if (targetFeature != null) {
@@ -3546,6 +3879,10 @@ public final class GboardPatchesSettingsActivity extends Activity
 
     private View createNavigationRow(GboardPatchesSettingsContract.NavigationRow rowModel) {
         LinearLayout row = buildBaseRow();
+        View orbIcon = createRowOrbIconView(rowModel.getTitle());
+        if (orbIcon != null) {
+            row.addView(orbIcon);
+        }
         LinearLayout textColumn = buildRowTextColumn(true);
         TextView titleView = buildRowTitle(rowModel.getTitle());
         TextView summaryView = buildRowSummary(rowModel.getSummary(), false);
@@ -3775,19 +4112,38 @@ public final class GboardPatchesSettingsActivity extends Activity
     }
 
     private View createDetailRow(GboardPatchesSettingsContract.DetailRow rowModel) {
-        LinearLayout row = buildDetailRowContainer();
         TextView titleView = buildRowTitle(rowModel.getTitle());
         TextView summaryView = buildRowSummary(rowModel.getSummary(), rowModel.isMonospace());
+        titleView.setTextColor(palette.textPrimary);
+        summaryView.setTextColor(palette.textSecondary);
+
+        View orbIcon = createRowOrbIconView(rowModel.getTitle());
+        if (orbIcon != null) {
+            LinearLayout row = buildBaseRow();
+            row.setClickable(false);
+            row.setBackground(null);
+            row.addView(orbIcon);
+            LinearLayout textColumn = buildRowTextColumn(false);
+            textColumn.addView(titleView);
+            textColumn.addView(summaryView);
+            row.addView(textColumn);
+            row.setAlpha(1f);
+            return row;
+        }
+
+        LinearLayout row = buildDetailRowContainer();
         row.addView(titleView);
         row.addView(summaryView);
-        titleView.setTextColor(rowModel.isEnabled() ? palette.textPrimary : palette.textDisabled);
-        summaryView.setTextColor(rowModel.isEnabled() ? palette.textSecondary : palette.textDisabled);
-        row.setAlpha(rowModel.isEnabled() ? 1f : 0.92f);
+        row.setAlpha(rowModel.isEnabled() ? 1f : 0.96f);
         return row;
     }
 
     private View createCommandRow(GboardPatchesSettingsContract.CommandRow rowModel) {
         LinearLayout row = buildBaseRow();
+        View orbIcon = createRowOrbIconView(rowModel.getTitle());
+        if (orbIcon != null) {
+            row.addView(orbIcon);
+        }
         LinearLayout textColumn = buildRowTextColumn(true);
         TextView titleView = buildRowTitle(rowModel.getTitle());
         TextView summaryView = buildRowSummary(rowModel.getSummary(), false);
@@ -3821,60 +4177,226 @@ public final class GboardPatchesSettingsActivity extends Activity
     }
 
     private View createStatusBlockView(GboardPatchesSettingsContract.StatusBlock block) {
-        LinearLayout card = buildSectionContainer(false);
-        card.setBackground(buildCardDrawable(
-                toneBackground(block.getTone()),
-                palette.surfaceStroke,
-                dp(20)));
+        return createStatusBlockView(block, Collections.emptyList());
+    }
+
+    private View createStatusBlockView(
+            GboardPatchesSettingsContract.StatusBlock block,
+            List<GboardPatchesSettingsContract.Section> screenSections) {
+        final GboardM3Helper.Palette m3Pal =
+                m3Palette != null ? m3Palette : GboardM3Helper.Palette.forContext(this);
+        final boolean liquidGlass = GboardM3Helper.isLiquidGlassUiEnabled(this);
 
         if ("Gboard Pro".equals(block.getTitle()) || "About Gboard Pro".equals(block.getTitle())) {
+            LinearLayout wrapper = new LinearLayout(this);
+            wrapper.setOrientation(LinearLayout.VERTICAL);
+            LinearLayout.LayoutParams wrapperLp = new LinearLayout.LayoutParams(
+                    ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+            wrapperLp.setMargins(dp(16), dp(8), dp(16), dp(14));
+            wrapper.setLayoutParams(wrapperLp);
+            wrapper.setClipChildren(false);
+            wrapper.setClipToPadding(false);
+
+            LinearLayout card = new LinearLayout(this);
+            card.setOrientation(LinearLayout.VERTICAL);
             card.setGravity(Gravity.CENTER_HORIZONTAL);
-            card.setPadding(dp(20), dp(24), dp(20), dp(24));
+            card.setPadding(dp(22), dp(26), dp(22), dp(24));
+            card.setBackground(liquidGlass
+                    ? GboardM3Helper.createLiquidGlassCardDrawable(this, m3Pal, 26, true)
+                    : buildCardDrawable(palette.surface, palette.surfaceStroke, dp(26)));
+            card.setElevation(0f);
 
             ImageView heroIcon = new ImageView(this);
             heroIcon.setImageDrawable(loadMipmapDrawable("ic_app"));
             heroIcon.setScaleType(ImageView.ScaleType.FIT_CENTER);
-            heroIcon.setClipToOutline(true);
-            LinearLayout.LayoutParams iconLp = new LinearLayout.LayoutParams(dp(72), dp(72));
-            iconLp.bottomMargin = dp(12);
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+                heroIcon.setOutlineProvider(new android.view.ViewOutlineProvider() {
+                    @Override
+                    public void getOutline(View view, android.graphics.Outline outline) {
+                        outline.setRoundRect(0, 0, view.getWidth(), view.getHeight(), dpF(19f));
+                    }
+                });
+                heroIcon.setClipToOutline(true);
+            }
+            LinearLayout.LayoutParams iconLp = new LinearLayout.LayoutParams(dp(74), dp(74));
+            iconLp.bottomMargin = dp(14);
             card.addView(heroIcon, iconLp);
 
             TextView titleView = new TextView(this);
             titleView.setText("Gboard Pro");
-            titleView.setTextSize(TypedValue.COMPLEX_UNIT_SP, 22f);
-            titleView.setTypeface(Typeface.DEFAULT_BOLD);
+            titleView.setTextSize(TypedValue.COMPLEX_UNIT_SP, 24f);
+            titleView.setTypeface(Typeface.create("sans-serif-medium", Typeface.BOLD));
             titleView.setTextColor(palette.textPrimary);
             titleView.setGravity(Gravity.CENTER);
             card.addView(titleView);
 
-            TextView versionPill = new TextView(this);
-            versionPill.setText("v" + com.akshaykadam.pixelboard.extension.BuildConfig.PATCH_VERSION + " (Beta 2)");
-            versionPill.setTextSize(TypedValue.COMPLEX_UNIT_SP, 12f);
-            versionPill.setTypeface(Typeface.DEFAULT_BOLD);
-            versionPill.setTextColor(palette.accent);
-            versionPill.setBackground(buildCardDrawable(palette.infoContainer, Color.TRANSPARENT, dp(12)));
-            versionPill.setPadding(dp(12), dp(4), dp(12), dp(4));
-            LinearLayout.LayoutParams pillLp = new LinearLayout.LayoutParams(
+            TextView versionText = new TextView(this);
+            versionText.setText("v" + BuildConfig.PATCH_VERSION);
+            versionText.setTextSize(TypedValue.COMPLEX_UNIT_SP, 15f);
+            versionText.setTypeface(Typeface.create("sans-serif-medium", Typeface.BOLD));
+            versionText.setTextColor(m3Pal.isNight ? palette.textSecondary : 0xFF6D758F);
+            versionText.setGravity(Gravity.CENTER);
+            LinearLayout.LayoutParams verLp = new LinearLayout.LayoutParams(
                     ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
-            pillLp.topMargin = dp(6);
-            pillLp.bottomMargin = dp(10);
-            card.addView(versionPill, pillLp);
+            verLp.topMargin = dp(4);
+            verLp.bottomMargin = dp(12);
+            card.addView(versionText, verLp);
 
-            TextView summaryView = buildSectionSummary(block.getSummary(), false);
+            TextView summaryView = new TextView(this);
+            summaryView.setText(block.getSummary());
+            summaryView.setTextSize(TypedValue.COMPLEX_UNIT_SP, 13.5f);
+            summaryView.setLineSpacing(dp(2), 1.18f);
+            summaryView.setTextColor(palette.textSecondary);
             summaryView.setGravity(Gravity.CENTER);
-            card.addView(summaryView);
+            LinearLayout.LayoutParams sumLp = new LinearLayout.LayoutParams(
+                    ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+            card.addView(summaryView, sumLp);
 
-            return card;
+            // Show "[ ↻ Check for Updates ]" 3D Liquid Glass pill button on BOTH About & Gboard Pro Updates
+            final GboardPatchesSettingsContract.Row primaryHeroActionRow = findFirstActionRow(screenSections);
+            int ctaInk = (m3Pal.isAmoled || m3Pal.isNight) ? m3Pal.accent : 0xFF2336F5;
+            String ctaLabel = primaryHeroActionRow != null
+                    ? primaryHeroActionRow.getTitle().toString()
+                    : "Check for Updates";
+            boolean enabled = primaryHeroActionRow == null || primaryHeroActionRow.isEnabled();
+
+            LinearLayout ctaPill = new LinearLayout(this);
+            ctaPill.setOrientation(LinearLayout.HORIZONTAL);
+            ctaPill.setGravity(Gravity.CENTER);
+            ctaPill.setBackground(liquidGlass
+                    ? GboardM3Helper.createLiquidGlassPillButtonDrawable(this, m3Pal)
+                    : buildChipDrawable(palette.infoContainer, palette.surfaceStroke));
+            ctaPill.setElevation(0f);
+            ctaPill.setPadding(dp(26), dp(12), dp(28), dp(12));
+            ctaPill.setMinimumHeight(dp(50));
+            ctaPill.setEnabled(enabled);
+            ctaPill.setClickable(enabled);
+            ctaPill.setFocusable(enabled);
+            ctaPill.setAlpha(enabled ? 1f : 0.65f);
+
+            View refreshGlyph = new View(this) {
+                private final Paint p = new Paint(Paint.ANTI_ALIAS_FLAG);
+                private final Path path = new Path();
+                private final RectF oval = new RectF();
+                @Override
+                protected void onDraw(Canvas canvas) {
+                    super.onDraw(canvas);
+                    float cx = getWidth() / 2f;
+                    float cy = getHeight() / 2f;
+                    float u = dpF(1f);
+                    p.setColor(ctaInk);
+                    p.setStyle(Paint.Style.STROKE);
+                    p.setStrokeCap(Paint.Cap.ROUND);
+                    p.setStrokeJoin(Paint.Join.ROUND);
+                    p.setStrokeWidth(2.0f * u);
+                    float r = 6.2f * u;
+                    oval.set(cx - r, cy - r, cx + r, cy + r);
+                    canvas.drawArc(oval, -20f, 305f, false, p);
+                    // Clockwise top-right arrowhead
+                    path.reset();
+                    path.moveTo(cx + 2.4f * u, cy - 6.6f * u);
+                    path.lineTo(cx + 6.2f * u, cy - 5.6f * u);
+                    path.lineTo(cx + 5.2f * u, cy - 1.8f * u);
+                    canvas.drawPath(path, p);
+                }
+            };
+            LinearLayout.LayoutParams glyphLp = new LinearLayout.LayoutParams(dp(20), dp(20));
+            glyphLp.rightMargin = dp(9);
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR1) {
+                glyphLp.setMarginEnd(dp(9));
+            }
+            ctaPill.addView(refreshGlyph, glyphLp);
+
+            TextView ctaButton = new TextView(this);
+            ctaButton.setText(ctaLabel);
+            ctaButton.setTextSize(TypedValue.COMPLEX_UNIT_SP, 15.5f);
+            ctaButton.setTypeface(Typeface.create("sans-serif-medium", Typeface.BOLD));
+            ctaButton.setTextColor(ctaInk);
+            ctaButton.setSingleLine(true);
+            ctaPill.addView(ctaButton);
+
+            ctaPill.setOnClickListener(v -> {
+                if (!v.isEnabled()) return;
+                if (primaryHeroActionRow != null) {
+                    Runnable action = extractRowAction(primaryHeroActionRow);
+                    if (action != null) {
+                        runSafely("handle hero action", action);
+                    }
+                } else {
+                    runSafely("open updates from about hero", () ->
+                            openFeature(new com.akshaykadam.pixelboard.extension.updater.PixelBoardUpdateFeature(this)));
+                }
+            });
+            LinearLayout.LayoutParams ctaLp = new LinearLayout.LayoutParams(
+                    ViewGroup.LayoutParams.WRAP_CONTENT, dp(50));
+            ctaLp.topMargin = dp(18);
+            ctaLp.gravity = Gravity.CENTER_HORIZONTAL;
+            card.addView(ctaPill, ctaLp);
+
+            wrapper.addView(card);
+            return wrapper;
         }
 
-        TextView titleView = buildSectionTitle(block.getTitle());
+        LinearLayout wrapper = new LinearLayout(this);
+        wrapper.setOrientation(LinearLayout.VERTICAL);
+        LinearLayout.LayoutParams wrapperLp = new LinearLayout.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+        wrapperLp.setMargins(dp(16), dp(6), dp(16), dp(12));
+        wrapper.setLayoutParams(wrapperLp);
+        wrapper.setClipChildren(false);
+        wrapper.setClipToPadding(false);
+
+        LinearLayout card = new LinearLayout(this);
+        card.setOrientation(LinearLayout.VERTICAL);
+        card.setPadding(dp(18), dp(16), dp(18), dp(16));
+        card.setBackground(liquidGlass
+                ? GboardM3Helper.createLiquidGlassCardDrawable(this, m3Pal, 24, false)
+                : buildCardDrawable(toneBackground(block.getTone()), palette.surfaceStroke, dp(24)));
+        card.setElevation(0f);
+
+        TextView titleView = new TextView(this);
+        titleView.setText(block.getTitle());
+        titleView.setTextColor(block.getTone() == GboardPatchesSettingsContract.StatusTone.WARNING
+                ? 0xFFD97706 : palette.accent);
+        titleView.setTextSize(TypedValue.COMPLEX_UNIT_SP, 15f);
+        titleView.setTypeface(Typeface.create("sans-serif-medium", Typeface.BOLD));
         if (block.getTone() == GboardPatchesSettingsContract.StatusTone.WARNING) {
             titleView.setContentDescription(
                     text(R.string.gboard_patches_warning_label) + ": " + block.getTitle());
         }
         card.addView(titleView);
-        card.addView(buildSectionSummary(block.getSummary(), false));
-        return card;
+
+        TextView summaryView = buildRowSummary(block.getSummary(), false);
+        summaryView.setPadding(0, dp(4), 0, 0);
+        card.addView(summaryView);
+
+        wrapper.addView(card);
+        return wrapper;
+    }
+
+    private GboardPatchesSettingsContract.Row findFirstActionRow(
+            List<GboardPatchesSettingsContract.Section> sections) {
+        if (sections == null) {
+            return null;
+        }
+        for (GboardPatchesSettingsContract.Section sec : sections) {
+            if ("ACTIONS".equalsIgnoreCase(sec.getTitle())
+                    && sec.getItems() != null
+                    && !sec.getItems().isEmpty()) {
+                return sec.getItems().get(0);
+            }
+        }
+        return null;
+    }
+
+    private Runnable extractRowAction(GboardPatchesSettingsContract.Row row) {
+        if (row instanceof GboardPatchesSettingsContract.NavigationRow nav) {
+            return nav.getAction();
+        }
+        if (row instanceof GboardPatchesSettingsContract.CommandRow cmd) {
+            return cmd.getAction();
+        }
+        return null;
     }
 
     private Drawable loadMipmapDrawable(String resName) {
@@ -3889,57 +4411,641 @@ public final class GboardPatchesSettingsActivity extends Activity
     }
 
     private View createSectionView(GboardPatchesSettingsContract.Section section) {
+        final GboardM3Helper.Palette m3Pal =
+                m3Palette != null ? m3Palette : GboardM3Helper.Palette.forContext(this);
+        final boolean liquidGlass = GboardM3Helper.isLiquidGlassUiEnabled(this);
         LinearLayout container = buildSectionContainer(
                 section.getStyle() == GboardPatchesSettingsContract.SectionStyle.ADVANCED);
-        if (section.getTitle() != null && !section.getTitle().isEmpty()) {
-            container.addView(buildSectionTitle(section.getTitle()));
+        container.setClipChildren(false);
+        container.setClipToPadding(false);
+        String sectionTitle = section.getTitle();
+        String sectionDesc = section.getDescription();
+        boolean isActionsSection = "ACTIONS".equalsIgnoreCase(sectionTitle);
+        boolean isHighlightsSection = sectionTitle != null && sectionTitle.startsWith("Gboard Pro v");
+
+        if (isActionsSection) {
+            container.addView(buildActionsHeaderView(sectionTitle, m3Pal));
+        } else if (isHighlightsSection) {
+            container.addView(buildHighlightsHeaderView(sectionTitle, sectionDesc, m3Pal));
+        } else {
+            if (sectionTitle != null && !sectionTitle.isEmpty()) {
+                container.addView(buildSectionTitle(sectionTitle));
+            }
+            if (sectionDesc != null && !sectionDesc.isEmpty()) {
+                container.addView(buildSectionSummary(sectionDesc, false));
+            }
         }
-        if (section.getDescription() != null && !section.getDescription().isEmpty()) {
-            container.addView(buildSectionSummary(section.getDescription(), false));
-        }
+
         List<GboardPatchesSettingsContract.Row> items = section.getItems();
         if (items != null && !items.isEmpty()) {
-            LinearLayout card = new LinearLayout(this);
-            card.setOrientation(LinearLayout.VERTICAL);
-            card.setGravity(Gravity.START);
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR1) {
-                card.setTextAlignment(View.TEXT_ALIGNMENT_VIEW_START);
-            }
-            card.setBackground(buildCardDrawable(palette.surfaceAlt, 0, dp(24)));
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-                card.setClipToOutline(true);
-            }
-            LinearLayout.LayoutParams cardParams = new LinearLayout.LayoutParams(
-                    ViewGroup.LayoutParams.MATCH_PARENT,
-                    ViewGroup.LayoutParams.WRAP_CONTENT);
-            cardParams.leftMargin = dp(16);
-            cardParams.rightMargin = dp(16);
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR1) {
-                cardParams.setMarginStart(dp(16));
-                cardParams.setMarginEnd(dp(16));
-            }
-            cardParams.topMargin = dp(4);
-            cardParams.bottomMargin = dp(12);
-            card.setLayoutParams(cardParams);
-
-            boolean first = true;
-            for (GboardPatchesSettingsContract.Row item : items) {
-                if (!first) {
-                    View divider = new View(this);
-                    divider.setBackgroundColor(palette.windowBackground);
-                    LinearLayout.LayoutParams dividerParams = new LinearLayout.LayoutParams(
+            if (isActionsSection) {
+                for (GboardPatchesSettingsContract.Row item : items) {
+                    LinearLayout actionCard = new LinearLayout(this);
+                    actionCard.setOrientation(LinearLayout.VERTICAL);
+                    actionCard.setBackground(liquidGlass
+                            ? GboardM3Helper.createLiquidGlassCardDrawable(this, m3Pal, 22, false)
+                            : buildCardDrawable(palette.surface, palette.surfaceStroke, dp(22)));
+                    actionCard.setElevation(0f);
+                    if (!liquidGlass && Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+                        actionCard.setClipToOutline(true);
+                    } else {
+                        actionCard.setClipChildren(false);
+                        actionCard.setClipToPadding(false);
+                    }
+                    LinearLayout.LayoutParams cardParams = new LinearLayout.LayoutParams(
                             ViewGroup.LayoutParams.MATCH_PARENT,
-                            dp(1.5f));
-                    card.addView(divider, dividerParams);
+                            ViewGroup.LayoutParams.WRAP_CONTENT);
+                    cardParams.setMargins(dp(16), dp(4), dp(16), dp(8));
+                    actionCard.setLayoutParams(cardParams);
+                    View rowView = createRowView(item);
+                    trackAccessibilityFocus(rowView, item.getTitle());
+                    actionCard.addView(rowView);
+                    container.addView(actionCard);
                 }
-                View rowView = createRowView(item);
-                trackAccessibilityFocus(rowView, item.getTitle());
-                card.addView(rowView);
-                first = false;
+            } else {
+                LinearLayout card = new LinearLayout(this);
+                card.setOrientation(LinearLayout.VERTICAL);
+                card.setGravity(Gravity.START);
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR1) {
+                    card.setTextAlignment(View.TEXT_ALIGNMENT_VIEW_START);
+                }
+                card.setBackground(liquidGlass
+                        ? GboardM3Helper.createLiquidGlassCardDrawable(this, m3Pal, 24, false)
+                        : buildCardDrawable(palette.surface, palette.surfaceStroke, dp(24)));
+                card.setElevation(0f);
+                if (!liquidGlass && Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+                    card.setClipToOutline(true);
+                } else {
+                    card.setClipChildren(false);
+                    card.setClipToPadding(false);
+                }
+                LinearLayout.LayoutParams cardParams = new LinearLayout.LayoutParams(
+                        ViewGroup.LayoutParams.MATCH_PARENT,
+                        ViewGroup.LayoutParams.WRAP_CONTENT);
+                cardParams.leftMargin = dp(16);
+                cardParams.rightMargin = dp(16);
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR1) {
+                    cardParams.setMarginStart(dp(16));
+                    cardParams.setMarginEnd(dp(16));
+                }
+                cardParams.topMargin = dp(6);
+                cardParams.bottomMargin = dp(14);
+                card.setLayoutParams(cardParams);
+
+                int dividerColor = GboardM3Helper.blendAlpha(palette.textSecondary, 0.14f);
+                boolean first = true;
+                for (GboardPatchesSettingsContract.Row item : items) {
+                    if (!first) {
+                        View divider = new View(this);
+                        divider.setBackgroundColor(dividerColor);
+                        LinearLayout.LayoutParams dividerParams = new LinearLayout.LayoutParams(
+                                ViewGroup.LayoutParams.MATCH_PARENT,
+                                dp(1));
+                        dividerParams.leftMargin = dp(16);
+                        dividerParams.rightMargin = dp(16);
+                        card.addView(divider, dividerParams);
+                    }
+                    View rowView = createRowView(item);
+                    trackAccessibilityFocus(rowView, item.getTitle());
+                    card.addView(rowView);
+                    first = false;
+                }
+                container.addView(card);
             }
-            container.addView(card);
         }
         return container;
+    }
+
+    private Drawable createGboardProHeroEmblemDrawable(final GboardM3Helper.Palette m3Pal) {
+        return new Drawable() {
+            private final Paint p = new Paint(Paint.ANTI_ALIAS_FLAG);
+            private final RectF r = new RectF();
+            private final Path path = new Path();
+
+            @Override
+            public void draw(Canvas canvas) {
+                Rect b = getBounds();
+                if (b.width() <= 0 || b.height() <= 0) return;
+                float u = Math.min(b.width(), b.height()) / 76f;
+                float cx = b.exactCenterX();
+                float cy = b.exactCenterY();
+                canvas.save();
+                canvas.translate(cx - 38f * u, cy - 38f * u);
+
+                // Outer frosted glass frame matching About.png & Gboard Pro Updates.png
+                p.setStyle(Paint.Style.FILL);
+                p.setColor(m3Pal.isNight ? 0x33000000 : 0x1A182240);
+                r.set(3f * u, 5f * u, 73f * u, 75f * u);
+                canvas.drawRoundRect(r, 20f * u, 20f * u, p);
+
+                p.setShader(new LinearGradient(
+                        4f * u, 4f * u, 72f * u, 72f * u,
+                        m3Pal.isNight
+                                ? new int[]{0xFF1F253A, 0xFF141828}
+                                : new int[]{0xFFF4F5FC, 0xFFE3E6F4},
+                        null, Shader.TileMode.CLAMP));
+                r.set(4f * u, 4f * u, 72f * u, 72f * u);
+                canvas.drawRoundRect(r, 20f * u, 20f * u, p);
+                p.setShader(null);
+
+                p.setStyle(Paint.Style.STROKE);
+                p.setStrokeWidth(1.4f * u);
+                p.setColor(m3Pal.isNight ? 0x44A8C7FA : 0xFAFFFFFF);
+                canvas.drawRoundRect(r, 20f * u, 20f * u, p);
+
+                // Dark slate-blue keyboard base inside bottom-right of badge
+                p.setStyle(Paint.Style.FILL);
+                p.setShader(new LinearGradient(
+                        16f * u, 24f * u, 68f * u, 68f * u,
+                        0xFF3E4F78, 0xFF283452, Shader.TileMode.CLAMP));
+                r.set(16f * u, 24f * u, 68f * u, 68f * u);
+                canvas.drawRoundRect(r, 14f * u, 14f * u, p);
+                p.setShader(null);
+
+                // Keyboard mini keys inside dark slate base (2 rows + spacebar)
+                p.setColor(0xD8E8EEF8);
+                float kSize = 5.2f * u;
+                for (int col = 0; col < 4; col++) {
+                    float kx = (24f + col * 9.5f) * u;
+                    r.set(kx, 46f * u, kx + kSize, 46f * u + kSize);
+                    canvas.drawRoundRect(r, 1.8f * u, 1.8f * u, p);
+                }
+                for (int col = 0; col < 2; col++) {
+                    float kx = (24f + col * 9.5f) * u;
+                    r.set(kx, 55.5f * u, kx + kSize, 55.5f * u + kSize);
+                    canvas.drawRoundRect(r, 1.8f * u, 1.8f * u, p);
+                }
+                r.set(43f * u, 55.5f * u, 59f * u, 55.5f * u + kSize);
+                canvas.drawRoundRect(r, 2.2f * u, 2.2f * u, p);
+
+                // Overlapping glossy white top-left G speech-tile casting soft shadow
+                p.setColor(0x30101628);
+                r.set(10f * u, 12f * u, 46f * u, 48f * u);
+                canvas.drawRoundRect(r, 10f * u, 10f * u, p);
+
+                p.setShader(new LinearGradient(
+                        9f * u, 9f * u, 45f * u, 45f * u,
+                        0xFFFFFFFF, 0xFFF1F4FE, Shader.TileMode.CLAMP));
+                r.set(9f * u, 9f * u, 45f * u, 45f * u);
+                canvas.drawRoundRect(r, 10f * u, 10f * u, p);
+                p.setShader(null);
+
+                // Sky-royal blue 'G' emblem inside the white tile
+                float gcx = 27f * u;
+                float gcy = 27f * u;
+                float gr = 9.2f * u;
+                p.setStyle(Paint.Style.STROKE);
+                p.setStrokeWidth(3.6f * u);
+                p.setStrokeCap(Paint.Cap.BUTT);
+                p.setColor(0xFF4285F4);
+                r.set(gcx - gr, gcy - gr, gcx + gr, gcy + gr);
+                canvas.drawArc(r, 42f, 275f, false, p);
+                p.setStrokeCap(Paint.Cap.ROUND);
+                canvas.drawLine(gcx, gcy + 0.4f * u, gcx + gr * 0.96f, gcy + 0.4f * u, p);
+                // Vertical cap down on right bar of 'G'
+                p.setStyle(Paint.Style.FILL);
+                r.set(gcx + gr * 0.62f, gcy - 1.4f * u, gcx + gr * 1.15f, gcy + gr * 0.62f);
+                canvas.drawRect(r, p);
+
+                canvas.restore();
+            }
+
+            @Override public void setAlpha(int alpha) { p.setAlpha(alpha); }
+            @Override public void setColorFilter(ColorFilter colorFilter) { p.setColorFilter(colorFilter); }
+            @Override public int getOpacity() { return PixelFormat.TRANSLUCENT; }
+        };
+    }
+
+    private View buildActionsHeaderView(String title, final GboardM3Helper.Palette m3Pal) {
+        LinearLayout row = new LinearLayout(this);
+        row.setOrientation(LinearLayout.HORIZONTAL);
+        row.setGravity(Gravity.CENTER_VERTICAL);
+        row.setPadding(dp(22), dp(14), dp(20), dp(8));
+
+        View bolt = new View(this) {
+            private final Paint p = new Paint(Paint.ANTI_ALIAS_FLAG);
+            private final Path path = new Path();
+            @Override
+            protected void onDraw(Canvas canvas) {
+                super.onDraw(canvas);
+                float w = getWidth();
+                float h = getHeight();
+                p.setStyle(Paint.Style.FILL);
+                p.setColor(m3Pal.isAmoled || m3Pal.isNight ? m3Pal.accent : 0xFF2E90FA);
+                path.reset();
+                path.moveTo(w * 0.56f, h * 0.08f);
+                path.lineTo(w * 0.18f, h * 0.54f);
+                path.lineTo(w * 0.48f, h * 0.54f);
+                path.lineTo(w * 0.42f, h * 0.92f);
+                path.lineTo(w * 0.82f, h * 0.44f);
+                path.lineTo(w * 0.52f, h * 0.44f);
+                path.close();
+                canvas.drawPath(path, p);
+            }
+        };
+        LinearLayout.LayoutParams boltLp = new LinearLayout.LayoutParams(dp(16), dp(16));
+        boltLp.rightMargin = dp(8);
+        row.addView(bolt, boltLp);
+
+        TextView label = new TextView(this);
+        label.setText(title);
+        label.setTextColor(palette.textPrimary);
+        label.setTextSize(TypedValue.COMPLEX_UNIT_SP, 12.5f);
+        label.setLetterSpacing(0.08f);
+        label.setTypeface(Typeface.create("sans-serif-medium", Typeface.BOLD));
+        row.addView(label);
+        return row;
+    }
+
+    private View buildHighlightsHeaderView(
+            String title, String subtitle, final GboardM3Helper.Palette m3Pal) {
+        LinearLayout wrapper = new LinearLayout(this);
+        wrapper.setOrientation(LinearLayout.VERTICAL);
+        wrapper.setPadding(dp(22), dp(16), dp(20), dp(8));
+
+        LinearLayout topRow = new LinearLayout(this);
+        topRow.setOrientation(LinearLayout.HORIZONTAL);
+        topRow.setGravity(Gravity.CENTER_VERTICAL);
+
+        View infoBadge = new View(this) {
+            private final Paint p = new Paint(Paint.ANTI_ALIAS_FLAG);
+            @Override
+            protected void onDraw(Canvas canvas) {
+                super.onDraw(canvas);
+                float cx = getWidth() / 2f;
+                float cy = getHeight() / 2f;
+                float r = Math.min(cx, cy) - dpF(1f);
+                p.setStyle(Paint.Style.FILL);
+                p.setColor(m3Pal.isAmoled || m3Pal.isNight ? m3Pal.accent : 0xFF2E90FA);
+                canvas.drawCircle(cx, cy, r, p);
+                p.setColor(m3Pal.isAmoled || m3Pal.isNight ? 0xFF000000 : 0xFFFFFFFF);
+                p.setStyle(Paint.Style.STROKE);
+                p.setStrokeCap(Paint.Cap.ROUND);
+                p.setStrokeWidth(dpF(2.1f));
+                canvas.drawLine(cx, cy - dpF(0.6f), cx, cy + dpF(4.6f), p);
+                p.setStyle(Paint.Style.FILL);
+                canvas.drawCircle(cx, cy - dpF(4.4f), dpF(1.2f), p);
+            }
+        };
+        LinearLayout.LayoutParams badgeLp = new LinearLayout.LayoutParams(dp(24), dp(24));
+        badgeLp.rightMargin = dp(10);
+        topRow.addView(infoBadge, badgeLp);
+
+        TextView titleView = new TextView(this);
+        titleView.setText(title);
+        titleView.setTextColor(palette.textPrimary);
+        titleView.setTextSize(TypedValue.COMPLEX_UNIT_SP, 17f);
+        titleView.setTypeface(Typeface.create("sans-serif-medium", Typeface.BOLD));
+        topRow.addView(titleView);
+        wrapper.addView(topRow);
+
+        if (!TextUtils.isEmpty(subtitle)) {
+            TextView subView = new TextView(this);
+            subView.setText(subtitle);
+            subView.setTextColor(palette.textSecondary);
+            subView.setTextSize(TypedValue.COMPLEX_UNIT_SP, 13.5f);
+            LinearLayout.LayoutParams subLp = new LinearLayout.LayoutParams(
+                    ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+            subLp.topMargin = dp(4);
+            wrapper.addView(subView, subLp);
+        }
+        return wrapper;
+    }
+
+    private View createRowOrbIconView(CharSequence title) {
+        if (title == null || !GboardM3Helper.isLiquidGlassUiEnabled(this)) {
+            return null;
+        }
+        final String key = title.toString();
+        final int iconKind = resolveRowIconKind(key);
+        if (iconKind == 0) {
+            return null;
+        }
+        final GboardM3Helper.Palette m3Pal =
+                m3Palette != null ? m3Palette : GboardM3Helper.Palette.forContext(this);
+        View orb = new View(this) {
+            private final Paint paint = new Paint(Paint.ANTI_ALIAS_FLAG);
+            private final Path path = new Path();
+            private final RectF oval = new RectF();
+
+            {
+                paint.setStrokeCap(Paint.Cap.ROUND);
+                paint.setStrokeJoin(Paint.Join.ROUND);
+                setLayerType(View.LAYER_TYPE_SOFTWARE, null);
+            }
+
+            private void drawSolidGitHubOctocat(Canvas canvas, float cx, float cy, float u, int bgColor, int fgColor) {
+                paint.setStyle(Paint.Style.FILL);
+                paint.setColor(bgColor);
+                float r = 7.4f * u;
+                canvas.drawCircle(cx, cy, r, paint);
+                // Punch out crisp Octocat silhouette
+                paint.setColor(fgColor);
+                // Ears
+                path.reset();
+                path.moveTo(cx - 4.2f * u, cy - 1.5f * u);
+                path.lineTo(cx - 4.6f * u, cy - 5.2f * u);
+                path.lineTo(cx - 1.8f * u, cy - 3.6f * u);
+                path.lineTo(cx + 1.8f * u, cy - 3.6f * u);
+                path.lineTo(cx + 4.6f * u, cy - 5.2f * u);
+                path.lineTo(cx + 4.2f * u, cy - 1.5f * u);
+                // Head dome + torso down to bottom circle rim
+                path.cubicTo(cx + 5.6f * u, cy + 0.4f * u, cx + 4.6f * u, cy + 2.8f * u, cx + 2.0f * u, cy + 3.4f * u);
+                path.lineTo(cx + 2.2f * u, cy + 7.2f * u);
+                path.lineTo(cx - 2.2f * u, cy + 7.2f * u);
+                path.lineTo(cx - 2.0f * u, cy + 3.4f * u);
+                path.cubicTo(cx - 4.6f * u, cy + 2.8f * u, cx - 5.6f * u, cy + 0.4f * u, cx - 4.2f * u, cy - 1.5f * u);
+                path.close();
+                canvas.drawPath(path, paint);
+                // Little curled tail on left
+                paint.setStyle(Paint.Style.STROKE);
+                paint.setStrokeWidth(1.25f * u);
+                path.reset();
+                path.moveTo(cx - 1.8f * u, cy + 5.2f * u);
+                path.cubicTo(cx - 3.6f * u, cy + 5.2f * u, cx - 4.0f * u, cy + 3.5f * u, cx - 5.2f * u, cy + 3.6f * u);
+                canvas.drawPath(path, paint);
+            }
+
+            @Override
+            protected void onDraw(Canvas canvas) {
+                super.onDraw(canvas);
+                float cx = getWidth() / 2f;
+                float cy = getHeight() / 2f;
+                float u = dpF(1f);
+                int primaryBlue = (m3Pal.isAmoled || m3Pal.isNight) ? m3Pal.accent : 0xFF2E40F5;
+                int cutoutBg = m3Pal.isAmoled ? 0xFF0A0E18 : (m3Pal.isNight ? 0xFF1F2436 : 0xFFF2F4FC);
+                paint.setColor(primaryBlue);
+                paint.setStyle(Paint.Style.STROKE);
+                paint.setStrokeWidth(1.85f * u);
+
+                switch (iconKind) {
+                    case 1: // Developer (solid filled person bust - About.png)
+                        paint.setStyle(Paint.Style.FILL);
+                        canvas.drawCircle(cx, cy - 3.4f * u, 3.2f * u, paint);
+                        oval.set(cx - 5.8f * u, cy + 1.0f * u, cx + 5.8f * u, cy + 7.4f * u);
+                        path.reset();
+                        path.addArc(oval, 180f, 180f);
+                        path.lineTo(cx + 5.8f * u, cy + 5.8f * u);
+                        path.quadTo(cx + 5.8f * u, cy + 6.8f * u, cx + 4.4f * u, cy + 6.8f * u);
+                        path.lineTo(cx - 4.4f * u, cy + 6.8f * u);
+                        path.quadTo(cx - 5.8f * u, cy + 6.8f * u, cx - 5.8f * u, cy + 5.8f * u);
+                        path.close();
+                        canvas.drawPath(path, paint);
+                        break;
+                    case 2: // Community (solid filled Telegram paper plane with inner wing fold - About.png)
+                        paint.setStyle(Paint.Style.FILL);
+                        path.reset();
+                        path.moveTo(cx + 7.2f * u, cy - 5.8f * u);
+                        path.lineTo(cx - 7.6f * u, cy - 0.6f * u);
+                        path.lineTo(cx - 2.0f * u, cy + 1.4f * u);
+                        path.lineTo(cx - 0.6f * u, cy + 6.6f * u);
+                        path.lineTo(cx + 1.8f * u, cy + 3.4f * u);
+                        path.lineTo(cx + 4.6f * u, cy + 6.2f * u);
+                        path.close();
+                        canvas.drawPath(path, paint);
+                        paint.setColor(cutoutBg);
+                        paint.setStyle(Paint.Style.STROKE);
+                        paint.setStrokeWidth(1.3f * u);
+                        canvas.drawLine(cx - 1.6f * u, cy + 1.6f * u, cx + 4.8f * u, cy - 3.8f * u, paint);
+                        break;
+                    case 3: // Source Code & All Releases (solid GitHub Octocat circle badge)
+                        int ghBg = (m3Pal.isAmoled || m3Pal.isNight) ? m3Pal.accent
+                                : ("source code".equalsIgnoreCase(key) ? 0xFF3A426E : 0xFF2034F2);
+                        drawSolidGitHubOctocat(canvas, cx, cy, u, ghBg, cutoutBg);
+                        break;
+                    case 4: // Release Version (3D isometric wireframe cube - About.png)
+                        paint.setStyle(Paint.Style.STROKE);
+                        paint.setStrokeWidth(1.65f * u);
+                        path.reset();
+                        path.moveTo(cx, cy - 7.2f * u);
+                        path.lineTo(cx + 6.5f * u, cy - 3.5f * u);
+                        path.lineTo(cx + 6.5f * u, cy + 3.5f * u);
+                        path.lineTo(cx, cy + 7.2f * u);
+                        path.lineTo(cx - 6.5f * u, cy + 3.5f * u);
+                        path.lineTo(cx - 6.5f * u, cy - 3.5f * u);
+                        path.close();
+                        canvas.drawPath(path, paint);
+                        canvas.drawLine(cx, cy, cx, cy + 7.2f * u, paint);
+                        canvas.drawLine(cx - 6.5f * u, cy - 3.5f * u, cx, cy, paint);
+                        canvas.drawLine(cx + 6.5f * u, cy - 3.5f * u, cx, cy, paint);
+                        break;
+                    case 5: // Base Gboard (smartphone handset outline - About.png)
+                        paint.setStyle(Paint.Style.STROKE);
+                        paint.setStrokeWidth(1.65f * u);
+                        oval.set(cx - 4.7f * u, cy - 7.4f * u, cx + 4.7f * u, cy + 7.4f * u);
+                        canvas.drawRoundRect(oval, 1.8f * u, 1.8f * u, paint);
+                        paint.setStrokeWidth(1.4f * u);
+                        canvas.drawLine(cx - 1.3f * u, cy - 5.1f * u, cx + 1.3f * u, cy - 5.1f * u, paint);
+                        paint.setStyle(Paint.Style.FILL);
+                        canvas.drawCircle(cx, cy + 4.9f * u, 0.9f * u, paint);
+                        break;
+                    case 6: // Check for Updates / Download (tray box + downward arrow - Gboard Pro Updates.png)
+                        paint.setStyle(Paint.Style.STROKE);
+                        paint.setStrokeWidth(1.8f * u);
+                        // Rounded square box notched at top center
+                        path.reset();
+                        path.moveTo(cx - 2.4f * u, cy - 5.8f * u);
+                        path.lineTo(cx - 5.2f * u, cy - 5.8f * u);
+                        path.quadTo(cx - 6.6f * u, cy - 5.8f * u, cx - 6.6f * u, cy - 4.2f * u);
+                        path.lineTo(cx - 6.6f * u, cy + 4.8f * u);
+                        path.quadTo(cx - 6.6f * u, cy + 6.4f * u, cx - 5.0f * u, cy + 6.4f * u);
+                        path.lineTo(cx + 5.0f * u, cy + 6.4f * u);
+                        path.quadTo(cx + 6.6f * u, cy + 6.4f * u, cx + 6.6f * u, cy + 4.8f * u);
+                        path.lineTo(cx + 6.6f * u, cy - 4.2f * u);
+                        path.quadTo(cx + 6.6f * u, cy - 5.8f * u, cx + 5.2f * u, cy - 5.8f * u);
+                        path.lineTo(cx + 2.4f * u, cy - 5.8f * u);
+                        canvas.drawPath(path, paint);
+                        // Down arrow inside box
+                        canvas.drawLine(cx, cy - 6.8f * u, cx, cy + 2.4f * u, paint);
+                        path.reset();
+                        path.moveTo(cx - 3.2f * u, cy - 0.6f * u);
+                        path.lineTo(cx, cy + 2.8f * u);
+                        path.lineTo(cx + 3.2f * u, cy - 0.6f * u);
+                        canvas.drawPath(path, paint);
+                        break;
+                    case 7: // Highlights Row 1: Solid filled artist palette (Gboard Pro Updates.png)
+                        paint.setStyle(Paint.Style.FILL);
+                        path.reset();
+                        path.moveTo(cx, cy - 7.4f * u);
+                        path.cubicTo(cx + 4.8f * u, cy - 7.4f * u, cx + 7.6f * u, cy - 3.8f * u, cx + 7.4f * u, cy + 0.4f * u);
+                        path.cubicTo(cx + 7.2f * u, cy + 2.4f * u, cx + 5.4f * u, cy + 2.6f * u, cx + 3.8f * u, cy + 2.4f * u);
+                        path.cubicTo(cx + 2.4f * u, cy + 2.3f * u, cx + 2.2f * u, cy + 3.8f * u, cx + 3.0f * u, cy + 5.0f * u);
+                        path.cubicTo(cx + 3.8f * u, cy + 6.4f * u, cx + 2.2f * u, cy + 7.4f * u, cx - 0.4f * u, cy + 7.4f * u);
+                        path.cubicTo(cx - 5.2f * u, cy + 7.4f * u, cx - 7.6f * u, cy + 3.8f * u, cx - 7.6f * u, cy - 0.2f * u);
+                        path.cubicTo(cx - 7.6f * u, cy - 4.4f * u, cx - 4.4f * u, cy - 7.4f * u, cx, cy - 7.4f * u);
+                        path.close();
+                        canvas.drawPath(path, paint);
+                        // Paint dots cutout
+                        paint.setColor(cutoutBg);
+                        canvas.drawCircle(cx - 3.2f * u, cy - 1.6f * u, 1.25f * u, paint);
+                        canvas.drawCircle(cx - 0.2f * u, cy - 3.8f * u, 1.25f * u, paint);
+                        canvas.drawCircle(cx + 3.4f * u, cy - 2.0f * u, 1.25f * u, paint);
+                        canvas.drawCircle(cx - 2.8f * u, cy + 2.4f * u, 1.25f * u, paint);
+                        break;
+                    case 8: // Highlights Row 2: Solid 4-rounded-squares 2x2 grid (Gboard Pro Updates.png)
+                        paint.setStyle(Paint.Style.FILL);
+                        float gGap = 1.6f * u;
+                        float gCell = 5.4f * u;
+                        float gx0 = cx - gCell - gGap * 0.5f;
+                        float gy0 = cy - gCell - gGap * 0.5f;
+                        for (int rr = 0; rr < 2; rr++) {
+                            for (int cc = 0; cc < 2; cc++) {
+                                float x1 = gx0 + cc * (gCell + gGap);
+                                float y1 = gy0 + rr * (gCell + gGap);
+                                oval.set(x1, y1, x1 + gCell, y1 + gCell);
+                                canvas.drawRoundRect(oval, 1.6f * u, 1.6f * u, paint);
+                            }
+                        }
+                        break;
+                    case 9: // Highlights Row 3: Solid filled jigsaw puzzle piece (Gboard Pro Updates.png)
+                        paint.setStyle(Paint.Style.FILL);
+                        oval.set(cx - 6.0f * u, cy - 4.0f * u, cx + 4.4f * u, cy + 6.4f * u);
+                        canvas.drawRoundRect(oval, 1.6f * u, 1.6f * u, paint);
+                        canvas.drawCircle(cx - 0.8f * u, cy - 5.2f * u, 2.2f * u, paint);
+                        canvas.drawCircle(cx + 5.6f * u, cy + 1.2f * u, 2.2f * u, paint);
+                        // Subtractive bottom notch for authentic puzzle piece shape
+                        paint.setColor(cutoutBg);
+                        canvas.drawCircle(cx - 0.8f * u, cy + 6.4f * u, 2.0f * u, paint);
+                        break;
+                    case 10: // Amoled (crisp crescent moon)
+                        paint.setStyle(Paint.Style.STROKE);
+                        path.reset();
+                        path.moveTo(cx + 1.4f * u, cy - 6.8f * u);
+                        path.cubicTo(
+                                cx - 3.6f * u, cy - 6.6f * u,
+                                cx - 7.0f * u, cy - 2.6f * u,
+                                cx - 6.8f * u, cy + 2.0f * u);
+                        path.cubicTo(
+                                cx - 6.6f * u, cy + 5.8f * u,
+                                cx - 2.2f * u, cy + 8.0f * u,
+                                cx + 2.4f * u, cy + 7.2f * u);
+                        path.cubicTo(
+                                cx + 4.8f * u, cy + 6.8f * u,
+                                cx + 6.6f * u, cy + 5.2f * u,
+                                cx + 7.2f * u, cy + 3.4f * u);
+                        path.cubicTo(
+                                cx + 3.2f * u, cy + 4.4f * u,
+                                cx - 1.2f * u, cy + 2.0f * u,
+                                cx - 1.6f * u, cy - 2.0f * u);
+                        path.cubicTo(
+                                cx - 1.9f * u, cy - 4.0f * u,
+                                cx - 0.6f * u, cy - 5.8f * u,
+                                cx + 1.4f * u, cy - 6.8f * u);
+                        path.close();
+                        canvas.drawPath(path, paint);
+                        break;
+                    case 11: // Advanced Settings (sliders)
+                        canvas.drawLine(cx - 6.5f * u, cy - 3.5f * u, cx + 6.5f * u, cy - 3.5f * u, paint);
+                        canvas.drawLine(cx - 6.5f * u, cy + 3.5f * u, cx + 6.5f * u, cy + 3.5f * u, paint);
+                        paint.setStyle(Paint.Style.FILL);
+                        canvas.drawCircle(cx - 2.2f * u, cy - 3.5f * u, 2.4f * u, paint);
+                        canvas.drawCircle(cx + 2.4f * u, cy + 3.5f * u, 2.4f * u, paint);
+                        break;
+                    case 12: // Notification (bell)
+                        path.reset();
+                        path.moveTo(cx - 5.2f * u, cy + 3.0f * u);
+                        path.lineTo(cx - 4.4f * u, cy - 2.2f * u);
+                        oval.set(cx - 4.4f * u, cy - 6.6f * u, cx + 4.4f * u, cy + 2.2f * u);
+                        path.arcTo(oval, 180f, 180f);
+                        path.lineTo(cx + 5.2f * u, cy + 3.0f * u);
+                        path.lineTo(cx + 6.4f * u, cy + 4.2f * u);
+                        path.lineTo(cx - 6.4f * u, cy + 4.2f * u);
+                        path.close();
+                        canvas.drawPath(path, paint);
+                        canvas.drawLine(cx - 1.5f * u, cy + 6.8f * u, cx + 1.5f * u, cy + 6.8f * u, paint);
+                        break;
+                    case 13: // Permissions (shield check)
+                        path.reset();
+                        path.moveTo(cx, cy - 7.4f * u);
+                        path.lineTo(cx + 6.2f * u, cy - 4.8f * u);
+                        path.lineTo(cx + 6.2f * u, cy + 0.5f * u);
+                        path.quadTo(cx + 5.6f * u, cy + 5.6f * u, cx, cy + 7.6f * u);
+                        path.quadTo(cx - 5.6f * u, cy + 5.6f * u, cx - 6.2f * u, cy + 0.5f * u);
+                        path.lineTo(cx - 6.2f * u, cy - 4.8f * u);
+                        path.close();
+                        canvas.drawPath(path, paint);
+                        path.reset();
+                        path.moveTo(cx - 2.6f * u, cy + 0.2f * u);
+                        path.lineTo(cx - 0.6f * u, cy + 2.4f * u);
+                        path.lineTo(cx + 3.2f * u, cy - 2.0f * u);
+                        canvas.drawPath(path, paint);
+                        break;
+                    case 14: // Beta Program / Testing Mode (flask)
+                        path.reset();
+                        path.moveTo(cx - 2.4f * u, cy - 7.0f * u);
+                        path.lineTo(cx + 2.4f * u, cy - 7.0f * u);
+                        path.moveTo(cx - 1.6f * u, cy - 7.0f * u);
+                        path.lineTo(cx - 1.6f * u, cy - 2.0f * u);
+                        path.lineTo(cx - 6.2f * u, cy + 5.6f * u);
+                        path.quadTo(cx - 6.6f * u, cy + 6.8f * u, cx - 5.0f * u, cy + 6.8f * u);
+                        path.lineTo(cx + 5.0f * u, cy + 6.8f * u);
+                        path.quadTo(cx + 6.6f * u, cy + 6.8f * u, cx + 6.2f * u, cy + 5.6f * u);
+                        path.lineTo(cx + 1.6f * u, cy - 2.0f * u);
+                        path.lineTo(cx + 1.6f * u, cy - 7.0f * u);
+                        canvas.drawPath(path, paint);
+                        break;
+                    case 15: // Reset (circular arrow)
+                        oval.set(cx - 6.2f * u, cy - 6.2f * u, cx + 6.2f * u, cy + 6.2f * u);
+                        canvas.drawArc(oval, -50f, 285f, false, paint);
+                        path.reset();
+                        path.moveTo(cx + 2.0f * u, cy - 6.6f * u);
+                        path.lineTo(cx + 5.6f * u, cy - 6.4f * u);
+                        path.lineTo(cx + 5.0f * u, cy - 2.4f * u);
+                        canvas.drawPath(path, paint);
+                        break;
+                    default: // Sparkle / Fallback
+                        path.reset();
+                        path.moveTo(cx, cy - 7.2f * u);
+                        path.lineTo(cx + 2.0f * u, cy - 2.0f * u);
+                        path.lineTo(cx + 7.2f * u, cy);
+                        path.lineTo(cx + 2.0f * u, cy + 2.0f * u);
+                        path.lineTo(cx, cy + 7.2f * u);
+                        path.lineTo(cx - 2.0f * u, cy + 2.0f * u);
+                        path.lineTo(cx - 7.2f * u, cy);
+                        path.lineTo(cx - 2.0f * u, cy - 2.0f * u);
+                        path.close();
+                        canvas.drawPath(path, paint);
+                        break;
+                }
+            }
+        };
+        orb.setBackground(GboardM3Helper.createLiquidGlassOrbDrawable(this, m3Pal));
+        orb.setElevation(0f);
+        LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(dp(44), dp(44));
+        lp.gravity = Gravity.CENTER_VERTICAL;
+        lp.rightMargin = dp(14);
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR1) {
+            lp.setMarginEnd(dp(14));
+        }
+        orb.setLayoutParams(lp);
+        return orb;
+    }
+
+    private float dpF(float value) {
+        return value * getResources().getDisplayMetrics().density;
+    }
+
+    private int resolveRowIconKind(String title) {
+        String lower = title.toLowerCase(Locale.US);
+        if ("developer".equals(lower)) return 1;
+        if ("community".equals(lower)) return 2;
+        if ("source code".equals(lower) || "all releases".equals(lower)) return 3;
+        if ("release version".equals(lower)) return 4;
+        if ("base gboard".equals(lower)) return 5;
+        if (lower.contains("check for update") || lower.contains("download")
+                || lower.contains("install update")) return 6;
+        if (lower.contains("native liquid glass") || lower.contains("3d liquid glass")
+                || lower.contains("choose ui") || lower.contains("classic ui")) return 7;
+        if (lower.contains("multi-density") || lower.contains("density")) return 8;
+        if (lower.contains("package icon") || lower.contains("in-app feedback") || lower.contains("feedback")) return 9;
+        if ("amoled".equals(lower) || lower.contains("amoled")) return 10;
+        if ("advanced settings".equals(lower)) return 11;
+        if ("notification".equals(lower)) return 12;
+        if ("permissions".equals(lower)) return 13;
+        if ("beta program".equals(lower) || lower.contains("testing mode")) return 14;
+        if ("reset".equals(lower)) return 15;
+        if (lower.contains("additional")) return 16;
+        return 0;
     }
 
     private void bindSwitchRowState(LinearLayout row, TextView titleView, TextView summaryView,
@@ -3962,9 +5068,16 @@ public final class GboardPatchesSettingsActivity extends Activity
     private void applySwitchTint(Switch switchView) {
         switchView.setThumbTintList(null);
         switchView.setTrackTintList(null);
-        switchView.setTrackDrawable(new Material3SwitchTrackDrawable());
-        switchView.setThumbDrawable(new Material3SwitchThumbDrawable());
-        switchView.setSwitchMinWidth(dp(52));
+        if (GboardM3Helper.isLiquidGlassUiEnabled(this)) {
+            GboardM3Helper.Palette m3Pal = m3Palette != null ? m3Palette : GboardM3Helper.Palette.forContext(this);
+            switchView.setTrackDrawable(GboardM3Helper.createLiquidGlassSwitchTrackDrawable(this, m3Pal));
+            switchView.setThumbDrawable(GboardM3Helper.createLiquidGlassSwitchThumbDrawable(this, m3Pal, true));
+            switchView.setSwitchMinWidth(dp(54));
+        } else {
+            switchView.setTrackDrawable(new Material3SwitchTrackDrawable());
+            switchView.setThumbDrawable(new Material3SwitchThumbDrawable());
+            switchView.setSwitchMinWidth(dp(52));
+        }
         switchView.setThumbTextPadding(0);
         switchView.setShowText(false);
     }
@@ -4289,14 +5402,15 @@ public final class GboardPatchesSettingsActivity extends Activity
         TextView titleView = new TextView(this);
         titleView.setText(text);
         titleView.setTextColor(palette.accent);
-        titleView.setTextSize(TypedValue.COMPLEX_UNIT_SP, 14f);
-        titleView.setTypeface(Typeface.DEFAULT_BOLD);
-        titleView.setAllCaps(false);
+        titleView.setTextSize(TypedValue.COMPLEX_UNIT_SP, 12f);
+        titleView.setLetterSpacing(0.08f);
+        titleView.setTypeface(Typeface.create("sans-serif-medium", Typeface.BOLD));
+        titleView.setAllCaps(true);
         titleView.setGravity(Gravity.START);
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR1) {
             titleView.setTextAlignment(View.TEXT_ALIGNMENT_VIEW_START);
         }
-        titleView.setPadding(dp(20), dp(16), dp(20), dp(6));
+        titleView.setPadding(dp(22), dp(14), dp(22), dp(6));
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
             titleView.setAccessibilityHeading(true);
         }
@@ -4806,18 +5920,29 @@ public final class GboardPatchesSettingsActivity extends Activity
         }
 
         static Palette forContext(Context context, Configuration configuration) {
+            if (context != null && GboardM3Helper.isAmoledBlackEnabled(context)) {
+                return new Palette(
+                        0xFF000000,
+                        0xFF0A0C12,
+                        0xFF10131C,
+                        0x40A8C7FA,
+                        0xFF142238,
+                        0xFF3F2D16,
+                        0xFF10131C,
+                        0xFFF5F7FF,
+                        0xFFB0B8D0,
+                        0x66B0B8D0,
+                        0xFFA8C7FA,
+                        0x33A8C7FA);
+            }
+
             boolean nightMode = (configuration.uiMode & Configuration.UI_MODE_NIGHT_MASK)
                     == Configuration.UI_MODE_NIGHT_YES;
 
             String selectedTheme = "default";
             if (context != null) {
                 try {
-                    SharedPreferences p = context.getSharedPreferences("gboard_pro_appearance_prefs", Context.MODE_PRIVATE);
-                    selectedTheme = p.getString("selected_gboard_ui_theme", "default");
-                    if ("default".equals(selectedTheme)) {
-                        selectedTheme = android.preference.PreferenceManager.getDefaultSharedPreferences(context)
-                                .getString("selected_gboard_ui_theme", "default");
-                    }
+                    selectedTheme = GboardM3Helper.getSelectedThemeKey(context);
                 } catch (Throwable ignored) {
                 }
             }
@@ -4884,118 +6009,78 @@ public final class GboardPatchesSettingsActivity extends Activity
                 }
             }
 
-            if (context != null && Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+            // Default: Auto-adapt to phone system dynamic colors (Material You / Monet on Android 12+)
+            // and system Dark/Light mode while preserving 3D Liquid Glass pearlescent shading.
+            if (Build.VERSION.SDK_INT >= 31 && context != null) {
                 try {
-                    int windowBackground;
-                    int surface;
-                    int surfaceAlt;
-                    int surfaceStroke;
-                    int infoContainer;
-                    int warningContainer;
-                    int advancedContainer;
-                    int textPrimary;
-                    int textSecondary;
-                    int textDisabled;
-                    int accent;
-                    int pressedOverlay;
-
+                    int acc600 = context.getColor(android.R.color.system_accent1_600);
+                    int acc200 = context.getColor(android.R.color.system_accent1_200);
+                    int acc100 = context.getColor(android.R.color.system_accent1_100);
+                    int acc800 = context.getColor(android.R.color.system_accent1_800);
+                    int neu10 = context.getColor(android.R.color.system_neutral1_10);
+                    int neu50 = context.getColor(android.R.color.system_neutral1_50);
+                    int neu800 = context.getColor(android.R.color.system_neutral1_800);
+                    int neu900 = context.getColor(android.R.color.system_neutral1_900);
                     if (nightMode) {
-                        windowBackground = context.getColor(android.R.color.system_neutral1_900);
-                        surface = context.getColor(android.R.color.system_neutral1_900);
-                        surfaceAlt = context.getColor(android.R.color.system_neutral1_800);
-                        surfaceStroke = blendAlpha(context.getColor(android.R.color.system_neutral2_700), 0.35f);
-                        accent = context.getColor(android.R.color.system_accent1_200);
-                        textPrimary = context.getColor(android.R.color.system_neutral1_100);
-                        int rawSecondary = resolveThemeColor(context, android.R.attr.textColorSecondary,
-                                context.getColor(android.R.color.system_neutral2_200));
-                        textSecondary = blendAlpha(rawSecondary, 0.70f);
-                        textDisabled = blendAlpha(textSecondary, 0.45f);
-                        infoContainer = context.getColor(android.R.color.system_accent1_800);
-                        warningContainer = Color.parseColor("#3F2D16");
-                        advancedContainer = surfaceAlt;
-                        pressedOverlay = blendAlpha(accent, 0.15f);
-                    } else {
-                        windowBackground = context.getColor(android.R.color.system_neutral1_50);
-                        surface = Color.WHITE;
-                        surfaceAlt = Color.WHITE;
-                        surfaceStroke = blendAlpha(context.getColor(android.R.color.system_neutral2_200), 0.5f);
-                        accent = context.getColor(android.R.color.system_accent1_600);
-                        textPrimary = context.getColor(android.R.color.system_neutral1_900);
-                        int rawSecondary = resolveThemeColor(context, android.R.attr.textColorSecondary,
-                                context.getColor(android.R.color.system_neutral2_700));
-                        textSecondary = blendAlpha(rawSecondary, 0.72f);
-                        textDisabled = blendAlpha(textSecondary, 0.45f);
-                        infoContainer = context.getColor(android.R.color.system_accent1_100);
-                        warningContainer = Color.parseColor("#FEF3C7");
-                        advancedContainer = Color.WHITE;
-                        pressedOverlay = blendAlpha(accent, 0.15f);
+                        return new Palette(
+                                GboardM3Helper.blendColor(0xFF121520, neu900, 0.50f),
+                                GboardM3Helper.blendColor(0xFF1A1E2B, neu800, 0.50f),
+                                GboardM3Helper.blendColor(0xFF212636, acc800, 0.36f),
+                                GboardM3Helper.blendAlpha(acc200, 0.28f),
+                                acc800,
+                                0xFF3F2D16,
+                                GboardM3Helper.blendColor(0xFF212636, acc800, 0.36f),
+                                GboardM3Helper.blendColor(0xFFF5F7FF, neu50, 0.40f),
+                                GboardM3Helper.blendColor(0xFFB8C0D6, acc100, 0.32f),
+                                0x66B8C0D6,
+                                acc200,
+                                GboardM3Helper.blendAlpha(acc200, 0.22f));
                     }
-
                     return new Palette(
-                            windowBackground, surface, surfaceAlt, surfaceStroke,
-                            infoContainer, warningContainer, advancedContainer,
-                            textPrimary, textSecondary, textDisabled, accent, pressedOverlay);
-                } catch (Throwable ignored) {
-                }
-            }
-
-            if (context != null) {
-                try {
-                    int themeBg = resolveThemeColor(context, android.R.attr.colorBackground,
-                            nightMode ? Color.parseColor("#1D192B") : Color.parseColor("#FEF7FF"));
-                    int themePrimary = resolveThemeColor(context, android.R.attr.colorAccent,
-                            resolveThemeColor(context, android.R.attr.colorPrimary,
-                                    nightMode ? Color.parseColor("#D0BCFF") : Color.parseColor("#6750A4")));
-                    int themeTextPri = resolveThemeColor(context, android.R.attr.textColorPrimary,
-                            nightMode ? Color.parseColor("#E6E0E9") : Color.parseColor("#1D1B20"));
-                    int themeTextSec = blendAlpha(resolveThemeColor(context, android.R.attr.textColorSecondary,
-                            nightMode ? Color.parseColor("#CAC4D0") : Color.parseColor("#49454F")), 0.72f);
-
-                    return new Palette(
-                            themeBg,
-                            nightMode ? themeBg : Color.WHITE,
-                            nightMode ? Color.parseColor("#2B243B") : Color.WHITE,
-                            nightMode ? Color.parseColor("#1FFFFFFF") : Color.parseColor("#00000000"),
-                            nightMode ? Color.parseColor("#381E72") : Color.parseColor("#EADDFF"),
-                            nightMode ? Color.parseColor("#3F2D16") : Color.parseColor("#FEF3C7"),
-                            nightMode ? Color.parseColor("#2B243B") : Color.WHITE,
-                            themeTextPri,
-                            themeTextSec,
-                            blendAlpha(themeTextSec, 0.5f),
-                            themePrimary,
-                            blendAlpha(themePrimary, 0.15f));
+                            GboardM3Helper.blendColor(0xFFEFEFF6, neu50, 0.45f),
+                            GboardM3Helper.blendColor(0xFFF9FAFE, neu10, 0.45f),
+                            GboardM3Helper.blendColor(0xFFF9FAFE, acc100, 0.32f),
+                            0xFFDCE1F0,
+                            GboardM3Helper.blendColor(0xFFEAEFFF, acc100, 0.55f),
+                            0xFFFEF3C7,
+                            GboardM3Helper.blendColor(0xFFF9FAFE, acc100, 0.32f),
+                            GboardM3Helper.blendColor(0xFF181F36, neu900, 0.45f),
+                            GboardM3Helper.blendColor(0xFF525A70, neu800, 0.25f),
+                            0x88525A70,
+                            acc600,
+                            GboardM3Helper.blendAlpha(acc600, 0.16f));
                 } catch (Throwable ignored) {
                 }
             }
 
             if (nightMode) {
                 return new Palette(
-                        Color.parseColor("#1D192B"),
-                        Color.parseColor("#1D192B"),
-                        Color.parseColor("#2B243B"),
-                        Color.parseColor("#1FFFFFFF"),
-                        Color.parseColor("#381E72"),
-                        Color.parseColor("#3F2D16"),
-                        Color.parseColor("#2B243B"),
-                        Color.parseColor("#E6E0E9"),
-                        Color.parseColor("#CAC4D0"),
-                        Color.parseColor("#938F99"),
-                        Color.parseColor("#D0BCFF"),
-                        Color.parseColor("#33D0BCFF"));
+                        0xFF121520,
+                        0xFF1A1E2B,
+                        0xFF212636,
+                        0x33A8C7FA,
+                        0xFF1B2B4B,
+                        0xFF3F2D16,
+                        0xFF212636,
+                        0xFFF5F7FF,
+                        0xFFB8C0D6,
+                        0x66B8C0D6,
+                        0xFFA8C7FA,
+                        0x33A8C7FA);
             }
             return new Palette(
-                    Color.parseColor("#FEF7FF"),
-                    Color.WHITE,
-                    Color.WHITE,
-                    Color.parseColor("#00000000"),
-                    Color.parseColor("#EADDFF"),
-                    Color.parseColor("#FEF3C7"),
-                    Color.WHITE,
-                    Color.parseColor("#1D1B20"),
-                    Color.parseColor("#49454F"),
-                    Color.parseColor("#79747E"),
-                    Color.parseColor("#6750A4"),
-                    Color.parseColor("#1F6750A4"));
+                    0xFFEFEFF6,
+                    0xFFF9FAFE,
+                    0xFFF9FAFE,
+                    0xFFDCE1F0,
+                    0xFFEAEFFF,
+                    0xFFFEF3C7,
+                    0xFFF9FAFE,
+                    0xFF181F36,
+                    0xFF525A70,
+                    0x88525A70,
+                    0xFF283CF5,
+                    0x20283CF5);
         }
 
         private static int resolveThemeColor(Context context, int attrId, int fallback) {

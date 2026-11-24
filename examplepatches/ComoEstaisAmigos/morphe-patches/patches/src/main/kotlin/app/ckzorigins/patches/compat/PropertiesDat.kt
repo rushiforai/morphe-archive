@@ -1,6 +1,6 @@
 package app.ckzorigins.patches.compat
 
-import app.ckzorigins.patches.shared.hexToBytes
+import app.adebisi.patches.shared.hexToBytes
 import app.morphe.patcher.patch.PatchException
 import javax.crypto.Cipher
 import javax.crypto.spec.IvParameterSpec

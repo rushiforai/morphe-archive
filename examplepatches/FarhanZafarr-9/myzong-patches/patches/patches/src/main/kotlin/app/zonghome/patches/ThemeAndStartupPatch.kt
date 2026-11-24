@@ -24,7 +24,11 @@ private val themeTarget=Compatibility(
 
 // Public get(res/*) resolves decoded XML; raw entries use Morphe's path-map aliases.
 internal fun ResourcePatchContext.compiledFile(path: String): java.io.File {
-    if (!path.startsWith("res/")) return get(path)
+    if (!path.startsWith("res/") && path != "AndroidManifest.xml") return get(path)
+    if (path == "AndroidManifest.xml") {
+        val decoded = get(path)
+        if (decoded.isFile) return decoded
+    }
     require(path.split('/').none { it == ".." }) { "Invalid resource path: $path" }
     val field=javaClass.getDeclaredField("resourceCoder").apply { isAccessible=true }
     val coder=field.get(this)
@@ -32,7 +36,7 @@ internal fun ResourcePatchContext.compiledFile(path: String): java.io.File {
     val pathMap=mapField.get(coder)
     val alias=(pathMap.javaClass.getMethod("getAlias",String::class.java)
         .invoke(pathMap,path) as? String) ?: path
-    require(alias.startsWith("res/") && alias.split('/').none { it == ".." }) {
+    require((alias.startsWith("res/") || alias == "AndroidManifest.xml") && alias.split('/').none { it == ".." }) {
         "Unexpected resource alias: $path -> $alias"
     }
     val target=java.io.File(get("resources.arsc").parentFile,alias)
@@ -40,7 +44,7 @@ internal fun ResourcePatchContext.compiledFile(path: String): java.io.File {
         val extract=coder.javaClass.getDeclaredMethod("extractRootEntries",String::class.java)
             .apply { isAccessible=true }
         // Keep the coder's original-entry tracking; never replace decoded XML with binary.
-        extract.invoke(coder,"res")
+        extract.invoke(coder,if (path == "AndroidManifest.xml") path else "res")
     }
     check(target.isFile) { "Missing raw entry: $path (mapped to $alias)" }
     return target
@@ -105,15 +109,16 @@ private val charcoalResourcesPatch=rawResourcePatch {
 
 @Suppress("unused")
 val charcoalDarkModePatch=bytecodePatch(
-    name="Charcoal dark mode",
-    description="Dark grey backgrounds, lighter charcoal cards, pale text and restrained accents. Keeps card geometry unchanged.",
+    name="Material You theme",
+    description="Dark Material You colors on Android 12+, with automatic charcoal fallback on older or unsupported devices.",
     default=true
 ) {
+    category("Appearance")
     compatibleWith(themeTarget)
-    dependsOn(sharedExtensionPatch,charcoalResourcesPatch,dialogWindowThemePatch,rowStylingPatch,bundleUiThemePatch)
+    dependsOn(sharedExtensionPatch,charcoalResourcesPatch,dialogWindowThemePatch,rowStylingPatch,bundleUiThemePatch,onboardingUiHookPatch)
     val materialAccent by booleanOption(
-        key="systemMaterialAccent",title="Use system Material accent",
-        description="Use Android 12+ wallpaper accent for highlighted values and navigation; use muted green on older Android.",
+        key="systemMaterialColors",title="Use wallpaper colors",
+        description="Use Android 12+ system colors for surfaces, text, tracks and accents. Turn off to use charcoal. Missing system colors fall back automatically.",
         default=true,required=true
     )
     execute {
@@ -137,6 +142,7 @@ val charcoalDarkModePatch=bytecodePatch(
 
 private val staticIntroImagePatch=rawResourcePatch {
     execute {
+        if (!CustomizationSettings.enabled("skipIntro")) return@execute
         val path="res/layout/frag_splash.xml"
         val file=compiledFile(path);val editor=CharcoalResources()
         file.writeBytes(editor.xml(file.readBytes(),path,staticSplash=true))
@@ -145,13 +151,14 @@ private val staticIntroImagePatch=rawResourcePatch {
 
 @Suppress("unused")
 val skipAnimatedSplashPatch=bytecodePatch(
-    name="Skip animated startup intro",
+    name=null,
     description="Replace the full-screen GIF with a static logo and call its existing completion route without waiting for animation. Startup/session checks remain in place.",
     default=true
 ) {
     compatibleWith(themeTarget)
     dependsOn(staticIntroImagePatch)
     execute {
+        if (!CustomizationSettings.enabled("skipIntro")) return@execute
         val cls="Lcom/zong/customercare/view/ui/FragSplash;"
         // Verify the exact .112 callback whose guarded body calls the normal e1 routing method.
         Fingerprint(definingClass=cls,name="accessartificialFrame",returnType="V",parameters=listOf(cls)).method

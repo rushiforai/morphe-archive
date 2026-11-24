@@ -1,6 +1,6 @@
 package app.ckzorigins.patches.compat
 
-import app.ckzombies.patches.compat.emptyClasses
+import app.adebisi.patches.shared.emptyClasses
 import app.morphe.patcher.patch.PatchException
 import app.morphe.patcher.patch.classDefForEach
 import app.morphe.patcher.patch.document

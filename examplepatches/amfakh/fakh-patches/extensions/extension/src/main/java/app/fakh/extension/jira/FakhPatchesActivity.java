@@ -1,3 +1,8 @@
+/*
+ * Copyright 2026 amfakh
+ * SPDX-License-Identifier: GPL-3.0-only
+ */
+
 package app.fakh.extension.jira;
 
 import android.app.Activity;
@@ -21,7 +26,10 @@ import androidx.activity.ComponentActivity;
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
+import java.util.ArrayList;
+import java.util.List;
 
+import app.fakh.extension.shared.Features;
 import app.fakh.extension.shared.I18n;
 import app.fakh.extension.shared.RestartBar;
 
@@ -31,8 +39,6 @@ import app.fakh.extension.shared.RestartBar;
  * item and switch), called by reflection, so the fonts, sizes, switches and colors are the app's own.
  */
 public final class FakhPatchesActivity extends ComponentActivity {
-    /** The row that opens the sheet of the bottom bar's tabs, in place of a switch number. */
-    private static final int TABS = -1;
     /**
      * The arguments of JiraListItemKt.a that take their defaults, as the bits of its last argument: the modifier, the
      * leading slot, the line under the title, and the title's style and the leading size. Settings' own rows pass the same.
@@ -79,14 +85,23 @@ public final class FakhPatchesActivity extends ComponentActivity {
         // Like the notification settings: the page opens and closes with no transition.
         overridePendingTransition(0, 0);
 
-        if (MaterialYou.isMaterialYouIncluded()) section("Appearance", new int[] {0, 1});
-        section("Navigation bar", MaterialYou.isGlassNavigationBarIncluded() ? new int[] {4, 5, 3} : new int[] {3});
-        section("Navigation bar tabs", new int[] {TABS});
-        section("Other", new int[] {2});
+        // One card per section; the tabs section is one row, null here, that opens the picker sheet.
+        String title = null;
+        List<Features.Feature> rows = new ArrayList<>();
+        for (Features.Feature feature : Features.all()) {
+            if (!feature.section.equals(title)) {
+                if (title != null) section(title, rows);
+                title = feature.section;
+                rows = new ArrayList<>();
+                if (title.equals(MaterialYou.TABS_SECTION)) rows.add(null);
+            }
+            if (!title.equals(MaterialYou.TABS_SECTION)) rows.add(feature);
+        }
+        if (title != null) section(title, rows);
     }
 
-    /** A section title and the card of its switch rows, by their number in {@link MaterialYou#KEYS}. */
-    private void section(String title, int[] switches) {
+    /** A section title and the card of its rows. */
+    private void section(String title, List<Features.Feature> switches) {
         TextView header = text(I18n.tr(title), 12, textSecondary);
         header.setPadding(dp(4), dp(20), dp(4), dp(8));
         content.addView(header);
@@ -101,7 +116,7 @@ public final class FakhPatchesActivity extends ComponentActivity {
      * A ComposeView whose content is Jira's card with one of its switch rows per switch. A change is saved at once and
      * applies after a restart; the content is set again so that the rows show it.
      */
-    private View card(int[] switches) throws Exception {
+    private View card(List<Features.Feature> switches) throws Exception {
         ClassLoader loader = getClassLoader();
         String components = "com.atlassian.jira.infrastructure.designsystem.components.";
         Class<?> items = Class.forName(components + "molecules.listitem.JiraSectionColumnKt", true, loader);
@@ -156,9 +171,9 @@ public final class FakhPatchesActivity extends ComponentActivity {
                             @Override
                             public Object invoke(Object proxy, Method method, Object[] scope) throws Throwable {
                                 if (scope == null || scope.length != 1) return MaterialYou.objectMethod(proxy, method, scope);
-                                for (int which : switches) {
+                                for (Features.Feature feature : switches) {
                                     // The row of the tabs opens the sheet when tapped; a switch row is changed by its switch.
-                                    Object click = which != TABS ? null : Proxy.newProxyInstance(loader,
+                                    Object click = feature != null ? null : Proxy.newProxyInstance(loader,
                                             new Class<?>[] {wrapperMethod.getParameterTypes()[2]}, new InvocationHandler() {
                                                 @Override
                                                 public Object invoke(Object proxy, Method method, Object[] none) {
@@ -175,7 +190,7 @@ public final class FakhPatchesActivity extends ComponentActivity {
                                             if (composer == null || composer.length != 2) {
                                                 return MaterialYou.objectMethod(proxy, method, composer);
                                             }
-                                            if (which == TABS) {
+                                            if (feature == null) {
                                                 // Modifier, leading slot and the trailing slot are the row's own defaults.
                                                 listItemMethod.invoke(null, I18n.tr("Navigation bar tabs"), null, null, null,
                                                         FakhSettings.tabsSummary(FakhPatchesActivity.this), null,
@@ -188,17 +203,17 @@ public final class FakhPatchesActivity extends ComponentActivity {
                                                     if (value == null || value.length != 1) {
                                                         return MaterialYou.objectMethod(proxy, method, value);
                                                     }
-                                                    MaterialYou.prefs(FakhPatchesActivity.this).edit()
-                                                            .putBoolean(MaterialYou.KEYS[which], (Boolean) value[0]).commit();
-                                                    RestartBar.show(FakhPatchesActivity.this, 0, MaterialYou.materialYou(FakhPatchesActivity.this));
+                                                    Features.set(feature.id, (Boolean) value[0]);
+                                                    if (feature.restart) {
+                                                        RestartBar.show(FakhPatchesActivity.this, 0, MaterialYou.materialYou(FakhPatchesActivity.this));
+                                                    }
                                                     // Redrawn in place, so the switch slides instead of starting in its new state.
                                                     if (lambda[0] != null) FakhSettings.invalidate(lambda[0]);
                                                     else view.post((Runnable) render[0]);
                                                     return null;
                                                 }
                                             });
-                                            final boolean checked = settled[0] && MaterialYou.prefs(FakhPatchesActivity.this)
-                                                    .getBoolean(MaterialYou.KEYS[which], MaterialYou.DEFAULTS[which]);
+                                            final boolean checked = settled[0] && Features.saved(feature.id);
                                             Object trailing = Proxy.newProxyInstance(loader, new Class<?>[] {function2}, new InvocationHandler() {
                                                 @Override
                                                 public Object invoke(Object proxy, Method method, Object[] inner) throws Throwable {
@@ -208,9 +223,8 @@ public final class FakhPatchesActivity extends ComponentActivity {
                                                     return null;
                                                 }
                                             });
-                                            String subtitle = MaterialYou.SUBTITLES[which];
-                                            listItemMethod.invoke(null, I18n.tr(MaterialYou.LABELS[which]), null, null, null,
-                                                    subtitle == null ? null : I18n.tr(subtitle), trailing,
+                                            listItemMethod.invoke(null, I18n.tr(feature.title), null, null, null,
+                                                    feature.description.isEmpty() ? null : I18n.tr(feature.description), trailing,
                                                     Integer.MAX_VALUE, 0, Integer.MAX_VALUE, null, null, composer[0], 0, 0, LIST_ITEM_DEFAULTS);
                                             return null;
                                         }

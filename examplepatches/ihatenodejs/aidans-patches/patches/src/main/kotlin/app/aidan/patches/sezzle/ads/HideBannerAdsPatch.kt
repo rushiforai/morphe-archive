@@ -7,112 +7,100 @@ import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
 import app.morphe.patcher.patch.BytecodePatchContext
 import app.morphe.patcher.patch.PatchException
 
-private val CAN_SHOW_AD_SELECTOR_SUFFIX_BYTES = byteArrayOf(
-    0x02, 0x01, 0x00, 0x3b,
-    0x01, 0x01, 0x01, 0x5e, 0x01, 0x01, 0x0b, 0x93.toByte(),
-    0x00, 0x6e, 0x01, 0x02, 0x00, 0x01, 0x45, 0x01,
-    0x01, 0x00, 0x74, 0x66, 0x76, 0x01
-)
-
-private val SHOULD_SHOW_ROKT_SELECTOR_SUFFIX_BYTES = byteArrayOf(
-    0x02, 0x01, 0x00, 0x3b,
-    0x01, 0x01, 0x01, 0x5e, 0x01, 0x01, 0x0c, 0x93.toByte(),
-    0x00, 0x6e, 0x01, 0x02, 0x00, 0x01, 0x45, 0x01,
-    0x01, 0x00, 0x74, 0x63, 0x76, 0x01
-)
-
-private val SHOULD_SHOW_THANKS_SELECTOR_SUFFIX_BYTES = byteArrayOf(
-    0x02, 0x01, 0x00, 0x3b,
-    0x01, 0x01, 0x01, 0x5e, 0x01, 0x01, 0x0c, 0x93.toByte(),
-    0x00, 0x6e, 0x01, 0x02, 0x00, 0x01, 0x45, 0x01,
-    0x01, 0x00, 0x8f.toByte(), 0x68, 0x76, 0x01
-)
-
-private val IS_AD_ENABLED_FOR_TRIGGER_SELECTOR_SUFFIX_BYTES = byteArrayOf(
-    0x02, 0x01, 0x00, 0x3b,
-    0x01, 0x01, 0x01, 0x5e, 0x01, 0x01, 0x0e, 0x93.toByte(),
-    0x00, 0x6e, 0x01, 0x02, 0x00, 0x01, 0x45, 0x01,
-    0x01, 0x00, 0x3e, 0xd2.toByte(), 0x76, 0x01
-)
-
-private val IS_REGISTERED_TRIGGER_SELECTOR_SUFFIX_BYTES = byteArrayOf(
-    0x02, 0x01, 0x00, 0x3b,
-    0x01, 0x01, 0x01, 0x5e, 0x01, 0x01, 0x08, 0x93.toByte(),
-    0x00, 0x6e, 0x01, 0x02, 0x00, 0x01, 0x45, 0x01,
-    0x01, 0x00, 0x16, 0xdb.toByte(), 0x76, 0x01
-)
-
-private val IS_PLACEMENT_IN_CATALOG_SELECTOR_SUFFIX_BYTES = byteArrayOf(
-    0x02, 0x01, 0x00, 0x3b,
-    0x01, 0x01, 0x01, 0x5e, 0x01, 0x01, 0x0f, 0x93.toByte(),
-    0x00, 0x6e, 0x01, 0x02, 0x00, 0x01, 0x45, 0x01,
-    0x01, 0x00, 0x17, 0x63, 0x76, 0x01
-)
-
-private val ENABLE_THANKS_SUFFIX_BYTES = byteArrayOf(
-    0x00, 0x00, 0x07, 0x44, 0x01, 0x00, 0x00, 0x70, 0x44,
-    0x00, 0x01, 0x01, 0x9b.toByte(), 0x6c, 0x00, 0x00, 0x01,
-    0x45, 0x00, 0x00, 0x02, 0xc4.toByte(), 0xe6.toByte(), 0x45, 0x00,
-    0x00, 0x03, 0x6f, 0x37, 0x76, 0x00
-)
-
-private val THANKS_BASE_URL_BYTES = byteArrayOf(
-    0x91.toByte(), 0x00, 0x4c, 0x60, 0x01, 0x00, 0x76, 0x00
-)
-
-private val THANKS_MODAL_RENDER_PREFIX_BYTES = byteArrayOf(
-    0x40, 0x01, 0x04, 0x89.toByte(), 0x05, 0x02, 0x37, 0x01,
-    0x00, 0x05, 0x89.toByte(), 0x02, 0x06, 0x89.toByte(), 0x04, 0x07,
-    0x37, 0x01, 0x01, 0x04, 0x84.toByte(), 0x03, 0x01, 0x7c,
-    0x45, 0x37, 0x01, 0x03, 0x03, 0x3d, 0x06, 0x48,
-    0x09, 0x06, 0x00, 0x1d, 0x00, 0x44, 0x08, 0x09
-)
+private const val SELECTOR_PROPERTY_OFFSET = 0x16
+private const val SELECTOR_SCAN_LIMIT = 4096
 
 private val EXPECTED_SELECTOR_PREFIX_BYTES = byteArrayOf(0x34, 0x01, 0x00, 0x3b)
-private val EXPECTED_ENABLE_THANKS_PREFIX_BYTES = byteArrayOf(0x34, 0x00, 0x00, 0x3b)
-private val EXPECTED_MODAL_RENDER_PREFIX_BYTES = byteArrayOf(0x40, 0x01, 0x04, 0x89.toByte())
 private val LOAD_CONST_FALSE_RET_R1 = byteArrayOf(0x96.toByte(), 0x01, 0x76.toByte(), 0x01)
 private val LOAD_CONST_FALSE_RET_R0 = byteArrayOf(0x96.toByte(), 0x00, 0x76.toByte(), 0x00)
 private val LOAD_CONST_NULL_RET_R0 = byteArrayOf(0x92.toByte(), 0x00, 0x76.toByte(), 0x00)
-private fun HermesBundleEditor.patchSelectorIfMatches(
-    bundleBytes: ByteArray,
-    suffix: ByteArray,
-    description: String
-) {
-    val suffixOffset = findUniqueSequence(bundleBytes, suffix, description)
-    val selectorOffset = suffixOffset - 4
-    if (matchesBytes(selectorOffset, EXPECTED_SELECTOR_PREFIX_BYTES)) {
-        patchBytes(selectorOffset, LOAD_CONST_FALSE_RET_R1)
-    } else if (!matchesBytes(selectorOffset, LOAD_CONST_FALSE_RET_R1)) {
-        throw PatchException("Unexpected bytes at $description")
-    }
-}
-private fun findUniqueSequence(bytes: ByteArray, sequence: ByteArray, description: String): Int {
-    require(sequence.isNotEmpty()) { "Sequence must not be empty" }
+
+/**
+ * Finds the memoized selector wrapper that returns [propertyName] and forces it to
+ * return `false`.
+ *
+ * The wrapper shape is `GetParentEnvironment; ...; GetById r1, r1, ..., property;
+ * Ret r1`, so the property lookup uniquely identifies the 30-byte function.
+ */
+private fun HermesBundleEditor.forceSelectorFalse(propertyName: String) {
+    val propertyId = findStringId(propertyName)
+        ?: throw PatchException("String '$propertyName' not found")
+    require(propertyId <= 0xFFFF) { "String '$propertyName' id does not fit GetById" }
+
+    val needle = byteArrayOf(
+        0x45, 0x01, 0x01, 0x00,
+        (propertyId and 0xFF).toByte(),
+        ((propertyId ushr 8) and 0xFF).toByte(),
+        0x76.toByte(), 0x01
+    )
+    val bytes = toByteArray()
     var matchOffset = -1
-    var count = 0
-    var i = 0
-    while (i <= bytes.size - sequence.size) {
-        if (bytes[i] == sequence[0]) {
-            var matched = true
-            for (j in 1 until sequence.size) {
-                if (bytes[i + j] != sequence[j]) {
-                    matched = false
-                    break
-                }
-            }
-            if (matched) {
-                matchOffset = i
-                count++
-            }
+    var matchCount = 0
+    for (offset in 0..(bytes.size - needle.size)) {
+        if (bytes.copyOfRange(offset, offset + needle.size).contentEquals(needle)) {
+            matchOffset = offset
+            matchCount++
         }
-        i++
     }
-    return when (count) {
-        0 -> throw PatchException("Failed to find $description in Hermes bundle")
-        1 -> matchOffset
-        else -> throw PatchException("Found $count matches for $description in Hermes bundle; expected exactly 1")
+    if (matchCount != 1) {
+        throw PatchException("Expected one selector for '$propertyName', found $matchCount")
     }
+
+    val selectorOffset = matchOffset - SELECTOR_PROPERTY_OFFSET
+    if (selectorOffset < 0 || !matchesBytes(selectorOffset, EXPECTED_SELECTOR_PREFIX_BYTES)) {
+        throw PatchException("Unexpected selector prologue for '$propertyName'")
+    }
+    patchBytes(selectorOffset, LOAD_CONST_FALSE_RET_R1)
+}
+
+/** Forces the `useShowThanks` hook to return `false`. */
+private fun HermesBundleEditor.disableUseShowThanks() {
+    val offset = findFunctionOffsetByName("useShowThanks")
+        ?: throw PatchException("useShowThanks function not found")
+    patchBytes(offset, LOAD_CONST_FALSE_RET_R0)
+}
+
+/**
+ * Makes the Braze banner component render nothing. The native Braze SDK is
+ * stubbed below; leaving the JS banner mounted makes it consume a patched module.
+ */
+private fun HermesBundleEditor.disableBrazeBanner() {
+    val offset = findFunctionOffsetByName("BrazeBannerWithPadding")
+        ?: throw PatchException("BrazeBannerWithPadding function not found")
+    if (matchesBytes(offset, LOAD_CONST_NULL_RET_R0)) return
+    // CreateFunctionEnvironment prologue; fail fast if the bundle layout changes.
+    if (!matchesBytes(offset, byteArrayOf(0x40, 0x04, 0x0d))) {
+        throw PatchException("Unexpected BrazeBannerWithPadding prologue")
+    }
+    patchBytes(offset, LOAD_CONST_NULL_RET_R0)
+}
+
+/** Replaces the Thanks base URL constant with `null`. */
+private fun HermesBundleEditor.disableThanksBaseUrl() {
+    val url = "https://thanks.is/"
+    val urlId = findStringId(url)
+        ?: throw PatchException("String '$url' not found")
+    val needle = byteArrayOf(
+        0x91.toByte(), 0x00,
+        (urlId and 0xFF).toByte(),
+        ((urlId ushr 8) and 0xFF).toByte(),
+        ((urlId ushr 16) and 0xFF).toByte(),
+        ((urlId ushr 24) and 0xFF).toByte(),
+        0x76.toByte(), 0x00
+    )
+    val bytes = toByteArray()
+    var matchOffset = -1
+    var matchCount = 0
+    for (offset in 0..(bytes.size - needle.size)) {
+        if (bytes.copyOfRange(offset, offset + needle.size).contentEquals(needle)) {
+            matchOffset = offset
+            matchCount++
+        }
+    }
+    if (matchCount != 1) {
+        throw PatchException("Expected one Thanks base URL loader, found $matchCount")
+    }
+    patchBytes(matchOffset, LOAD_CONST_NULL_RET_R0)
 }
 
 /**
@@ -139,49 +127,19 @@ val removeAdsAndTrackingPatch = compositeFeaturePatch(
         }
 
         val editor = HermesBundleEditor(bundleFile.readBytes())
-        val bundleBytes = editor.toByteArray()
-        // 1. Force canShowAd selector to return false
-        editor.patchSelectorIfMatches(bundleBytes, CAN_SHOW_AD_SELECTOR_SUFFIX_BYTES, "canShowAd selector")
-
-        // 2. Force shouldShowRokt selector to return false
-        editor.patchSelectorIfMatches(bundleBytes, SHOULD_SHOW_ROKT_SELECTOR_SUFFIX_BYTES, "shouldShowRokt selector")
-
-        // 3. Force shouldShowThanks selector to return false
-        editor.patchSelectorIfMatches(bundleBytes, SHOULD_SHOW_THANKS_SELECTOR_SUFFIX_BYTES, "shouldShowThanks selector")
-
-        // 4. Force isAdEnabledForTrigger selector to return false
-        editor.patchSelectorIfMatches(bundleBytes, IS_AD_ENABLED_FOR_TRIGGER_SELECTOR_SUFFIX_BYTES, "isAdEnabledForTrigger selector")
-
-        // 5. Force isRegisteredTrigger selector to return false
-        editor.patchSelectorIfMatches(bundleBytes, IS_REGISTERED_TRIGGER_SELECTOR_SUFFIX_BYTES, "isRegisteredTrigger selector")
-
-        // 6. Force isPlacementInCatalog selector to return false
-        editor.patchSelectorIfMatches(bundleBytes, IS_PLACEMENT_IN_CATALOG_SELECTOR_SUFFIX_BYTES, "isPlacementInCatalog selector")
-
-        // 7. Force enableThanks to return false
-        val enableThanksSuffixOffset = findUniqueSequence(bundleBytes, ENABLE_THANKS_SUFFIX_BYTES, "enableThanks getter")
-        val enableThanksOffset = enableThanksSuffixOffset - 4
-        if (editor.matchesBytes(enableThanksOffset, EXPECTED_ENABLE_THANKS_PREFIX_BYTES)) {
-            editor.patchBytes(enableThanksOffset, LOAD_CONST_FALSE_RET_R0)
-        } else if (!editor.matchesBytes(enableThanksOffset, LOAD_CONST_FALSE_RET_R0)) {
-            throw PatchException("Unexpected bytes at enableThanks getter")
+        for (selector in listOf(
+            "canShowAd",
+            "shouldShowRokt",
+            "shouldShowThanks",
+            "isAdEnabledForTrigger",
+            "isRegisteredTrigger",
+            "isPlacementInCatalog"
+        )) {
+            editor.forceSelectorFalse(selector)
         }
-
-        // 8. Force getThanksBaseUrl to return null (prevents loading https://thanks.is/)
-        val thanksUrlOffset = findUniqueSequence(bundleBytes, THANKS_BASE_URL_BYTES, "getThanksBaseUrl")
-        if (editor.matchesBytes(thanksUrlOffset, THANKS_BASE_URL_BYTES)) {
-            editor.patchBytes(thanksUrlOffset, LOAD_CONST_NULL_RET_R0)
-        } else if (!editor.matchesBytes(thanksUrlOffset, LOAD_CONST_NULL_RET_R0)) {
-            throw PatchException("Unexpected bytes at getThanksBaseUrl")
-        }
-
-        // 9. Neutralize ThanksModal.render() method to return null (prevents ReactNativeModal from mounting)
-        val thanksModalRenderOffset = findUniqueSequence(bundleBytes, THANKS_MODAL_RENDER_PREFIX_BYTES, "ThanksModal render()")
-        if (editor.matchesBytes(thanksModalRenderOffset, EXPECTED_MODAL_RENDER_PREFIX_BYTES)) {
-            editor.patchBytes(thanksModalRenderOffset, LOAD_CONST_NULL_RET_R0)
-        } else if (!editor.matchesBytes(thanksModalRenderOffset, LOAD_CONST_NULL_RET_R0)) {
-            throw PatchException("Unexpected bytes at ThanksModal render()")
-        }
+        editor.disableUseShowThanks()
+        editor.disableBrazeBanner()
+        editor.disableThanksBaseUrl()
 
         editor.updateFooterHash()
         bundleFile.writeBytes(editor.toByteArray())

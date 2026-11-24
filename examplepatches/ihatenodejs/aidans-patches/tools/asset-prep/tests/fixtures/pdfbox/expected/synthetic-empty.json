@@ -1,0 +1,14 @@
+{
+  "args": [
+    "--gradle-home",
+    "/Users/aidan/Projects/aidans-patches/tools/asset-prep/tests/fixtures/pdfbox/gradle-home/single",
+    "--aar",
+    "/Users/aidan/Projects/aidans-patches/tools/asset-prep/tests/fixtures/pdfbox/aars/empty.aar",
+    "--output",
+    "/var/folders/q_/8vvtb5m90p95bxyjx1dw609r0000gn/T/asset-pdfbox-capture-ytqouz1z/empty.zip"
+  ],
+  "exit": 1,
+  "stdout": "",
+  "stderr": "Error: No PDFBox assets found matching prefix 'assets/com/tom_roush/' in /Users/aidan/Projects/aidans-patches/tools/asset-prep/tests/fixtures/pdfbox/aars/empty.aar\n",
+  "outputExists": false
+}

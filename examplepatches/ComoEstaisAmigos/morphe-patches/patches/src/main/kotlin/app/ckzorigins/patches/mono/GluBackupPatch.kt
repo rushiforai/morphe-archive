@@ -2,6 +2,8 @@ package app.ckzorigins.patches.mono
 
 import app.ckzorigins.patches.compat.GluBackupManifest
 import app.ckzorigins.patches.compat.bundleObbPatch
+import app.ckzorigins.patches.shared.Constants.ORIGINAL_APK
+import app.adebisi.patches.shared.requireGluMobileSigner
 import app.morphe.patcher.patch.document
 import app.morphe.patcher.patch.patch
 import app.morphe.patcher.util.returnEarly
@@ -14,6 +16,7 @@ internal val gluBackupPatch = patch {
     dependsOn(bundleObbPatch)
 
     execute {
+        requireGluMobileSigner(ORIGINAL_APK)
         AjtBackupDataChangedFingerprint.method.returnEarly()
         AjtBackupRequestRestoreFingerprint.method.returnEarly()
         GluBackupAgentOnCreateFingerprint.method.returnEarly()

@@ -868,7 +868,8 @@ final class LiquidGlassLens extends View {
         }
 
         if (!glassy) return;
-        if (p > 0.02f && canvas.isHardwareAccelerated() && Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+        if (p > 0.02f && canvas.isHardwareAccelerated() && Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU
+                && !style().lightweight()) {
             drawLens(canvas, r, p, dark);
         } else if (p > 0.02f) {
             fill.setColor(dark ? Color.argb(Math.round(0x40 * p), 0xFF, 0xFF, 0xFF)
@@ -922,8 +923,9 @@ final class LiquidGlassLens extends View {
         boolean open = p > 0.02f;
         // Fades in within a few frames of opening, then the sides stay fully 3D while it's open.
         float openAlpha = Math.min(1f, p * 3f);
+        // Lightweight glass: a plain drop with a lit rim, no shader.
         boolean shaded = canvas.isHardwareAccelerated() && Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU
-                && !dropShaderFailed;
+                && !dropShaderFailed && !style().lightweight();
         if (open && shaded) {
             // Full-strength 3D sides the whole time it's open, at the drop's current size. The
             // middle magnifies up to 1.2x and darkens a touch (5%) as it swells.

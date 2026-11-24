@@ -123,6 +123,8 @@ public final class PatchSettings {
             });
             showHintOnce(home);
             FilterUpdates.check(home.getContext());
+            UpdateCheck.check(home.getContext());
+            AuthorLists.check(home.getContext(), false);
         } catch (Exception ex) {
             Log.e(TAG, "Failed to attach the patch settings", ex);
         }
@@ -370,6 +372,14 @@ public final class PatchSettings {
             return OfflineCopies.save(context, url, title, author, text);
         }
 
+        /** For Bookmarks: the pictures of a bookmarked page, kept with its offline copy. */
+        @android.webkit.JavascriptInterface
+        public void saveOfflineImages(String key, String url, String json) {
+            if (!allowed(key)) return;
+            WebView view = webView.get();
+            if (view != null) OfflineCopies.saveImages(view.getContext(), url, json);
+        }
+
         /**
          * For Read aloud: reads the text out loud, or stops. Returns whether it is reading now.
          *
@@ -383,6 +393,44 @@ public final class PatchSettings {
             if (view == null) return false;
             return ReadAloud.toggle(view, text,
                     preview ? Texts.t("Reading the preview. Open it to hear all of it.") : null, stop);
+        }
+
+        /** For Block authors and Spaces: you long-pressed this name; asks whether to hide everything by them. */
+        @android.webkit.JavascriptInterface
+        public void blockAuthor(String key, String name) {
+            if (!allowed(key) || name == null) return;
+            String clean = name.replaceAll("[,\\s]+", " ").trim();
+            WebView view = webView.get();
+            if (view == null || clean.isEmpty() || clean.length() > 80) return;
+            view.post(() -> askBlockAuthor(view, clean));
+        }
+
+        /** For the hidden counts in Patch settings: what this page hid since it last said, as {"ads":2,…}. */
+        @android.webkit.JavascriptInterface
+        public void countHidden(String key, String json) {
+            if (!allowed(key)) return;
+            WebView view = webView.get();
+            if (view != null) HiddenStats.add(view.getContext(), json);
+        }
+
+        /**
+         * For Hide what you pick: the page marked a box; asks whether to hide it and every box with
+         * the same class. An empty class means nothing at the tapped spot can be hidden this way.
+         */
+        @android.webkit.JavascriptInterface
+        public void pickHide(String key, String className, int count, int level, int total) {
+            if (!allowed(key)) return;
+            WebView view = webView.get();
+            if (view != null) view.post(() -> Picker.ask(view, className, count, level, total));
+        }
+
+        /** For Reader view: shows this answer or post as plain text with its pictures, in the app's own page. */
+        @android.webkit.JavascriptInterface
+        public void openReader(String key, String title, String author, String text, String images, boolean preview) {
+            if (!allowed(key) || text == null || text.trim().isEmpty()) return;
+            WebView view = webView.get();
+            if (view == null) return;
+            view.post(() -> SettingsPage.reader(view.getContext(), title, author, text, images, preview));
         }
 
         /** For Read aloud: whether it is still reading, so the page can reset its button. */
@@ -449,6 +497,49 @@ public final class PatchSettings {
             }
             prefs.edit().putBoolean("hint_shown", true).apply();
         }, 6000);
+    }
+
+    /**
+     * Asks whether to hide everything by a name you long-pressed, and adds it to the Authors and
+     * Spaces filter. The page hides their items at once; other pages do on their next load.
+     */
+    private static void askBlockAuthor(WebView view, String name) {
+        Activity activity = activity(view.getContext());
+        SharedPreferences prefs = prefs(view);
+        if (activity == null || prefs == null || activity.isFinishing()) return;
+        boolean dark = (activity.getResources().getConfiguration().uiMode
+                & android.content.res.Configuration.UI_MODE_NIGHT_MASK) == android.content.res.Configuration.UI_MODE_NIGHT_YES;
+        try {
+            new android.app.AlertDialog.Builder(activity, dark
+                    ? android.R.style.Theme_DeviceDefault_Dialog_Alert
+                    : android.R.style.Theme_DeviceDefault_Light_Dialog_Alert)
+                    .setTitle(Texts.t("Hide everything by ") + name + "?")
+                    .setMessage(Texts.t("Their answers and posts won't show in the feed or on question pages. You can remove the name again in Patch settings > More > Filters."))
+                    .setPositiveButton(Texts.t("Hide"), (d, w) -> {
+                        addAuthor(prefs, name);
+                        view.evaluateJavascript("window.__jofslashAuthorsAdd&&window.__jofslashAuthorsAdd("
+                                + org.json.JSONObject.quote(name) + ")", null);
+                        Toast.makeText(activity, name + ": " + Texts.t("hidden."), Toast.LENGTH_SHORT).show();
+                    })
+                    .setNegativeButton(Texts.t("Cancel"), null)
+                    .show();
+        } catch (Exception ex) {
+            Log.e(TAG, "Failed to ask about blocking an author", ex);
+        }
+    }
+
+    /** Adds a name to the Authors and Spaces filter, unless it is there already. */
+    static void addAuthor(SharedPreferences prefs, String name) {
+        String[] text;
+        synchronized (TEXTS) {
+            text = TEXTS.get("authors");
+        }
+        String current = prefs.getString("authors", text == null ? "" : text[1]);
+        for (String part : current.split(",")) {
+            if (part.trim().equalsIgnoreCase(name)) return;
+        }
+        String joined = current.trim().isEmpty() ? name : current.trim().replaceAll(",\\s*$", "") + ", " + name;
+        prefs.edit().putString("authors", joined).putBoolean("blockAuthors", true).apply();
     }
 
     private static void show(Context context) {
@@ -529,6 +620,13 @@ public final class PatchSettings {
         }
     }
 
+    /** The app's WebViews that are still there. */
+    static List<WebView> webViews() {
+        synchronized (WEB_VIEWS) {
+            return new ArrayList<>(WEB_VIEWS.keySet());
+        }
+    }
+
     /** Page patches are added when a page loads, so reloading the app's pages applies the new settings. */
     static void reload() {
         List<WebView> webViews;
@@ -582,7 +680,7 @@ public final class PatchSettings {
         }
     }
 
-    private static Activity activity(Context context) {
+    static Activity activity(Context context) {
         while (context instanceof ContextWrapper) {
             if (context instanceof Activity) return (Activity) context;
             context = ((ContextWrapper) context).getBaseContext();

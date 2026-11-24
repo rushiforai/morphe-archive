@@ -12,9 +12,16 @@ body:
     attributes:
       label: App
       options:
-        - Quora
+        # APPS_START (written by .github/scripts/sync_apps.py from .github/apps)
         - Booking.com
         - Google Health (Fitbit)
+        - IMDb
+        - Kalorické Tabulky
+        - Listonic
+        - Quora
+        - Speedtest (Ookla)
+        - The Crypto App (TrustSwap)
+        # APPS_END
         - Another app
     validations:
       required: true

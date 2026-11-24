@@ -1,5 +1,6 @@
 import os
 import subprocess
+import sys
 
 sources = []
 for root, dirs, files in os.walk('pixelboard-patches/extensions/extension/src/main/java'):
@@ -34,3 +35,4 @@ if res.returncode == 0:
     print(f"Compilation SUCCESSFUL! {len(sources)} files compiled.")
 else:
     print("Compilation FAILED!")
+    sys.exit(res.returncode)

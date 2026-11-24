@@ -123,19 +123,29 @@ public final class GboardSpacebarLanguageNavigator {
     }
 
     public static boolean switchNext(InputMethodService service) {
-        return switchByStep(service, +1, "NEXT");
+        return switchByStep(service, +1, false);
     }
 
     public static boolean switchPrevious(InputMethodService service) {
-        return switchByStep(service, -1, "PREVIOUS");
+        return switchByStep(service, -1, false);
+    }
+
+    public static boolean switchByStep(
+            InputMethodService service, int step, boolean useRecentOrder) {
+        if (step == 0) {
+            return false;
+        }
+        String label = (step > 0 ? "NEXT" : "PREVIOUS")
+                + (useRecentOrder ? "[MRU]" : "[FIXED]");
+        return switchByStepInternal(service, step, useRecentOrder, label);
     }
 
     static void resetInFlightStateForTesting() {
         PRODUCTION_IN_FLIGHT_TRACKER.clear();
     }
 
-    private static boolean switchByStep(
-            InputMethodService service, int step, String directionLabel) {
+    private static boolean switchByStepInternal(
+            InputMethodService service, int step, boolean useRecentOrder, String directionLabel) {
         if (service == null) {
             return false;
         }
@@ -169,7 +179,8 @@ public final class GboardSpacebarLanguageNavigator {
                                     gboardInfo,
                                     handles,
                                     pgaInstance,
-                                    rotationList);
+                                    rotationList,
+                                    useRecentOrder);
                     if (switchWithBackend(
                             reflectionBackend,
                             step,
@@ -583,6 +594,30 @@ public final class GboardSpacebarLanguageNavigator {
         return false;
     }
 
+    static <E> List<E> resolveOrderedEntries(
+            List<E> staticEntries, Object rawOrderArray, boolean useRecentOrder) {
+        if (staticEntries == null || staticEntries.isEmpty()) {
+            return Collections.emptyList();
+        }
+        if (!useRecentOrder || !(rawOrderArray instanceof int[] order)) {
+            return staticEntries;
+        }
+        int size = staticEntries.size();
+        if (order.length != size) {
+            return staticEntries;
+        }
+        boolean[] seen = new boolean[size];
+        List<E> ordered = new ArrayList<>(size);
+        for (int idx : order) {
+            if (idx < 0 || idx >= size || seen[idx]) {
+                return staticEntries;
+            }
+            seen[idx] = true;
+            ordered.add(staticEntries.get(idx));
+        }
+        return ordered;
+    }
+
     @SuppressWarnings("unchecked")
     private static List<Object> extractEntryList(Object rawEntries) {
         if (rawEntries instanceof List<?> list) {
@@ -774,6 +809,7 @@ public final class GboardSpacebarLanguageNavigator {
         private final LanguageRotationHandles handles;
         private final Object pgaInstance;
         private final Object rotationList;
+        private final boolean useRecentOrder;
 
         GboardReflectionBackend(
                 InputMethodService service,
@@ -782,7 +818,8 @@ public final class GboardSpacebarLanguageNavigator {
                 InputMethodInfo gboardInfo,
                 LanguageRotationHandles handles,
                 Object pgaInstance,
-                Object rotationList) {
+                Object rotationList,
+                boolean useRecentOrder) {
             this.service = service;
             this.imm = imm;
             this.token = token;
@@ -790,6 +827,7 @@ public final class GboardSpacebarLanguageNavigator {
             this.handles = handles;
             this.pgaInstance = pgaInstance;
             this.rotationList = rotationList;
+            this.useRecentOrder = useRecentOrder;
         }
 
         @Override
@@ -818,17 +856,10 @@ public final class GboardSpacebarLanguageNavigator {
 
         @Override
         public int indexOfEntry(Object currentEntry) {
+            // Always locate currentEntry directly in the exact list returned by
+            // getRotationEntries() (static Lrek.b or true MRU Lrek.b[Lrek.c[i]]).
+            // Never mix Lrek.j(currentEntry) (which indexes Lrek.c) with Lrek.b.
             List<Object> entries = getRotationEntries();
-            try {
-                Object indexResult = handles.indexOfEntryMethod.invoke(rotationList, currentEntry);
-                if (indexResult instanceof Integer index
-                        && index >= 0
-                        && index < entries.size()) {
-                    return index;
-                }
-            } catch (Throwable throwable) {
-                logWarn("Lrek.j(current) failed; attempting identity scan on Lrek.b", throwable);
-            }
             return findEntryIndexByIdentity(
                     entries,
                     currentEntry,
@@ -838,9 +869,14 @@ public final class GboardSpacebarLanguageNavigator {
         @Override
         public List<Object> getRotationEntries() {
             try {
-                return extractEntryList(handles.rotationEntriesField.get(rotationList));
+                List<Object> staticEntries = extractEntryList(
+                        handles.rotationEntriesField.get(rotationList));
+                Object rawOrder = handles.rotationOrderField == null
+                        ? null
+                        : handles.rotationOrderField.get(rotationList);
+                return resolveOrderedEntries(staticEntries, rawOrder, useRecentOrder);
             } catch (Throwable throwable) {
-                throw new IllegalStateException("Lrek.b read failed", throwable);
+                throw new IllegalStateException("Lrek.b/c read failed", throwable);
             }
         }
 
@@ -1039,6 +1075,7 @@ public final class GboardSpacebarLanguageNavigator {
         final Field rotationListField;
         final Method indexOfEntryMethod;
         final Field rotationEntriesField;
+        final Field rotationOrderField;
         final Method entrySubtypeMethod;
         final Method entryLocaleMethod;
         final Method entryIdMethod;
@@ -1060,6 +1097,7 @@ public final class GboardSpacebarLanguageNavigator {
             rotationListField = managerClass.getDeclaredField("Y");
             indexOfEntryMethod = rotationListClass.getDeclaredMethod("j", entryClass);
             rotationEntriesField = rotationListClass.getDeclaredField("b");
+            rotationOrderField = findOptionalField(rotationListClass, "c");
             entrySubtypeMethod = entryClass.getDeclaredMethod("f");
 
             getManagerMethod.setAccessible(true);
@@ -1123,6 +1161,16 @@ public final class GboardSpacebarLanguageNavigator {
             }
             subtypeSwitchMethod = resolvedSwitchMethod;
             subtypeSwitcherFieldOnManager = resolvedSwitcherField;
+        }
+
+        private static Field findOptionalField(Class<?> owner, String name) {
+            try {
+                Field field = owner.getDeclaredField(name);
+                field.setAccessible(true);
+                return field;
+            } catch (Throwable ignored) {
+                return null;
+            }
         }
 
         private static Method findOptionalZeroArgMethod(Class<?> owner, String name) {

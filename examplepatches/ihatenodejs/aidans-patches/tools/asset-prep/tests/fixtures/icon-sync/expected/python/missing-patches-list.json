@@ -1,0 +1,11 @@
+{
+  "mode": "--check-only",
+  "exit": 1,
+  "stdout": "",
+  "stderr": "FileNotFoundError: Patches list not found: /var/folders/q_/8vvtb5m90p95bxyjx1dw609r0000gn/T/asset-icon-capture-kpmdnaqc/does-not-exist.json\n",
+  "githubOutput": "",
+  "githubValues": {},
+  "files": {},
+  "icons": [],
+  "exception": "FileNotFoundError: Patches list not found: /var/folders/q_/8vvtb5m90p95bxyjx1dw609r0000gn/T/asset-icon-capture-kpmdnaqc/does-not-exist.json"
+}

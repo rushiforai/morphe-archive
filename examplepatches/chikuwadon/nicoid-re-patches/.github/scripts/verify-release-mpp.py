@@ -65,6 +65,29 @@ def inspect(bundle: Path, version: str, baseline: Path | None = None) -> dict:
             native = archive.read("nicoid/method-delta.dex")
             require(helpers.startswith(b"dex\n"), "Invalid helper DEX signature")
             require(native.startswith(b"dex\n"), "Invalid native DEX signature")
+            if version == "2.1.9":
+                require(manifest.count(b"Version: 2.1.9\r\n") == 1, "Wrong stable manifest")
+                require(len(archive.namelist()) == len(set(archive.namelist())), "Duplicate MPP entry")
+                extension = archive.read("extensions/extension.mpe")
+                require(extension.startswith(b"dex\n"), "Invalid extension DEX")
+                for data in (helpers, extension, native):
+                    require(b"2.1.9-dev.7" not in data, "Development version remains")
+                require(b"2.1.9" in helpers and b"v2.1.9 @chikuwadon" in helpers, "Stable helper version missing")
+                require(b"v2.1.9 @chikuwadon" in extension, "Stable extension version missing")
+                for marker in (b"TemporaryCache221", b"PlaylistSort219", b"TabFrame220",
+                               b"CommentPresentation", b"PatchVersion237"):
+                    require(marker in helpers, f"Missing reviewed v2.1.9 helper: {marker!r}")
+                require(b"TemporaryCache221" in native and b"PlaylistSort219" in native, "Reviewed native changes missing")
+                layout = json.loads((ROOT / "porting/revisions/v2.1.9-dev.7/approved-layout.json").read_text())
+                entries = {x["name"]: x for x in layout["members"]}
+                require(set(archive.namelist()) == set(entries), "Unexpected v2.1.9 package layout")
+                for name, entry in entries.items():
+                    # The three runtime DEX files are verified by normalized class hashes during staging;
+                    # the immutable upload lock below freezes their exact rebuilt bytes.
+                    if name not in ("nicoid/helpers.mpe", "extensions/extension.mpe", "nicoid/method-delta.dex", "META-INF/MANIFEST.MF"):
+                        require(sha256(archive.read(name)) == entry["sha256"], "Reviewed package member changed: " + name)
+                approved_manifest = (ROOT / "porting/revisions/v2.1.9-dev.7/approved-manifest.txt").read_bytes()
+                require(manifest == approved_manifest.replace(b"Version: 2.1.9-dev.7\r\n", b"Version: 2.1.9\r\n"), "Unreviewed manifest")
             if version == "2.1.8":
                 require(b"2.1.8" in helpers, "v2.1.8 runtime version missing")
                 require(b"2.1.8-dev.2" not in helpers, "Development version leaked into stable helpers")

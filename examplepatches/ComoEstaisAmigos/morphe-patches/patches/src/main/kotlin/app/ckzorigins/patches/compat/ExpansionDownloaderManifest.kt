@@ -1,5 +1,6 @@
 package app.ckzorigins.patches.compat
 
+import app.adebisi.patches.shared.namedElements
 import app.morphe.patcher.patch.PatchException
 import org.w3c.dom.Document
 import org.w3c.dom.Element
@@ -23,13 +24,13 @@ internal object ExpansionDownloaderManifest {
     const val CATEGORY_LAUNCHER = "android.intent.category.LAUNCHER"
 
     fun strip(document: Document) {
-        val downloader = named(document, "activity", DOWNLOADER_ACTIVITY).singleOrNull()
+        val downloader = namedElements(document, "activity", listOf(DOWNLOADER_ACTIVITY)).singleOrNull()
             ?: throw PatchException("AndroidManifest.xml has no DownloaderActivity")
-        val service = named(document, "service", DOWNLOADER_SERVICE).singleOrNull()
+        val service = namedElements(document, "service", listOf(DOWNLOADER_SERVICE)).singleOrNull()
             ?: throw PatchException("AndroidManifest.xml has no GDownloaderService")
-        val alarm = named(document, "receiver", ALARM_RECEIVER).singleOrNull()
+        val alarm = namedElements(document, "receiver", listOf(ALARM_RECEIVER)).singleOrNull()
             ?: throw PatchException("AndroidManifest.xml has no expansion AlarmReceiver")
-        val launcher = named(document, "activity", UNITY_LAUNCHER).singleOrNull()
+        val launcher = namedElements(document, "activity", listOf(UNITY_LAUNCHER)).singleOrNull()
             ?: throw PatchException("AndroidManifest.xml has no UnityLauncherActivity")
 
         if (hasLauncherFilter(launcher)) {
@@ -42,12 +43,6 @@ internal object ExpansionDownloaderManifest {
         downloader.parentNode.removeChild(downloader)
         service.parentNode.removeChild(service)
         alarm.parentNode.removeChild(alarm)
-    }
-
-    private fun named(document: Document, tag: String, name: String): List<Element> {
-        val list = document.getElementsByTagName(tag)
-        return (0 until list.length).map { list.item(it) as Element }
-            .filter { it.getAttribute("android:name") == name }
     }
 
     private fun launcherFilter(activity: Element): Element? {

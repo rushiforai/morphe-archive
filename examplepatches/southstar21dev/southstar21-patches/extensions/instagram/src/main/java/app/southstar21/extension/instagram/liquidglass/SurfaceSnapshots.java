@@ -51,6 +51,8 @@ final class SurfaceSnapshots {
     private final RectF bounds = new RectF();
     private final RectF clip = new RectF();
     private long lastScan;
+    /** No copies are started before this (uptime ms), for every instance: see {@link #pauseCopies}. */
+    private static long pausedUntil;
     /** How long to wait before trying again to copy a surface that had nothing to copy. */
     private static final long RETRY_MS = 3000;
 
@@ -75,6 +77,14 @@ final class SurfaceSnapshots {
     }
 
     /**
+     * Starts no copies for {@code ms}: a page switch draws a whole new page, and a copy then runs
+     * on the render thread at the worst moment. Videos show through live meanwhile.
+     */
+    static void pauseCopies(long ms) {
+        pausedUntil = SystemClock.uptimeMillis() + ms;
+    }
+
+    /**
      * Once a frame: refreshes the copies of the video surfaces that overlap {@code region}, in
      * the bar's parent's coordinates.
      */
@@ -86,7 +96,7 @@ final class SurfaceSnapshots {
             lastScan = now;
             rescan(parent);
         }
-        if (entries.isEmpty()) return;
+        if (entries.isEmpty() || now < pausedUntil) return;
         parent.getLocationInWindow(parentLocation);
         for (Entry entry : entries) {
             SurfaceView view = entry.view.get();

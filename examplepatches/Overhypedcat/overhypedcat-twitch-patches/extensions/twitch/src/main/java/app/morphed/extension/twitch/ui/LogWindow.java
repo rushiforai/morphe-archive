@@ -24,7 +24,7 @@ import app.morphed.extension.twitch.patches.DebugLog;
 
 /**
  * Debug mode's live log: a medium window over the app (not full screen, so the stream stays in view), moved by
- * dragging its top bar, folded to that bar with one button and closed (Debug mode off) with the other.
+ * dragging its top bar, folded to that bar with one button and closed with the other (the log file goes on).
  */
 public final class LogWindow {
     private static final int MAX_LINES = 400;
@@ -130,7 +130,7 @@ public final class LogWindow {
         IconButton fold = new IconButton(context, theme, IconButton.FOLD);
         IconButton close = new IconButton(context, theme, IconButton.CLOSE);
         fold.setContentDescription("Fold the log");
-        close.setContentDescription("Turn Debug mode off");
+        close.setContentDescription("Close the log window, logging goes on");
         bar.addView(fold);
         bar.addView(close);
         panel.addView(bar);
@@ -185,7 +185,7 @@ public final class LogWindow {
             fold.setShape(folded ? IconButton.UNFOLD : IconButton.FOLD);
         });
         fold.setShape(folded ? IconButton.UNFOLD : IconButton.FOLD);
-        close.setOnClickListener(v -> DebugMode.set(activity, false));
+        close.setOnClickListener(v -> DebugMode.closeWindow(activity));
 
         float[] grab = new float[2];
         bar.setOnTouchListener((v, event) -> {

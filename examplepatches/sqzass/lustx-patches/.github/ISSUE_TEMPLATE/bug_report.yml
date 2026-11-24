@@ -1,36 +1,94 @@
-name: 🐞 Bug report
-description: Report a bug or an issue.
-title: 'bug: '
-labels: ['bug']
+name: 🐛 Bug report
+description: Report a bug, patch failure, or unexpected behavior.
+title: "bug: "
+labels: ["bug"]
 body:
   - type: markdown
     attributes:
       value: |
-        # Lusted Patches bug report
+        # Lustx Patches bug report
 
         Before creating a new bug report, please keep the following in mind:
+        - **Do not submit a duplicate bug report**: Search existing reports, including closed issues, [here](https://github.com/sqzass/lustx-patches/issues?q=is%3Aissue).
+        - This repo targets [Morphe](https://morphe.software). Issues must relate to patches in this repo, not the underlying apps themselves.
 
-        - **Do not submit a duplicate bug report**: Search for existing bug reports [here](https://github.com/lustx/lusted-patches/issues?q=is%3Aissue).
+  - type: input
+    id: app-name
+    attributes:
+      label: App name
+      description: Which app is the patch for? (e.g. Pawxy, PortDroid, Postparty, SD Maid 2/SE)
+    validations:
+      required: true
+
+  - type: input
+    id: app-version
+    attributes:
+      label: App version
+      description: The exact version of the app you are patching. (e.g. 1.15.1, 2.2.3-rc0)
+    validations:
+      required: true
+
+  - type: input
+    id: patch-version
+    attributes:
+      label: Lustx Patches version
+      description: Found in Settings > About in Morphe Manager.
+    validations:
+      required: true
+
+  - type: input
+    id: morphe-version
+    attributes:
+      label: Morphe Manager version
+      description: The version of Morphe Manager you are using.
+    validations:
+      required: true
+
+  - type: dropdown
+    id: apk-source
+    attributes:
+      label: APK source
+      description: Where did you get the APK you are patching?
+      options:
+        - GitHub (official)
+        - APKMirror
+        - APKPure
+        - Play Store (split APK)
+        - Other / unsure
+    validations:
+      required: true
+
   - type: textarea
+    id: bug-description
     attributes:
       label: Bug description
       description: |
-        - List app version patched, and the patches version shown in Settings > About
-        - Add steps to reproduce the bug if possible (Step 1. ... Step 2. ...)
-        - Add images and videos if possible
-    validations:
-        required: true
-  - type: input
-    attributes:
-      label: App version patched
-      description: What app version you are using
+        - What happened?
+        - What did you expect to happen?
+        - Steps to reproduce (Step 1 ... Step 2 ...)
     validations:
       required: true
+
   - type: textarea
+    id: error-logs
     attributes:
       label: Error logs
-      description: Exceptions can be captured by running `logcat | grep AndroidRuntime` in a shell.
+      description: |
+        Capture Android exceptions with:
+        `logcat | grep AndroidRuntime`
+        Paste the relevant output here.
       render: shell
+    validations:
+      required: false
+
+  - type: textarea
+    id: additional-context
+    attributes:
+      label: Additional context
+      description: Screenshots, videos, or anything else that helps.
+    validations:
+      required: false
+
   - type: checkboxes
     id: acknowledgements
     attributes:
@@ -39,5 +97,7 @@ body:
       options:
         - label: I have checked all open and closed bug reports and this is not a duplicate.
           required: true
-        - label: All requested information has been provided properly.
+        - label: I have provided all requested information above.
+          required: true
+        - label: I understand that this is a patch for a third-party app, and the bug is not caused by the original app developer.
           required: true

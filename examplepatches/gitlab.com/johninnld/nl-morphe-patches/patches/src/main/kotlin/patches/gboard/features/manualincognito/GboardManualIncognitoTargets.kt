@@ -16,7 +16,10 @@ internal object GboardManualIncognitoTargets {
         returns = "V",
     )
     val onWindowHidden = method("Lafae;", "onWindowHidden", emptyList(), "V")
-    val incognitoPredicate = method("Lihw;", "K", emptyList(), "Z")
+    // 18.6.3 Lesj;->I()Z overrides the IME base Lpbk;->I()Z; in 18.8 the same override is
+    // Lihw;->I()Z (acpq.K(getCurrentInputEditorInfo()), the IME_FLAG_NO_PERSONALIZED_LEARNING
+    // test). Lihw;->K()Z is an unrelated keyboard-state check.
+    val incognitoPredicate = method("Lihw;", "I", emptyList(), "Z")
     val clipboardListener = method("Lljp;", "onPrimaryClipChanged", emptyList(), "V")
     val voiceEligibility = method(
         owner = "Lanip;",

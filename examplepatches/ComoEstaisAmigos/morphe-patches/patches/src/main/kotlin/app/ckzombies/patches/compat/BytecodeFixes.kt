@@ -2,15 +2,14 @@ package app.ckzombies.patches.compat
 
 import app.ckzombies.patches.screen.TOUCH_METHODS
 import app.ckzombies.patches.screen.TouchFingerprint
+import app.adebisi.patches.shared.makeBindExplicit
 import app.morphe.patcher.extensions.InstructionExtensions.addInstruction
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
-import app.morphe.patcher.extensions.InstructionExtensions.getInstruction
 import app.morphe.patcher.extensions.InstructionExtensions.removeInstruction
 import app.morphe.patcher.patch.PatchException
 import app.morphe.patcher.patch.patch
 import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod
 import com.android.tools.smali.dexlib2.Opcode
-import com.android.tools.smali.dexlib2.iface.instruction.FiveRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.NarrowLiteralInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
 
@@ -86,22 +85,7 @@ internal val externalStoragePatch = patch {
 internal val explicitServiceIntentPatch = patch {
     execute {
         for (fingerprint in listOf(BindMarketBillingServiceFingerprint, LicenseCheckAccessFingerprint)) {
-            val constructor = fingerprint.instructionMatches[1]
-            val call = constructor.getInstruction<FiveRegisterInstruction>()
-            val intent = call.registerC
-            val scratch = call.registerD
-            val method = fingerprint.method
-            val next = method.getInstruction(constructor.index + 1)
-            if (next.opcode != Opcode.CONST_4 || (next as OneRegisterInstruction).registerA != scratch) {
-                throw PatchException("${method.name}: v$scratch is still live after the Intent constructor")
-            }
-            method.addInstructions(
-                constructor.index + 1,
-                """
-                    const-string v$scratch, "com.android.vending"
-                    invoke-virtual {v$intent, v$scratch}, Landroid/content/Intent;->setPackage(Ljava/lang/String;)Landroid/content/Intent;
-                """,
-            )
+            makeBindExplicit(fingerprint, moveResult = false)
         }
     }
 }

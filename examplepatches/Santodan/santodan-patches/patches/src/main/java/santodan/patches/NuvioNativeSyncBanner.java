@@ -40,7 +40,7 @@ final class NuvioNativeSyncBanner {
     }
     static void hookBanner(MutableClass owner) {
         MutableMethod method=NuvioRemainingEpisodesPatch.unique(owner,"b",10);
-        if(!NuvioPlaybackButtonsPatch.fingerprint(method).equals("e73ef84116c9f89341ea6c910c686a086a6fc99b72b8c5ef33019824421e79e3"))
+        if(!NuvioPlaybackButtonsPatch.fingerprint(method).equals("8fdd6d2a4334d87cca0d5366c60c2893f832e1051eb7c120804b19d13d4b5b44"))
             throw new IllegalStateException("Native updater banner changed or already patched");
         var code=method.getImplementation();
         var instructions=NuvioRemainingEpisodesPatch.instructions(method);

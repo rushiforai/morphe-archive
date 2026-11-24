@@ -334,8 +334,7 @@ class HaiagaruSettingsActivity : HaiagaruComposeActivity() {
                     categoryRows.forEachIndexed { index, (source, rows) ->
                         if (group.sources.size > 1) item("heading:$source") {
                             Text(sectionTitle(source, english), style = MaterialTheme.typography.titleSmall, fontSize = 15.sp,
-                                color = if (source == "DISPLAY" || source == "SOCIAL")
-                                    HaiagaruUi.settingsCategoryColor else MaterialTheme.colorScheme.onSurfaceVariant,
+                                color = HaiagaruUi.settingsCategoryColor,
                                 modifier = Modifier.padding(start = 12.dp, top = if (index == 0) 0.dp else 8.dp))
                         }
                         items(rows, key = { "${source}:${System.identityHashCode(it.control)}" }) { option ->

@@ -1,6 +1,6 @@
 package app.ckzorigins.patches.mono
 
-import app.ckzorigins.patches.shared.ByteEdit
+import app.adebisi.patches.shared.ByteEdit
 
 /**
  * Byte ranges taken from the hand-packaged Origins 2.0.1 Assembly-CSharp.dll.

@@ -84,7 +84,7 @@ public final class ReportNuvioUpdate {
         List<java.lang.reflect.Field> symbols = new ArrayList<>(Arrays.asList(NuvioNative.class.getFields()));
         symbols.sort(Comparator.comparing(java.lang.reflect.Field::getName));
         for (var symbol : symbols) {
-            if (!symbol.getName().endsWith("_TYPE")) continue;
+            if (!symbol.getName().endsWith("_TYPE") || symbol.getName().startsWith("REF_")) continue;
             String type = (String) symbol.get(null);
             if (!old.containsKey(type)) throw new IllegalStateException("Contract class absent from baseline: " + symbol.getName());
             Map<String, Integer> expected = features(old.get(type));
@@ -150,6 +150,7 @@ public final class ReportNuvioUpdate {
         int stale = 0;
         for (var symbol : symbols) {
             String value = (String) symbol.get(null);
+            if (value.equals(NuvioNative.REF_LOCAL_HOME_RESUME)) continue; // Generated observer clone, audited by the merge verifier.
             if (!value.matches("L[^;]+;->.+") || !value.contains("(") && !value.contains(":")) continue;
             if (value.contains("(") && !value.matches(".+\\([^)]*\\).+")) continue; // A return-type prefix is composed at its call site.
             if (!definitions.contains(value)) { report.append("- `").append(symbol.getName()).append("`: `").append(value).append("`\n"); stale++; }

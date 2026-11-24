@@ -30,7 +30,7 @@ private object MediaBoxListFingerprint : Fingerprint(
 val hideMediaBoxPatch = bytecodePatch(
     name = "Hide Media Box in Messages",
     description = "Hide the Media Box row in Messages when enabled in Nezumi Settings.",
-    default = false,
+    default = true,
 ) {
     compatibleWith(Compatibility(
         name = "Zalo",
@@ -67,7 +67,7 @@ val hideMediaBoxPatch = bytecodePatch(
             "invoke-static {}, Lcom/zing/zalo/MainApplication;->getAppContext()Landroid/content/Context;")
         method.addInstructionsWithLabels(startIndex + 1, """
             move-result-object p5
-            invoke-static {p5}, Lapp/template/extension/extension/NezumiSettings;->isMediaBoxHidden(Landroid/content/Context;)Z
+            invoke-static {p5}, $MESSAGES_TAB->isMediaBoxHidden(Landroid/content/Context;)Z
             move-result p5
             if-nez p5, :nezumi_hide_media_box
             invoke-virtual {p6}, $originalCall

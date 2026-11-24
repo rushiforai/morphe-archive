@@ -1,4 +1,162 @@
 <!-- dap-release-branding:v1 -->
+![Dutch App Patches. Dutch apps. Your choices.](https://gitlab.com/johninnld/nl-morphe-patches/-/raw/2e66e61d30f33208132c9392cf3ffe73d22a8802/docs/site/assets/brand/release-banner.png)
+
+**Release · patch bundle v1.106.0.**
+
+[Source metadata](https://gitlab.com/johninnld/nl-morphe-patches/-/raw/main/patches-bundle.json) · [User guide](https://gitlab.com/johninnld/nl-morphe-patches/-/blob/main/docs/site/en/index.md)
+
+Source: [2e66e61d30f3](https://gitlab.com/johninnld/nl-morphe-patches/-/commit/2e66e61d30f33208132c9392cf3ffe73d22a8802). Check each app's target versions in the user guide before patching.
+
+---
+
+## [1.106.0](https://gitlab.com/johninnld/nl-morphe-patches/compare/v1.105.1...v1.106.0) (2026-11-24)
+
+### 🐛 Bug Fixes
+
+* **dynamicSpot:** match the boolean home offer gate ([4aea200](https://gitlab.com/johninnld/nl-morphe-patches/commit/4aea2005c4763c7548eedb70ba9bb109aade8958))
+
+### ✨ New Features
+
+* **dynamicSpot:** unlock local settings and remove promotions ([0ffbac1](https://gitlab.com/johninnld/nl-morphe-patches/commit/0ffbac197ad7ba28ace56aeae9eab06bc6f2a5a7))
+
+<!-- dap-release-branding:v1 -->
+![Dutch App Patches. Dutch apps. Your choices.](https://gitlab.com/johninnld/nl-morphe-patches/-/raw/d845381e3be550b6269a6c3507e14dcf6f62ecbc/docs/site/assets/brand/release-banner.png)
+
+**Release · patch bundle v1.105.1.**
+
+[Source metadata](https://gitlab.com/johninnld/nl-morphe-patches/-/raw/main/patches-bundle.json) · [User guide](https://gitlab.com/johninnld/nl-morphe-patches/-/blob/main/docs/site/en/index.md)
+
+Source: [d845381e3be5](https://gitlab.com/johninnld/nl-morphe-patches/-/commit/d845381e3be550b6269a6c3507e14dcf6f62ecbc). Check each app's target versions in the user guide before patching.
+
+---
+
+## [1.105.1](https://gitlab.com/johninnld/nl-morphe-patches/compare/v1.105.0...v1.105.1) (2026-11-24)
+
+### 🐛 Bug Fixes
+
+* **ABRP:** fix GPS and Android Auto location with Premium enabled ([d845381](https://gitlab.com/johninnld/nl-morphe-patches/commit/d845381e3be550b6269a6c3507e14dcf6f62ecbc))
+
+<!-- dap-release-branding:v1 -->
+![Dutch App Patches. Dutch apps. Your choices.](https://gitlab.com/johninnld/nl-morphe-patches/-/raw/21c47ad061dcda8607f404183061c251244d5092/docs/site/assets/brand/release-banner.png)
+
+**Release · patch bundle v1.105.0.**
+
+[Source metadata](https://gitlab.com/johninnld/nl-morphe-patches/-/raw/main/patches-bundle.json) · [User guide](https://gitlab.com/johninnld/nl-morphe-patches/-/blob/main/docs/site/en/index.md)
+
+Source: [21c47ad061dc](https://gitlab.com/johninnld/nl-morphe-patches/-/commit/21c47ad061dcda8607f404183061c251244d5092). Check each app's target versions in the user guide before patching.
+
+---
+
+## [1.105.0](https://gitlab.com/johninnld/nl-morphe-patches/compare/v1.104.0...v1.105.0) (2026-11-23)
+
+### ✨ New Features
+
+* **Home Assistant (Automotive):** add Home Assistant and PlugShare Automotive ports ([21c47ad](https://gitlab.com/johninnld/nl-morphe-patches/commit/21c47ad061dcda8607f404183061c251244d5092))
+* **PlugShare (Automotive):** add Home Assistant and PlugShare Automotive ports ([21c47ad](https://gitlab.com/johninnld/nl-morphe-patches/commit/21c47ad061dcda8607f404183061c251244d5092))
+
+<!-- dap-release-branding:v1 -->
+![Dutch App Patches. Dutch apps. Your choices.](https://gitlab.com/johninnld/nl-morphe-patches/-/raw/682ef76b7b874718a471d4db452dd66e0ec7b986/docs/site/assets/brand/release-banner.png)
+
+**Release · patch bundle v1.104.0.**
+
+[Source metadata](https://gitlab.com/johninnld/nl-morphe-patches/-/raw/main/patches-bundle.json) · [User guide](https://gitlab.com/johninnld/nl-morphe-patches/-/blob/main/docs/site/en/index.md)
+
+Source: [682ef76b7b87](https://gitlab.com/johninnld/nl-morphe-patches/-/commit/682ef76b7b874718a471d4db452dd66e0ec7b986). Check each app's target versions in the user guide before patching.
+
+---
+
+## [1.104.0](https://gitlab.com/johninnld/nl-morphe-patches/compare/v1.103.0...v1.104.0) (2026-11-23)
+
+### ✨ New Features
+
+* **Cronometer:** unlock local Gold features and remove promotions ([682ef76](https://gitlab.com/johninnld/nl-morphe-patches/commit/682ef76b7b874718a471d4db452dd66e0ec7b986))
+
+<!-- dap-release-branding:v1 -->
+![Dutch App Patches. Dutch apps. Your choices.](https://gitlab.com/johninnld/nl-morphe-patches/-/raw/d6196392cc34405c01b2dc415e0fb91546e359da/docs/site/assets/brand/release-banner.png)
+
+**Release · patch bundle v1.103.0.**
+
+[Source metadata](https://gitlab.com/johninnld/nl-morphe-patches/-/raw/main/patches-bundle.json) · [User guide](https://gitlab.com/johninnld/nl-morphe-patches/-/blob/main/docs/site/en/index.md)
+
+Source: [d6196392cc34](https://gitlab.com/johninnld/nl-morphe-patches/-/commit/d6196392cc34405c01b2dc415e0fb91546e359da). Check each app's target versions in the user guide before patching.
+
+---
+
+## [1.103.0](https://gitlab.com/johninnld/nl-morphe-patches/compare/v1.102.0...v1.103.0) (2026-11-23)
+
+### ✨ New Features
+
+* **Gboard:** enable inline autofill and Smart Compose on 18.8 ([d619639](https://gitlab.com/johninnld/nl-morphe-patches/commit/d6196392cc34405c01b2dc415e0fb91546e359da))
+
+<!-- dap-release-branding:v1 -->
+![Dutch App Patches. Dutch apps. Your choices.](https://gitlab.com/johninnld/nl-morphe-patches/-/raw/aee57d40c1938c7b844ae30343969e3bad97906b/docs/site/assets/brand/release-banner.png)
+
+**Release · patch bundle v1.102.0.**
+
+[Source metadata](https://gitlab.com/johninnld/nl-morphe-patches/-/raw/main/patches-bundle.json) · [User guide](https://gitlab.com/johninnld/nl-morphe-patches/-/blob/main/docs/site/en/index.md)
+
+Source: [aee57d40c193](https://gitlab.com/johninnld/nl-morphe-patches/-/commit/aee57d40c1938c7b844ae30343969e3bad97906b). Check each app's target versions in the user guide before patching.
+
+---
+
+## [1.102.0](https://gitlab.com/johninnld/nl-morphe-patches/compare/v1.101.2...v1.102.0) (2026-11-23)
+
+### 🐛 Bug Fixes
+
+* **Angry Birds 2:** close Stickman privacy gaps and AB2 paid-content entry paths ([db1dff5](https://gitlab.com/johninnld/nl-morphe-patches/commit/db1dff549b8e088c13991b74f09555f4e797a707))
+* **Angry Birds 2:** complete optional consent locally with grants denied ([85e48f1](https://gitlab.com/johninnld/nl-morphe-patches/commit/85e48f13b6a4e77b1bbccbaf835c3324f7c3cdc7))
+* **Angry Birds 2:** repair Rovio bridge returns and block ad SDK startup ([478f020](https://gitlab.com/johninnld/nl-morphe-patches/commit/478f020e8b4384ba3c452d563640ca84beb1f7a3))
+* **Angry Birds Friends:** complete optional consent locally with grants denied ([85e48f1](https://gitlab.com/johninnld/nl-morphe-patches/commit/85e48f13b6a4e77b1bbccbaf835c3324f7c3cdc7))
+* **Angry Birds Friends:** repair Rovio bridge returns and block ad SDK startup ([478f020](https://gitlab.com/johninnld/nl-morphe-patches/commit/478f020e8b4384ba3c452d563640ca84beb1f7a3))
+* **Draw a Stickman: EPIC 3:** close Stickman privacy gaps and AB2 paid-content entry paths ([db1dff5](https://gitlab.com/johninnld/nl-morphe-patches/commit/db1dff549b8e088c13991b74f09555f4e797a707))
+* **Draw a Stickman: EPIC 3:** repair Rovio bridge returns and block ad SDK startup ([478f020](https://gitlab.com/johninnld/nl-morphe-patches/commit/478f020e8b4384ba3c452d563640ca84beb1f7a3))
+* **GameSnacks:** repair Rovio bridge returns and block ad SDK startup ([478f020](https://gitlab.com/johninnld/nl-morphe-patches/commit/478f020e8b4384ba3c452d563640ca84beb1f7a3))
+* **release:** preserve colons in app release scopes ([aee57d4](https://gitlab.com/johninnld/nl-morphe-patches/commit/aee57d40c1938c7b844ae30343969e3bad97906b))
+
+### ✨ New Features
+
+* **Angry Birds 2:** hide only the paid shop tabs ([f9d2537](https://gitlab.com/johninnld/nl-morphe-patches/commit/f9d2537542520dcb797346feaf13eda6f13db6b4))
+* **Angry Birds Friends:** hide only the paid shop tabs ([f9d2537](https://gitlab.com/johninnld/nl-morphe-patches/commit/f9d2537542520dcb797346feaf13eda6f13db6b4))
+
+<!-- dap-release-branding:v1 -->
+![Dutch App Patches. Dutch apps. Your choices.](https://gitlab.com/johninnld/nl-morphe-patches/-/raw/d649ac2d9c4c2669c9ddd76510b33379204f4dd7/docs/site/assets/brand/release-banner.png)
+
+**Release · patch bundle v1.101.2.**
+
+[Source metadata](https://gitlab.com/johninnld/nl-morphe-patches/-/raw/main/patches-bundle.json) · [User guide](https://gitlab.com/johninnld/nl-morphe-patches/-/blob/main/docs/site/en/index.md)
+
+Source: [d649ac2d9c4c](https://gitlab.com/johninnld/nl-morphe-patches/-/commit/d649ac2d9c4c2669c9ddd76510b33379204f4dd7). Check each app's target versions in the user guide before patching.
+
+---
+
+## [1.101.2](https://gitlab.com/johninnld/nl-morphe-patches/compare/v1.101.1...v1.101.2) (2026-11-23)
+
+### 🐛 Bug Fixes
+
+* **Eclipse Music:** let Back leave Now Playing in the car ([d649ac2](https://gitlab.com/johninnld/nl-morphe-patches/commit/d649ac2d9c4c2669c9ddd76510b33379204f4dd7))
+
+<!-- dap-release-branding:v1 -->
+![Dutch App Patches. Dutch apps. Your choices.](https://gitlab.com/johninnld/nl-morphe-patches/-/raw/99c9114f417d60089446638708833bbe98cc26bf/docs/site/assets/brand/release-banner.png)
+
+**Release · patch bundle v1.101.1.**
+
+[Source metadata](https://gitlab.com/johninnld/nl-morphe-patches/-/raw/main/patches-bundle.json) · [User guide](https://gitlab.com/johninnld/nl-morphe-patches/-/blob/main/docs/site/en/index.md)
+
+Source: [99c9114f417d](https://gitlab.com/johninnld/nl-morphe-patches/-/commit/99c9114f417d60089446638708833bbe98cc26bf). Check each app's target versions in the user guide before patching.
+
+---
+
+## [1.101.1](https://gitlab.com/johninnld/nl-morphe-patches/compare/v1.101.0...v1.101.1) (2026-11-23)
+
+### 🐛 Bug Fixes
+
+* **Gboard:** make Toolbar Editing Buttons and the Incognito toggle work on 18.8 ([f769068](https://gitlab.com/johninnld/nl-morphe-patches/commit/f769068167276366079b4eb067df39e88902dbd2))
+* **Gboard:** point Cursor trackpad mode at the 18.8 preference key ([14b8c09](https://gitlab.com/johninnld/nl-morphe-patches/commit/14b8c09ee0800c0db888e2361cf8f02407ee1d89))
+* **Gboard:** repair Scan Text and AI Writing Tools references for 18.8 ([8e28ef1](https://gitlab.com/johninnld/nl-morphe-patches/commit/8e28ef1c85120c95fa94f3a30a9b8ee19cd5eef1))
+* **Gboard:** spacebar logo, developer options and voice typing extras on 18.8 ([99c9114](https://gitlab.com/johninnld/nl-morphe-patches/commit/99c9114f417d60089446638708833bbe98cc26bf))
+* **Gboard:** stop the clipboard crashing on 18.8 and restore its enhancements ([6593eeb](https://gitlab.com/johninnld/nl-morphe-patches/commit/6593eebc80806e1cfd9efbf9a4c6777342749b5d))
+
+<!-- dap-release-branding:v1 -->
 ![Dutch App Patches. Dutch apps. Your choices.](https://gitlab.com/johninnld/nl-morphe-patches/-/raw/9a29e2f995175ccd1d1a1f85e26eb0d6c4104c57/docs/site/assets/brand/release-banner.png)
 
 **Release · patch bundle v1.101.0.**

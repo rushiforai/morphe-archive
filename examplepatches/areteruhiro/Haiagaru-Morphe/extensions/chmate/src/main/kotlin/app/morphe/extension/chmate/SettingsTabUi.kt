@@ -30,6 +30,11 @@ import kotlinx.coroutines.launch
 
 /** The tab and standalone screen share settingsRows/BoundSettingRow and their real bindings. */
 object SettingsTabUi {
+    @JvmStatic fun notes(activity: Activity, launch: android.content.Intent, close: Runnable): View {
+        val controller = ResponseNotesScreen(activity, launch) { close.run() }
+        return composeView(activity) { HaiagaruUi.Theme { controller.Notes() } }
+    }
+
     @JvmStatic fun prepareBindings(root: ViewGroup) = prepareSettingsBindings(root)
     @JvmStatic fun context(activity: Activity): android.content.Context = HaiagaruComposeActivity.dialogContext(activity)
 

@@ -30,6 +30,8 @@ public final class GboardClipboardSettings {
             "pref_clipboard_show_creation_time";
     public static final String PREF_KEY_CLIPBOARD_SHOW_ORDER_INDEX =
             "pref_clipboard_show_order_index";
+    public static final String PREF_KEY_CLIPBOARD_SAMSUNG_MODE =
+            "pref_clipboard_samsung_mode";
     public static final String PREF_KEY_CLIPBOARD_SHOW_SENSITIVE_CONTENT =
             "pref_clipboard_show_sensitive_content";
     public static final String PREF_KEY_CLIPBOARD_CARD_PREVIEW_LIMIT_ENABLED =
@@ -53,6 +55,7 @@ public final class GboardClipboardSettings {
     public static final boolean DEFAULT_CLIPBOARD_SHOW_COUNTDOWN = true;
     public static final boolean DEFAULT_CLIPBOARD_SHOW_CREATION_TIME = false;
     public static final boolean DEFAULT_CLIPBOARD_SHOW_ORDER_INDEX = true;
+    public static final boolean DEFAULT_CLIPBOARD_SAMSUNG_MODE = false;
     public static final boolean DEFAULT_CLIPBOARD_SHOW_SENSITIVE_CONTENT = false;
     public static final boolean DEFAULT_CLIPBOARD_CARD_PREVIEW_LIMIT_ENABLED = false;
     public static final String DEFAULT_CLIPBOARD_ORDER_INDEX_MODE =
@@ -96,6 +99,9 @@ public final class GboardClipboardSettings {
         editor = putBooleanPreferenceIfMissing(editor, preferences,
                 PREF_KEY_CLIPBOARD_SHOW_ORDER_INDEX,
                 DEFAULT_CLIPBOARD_SHOW_ORDER_INDEX);
+        editor = putBooleanPreferenceIfMissing(editor, preferences,
+                PREF_KEY_CLIPBOARD_SAMSUNG_MODE,
+                DEFAULT_CLIPBOARD_SAMSUNG_MODE);
         editor = putBooleanPreferenceIfMissing(editor, preferences,
                 PREF_KEY_CLIPBOARD_SHOW_SENSITIVE_CONTENT,
                 DEFAULT_CLIPBOARD_SHOW_SENSITIVE_CONTENT);
@@ -174,6 +180,19 @@ public final class GboardClipboardSettings {
     public static boolean readClipboardShowOrderIndex(SharedPreferences preferences) {
         return readBooleanPreference(preferences, PREF_KEY_CLIPBOARD_SHOW_ORDER_INDEX,
                 DEFAULT_CLIPBOARD_SHOW_ORDER_INDEX);
+    }
+
+    public static boolean readClipboardSamsungMode(Context context) {
+        SharedPreferences preferences = preferences(context);
+        ensureDefaults(preferences);
+        return readClipboardSamsungMode(preferences);
+    }
+
+    public static boolean readClipboardSamsungMode(SharedPreferences preferences) {
+        return readBooleanPreference(
+                preferences,
+                PREF_KEY_CLIPBOARD_SAMSUNG_MODE,
+                DEFAULT_CLIPBOARD_SAMSUNG_MODE);
     }
 
     public static boolean readClipboardShowSensitiveContent(Context context) {

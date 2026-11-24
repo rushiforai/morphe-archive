@@ -5,6 +5,7 @@
  * https://github.com/anddea/revanced-patches
  *
  * Licensed under the GNU General Public License v3.0.
+ * Modified by lavinhoque33, 2026-11-24.
  * Modified by lavinhoque33, 2026-11-05.
  * Written by lavinhoque33, 2026-10-31.
  */
@@ -22,6 +23,7 @@ import android.graphics.drawable.ColorDrawable;
 import android.graphics.drawable.GradientDrawable;
 import android.text.Layout;
 import android.view.Gravity;
+import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.Window;
@@ -429,10 +431,16 @@ final class OfflineSubtitleOverlay {
         Settings.OFFLINE_SUBTITLES_STYLE.save(style.encode());
     }
 
-    /** Shrink a wrapped text block to its longest actual line, not the maximum wrapping width. */
-    private static final class CaptionTextView extends TextView {
+    /** Draws captions without owning player touches. Wraps the backdrop to the longest actual line. */
+    static final class CaptionTextView extends TextView {
         CaptionTextView(Activity activity) {
             super(activity);
+        }
+
+        @Override
+        public boolean dispatchTouchEvent(MotionEvent event) {
+            // Do not let TextView claim DOWN, even if the host theme enables selection.
+            return false;
         }
 
         @Override

@@ -65,7 +65,58 @@ public final class FilterUpdates {
         if (s.isEmpty() || s.length() > MAX_SELECTOR) return false;
         if (!ALLOWED.matcher(s).matches()) return false;
         String lower = s.toLowerCase(java.util.Locale.ROOT);
-        return !lower.contains("url(") && !lower.contains("/*") && !lower.contains("image(");
+        if (lower.contains("url(") || lower.contains("/*") || lower.contains("image(")) return false;
+        return specific(s);
+    }
+
+    /**
+     * Whether every part of a selector list hides only marked things: brackets, parentheses and
+     * quotes are closed, and the element each part hides has a class, an id or an attribute. So a
+     * mistake like "div", "*" or ".feed > *" can't hide the whole page; ".feed > [class*=ad]" can.
+     */
+    static boolean specific(String selector) {
+        int depth = 0;
+        char quote = 0;
+        int partStart = 0;
+        int subject = 0;
+        for (int i = 0; i <= selector.length(); i++) {
+            char c = i < selector.length() ? selector.charAt(i) : ',';
+            if (quote != 0) {
+                if (i == selector.length()) return false;
+                if (c == quote) quote = 0;
+                continue;
+            }
+            if (c == '"' || c == '\'') {
+                quote = c;
+            } else if (c == '(' || c == '[') {
+                depth++;
+            } else if (c == ')' || c == ']') {
+                if (--depth < 0) return false;
+            } else if (depth == 0 && (c == ' ' || c == '\t' || c == '\n' || c == '\r' || c == '>' || c == '+' || c == '~')) {
+                subject = i + 1;
+            } else if (depth == 0 && c == ',') {
+                String part = selector.substring(partStart, i).trim();
+                String last = selector.substring(Math.max(subject, partStart), i).trim();
+                if (part.isEmpty() || last.isEmpty() || !marked(last)) return false;
+                partStart = i + 1;
+                subject = i + 1;
+            }
+        }
+        return depth == 0;
+    }
+
+    /** Whether one compound selector has a class, an id or an attribute outside :has()/:not(). */
+    private static boolean marked(String compound) {
+        StringBuilder outside = new StringBuilder();
+        int depth = 0;
+        for (int i = 0; i < compound.length(); i++) {
+            char c = compound.charAt(i);
+            if (c == '(') depth++;
+            else if (c == ')') depth--;
+            else if (depth == 0) outside.append(c);
+        }
+        String s = outside.toString();
+        return s.indexOf('.') >= 0 || s.indexOf('#') >= 0 || s.indexOf('[') >= 0;
     }
 
     /**

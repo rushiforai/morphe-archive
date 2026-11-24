@@ -1,0 +1,46 @@
+{
+  "generator": {
+    "path": "/Users/aidan/Projects/aidans-patches/tools/asset-prep/tests/fixtures/font/generate_fixtures.py",
+    "sha256": "318c4e49216385a6d25a2b81a5d7044ee01900da3173ca842f688ccc655b1128"
+  },
+  "python_transform": {
+    "path": "/Users/aidan/Projects/aidans-patches/.github/scripts/prepare_emoji_font.py",
+    "sha256": "fa16dfb5a776f7e95dc7d3f2b9f13fb020519698554b414f3db7586d18e42da2",
+    "command": "python3 tests/fixtures/font/generate_fixtures.py --font-script ../../../../.github/scripts/prepare_emoji_font.py",
+    "transform": "prepare_emoji_font.transform_linux_ttf(input, expected)"
+  },
+  "fixtures": {
+    "tiny-input.ttf": {
+      "size": 1032,
+      "sha256": "63272a0678022bdc8bdc3ea9bbacd14761ccfbcdd2f14febf4ab7453d4efdc83"
+    },
+    "tiny-expected.ttf": {
+      "size": 1368,
+      "sha256": "915325483ed7494e986ab018a7e466ef67914b0eba4f6c6fa91a24353956b9d8"
+    },
+    "fmt14.bin": {
+      "size": 757,
+      "sha256": "1166704d5808123adad30fe021f3eae365ab6f7893c13af73f739515cdd6f211"
+    },
+    "tiny-truncated.ttf": {
+      "size": 1025,
+      "sha256": "c8e0edbe8858e9d21ee2924ea5850b7d225fc612ea594ccb246aa4262964940c"
+    },
+    "tiny-bad-table-offset.ttf": {
+      "size": 1032,
+      "sha256": "9ee1a2230646da8ee2b4168a92433a7d300e2b5459698bdfdceffadd29547c37"
+    },
+    "tiny-short-cmap.ttf": {
+      "size": 1032,
+      "sha256": "8c15fd1a75d9d134acab4a31e045013e709aaef2f8cb0278f2e7eb11c6433205"
+    },
+    "tiny-short-cblc.ttf": {
+      "size": 1032,
+      "sha256": "0f783a9645f167e39bb6fc5ca42698715c67fc85cd3253022206c855c3f70d43"
+    },
+    "tiny-short-head.ttf": {
+      "size": 1032,
+      "sha256": "06c32cab1fc851223c4a808698cfd4ff0fc5d6371da586add60c3e364076bbcc"
+    }
+  }
+}

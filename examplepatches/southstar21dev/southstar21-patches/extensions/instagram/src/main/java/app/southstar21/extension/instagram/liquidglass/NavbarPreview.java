@@ -14,6 +14,7 @@ import android.graphics.RectF;
 import android.graphics.Shader;
 import android.graphics.Typeface;
 import android.graphics.drawable.GradientDrawable;
+import android.os.SystemClock;
 import android.util.TypedValue;
 import android.view.Gravity;
 import android.view.MotionEvent;
@@ -48,6 +49,8 @@ import app.southstar21.extension.instagram.settings.Setting;
 @SuppressLint("ViewConstructor")
 final class NavbarPreview extends FrameLayout {
     private static final int TABS = 5;
+    /** How long the "Switch after the glide" demo stops for, standing in for Instagram building a page. */
+    private static final long PAGE_BUILD_MS = 130;
     private static final String[] BACKDROPS = {"Photos", "Text", "Colors"};
 
     // Kept across page rebuilds (a preset or a switch rebuilds the page).
@@ -65,11 +68,70 @@ final class NavbarPreview extends FrameLayout {
     private TouchRouter router;
     private boolean comparing;
     private long lastUserTouch;
+    /** The demo's mock screen around the bar (a header, a share sheet), or null. */
+    private Scene scene;
 
     // region Factories
 
-    /** The Customize navbar page's preview, with its toolbar and presets under it. */
+    /** The liquid glass customize page's preview, with its toolbar and presets under it. */
     static View customizer(Activity activity, Runnable refresh) {
+        return customizer(activity, refresh, true);
+    }
+
+    /** The solid bar's customize page preview: the toolbar, no presets (those are glass looks). */
+    static View solidCustomizer(Activity activity, Runnable refresh) {
+        return customizer(activity, refresh, false);
+    }
+
+    /**
+     * The navigation bar page's choice of style: two big cards, each a small bar in its style,
+     * the chosen one ringed. Tapping the other switches to it.
+     */
+    static View styleCards(Activity activity, Runnable refresh) {
+        int mode = activity.getResources().getConfiguration().uiMode & Configuration.UI_MODE_NIGHT_MASK;
+        boolean dark = mode == Configuration.UI_MODE_NIGHT_YES;
+        Chrome ui = new Chrome(activity, dark);
+        boolean solid = LiquidGlassNavBarPatch.SOLID.get();
+
+        LinearLayout column = new LinearLayout(activity);
+        column.setOrientation(LinearLayout.VERTICAL);
+        LinearLayout row = new LinearLayout(activity);
+        String[] names = {"Solid", "Liquid Glass"};
+        for (int i = 0; i < names.length; i++) {
+            boolean isSolid = i == 0;
+            Map<String, Integer> look = new HashMap<>();
+            look.put(LiquidGlassNavBarPatch.SOLID.key, isSolid ? 1 : 0);
+            boolean chosen = isSolid == solid;
+            PresetCard card = new PresetCard(activity, names[i], NavbarStyle.withOverrides(look), dark, chosen);
+            // Solid draws a fraction of what the glass does every frame.
+            card.badge = isSolid ? "Recommended for older, slower devices" : "Recommended for newer, faster devices";
+            card.badgeColor = isSolid ? 0xFF34C759 : 0xFF5E5CE6;
+            card.setContentDescription(names[i] + " style, " + card.badge + (chosen ? ", chosen" : ""));
+            card.setOnClickListener(v -> {
+                if (LiquidGlassNavBarPatch.SOLID.get() == isSolid) return;
+                LiquidGlassNavBarPatch.SOLID.set(isSolid);
+                refresh.run();
+            });
+            LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(0, ui.dp(128), 1f);
+            if (i > 0) lp.leftMargin = ui.dp(12);
+            row.addView(card, lp);
+        }
+        column.addView(row);
+
+        TextView note = new TextView(activity);
+        note.setText(solid
+                ? "A plain bar floating over the page. Nothing behind it is blurred or bent, so it's by far the "
+                + "lightest on the phone. Recommended for older phones."
+                : "Glass like iOS 26: what's behind the bar is blurred and bent at its edges, redrawn every frame. "
+                + "It's the heaviest look; on an older phone, Solid runs much smoother.");
+        note.setTextSize(TypedValue.COMPLEX_UNIT_SP, 13);
+        note.setTextColor(dark ? 0xFF98989F : 0xFF6C6C70);
+        note.setPadding(ui.dp(16), ui.dp(8), ui.dp(16), 0);
+        column.addView(note);
+        return column;
+    }
+
+    private static View customizer(Activity activity, Runnable refresh, boolean withPresets) {
         NavbarPreview preview = new NavbarPreview(activity, null);
         Chrome ui = new Chrome(activity, preview.appDark);
 
@@ -114,6 +176,7 @@ final class NavbarPreview extends FrameLayout {
         });
         tools.addView(compare);
         column.addView(ui.scroller(tools));
+        if (!withPresets) return column;
 
         // Presets: each one a tiny navbar in its own look. Each starts from the defaults.
         TextView presetsLabel = ui.label("Presets");
@@ -163,6 +226,11 @@ final class NavbarPreview extends FrameLayout {
 
         feed = new Feed();
         addView(feed, new LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT));
+        // Header demos sit between the feed and the bar, like Instagram's header.
+        if (demo != null && (demo.setting == LiquidGlassNavBarPatch.HEADER_BLUR
+                || demo.setting == LiquidGlassNavBarPatch.GLASS_HEADER_BUTTONS)) {
+            scene = new HeaderScene(activity, demo.setting == LiquidGlassNavBarPatch.GLASS_HEADER_BUTTONS);
+        }
 
         bar = new LinearLayout(activity);
         bar.setOrientation(LinearLayout.HORIZONTAL);
@@ -180,8 +248,13 @@ final class NavbarPreview extends FrameLayout {
         NavbarStyle.Source source = demo != null ? demo::style
                 : () -> comparing ? NavbarStyle.defaults() : NavbarStyle.get();
         controller = new LiquidGlassController(bar, null, true, source);
+        // The share sheet covers the bar, like Instagram's.
+        if (demo != null && demo.setting == LiquidGlassNavBarPatch.GLASS_SHARE_MENU) scene = new ShareScene(activity);
+        // Above a share sheet, and over a scene's header, moved down out of its way.
+        if (demo != null) demo.caption.setTranslationZ(dp(32));
         if (demo != null) addView(demo.caption, new LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT,
-                ViewGroup.LayoutParams.WRAP_CONTENT, Gravity.TOP | Gravity.START));
+                ViewGroup.LayoutParams.WRAP_CONTENT,
+                (scene instanceof HeaderScene ? Gravity.CENTER_VERTICAL : Gravity.TOP) | Gravity.START));
     }
 
     @Override
@@ -192,7 +265,27 @@ final class NavbarPreview extends FrameLayout {
             router = new TouchRouter(super::dispatchTouchEvent, controller.lens());
             applyTheme();
         }
+        if (demo != null) android.view.Choreographer.getInstance().postFrameCallback(ticker);
     }
+
+    @Override
+    protected void onDetachedFromWindow() {
+        android.view.Choreographer.getInstance().removeFrameCallback(ticker);
+        super.onDetachedFromWindow();
+    }
+
+    /**
+     * Moves the demo on once a frame, before drawing. Not from the feed's drawing: the glass and
+     * the blurs draw the feed again to record it, which would run the demo several times a frame.
+     */
+    private final android.view.Choreographer.FrameCallback ticker = new android.view.Choreographer.FrameCallback() {
+        @Override
+        public void doFrame(long frameTimeNanos) {
+            if (!isAttachedToWindow()) return;
+            demo.tick();
+            android.view.Choreographer.getInstance().postFrameCallback(this);
+        }
+    };
 
     @Override
     public boolean dispatchTouchEvent(MotionEvent event) {
@@ -215,6 +308,12 @@ final class NavbarPreview extends FrameLayout {
     }
 
     private void select(View tab) {
+        if (demo != null && demo.act == Act.TAP_SWITCH && !tab.isSelected()) {
+            // Like Instagram building the page that was tapped: the app stops for a moment, and
+            // a new page shows.
+            SystemClock.sleep(PAGE_BUILD_MS);
+            feed.newPage();
+        }
         for (int i = 0; i < bar.getChildCount(); i++) {
             View child = bar.getChildAt(i);
             child.setSelected(child == tab);
@@ -234,7 +333,16 @@ final class NavbarPreview extends FrameLayout {
     // region Demo
 
     /** What a demo acts out so its setting shows. */
-    private enum Act { NONE, DRAG, TAPS, SCROLL }
+    private enum Act { NONE, DRAG, TAPS, SCROLL, TAP_SWITCH }
+
+    /** Settings only the liquid glass bar has: their demos show it whatever the chosen style. */
+    private static final java.util.Set<Setting> LIQUID_ONLY = new java.util.HashSet<>(java.util.Arrays.asList(
+            LiquidGlassNavBarPatch.BLUR_RADIUS, LiquidGlassNavBarPatch.REFRACTION, NavbarStyle.OPACITY,
+            NavbarStyle.VIBRANCY, NavbarStyle.EDGE_CLARITY, NavbarStyle.GLARE, LiquidGlassNavBarPatch.TILT_LIGHT,
+            LiquidGlassNavBarPatch.SOUTHSTAR21_STYLE, LiquidGlassNavBarPatch.GLASSY_PILL,
+            LiquidGlassNavBarPatch.GLASS_WHILE_DRAGGING, LiquidGlassNavBarPatch.EDGE_COLORS, NavbarStyle.DROP_SIZE,
+            LiquidGlassNavBarPatch.BLUR_VIDEOS, LiquidGlassNavBarPatch.REELS_BLUR,
+            LiquidGlassNavBarPatch.REELS_CLEAR_GLASS));
 
     /**
      * Sweeps one setting between low and high while the bar acts out what shows it. The values
@@ -248,7 +356,17 @@ final class NavbarPreview extends FrameLayout {
         final Caption caption = new Caption();
         /** Light or dark for settings that only show in one, else null. */
         final Boolean forcedDark;
-        private final Act act;
+        final Act act;
+        /** Tilt light: the glint follows a tilt that sweeps by itself. */
+        private final boolean tilt;
+        /** Blur videos: the feed is a playing video, which the bar can't see with the setting off. */
+        final boolean video;
+        /** Content behind bar: off, the page stops at the top of the bar. */
+        final boolean extend;
+        /** Reels: reels page up under the bar (see Feed#drawReels). */
+        final boolean reels;
+        private int lastTilt;
+        private int tapTarget;
         private final int low, high;
         private final Map<String, Integer> fixed = new HashMap<>();
         private final long start = System.nanoTime();
@@ -264,6 +382,13 @@ final class NavbarPreview extends FrameLayout {
             Boolean theme = null;
             // Haptics would buzz on every demo drag; only its own demo feels them.
             fixed.put(LiquidGlassNavBarPatch.HAPTICS.key, 0);
+            // The bar in the style chosen, unless the setting only exists on the glass.
+            fixed.put(LiquidGlassNavBarPatch.SOLID.key,
+                    !LIQUID_ONLY.contains(setting) && LiquidGlassNavBarPatch.SOLID.get() ? 1 : 0);
+            tilt = setting == LiquidGlassNavBarPatch.TILT_LIGHT;
+            video = setting == LiquidGlassNavBarPatch.BLUR_VIDEOS;
+            extend = setting == LiquidGlassNavBarPatch.EXTEND_CONTENT;
+            reels = setting == LiquidGlassNavBarPatch.REELS_BLUR || setting == LiquidGlassNavBarPatch.REELS_CLEAR_GLASS;
             if (setting == NavbarStyle.DROP_SIZE || setting == LiquidGlassNavBarPatch.EDGE_COLORS) {
                 a = Act.DRAG;
                 fixed.put(LiquidGlassNavBarPatch.SOUTHSTAR21_STYLE.key, 1);
@@ -278,9 +403,15 @@ final class NavbarPreview extends FrameLayout {
             } else if (setting == NavbarStyle.SHRUNK_SIZE || setting == LiquidGlassNavBarPatch.SHRINK_ON_SCROLL) {
                 a = Act.SCROLL;
                 fixed.put(LiquidGlassNavBarPatch.SHRINK_ON_SCROLL.key, 1);
+            } else if (setting == LiquidGlassNavBarPatch.SWITCH_AFTER_GLIDE) {
+                a = Act.TAP_SWITCH;
             }
             if (setting == NavbarStyle.GLARE) theme = false;
+            // Reels is always dark.
+            if (reels) theme = true;
             if (setting == NavbarStyle.EDGE_CLARITY) theme = true;
+            // The glint is white light: on a dark bar it shows.
+            if (setting == LiquidGlassNavBarPatch.TILT_LIGHT) theme = true;
             act = a;
             forcedDark = theme;
             int[] range = NavbarStyle.demoRange(setting);
@@ -295,28 +426,51 @@ final class NavbarPreview extends FrameLayout {
         NavbarStyle style() {
             long ms = (System.nanoTime() - start) / 1_000_000L;
             int value = valueAt(ms);
-            if (value != lastValue || style == null) {
+            // A slow tilt back and forth, in steps of 0.02 radians.
+            int tiltNow = tilt ? Math.round((float) Math.sin(ms / 1000.0 * 1.4) * 60) * 20 : 0;
+            if (value != lastValue || tiltNow != lastTilt || style == null) {
                 lastValue = value;
+                lastTilt = tiltNow;
                 Map<String, Integer> overrides = new HashMap<>(fixed);
                 overrides.put(setting.key, value);
+                if (tilt) overrides.put(NavbarStyle.DEMO_TILT, tiltNow);
+                if (video) overrides.put(NavbarStyle.DEMO_VIDEO_HOLE, value == 0 ? 1 : 0);
                 style = NavbarStyle.withOverrides(overrides);
                 caption.invalidate();
             }
             return style;
         }
 
-        /** Once a frame, from the feed: acts out the demo's gesture. */
+        /** Once a frame, before drawing: moves the scene on and acts out the demo's gesture. */
         void tick() {
             if (acting) return;
             acting = true;
             try {
-                perform((System.nanoTime() - start) / 1_000_000L);
+                long ms = (System.nanoTime() - start) / 1_000_000L;
+                if (scene != null) scene.update(ms % ACT_MS, valueAt(ms) != 0);
+                if (reels) controller.forceOverMedia(clearGlass(ms));
+                perform(ms);
             } finally {
                 acting = false;
             }
         }
 
         private boolean acting;
+
+        /** Reels: the frosted strip shows (always, in the clear glass demo). */
+        boolean reelsStrip(long ms) {
+            return setting == LiquidGlassNavBarPatch.REELS_CLEAR_GLASS || valueAt(ms) != 0;
+        }
+
+        /** Reels: the bar is clearer glass, as Instagram's would be with these settings. */
+        private boolean clearGlass(long ms) {
+            if (setting == LiquidGlassNavBarPatch.REELS_CLEAR_GLASS) return valueAt(ms) != 0;
+            return valueAt(ms) != 0 && LiquidGlassNavBarPatch.REELS_CLEAR_GLASS.get();
+        }
+
+        long elapsedMs() {
+            return (System.nanoTime() - start) / 1_000_000L;
+        }
 
         private int valueAt(long ms) {
             if (setting instanceof BooleanSetting) {
@@ -372,6 +526,23 @@ final class NavbarPreview extends FrameLayout {
                         bar.getChildAt((selectedIndex() + 1) % TABS).performClick();
                     }
                     break;
+                case TAP_SWITCH: {
+                    // A quick tap on the next tab, as a finger would: down, then up 90ms later.
+                    if (step == 0 && t >= 300) {
+                        step = 1;
+                        tapTarget = (selectedIndex() + 1) % 4;
+                        float x = lens.tabCenterX(tapTarget);
+                        if (Float.isNaN(x)) return;
+                        lens.beginPress(x);
+                    } else if (step == 1 && t >= 390) {
+                        step = 2;
+                        if (!lens.deferTapOnOtherTab()) {
+                            lens.release();
+                            bar.getChildAt(tapTarget).performClick();
+                        }
+                    }
+                    break;
+                }
                 case SCROLL:
                     if (step == 0 && t < ACT_MS / 2) {
                         step = 1;
@@ -422,6 +593,236 @@ final class NavbarPreview extends FrameLayout {
             canvas.drawRoundRect(rect, rect.height() / 2, rect.height() / 2, pill);
             label.setColor(Color.WHITE);
             canvas.drawText(text, rect.left + 12 * density, rect.centerY() + 4.5f * density, label);
+        }
+    }
+
+    // endregion
+
+    // region Scenes
+
+    /** A demo's mock screen around the bar, moved on once a frame. */
+    private interface Scene {
+        /** @param t ms into the demo's act; {@code on} the setting's value right now */
+        void update(long t, boolean on);
+    }
+
+    /**
+     * Home's top: a status bar and the "For you" header over the feed. With the header blur on,
+     * the header is see-through and the real top blur fades the feed out under the status bar;
+     * off, it's Instagram's solid header. With {@code buttons}, the blur stays on and the two
+     * header buttons get the real glass circles, which come and go with the setting.
+     */
+    private final class HeaderScene implements Scene {
+        private final EdgeBlurView blur;
+        private final View header;
+        private final int statusH = dp(24), rowH = dp(44);
+        private boolean opaque;
+        private final java.util.ArrayList<GlassButtonDrawable> circles = new java.util.ArrayList<>();
+        private final View[] buttons = new View[2];
+        private HeaderGlass group;
+        private float reveal;
+        private long lastStep;
+
+        HeaderScene(Activity activity, boolean withButtons) {
+            blur = new EdgeBlurView(activity, density, true);
+            addView(blur, new LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, statusH + blur.extraTop, Gravity.TOP));
+            header = new View(activity) {
+                private final Paint paint = new Paint(Paint.ANTI_ALIAS_FLAG);
+
+                @Override
+                protected void onDraw(Canvas canvas) {
+                    int ink = dark ? Color.WHITE : 0xFF111111;
+                    if (opaque) canvas.drawColor(dark ? 0xFF0B0F14 : Color.WHITE);
+                    paint.setColor(ink);
+                    paint.setTextSize(12 * density);
+                    paint.setTypeface(Typeface.create("sans-serif-medium", Typeface.BOLD));
+                    canvas.drawText("9:41", dp(16), statusH - dp(7), paint);
+                    canvas.drawRoundRect(getWidth() - dp(40), statusH - dp(15), getWidth() - dp(16),
+                            statusH - dp(7), dp(3), dp(3), paint);
+                    paint.setTextSize(19 * density);
+                    paint.setTextAlign(Paint.Align.CENTER);
+                    canvas.drawText("For you", getWidth() / 2f, statusH + rowH / 2f + dp(7), paint);
+                    paint.setTextAlign(Paint.Align.LEFT);
+                    if (group == null) drawIcons(canvas, paint, ink);
+                }
+            };
+            addView(header, new LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, statusH + rowH, Gravity.TOP));
+            if (!withButtons) return;
+            group = new HeaderGlass(density, c -> feed.draw(c), circles);
+            for (int i = 0; i < 2; i++) {
+                final int which = i;
+                View button = new View(activity) {
+                    private final Paint paint = new Paint(Paint.ANTI_ALIAS_FLAG);
+
+                    @Override
+                    protected void onDraw(Canvas canvas) {
+                        int ink = dark ? Color.WHITE : 0xFF111111;
+                        canvas.save();
+                        canvas.translate(getWidth() / 2f - dp(12), getHeight() / 2f - dp(12));
+                        drawIcon(canvas, paint, ink, which);
+                        canvas.restore();
+                    }
+                };
+                GlassButtonDrawable circle = new GlassButtonDrawable(density, group);
+                button.setBackground(circle);
+                circles.add(circle);
+                buttons[i] = button;
+                LayoutParams lp = new LayoutParams(dp(44), dp(44), Gravity.TOP | (i == 0 ? Gravity.START : Gravity.END));
+                lp.topMargin = statusH;
+                lp.leftMargin = dp(8);
+                lp.rightMargin = dp(8);
+                addView(button, lp);
+            }
+        }
+
+        /** The header's new post and heart icons, drawn by the header itself when there are no circles. */
+        private void drawIcons(Canvas canvas, Paint paint, int ink) {
+            for (int i = 0; i < 2; i++) {
+                canvas.save();
+                float cx = i == 0 ? dp(30) : getWidth() - dp(30);
+                canvas.translate(cx - dp(12), statusH + rowH / 2f - dp(12));
+                drawIcon(canvas, paint, ink, i);
+                canvas.restore();
+            }
+        }
+
+        /** A 24dp icon: a plus, or a heart. */
+        private void drawIcon(Canvas canvas, Paint paint, int ink, int which) {
+            paint.setColor(ink);
+            paint.setStyle(Paint.Style.STROKE);
+            paint.setStrokeWidth(2 * density);
+            paint.setStrokeCap(Paint.Cap.ROUND);
+            float u = density;
+            if (which == 0) {
+                canvas.drawLine(12 * u, 4 * u, 12 * u, 20 * u, paint);
+                canvas.drawLine(4 * u, 12 * u, 20 * u, 12 * u, paint);
+            } else {
+                Path heart = new Path();
+                heart.moveTo(12 * u, 20 * u);
+                heart.cubicTo(1 * u, 12 * u, 4 * u, 3 * u, 12 * u, 8 * u);
+                heart.cubicTo(20 * u, 3 * u, 23 * u, 12 * u, 12 * u, 20 * u);
+                canvas.drawPath(heart, paint);
+            }
+            paint.setStyle(Paint.Style.FILL);
+        }
+
+        @Override
+        public void update(long t, boolean on) {
+            boolean blurOn = group != null || on;
+            opaque = !blurOn;
+            blur.setVisibility(blurOn ? VISIBLE : GONE);
+            if (blurOn) {
+                blur.setDark(dark);
+                blur.setBackgroundColorBehind(dark ? 0xFF0B0F14 : Color.WHITE);
+                blur.setExtent(-1);
+                blur.invalidate();
+            }
+            header.invalidate();
+            if (group == null) return;
+            long now = System.nanoTime();
+            float dt = lastStep == 0 ? 0f : Math.min(1f / 30f, (now - lastStep) / 1e9f);
+            lastStep = now;
+            // The circles fade in and out over a quarter second, like scrolling away from the top.
+            reveal = on ? Math.min(1f, reveal + dt * 4f) : Math.max(0f, reveal - dt * 4f);
+            group.beginFrame(getWidth(), statusH + rowH + dp(24));
+            for (int i = 0; i < buttons.length; i++) {
+                View button = buttons[i];
+                GlassButtonDrawable circle = circles.get(i);
+                circle.setDark(dark);
+                circle.setReveal(reveal);
+                circle.setDiameter(dp(40));
+                circle.setPlacement(button.getLeft() + button.getWidth() / 2f, button.getTop() + button.getHeight() / 2f);
+                circle.step(dt);
+                button.invalidate();
+            }
+        }
+    }
+
+    /**
+     * The share menu rising over the feed and the bar, holding, and going down again, once per
+     * act. On, it's the real frosted glass sheet; off, Instagram's plain one.
+     */
+    private final class ShareScene implements Scene {
+        private final View dim;
+        private final View sheet;
+        private final ShareGlassDrawable glass;
+        private final GradientDrawable plain = new GradientDrawable();
+        private boolean glassy;
+
+        ShareScene(Activity activity) {
+            dim = new View(activity);
+            dim.setBackgroundColor(0x59000000);
+            dim.setAlpha(0f);
+            addView(dim, new LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT));
+            sheet = new View(activity) {
+                private final Paint paint = new Paint(Paint.ANTI_ALIAS_FLAG);
+                private final RectF r = new RectF();
+
+                @Override
+                protected void onDraw(Canvas canvas) {
+                    float w = getWidth(), u = density;
+                    int ink = dark ? Color.WHITE : 0xFF111111;
+                    // On glass the fields are lighter glass; on the plain sheet, grey.
+                    int field = glassy ? (dark ? 0x2EFFFFFF : 0x66FFFFFF) : (dark ? 0xFF2C2C2E : 0xFFEFEFF2);
+                    paint.setStyle(Paint.Style.FILL);
+                    paint.setColor(dark ? 0x66FFFFFF : 0x33000000);
+                    r.set(w / 2 - 18 * u, 8 * u, w / 2 + 18 * u, 12 * u);
+                    canvas.drawRoundRect(r, 2 * u, 2 * u, paint);
+                    paint.setColor(field);
+                    r.set(16 * u, 22 * u, w - 16 * u, 50 * u);
+                    canvas.drawRoundRect(r, 14 * u, 14 * u, paint);
+                    paint.setColor(dark ? 0xFF98989F : 0xFF8E8E93);
+                    paint.setTextSize(13 * u);
+                    canvas.drawText("Search", 38 * u, 41 * u, paint);
+                    int[][] avatars = {{0xFFFF7E5F, 0xFFFEB47B}, {0xFF2193B0, 0xFF6DD5ED},
+                            {0xFF8E2DE2, 0xFF4A00E0}, {0xFF11998E, 0xFF38EF7D}};
+                    float step = (w - 32 * u) / 4f;
+                    for (int i = 0; i < 4; i++) {
+                        float cx = 16 * u + step * (i + 0.5f);
+                        paint.setShader(new LinearGradient(cx - 22 * u, 62 * u, cx + 22 * u, 106 * u,
+                                avatars[i][0], avatars[i][1], Shader.TileMode.CLAMP));
+                        canvas.drawCircle(cx, 84 * u, 22 * u, paint);
+                        paint.setShader(null);
+                        paint.setColor(ink);
+                        r.set(cx - 18 * u, 112 * u, cx + 18 * u, 117 * u);
+                        canvas.drawRoundRect(r, 2.5f * u, 2.5f * u, paint);
+                        // The action row: grey circles, glass ones on the glass sheet.
+                        paint.setColor(field);
+                        canvas.drawCircle(cx, 148 * u, 20 * u, paint);
+                        paint.setColor(ink);
+                        canvas.drawCircle(cx, 148 * u, 4 * u, paint);
+                    }
+                }
+            };
+            glass = new ShareGlassDrawable(sheet, density);
+            glass.setSkip(dim);
+            float corner = ShareGlassDrawable.CORNER_DP * density;
+            plain.setCornerRadii(new float[]{corner, corner, corner, corner, 0, 0, 0, 0});
+            addView(sheet, new LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, dp(180), Gravity.BOTTOM));
+            // The bar has elevation for its shadow, which would draw it over the sheet: lift the
+            // dimmer and the sheet above it, without shadows of their own.
+            for (View v : new View[]{dim, sheet}) {
+                v.setOutlineProvider(null);
+                v.setTranslationZ(dp(24));
+            }
+        }
+
+        @Override
+        public void update(long t, boolean on) {
+            if (on != glassy || sheet.getBackground() == null) {
+                glassy = on;
+                plain.setColor(dark ? 0xFF262628 : Color.WHITE);
+                sheet.setBackground(on ? glass : plain);
+            }
+            glass.setDark(dark);
+            // Up over 0.4s, held, and down again in the last half second of the act.
+            float up = Math.min(1f, Math.max(0f, (t - 200) / 400f));
+            float down = Math.min(1f, Math.max(0f, (t - 2200) / 400f));
+            float f = up * (1f - down);
+            f = f * f * (3 - 2 * f);
+            sheet.setTranslationY((1f - f) * sheet.getHeight());
+            dim.setAlpha(f);
+            sheet.invalidate();
         }
     }
 
@@ -548,12 +949,22 @@ final class NavbarPreview extends FrameLayout {
                 scroll += SPEED_DP * density * Math.min((now - lastFrame) / 1e9f, 0.05f);
             }
             lastFrame = now;
-            if (demo != null) demo.tick();
 
             int ink = dark ? Color.WHITE : 0xFF111111;
             int faint = dark ? 0xFF3A3A3C : 0xFFDADADF;
             canvas.drawColor(dark ? 0xFF0B0F14 : Color.WHITE);
-            int kind = demo != null ? 0 : backdrop;
+            // Scene demos use bold colors, so there's always something to see under the glass.
+            int kind = demo != null ? (demo.video ? 3 : scene != null ? 2 : 0) : backdrop;
+            if (demo != null && demo.reels) {
+                drawReels(canvas);
+                postInvalidateOnAnimation();
+                return;
+            }
+            if (kind == 3) {
+                drawVideo(canvas);
+                postInvalidateOnAnimation();
+                return;
+            }
             float post = (kind == 1 ? 200f : POST) * density;
             int first = (int) Math.floor(scroll / post);
             for (int k = first; k * post - scroll < getHeight(); k++) {
@@ -561,6 +972,13 @@ final class NavbarPreview extends FrameLayout {
                 if (kind == 1) drawText(canvas, k, top, ink, faint);
                 else if (kind == 2) drawColors(canvas, k, top, post);
                 else drawPost(canvas, k, top, ink, faint);
+            }
+            if (demo != null && demo.extend && demo.lastValue == 0) {
+                // Like stock Instagram: the page ends where the bar starts, plain background below.
+                paint.setShader(null);
+                paint.setStyle(Paint.Style.FILL);
+                paint.setColor(dark ? 0xFF0B0F14 : Color.WHITE);
+                canvas.drawRect(0, bar.getTop(), getWidth(), getHeight(), paint);
             }
             // Keeps the frames coming, which also keeps the glass and the demo running.
             postInvalidateOnAnimation();
@@ -632,6 +1050,208 @@ final class NavbarPreview extends FrameLayout {
             canvas.drawRoundRect(rect, 4 * d, 4 * d, paint);
             rect.set(16 * d, ay + 68 * d, w * 0.55f, ay + 76 * d);
             canvas.drawRoundRect(rect, 4 * d, 4 * d, paint);
+        }
+
+        /** Another page: the feed jumps on, as if a different tab had opened. */
+        void newPage() {
+            scroll += 300 * density;
+        }
+
+        /** A video playing full screen: bands of color and a ball, moving all the time. */
+        private void drawVideo(Canvas canvas) {
+            float d = density;
+            float w = getWidth(), h = getHeight();
+            float t = (System.nanoTime() % 60_000_000_000L) / 1e9f;
+            paint.setStyle(Paint.Style.FILL);
+            paint.setShader(null);
+            float band = 70 * d;
+            float offset = (t * 160 * d) % (band * colors.length);
+            for (int i = -1; i * band - offset < w + h; i++) {
+                paint.setColor(colors[Math.floorMod(i, colors.length)]);
+                float x = i * band - offset;
+                path.reset();
+                path.moveTo(x, 0);
+                path.lineTo(x + band, 0);
+                path.lineTo(x + band - h * 0.6f, h);
+                path.lineTo(x - h * 0.6f, h);
+                path.close();
+                canvas.drawPath(path, paint);
+            }
+            paint.setColor(Color.WHITE);
+            float bx = w * (0.5f + 0.38f * (float) Math.sin(t * 2.1)), by = h * (0.55f + 0.3f * (float) Math.cos(t * 3.3));
+            canvas.drawCircle(bx, by, 26 * d, paint);
+            // A play badge and a running time, so it reads as a video.
+            paint.setColor(0x99000000);
+            rect.set(w - 92 * d, 12 * d, w - 12 * d, 38 * d);
+            canvas.drawRoundRect(rect, 13 * d, 13 * d, paint);
+            paint.setColor(Color.WHITE);
+            path.reset();
+            path.moveTo(w - 82 * d, 18 * d);
+            path.lineTo(w - 70 * d, 25 * d);
+            path.lineTo(w - 82 * d, 32 * d);
+            path.close();
+            canvas.drawPath(path, paint);
+            text.setColor(Color.WHITE);
+            text.setTextSize(13 * d);
+            int sec = (int) t % 60;
+            canvas.drawText("0:" + (sec < 10 ? "0" : "") + sec, w - 62 * d, 30 * d, text);
+        }
+
+        /** Recorded reels for the frosted strip, two since two reels show mid-scroll. */
+        private final android.graphics.RenderNode[] reelNodes = new android.graphics.RenderNode[2];
+        private final android.graphics.RenderNode[] blurNodes = new android.graphics.RenderNode[2];
+        private final Paint stripMask = new Paint();
+        private final Paint stripTint = new Paint();
+        private int stripMaskFor = -1;
+
+        /**
+         * Reels paging up under the bar, one every act. With the strip on, each reel runs down
+         * behind the bar and the strip under its caption is a frosted copy of it, which scrolls
+         * away with it. Off, like stock Instagram: the reel stops above the bar, black below.
+         */
+        private void drawReels(Canvas canvas) {
+            float d = density;
+            int w = getWidth();
+            int h = getHeight();
+            long ms = demo.elapsedMs();
+            boolean strip = demo.reelsStrip(ms);
+            int barTop = bar.getTop() > 0 ? bar.getTop() : h - dp(70);
+            int pageH = strip ? h : barTop;
+            // Where the strip starts, a little above the pill, as in Instagram.
+            int stripTop = barTop - dp(10);
+            canvas.drawColor(Color.BLACK);
+
+            // Hold, then swipe on to the next reel, settled before the setting flips.
+            long act = ms / Demo.ACT_MS;
+            float f = Math.max(0f, Math.min(1f, (ms % Demo.ACT_MS - 1500) / 650f));
+            f = f * f * (3 - 2 * f);
+            float position = act + f;
+            int first = (int) Math.floor(position);
+            for (int k = first; k <= first + 1; k++) {
+                float top = (k - position) * pageH;
+                if (top >= h) break;
+                int save = canvas.save();
+                canvas.translate(0, top);
+                canvas.clipRect(0, 0, w, pageH);
+                int slot = Math.floorMod(k, 2);
+                boolean frosted = strip && android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.S
+                        && canvas.isHardwareAccelerated();
+                if (frosted) {
+                    android.graphics.RenderNode node = reelNode(slot, w, pageH);
+                    android.graphics.RecordingCanvas rc = node.beginRecording(w, pageH);
+                    try {
+                        drawReelVideo(rc, k, w, pageH);
+                    } finally {
+                        node.endRecording();
+                    }
+                    canvas.drawRenderNode(node);
+                    drawStrip(canvas, slot, node, w, pageH, pageH - (h - stripTop));
+                } else {
+                    drawReelVideo(canvas, k, w, pageH);
+                }
+                // The caption and buttons end above the strip (or the bar).
+                drawReelChrome(canvas, k, w, strip ? pageH - (h - stripTop) : pageH - dp(8));
+                canvas.restoreToCount(save);
+            }
+        }
+
+        private android.graphics.RenderNode reelNode(int slot, int w, int h) {
+            if (reelNodes[slot] == null) {
+                reelNodes[slot] = new android.graphics.RenderNode("PreviewReel" + slot);
+                blurNodes[slot] = new android.graphics.RenderNode("PreviewReelBlur" + slot);
+                float r = 20 * density;
+                blurNodes[slot].setRenderEffect(android.graphics.RenderEffect.createBlurEffect(r, r,
+                        Shader.TileMode.CLAMP));
+            }
+            reelNodes[slot].setPosition(0, 0, w, h);
+            return reelNodes[slot];
+        }
+
+        /** The frosted strip from {@code top} to the reel's bottom, easing in over its top. */
+        private void drawStrip(Canvas canvas, int slot, android.graphics.RenderNode reel, int w, int pageH, int top) {
+            int sh = pageH - top;
+            if (sh <= 0) return;
+            if (stripMaskFor != sh) {
+                stripMaskFor = sh;
+                float feather = Math.min(0.6f, 56 * density / sh);
+                stripMask.setXfermode(new android.graphics.PorterDuffXfermode(android.graphics.PorterDuff.Mode.DST_IN));
+                stripMask.setShader(new LinearGradient(0, 0, 0, sh, new int[]{0, 0xFF000000, 0xFF000000},
+                        new float[]{0f, feather, 1f}, Shader.TileMode.CLAMP));
+                stripTint.setShader(new LinearGradient(0, 0, 0, sh, new int[]{0, 0x18000000, 0x38000000},
+                        new float[]{0f, feather, 1f}, Shader.TileMode.CLAMP));
+            }
+            android.graphics.RenderNode blur = blurNodes[slot];
+            blur.setPosition(0, 0, w, pageH);
+            android.graphics.RecordingCanvas rc = blur.beginRecording(w, pageH);
+            try {
+                rc.drawRenderNode(reel);
+            } finally {
+                blur.endRecording();
+            }
+            int save = canvas.save();
+            canvas.translate(0, top);
+            int layer = canvas.saveLayer(0, 0, w, sh, null);
+            canvas.translate(0, -top);
+            canvas.drawRenderNode(blur);
+            canvas.translate(0, top);
+            canvas.drawRect(0, 0, w, sh, stripMask);
+            canvas.restoreToCount(layer);
+            canvas.drawRect(0, 0, w, sh, stripTint);
+            canvas.restoreToCount(save);
+        }
+
+        /** A reel's video: bold diagonal bands and a ball, in colors of its own. */
+        private void drawReelVideo(Canvas canvas, int index, int w, int h) {
+            float d = density;
+            float t = (System.nanoTime() % 60_000_000_000L) / 1e9f;
+            int[] palette = palettes[Math.floorMod(index, palettes.length)];
+            paint.setStyle(Paint.Style.FILL);
+            paint.setShader(new LinearGradient(0, 0, w, h, palette[0], palette[1], Shader.TileMode.CLAMP));
+            canvas.drawRect(0, 0, w, h, paint);
+            paint.setShader(null);
+            float band = 64 * d;
+            float offset = (t * 60 * d) % (band * 2);
+            for (int i = -2; i * band - offset < w + h; i += 2) {
+                paint.setColor(colors[Math.floorMod(i / 2 + index, colors.length)] & 0x99FFFFFF);
+                float x = i * band - offset;
+                path.reset();
+                path.moveTo(x, 0);
+                path.lineTo(x + band, 0);
+                path.lineTo(x + band - h * 0.5f, h);
+                path.lineTo(x - h * 0.5f, h);
+                path.close();
+                canvas.drawPath(path, paint);
+            }
+            paint.setColor(Color.WHITE);
+            float bx = w * (0.5f + 0.35f * (float) Math.sin(t * 1.7 + index));
+            float by = h * (0.7f + 0.2f * (float) Math.cos(t * 2.3 + index));
+            canvas.drawCircle(bx, by, 30 * d, paint);
+        }
+
+        /** The name, caption and button column, ending at {@code bottom}. */
+        private void drawReelChrome(Canvas canvas, int index, int w, int bottom) {
+            float d = density;
+            paint.setShader(null);
+            paint.setStyle(Paint.Style.FILL);
+            int[] palette = palettes[Math.floorMod(index + 1, palettes.length)];
+            paint.setShader(new LinearGradient(16 * d, bottom - 64 * d, 48 * d, bottom - 32 * d,
+                    palette[0], palette[1], Shader.TileMode.CLAMP));
+            canvas.drawCircle(32 * d, bottom - 48 * d, 15 * d, paint);
+            paint.setShader(null);
+            paint.setColor(Color.WHITE);
+            rect.set(56 * d, bottom - 54 * d, 150 * d, bottom - 43 * d);
+            canvas.drawRoundRect(rect, 5 * d, 5 * d, paint);
+            paint.setColor(0xCCFFFFFF);
+            rect.set(16 * d, bottom - 22 * d, w * 0.62f, bottom - 13 * d);
+            canvas.drawRoundRect(rect, 4 * d, 4 * d, paint);
+            // Like, comment, share and more, up the right edge.
+            paint.setStyle(Paint.Style.STROKE);
+            paint.setStrokeWidth(2 * d);
+            paint.setColor(Color.WHITE);
+            for (int i = 0; i < 4; i++) {
+                canvas.drawCircle(w - 30 * d, bottom - 24 * d - i * 46 * d, 11 * d, paint);
+            }
+            paint.setStyle(Paint.Style.FILL);
         }
 
         /** Lines of crisp text, where blur and refraction are easiest to read. */
@@ -710,6 +1330,11 @@ final class NavbarPreview extends FrameLayout {
         private final Paint text = new Paint(Paint.ANTI_ALIAS_FLAG);
         private final RectF rect = new RectF();
         private final RectF pill = new RectF();
+        /** A small label in the card's top left corner (up to two lines), or null, and its color. */
+        String badge;
+        int badgeColor;
+        private android.text.StaticLayout badgeLayout;
+        private int badgeLayoutWidth = -1;
 
         PresetCard(Activity activity, String name, NavbarStyle style, boolean dark, boolean active) {
             super(activity);
@@ -764,7 +1389,7 @@ final class NavbarPreview extends FrameLayout {
             paint.setShadowLayer(4 * d * style.shadow + 0.5f, 0, 1.5f * d, Color.argb(Math.round(110 * style.shadow), 0, 0, 0));
             canvas.drawRoundRect(pill, r, r, paint);
             paint.clearShadowLayer();
-            paint.setColor(style.material(dark, Math.round(255 * Math.min(1f, style.opacity))));
+            paint.setColor(style.material(dark, style.solid ? 255 : Math.round(255 * Math.min(1f, style.opacity))));
             canvas.drawRoundRect(pill, r, r, paint);
             paint.setStyle(Paint.Style.STROKE);
             paint.setStrokeWidth(Math.max(1f, 0.8f * d));
@@ -793,6 +1418,32 @@ final class NavbarPreview extends FrameLayout {
                 canvas.drawCircle(x, cy, (i == 0 ? 2.6f : 2.1f) * d, paint);
             }
             canvas.restore();
+
+            if (badge != null) {
+                // Wrapped to the card: a rounded tag with the text in white.
+                int maxW = Math.round(rect.width() - 16 * d - 16 * d);
+                if (badgeLayout == null || badgeLayoutWidth != maxW) {
+                    badgeLayoutWidth = maxW;
+                    android.text.TextPaint tp = new android.text.TextPaint(Paint.ANTI_ALIAS_FLAG);
+                    tp.setTextSize(11 * d);
+                    tp.setTypeface(Typeface.create("sans-serif-medium", Typeface.BOLD));
+                    tp.setColor(Color.WHITE);
+                    badgeLayout = android.text.StaticLayout.Builder.obtain(badge, 0, badge.length(), tp, Math.max(1, maxW))
+                            .setMaxLines(2).build();
+                }
+                float lw = 0;
+                for (int line = 0; line < badgeLayout.getLineCount(); line++) {
+                    lw = Math.max(lw, badgeLayout.getLineWidth(line));
+                }
+                RectF tag = new RectF(rect.left + 8 * d, rect.top + 8 * d,
+                        rect.left + 8 * d + lw + 16 * d, rect.top + 8 * d + badgeLayout.getHeight() + 8 * d);
+                paint.setColor(badgeColor);
+                canvas.drawRoundRect(tag, 9 * d, 9 * d, paint);
+                canvas.save();
+                canvas.translate(tag.left + 8 * d, tag.top + 4 * d);
+                badgeLayout.draw(canvas);
+                canvas.restore();
+            }
 
             // Ring around the active preset.
             if (active) {

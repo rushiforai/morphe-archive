@@ -13,7 +13,13 @@ Kies de volledige split-APKS-bundel van precies deze versie in Morphe Manager.
 | Patch | Standaard | Wat verandert er? |
 | --- | --- | --- |
 | **Allow custom Android Auto hosts** | Aan | Accepteert elke autorek tijdens de Android Auto-handshake, zodat de app ook start op autorekken van derden en op projectiebruggetjes. |
-| **Unlock Premium** | Aan | Behandelt de app als de autoversie die ABRP zonder aankoopflow uitlevert, waardoor de Premium-schakelaars in de app opengaan. |
+| **Unlock Premium** | Aan | Behandelt de app als de autoversie die ABRP zonder aankoopflow uitlevert, waardoor de Premium-schakelaars in de app opengaan. Bevat de oplossing voor GPS en locatietoegang in Android Auto. |
+
+## GPS opgelost
+
+Het GPS-probleem met ingeschakelde Premium-functies is opgelost. ABRP vraagt nu om locatietoegang op de telefoon en gebruikt de GPS van de telefoon voor de kaart en Android Auto. Het toestemmingsscherm voor voertuigtelemetrie blokkeert de autokaart niet meer. Gedownloade JavaScript-updates kunnen de aangepaste locatiecode niet vervangen.
+
+Patch ABRP opnieuw met de nieuwste bundel om de oplossing te ontvangen. Sta nauwkeurige locatie toe wanneer Android daarom vraagt. Laat **Allow custom Android Auto hosts** geselecteerd voor DriveDeck of een andere aangepaste host.
 
 ## Premium
 

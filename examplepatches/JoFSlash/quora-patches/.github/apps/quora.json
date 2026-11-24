@@ -1,0 +1,97 @@
+{
+  "name": "Quora",
+  "workflow": "emulator.yml",
+  "patches": "patches/src/main/kotlin/app/jofslash/patches/quora",
+  "extension": "extensions/quora",
+  "docs": "docs/quora/README.md",
+  "readme": {
+    "style": "generated",
+    "order": [
+      "Privacy",
+      "Feed",
+      "Reading",
+      "Writing",
+      "App"
+    ],
+    "intro": {
+      "Privacy": "On by default. They stop data collection and change nothing you see.",
+      "Feed": "What the feed and question pages show.",
+      "Reading": "How answers look and load.",
+      "Writing": "The editor for answers and posts.",
+      "App": "The app around the pages: prompts, tabs, notifications, gestures."
+    }
+  },
+  "store": "https://play.google.com/store/apps/details?id=com.quora.android",
+  "package": "com.quora.android",
+  "summary": "Remove ads and tracking, and hide what you don't use: AI answers, Quora+ paywalls, suggestions, counts, old answers.",
+  "owners": [
+    "Quora"
+  ],
+  "apk": {
+    "release": "quora",
+    "version": "newest",
+    "asset": "quora-{version}.apkm",
+    "file": "quora.apkm"
+  },
+  "android": {
+    "note": "The Android versions people run now, and the next one. Android 17's image is only in the SDK's canary channel so far. The release tries the oldest supported version, the newest stable one and the next one; a pull request the oldest and the newest stable.",
+    "pull_request": [
+      {
+        "api": "35",
+        "android": "15",
+        "channel": "stable"
+      },
+      {
+        "api": "36",
+        "android": "16",
+        "channel": "stable"
+      }
+    ],
+    "full": [
+      {
+        "api": "35",
+        "android": "15",
+        "channel": "stable"
+      },
+      {
+        "api": "36",
+        "android": "16",
+        "channel": "stable"
+      },
+      {
+        "api": "37.0",
+        "android": "17",
+        "channel": "canary"
+      }
+    ]
+  },
+  "checks": {
+    "error_tag": "E/JoFSlashPatches",
+    "screen_shown": "Quora's sign-in page loaded.",
+    "screen_missing": "Quora's sign-in page didn't show within a minute.",
+    "clone": {
+      "patch": "Clone app"
+    },
+    "next_step": "then try the page patches on a phone: Quora may also have changed its pages.",
+    "after_install": "Check the feed with the page patches by hand."
+  },
+  "check": [
+    "python3 .github/scripts/check_app.py quora \"$APK\" --cli \"$CLI\" --install --expect-screen --compare-original --adb adb"
+  ],
+  "versions": {
+    "pattern": "\\d+\\.\\d+\\.\\d+",
+    "example": "3.2.47",
+    "source": "apkmirror",
+    "apkmirror": "/apk/quora-inc/quora/",
+    "file": "apkm",
+    "signature_constant": "QUORA_SIGNATURE",
+    "play_country": "US",
+    "play_note": "Quora turns old versions away on its servers (it did with 3.2.30), so the supported version should not fall far behind.",
+    "shows": "loads Quora's sign-in page",
+    "phone_test": "try the feed on a phone: the page patches can't be checked without a signed-in account.",
+    "check_flags": "--expect-login",
+    "emulator_api": "34",
+    "pr_base": "dev",
+    "bump_title": false
+  }
+}

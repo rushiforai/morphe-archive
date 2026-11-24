@@ -133,3 +133,11 @@ These replace the earlier outputs without `v2`, which predate the screen
 recreation handling. Commands, results, manifest dumps and audits are retained
 under `../Skills/inspection-evidence/.inspect-nuvio-beta13/settings-transfer-v2-*`.
 The rebuilt APKs were not signed, installed or tested on a device.
+
+## Current 1.1.1 label settings
+
+The optional [Customize labels](NuvioLabelCustomization.md) patch adds the
+`santodan_nuvio_label_styles` scope: enablement, discovered label names, captions,
+packed background/text colors, independent size percentages and position. Import
+validates each override and supports up to 1024 entries in this scope; existing
+scopes retain their limits. Empty overrides restore native appearance.

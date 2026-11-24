@@ -91,6 +91,65 @@ class SenderTest(unittest.TestCase):
         self.assertEqual(calls, [1])
         self.assertEqual(events[-1], "expected failure")
 
+    def test_location_sticker_mention_and_features_payloads(self):
+        uid = "U" + "a" * 32
+        loc = sender.make_messages(1, "location", "TEST")[0]
+        self.assertEqual(loc["type"], "location")
+        self.assertIn("강남역", loc["title"])
+
+        sticker = sender.make_messages(1, "sticker", "TEST")[0]
+        self.assertEqual(sticker, {"type": "sticker", "packageId": "446", "stickerId": "1988"})
+
+        mention = sender.make_messages(1, "mention", "TEST", uid)[0]
+        self.assertEqual(mention["type"], "textV2")
+        self.assertEqual(mention["substitution"]["me"]["mentionee"], {"type": "user", "userId": uid})
+
+        features = sender.make_messages(3, "features", "TEST", uid)
+        self.assertEqual([m["type"] for m in features], ["location", "sticker", "textV2"])
+
+        with self.assertRaises(ValueError):
+            sender.make_messages(1, "mention", "TEST")
+        with self.assertRaises(ValueError):
+            sender.make_messages(1, "features", "TEST", "C" + "0" * 32)
+
+    def test_local_creds_storage_custom_and_group_target(self):
+        import tempfile
+
+        self.assertEqual(sender.CREDS_PATH.parent.name, ".tools")
+        uid = "U" + "a" * 32
+        gid = "C" + "b" * 32
+        with tempfile.TemporaryDirectory() as tmp:
+            path = Path(tmp) / ".tools" / "line-bot-creds.json"
+            with self.assertRaises(ValueError):
+                sender.load_creds(path)
+            sender.save_creds("FAKE_TOKEN", uid, gid, path=path)
+            loaded_creds, loaded_gid = sender.load_creds(path)
+            self.assertEqual(loaded_creds.token, "FAKE_TOKEN")
+            self.assertEqual(loaded_creds.user_id, uid)
+            self.assertEqual(loaded_gid, gid)
+            self.assertTrue(sender.delete_creds(path))
+            self.assertFalse(sender.delete_creds(path))
+
+        custom = sender.make_messages(1, "custom", "TEST", custom_text="긴급 테스트")[0]
+        self.assertEqual(custom, {"type": "text", "text": "긴급 테스트"})
+        mention_all = sender.make_messages(1, "mention_all", "TEST")[0]
+        self.assertEqual(mention_all["type"], "textV2")
+        self.assertEqual(mention_all["substitution"]["all"]["mentionee"], {"type": "all"})
+
+        captured = []
+        class Response:
+            status = 200
+            def __enter__(self): return self
+            def __exit__(self, *args): pass
+        class Client:
+            def open(self, request, **kwargs):
+                captured.append(json.loads(request.data))
+                return Response()
+        sender.push(sender.credentials("FAKE_TOKEN", uid), [mention_all], opener=Client(), to=gid)
+        self.assertEqual(captured[0]["to"], gid)
+        with self.assertRaises(ValueError):
+            sender.credentials("FAKE_TOKEN", gid)
+
 
 if __name__ == "__main__":
     unittest.main()

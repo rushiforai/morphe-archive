@@ -1,12 +1,21 @@
-Independent experimental Morphe patches for LINE 26.16.0 (`versionCode 261600106`). Requires Morphe Patcher 2.3.0.
+## What's New in 0.1.18-dev
 
-- Features: `Not Too Much Silent` (local quiet mode + complete hide), `More Chat Info` (Android `MessagingStyle` conversation preview + native total unread count + sender avatars from local caches only), `No reply` (hides smart-reply chips while keeping manual inline reply), `Mark as read` (marks whole regular chat read via LINE's native chat-list updater), and optional `Restore push registration`.
-- **0.1.12-dev**: Adds full multi-language (i18n) support through standard Android string resources. All 39 user-facing strings—the Notification patch settings screen, chat-menu "Hide notifications completely" item and dialogs, toasts, silent channel name/description, redacted "new message" text, the "Mark as read" notification action, and placeholder names—follow the app/system language across 7 locales: English (default), Korean, Japanese, Traditional Chinese, Simplified Chinese, Thai, and Indonesian. The four canonical patch names stay in English.
-- Verified with 18 Python tests, 1,179 static APK contract assertions (ARM64 & Universal), and compiled `resources.arsc` checks confirming all 39 keys in all 7 locales. See `docs/DEVICE_TESTS.md` for real-device and cross-environment verification scope.
-- `Restore push registration` is an optional, default-off patch that overrides only the `X-Android-Cert` header on Firebase Installations requests.
-- Original/patched LINE APKs, APKMs, and signing keys are never distributed. Provide your own official LINE 26.16.0 APKM.
-- Licensed under GPL-3.0 with `NOTICE` and `THIRD_PARTY_NOTICES.md`; corresponding source archive and build scripts are included.
-- Bundle publisher signatures are not yet enabled; `SHA256SUMS.txt` is provided for file integrity comparison.
+- **Preserve pending pushes across trailing refreshes**: `Notifications.refreshActive()` now skips any `(tag, id)` slot currently reserved by a queued `PendingPost` (`hasPendingSlotLocked`) and no longer evicts pending slots during active refreshes, fixing the `0.1.17-dev` regression where a 400ms trailing refresh of an earlier notification dropped a waiting push.
+- **Per-item pending deadlines on unrelated room saves**: Tracks each `PendingPost`'s monotonic `deadlineMillis` (`NotificationPolicy.remainingHoldMillis`) so local-save callbacks (`onMessageStored`) only flush messages whose own DB row is stored, retaining unstored pushes until their original 1.2s deadline expires.
+- **Post-avatar preview privacy, account, and read-state guard**: Adds a final `afterImages` check (active account, `snapshotConsistent`, `NativeLine.previewsAllowed()`, `Settings.INFO`, and `Settings.mediaPreviewAllowed()`) right before `ConversationPreview.apply()`, closing races during `NativeLine.senderIcons()` in both normal and media-retry paths.
+- **Verified account required for notification cancellation & pruning**: Stamps `ACCOUNT` whenever `Not Too Much Silent` or `Mark as read` is included, and requires `NotificationPolicy.sameAccount` in `Notifications.cancelChatNotifications` (Pass 1 & Pass 2) and `Settings.pruneHiddenNotifications` so unstamped (`null`) notifications from another account are never canceled.
+- **Preserve existing notifications when "Hide completely" fails**: Separates local suppression preference updates (`Settings.setMuted`) from notification cancellation, canceling existing room notifications only inside `ChatNotifications.change`'s `finish` callback on `success && mode == HIDDEN`.
+- **Same-millisecond chat-list cache invalidation**: Adds `chatListCacheGeneration` and `NativeLine.invalidateChatListPreviewCache(account, chat)`, invoked from `Notifications.onMessageStored(chat)` so two attachments received in the same millisecond with identical LINE placeholder text reflect the latest file.
 
-Add via **Sources → + → Remote**: `https://github.com/gomjirak0803/line-notification-patches`
-Enable **Pre-release patches** and **Experimental app versions**, then patch your official LINE 26.16.0 APKM in Expert mode.
+### Included Patches (LINE `26.16.0` / `261600106`, Patcher `2.3.0`, all `default = true`)
+- `Notification settings`: Adds localized patch settings UI & notification button presets.
+- `Not Too Much Silent`: Local silent mode (chat menu, chat-list long-press, notification shade) with opt-in `@mention` & keyword alert bypass + complete hide.
+- `More Chat Info`: Android `MessagingStyle` conversation preview (configurable `1–25` recent unread) + total unread count + typed & detailed attachment labels + optional inline photo/sticker previews + local-cache sender avatars.
+- `No reply`: Hides smart-reply chips while keeping manual inline reply.
+- `Mark as read`: Marks whole regular chat read via LINE's native chat-list updater.
+- `Restore push registration`: Restores Firebase installation registration after re-signing (`X-Android-Cert` only).
+
+### Verification & Notes
+- Verified with 224 `NotificationPolicy` assertions, 40 `ExtensionRuntimeTest` JVM behavioral checks, 26 Python tests, 2,244 static APK contracts (ARM64 & Universal; 2,182 `Mark as read`-only), compiled `resources.arsc` checks (77 keys × 7 locales), and live Galaxy S10e verification.
+- Original/patched LINE APKs, APKMs, and signing keys are never distributed. Provide your own official LINE `26.16.0` APKM.
+- Licensed under GPL-3.0 with `NOTICE`, `THIRD_PARTY_NOTICES.md`, source archive, and `SHA256SUMS.txt`.

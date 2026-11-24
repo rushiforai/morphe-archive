@@ -1,6 +1,6 @@
 // Copyright (C) 2026 lavinhoque33. Action-bar messages ported from Morphe, Copyright 2026 Morphe.
 // Licensed under the GNU General Public License v3.0.
-// Modified by lavinhoque33, 2026-11-17. See NOTICE for Morphe's GPLv3 Section 7 terms.
+// Modified by lavinhoque33, 2026-11-23. See NOTICE for Morphe's GPLv3 Section 7 terms.
 syntax = "proto3";
 
 package app.morphe.extension.youtube.innertube.feedcards;
@@ -191,6 +191,7 @@ message VideoData {
     VideoThumbnail thumbnail = 1;
     ChannelAvatar avatar = 3;
     string url = 6;
+    string channelId = 9;
     LockupMetadata lockupMetadata = 21;
     LockupImage decoratedAvatar = 23; // Avatar with a ring, such as the avatar of live channels.
     LockupImage avatarStack = 24; // Avatars of the channels of a collaboration.
@@ -214,6 +215,8 @@ message VideoThumbnail {
     CollectionStackColors stackColors = 55;
     string timestampAccessibilityText = 11;
     string badgeIcon = 19; // Drawable name, such as the live icon.
+    // The classic thumbnail template passes these overlays through to thumbnail.eml.
+    repeated ThumbnailOverlay overlays = 59;
 }
 
 message CollectionStackColors {
@@ -404,9 +407,9 @@ message ThumbnailViewModel {
 }
 
 message ThumbnailOverlay {
-    // Only the badges are shown by lockup_thumbnail.eml.
+    // lockup_thumbnail.eml forwards the badges from the bottom overlay separately.
     ThumbnailBottomOverlayViewModel thumbnailBottomOverlayViewModel = 1214;
-    ThumbnailOverlayBadgeViewModel thumbnailOverlayBadgeViewModel = 1295; // Badges of playlists and mixes.
+    ThumbnailOverlayBadgeViewModel thumbnailOverlayBadgeViewModel = 1295;
     ThumbnailElementOverlay thumbnailElementOverlay = 36905;
 }
 
@@ -436,6 +439,8 @@ message ThumbnailOverlayBadgeViewModel {
 
 message ThumbnailBadge {
     ThumbnailBadgeViewModel thumbnailBadgeViewModel = 1128;
+    // thumbnail_overlay_button.eml renders the first item as a ButtonViewModel.
+    ButtonViewModel buttonViewModel = 461054335;
 }
 
 message ThumbnailBadgeViewModel {
@@ -527,7 +532,24 @@ message MetadataPart {
 
 message AttributedText {
     string content = 1;
+    repeated TextCommandRun commandRuns = 5;
+    repeated TextRunRange styleRuns = 6;
     repeated AttachmentRun attachmentRuns = 8;
+    // Other native runs. Unknown payload fields stay intact when shifting a range.
+    repeated bytes contextualRuns = 10;
+    repeated TextRunRange paragraphRuns = 13;
+    repeated TextRunRange localeRuns = 14;
+}
+
+message TextRunRange {
+    uint32 startIndex = 1;
+    uint32 length = 2;
+}
+
+message TextCommandRun {
+    uint32 startIndex = 1;
+    uint32 length = 2;
+    InnertubeCommandHolder onTap = 3;
 }
 
 message AttachmentRun {
@@ -600,12 +622,27 @@ message AddToPlaylistButtonViewModel {
 
 message InnertubeCommandHolder {
     InnertubeCommand innertubeCommand = 169495254;
+    QueueThumbnailSerialCommand serialCommand = 170382688;
+}
+
+message QueueThumbnailSerialCommand {
+    repeated InnertubeCommandHolder commands = 1;
 }
 
 message InnertubeCommand {
     BrowseEndpoint browseEndpoint = 48687626;
     LikeEndpoint likeEndpoint = 63158558;
+    QueueThumbnailInsertCommand queueThumbnailInsertCommand = 465666947;
+    WatchEndpoint watchEndpoint = 48687757;
     OpenPopupAction openPopupAction = 98150882;
+}
+
+message QueueThumbnailInsertCommand {
+    string params = 1;
+}
+
+message WatchEndpoint {
+    string videoId = 1;
 }
 
 // Command of the menu button of the feed videos.
@@ -616,6 +653,7 @@ message OpenPopupAction {
 
 message BrowseEndpoint {
     string browseId = 2;
+    string canonicalBaseUrl = 4;
 }
 
 message LikeEndpoint {

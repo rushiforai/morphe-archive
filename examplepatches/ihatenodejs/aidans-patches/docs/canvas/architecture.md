@@ -98,6 +98,16 @@ The v26 foreground and monochrome both reference `@drawable/ic_launcher_foregrou
 
 The patch writes the selected background to `@color/aidan_canvas_launcher_background` instead of a literal color. Adaptive icon inflation resolves `<background android:drawable>` as a drawable; a raw color literal can make the launcher fall back to the default Android icon. Because the decoder strips the `-v26` qualifier when minSdk is 28, the patch also recreates `res/mipmap-anydpi-v26/ic_launcher.xml` from the decoded anydpi adaptive icon.
 
+## Splash Resources
+
+`LoginFlowTheme.Splash_Student` is the theme of `com.instructure.student.activity.LoginActivity`. Its legacy starting window is `res/drawable/splash_background_student.xml`: a `<layer-list>` with a single `<color android:color="#fff">` and a centered `<bitmap android:src="@drawable/ic_splash_icon_student">`, written as an attribute rather than element text. `res/layout/activity_init_login.xml` is a `FrameLayout` with `android:background="@color/backgroundLightest"` that hosts the animated `CanvasLoadingView`; the style itself declares only `android:windowBackground` and no `android:windowSplashScreenBackground`.
+
+`ChangeAppIconPatch` treats those anchors as required for 8.12.0 and fails if the layer-list shape, the splash `src`, the layout root/background, or the single `LoginFlowTheme.Splash_Student` style changes. It adds `android:windowSplashScreenBackground` for the Android 12+ system splash. `BaseLoginInitActivity.applyTheme()` calls the virtual `themeColor()I` (which resolves `R.color.login_studentAppTheme`, `0x7f06010c`) and feeds the result into `CanvasLoadingView.setOverrideColor()`, so prepending a constant to `LoginActivity.themeColor()` recolors the launch loader only. `splash_background_parent.xml` and `splash_background_teacher.xml` remain untouched; their styles are unreferenced.
+
+## Landing Logo
+
+`LoginLandingPageActivity` shows the signed-out landing page. `res/layout/activity_login_landing_page.xml` places `@drawable/ic_canvas_logo` (single-path vector, `android:fillColor="@color/login_studentAppTheme"`) in the `canvasLogo` ImageView, but `BaseLoginLandingPageActivity.applyTheme()` calls `ColorUtils.colorIt(themeColor(), canvasLogo)`, which tints the drawable at runtime and wins over its fill. Theming the logo therefore means prepending a constant to `LoginLandingPageActivity.themeColor()I`, the same anchor pattern as the launch loader. The "Find my school" button and the `textInfo`-colored links in the same `applyTheme()` are independent of `themeColor()`; `FindSchoolActivity` and other login screens override `themeColor()` for their own surfaces.
+
 ## Clone Manifest Invariants
 
 The manifest package is `com.instructure.candroid`, and every component class name is already absolute. Provider authorities are literal strings with the original package prefix. The original-package custom permission is `com.instructure.candroid.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION`; its declaration and `<uses-permission>` entry must both be rewritten for a clone.

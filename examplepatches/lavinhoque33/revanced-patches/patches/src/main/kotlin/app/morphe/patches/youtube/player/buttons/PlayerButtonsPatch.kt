@@ -1,15 +1,20 @@
 package app.morphe.patches.youtube.player.buttons
 
+import app.morphe.patcher.Fingerprint
 import app.morphe.patcher.extensions.InstructionExtensions.addInstruction
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructionsWithLabels
 import app.morphe.patcher.extensions.InstructionExtensions.getInstruction
+import app.morphe.patcher.methodCall
+import app.morphe.patcher.patch.BytecodePatchContext
 import app.morphe.patcher.patch.bytecodePatch
 import app.morphe.patcher.util.findFreeRegister
 import app.morphe.patcher.util.getReference
 import app.morphe.patcher.util.smali.ExternalLabel
 import app.morphe.patches.shared.mapping.ResourceType
 import app.morphe.patches.shared.mapping.hasResourceId
+import app.morphe.patches.youtube.utils.castbutton.CAST_ENTRY_POINT_FLAG
+import app.morphe.patches.youtube.utils.castbutton.castFlagAccessor
 import app.morphe.patches.youtube.utils.compatibility.Constants.COMPATIBILITY_YOUTUBE
 import app.morphe.patches.youtube.utils.extension.Constants.PATCH_STATUS_CLASS_DESCRIPTOR
 import app.morphe.patches.youtube.utils.extension.Constants.PLAYER_CLASS_DESCRIPTOR
@@ -21,6 +26,7 @@ import app.morphe.patches.youtube.utils.patch.PatchList.HIDE_PLAYER_BUTTONS
 import app.morphe.patches.youtube.utils.playservice.is_18_31_or_greater
 import app.morphe.patches.youtube.utils.playservice.is_19_26_or_greater
 import app.morphe.patches.youtube.utils.playservice.is_20_28_or_greater
+import app.morphe.patches.youtube.utils.playservice.is_21_30_or_greater
 import app.morphe.patches.youtube.utils.playservice.versionCheckPatch
 import app.morphe.patches.youtube.utils.resourceid.autoNavToggle
 import app.morphe.patches.youtube.utils.resourceid.fullScreenButton
@@ -33,11 +39,12 @@ import app.morphe.patches.youtube.utils.settings.ResourceUtils.addPreference
 import app.morphe.patches.youtube.utils.settings.settingsPatch
 import app.morphe.util.Utils.printWarn
 import app.morphe.util.fingerprint.methodOrThrow
+import app.morphe.util.forEachInlinedFeatureFlagSite
 import app.morphe.util.indexOfFirstInstruction
 import app.morphe.util.indexOfFirstInstructionOrThrow
+import app.morphe.util.indexOfFirstLiteralInstruction
 import app.morphe.util.indexOfFirstLiteralInstructionOrThrow
 import app.morphe.util.insertLiteralOverride
-import app.morphe.util.insertLiteralOverrideAtInlinedSites
 import app.morphe.util.updatePatchStatus
 import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.iface.instruction.FiveRegisterInstruction
@@ -50,6 +57,62 @@ private const val HAS_NEXT = 5
 private const val HAS_PREVIOUS = 6
 private const val PLAYER_CAST_BUTTON_CLASS_DESCRIPTOR =
     "$PLAYER_PATH/PlayerCastButtonPatch;"
+
+context(_: BytecodePatchContext)
+private fun scopeCastVisibilityToPlayerView() {
+    val playerView = PlayerCastRouteViewFingerprint.matchOrNull()
+    val visibility = MediaRouteButtonFingerprint.matchOrNull()
+    if (playerView == null || visibility == null) {
+        printWarn("Could not resolve the player Cast route view; keeping its stock visibility.")
+        return
+    }
+
+    val inflateResult = playerView.instructionMatches[1].index + 1
+    val result = playerView.method.getInstruction<OneRegisterInstruction>(inflateResult)
+    if (result.opcode != Opcode.MOVE_RESULT_OBJECT) {
+        printWarn("Could not resolve the inflated player Cast route view; keeping its stock visibility.")
+        return
+    }
+
+    val view = result.registerA
+    val mark = "$PLAYER_CAST_BUTTON_CLASS_DESCRIPTOR->markPlayerCastButton(Landroid/view/View;)V"
+    playerView.method.addInstruction(inflateResult + 1, "invoke-static/range {v$view .. v$view}, $mark")
+
+    val hide = "$PLAYER_CAST_BUTTON_CLASS_DESCRIPTOR->hideCastButton(Landroid/view/View;I)I"
+    visibility.method.addInstructions(0, """
+        invoke-static/range {p0 .. p1}, $hide
+        move-result p1
+    """)
+}
+
+context(patchContext: BytecodePatchContext)
+private fun overridePlayerCastEntryPoint() {
+    val override = "$PLAYER_CAST_BUTTON_CLASS_DESCRIPTOR->getCastButtonOverride(Z)Z"
+
+    // The action-bar flag is stock-only here. A method reading both flags belongs to the shared router.
+    if (is_21_30_or_greater) {
+        patchContext.forEachInlinedFeatureFlagSite(CAST_BUTTON_PLAYER_FEATURE_FLAG) { literalIndex ->
+            if (indexOfFirstLiteralInstruction(CAST_ENTRY_POINT_FLAG) < 0) {
+                insertLiteralOverride(literalIndex, override)
+            }
+        }
+        return
+    }
+
+    val playerFlag = castFlagAccessor(CAST_BUTTON_PLAYER_FEATURE_FLAG).matchOrNull()?.originalMethod
+    val toolbarFlag = castFlagAccessor(CAST_ENTRY_POINT_FLAG).matchOrNull()?.originalMethod
+    if (playerFlag == null || toolbarFlag == null) {
+        printWarn("Could not identify the player-only Cast entry-point consumers.")
+        return
+    }
+
+    Fingerprint(filters = listOf(methodCall(playerFlag))).matchAllOrNull().orEmpty().forEach { match ->
+        val method = match.method
+        if (method.indexOfFirstInstruction { getReference<MethodReference>() == toolbarFlag } < 0) {
+            method.insertLiteralOverride(match.instructionMatches.first().index, override)
+        }
+    }
+}
 
 @Suppress("unused")
 val playerButtonsPatch = bytecodePatch(
@@ -110,36 +173,8 @@ val playerButtonsPatch = bytecodePatch(
 
         // region patch for hide cast button
 
-        MediaRouteButtonFingerprint.method.addInstructions(
-            0,
-            """
-                invoke-static { p1 }, $PLAYER_CAST_BUTTON_CLASS_DESCRIPTOR->hideCastButton(I)I
-                move-result p1
-            """
-        )
-
-        if (is_20_28_or_greater) {
-            arrayOf(
-                CastButtonPlayerFeatureFlagFingerprint,
-                CastButtonActionFeatureFlagFingerprint,
-            ).forEach { fingerprint ->
-                fingerprint.method.insertLiteralOverride(
-                    fingerprint.instructionMatches.first().index,
-                    "$PLAYER_CAST_BUTTON_CLASS_DESCRIPTOR->getCastButtonOverride(Z)Z",
-                )
-            }
-
-            // YouTube 21.39 also inlines both flags into the cast button callers.
-            arrayOf(
-                CAST_BUTTON_PLAYER_FEATURE_FLAG,
-                CAST_BUTTON_ACTION_FEATURE_FLAG,
-            ).forEach { literal ->
-                insertLiteralOverrideAtInlinedSites(
-                    literal,
-                    "$PLAYER_CAST_BUTTON_CLASS_DESCRIPTOR->getCastButtonOverride(Z)Z",
-                )
-            }
-        }
+        scopeCastVisibilityToPlayerView()
+        if (is_20_28_or_greater) overridePlayerCastEntryPoint()
 
         updatePatchStatus(PATCH_STATUS_CLASS_DESCRIPTOR, "PlayerButtons")
 

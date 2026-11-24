@@ -5,7 +5,7 @@
  *
  * See the included NOTICE file for GPLv3 §7(b) and §7(c) terms that apply to this code.
  *
- * Modified by lavinhoque33, 2026-11-18
+ * Modified by lavinhoque33, 2026-11-23
  */
 
 package app.morphe.patches.youtube.player.miniplayer.general
@@ -17,11 +17,14 @@ import app.morphe.patcher.extensions.InstructionExtensions.addInstructionsWithLa
 import app.morphe.patcher.extensions.InstructionExtensions.getInstruction
 import app.morphe.patcher.util.smali.ExternalLabel
 import app.morphe.patches.youtube.utils.playertype.PlayerTypeEnumFingerprint
+import app.morphe.patches.youtube.utils.playertype.playerTypeHookPatch
 import app.morphe.patches.youtube.utils.playservice.is_21_30_or_greater
 import app.morphe.patches.youtube.utils.playservice.is_21_41_or_greater
 import app.morphe.patcher.extensions.InstructionExtensions.replaceInstruction
 import app.morphe.patcher.methodCall
+import app.morphe.patcher.patch.BytecodePatchContext
 import app.morphe.patcher.patch.bytecodePatch
+import app.morphe.patcher.patch.ResourcePatchContext
 import app.morphe.patcher.util.findFreeRegister
 import app.morphe.patcher.util.getReference
 import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod
@@ -59,6 +62,7 @@ import app.morphe.patches.youtube.utils.resourceid.ytOutlineXWhite
 import app.morphe.patches.youtube.utils.seekbarFingerprint
 import app.morphe.patches.youtube.utils.seekbarOnDrawFingerprint
 import app.morphe.patches.youtube.utils.settings.ResourceUtils.addPreference
+import app.morphe.patches.youtube.utils.settings.ResourceUtils.getContext
 import app.morphe.patches.youtube.utils.settings.settingsPatch
 import app.morphe.util.addInstructionsAtControlFlowLabel
 import app.morphe.util.findInstructionIndicesReversed
@@ -70,6 +74,7 @@ import app.morphe.util.fingerprint.methodOrThrow
 import app.morphe.util.fingerprint.mutableClassOrThrow
 import app.morphe.util.fingerprint.resolvable
 import app.morphe.util.Utils.printWarn
+import app.morphe.util.asSequence
 import app.morphe.util.getWalkerMethod
 import app.morphe.util.indexOfFirstInstruction
 import app.morphe.util.indexOfFirstInstructionOrThrow
@@ -88,6 +93,7 @@ import com.android.tools.smali.dexlib2.iface.reference.MethodReference
 import com.android.tools.smali.dexlib2.iface.reference.TypeReference
 import com.android.tools.smali.dexlib2.immutable.ImmutableMethod
 import com.android.tools.smali.dexlib2.immutable.ImmutableMethodParameter
+import org.w3c.dom.Element
 
 private const val EXTENSION_CLASS_DESCRIPTOR =
     "$PLAYER_PATH/MiniplayerPatch;"
@@ -97,6 +103,70 @@ private const val MINIMAL_EXTENSION_CLASS_DESCRIPTOR =
 
 private const val MINIMAL_BOUNDS_INTERFACE_DESCRIPTOR =
     $$"$$PLAYER_PATH/MinimalMiniplayerPatch$MiniplayerBoundsController;"
+
+private const val LEGACY_OVERLAY_BUTTON =
+    "app.morphe.extension.youtube.patches.player.LegacyMiniplayerOverlayButton"
+
+private fun ResourcePatchContext.installLegacyOverlayButtons(): Boolean {
+    val layout = "res/layout/floaty_bar_controls.xml"
+    if (!get(layout).isFile) return false
+
+    document(layout).use { bar ->
+        val buttons = listOf("floaty_close_button", "floaty_play_pause_button").map { id ->
+            bar.getElementsByTagName("ImageView").asSequence().filterIsInstance<Element>().singleOrNull {
+                it.getAttribute("android:id").substringAfter('/') == id
+            } ?: return false
+        }
+
+        for (button in buttons) {
+            bar.renameNode(button, null, LEGACY_OVERLAY_BUTTON)
+        }
+    }
+
+    return true
+}
+
+context(_: BytecodePatchContext)
+private fun installDefaultMiniplayerTouchObserver(): Boolean {
+    val watchLayout = NextGenWatchLayoutOnInterceptTouchEventFingerprint.classDef
+    val parent = watchLayout.superclass ?: return false
+    val motionEvent = "Landroid/view/MotionEvent;"
+    val dispatch = watchLayout.methods.firstOrNull {
+        it.name == "dispatchTouchEvent" && it.parameterTypes == listOf(motionEvent) && it.returnType == "Z"
+    }
+    val observe = "invoke-static { p0, p1 }, $EXTENSION_CLASS_DESCRIPTOR->" +
+            "onDefaultMiniplayerTouch(Landroid/view/View;$motionEvent)V"
+
+    if (dispatch != null) {
+        dispatch.addInstruction(0, observe)
+    } else {
+        // Observe the complete stream even after the stock layout intercepts a touch sequence.
+        watchLayout.methods.add(
+            ImmutableMethod(
+                watchLayout.type,
+                "dispatchTouchEvent",
+                listOf(ImmutableMethodParameter(motionEvent, null, "event")),
+                "Z",
+                AccessFlags.PUBLIC.value,
+                null,
+                null,
+                MutableMethodImplementation(3),
+            ).toMutable().apply {
+                addInstructions(
+                    0,
+                    """
+                        $observe
+                        invoke-super { p0, p1 }, $parent->dispatchTouchEvent($motionEvent)Z
+                        move-result v0
+                        return v0
+                    """,
+                )
+            },
+        )
+    }
+
+    return true
+}
 
 // YT uses "Miniplayer" without a space between 'mini' and 'player: https://support.google.com/youtube/answer/9162927.
 @Suppress("unused", "DEPRECATION")
@@ -109,6 +179,7 @@ val miniplayerPatch = bytecodePatch(
     dependsOn(
         sharedResourceIdPatch,
         settingsPatch,
+        playerTypeHookPatch,
         versionCheckPatch,
     )
 
@@ -402,9 +473,7 @@ val miniplayerPatch = bytecodePatch(
                 }
             }
 
-            if (!is_21_29_or_greater) {
-                settingArray += "SETTINGS: MINIPLAYER_OVERLAY_BUTTONS_19_26"
-            }
+            settingArray += "SETTINGS: MINIPLAYER_OVERLAY_BUTTONS_19_26"
         } else {
             settingArray += "SETTINGS: MINIPLAYER_OVERLAY_BUTTONS_19_25"
             settingArray += "SETTINGS: MINIPLAYER_REWIND_FORWARD"
@@ -638,8 +707,8 @@ val miniplayerPatch = bytecodePatch(
         // region Add hooks to hide modern miniplayer buttons.
 
         val fingerprints = mutableListOf(
-            MiniplayerModernExpandButtonFingerprint to "hideMiniplayerExpandClose",
-            MiniplayerModernCloseButtonFingerprint to "hideMiniplayerExpandClose",
+            MiniplayerModernExpandButtonFingerprint to "hideMiniplayerExpandButton",
+            MiniplayerModernCloseButtonFingerprint to "hideMiniplayerCloseButton",
             MiniplayerModernActionButtonFingerprint to "hideMiniplayerActionButton",
         )
         if (!is_21_29_or_greater) {
@@ -655,6 +724,20 @@ val miniplayerPatch = bytecodePatch(
                     "invoke-static { v$register }, $EXTENSION_CLASS_DESCRIPTOR->$methodName(Landroid/view/View;)V",
                 )
             }
+        }
+
+        // The stock controller before 21.29 can select bar buttons instead of the modern overlay.
+        val hasDefaultOverlayHooks = is_21_29_or_greater ||
+                (is_20_05_or_greater && getContext().installLegacyOverlayButtons())
+        if (hasDefaultOverlayHooks && installDefaultMiniplayerTouchObserver()) {
+            Fingerprint(
+                definingClass = EXTENSION_CLASS_DESCRIPTOR,
+                name = "supportsDefaultOverlayButtons",
+                returnType = "Z",
+                parameters = emptyList(),
+            ).method.returnEarly(true)
+        } else if (is_20_05_or_greater) {
+            printWarn("\"Hide overlay buttons\" for Default is unavailable: missing native miniplayer controls.")
         }
 
         // 21.39: the lazily created miniplayer views are wrapped by the controls class, and the (View)V

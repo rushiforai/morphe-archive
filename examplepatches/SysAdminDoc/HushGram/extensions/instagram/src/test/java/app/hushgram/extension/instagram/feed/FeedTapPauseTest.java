@@ -16,8 +16,10 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.robolectric.RobolectricTestRunner;
 import org.robolectric.annotation.Config;
+import org.robolectric.shadows.ShadowSystemClock;
 
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 import app.hushgram.extension.instagram.settings.FamilyNames;
 import app.hushgram.extension.instagram.settings.PatchFamily;
@@ -107,12 +109,23 @@ public class FeedTapPauseTest {
             marked = wasPlaying;
             return state;
         }
+
+        /** Where the next tap lands: a 1080 by 1350 video, tapped in its middle unless a test moves it. */
+        Object spot = new float[] {1080f, 1350f, 540f, 675f};
+
+        @Override public Object spotOf(Object point) {
+            return spot;
+        }
     }
+
+    /** Instagram's point for a tap, which the fake reads [Feed#spot] for. */
+    private final Object point = new Object();
 
     @Before
     public void clean() {
         Settings.TAP_FEED_VIDEO_TO_PAUSE.resetToDefault();
         Settings.FEED_TAPS_STAY_IN_FEED.resetToDefault();
+        Settings.FEED_TAP_MIDDLE_ONLY.resetToDefault();
         BaseSettings.PAUSED.save(false);
         PauseForTests.resume();
         HookStatus.clear();
@@ -124,12 +137,15 @@ public class FeedTapPauseTest {
     public void restore() {
         Settings.TAP_FEED_VIDEO_TO_PAUSE.resetToDefault();
         Settings.FEED_TAPS_STAY_IN_FEED.resetToDefault();
+        Settings.FEED_TAP_MIDDLE_ONLY.resetToDefault();
         BaseSettings.PAUSED.save(false);
         PauseForTests.resume();
         HookStatus.clear();
         FeedTapPause.resetForTests();
         Settings.HOLD_FEED_VIDEO_FAST.resetToDefault();
         FeedHoldSpeed.inBuildForTests = null;
+        Settings.HOLD_FEED_VIDEO_MIDDLE_PAUSES.resetToDefault();
+        FeedHoldSpeed.tapPauseInBuildForTests = null;
     }
 
     private static String report() {
@@ -140,11 +156,11 @@ public class FeedTapPauseTest {
     }
 
     private boolean tap() {
-        return FeedTapPause.tapped(handler, media, state);
+        return FeedTapPause.tapped(handler, media, state, point);
     }
 
     private boolean press() {
-        return FeedTapPause.pressed(handler, media, state);
+        return FeedTapPause.pressed(handler, media, state, point);
     }
 
     private void lift() {
@@ -274,9 +290,9 @@ public class FeedTapPauseTest {
     @Test
     public void withoutItsArgumentsItSaysNo() {
         Settings.TAP_FEED_VIDEO_TO_PAUSE.save(true);
-        assertFalse(FeedTapPause.tapped(null, media, state));
-        assertFalse(FeedTapPause.tapped(handler, null, state));
-        assertFalse(FeedTapPause.tapped(handler, media, null));
+        assertFalse(FeedTapPause.tapped(null, media, state, point));
+        assertFalse(FeedTapPause.tapped(handler, null, state, point));
+        assertFalse(FeedTapPause.tapped(handler, media, null, point));
         assertEquals(0, feed.pauses + feed.starts);
     }
 
@@ -412,9 +428,9 @@ public class FeedTapPauseTest {
         BaseSettings.PAUSED.save(false);
         PauseForTests.resume();
         SettingsContextRule.withoutContext(() -> assertFalse("not ready", press()));
-        assertFalse(FeedTapPause.pressed(null, media, state));
-        assertFalse(FeedTapPause.pressed(handler, null, state));
-        assertFalse(FeedTapPause.pressed(handler, media, null));
+        assertFalse(FeedTapPause.pressed(null, media, state, point));
+        assertFalse(FeedTapPause.pressed(handler, null, state, point));
+        assertFalse(FeedTapPause.pressed(handler, media, null, point));
         FeedTapPause.released(null, null, null, 1);
         assertEquals(0, feed.pauses + feed.starts);
         assertNull(feed.marked);
@@ -507,7 +523,7 @@ public class FeedTapPauseTest {
     public void aTapOnAnotherPostDuringAHoldIsATap() {
         holdFor2xOn();
         assertFalse(press());
-        assertTrue(FeedTapPause.tapped(handler, media, new Object()));
+        assertTrue(FeedTapPause.tapped(handler, media, new Object(), point));
         assertEquals(1, feed.pauses);
     }
 
@@ -666,6 +682,281 @@ public class FeedTapPauseTest {
         assertEquals("nothing read", 0, feed.launcherAsked);
         String report = report();
         assertTrue(report, report.contains(FeedTapPause.HANDOFF_SKIPPED + " 2"));
+    }
+
+    private void middleOnlyOn() {
+        Settings.TAP_FEED_VIDEO_TO_PAUSE.save(true);
+        Settings.FEED_TAP_MIDDLE_ONLY.save(true);
+    }
+
+    /** A tap on the 1080 by 1350 video's top left corner, far from its play button. */
+    private void tapInTheCorner() {
+        feed.spot = new float[] {1080f, 1350f, 100f, 120f};
+    }
+
+    /**
+     * #706: with Only the middle pauses it on, a tap off the middle is Instagram's, and the Reels opening it leads to
+     * goes ahead without a pause. Nothing is paused, played or read for it, and it's counted as left off the middle.
+     */
+    @Test
+    public void offTheMiddleATapOpensReels() {
+        assertFalse(Settings.FEED_TAP_MIDDLE_ONLY.defaultValue);
+        assertTrue(PatchFamily.FEED_TAP_PAUSE.switches.contains(Settings.FEED_TAP_MIDDLE_ONLY));
+        middleOnlyOn();
+        tapInTheCorner();
+        assertFalse("the tap is Instagram's", tap());
+        assertFalse("Reels opens", open(EntryPoint.VIDEO_TAP));
+        assertEquals("nothing paused or played", 0, feed.pauses + feed.starts);
+        assertEquals("nothing read at the launcher", 0, feed.launcherAsked);
+        assertNull(feed.marked);
+        String report = report();
+        assertTrue(report, report.contains(FeedTapPause.LEFT_OFF_MIDDLE + " 1"));
+        assertFalse(report, report.contains(FeedTapPause.KEPT_FROM));
+    }
+
+    /** #706: with Taps on feed videos stay in the feed on as well, the tap off the middle stays in the feed, still unpaused. */
+    @Test
+    public void offTheMiddleWithTapsStayingInTheFeedItIsKept() {
+        middleOnlyOn();
+        Settings.FEED_TAPS_STAY_IN_FEED.save(true);
+        tapInTheCorner();
+        assertFalse(tap());
+        assertTrue("kept in the feed", open(EntryPoint.VIDEO_TAP));
+        assertEquals("nothing paused or played", 0, feed.pauses + feed.starts);
+        String report = report();
+        assertTrue(report, report.contains(FeedTapPause.KEPT_FROM + "VIDEO_TAP 1"));
+    }
+
+    /** #706: a tap in the middle still pauses and plays with the switch on, and with it off a tap anywhere does. */
+    @Test
+    public void inTheMiddleATapStillPauses() {
+        middleOnlyOn();
+        assertTrue("the middle pauses", tap());
+        feed.spot = new float[] {1080f, 1350f, 560f, 650f};
+        assertTrue("near it plays", tap());
+        assertEquals(1, feed.pauses);
+        assertEquals(1, feed.starts);
+        Settings.FEED_TAP_MIDDLE_ONLY.save(false);
+        tapInTheCorner();
+        assertTrue("switch off, the corner pauses", tap());
+        assertEquals(2, feed.pauses);
+        assertFalse(report(), report().contains(FeedTapPause.LEFT_OFF_MIDDLE));
+    }
+
+    /** #706: a press held off the middle goes to Instagram and its lift does nothing; one in the middle is taken. */
+    @Test
+    public void aHeldPressOffTheMiddleIsInstagrams() {
+        middleOnlyOn();
+        tapInTheCorner();
+        assertFalse(press());
+        lift();
+        assertEquals(0, feed.pauses + feed.starts);
+        feed.spot = new float[] {1080f, 1350f, 540f, 675f};
+        assertTrue(press());
+        lift();
+        assertEquals(1, feed.pauses);
+        String report = report();
+        assertTrue(report, report.contains(FeedTapPause.PRESS_OFF_MIDDLE + " 1"));
+        assertTrue(report, report.contains(FeedTapPause.PRESS_TAKEN + " 1"));
+    }
+
+    /** #706: a spot that can't be read, unfilled included, counts as the middle, so the tap pauses as it did before. */
+    @Test
+    public void aSpotItCannotReadCountsAsTheMiddle() {
+        middleOnlyOn();
+        feed.spot = null;
+        assertTrue("no spot", tap());
+        feed.spot = new float[] {100f, 120f};
+        assertTrue("two numbers", tap());
+        feed.spot = "a spot";
+        assertTrue("not numbers", tap());
+        assertTrue("no point", FeedTapPause.tapped(handler, media, state, null));
+        feed.spot = FeedTapPause.NOT_PATCHED;
+        assertTrue("unfilled", tap());
+        assertEquals(5, feed.pauses + feed.starts);
+        String missing = HookStatus.missing(FamilyNames.FEED_TAP_PAUSE).toString();
+        assertTrue(missing, missing.contains("the tap's spot"));
+    }
+
+    /**
+     * #706: the mark a tap off the middle leaves is for its own post's opening only, used once and only for a moment;
+     * any other tap at the launcher pauses as before.
+     */
+    @Test
+    public void theMarkOffTheMiddleIsOnlyForItsOwnOpening() {
+        middleOnlyOn();
+        tapInTheCorner();
+        assertFalse(tap());
+        assertTrue("another post's state", FeedTapPause.opening(launcher, EntryPoint.VIDEO_TAP, media, new Object()));
+        assertEquals(1, feed.pauses);
+        assertFalse("its own opening", open(EntryPoint.VIDEO_TAP));
+        assertTrue("used once", open(EntryPoint.VIDEO_TAP));
+        assertEquals(1, feed.starts);
+
+        assertFalse(tap());
+        ShadowSystemClock.advanceBy(FeedTapPause.OFF_MIDDLE_MS + 1, TimeUnit.MILLISECONDS);
+        assertTrue("too late to be its own", open(EntryPoint.VIDEO_TAP));
+        assertEquals(2, feed.pauses);
+    }
+
+    /** #706: the tap that ends a hold for 2x leaves the video alone wherever it lands. */
+    @Test
+    public void theLiftOfAHoldFor2xOffTheMiddleIsStillTheHolds() {
+        holdFor2xOn();
+        Settings.FEED_TAP_MIDDLE_ONLY.save(true);
+        tapInTheCorner();
+        assertFalse(press());
+        assertTrue("its lift goes no further", tap());
+        assertEquals(0, feed.pauses + feed.starts);
+        assertFalse(report(), report().contains(FeedTapPause.LEFT_OFF_MIDDLE));
+    }
+
+    /** #706: the middle is 40dp around the center, 110 pixels on a 2.75 density screen, and a view with no size is all middle. */
+    @Test
+    public void theMiddleReachesFortyDp() {
+        float density = 2.75f;
+        assertTrue(FeedTapPause.inMiddle(1080f, 1350f, 540f, 675f, density));
+        assertTrue(FeedTapPause.inMiddle(1080f, 1350f, 650f, 675f, density));
+        assertFalse(FeedTapPause.inMiddle(1080f, 1350f, 651f, 675f, density));
+        assertTrue(FeedTapPause.inMiddle(1080f, 1350f, 540f, 565f, density));
+        assertTrue(FeedTapPause.inMiddle(1080f, 1350f, 617f, 752f, density));
+        assertFalse(FeedTapPause.inMiddle(1080f, 1350f, 618f, 753f, density));
+        assertTrue(FeedTapPause.inMiddle(0f, 0f, 500f, 500f, density));
+        assertFalse(FeedTapPause.inMiddle(1080f, 1350f, 540f, 675f + 41f, 1f));
+    }
+
+    /** #639: Hold for 2x and Hold the middle to pause it on, with Tap a feed video to pause it left off. */
+    private void middleHoldPausesOn() {
+        Settings.HOLD_FEED_VIDEO_FAST.save(true);
+        Settings.HOLD_FEED_VIDEO_MIDDLE_PAUSES.save(true);
+        FeedHoldSpeed.inBuildForTests = true;
+        FeedHoldSpeed.tapPauseInBuildForTests = true;
+    }
+
+    /**
+     * #639: a hold on the middle third pauses the playing video while the finger stays down, and the tap its lift sends
+     * plays it again and goes no further, so Reels doesn't open. The pause switch stays off, so a plain tap is still
+     * Instagram's.
+     */
+    @Test
+    public void aHoldOnTheMiddlePausesItUntilTheLift() {
+        middleHoldPausesOn();
+        assertFalse(Settings.TAP_FEED_VIDEO_TO_PAUSE.get());
+        assertTrue("the hold is taken", press());
+        assertEquals("paused while held", 1, feed.pauses);
+        assertEquals(Boolean.TRUE, feed.marked);
+        assertTrue("its lift goes no further", tap());
+        assertEquals("playing again", 1, feed.starts);
+        lift();
+        assertEquals("the release adds nothing", 1, feed.pauses);
+        assertEquals(1, feed.starts);
+        assertFalse("a plain tap is Instagram's", tap());
+        String report = report();
+        assertTrue(report, report.contains(FeedTapPause.PRESS_STILL + " 1"));
+        assertTrue(report, report.contains(FeedTapPause.STILL_LIFTED + " 1"));
+    }
+
+    /** #639: the lift can reach the Reels launcher instead, or a scroll can end the hold, and both play the video again. */
+    @Test
+    public void theLiftAtTheLauncherOrAScrollPlaysItAgain() {
+        middleHoldPausesOn();
+        assertTrue(press());
+        assertTrue("Reels stays shut", open(EntryPoint.VIDEO_TAP));
+        assertEquals(1, feed.starts);
+        lift();
+        assertTrue(press());
+        assertEquals(2, feed.pauses);
+        FeedTapPause.released(handler, media, state, 0);
+        assertEquals("a scroll ended the hold", 2, feed.starts);
+        assertFalse("nothing held any more", open(EntryPoint.VIDEO_TAP));
+        assertEquals(2, feed.starts);
+    }
+
+    /** #639: a hold on the left or right third is Instagram's 2x, and so is the tap its lift sends. */
+    @Test
+    public void aHoldOnEitherSideIsLeftForTwoX() {
+        middleHoldPausesOn();
+        feed.spot = new float[] {1080f, 1350f, 300f, 675f};
+        assertFalse("left third", press());
+        assertFalse(tap());
+        lift();
+        feed.spot = new float[] {1080f, 1350f, 800f, 675f};
+        assertFalse("right third", press());
+        lift();
+        assertEquals(0, feed.pauses + feed.starts);
+        assertFalse(report(), report().contains(FeedTapPause.PRESS_STILL));
+    }
+
+    /** #639: a hold on the middle of a paused video keeps it paused, and its lift still doesn't open Reels. */
+    @Test
+    public void aHoldOnTheMiddleOfAPausedVideoKeepsItPaused() {
+        middleHoldPausesOn();
+        feed.playing = Boolean.FALSE;
+        assertTrue(press());
+        assertTrue("its lift goes no further", tap());
+        lift();
+        assertTrue(press());
+        assertTrue("Reels stays shut", open(EntryPoint.VIDEO_TAP));
+        assertEquals("nothing paused or played", 0, feed.pauses + feed.starts);
+        assertFalse("the next tap is Instagram's", tap());
+    }
+
+    /**
+     * #639: the middle is Instagram's without the switch, without Hold for 2x on or in the build, without the tap patch,
+     * while HushGram is paused, on an ad or on a post that isn't playing.
+     */
+    @Test
+    public void withoutEverythingItNeedsTheMiddleHoldIsInstagrams() {
+        middleHoldPausesOn();
+        Settings.HOLD_FEED_VIDEO_MIDDLE_PAUSES.save(false);
+        assertFalse("switch off", press());
+        Settings.HOLD_FEED_VIDEO_MIDDLE_PAUSES.save(true);
+        Settings.HOLD_FEED_VIDEO_FAST.save(false);
+        assertFalse("2x off", press());
+        Settings.HOLD_FEED_VIDEO_FAST.save(true);
+        FeedHoldSpeed.inBuildForTests = false;
+        assertFalse("no 2x patch", press());
+        FeedHoldSpeed.inBuildForTests = true;
+        FeedHoldSpeed.tapPauseInBuildForTests = false;
+        assertFalse("no tap patch", press());
+        FeedHoldSpeed.tapPauseInBuildForTests = true;
+        BaseSettings.PAUSED.save(true);
+        PauseForTests.pause(HushgramPause.Reason.SWITCH);
+        assertFalse("paused", press());
+        BaseSettings.PAUSED.save(false);
+        PauseForTests.resume();
+        feed.ad = new Object();
+        assertFalse("an ad", press());
+        assertFalse(tap());
+        feed.ad = null;
+        feed.page = "another post";
+        assertFalse("another post", press());
+        assertFalse(tap());
+        assertEquals(0, feed.pauses + feed.starts);
+    }
+
+    /** #639: with the pause switch on too, the middle hold still pauses until the lift, and a tap still pauses. */
+    @Test
+    public void withThePauseSwitchOnTheMiddleHoldStillPlaysOnTheLift() {
+        middleHoldPausesOn();
+        Settings.TAP_FEED_VIDEO_TO_PAUSE.save(true);
+        assertTrue(press());
+        assertTrue(tap());
+        lift();
+        assertEquals(1, feed.pauses);
+        assertEquals("the lift played it", 1, feed.starts);
+        assertTrue("a tap pauses", tap());
+        assertEquals(2, feed.pauses);
+    }
+
+    /** #639: the middle third runs from a third to two thirds of the width, edges included; a view with no width has none. */
+    @Test
+    public void theMiddleThirdHasItsEdges() {
+        assertTrue(FeedTapPause.inMiddleThird(1080f, 360f));
+        assertTrue(FeedTapPause.inMiddleThird(1080f, 720f));
+        assertFalse(FeedTapPause.inMiddleThird(1080f, 359f));
+        assertFalse(FeedTapPause.inMiddleThird(1080f, 721f));
+        assertFalse(FeedTapPause.inMiddleThird(0f, 0f));
     }
 
     /** Any other opening goes on to Reels and is counted under its name; one with no enum is counted as it prints. */

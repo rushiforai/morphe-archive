@@ -1,10 +1,15 @@
+/*
+ * Copyright 2026 amfakh
+ * SPDX-License-Identifier: GPL-3.0-only
+ */
+
 package app.fakh.extension.confluence;
 
 import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
-import android.content.SharedPreferences;
 
+import app.fakh.extension.shared.Features;
 import app.fakh.extension.shared.AppRuntime;
 import app.fakh.extension.shared.AtlassianColors;
 
@@ -24,12 +29,11 @@ public final class MaterialYou {
     /** The dark background of the navigation bar, buttons and menus (0xRRGGBB), lowered to the canvas role. */
     private static final int DARK_CARD = 0x242528;
 
-    /** The settings file that holds the Fakh Patches switches, and the keys of the switches; both are on by default. */
-    private static final String PREFS = "fakh_patches";
+    /** The keys of the Fakh Patches switches. */
     static final String MATERIAL_YOU = "fakh_material_you";
     static final String PITCH_BLACK = "fakh_pitch_black";
     static final String GLASS = "fakh_glass_navbar";
-    /** The background blur of the glass bar, off by default. */
+    /** The background blur of the glass bar. */
     static final String LIQUID_GLASS = "fakh_liquid_glass";
 
     /** The link behind "Rate us", which the Fakh Patches row opens in its place. */
@@ -52,22 +56,12 @@ public final class MaterialYou {
     private MaterialYou() {
     }
 
-    /** Whether the Material You patch is in; the patch makes this return true. */
-    static boolean isMaterialYouIncluded() {
-        return false;
-    }
-
-    /** Whether the Pitch black patch is in; the patch makes this return true. */
-    static boolean isPitchBlackIncluded() {
-        return false;
-    }
-
     /** Whether Material You is patched in and its switch is on. */
     static boolean materialYou() {
         if (materialYou == null) {
             Context context = context();
             if (context == null) return false;
-            materialYou = isMaterialYouIncluded() && prefs(context).getBoolean(MATERIAL_YOU, true);
+            materialYou = Features.on(MATERIAL_YOU);
         }
         return materialYou;
     }
@@ -77,13 +71,9 @@ public final class MaterialYou {
         if (pitchBlack == null) {
             Context context = context();
             if (context == null) return false;
-            pitchBlack = isPitchBlackIncluded() && prefs(context).getBoolean(PITCH_BLACK, true);
+            pitchBlack = Features.on(PITCH_BLACK);
         }
         return pitchBlack;
-    }
-
-    static SharedPreferences prefs(Context context) {
-        return context.getSharedPreferences(PREFS, Context.MODE_PRIVATE);
     }
 
     /**

@@ -1,0 +1,374 @@
+name: App version
+
+# Looks for a version of one app that this bundle doesn't support yet. Each app's <app>-version.yml
+# runs this once a day, and by hand with a version to try. What differs between the apps (where new
+# versions come from, the file, what the emulator check expects, the texts) is in the "versions"
+# settings of .github/apps/<app>.json; see .github/scripts/app_versions.py.
+#
+# For a new version it:
+#   1. gets the file: from the private JoFSlash/morphe-apks if it is there, else from APKMirror or
+#      APKPure, checked to be the app's own and then kept in morphe-apks. An app that isn't on
+#      APKMirror (source "hand": Listonic, Kalorické Tabulky) can't be downloaded automatically:
+#      Google Play needs a signed-in device and the other mirrors repack the app in their own
+#      formats. For those only morphe-apks is used, and without the file there an issue says how to
+#      add it:
+#        adb shell pm path <package>    # base.apk and the split_config.*.apk files
+#        adb pull <each path>           # into an empty folder
+#        zip -0 <app>.apks base.apk split_config.*.apk
+#        gh release create <app>-<version> -R JoFSlash/morphe-apks --title "<App> <version>" <app>.apks
+#      APKPure's XAPK works too: unzip it, rename <package>.apk to base.apk and zip it with the
+#      config.*.apk splits the same way.
+#   2. patches it with every patch and starts it on an emulator,
+#   3. opens a pull request that lists the version as supported, or an issue that says what failed.
+# A scheduled run tries each version once: when an issue or pull request for the version exists
+# (open or closed), it leaves the version alone. Run the app's workflow by hand with the version to
+# try again, for example after uploading the file:
+#   gh release create <app>-<version> -R JoFSlash/morphe-apks --title "<App> <version>" <app>-<version>.<apkm|apk>
+# APKS_TOKEN needs read and write access to the contents of JoFSlash/morphe-apks.
+#
+# With "play_country" (Quora) it also reads the version on Google Play, which is usually ahead, and
+# says in an issue when only Google Play has a newer one.
+
+on:
+  workflow_call:
+    inputs:
+      app:
+        description: 'The name of the app''s file in .github/apps (without .json)'
+        type: string
+        required: true
+      version:
+        description: 'Version to try (empty: the newest one found)'
+        type: string
+        required: false
+        default: ''
+
+permissions:
+  contents: write
+  pull-requests: write
+  issues: write
+  packages: read
+
+jobs:
+  settings:
+    name: Read the settings
+    runs-on: ubuntu-latest
+    outputs:
+      name: ${{ steps.read.outputs.name }}
+      package: ${{ steps.read.outputs.package }}
+      example: ${{ steps.read.outputs.example }}
+      source: ${{ steps.read.outputs.source }}
+      source_name: ${{ steps.read.outputs.source_name }}
+      source_link: ${{ steps.read.outputs.source_link }}
+      file: ${{ steps.read.outputs.file }}
+      file_name: ${{ steps.read.outputs.file_name }}
+      store: ${{ steps.read.outputs.store }}
+      shows: ${{ steps.read.outputs.shows }}
+      phone_test: ${{ steps.read.outputs.phone_test }}
+      play: ${{ steps.read.outputs.play }}
+      play_note: ${{ steps.read.outputs.play_note }}
+      check_flags: ${{ steps.read.outputs.check_flags }}
+      emulator_api: ${{ steps.read.outputs.emulator_api }}
+      pr_base: ${{ steps.read.outputs.pr_base }}
+      bump_title: ${{ steps.read.outputs.bump_title }}
+      # Pull requests to dev start from dev (or from the branch a test run is on); the others from
+      # the branch the workflow runs on.
+      ref: ${{ steps.read.outputs.pr_base == 'dev' && (github.ref_name == 'main' && 'dev' || github.ref_name) || '' }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Read the settings
+        id: read
+        env:
+          APP: ${{ inputs.app }}
+        run: python3 .github/scripts/app_versions.py "$APP" --github-output "$GITHUB_OUTPUT"
+
+  check:
+    name: Look for a new ${{ needs.settings.outputs.name }} version
+    needs: settings
+    runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.pick.outputs.version }}
+      supported: ${{ steps.check.outputs.supported }}
+      play: ${{ steps.check.outputs.play }}
+    env:
+      APP: ${{ inputs.app }}
+      NAME: ${{ needs.settings.outputs.name }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+        with:
+          ref: ${{ needs.settings.outputs.ref }}
+
+      - name: Check
+        id: check
+        # A version asked for by hand is tried even when the source can't be read right now.
+        continue-on-error: ${{ inputs.version != '' }}
+        run: python3 .github/scripts/watch_version.py "$APP" --github-output "$GITHUB_OUTPUT"
+
+      # Once per version (an issue that was closed isn't opened again). This issue doesn't stop the
+      # scheduled runs from trying the version once APKMirror has it, and the pull request that
+      # adds the version closes it.
+      - name: Say when only Google Play has a newer version
+        if: steps.check.outputs.play_only != ''
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PLAY: ${{ steps.check.outputs.play_only }}
+          SUPPORTED: ${{ steps.check.outputs.supported }}
+          STORE: ${{ needs.settings.outputs.store }}
+          SOURCE_LINK: ${{ needs.settings.outputs.source_link }}
+          PLAY_NOTE: ${{ needs.settings.outputs.play_note }}
+          FILE: ${{ needs.settings.outputs.file }}
+          FILE_NAME: ${{ needs.settings.outputs.file_name }}
+          REPO: ${{ github.repository }}
+        run: |
+          title="$NAME $PLAY is on Google Play"
+          if gh issue list --state all --search "\"$title\" in:title" --json title --jq '.[].title' | grep -qxF "$title"; then
+            echo "The issue for $PLAY exists."; exit 0
+          fi
+          body=$(printf '%s\n\n%s\n\n%s\n```\n%s\n```\n' \
+            "$NAME $PLAY is on [Google Play]($STORE), but not on [APKMirror]($SOURCE_LINK) yet. This bundle supports $SUPPORTED.${PLAY_NOTE:+ $PLAY_NOTE}" \
+            "Nothing to do if APKMirror gets it soon: the $NAME version workflow looks every day and opens a pull request that adds the version once every patch applies and the app starts." \
+            "To add it sooner, get the $FILE_NAME of $PLAY elsewhere, then upload it and run the workflow by hand with the version:" \
+            "gh release create $APP-$PLAY -R JoFSlash/morphe-apks --title \"$NAME $PLAY\" $APP-$PLAY.$FILE
+          gh workflow run $APP-version.yml -R $REPO -f version=$PLAY")
+          gh issue create --title "$title" --label enhancement --body "$body"
+
+      - name: Pick the version to try
+        id: pick
+        env:
+          GH_TOKEN: ${{ github.token }}
+          NEW: ${{ steps.check.outputs.new }}
+          ASKED: ${{ inputs.version }}
+          EVENT: ${{ github.event_name }}
+          BUMP_TITLE: ${{ needs.settings.outputs.bump_title }}
+          SOURCE: ${{ needs.settings.outputs.source }}
+        run: |
+          version="${ASKED:-$NEW}"
+          if [ -z "$version" ]; then echo "Nothing new."; exit 0; fi
+          if ! python3 .github/scripts/app_versions.py "$APP" --check "$version"; then
+            echo "::error::Not a version of $NAME: $version"; exit 1
+          fi
+          title="Support $NAME $version"
+          if [ "$BUMP_TITLE" = "true" ]; then title="bump: $title"; fi
+          if gh pr list --state all --search "\"Support $NAME $version\" in:title" --json title --jq '.[].title' | grep -qxF "$title"; then
+            echo "A pull request for $version already exists."; exit 0
+          fi
+          if [ "$EVENT" = "schedule" ] && gh issue list --state all --search "\"$NAME $version is out\" in:title" --json title --jq '.[].title' | grep -qxF "$NAME $version is out"; then
+            if [ "$SOURCE" = "hand" ]; then
+              echo "An issue for $version exists; run the workflow by hand with the version after adding the file."
+            else
+              echo "An issue for $version exists; run the workflow by hand with the version to try again."
+            fi
+            exit 0
+          fi
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+
+  support:
+    name: Try ${{ needs.settings.outputs.name }} ${{ needs.check.outputs.version }}
+    needs: [settings, check]
+    if: needs.check.outputs.version != ''
+    runs-on: ubuntu-latest
+    timeout-minutes: 50
+    env:
+      APP: ${{ inputs.app }}
+      NAME: ${{ needs.settings.outputs.name }}
+      FILE: ${{ needs.settings.outputs.file }}
+      FILE_NAME: ${{ needs.settings.outputs.file_name }}
+      SOURCE: ${{ needs.settings.outputs.source }}
+      SOURCE_NAME: ${{ needs.settings.outputs.source_name }}
+      VERSION: ${{ needs.check.outputs.version }}
+      SUPPORTED: ${{ needs.check.outputs.supported }}
+      PLAY: ${{ needs.check.outputs.play }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+        with:
+          ref: ${{ needs.settings.outputs.ref }}
+
+      - name: Setup Java
+        uses: actions/setup-java@v6
+        with:
+          distribution: 'temurin'
+          java-version: '21'
+
+      # Writes result= ok (checked, and kept in morphe-apks), blocked, missing, bad (not the app's
+      # own), keepfail (checked, but couldn't be kept), error (a tool or the script failed), or
+      # notoken; and source= morphe-apks, apkmirror or apkpure.
+      - name: Get the ${{ needs.settings.outputs.file_name }}
+        id: apk
+        env:
+          APKS_TOKEN: ${{ secrets.APKS_TOKEN || secrets.QUORA_APKS_TOKEN }}
+        run: |
+          tools="$ANDROID_HOME/build-tools/$(ls "$ANDROID_HOME/build-tools" | sort -V | tail -1)"
+          check="--apksigner $tools/apksigner --aapt2 $tools/aapt2"
+          out="$RUNNER_TEMP/$APP.$FILE"
+          asset="$APP-$VERSION.$FILE"
+          if [ -z "$APKS_TOKEN" ]; then echo "result=notoken" >> "$GITHUB_OUTPUT"; exit 0; fi
+          # The workflow keeps files as <app>-<version>.<file>; one added by hand can have another name.
+          if GH_TOKEN="$APKS_TOKEN" gh release download "$APP-$VERSION" -R JoFSlash/morphe-apks -p "$asset" -O "$out" 2>/dev/null \
+              || GH_TOKEN="$APKS_TOKEN" gh release download "$APP-$VERSION" -R JoFSlash/morphe-apks -p "*.$FILE" -O "$out" --clobber 2>/dev/null; then
+            echo "Using the $FILE_NAME from morphe-apks."
+            echo "source=morphe-apks" >> "$GITHUB_OUTPUT"
+            set +e; python3 .github/scripts/fetch_apk.py "$APP" --verify-only "$out" "$VERSION" $check; code=$?; set -e
+            case $code in
+              0) echo "result=ok" >> "$GITHUB_OUTPUT" ;;
+              6) echo "result=bad" >> "$GITHUB_OUTPUT" ;;
+              *) echo "result=error" >> "$GITHUB_OUTPUT" ;;
+            esac
+            exit 0
+          fi
+          if [ "$SOURCE" = "hand" ]; then echo "result=missing" >> "$GITHUB_OUTPUT"; exit 0; fi
+          echo "source=$SOURCE" >> "$GITHUB_OUTPUT"
+          set +e; python3 .github/scripts/fetch_apk.py "$APP" "$VERSION" "$out" $check; code=$?; set -e
+          case $code in
+            0)
+              # The asset is named after the file, and later runs look for <app>-<version>.<file>.
+              cp "$out" "$RUNNER_TEMP/$asset"
+              if GH_TOKEN="$APKS_TOKEN" gh release create "$APP-$VERSION" -R JoFSlash/morphe-apks \
+                  --title "$NAME $VERSION" \
+                  --notes "$NAME $VERSION $FILE_NAME from $SOURCE_NAME, checked to be signed by its maker. Added by the $NAME version workflow." \
+                  "$RUNNER_TEMP/$asset"; then
+                echo "result=ok" >> "$GITHUB_OUTPUT"
+              else
+                echo "result=keepfail" >> "$GITHUB_OUTPUT"
+              fi ;;
+            4) echo "result=blocked" >> "$GITHUB_OUTPUT" ;;
+            5) echo "result=missing" >> "$GITHUB_OUTPUT" ;;
+            6) echo "result=bad" >> "$GITHUB_OUTPUT" ;;
+            *) echo "result=error" >> "$GITHUB_OUTPUT" ;;
+          esac
+
+      - name: Build
+        if: steps.apk.outputs.result == 'ok'
+        env:
+          GITHUB_ACTOR: ${{ github.actor }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: bash .github/scripts/gradle-retry.sh :patches:buildAndroid --no-daemon
+
+      - name: Get the Morphe CLI
+        if: steps.apk.outputs.result == 'ok'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh release download "$(cat .github/morphe-cli-version)" -R MorpheApp/morphe-cli -p 'morphe-desktop-*-all.jar' -O "$RUNNER_TEMP/morphe-cli.jar"
+
+      - name: Enable KVM
+        if: steps.apk.outputs.result == 'ok'
+        run: |
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+          sudo udevadm control --reload-rules
+          sudo udevadm trigger --name-match=kvm
+
+      - name: Install the emulator
+        if: steps.apk.outputs.result == 'ok'
+        uses: ./.github/actions/install-emulator
+        with:
+          api-level: ${{ needs.settings.outputs.emulator_api }}
+          channel: 'stable'
+
+      - name: Patch, install and start
+        if: steps.apk.outputs.result == 'ok'
+        uses: reactivecircus/android-emulator-runner@v2
+        env:
+          CHECK_FLAGS: ${{ needs.settings.outputs.check_flags }}
+        with:
+          api-level: ${{ needs.settings.outputs.emulator_api }}
+          channel: stable
+          target: google_apis
+          arch: x86_64
+          disable-animations: true
+          script: python3 .github/scripts/check_app.py "$APP" "$RUNNER_TEMP/$APP.$FILE" --cli "$RUNNER_TEMP/morphe-cli.jar" --install $CHECK_FLAGS --adb adb > "$RUNNER_TEMP/check.txt" 2>&1 || touch "$RUNNER_TEMP/check.failed"
+
+      - name: Open a pull request or an issue
+        if: always() && steps.apk.outputs.result != ''
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RESULT: ${{ steps.apk.outputs.result }}
+          FROM: ${{ steps.apk.outputs.source }}
+          PACKAGE: ${{ needs.settings.outputs.package }}
+          SOURCE_LINK: ${{ needs.settings.outputs.source_link }}
+          SHOWS: ${{ needs.settings.outputs.shows }}
+          PHONE_TEST: ${{ needs.settings.outputs.phone_test }}
+          PR_BASE: ${{ needs.settings.outputs.pr_base }}
+          BUMP_TITLE: ${{ needs.settings.outputs.bump_title }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: |
+          [ -f "$RUNNER_TEMP/check.txt" ] && cat "$RUNNER_TEMP/check.txt"
+          report=$(tail -n 40 "$RUNNER_TEMP/check.txt" 2>/dev/null || true)
+          upload="gh release create $APP-$VERSION -R JoFSlash/morphe-apks --title \"$NAME $VERSION\" $APP-$VERSION.$FILE"
+          if [ "$SOURCE" = "hand" ]; then where="in morphe-apks"; else where="on $SOURCE_NAME"; fi
+          why=""
+          if [ "$RESULT" = "ok" ] && [ -f "$RUNNER_TEMP/check.txt" ] && [ ! -f "$RUNNER_TEMP/check.failed" ]; then
+            set +e; python3 .github/scripts/add_version.py "$APP" "$VERSION"; code=$?; set -e
+            if [ $code -eq 3 ]; then echo "$VERSION is already listed."; exit 0; fi
+            if [ $code -ne 0 ]; then
+              why="Every patch applies and the app starts, but listing the version in Constants.kt failed (add_version.py exited with $code). Add \`AppTarget(version = \"$VERSION\")\` by hand."
+            else
+              branch="support/$APP-$VERSION"
+              title="Support $NAME $VERSION"
+              if [ "$BUMP_TITLE" = "true" ]; then title="bump: $title"; fi
+              git config user.name "github-actions[bot]"
+              git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+              git checkout -b "$branch"
+              git commit -am "bump: Support $NAME $VERSION"
+              body=$(printf '%s\n\n%s\n\n```\n%s\n```\n\n%s\n' \
+                "$NAME $VERSION is $where. Every patch applies, and the patched app starts on an emulator and $SHOWS ([run]($RUN_URL))." \
+                "Before merging, $PHONE_TEST" \
+                "$report" \
+                "Opened by the $NAME version workflow. Checks don't run on pull requests it opens; this run tested it, and the release tests it again.")
+              play_issue=$(gh issue list --state open --search "\"$NAME $VERSION is on Google Play\" in:title" --json number,title \
+                --jq ".[] | select(.title == \"$NAME $VERSION is on Google Play\") | .number" | head -1)
+              if [ -n "$play_issue" ]; then body="$body
+          Closes #$play_issue"; fi
+              if git push -f origin "$branch" && gh pr create --base "$PR_BASE" --head "$branch" --title "$title" --body "$body"; then
+                exit 0
+              fi
+              why="Every patch applies and the app starts, but opening the pull request failed. The change is on the branch \`$branch\` if it was pushed; see the run log."
+            fi
+          fi
+          if [ -z "$why" ]; then
+            if [ "$FILE" = "apkm" ]; then nofile="no APK bundle (APKM)"; else nofile="no $FILE_NAME"; fi
+            case "$RESULT" in
+              blocked) why="$SOURCE_NAME (or the network) turned the automatic download away. Download the $FILE_NAME by hand and upload it, then run the $NAME version workflow by hand with version $VERSION:
+          \`\`\`
+          $upload
+          \`\`\`" ;;
+              missing) if [ "$SOURCE" = "hand" ]; then
+                         why="It isn't in JoFSlash/morphe-apks yet, and it can't be downloaded automatically (the app isn't on APKMirror). Update the app from Google Play on a phone, then add it and run the $NAME version workflow by hand with version $VERSION:
+          \`\`\`
+          adb shell pm path $PACKAGE
+          adb pull <each path>
+          zip -0 $APP.apks base.apk split_config.*.apk
+          gh release create $APP-$VERSION -R JoFSlash/morphe-apks --title \"$NAME $VERSION\" $APP.apks
+          \`\`\`"
+                       else
+                         why="$SOURCE_NAME has $nofile of $VERSION yet. Wait until it has, or upload one you have, then run the $NAME version workflow by hand with version $VERSION:
+          \`\`\`
+          $upload
+          \`\`\`"
+                       fi ;;
+              bad) if [ "$FROM" = "morphe-apks" ]; then
+                     why="**The $FILE_NAME in morphe-apks isn't $NAME $VERSION signed by its maker** (wrong package, version or signature). Delete the release \`$APP-$VERSION\` in JoFSlash/morphe-apks and add the right one: the emulator test would use it."
+                   else
+                     why="**The $FILE_NAME from $SOURCE_NAME isn't $NAME's own** (wrong package, version or signature). It wasn't used or kept. Check $SOURCE_NAME by hand."
+                   fi ;;
+              keepfail) why="The $FILE_NAME from $SOURCE_NAME is $NAME's own, but keeping it in morphe-apks failed. Check that APKS_TOKEN can write to the contents of JoFSlash/morphe-apks, then run the workflow by hand." ;;
+              error) why="Getting or checking the $FILE_NAME failed for another reason (a tool or the script). See the run log." ;;
+              notoken) why="The APKS_TOKEN secret isn't set, so the $FILE_NAME couldn't be fetched or kept." ;;
+              *) why="Patching or starting the app failed. Fix the patches that no longer apply, then run the workflow by hand with version $VERSION:
+          \`\`\`
+          $report
+          \`\`\`" ;;
+            esac
+          fi
+          title="$NAME $VERSION is out"
+          body=$(printf '%s\n\n%s\n\n%s\n' \
+            "$NAME $VERSION is on [$SOURCE_NAME]($SOURCE_LINK). This bundle supports $SUPPORTED.${PLAY:+ Google Play has $PLAY.}" \
+            "$why" \
+            "[Workflow run]($RUN_URL)")
+          existing=$(gh issue list --state open --search "\"$title\" in:title" --json number,title --jq ".[] | select(.title == \"$title\") | .number" | head -1)
+          if [ -n "$existing" ]; then
+            gh issue comment "$existing" --body "$body"
+          else
+            gh issue create --title "$title" --label enhancement --body "$body"
+          fi

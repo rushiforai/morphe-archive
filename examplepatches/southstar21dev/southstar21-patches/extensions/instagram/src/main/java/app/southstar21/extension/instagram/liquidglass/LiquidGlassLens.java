@@ -238,6 +238,8 @@ final class LiquidGlassLens extends View {
     // Instagram can take a few hundred ms to switch tabs (it builds the new screen first). With
     // a shorter wait the selection gave up, went back, then forward again once the switch came.
     private static final long RETURN_GRACE_NS = 700_000_000L;
+    /** A tab waiting for the drop opens after this long at the latest. */
+    private static final long PENDING_TIMEOUT_MS = 500;
 
     /** Whether the southstar21 style is on, read once per frame in {@link #sync()}. */
     private boolean southstar21;
@@ -253,7 +255,7 @@ final class LiquidGlassLens extends View {
     private final Spring glow = new Spring(300f, 0.5f, 0.002f);
     /** Deflate once the drop has (nearly) arrived where it's going. */
     private boolean settleOnArrival;
-    /** A tab chosen by dragging, opened once the drop has nearly arrived on it. */
+    /** A tab chosen by dragging (or tapped, see {@link #deferTapOnOtherTab}), opened once the drop has nearly arrived on it. */
     private View pendingClick;
     /** When a released press goes back to the selected tab if nothing was selected; 0 = never. */
     private long returnAt;
@@ -318,6 +320,8 @@ final class LiquidGlassLens extends View {
 
     /** Finger down on the pill: pop the lens towards it. */
     void beginPress(float localX) {
+        // Pressed again before the drop got there: open the tab now, then handle this press.
+        if (pendingClick != null) openPending(pendingClick);
         tracking = true;
         dragging = false;
         dragTarget = null;
@@ -379,11 +383,7 @@ final class LiquidGlassLens extends View {
             // tick is the landing; no extra confirm.
             View target = tabAt(x.target);
             release();
-            if (target != null) {
-                x.target = centerOf(target);
-                pendingClick = target;
-                returnAt = 0;
-            }
+            if (target != null) glideThenOpen(target);
             return;
         }
         View target = dragTarget != null ? dragTarget : tabAt(localX);
@@ -431,6 +431,57 @@ final class LiquidGlassLens extends View {
             }
         }
         startAnimating();
+    }
+
+    /**
+     * Finger lifted after a tap on another tab, with "Switch after the glide" on: the drop
+     * glides there first and the tab opens as it arrives, so Instagram's pause while it builds
+     * the page lands after the glide instead of stuttering it. False (nothing done) when the
+     * tap should go to Instagram as usual: the setting is off, or the tap was on the selected
+     * tab (scroll to top) or beside the tabs.
+     */
+    boolean deferTapOnOtherTab() {
+        View target = pressedTab;
+        if (!style().switchAfterGlide || dragging || target == null || target == lastSelected
+                || target.getParent() != bar) {
+            return false;
+        }
+        release();
+        glideThenOpen(target);
+        return true;
+    }
+
+    /** Sends the drop to {@code target}, which opens once it has nearly arrived (see {@link #step}). */
+    private void glideThenOpen(View target) {
+        x.target = centerOf(target);
+        pendingClick = target;
+        returnAt = 0;
+        removeCallbacks(openPendingLate);
+        postDelayed(openPendingLate, PENDING_TIMEOUT_MS);
+        startAnimating();
+    }
+
+    /** Opens the tab the drop was heading for, if it still is. */
+    private void openPending(View target) {
+        if (pendingClick != target) return;
+        pendingClick = null;
+        removeCallbacks(openPendingLate);
+        if (target.getParent() != bar) return;
+        // Keep waiting until Instagram selects it, or the selected tab (still the old one for a
+        // few hundred ms) pulls the drop back before the switch brings it forward.
+        if (target != lastSelected) returnAt = System.nanoTime() + RETURN_GRACE_NS;
+        target.performClick();
+        startAnimating();
+    }
+
+    /** Opens a waiting tab even if the drop stopped animating (the bar got hidden, say). */
+    private final Runnable openPendingLate = () -> {
+        if (pendingClick != null) openPending(pendingClick);
+    };
+
+    /** The tab Instagram has selected, as of the last {@link #sync}. */
+    View selectedTabView() {
+        return lastSelected;
     }
 
     boolean isDragging() {
@@ -543,7 +594,8 @@ final class LiquidGlassLens extends View {
      */
     private void updateTilt() {
         boolean want = Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU && isAttachedToWindow()
-                && getWindowVisibility() == VISIBLE && bar.getVisibility() == VISIBLE && style().tiltLight;
+                && getWindowVisibility() == VISIBLE && bar.getVisibility() == VISIBLE && style().tiltLight
+                && !style().solid;
         if (want == tilting) return;
         tilting = want;
         TiltLight.setActive(getContext(), tiltListener, want);
@@ -609,8 +661,8 @@ final class LiquidGlassLens extends View {
             }
             lastSelected = selected;
             startAnimating();
-        } else if (selected != null && !tracking && returnAt == 0 && !(southstar21 && pendingClick != null)) {
-            // (In the southstar21 style a released drop waits on the tab it went to, for the
+        } else if (selected != null && !tracking && returnAt == 0 && pendingClick == null) {
+            // (A released drop waits on the tab it went to, for the
             // click it's about to send or for Instagram to select it, before following again.)
             // Follow the tab when the bar moves under it (layout, shrinking while scrolling).
             // A settled lens stays locked to the tab; one still gliding is only retargeted, so
@@ -777,9 +829,9 @@ final class LiquidGlassLens extends View {
 
     private boolean isAnimating() {
         return returnAt != 0 || !x.isAtRest() || !press.isAtRest() || !width.isAtRest() || !minimize.isAtRest() || !hold.isAtRest()
-                || !rubber.isAtRest()
+                || !rubber.isAtRest() || pendingClick != null
                 || southstar21 && (!dropScaleX.isAtRest() || !dropScaleY.isAtRest() || !squash.isAtRest()
-                || !lean.isAtRest() || !glow.isAtRest() || settleOnArrival || pendingClick != null || returnAt != 0);
+                || !lean.isAtRest() || !glow.isAtRest() || settleOnArrival);
     }
 
     private void startAnimating() {
@@ -799,6 +851,14 @@ final class LiquidGlassLens extends View {
         hold.step(dt);
         rubber.step(dt);
         if (dragging && !southstar21) followFinger();
+        if (pendingClick != null) {
+            int tabs = Math.max(2, visibleTabCount());
+            if (Math.abs(x.value - x.target) < 0.2f * tabRange() / (tabs - 1)) {
+                // Not from inside drawing: the click switches Instagram's page.
+                View target = pendingClick;
+                post(() -> openPending(target));
+            }
+        }
         if (!southstar21 && returnAt != 0 && now >= returnAt) {
             // Nothing got selected: back to the selected tab.
             returnAt = 0;
@@ -822,17 +882,6 @@ final class LiquidGlassLens extends View {
         glow.step(dt);
 
         float distance = Math.abs(x.value - x.target);
-        if (pendingClick != null) {
-            int tabs = Math.max(2, visibleTabCount());
-            if (distance < 0.2f * range / (tabs - 1)) {
-                View target = pendingClick;
-                pendingClick = null;
-                // Keep waiting until Instagram selects it, or the selected tab (still the old one
-                // for a few hundred ms) pulls the drop back before the switch brings it forward.
-                if (target != lastSelected) returnAt = now + RETURN_GRACE_NS;
-                post(target::performClick);
-            }
-        }
         if (returnAt != 0 && now >= returnAt) {
             returnAt = 0;
             if (!tracking && lastSelected != null) {
@@ -1229,7 +1278,7 @@ final class LiquidGlassLens extends View {
             sig[9] = 1f;
             return;
         }
-        TiltLight.glint(lens.width() / 2f, lens.height() / 2f, r, TiltLight.angle(), glintAt);
+        TiltLight.glint(lens.width() / 2f, lens.height() / 2f, r, style().tilt(), glintAt);
         sig[7] = glintAt[0];
         sig[8] = glintAt[1];
         sig[9] = glintAt[4];

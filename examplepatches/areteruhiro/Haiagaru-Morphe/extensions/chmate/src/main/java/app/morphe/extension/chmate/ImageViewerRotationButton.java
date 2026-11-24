@@ -20,7 +20,24 @@ public final class ImageViewerRotationButton {
     private static final int MENU_ID = 0x48415255;
     private static final String LOG_TAG = "HaiagaruImageRotate";
 
+    static final String HIDE_BOTTOM_ACTIONS = "imageViewerHideBottomActions";
+    static final String HIDE_BOTTOM_ACTIONS_LABEL = "画像ビューア下部の「共有・保存・回転」を隠す";
+    private static final int HIDDEN_BOTTOM_ACTIONS_TAG = 0x48415257;
+
     private ImageViewerRotationButton() {}
+
+    public static boolean hideBottomActions(View toolbar) {
+        if (!VideoViewerSettings.prefs(toolbar.getContext()).getBoolean(HIDE_BOTTOM_ACTIONS, false)) {
+            return false;
+        }
+        toolbar.setTag(HIDDEN_BOTTOM_ACTIONS_TAG, Boolean.TRUE);
+        toolbar.setVisibility(View.GONE);
+        return true;
+    }
+
+    public static boolean isHiddenBottomActions(View toolbar) {
+        return Boolean.TRUE.equals(toolbar.getTag(HIDDEN_BOTTOM_ACTIONS_TAG));
+    }
 
     public static void install(Activity activity, String imageViewClassName) {
         if (activity == null || imageViewClassName == null) return;

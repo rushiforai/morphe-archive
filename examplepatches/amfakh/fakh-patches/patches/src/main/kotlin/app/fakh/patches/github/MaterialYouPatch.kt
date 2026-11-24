@@ -1,6 +1,13 @@
+/*
+ * Copyright 2026 amfakh
+ * SPDX-License-Identifier: GPL-3.0-only
+ */
+
 package app.fakh.patches.github
 
 import app.fakh.patches.github.shared.Constants.COMPATIBILITY_GITHUB
+import app.fakh.patches.github.shared.Constants.MATERIAL_YOU
+import app.fakh.patches.github.shared.Constants.PITCH_BLACK
 import app.morphe.patcher.Fingerprint
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
 import app.morphe.patcher.literal
@@ -270,14 +277,6 @@ val materialYouPatch = patch(
     extendWith("extensions/extension.mpe")
 
     execute {
-        // The extension's accent follows the wallpaper only where this patch is in.
-        mutableClassDefBy(EXTENSION).methods.first { it.name == "isMaterialYouIncluded" }.addInstructions(
-            0,
-            """
-                const/4 v0, 0x1
-                return v0
-            """,
-        )
         // Compose: rewrite the light and dark scheme together once their holder has built them, before the theme
         // or anything derived reads them.
         val holders = composeSchemeHolders()
@@ -354,7 +353,7 @@ val materialYouPatch = patch(
             """,
         )
 
-        addSwitch("fakh_material_you", "Material You", true)
-        addSwitch("fakh_amoled", "Pitch black", false)
+        addSwitch(MATERIAL_YOU)
+        addSwitch(PITCH_BLACK)
     }
 }

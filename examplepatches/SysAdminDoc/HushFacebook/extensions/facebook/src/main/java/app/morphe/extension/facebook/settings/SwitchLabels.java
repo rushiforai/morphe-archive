@@ -31,6 +31,7 @@ final class SwitchLabels {
         if (setting == Settings.HIDE_POST_REPOST_BUTTON) return L10n.t("Hide Repost under posts");
         if (setting == Settings.HIDE_POST_SHARE_BUTTON) return L10n.t("Hide Share under posts");
         if (setting == Settings.HIDE_POST_SEND_BUTTON) return L10n.t("Hide Send under posts");
+        if (setting == Settings.HIDE_POST_SAVE_BUTTON) return L10n.t("Hide Save under posts");
         if (setting == Settings.IGNORE_POST_ROW_TAPS) return L10n.t("Ignore taps beside the buttons");
         if (setting == Settings.HIDE_AFFILIATE_LINKS) return L10n.t("Hide affiliate product links");
         if (setting == Settings.HIDE_COMMISSION_LABEL) return L10n.t("Hide the Commission eligible label");
@@ -64,6 +65,7 @@ final class SwitchLabels {
         if (setting == Settings.REACTIONS_ON_LIKE_BUTTON) return L10n.t("Show reactions on the Like button");
         if (setting == Settings.HIDE_REACTION_BUBBLES) return L10n.t("Hide friends' reactions on photos and videos");
         if (setting == Settings.HIDE_REACTOR_NAMES) return L10n.t("Hide who reacted under posts");
+        if (setting == Settings.SHOW_POST_COMMENT_BUTTON) return L10n.t("Show Comment on posts with comments off");
         if (setting == Settings.HIDE_FEED_PROFILE_PICTURES) return L10n.t("Hide profile pictures on posts");
         if (setting == Settings.HIDE_COMMENT_PROFILE_PICTURES) return L10n.t("Hide profile pictures in comments");
         if (setting == Settings.HIDE_SEEN_POSTS) return L10n.t("Hide posts you've already seen");
@@ -145,6 +147,7 @@ final class SwitchLabels {
         if (setting == Settings.HIDE_STORY_CREATE_CARDS) return L10n.t("Hide create story cards");
         if (setting == Settings.STORY_PROGRESS_BAR) return L10n.t("Progress bar at the bottom");
         if (setting == Settings.STORY_FLAT_SLIDE) return L10n.t("Plain slide between people");
+        if (setting == Settings.SHOW_STORY_TIME) return L10n.t("Show the time on every story");
         if (setting == Settings.HIDE_FEED_STORY_RINGS) return L10n.t("Hide rings in the feed");
         if (setting == Settings.HIDE_COMMENT_STORY_RINGS) return L10n.t("Hide rings in comments");
         if (setting == Settings.HIDE_PROFILE_STORY_RINGS) return L10n.t("Hide rings on profiles");
@@ -221,6 +224,7 @@ final class SwitchLabels {
         if (setting == Settings.FOLLOWED_REELS_ONLY) return L10n.t("Only reels from accounts I follow");
         if (setting == Settings.REEL_CLEAN_MODE) return L10n.t("Always use Clean mode");
         if (setting == Settings.REEL_CLEAN_BUTTON) return L10n.t("Clean mode button on reels");
+        if (setting == Settings.REEL_CLEAN_EXIT_FAINT) return L10n.t("Faint Clean mode button");
         if (setting == Settings.PLAY_REELS_ONCE) return L10n.t("Play reels once");
         if (setting == Settings.ORIGINAL_AUDIO) return L10n.t("Keep the original audio");
         if (setting == Settings.HIDE_REEL_SEARCH_PILL) return L10n.t("Hide the search pill on reels");
@@ -228,6 +232,7 @@ final class SwitchLabels {
         if (setting == Settings.HIDE_REELS_TAB_TITLE) return L10n.t("Hide the Reels title");
         if (setting == Settings.HIDE_VIEWER_BACK_BUTTON) return L10n.t("Hide Back on opened videos");
         if (setting == Settings.BURN_IN_STAY_DIM) return L10n.t("Stay dim when I tap");
+        if (setting == Settings.BURN_IN_TAP_BACK) return L10n.t("Tap the video to bring them back");
         if (setting == Settings.BURN_IN_FADE) return L10n.t("Smooth fade");
         if (setting == Settings.GRAY_REELS) return L10n.t("Show Reels in gray");
         if (setting == Settings.REELS_MINUTES) return L10n.t("Show time in Reels");
@@ -239,6 +244,7 @@ final class SwitchLabels {
         if (setting == Settings.HIDE_REEL_REPOST_BUTTON) return L10n.t("Hide Repost on reels");
         if (setting == Settings.HIDE_REEL_SHARE_BUTTON) return L10n.t("Hide Share on reels");
         if (setting == Settings.SHOW_REEL_COMMENT_BUTTON) return L10n.t("Show Comment when comments are off");
+        if (setting == Settings.LONG_VIDEO_BUTTONS) return L10n.t("Side buttons on long videos");
         if (setting == Settings.SHOW_REEL_POST_DATE) return L10n.t("Show the post date on reels");
         if (setting == Settings.HIDE_REEL_NEW_FOR_YOU) return L10n.t("Hide New for you on reels");
         if (setting == Settings.HIDE_REEL_SOUND_BUTTON) return L10n.t("Hide the speaker button on reels");
@@ -255,6 +261,7 @@ final class SwitchLabels {
         if (setting == Settings.SAVED_VIDEOS_IN_PLAYER) return L10n.t("Open saved videos in the video player");
         if (setting == Settings.SAVED_VIDEOS_IN_ORDER) return L10n.t("Play saved videos in a row");
         if (setting == Settings.SAVED_VIDEOS_STAY_ON_END) return L10n.t("Stay on a saved video when it ends");
+        if (setting == Settings.SAVED_POSTS_IN_ROW) return L10n.t("Show saved posts in the row");
         if (setting == Settings.SKIP_STILL_WATCHING) return L10n.t("Skip \"Are you still watching?\"");
         if (setting == Settings.FILL_REELS) return L10n.t("Fill the screen with reels");
         if (setting == Settings.PLAY_FEED_REELS_WHOLE) return L10n.t("Play whole reels in the feed's Reels row");
@@ -461,6 +468,7 @@ final class SwitchLabels {
         if (setting == Settings.FORCE_DARK_MODE) return L10n.t("Force dark mode");
         if (setting == Settings.AMOLED_FLAT_CARDS) return L10n.t("Black cards");
         if (setting == Settings.AMOLED_FEED_GAPS) return L10n.t("Lines between posts");
+        if (setting == Settings.MATERIAL_YOU) return L10n.t("Material You theme");
         throw new IllegalArgumentException("No individual switch label: " + setting.key);
     }
 }

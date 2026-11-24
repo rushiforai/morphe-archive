@@ -27,29 +27,32 @@
 [![Patches](https://img.shields.io/badge/dynamic/json?url=https%3A%2F%2Fraw.githubusercontent.com%2FRabehX%2Frabehx-patches%2Frefs%2Fheads%2Fmain%2Fpatches-list.json&query=patches.length&label=Patches&color=blue)](https://github.com/RabehX/rabehx-patches/blob/main/patches-list.json)
 
 <details>
-<summary>📦 My Ooredoo&nbsp;&nbsp;•&nbsp;&nbsp;6 patches</summary>
+<summary>📦 My Ooredoo&nbsp;&nbsp;•&nbsp;&nbsp;7 patches</summary>
 <br>
 
 **Package name:** `com.algeria.selfcare.app.android`
 
 - Disable developer options detection
 - Disable root & emulator detection
-- Remove CleverTap tracking
+- Disable tracking and analytics
 - Disable Play Integrity
+- Spoof signature
 - Disable SSL pinning
 - Disable Frida detection
 
 </details>
 
 <details>
-<summary>📦 Webetu&nbsp;&nbsp;•&nbsp;&nbsp;3 patches</summary>
+<summary>📦 Webetu&nbsp;&nbsp;•&nbsp;&nbsp;5 patches</summary>
 <br>
 
 **Package name:** `app.progres.webetu`
 
 - Allow screenshots
+- Remove screen watermark
 - Fix screen freeze after resume
 - Remove PairIP protection
+- Disable telemetry and OTA updates
 
 </details>
 

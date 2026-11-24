@@ -2,21 +2,9 @@ package app.aidan.patches.sezzle.security
 
 import app.aidan.patches.sezzle.shared.Constants.COMPATIBILITY_SEZZLE
 import app.aidan.patches.shared.HermesBundleEditor
-import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
-import app.morphe.patcher.patch.BytecodePatchContext
 import app.morphe.patcher.patch.PatchException
 import app.morphe.patcher.patch.booleanOption
-import app.morphe.patcher.patch.bytecodePatch
 import app.morphe.patcher.patch.rawResourcePatch
-import com.android.tools.smali.dexlib2.Opcode
-import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
-import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
-import com.android.tools.smali.dexlib2.iface.reference.MethodReference
-
-private const val MAIN_APPLICATION = "Lcom/sezzle/sezzlemobile/MainApplication;"
-private const val CODE_PUSH = "Lcom/microsoft/codepush/react/CodePush;"
-private const val ROOT_BEER = "Lcom/scottyab/rootbeer/RootBeer;"
-private const val JAIL_MONKEY_ROOTED_CHECK = "Lcom/gantix/JailMonkey/Rooted/RootedCheck;"
 
 // Hermes bytecode replacement constants
 private val EXPECTED_SELECT_SHOULD_FORCE_UPDATE_BYTES = byteArrayOf(
@@ -40,10 +28,10 @@ private val STUBBED_NULL_RETURN_BYTES = byteArrayOf(
 )
 
 private val EXPECTED_GET_STORE_URL_BYTES = byteArrayOf(
-    0x91.toByte(), 0x00, 0x69, 0x36, 0x01, 0x00, 0x76.toByte(), 0x00
+    0x91.toByte(), 0x00, 0x14, 0x64, 0x01, 0x00, 0x76.toByte(), 0x00
 )
 private val EXPECTED_GET_FULL_STORE_URL_BYTES = byteArrayOf(
-    0x91.toByte(), 0x00, 0xed.toByte(), 0x84.toByte(), 0x01, 0x00, 0x76.toByte(), 0x00
+    0x91.toByte(), 0x00, 0xb2.toByte(), 0x88.toByte(), 0x01, 0x00, 0x76.toByte(), 0x00
 )
 private val STUBBED_STORE_URL_BYTES = byteArrayOf(
     0x93.toByte(), 0x00, 0x76.toByte(), 0x00,
@@ -58,6 +46,23 @@ private val STUBBED_FALSE_RETURN_BYTES = byteArrayOf(
 private val EXPECTED_RATE_BYTES = byteArrayOf(
     0x89.toByte(), 0x07, 0x02, 0x93.toByte()
 )
+
+/**
+ * Applies [replacement] when [expected] is present, accepts an already-patched
+ * bundle, and fails on any other bytecode.
+ */
+private fun HermesBundleEditor.patchIdempotently(
+    offset: Int,
+    expected: ByteArray,
+    replacement: ByteArray,
+    description: String
+) {
+    when {
+        matchesBytes(offset, expected) -> patchBytes(offset, replacement)
+        matchesBytes(offset, replacement) -> return
+        else -> throw PatchException("Unexpected bytecode at $description")
+    }
+}
 
 @Suppress("unused")
 val suppressHermesUpdatesAndIntegrityPatch = rawResourcePatch(
@@ -101,10 +106,11 @@ val suppressHermesUpdatesAndIntegrityPatch = rawResourcePatch(
             // 1. Force selectShouldForceUpdate to return false
             val selectShouldForceUpdateOffset = editor.findFunctionOffsetByName("selectShouldForceUpdate")
                 ?: throw PatchException("selectShouldForceUpdate function not found")
-            editor.patchBytesIfMatches(
+            editor.patchIdempotently(
                 selectShouldForceUpdateOffset,
                 EXPECTED_SELECT_SHOULD_FORCE_UPDATE_BYTES,
-                FORCED_FALSE_SELECT_SHOULD_FORCE_UPDATE_BYTES
+                FORCED_FALSE_SELECT_SHOULD_FORCE_UPDATE_BYTES,
+                "selectShouldForceUpdate"
             )
 
             // 2. Neutralize shouldForceUpdateAppSaga functions
@@ -136,27 +142,30 @@ val suppressHermesUpdatesAndIntegrityPatch = rawResourcePatch(
             // 4. Neutralize UpdateAppModal component
             val updateAppModalOffset = editor.findFunctionOffsetByName("UpdateAppModal")
                 ?: throw PatchException("UpdateAppModal function not found")
-            editor.patchBytesIfMatches(
+            editor.patchIdempotently(
                 updateAppModalOffset,
                 EXPECTED_UPDATE_APP_MODAL_BYTES,
-                STUBBED_NULL_RETURN_BYTES
+                STUBBED_NULL_RETURN_BYTES,
+                "UpdateAppModal"
             )
 
             // 5. Neutralize getStoreUrl and getFullStoreUrl
             val getStoreUrlOffset = editor.findFunctionOffsetByName("getStoreUrl")
                 ?: throw PatchException("getStoreUrl function not found")
-            editor.patchBytesIfMatches(
+            editor.patchIdempotently(
                 getStoreUrlOffset,
                 EXPECTED_GET_STORE_URL_BYTES,
-                STUBBED_STORE_URL_BYTES
+                STUBBED_STORE_URL_BYTES,
+                "getStoreUrl"
             )
 
             val getFullStoreUrlOffset = editor.findFunctionOffsetByName("getFullStoreUrl")
                 ?: throw PatchException("getFullStoreUrl function not found")
-            editor.patchBytesIfMatches(
+            editor.patchIdempotently(
                 getFullStoreUrlOffset,
                 EXPECTED_GET_FULL_STORE_URL_BYTES,
-                STUBBED_STORE_URL_BYTES
+                STUBBED_STORE_URL_BYTES,
+                "getFullStoreUrl"
             )
         }
 
@@ -185,161 +194,5 @@ val suppressHermesUpdatesAndIntegrityPatch = rawResourcePatch(
 
         editor.updateFooterHash()
         bundleFile.writeBytes(editor.toByteArray())
-    }
-}
-
-@Suppress("unused")
-val suppressUpdatesAndIntegrityPatch = bytecodePatch(
-    name = "Suppress Updates and Integrity Checks",
-    description = "Disables Microsoft CodePush OTA updates and neutralizes Dalvik root and tamper detection SDKs (RootBeer and JailMonkey).",
-    default = true
-) {
-    category("Security")
-    compatibleWith(COMPATIBILITY_SEZZLE)
-    dependsOn(suppressHermesUpdatesAndIntegrityPatch)
-
-    val disableCodePush = booleanOption(
-        key = "disableCodePush",
-        default = true,
-        title = "Disable CodePush OTA",
-        description = "Prevents Microsoft CodePush from downloading remote JavaScript bundles that override local patches."
-    )
-
-    val bypassRootAndTamperDetection = booleanOption(
-        key = "bypassRootAndTamperDetection",
-        default = true,
-        title = "Bypass Root & Tamper Detection",
-        description = "Bypasses RootBeer and JailMonkey checks in Dalvik bytecode so modified or rooted devices are never flagged."
-    )
-
-    execute {
-        if (disableCodePush.value != false) {
-            val application = mutableClassDefByOrNull(MAIN_APPLICATION)
-                ?: throw PatchException("Sezzle MainApplication not found")
-            val bundleHostMethod = application.methods.singleOrNull { method ->
-                method.implementation?.instructions?.any { instruction ->
-                    val reference = (instruction as? ReferenceInstruction)?.reference as? MethodReference
-                    reference?.definingClass == CODE_PUSH &&
-                        reference.name == "getJSBundleFile" &&
-                        reference.parameterTypes.isEmpty() &&
-                        reference.returnType == "Ljava/lang/String;"
-                } == true
-            } ?: throw PatchException("Could not find MainApplication's CodePush bundle selector")
-            val instructions = bundleHostMethod.implementation?.instructions
-                ?: throw PatchException("MainApplication's CodePush bundle selector has no implementation")
-            val getBundleIndex = instructions.indexOfFirst { instruction ->
-                val reference = (instruction as? ReferenceInstruction)?.reference as? MethodReference
-                reference?.definingClass == CODE_PUSH && reference.name == "getJSBundleFile"
-            }
-            check(getBundleIndex >= 0) { "CodePush bundle selector disappeared during patching" }
-
-            val result = instructions.getOrNull(getBundleIndex + 1) as? OneRegisterInstruction
-                ?: throw PatchException("CodePush bundle selector has no move-result instruction")
-            if (result.opcode != Opcode.MOVE_RESULT_OBJECT) {
-                throw PatchException("Unexpected CodePush bundle selector result instruction: ${result.opcode}")
-            }
-
-            // DefaultReactHost treats a null bundle path as a request for assets/index.android.bundle.
-            // The CodePush package remains registered so the embedded bundle can still resolve it.
-            bundleHostMethod.addInstructions(getBundleIndex + 2, "const/4 v${result.registerA}, 0x0")
-
-            val codePushClass = mutableClassDefByOrNull(CODE_PUSH)
-            if (codePushClass != null) {
-                for (method in codePushClass.methods) {
-                    if (method.name == "getJSBundleFile" &&
-                        method.parameterTypes.isEmpty() &&
-                        method.returnType == "Ljava/lang/String;" &&
-                        method.implementation != null
-                    ) {
-                        method.addInstructions(0, "const/4 v0, 0x0\nreturn-object v0")
-                    }
-                }
-            }
-        }
-
-        if (bypassRootAndTamperDetection.value != false) {
-            returnBoolean(
-                ROOT_BEER,
-                "isRooted",
-                false
-            )
-            returnBoolean(
-                ROOT_BEER,
-                "isRootedWithBusyBoxCheck",
-                false
-            )
-            returnBoolean(
-                ROOT_BEER,
-                "isRootedWithoutBusyBoxCheck",
-                false
-            )
-            returnBoolean(
-                ROOT_BEER,
-                "detectRootManagementApps",
-                false
-            )
-            returnBoolean(
-                ROOT_BEER,
-                "detectPotentiallyDangerousApps",
-                false
-            )
-            returnBoolean(
-                ROOT_BEER,
-                "detectTestKeys",
-                false
-            )
-            returnBoolean(
-                ROOT_BEER,
-                "checkForBusyBoxBinary",
-                false
-            )
-            returnBoolean(
-                ROOT_BEER,
-                "checkForSuBinary",
-                false
-            )
-            returnBoolean(
-                ROOT_BEER,
-                "checkSuExists",
-                false
-            )
-            returnBoolean(
-                ROOT_BEER,
-                "checkForRWPaths",
-                false
-            )
-
-            returnBoolean(
-                JAIL_MONKEY_ROOTED_CHECK,
-                "isJailBroken",
-                false
-            )
-        }
-    }
-}
-
-/**
- * Makes every eligible boolean method named [methodName] return [value].
- *
- * Eligible methods return primitive `Z`, have an implementation, and reserve at least one
- * register for the injected `v0`. Fails when the target class or no eligible method is found.
- */
-private fun BytecodePatchContext.returnBoolean(classDescriptor: String, methodName: String, value: Boolean) {
-    val classDef = mutableClassDefByOrNull(classDescriptor)
-        ?: throw PatchException("Target class not found: $classDescriptor")
-    val methods = classDef.methods.filter { method ->
-        val implementation = method.implementation
-        method.name == methodName &&
-            method.returnType == "Z" &&
-            implementation != null &&
-            implementation.registerCount >= 1
-    }
-    if (methods.isEmpty()) {
-        throw PatchException("No patchable boolean method named $methodName in $classDescriptor")
-    }
-
-    val constInstruction = if (value) "const/4 v0, 0x1" else "const/4 v0, 0x0"
-    methods.forEach { method ->
-        method.addInstructions(0, "$constInstruction\nreturn v0")
     }
 }

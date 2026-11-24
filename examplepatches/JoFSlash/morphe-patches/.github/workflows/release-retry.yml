@@ -1,0 +1,40 @@
+name: Retry the release
+
+# When a release stops because an emulator test failed, runs the failed jobs once more, and with
+# them the release itself. Emulators on GitHub's runners now and then fail to start or lose adb,
+# which says nothing about the patches; a real failure fails again on the second try and the release
+# stays stopped (the issue "Weekly release stopped" says why). Only the first try of a run is
+# retried, and only when every failed job is an emulator test or the patch build.
+
+on:
+  workflow_run:
+    workflows: [Release]
+    types: [completed]
+
+permissions:
+  actions: write
+
+jobs:
+  retry:
+    name: Retry the failed emulator tests
+    if: github.event.workflow_run.conclusion == 'failure' && github.event.workflow_run.run_attempt == 1
+    runs-on: ubuntu-latest
+    steps:
+      - name: Run the failed jobs again
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          RUN_ID: ${{ github.event.workflow_run.id }}
+        run: |
+          failed=$(gh api "repos/$GH_REPO/actions/runs/$RUN_ID/jobs?per_page=100" --paginate \
+            --jq '.jobs[] | select(.conclusion == "failure") | .name')
+          if [ -z "$failed" ]; then
+            echo "No failed jobs to retry."; exit 0
+          fi
+          echo "Failed jobs:"; echo "$failed"
+          other=$(echo "$failed" | grep -vE '^(Emulator test \(|Build the patches)' || true)
+          if [ -n "$other" ]; then
+            echo "Not only emulator tests failed, so there's nothing to retry:"; echo "$other"; exit 0
+          fi
+          gh run rerun "$RUN_ID" --failed
+          echo "Started the failed jobs again: ${{ github.server_url }}/$GH_REPO/actions/runs/$RUN_ID"

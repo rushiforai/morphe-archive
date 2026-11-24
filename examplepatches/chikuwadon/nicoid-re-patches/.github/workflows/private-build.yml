@@ -115,7 +115,7 @@ jobs:
           java -cp /tmp/nicoid-post122 e.e.a.PostingPolicy122Test
       - name: Use the official Gradle distribution CDN for CI
         run: |
-          sed -i 's#https\\://services.gradle.org/distributions/gradle-9.9.1-bin.zip#https\\://downloads.gradle.org/distributions/gradle-9.9.1-bin.zip#' gradle/wrapper/gradle-wrapper.properties
+          sed -i 's#https\\://services.gradle.org/distributions/gradle-9.9.2-bin.zip#https\\://downloads.gradle.org/distributions/gradle-9.9.2-bin.zip#' gradle/wrapper/gradle-wrapper.properties
           grep -q 'downloads.gradle.org/distributions' gradle/wrapper/gradle-wrapper.properties
           sed -i 's/^networkTimeout=.*/networkTimeout=180000/' gradle/wrapper/gradle-wrapper.properties
           sed -i 's/^retries=.*/retries=2/' gradle/wrapper/gradle-wrapper.properties
@@ -346,6 +346,22 @@ jobs:
                   assert archive.read(name) == expected.read_bytes(), f"Stale packaged payload: {name}"
           print(f"PASS: MPP {version} ZIP, manifest and packaged helper resources")
           PY
+          if [[ "$version" == "2.1.9" ]]; then
+            bundle="patches/build/libs/patches-$version.mpp"
+            staged="/tmp/nicoid-re-$version-staged.mpp"
+            python3 porting/revisions/v2.1.9-release/stage_candidate.py --compiled "$bundle" --output "$staged"
+            python3 .github/scripts/verify_android_mpp.py "$staged" "$version"
+            mv "$staged" "$bundle"
+          elif [[ "$version" == "2.1.9-dev.7" ]]; then
+            bundle="patches/build/libs/patches-$version.mpp"
+            staged="/tmp/nicoid-re-$version-staged.mpp"
+            python3 porting/revisions/v2.1.9-dev.7/stage_verified.py --compiled "$bundle" --output "$staged"
+            python3 .github/scripts/verify_android_mpp.py "$staged" "$version"
+            mv "$staged" "$bundle"
+          elif [[ "$version" == 2.1.9* ]]; then
+            echo "Unreviewed v2.1.9 staging version: $version" >&2
+            exit 1
+          fi
       - name: Prepare versioned source archives and verification report
         shell: bash
         run: |
@@ -790,7 +806,18 @@ jobs:
             fi
           fi
           output="/tmp/nicoid-re-$version.mpp"
-          if [[ "$GITHUB_REF" == "refs/heads/dev" && "$version" == "2.1.8-dev.2" ]]; then
+          if [[ "$GITHUB_REF" == "refs/heads/dev" && "$version" == "2.1.9" ]]; then
+            compiled="patches/build/libs/patches-$version.mpp"
+            test -s "$compiled"
+            python3 porting/revisions/v2.1.9-release/stage_candidate.py --compiled "$compiled" --output "$output"
+          elif [[ "$GITHUB_REF" == "refs/heads/dev" && "$version" == "2.1.9-dev.7" ]]; then
+            compiled="patches/build/libs/patches-$version.mpp"
+            test -s "$compiled"
+            python3 porting/revisions/v2.1.9-dev.7/stage_verified.py --compiled "$compiled" --output "$output"
+          elif [[ "$version" == 2.1.9* ]]; then
+            echo "Unreviewed v2.1.9 staging version: $version" >&2
+            exit 1
+          elif [[ "$GITHUB_REF" == "refs/heads/dev" && "$version" == "2.1.8-dev.2" ]]; then
             python3 porting/revisions/v$version/tests/test_source.py
             compiled="patches/build/libs/patches-$version.mpp"
             test -s "$compiled"

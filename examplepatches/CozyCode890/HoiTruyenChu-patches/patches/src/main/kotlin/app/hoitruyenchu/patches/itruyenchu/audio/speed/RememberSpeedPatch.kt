@@ -14,7 +14,8 @@ import com.android.tools.smali.dexlib2.Opcode
 val rememberSpeedPatch = patch(
     name = "Remember listening speed",
     description = "Keeps the speed chosen in the voice bar after the app is restarted (the app saved it " +
-            "under a misspelled key and always started at 1x). One speed for all books.",
+            "under a misspelled key and always started at 1x). One speed for all books. The speed menu " +
+            "becomes a YouTube-like panel (big speed, - slider +, quick choices) with a settable range and step.",
     default = true,
 ) {
     compatibleWith(COMPATIBILITY_ITRUYENCHU)

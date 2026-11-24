@@ -57,7 +57,7 @@ private object ZaloFontStartupFingerprint : Fingerprint(
 val customFontPatch = bytecodePatch(
     name = "Custom font",
     description = "Choose a font in Nezumi's Settings for Zalo's text, chat messages, info card, options, and contacts.",
-    default = false,
+    default = true,
 ) {
     compatibleWith(Compatibility(
         name = "Zalo",
@@ -79,7 +79,7 @@ val customFontPatch = bytecodePatch(
 }
 
 private fun BytecodePatchContext.applyCurrentFontHooks() {
-    val extension = "Lapp/template/extension/extension/CustomFont;"
+    val extension = CUSTOM_FONT
     val factory = ZaloTypefaceFactoryFingerprint.method
     val original = factory.implementation!!.instructions.first()
     factory.addInstructionsWithLabels(0, """

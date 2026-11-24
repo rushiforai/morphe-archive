@@ -25,6 +25,11 @@ import patches.gboard.features.webclipboard.gboardWebClipboardCapturePatch
 import patches.gboard.features.webclipboard.gboardWebClipboardFeatureMarkerPatch
 import patches.gboard.features.webclipboard.gboardWebClipboardManifestPatch
 import patches.gboard.shared.accesspoint.gboardAccessPointContributions1803Patch
+import patches.gboard.features.featureflags.gboardDeviceIntelligenceFeatureMarkerPatch
+import patches.gboard.features.featureflags.gboardDeviceIntelligenceFlagValuePatch
+import patches.gboard.features.featureflags.gboardInlineSuggestionsFeatureMarkerPatch
+import patches.gboard.features.featureflags.gboardInlineSuggestionsFlagValuePatch
+import patches.gboard.shared.gboardPatchesExtensionCarrierPatch
 import patches.gboard.shared.gboardPatchesSettingsPatch
 import patches.gboard.Constants.COMPATIBILITY_GBOARD
 
@@ -145,5 +150,37 @@ val gboardSimpleCalculatorPatch = gboardPublicResourcePatch(
         gboardPatchesSettingsPatch,
         gboardCalculatorFeatureMarkerPatch,
         gboardCalculatorLifecyclePatch,
+    )
+}
+
+/** Upstream's Device Intelligence module receives Android autofill suggestions. */
+@Suppress("unused")
+val gboardInlineAutofillSuggestionsPatch = gboardPublicResourcePatch(
+    featureId = "enable_inline_autofill_suggestions",
+    name = "Enable Inline Autofill Suggestions",
+    description = "Enable Gboard's inline autofill receiver for password managers such as Bitwarden. Requires Android 11+ and an enabled autofill service.",
+    default = true,
+) {
+    compatibleWith(COMPATIBILITY_GBOARD)
+    dependsOn(
+        gboardPatchesExtensionCarrierPatch,
+        gboardDeviceIntelligenceFlagValuePatch,
+        gboardDeviceIntelligenceFeatureMarkerPatch,
+    )
+}
+
+/** Upstream calls this Inline Suggestions; it controls Smart Compose, not autofill. */
+@Suppress("unused")
+val gboardSmartComposePatch = gboardPublicResourcePatch(
+    featureId = "inline_suggestions",
+    name = "Smart Compose",
+    description = "Expose Text correction > Smart Compose and enable its client-side suggestions. Language, model and app eligibility still apply.",
+    default = true,
+) {
+    compatibleWith(COMPATIBILITY_GBOARD)
+    dependsOn(
+        gboardPatchesExtensionCarrierPatch,
+        gboardInlineSuggestionsFlagValuePatch,
+        gboardInlineSuggestionsFeatureMarkerPatch,
     )
 }

@@ -1,6 +1,16 @@
+/*
+ * Based on Michii Patches by heyymichii, GPLv3:
+ * https://github.com/heyymichii/michii-patches
+ *
+ * Modifications copyright 2026 amfakh
+ * SPDX-License-Identifier: GPL-3.0-only
+ */
+
 package app.fakh.patches.linkedin.shared
 
 import app.fakh.patches.linkedin.shared.Constants.EXTENSION_PACKAGE
+import app.fakh.patches.shared.featuresPatch
+import app.fakh.patches.shared.useStore
 import app.morphe.patcher.Fingerprint
 import app.morphe.patcher.extensions.InstructionExtensions.addInstruction
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
@@ -50,11 +60,13 @@ private val settingsManifestPatch = patch {
  * SduiFragment lifecycle hooks that drive the SDUI download button.
  */
 val settingsPatch = patch {
-    dependsOn(settingsManifestPatch)
+    dependsOn(settingsManifestPatch, featuresPatch)
 
     extendWith("extensions/extension.mpe")
 
     execute {
+        // The switches stay in the file the page and its backup have always used.
+        useStore("morphe_linkedin_settings")
         // Tell the extension which bundle version it belongs to (shown in the diagnostic report).
         Fingerprint(
             definingClass = SETTINGS_CLASS,
@@ -151,7 +163,7 @@ fun bundleVersion(): String {
     return "dev"
 }
 
-/** Makes Settings.<method>() return true, marking a feature as patched in. */
+/** Makes Settings.<method>() return true, marking a patch with no switch of its own as patched in. */
 fun markIncluded(method: String) {
     Fingerprint(
         definingClass = SETTINGS_CLASS,

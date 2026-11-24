@@ -142,5 +142,8 @@ local.properties
 # Killo COde
 .kilo/
 
-# Local shared agent skills and inspection evidence.
-Skills/
+# Shared agent skills are tracked in Skills/morphe-* and Skills/documentation.
+# Inspection evidence (original apps, DEX) and local maintenance manifests stay outside the repo.
+Skills/inspection-evidence/
+Skills/maintenance/
+Skills/**/__pycache__/

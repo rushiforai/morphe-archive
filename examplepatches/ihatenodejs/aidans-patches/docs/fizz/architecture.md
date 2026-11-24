@@ -2,17 +2,17 @@
 
 ## Overview
 
-| Attribute                   | Specification                                                                                                                                              |
-| --------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **Application Name**        | Fizz                                                                                                                                                       |
-| **Package Name**            | `com.ashtoncofer.Buzz`                                                                                                                                     |
-| **Supported Version**       | `1.54.0` (Morphe Compatibility: `1.54.0`, `minSdk` 23)                                                                                                     |
-| **Analyzed Version Code**   | `400032`                                                                                                                                                   |
-| **Target SDK**              | `36` (Android 16)                                                                                                                                          |
-| **Minimum SDK**             | `23` (Android 6.0)                                                                                                                                         |
-| **APK Format**              | APKM (`base.apk`, split configs)                                                                                                                           |
-| **Package Signing SHA-256** | `622850867847ccb7a1371bc42c865b1137fa51bd19987dc81b53815c9a9817bf`                                                                                         |
-| **Architecture**            | Native Kotlin/Java; Jetpack Compose, Dagger/Hilt, Kotlinx Coroutines, Retrofit/OkHttp, Mixpanel, Airbridge, Adjust, Sentry, Google Play Integrity / PairIP |
+| Attribute                   | Specification                                                                                                                                                              |
+| --------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Application Name**        | Fizz                                                                                                                                                                       |
+| **Package Name**            | `com.ashtoncofer.Buzz`                                                                                                                                                     |
+| **Supported Versions**      | `1.54.0` (`minSdk` 23, version code `400032`) and `1.72.0` (`minSdk` 24, version code `465123`)                                                                            |
+| **Obfuscation Map**         | Every supported build renames its own classes; per-version descriptors live in the `*_TARGETS_1_*` tables of each patch and are selected by `packageMetadata.versionName`. |
+| **Target SDK**              | `36` (Android 16)                                                                                                                                                          |
+| **Minimum SDK**             | `23` (Android 6.0)                                                                                                                                                         |
+| **APK Format**              | APKM (`base.apk`, split configs)                                                                                                                                           |
+| **Package Signing SHA-256** | `622850867847ccb7a1371bc42c865b1137fa51bd19987dc81b53815c9a9817bf`                                                                                                         |
+| **Architecture**            | Native Kotlin/Java; Jetpack Compose, Dagger/Hilt, Kotlinx Coroutines, Retrofit/OkHttp, Mixpanel, Airbridge, Adjust, Sentry, Google Play Integrity / PairIP                 |
 
 Fizz is a college-centric anonymous social feed and messaging platform. The application incorporates extensive telemetry across first-party analytics pipelines, attribution services, third-party analytics SDKs, session crash reporting, and Google Play Integrity Protection (PairIP).
 
@@ -147,18 +147,19 @@ When `EmojiCompat` is neutralized:
    - Wraps Compose font loader `hg.g.c` and platform font resolver `wj.a.t` with `EmojiFontBridge` fallback building (effective on API 29+).
 3. **`EnableDeveloperSettingsPatch.kt` (`bytecodePatch`)**:
    - Injects `DeveloperMenuBridge.init` into `MainActivity.onCreate`.
-   - Injects developer mod menu button into Home Screen top bar composable (`td.v.a`).
-   - Bypasses Mobile Studio drawer gating (`de.k1.invokeSuspend`).
+   - Injects developer mod menu button into Home Screen top bar composable (`td.v.a` on 1.54.0, `ee.n1.a` on 1.72.0).
+   - Bypasses Mobile Studio drawer gating (`de.k1.invokeSuspend` on 1.54.0, `de.r2.invokeSuspend` on 1.72.0).
+   - `DeveloperMenuBridge` reflects the activity's Mobile Studio request holder (`m0` on 1.54.0, `o0` on 1.72.0) and resolves Kotlin `Function0`/`Unit` by candidate list (`yl.a`/`kl.z` → `hn.a`/`tm.z`).
 4. **`RemoveAdsPatch.kt` (`bytecodePatch`)**:
-   - Filters commercial feed advertisements (`sc.k`) and optional marketplace listing cards (`sc.t1`) from Home feed `displayItems` via `FeedFilterBridge` in `HomeFeedViewModel.l0`.
+   - Filters commercial feed advertisements (`sc.k` on 1.54.0, `yc.n` on 1.72.0) and optional marketplace listing cards (`sc.t1` on 1.54.0, `yc.z1` on 1.72.0) from Home feed `displayItems` via `FeedFilterBridge` in `HomeFeedViewModel.l0` (1.54.0) / `HomeFeedViewModel.u0` (1.72.0).
    - Preserves repository item models in `FeedRepository`, maintaining uninterrupted infinite scrolling without falsely triggering `endReached`.
 5. **`BlockUpdatePromptsPatch.kt` (`bytecodePatch` with `extensions/extension.mpe`)**:
-   - Bypasses `SessionState` outdated check (`nc.j0.d`) and semantic version comparison (`nc.c.b`).
-   - Neutralizes `isAppUpdateRequired` field initialization in `OnboardingUiState` (`ge.u1.<init>`).
-   - Neutralizes onboarding screen update check branch in `ge.r1.h`.
-   - Stubs update prompt composable `kd.o1.a` with an immediate `return-void`.
-   - Spoofs `fizz-client-version` and `fizz-build-number` headers in OkHttp interceptor `ic.g.a` using `VersionBridge`.
-   - Spoofs `clientVersion` in session synchronization DTO `ub.dc.<init>` using `VersionBridge.getClientVersion()`.
+   - Bypasses `SessionState` outdated check (`nc.j0.d` on 1.54.0, `tc.s0.m` on 1.72.0) and semantic version comparison (`nc.c.b` on 1.54.0, `tc.c.d` on 1.72.0).
+   - Neutralizes `isAppUpdateRequired` field initialization in `OnboardingUiState` (`ge.u1.l0` on 1.54.0, `se.h2.K0` on 1.72.0).
+   - Neutralizes the onboarding screen update check branch (`ge.r1.h` on 1.54.0, the single flag read in `se.d2` on 1.72.0).
+   - Stubs update prompt composable (`kd.o1.a` on 1.54.0, `td.a2.a` on 1.72.0) with an immediate `return-void`.
+   - Spoofs `fizz-client-version` and `fizz-build-number` headers in the OkHttp interceptor (`ic.g.a` on 1.54.0, `nc.i.a` on 1.72.0) using `VersionBridge`.
+   - Spoofs `clientVersion` in session synchronization DTO (`ub.dc.<init>` on 1.54.0, `ub.id.<init>` on 1.72.0) using `VersionBridge.getClientVersion()`.
    - Injects `VersionBridge.init(this)` into `MainActivity.onCreate` for daily asynchronous Google Play version synchronization via Cloudflare Worker.
 
 ---
@@ -169,8 +170,8 @@ When `EmojiCompat` is neutralized:
 
 Fizz enforces client freshness at the HTTP gateway level (`api510.pineapple-connect.com`). When establishing a session (`/api/v1/app/session-state`), both HTTP request headers and the request body must present an accepted client version:
 
-1. **Header Interceptor (`ic.g.a`)**: Emits `fizz-client-version` and `fizz-build-number` on every outbound request to the Fizz gateway.
-2. **DTO Initialization (`ub.dc.<init>`)**: Hardcodes `clientVersion: "1.54.0"` into `SessionStateRequestData`.
+1. **Header Interceptor (`ic.g.a` on 1.54.0, `nc.i.a` on 1.72.0)**: Emits `fizz-client-version` and `fizz-build-number` on every outbound request to the Fizz gateway (`1.54.0`/`400032`, `1.72.0`/`465123`).
+2. **DTO Initialization (`ub.dc.<init>` on 1.54.0, `ub.id.<init>` on 1.72.0)**: Hardcodes the wire `clientVersion` into `SessionStateRequestData`.
 
 When the backend detects an outdated version (e.g. `1.54.0` while `1.72.0` is current), it rejects session establishment, transitioning the root app state to `kd.e.SessionUnavailable` and displaying the "Error connecting to Fizz" screen with developer debug controls ("Mono App sandbox: Disabled").
 
@@ -178,7 +179,7 @@ When the backend detects an outdated version (e.g. `1.54.0` while `1.72.0` is cu
 
 To prevent session rejection without requiring manual patch recompilation for every Play Store update:
 
-1. **Seed Version**: `VersionBridge` contains build-time defaults (`DEFAULT_VERSION = "1.72.0"`, `DEFAULT_BUILD_NUMBER = "400032"`).
+1. **Seed Version**: `VersionBridge` contains build-time defaults matching the newest supported wire values (`DEFAULT_VERSION = "1.72.0"`, `DEFAULT_BUILD_NUMBER = "465123"`).
 2. **Persistent Storage**: On first launch, `VersionBridge.init(Context)` loads the cached version from `SharedPreferences` (`aidan_fizz_version_spoof`).
 3. **Daily Daemon Sync**: If the cached timestamp is older than 24 hours, a background daemon thread queries the Cloudflare Worker:
    `GET https://worker.patch.p0ntus.com/api/version/com.ashtoncofer.Buzz`

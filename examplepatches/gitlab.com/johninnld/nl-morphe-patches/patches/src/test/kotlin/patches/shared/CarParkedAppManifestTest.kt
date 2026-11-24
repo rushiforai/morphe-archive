@@ -113,6 +113,41 @@ class CarParkedAppManifestTest {
             as org.w3c.dom.Element).getAttributeNS("http://schemas.android.com/apk/res/android", "appCategory"))
     }
 
+    @Test fun onlyRequiredAutomotiveHardwareIsMadeOptional() {
+        val automotive = document("""
+            <manifest xmlns:android="http://schemas.android.com/apk/res/android">
+                <uses-feature android:name="android.hardware.type.automotive" android:required="true"/>
+                <uses-feature android:name="android.hardware.wifi" android:required="true"/>
+                <application android:appCategory="game">
+                    <activity android:name=".Main">
+                        <intent-filter>
+                            <action android:name="android.intent.action.MAIN"/>
+                            <category android:name="android.intent.category.LAUNCHER"/>
+                        </intent-filter>
+                    </activity>
+                </application>
+            </manifest>
+        """)
+        assertEquals(1, allowInstallOutsideAutomotive(automotive))
+        val android = "http://schemas.android.com/apk/res/android"
+        val features = automotive.getElementsByTagName("uses-feature")
+        val byName = (0 until features.length).associate { index ->
+            val feature = features.item(index) as org.w3c.dom.Element
+            feature.getAttributeNS(android, "name") to feature.getAttributeNS(android, "required")
+        }
+        assertEquals("false", byName["android.hardware.type.automotive"])
+        assertEquals("true", byName["android.hardware.wifi"])
+
+        val alreadyOptional = document("""
+            <manifest xmlns:android="http://schemas.android.com/apk/res/android">
+                <uses-feature android:name="android.hardware.type.automotive" android:required="false"/>
+            </manifest>
+        """)
+        assertEquals(0, allowInstallOutsideAutomotive(alreadyOptional))
+
+        assertEquals(0, allowInstallOutsideAutomotive(documentWith()))
+    }
+
     @Test fun appliedManifestsAndManifestsWithoutLaunchersAreRejected() {
         val applied = document("""
             <manifest xmlns:android="http://schemas.android.com/apk/res/android">

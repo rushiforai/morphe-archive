@@ -23,7 +23,7 @@ import app.rimixyz.patches.shared.Constants.COMPATIBILITY_MYTHERAPY
  */
 @Suppress("unused")
 val disablePairIpLicenseCheckInMyTherapyPatch = patch(
-    name = "Disable PairIP license check in MyTherapy",
+    name = "Disable PairIP license check",
     description = "Neutralizes the PairIP license check so the re-signed APK can start, without removing its components.",
     default = true,
 ) {

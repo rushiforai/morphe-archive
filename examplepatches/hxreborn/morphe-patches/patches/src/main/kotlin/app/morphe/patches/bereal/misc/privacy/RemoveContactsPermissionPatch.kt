@@ -4,14 +4,15 @@
  */
 package app.morphe.patches.bereal.misc.privacy
 
-import app.morphe.patcher.patch.BytecodePatch
+import app.morphe.patcher.patch.Patch
 import app.morphe.patcher.patch.PatchException
-import app.morphe.patcher.patch.bytecodePatch
-import app.morphe.patcher.patch.resourcePatch
+import app.morphe.patcher.patch.document
+import app.morphe.patcher.patch.patch
 import app.morphe.patches.bereal.misc.base.beRealBasePatch
 import app.morphe.patches.bereal.misc.settings.BEREAL_EXTENSION_PACKAGE
 import app.morphe.patches.bereal.misc.settings.markFeaturePatched
 import app.morphe.patches.shared.compat.AppCompatibilities
+import app.morphe.patches.shared.misc.requireStandardInstall
 import app.morphe.util.asSequence
 import org.w3c.dom.Element
 import app.morphe.patches.shared.misc.extension.berealContactsPermissionExtensionPatch
@@ -21,7 +22,7 @@ private val contactsPermissions = setOf(
     "android.permission.WRITE_CONTACTS",
 )
 
-private val removeContactsPermissionsResourcePatch = resourcePatch {
+private val removeContactsPermissionsResourcePatch = patch {
     execute {
         document("AndroidManifest.xml").use { document ->
             val manifest = document.documentElement
@@ -36,12 +37,13 @@ private val removeContactsPermissionsResourcePatch = resourcePatch {
 }
 
 @Suppress("unused")
-val removeContactsPermissionPatch: BytecodePatch = bytecodePatch(
+val removeContactsPermissionPatch: Patch = patch(
     name = "Remove contacts permission",
     description = "Stops BeReal from asking for or reading your phone's contacts.",
 ) {
     dependsOn(berealContactsPermissionExtensionPatch)
     compatibleWith(AppCompatibilities.BEREAL)
+    availability(requireStandardInstall)
 
     dependsOn(removeContactsPermissionsResourcePatch, beRealBasePatch)
 

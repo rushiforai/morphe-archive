@@ -19,4 +19,8 @@ public final class Included {
     public static boolean qualityUnlock() {
         return false;
     }
+
+    public static boolean highestQuality() {
+        return false;
+    }
 }

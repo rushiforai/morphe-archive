@@ -19,17 +19,24 @@ Each app has its own README with the full patch list.
 | detikcom | `org.detikcom.rss` | `7.15.0` | APK from APKMirror | [apps/detik](apps/detik/README.md) |
 | DoDo Music | `com.dundunstudio.autoplay` | `2.0.14`, `2.0.17`, `2.0.18` | XAPK from APKPure | [apps/dodo](apps/dodo/README.md) |
 | FlipSide | `com.dinoster.flipside` | `1.6`, `1.7.1` | APKS from APKCube | [apps/flipside](apps/flipside/README.md) |
+| FOMO Indonesia | `id.anon.android` | `9.0.64` | XAPK from APKPure | [apps/fomo](apps/fomo/README.md) |
+| Genius | `com.genius.android` | `8.2.3.5414` | APK from APKMirror | [apps/genius](apps/genius/README.md) |
 | GitHub | `com.github.android` | `1.282.0`, `1.283.0`, `1.284.0`, `1.285.0` | APKM from APKMirror | [apps/github](apps/github/README.md) |
 | IDN | `com.idntimes.idntimes` | `6.69.1`, `6.70.0` | XAPK or APKS from APKPure or APKCube | [apps/idn](apps/idn/README.md) |
 | Jira | `com.atlassian.android.jira.core` | `2026.22.0`, `2026.22.1` | APKM from APKMirror | [apps/jira](apps/jira/README.md) |
 | KOMPAS.com | `com.ertanto.kompas.official` | `9.8.7` | XAPK from APKPure | [apps/kompas](apps/kompas/README.md) |
 | LinkedIn | `com.linkedin.android` | `4.1.1264`, `4.1.1267`, `4.1.1269`, `4.1.1270`, `4.1.1272`, `4.1.1275`, `4.1.1276`, `4.1.1278` | APKM from APKMirror | [apps/linkedin](apps/linkedin/README.md) |
+| Mazii: Japanese Dictionary | `com.mazii.dictionary` | `6.8.64` | XAPK from APKPure | [apps/mazii](apps/mazii/README.md) |
 | Muslim Pro | `com.bitsmedia.android.muslimpro` | `17.11` | APKS from APKCube | [apps/muslimpro](apps/muslimpro/README.md) |
 | Radio Indonesia | `com.appmind.radios.id` | `4.2.30` | XAPK from APKPure | [apps/radio](apps/radio/README.md) |
 | Smart Life | `com.tuya.smartlife` | `7.12.3-877`, `7.12.6-880` | XAPK from APKPure, APKM from APKMirror | [apps/smartlife](apps/smartlife/README.md) |
+| SYNC by Krisbow | `com.kawanlama.smartklic` | `3.1.2` | XAPK from APKPure | [apps/smartlife](apps/smartlife/README.md) |
+| Todaii Super | `com.eup.todaiisuper` | `1.1.5` | XAPK from APKPure | [apps/todaiisuper](apps/todaiisuper/README.md) |
+| Todaii: Learn German A1-C1 | `mobi.eup.easygerman` | `2.8.2` | XAPK from APKPure | [apps/todaiigerman](apps/todaiigerman/README.md) |
+| Todaii: Learn Japanese N5-N1 | `mobi.eup.jpnews` | `5.6.0` | APKM from APKMirror | [apps/todaii](apps/todaii/README.md) |
 | Tuya Smart | `com.tuya.smart` | `7.12.3-870`, `7.12.6-872`, `7.13.0-875`, `7.13.3-876` | APKM from APKMirror | [apps/smartlife](apps/smartlife/README.md) |
+| Warung Life Simulator | `com.neopawstudio.warunglife` | `1.2` | APKS from APKCube | [apps/warunglife](apps/warunglife/README.md) |
 | Windy | `com.windyty.android` | `51.3.2` | APKM from APKMirror | [apps/windy](apps/windy/README.md) |
-| FOMO Indonesia | `id.anon.android` | `9.0.64` | XAPK from APKPure | [apps/fomo](apps/fomo/README.md) |
 
 ## Use
 

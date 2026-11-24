@@ -49,8 +49,9 @@ release preparation with the Android bundle verification task.
 Desktop fat JAR alone, rather than Gradle's patcher runtime dependencies. It
 checks public patch loading, unique names, supported packages, TV/mobile
 metadata, app targets and option access. Override the desktop location using
-`-PmorpheDesktopJar=<absolute-path>` if necessary. The default is the workspace
-`morphe-desktop-1.19.0-all.jar`.
+`-PmorpheDesktopJar=<absolute-path>` if necessary. By default the task uses the
+newest `morphe-desktop-<version>-all.jar` in the workspace root (`E:\Morphe`) and
+logs the selected JAR. It fails with a clear message when none is present.
 
 The local build and exact Desktop import passed: **28 patches across 7 apps**.
 The original-DEX APK updater verifier and packaged Car Scanner **2.2.21**

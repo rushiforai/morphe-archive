@@ -1,3 +1,8 @@
+/*
+ * Copyright 2026 amfakh
+ * SPDX-License-Identifier: GPL-3.0-only
+ */
+
 package app.fakh.extension.jira;
 
 import android.app.Activity;
@@ -12,6 +17,7 @@ import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
 
 import app.fakh.extension.shared.AppRuntime;
+import app.fakh.extension.shared.Features;
 import app.fakh.extension.shared.GlassTabs;
 import app.fakh.extension.shared.I18n;
 import app.fakh.extension.shared.RestartBar;
@@ -21,9 +27,6 @@ import app.fakh.extension.shared.RestartBar;
  * with the screen's own card and row composables by reflection, that opens {@link FakhPatchesActivity}.
  */
 public final class FakhSettings {
-    /** Number of the first switch in {@link MaterialYou#KEYS} that belongs to a tab. */
-    static final int FIRST_TAB = 6;
-
     private static WeakReference<Activity> current = new WeakReference<>(null);
 
     private FakhSettings() {
@@ -88,13 +91,23 @@ public final class FakhSettings {
         }
     }
 
+    /** The switches of the bottom bar's tabs, Home aside, in the order the sheet lists them. */
+    static List<Features.Feature> tabs() {
+        List<Features.Feature> tabs = new ArrayList<>();
+        for (Features.Feature feature : Features.all()) {
+            if (feature.section.equals(MaterialYou.TABS_SECTION)) tabs.add(feature);
+        }
+        return tabs;
+    }
+
     /** How many of the bottom bar's tabs are shown, Home included, as the tab row's summary. */
     static String tabsSummary(Context context) {
         int shown = 1;
-        for (int i = FIRST_TAB; i < MaterialYou.KEYS.length; i++) {
-            if (MaterialYou.prefs(context).getBoolean(MaterialYou.KEYS[i], MaterialYou.DEFAULTS[i])) shown++;
+        List<Features.Feature> tabs = tabs();
+        for (Features.Feature tab : tabs) {
+            if (Features.saved(tab.id)) shown++;
         }
-        return GlassTabs.summary(shown, MaterialYou.KEYS.length - FIRST_TAB + 1);
+        return GlassTabs.summary(shown, tabs.size() + 1);
     }
 
     /**
@@ -144,17 +157,17 @@ public final class FakhSettings {
             final java.lang.reflect.Constructor<?> makeModel = modelClass.getConstructor(String.class, boolean.class,
                     List.class, List.class, boolean.class, Throwable.class, int.class);
 
-            final Context context = AppRuntime.application();
+            final List<Features.Feature> tabs = tabs();
             final boolean[] changed = {false};
             final List<Integer> all = new ArrayList<>();
             final List<Integer> selected = new ArrayList<>();
-            // Home is the number before the first tab's switch, which is not a tab's.
-            final int home = FIRST_TAB - 1;
+            // The rows are the tabs' numbers in tabs(); Home, which has no switch, is -1.
+            final int home = -1;
             all.add(home);
             selected.add(home);
-            for (int key = FIRST_TAB; key < MaterialYou.KEYS.length; key++) {
+            for (int key = 0; key < tabs.size(); key++) {
                 all.add(key);
-                if (MaterialYou.prefs(context).getBoolean(MaterialYou.KEYS[key], MaterialYou.DEFAULTS[key])) selected.add(key);
+                if (Features.saved(tabs.get(key).id)) selected.add(key);
             }
             final String title = I18n.tr("Navigation bar tabs");
             // The theme's text color at 38%, packed the way Compose stores an sRGB Color.
@@ -169,7 +182,7 @@ public final class FakhSettings {
                     int key = (Integer) args[0];
                     // Home is the one row that cannot be changed, so its text is dimmed like a disabled item.
                     boolean fixed = key == home;
-                    textCall.invoke(null, I18n.tr(fixed ? "Home" : MaterialYou.LABELS[key]), null, fixed ? dimmed : 0L, null, 0L, null, null, 0L,
+                    textCall.invoke(null, I18n.tr(fixed ? "Home" : tabs.get(key).title), null, fixed ? dimmed : 0L, null, 0L, null, null, 0L,
                             null, null, 0L, 0, false, 0, 0, null, args[1], 0, 0, fixed ? 0x3fffa : 0x3fffe);
                 } catch (ReflectiveOperationException failure) {
                     throw new IllegalStateException(failure);
@@ -199,9 +212,7 @@ public final class FakhSettings {
                 for (Object key : (List<?>) args[0]) {
                     if ((Integer) key != home) selected.add((Integer) key);
                 }
-                for (int key = FIRST_TAB; key < MaterialYou.KEYS.length; key++) {
-                    MaterialYou.prefs(context).edit().putBoolean(MaterialYou.KEYS[key], selected.contains(key)).commit();
-                }
+                for (int key = 0; key < tabs.size(); key++) Features.set(tabs.get(key).id, selected.contains(key));
                 changed[0] = true;
                 invalidate(content[0]);
                 return null;

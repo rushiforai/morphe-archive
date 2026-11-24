@@ -1,9 +1,15 @@
+/*
+ * Copyright 2026 amfakh
+ * SPDX-License-Identifier: GPL-3.0-only
+ */
+
 package app.fakh.patches.linkedin.navigation
 
 import app.fakh.patches.linkedin.shared.Constants.COMPATIBILITY_LINKEDIN
 import app.fakh.patches.linkedin.shared.Constants.EXTENSION_PACKAGE
-import app.fakh.patches.linkedin.shared.markIncluded
+import app.fakh.patches.linkedin.shared.Constants.MATERIAL_TAB_ICONS
 import app.fakh.patches.linkedin.shared.settingsPatch
+import app.fakh.patches.shared.register
 import app.morphe.patcher.Fingerprint
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructionsWithLabels
 import app.morphe.patcher.extensions.InstructionExtensions.getInstruction
@@ -32,7 +38,7 @@ val materialNavigationIconsPatch = patch(
     dependsOn(settingsPatch)
 
     execute {
-        markIncluded("isMaterialTabIconsIncluded")
+        register(MATERIAL_TAB_ICONS)
 
         SetTabIconFingerprint.method.apply {
             // The app reads the id back when the tab is redrawn, so it is stored even when the extension draws the icon.

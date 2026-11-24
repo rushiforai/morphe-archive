@@ -179,7 +179,7 @@ final class ShareSheetGlass {
 
 
         private void frame() {
-            boolean on = LiquidGlassNavBarPatch.GLASS_SHARE_MENU.get();
+            boolean on = LiquidGlassNavBarPatch.effect(LiquidGlassNavBarPatch.GLASS_SHARE_MENU);
             ViewGroup h = on ? host() : null;
             ViewGroup panel = null;
             View content = null;

@@ -48,9 +48,9 @@ jobs:
         run: python3 .github/scripts/verify-java25-cspu.py
       - name: Use the validated Gradle download source
         run: |
-          sed -i 's#https\\://services.gradle.org/distributions/gradle-9.9.1-bin.zip#https\\://downloads.gradle.org/distributions/gradle-9.9.1-bin.zip#' gradle/wrapper/gradle-wrapper.properties
+          sed -i 's#https\\://services.gradle.org/distributions/gradle-9.9.2-bin.zip#https\\://downloads.gradle.org/distributions/gradle-9.9.2-bin.zip#' gradle/wrapper/gradle-wrapper.properties
       - name: Initialize CodeQL Java/Kotlin
-        uses: github/codeql-action/init@33d7b85da1a04171e211befe2c739303b9a4c066 # v4.39.3
+        uses: github/codeql-action/init@1bd86f2fdb4b86187fa4059f16f31a3202acc9ea # v4.39.4
         with:
           languages: java-kotlin
           build-mode: manual
@@ -69,7 +69,7 @@ jobs:
             porting/tests/CodeqlSecurityTest.java
           java -cp /tmp/nicoid-codeql-security-tests:/tmp/nicoid-codeql-orgjson.jar e.e.a.CodeqlSecurityTest
       - name: Analyze CodeQL Java/Kotlin
-        uses: github/codeql-action/analyze@33d7b85da1a04171e211befe2c739303b9a4c066 # v4.39.3
+        uses: github/codeql-action/analyze@1bd86f2fdb4b86187fa4059f16f31a3202acc9ea # v4.39.4
         with:
           upload-database: false
 
@@ -86,10 +86,10 @@ jobs:
         with:
           persist-credentials: false
       - name: Initialize CodeQL
-        uses: github/codeql-action/init@33d7b85da1a04171e211befe2c739303b9a4c066 # v4.39.3
+        uses: github/codeql-action/init@1bd86f2fdb4b86187fa4059f16f31a3202acc9ea # v4.39.4
         with:
           languages: ${{ matrix.language }}
       - name: Analyze CodeQL
-        uses: github/codeql-action/analyze@33d7b85da1a04171e211befe2c739303b9a4c066 # v4.39.3
+        uses: github/codeql-action/analyze@1bd86f2fdb4b86187fa4059f16f31a3202acc9ea # v4.39.4
         with:
           upload-database: false

@@ -78,6 +78,25 @@ patches. Each patch can be selected independently.
 Android 13+ provides live refraction. Older versions retain the native blur;
 that fallback has not been verified on a device.
 
+### On-device vocal separation
+
+Enable `On-device vocal separation` for a merged arm64 Apple Music 7.0.3
+(1626) APK. Tap the microphone above the lyrics screen's playback controls.
+Select `Prepare model` to download the approximately 30 MB UVR-MDX-NET 3 model.
+After preparation, drag the vertical slider between accompaniment, the
+original mix and isolated vocals.
+
+Ultimate Vocal Remover and its core developers Anjok07 and aufr33 provide the
+model under MIT terms. The downloaded file is verified against the SHA-256 of
+the original release's `UVR_MDXNET_3_9662.onnx`. [UVR license and credits](https://github.com/Anjok07/ultimatevocalremovergui#license)
+
+Separation runs on the device CPU for stereo PCM at 32, 44.1, 48, 88.2, 96,
+176.4 and 192 kHz. The model receives a 44.1 kHz copy of the decoded audio.
+The estimated vocals are converted back to the original sample rate before
+mixing, so playback retains its original rate and frame count. The first
+processed audio requires a window of approximately 5.92 seconds. Other
+formats use the app's normal audio path.
+
 ### Liquid Glass rendering
 
 The bottom tabs and mini-player use the active, untinted Regular material

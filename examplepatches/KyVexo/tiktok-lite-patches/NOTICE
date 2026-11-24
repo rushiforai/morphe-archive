@@ -1,0 +1,3 @@
+The metadata generator and Gradle project structure derive from Morphe's
+morphe-patches-template (https://github.com/MorpheApp/morphe-patches-template),
+via FaroTV Patches. See LICENSE. Morphe is referenced for compatibility only.

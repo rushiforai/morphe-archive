@@ -444,7 +444,7 @@ When `Local PDF Compression` is enabled, the promotional neutralizer `removeComp
 1. **Target Validation:** Gates on Adobe Scan `26.09.25` through `COMPATIBILITY_ADOBE_SCAN`.
 2. **Compilation Verification:** Build the patch bundle with `./gradlew :patches:buildAndroid clean --no-daemon`.
 3. **Metadata Verification:** Run `./gradlew generatePatchesList` and confirm that **Local Premium** exposes all four independent options.
-4. **Compatibility Verification:** Run `uv run --project tools/apk-lab apk-lab check apk/com.adobe.scan.android.apkm --mpp <bundle> --package com.adobe.scan.android --all`.
+4. **Compatibility Verification:** Run `cargo run --locked --quiet --manifest-path tools/apk-lab/Cargo.toml --bin apk-lab -- check apk/com.adobe.scan.android.apkm --mpp <bundle> --package com.adobe.scan.android --all`.
 
 ---
 

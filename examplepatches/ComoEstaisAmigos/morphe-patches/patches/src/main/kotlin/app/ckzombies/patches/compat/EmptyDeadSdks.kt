@@ -1,18 +1,15 @@
 package app.ckzombies.patches.compat
 
-import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
-import app.morphe.patcher.patch.PatchException
-import app.morphe.patcher.patch.classDefForEach
+import app.adebisi.patches.shared.CONSTRUCTOR
+import app.adebisi.patches.shared.PUBLIC
+import app.adebisi.patches.shared.STATIC
+import app.adebisi.patches.shared.addStub
+import app.adebisi.patches.shared.emptySdkPrefixes
 import app.morphe.patcher.patch.mutableClassDefBy
 import app.morphe.patcher.util.proxy.mutableTypes.MutableClass
 import app.morphe.patcher.util.proxy.mutableTypes.MutableField.Companion.toMutable
-import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod.Companion.toMutable
 import app.morphe.patcher.util.returnEarly
-import com.android.tools.smali.dexlib2.AccessFlags
-import com.android.tools.smali.dexlib2.builder.MutableMethodImplementation
 import com.android.tools.smali.dexlib2.immutable.ImmutableField
-import com.android.tools.smali.dexlib2.immutable.ImmutableMethod
-import com.android.tools.smali.dexlib2.immutable.ImmutableMethodParameter
 
 internal const val TAPJOY_CONNECT = "Lcom/tapjoy/TapjoyConnect;"
 
@@ -21,10 +18,6 @@ private const val UAIRSHIP = "Lcom/urbanairship/UAirship;"
 private const val PUSH_MANAGER = "Lcom/urbanairship/push/PushManager;"
 private const val PUSH_PREFS = "Lcom/urbanairship/push/PushPreferences;"
 private const val UA_PREFS = "Lcom/urbanairship/Preferences;"
-
-private val PUBLIC = AccessFlags.PUBLIC.value
-private val STATIC = AccessFlags.STATIC.value
-private val CONSTRUCTOR = AccessFlags.CONSTRUCTOR.value
 
 /**
  * Java ad/push SDKs whose method and field string constants still hold their hosts.
@@ -42,25 +35,12 @@ internal val DEAD_SDK_PREFIXES = listOf(
 internal val DEAD_SDK_KEEP = setOf(TAPJOY_CONNECT)
 
 internal fun emptyDeadSdks() {
-    val toEmpty = ArrayList<String>()
-    for ((prefix, expected) in DEAD_SDK_PREFIXES) {
-        val found = buildList {
-            classDefForEach {
-                if (it.type.startsWith(prefix) && it.type !in DEAD_SDK_KEEP) add(it.type)
-            }
-        }
-        if (found.size != expected) {
-            throw PatchException("Expected $expected classes under $prefix, found ${found.size}")
-        }
-        toEmpty.addAll(found)
-    }
-
     GluApplicationOnCreateFingerprint.method.returnEarly()
     GluApplicationOnTerminateFingerprint.method.returnEarly()
     GluPlayHavenInitFingerprint.method.returnEarly()
     GluPushHandlerOnReceiveFingerprint.method.returnEarly()
 
-    emptyClasses(toEmpty.map { mutableClassDefBy(it) })
+    emptySdkPrefixes(DEAD_SDK_PREFIXES, DEAD_SDK_KEEP)
     stubFlurryAgent()
     stubUrbanAirship()
 }
@@ -223,29 +203,4 @@ private fun stubPreferenceGetters(c: MutableClass) {
             return v0
         """,
     )
-}
-
-private fun MutableClass.addStub(
-    name: String,
-    parameters: List<String> = emptyList(),
-    returnType: String = "V",
-    access: Int = PUBLIC,
-    registerCount: Int,
-    smali: String,
-) {
-    val method = ImmutableMethod(
-        type,
-        name,
-        parameters.map { ImmutableMethodParameter(it, null, null) },
-        returnType,
-        access,
-        null,
-        null,
-        MutableMethodImplementation(registerCount),
-    ).toMutable()
-    method.addInstructions(0, smali.trimIndent())
-    methods.add(method)
-    val static = access and STATIC != 0
-    val ctor = name == "<init>" || name == "<clinit>"
-    if (static || ctor) directMethods.add(method) else virtualMethods.add(method)
 }

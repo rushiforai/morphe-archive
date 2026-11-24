@@ -56,6 +56,7 @@ val carMapZoomPatch = bytecodePatch(
     default = false,
 ) {
     compatibleWith(COMPATIBILITY_WAZE)
+    dependsOn(configOverridesPatch)
     category("Experimental")
 
     val zoom by stringOption(
@@ -71,7 +72,9 @@ val carMapZoomPatch = bytecodePatch(
     )
 
     execute {
-        val scale = (zoom ?: "1.5x").removeSuffix("x").toDouble()
+        val token = zoom ?: "1.5x"
+        requireChoice("carMapZoomPatch", "zoom", token, setOf("1.0x", "1.25x", "1.5x", "2.0x"))
+        val scale = token.removeSuffix("x").toDouble()
         val tenths = Math.round(scale * 10).toLong()
 
         val clinit = ConfigValuesInitFingerprint.method.implementation
@@ -106,19 +109,15 @@ val carMapZoomPatch = bytecodePatch(
             throw PatchException("carMapZoomPatch: implausible config id $id for $SCALE_FIELD")
         }
 
-        val setter = ConfigBooleanSetterFingerprint.method
-        setter.addInstructions(
-            0,
-            """
-                const/16 v0, 0x${id.toString(16)}
-                const-wide/16 v1, 0x${tenths.toString(16)}
-                invoke-virtual {p0, v0, v1, v2}, Lcom/waze/ConfigManager;->setConfigValueLongNTV(IJ)V
-            """.trimIndent(),
-        )
+        // Written through the shared native helper, not a hand-rolled call in a Java setter: that
+        // hook only fired when Waze persisted some unrelated boolean, so on a run with no such write
+        // the scale was never set (and it had no isReady() guard). recordNativeLong lands on both
+        // config-sync callbacks and checks isReady() first.
+        recordNativeLong("cmz", SCALE_FIELD to tenths)
 
         println(
             "carMapZoomPatch: $SCALE_FIELD (id 0x${id.toString(16)}) set to ${scale}x " +
-                "= ${tenths}L on every boolean config write",
+                "= ${tenths}L on every config sync",
         )
     }
 }

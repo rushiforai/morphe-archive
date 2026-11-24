@@ -21,7 +21,7 @@ import app.morphe.extension.youtube.swipecontrols.misc.toPoint
 class ClassicSwipeController(
     private val controller: SwipeControlsHostActivity,
     private val config: SwipeControlsConfigurationProvider,
-) : BaseGestureController(controller),
+) : BaseGestureController(controller, reservePortraitSwipes = true),
     PlayerControlsVisibilityObserver by PlayerControlsVisibilityObserverImpl(controller) {
 
     /**
@@ -60,8 +60,8 @@ class ClassicSwipeController(
             return true
         }
 
-        // ignore gestures when player controls are visible
-        return arePlayerControlsVisible
+        // The host already excluded visible controls at the start of a portrait gesture.
+        return !config.enablePortraitSwipeControls && arePlayerControlsVisible
     }
 
     override fun onDown(motionEvent: MotionEvent): Boolean {
@@ -73,7 +73,7 @@ class ClassicSwipeController(
         lastOnDownEvent = MotionEvent.obtain(motionEvent)
 
         // must be inside an active swipe zone
-        lastOnDownWasConsumed = isInSwipeZone(motionEvent)
+        lastOnDownWasConsumed = !config.enablePortraitSwipeControls && isInSwipeZone(motionEvent)
         return lastOnDownWasConsumed
     }
 
@@ -86,6 +86,8 @@ class ClassicSwipeController(
     }
 
     override fun onSingleTapUp(motionEvent: MotionEvent): Boolean {
+        if (config.enablePortraitSwipeControls) return false
+
         MotionEvent.obtain(motionEvent).let {
             it.action = MotionEvent.ACTION_DOWN
             controller.dispatchDownstreamTouchEvent(it)
@@ -96,6 +98,8 @@ class ClassicSwipeController(
     }
 
     override fun onDoubleTapEvent(motionEvent: MotionEvent): Boolean {
+        if (config.enablePortraitSwipeControls) return super.onDoubleTapEvent(motionEvent)
+
         MotionEvent.obtain(motionEvent).let {
             controller.dispatchDownstreamTouchEvent(it)
             it.recycle()
@@ -105,6 +109,8 @@ class ClassicSwipeController(
     }
 
     override fun onLongPress(motionEvent: MotionEvent) {
+        if (config.enablePortraitSwipeControls) return
+
         MotionEvent.obtain(motionEvent).let {
             controller.dispatchDownstreamTouchEvent(it)
             it.recycle()
@@ -134,6 +140,8 @@ class ClassicSwipeController(
         // If not confirmed, queue the runnable (if not already queued)
         if (delayedSwipeRunnable == null) {
             delayedSwipeRunnable = Runnable {
+                if (!controller.canContinueSwipe()) return@Runnable
+
                 isSwipeConfirmed = true
                 // Execute the action that was pending.
                 applySwipeAction(from, distanceX, distanceY)

@@ -10,11 +10,11 @@ This document specifies patches for **365 Pay** (`com.avinside`).
 
 - **Name:** Remove Ads
 - **Target Package:** `com.avinside`
-- **Supported Versions:** `10.2605.0`
+- **Supported Versions:** `10.2605.0`, `10.2606.1`
 - **Default State:** `true` (Enabled by default)
 - **Type:** Dalvik Bytecode Patch (`bytecodePatch`)
 - **Dependencies:** None
-- **Compatibility:** `COMPATIBILITY_365_PAY` (`ApkFileType.APKM`, target `10.2605.0`, `minSdk` 27)
+- **Compatibility:** `COMPATIBILITY_365_PAY` (`ApkFileType.APKM`, targets `10.2605.0` and `10.2606.1`, `minSdk` 27)
 - **Options:**
   - `Remove In-App Messages` (`removeInAppMessages`, default `true`): Suppresses OneSignal promotional campaigns and marketing message displays.
   - `Remove Review Prompts` (`removeReviewPrompts`, default `true`): Neutralizes Google Play in-app review and rating prompts.
@@ -44,11 +44,11 @@ This document specifies patches for **365 Pay** (`com.avinside`).
 
 - **Name:** Remove Tracking
 - **Target Package:** `com.avinside`
-- **Supported Versions:** `10.2605.0`
+- **Supported Versions:** `10.2605.0`, `10.2606.1`
 - **Default State:** `true` (Enabled by default)
 - **Type:** Dalvik Bytecode Patch (`bytecodePatch`)
 - **Dependencies:** None
-- **Compatibility:** `COMPATIBILITY_365_PAY` (`ApkFileType.APKM`, target `10.2605.0`, `minSdk` 27)
+- **Compatibility:** `COMPATIBILITY_365_PAY` (`ApkFileType.APKM`, targets `10.2605.0` and `10.2606.1`, `minSdk` 27)
 - **Options:**
   - `Disable Firebase Analytics` (`disableFirebaseAnalytics`, default `true`): Blocks React Native Firebase Analytics and Google Play AppMeasurement event tracking.
   - `Disable Firebase Crashlytics` (`disableCrashlytics`, default `true`): Neutralizes Firebase Crashlytics crash reporting and diagnostic logging.
@@ -86,39 +86,43 @@ This document specifies patches for **365 Pay** (`com.avinside`).
 
 - **Name:** Unlock Developer Tools
 - **Target Package:** `com.avinside`
-- **Supported Versions:** `10.2605.0`
+- **Supported Versions:** `10.2605.0`, `10.2606.1`
 - **Default State:** `false` (Disabled by default)
 - **Type:** Raw Resource Patch (`rawResourcePatch`)
 - **Category:** Developer
 - **Dependencies:** None
-- **Compatibility:** `COMPATIBILITY_365_PAY` (`ApkFileType.APKM`, target `10.2605.0`, `minSdk` 27)
+- **Compatibility:** `COMPATIBILITY_365_PAY` (`ApkFileType.APKM`, targets `10.2605.0` and `10.2606.1`, `minSdk` 27)
 - **Options:**
-  - `Unlock Developer Settings` (`unlockDeveloperSettings`, default `true`): Reduces the hidden Welcome Screen logo tap gesture from five taps to a single tap to open the Environment Settings menu.
   - `Start with Debug Messages` (`startWithDebugMessages`, default `false`): Initializes application state with Debug Messages enabled upon startup.
   - `Start in Demo Mode` (`startInDemoMode`, default `false`): Initializes application state with Demo Mode enabled upon startup.
 
 ### Technical Implementation & Injection Points
 
-1. **Single-Tap Developer Screen Access (`unlockDeveloperSettings`):**
+1. **Single-Tap Developer Screen Access (always applied):**
    - **Target File:** `assets/index.android.bundle` (Hermes bytecode v96)
-   - **Target Function:** `_0x16a90c` (function index 53285, code offset `0xc20b07`)
-   - **Context Anchor:** Offset `+0x98` matches string reference `'WelcomeScreen'` (`73 01 96 6b`).
-   - **Instruction Anchor:** Relative offset `+0xa3` (absolute `0xc20baa`).
-   - **Original Bytes:** `6e 01 05 b0 18 05` (`LoadConstUInt8 r1, 5` followed by `JGreaterEqual 24, r5, r1`).
-   - **Replacement Bytes:** `6e 01 01 b0 18 05` (`LoadConstUInt8 r1, 1` followed by `JGreaterEqual 24, r5, r1`).
+   - **Locator:** Scans for `LoadConstUInt8 reg, 5` followed by `JGreaterEqual` where the compared register matches the loaded register, and requires the same function to reference the `touches` and `goToEnvironmentSettings` string IDs. Exactly one match is required.
+   - **10.2606.1 Function:** `_0x182757` (code offset `0xbfd9af`), instruction anchor `+0xa8`.
+   - **10.2605.0 Function:** `_0x16a90c` (function index 53285, code offset `0xc20b07`), instruction anchor `+0xa3`.
+   - **10.2606.1 Original Bytes:** `6e 01 05 b0 17 05 01` (`LoadConstUInt8 r1, 5` followed by `JGreaterEqual 23, r5, r1`).
+   - **10.2606.1 Replacement Bytes:** `6e 01 01 b0 17 05 01` (`LoadConstUInt8 r1, 1` followed by `JGreaterEqual 23, r5, r1`).
+   - **10.2605.0 Pattern:** `6e 01 05 b0 18 05` with branch offset `0x18`; the same threshold byte is rewritten to `1`.
 
 2. **Startup State Initialization (`startWithDebugMessages` and `startInDemoMode`):**
    - **Target File:** `assets/index.android.bundle` (Hermes bytecode v96)
-   - **Target Function:** `_0x3844af` (function index 15766, code offset `0x85581a`)
-   - **Invariant Anchor:** Relative offset `+0x6d` matches `77 09` (`LoadConstNull r9`).
+   - **10.2606.1 Function:** `_0x5cf9f9` (code offset `0x8a520b`), located by the `isDebug` assignment pattern rather than by name.
+   - **10.2605.0 Function:** `_0x3844af` (function index 15766, code offset `0x85581a`), using the legacy offset anchors below.
    - **Debug Messages (`startWithDebugMessages`):**
-     - **Instruction Anchor:** Relative offset `+0x183` preceding `PutNewOwnById r7, r10, isDebug` (`40 07 0a 5a ed`).
-     - **Original Bytes:** `0b 0a 0a` (`Not r10, r10`, evaluating `!true -> false`).
-     - **Replacement Bytes:** `0b 0a 09` (`Not r10, r9`, evaluating `!null -> true`).
+     - **Locator:** `NewArray reg, 0` followed by `Not reg, reg` and `PutNewOwnById ..., isDebug`; exactly one match is required.
+     - **10.2606.1 Instruction Anchor:** `+0x17d` (`07 09 00 00 0b 09 09 40 02 09 58 f0`).
+     - **Original Bytes:** `07 09 00 00 0b 09 09` (`NewArray r9, 0` then `Not r9, r9`).
+     - **Replacement Bytes:** `78 09 8e 05 0b 09 09` (`LoadConstTrue r9` then `Jmp +5`, jumping over the `Not`).
+     - **10.2605.0 Anchor:** Relative offset `+0x183` (`0b 0a 0a`, `Not r10, r10`); replacement `0b 0a 09` (`Not r10, r9`, evaluating `!null -> true`).
    - **Demo Mode (`startInDemoMode`):**
-     - **Instruction Anchor:** Relative offset `+0x1c0` preceding `PutNewOwnById r7, r10, demo` (`40 07 0a 4b a0`).
-     - **Original Bytes:** `49 0a 0b 0a` (`GetByVal r10, r11, r10`).
-     - **Replacement Bytes:** `0e 0a 09 09` (`Eq r10, r9, r9`, evaluating `null == null -> true`).
+     - **Locator:** `GetByVal reg, source, reg` followed by `PutNewOwnById ..., demo` within the same initial-state function; exactly one match is required.
+     - **10.2606.1 Instruction Anchor:** `+0x1be` (`49 09 0a 09 40 02 09 75 55`).
+     - **Original Bytes:** `49 09 0a 09` (`GetByVal r9, r10, r9`).
+     - **Replacement Bytes:** `0e 09 09 09` (`Eq r9, r9, r9`, evaluating `true`).
+     - **10.2605.0 Anchor:** Relative offset `+0x1c0` (`49 0a 0b 0a`); replacement `0e 0a 09 09` (`Eq r10, r9, r9`).
 
 3. **Bundle Integrity:**
    - Recalculates bundle SHA-1 checksum over all bytes excluding the trailing 20-byte hash and overwrites the footer via `editor.updateFooterHash()`.
@@ -129,12 +133,12 @@ This document specifies patches for **365 Pay** (`com.avinside`).
 
 - **Name:** Display Cutout Adaptation
 - **Target Package:** `com.avinside`
-- **Supported Versions:** `10.2605.0`
+- **Supported Versions:** `10.2605.0`, `10.2606.1`
 - **Default State:** `true` (Enabled by default)
 - **Type:** Dalvik Bytecode Patch (`bytecodePatch`) with Extension DEX (`extendWith`)
 - **Category:** General
 - **Dependencies:** None
-- **Compatibility:** `COMPATIBILITY_365_PAY` (`ApkFileType.APKM`, target `10.2605.0`, `minSdk` 27)
+- **Compatibility:** `COMPATIBILITY_365_PAY` (`ApkFileType.APKM`, targets `10.2605.0` and `10.2606.1`, `minSdk` 27)
 - **Extension Classes:** `app.aidan.extension.pay365.DisplayCutoutBridge`
 - **Options:** None (fully automated and dynamic)
 

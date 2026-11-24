@@ -19,13 +19,13 @@ Click the button below, or manually add this repo url to Morphe Manager: https:/
 ## 🩹 Patches list
 
 <!-- PATCHES_START EXPANDED -->
-> **[v1.6.0-dev.6](https://github.com/Plyrs1/morphe-patches/releases/tag/v1.6.0-dev.6)**&nbsp;&nbsp;&middot;&nbsp;&nbsp;`dev`&nbsp;&nbsp;&middot;&nbsp;&nbsp;**36 patches** across **8 apps**&nbsp;&nbsp;&middot;&nbsp;&nbsp;[Full details](PATCHES.md)
+> **[v1.6.0-dev.10](https://github.com/Plyrs1/morphe-patches/releases/tag/v1.6.0-dev.10)**&nbsp;&nbsp;&middot;&nbsp;&nbsp;`dev`&nbsp;&nbsp;&middot;&nbsp;&nbsp;**38 patches** across **8 apps**&nbsp;&nbsp;&middot;&nbsp;&nbsp;[Full details](PATCHES.md)
 
 | # | App | Patches | Version | Package |
 |---|---|---|---|---|
 | 1 | [**Android Auto**](PATCHES.md#android-auto-comgoogleandroidprojectiongearhead) | 1 | `17.7.663654-release` | [`com.google.android.projection.gearhead`](https://play.google.com/store/apps/details?id=com.google.android.projection.gearhead) |
 | 2 | [**E-Ujian Browser**](PATCHES.md#e-ujian-browser-comdooveraeujianbrowser) | 18 | `3.1.3` | [`com.doovera.eujianbrowser`](https://play.google.com/store/apps/details?id=com.doovera.eujianbrowser) |
-| 3 | [**GajiHub**](PATCHES.md#gajihub-comgajihubapp) | 4 | `2.0.14`, `2.0.4` | [`com.gajihub.app`](https://play.google.com/store/apps/details?id=com.gajihub.app) |
+| 3 | [**GajiHub**](PATCHES.md#gajihub-comgajihubapp) | 6 | `2.0.14`, `2.0.4` | [`com.gajihub.app`](https://play.google.com/store/apps/details?id=com.gajihub.app) |
 | 4 | [**Habitica**](PATCHES.md#habitica-comhabitrpgandroidhabitica) | 3 | `4.10.5`, `4.11.2` | [`com.habitrpg.android.habitica`](https://play.google.com/store/apps/details?id=com.habitrpg.android.habitica) |
 | 5 | [**Nusuk**](PATCHES.md#nusuk-commohnusukapp) | 1 | `17.6.2` | [`com.moh.nusukapp`](https://play.google.com/store/apps/details?id=com.moh.nusukapp) |
 | 6 | [**Pertaminiku**](PATCHES.md#pertaminiku-compertaminiku) | 3 | `1.0.2` | [`com.pertaminiku`](https://play.google.com/store/apps/details?id=com.pertaminiku) |

@@ -8,6 +8,7 @@ import argparse
 import hashlib
 import json
 import os
+import re
 import subprocess
 import sys
 import zipfile
@@ -15,7 +16,7 @@ import zipfile
 ROOT = Path(__file__).resolve().parents[1]
 TOOLS = ROOT / ".tools"
 BUILD = ROOT / "build" / "standalone"
-VERSION = "0.1.12-dev"
+VERSION = "0.1.18-dev"
 
 
 def run(args):
@@ -62,7 +63,51 @@ def build(test_only=False):
     core = ROOT / "extensions/extension/src/main/java/app/linenotifications/extension/core/NotificationPolicy.java"
     run([javac, "-encoding", "UTF-8", "--release", "8", "-d", tests, core, ROOT / "tests/core/NotificationPolicyTest.java"])
     run([java, "-cp", tests, "NotificationPolicyTest"])
-    run([sys.executable, "-m", "unittest", "discover", "-s", "tests", "-p", "test_message_history.py"])
+
+    runtime_src = BUILD / "runtime-tests-src"
+    runtime_classes = BUILD / "runtime-tests"
+    for path in (runtime_src, runtime_classes):
+        path.mkdir(exist_ok=True)
+        for file in path.rglob("*"):
+            if file.is_file():
+                file.unlink()
+    shim_pkg = runtime_src / "app/linenotifications/extension"
+    shim_pkg.mkdir(parents=True, exist_ok=True)
+    settings_raw = (ROOT / "extensions/extension/src/main/java/app/linenotifications/extension/Settings.java").read_text(encoding="utf-8")
+    settings_shim, patched_flags = re.subn(
+        r"(public static boolean \w+Included\(\)\s*\{\s*)return false;(\s*\})",
+        r"\1return true;\2",
+        settings_raw,
+    )
+    if patched_flags != 5:
+        raise SystemExit(f"Expected 5 included flags in Settings.java, found {patched_flags}")
+    (shim_pkg / "Settings.java").write_text(settings_shim, encoding="utf-8")
+    (shim_pkg / "NotificationContinuation.java").write_text(
+        "package app.linenotifications.extension;\n"
+        "import kotlin.coroutines.Continuation;\n"
+        "public final class NotificationContinuation extends dt8.d {\n"
+        "    public NotificationContinuation(Object completion) { super((Continuation) completion); }\n"
+        "    @Override public Object invokeSuspend(Object result) { return result; }\n"
+        "}\n",
+        encoding="utf-8",
+    )
+    ext_java = [
+        p for p in sorted((ROOT / "extensions/extension/src/main/java/app/linenotifications").rglob("*.java"))
+        if p.name not in {"Settings.java", "NotificationContinuation.java"}
+    ]
+    runtime_sources = (
+        ext_java
+        + [shim_pkg / "Settings.java", shim_pkg / "NotificationContinuation.java"]
+        + sorted((ROOT / "tests/runtime").rglob("*.java"))
+    )
+    runtime_args = BUILD / "runtime-test-sources.txt"
+    runtime_args.write_text("\n".join('"' + str(p).replace("\\", "/") + '"' for p in runtime_sources), encoding="utf-8")
+    run([javac, "-encoding", "UTF-8", "-source", "11", "-target", "11", "-classpath", android,
+         "-d", runtime_classes, "@" + str(runtime_args)])
+    run([java, "-cp", os.pathsep.join([str(runtime_classes), str(android)]),
+         "app.linenotifications.extension.ExtensionRuntimeTest"])
+
+    run([sys.executable, "-m", "unittest", "discover", "-s", "tests", "-p", "test_*.py", "-v"])
     if test_only:
         return
     extensions = BUILD / "extension-classes"

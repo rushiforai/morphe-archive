@@ -1,6 +1,14 @@
+/*
+ * Copyright 2026 amfakh
+ * SPDX-License-Identifier: GPL-3.0-only
+ */
+
 package app.fakh.patches.confluence
 
+import app.fakh.patches.confluence.shared.Constants.BACKGROUND_BLUR
 import app.fakh.patches.confluence.shared.Constants.COMPATIBILITY_CONFLUENCE
+import app.fakh.patches.confluence.shared.Constants.GLASS_NAVBAR
+import app.fakh.patches.shared.register
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
 import app.morphe.patcher.patch.PatchException
 import app.morphe.patcher.patch.mutableClassDefBy
@@ -19,13 +27,7 @@ val glassNavigationBarPatch = patch(
     dependsOn(settingsPatch)
 
     execute {
-        mutableClassDefBy(GLASS).methods.first { it.name == "isIncluded" }.addInstructions(
-            0,
-            """
-                const/4 v0, 0x1
-                return v0
-            """,
-        )
+        register(GLASS_NAVBAR, BACKGROUND_BLUR)
         // The main activity, named in the manifest, creates itself in onMAMCreate under the Intune wrapper. The call
         // goes first: R8 reuses the activity's register for other values further down.
         val create = mutableClassDefBy("Lcom/atlassian/confluence/MainActivity;").methods.singleOrNull {

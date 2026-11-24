@@ -23,7 +23,7 @@ jobs:
     outputs:
       core: ${{ steps.filter.outputs.core }}
       web: ${{ steps.filter.outputs.web }}
-      python: ${{ steps.filter.outputs.python }}
+      docs: ${{ steps.filter.outputs.docs }}
       android: ${{ steps.filter.outputs.android }}
       rust: ${{ steps.filter.outputs.rust }}
       native: ${{ steps.filter.outputs.native }}
@@ -44,7 +44,11 @@ jobs:
               - 'bun.lock'
               - 'dependency-policy.json'
               - 'scripts/**'
-              - '.github/workflows/apk-lab-tests.yml'
+              - '.github/**'
+              - '.agents/**'
+              - 'skills-lock.json'
+              - '.editorconfig'
+              - '.gitattributes'
               - '.prettierrc.json'
               - '.oxlintrc.json'
             web:
@@ -55,13 +59,10 @@ jobs:
               - 'bun.lock'
               - '.prettierrc.json'
               - '.oxlintrc.json'
+            docs:
               - 'docs/**'
               - '*.md'
               - '.markdownlint-cli2.jsonc'
-            python:
-              - 'tools/apk-lab/**'
-              - '.github/scripts/**'
-              - 'extensions/**/*.py'
             android:
               - 'patches/**'
               - 'extensions/extension/**'
@@ -71,10 +72,12 @@ jobs:
               - 'gradle.properties'
               - 'extensions/adobescan-pdf-native/**'
               - 'extensions/nhl-adblock-native/**'
-              - '.github/scripts/**'
+              - 'tools/asset-prep/**'
             rust:
               - 'tools/play-metadata/**'
               - 'extensions/nhl-adblock-native/**'
+              - 'tools/asset-prep/**'
+              - 'tools/apk-lab/**'
             native:
               - 'extensions/adobescan-pdf-native/**'
               - '.clang-format'
@@ -97,7 +100,7 @@ jobs:
   test-web:
     name: Web Verification
     needs: detect-changes
-    if: needs.detect-changes.outputs.is_full_run == 'true' || needs.detect-changes.outputs.web == 'true'
+    if: needs.detect-changes.outputs.is_full_run == 'true' || needs.detect-changes.outputs.web == 'true' || needs.detect-changes.outputs.docs == 'true'
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -107,6 +110,9 @@ jobs:
         uses: oven-sh/setup-bun@v2
         with:
           bun-version: latest
+
+      - name: Setup Rust toolchain
+        uses: dtolnay/rust-toolchain@1.97.1
 
       - name: Install root dependencies
         run: bun install --frozen-lockfile
@@ -121,33 +127,6 @@ jobs:
 
       - name: Audit web domain
         run: bun scripts/audit.ts all --domain web
-
-  test-python:
-    name: Python Verification
-    needs: detect-changes
-    if: needs.detect-changes.outputs.is_full_run == 'true' || needs.detect-changes.outputs.python == 'true'
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v7
-
-      - name: Setup Bun
-        uses: oven-sh/setup-bun@v2
-        with:
-          bun-version: latest
-
-      - name: Setup uv
-        uses: astral-sh/setup-uv@v7
-        with:
-          version: 'latest'
-          enable-cache: true
-          python-version: '3.12'
-
-      - name: Sync apk-lab dependencies
-        run: uv sync --locked --project tools/apk-lab
-
-      - name: Audit python domain
-        run: bun scripts/audit.ts all --domain python
 
   test-android:
     name: Android Verification
@@ -164,7 +143,7 @@ jobs:
           fetch-depth: 0
 
       - name: Setup Java
-        uses: actions/setup-java@v6.1.0
+        uses: actions/setup-java@v6.3.0
         with:
           distribution: 'temurin'
           java-version: '21'
@@ -178,7 +157,7 @@ jobs:
         uses: actions/cache@v6
         with:
           path: ~/.gradle/caches/aidans-patches/fonts
-          key: emoji-font-${{ hashFiles('.github/scripts/prepare_emoji_font.py') }}
+          key: emoji-font-e37c7af6-${{ hashFiles('tools/asset-prep/Cargo.toml', 'tools/asset-prep/Cargo.lock', 'tools/asset-prep/src/**', 'tools/asset-prep/vendor/**') }}
           restore-keys: |
             emoji-font-
 
@@ -234,7 +213,14 @@ jobs:
           workspaces: |
             tools/play-metadata -> tools/play-metadata/target
             extensions/nhl-adblock-native -> extensions/nhl-adblock-native/target
+            tools/asset-prep -> tools/asset-prep/target
+            tools/apk-lab -> tools/apk-lab/target
 
+      - name: Build native apk-lab release binaries
+        run: cargo build --release --locked --manifest-path tools/apk-lab/Cargo.toml --bins
+
+      # audit --domain rust is the single owner of cargo fmt/clippy/check/test
+      # for every registered Rust project, including apk-lab.
       - name: Audit rust domain
         run: bun scripts/audit.ts all --domain rust
 
@@ -277,7 +263,6 @@ jobs:
       [
         detect-changes,
         test-web,
-        test-python,
         test-android,
         test-rust,
         test-native,
@@ -286,6 +271,19 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Aggregate Verification Status
+        env:
+          FULL_RUN: ${{ needs.detect-changes.outputs.is_full_run }}
+          CORE_CHANGED: ${{ needs.detect-changes.outputs.core }}
+          WEB_CHANGED: ${{ needs.detect-changes.outputs.web }}
+          DOCS_CHANGED: ${{ needs.detect-changes.outputs.docs }}
+          ANDROID_CHANGED: ${{ needs.detect-changes.outputs.android }}
+          RUST_CHANGED: ${{ needs.detect-changes.outputs.rust }}
+          NATIVE_CHANGED: ${{ needs.detect-changes.outputs.native }}
+          DETECT_RESULT: ${{ needs.detect-changes.result }}
+          WEB_RESULT: ${{ needs.test-web.result }}
+          ANDROID_RESULT: ${{ needs.test-android.result }}
+          RUST_RESULT: ${{ needs.test-rust.result }}
+          NATIVE_RESULT: ${{ needs.test-native.result }}
         run: |
           echo "### Test & Build Gate Verification Summary" >> "$GITHUB_STEP_SUMMARY"
           echo "" >> "$GITHUB_STEP_SUMMARY"
@@ -293,44 +291,87 @@ jobs:
           echo "| :--- | :--- | :--- |" >> "$GITHUB_STEP_SUMMARY"
 
           FAILED=0
+          DOMAIN_RUN=0
 
           check_job() {
             local name="$1"
             local result="$2"
-            local icon="⚪"
-            local outcome="Skipped (unaffected)"
+            local detail="$3"
+            local icon outcome
 
-            if [ "$result" = "success" ]; then
-              icon="🟢"
-              outcome="Passed"
-            elif [ "$result" = "failure" ]; then
-              icon="🔴"
-              outcome="Failed"
-              FAILED=1
-            elif [ "$result" = "cancelled" ]; then
-              icon="🟡"
-              outcome="Cancelled"
-              FAILED=1
-            elif [ "$result" = "skipped" ]; then
-              icon="⚪"
-              outcome="Skipped (unaffected)"
-            fi
+            case "$result" in
+              success)
+                icon="🟢"
+                outcome="Passed"
+                ;;
+              failure)
+                icon="🔴"
+                outcome="Failed"
+                FAILED=1
+                ;;
+              cancelled)
+                icon="🟡"
+                outcome="Cancelled"
+                FAILED=1
+                ;;
+              skipped)
+                icon="⚪"
+                outcome="Skipped ($detail)"
+                ;;
+              *)
+                icon="🔴"
+                outcome="Unexpected status '$result'"
+                FAILED=1
+                ;;
+            esac
 
             echo "| **$name** | $icon $result | $outcome |" >> "$GITHUB_STEP_SUMMARY"
           }
 
-          check_job "Detect Changes" "${{ needs.detect-changes.result }}"
-          check_job "Web (TypeScript / Site / Worker)" "${{ needs.test-web.result }}"
-          check_job "Python (APK Lab / Scripts)" "${{ needs.test-python.result }}"
-          check_job "Android (Patches / Extension)" "${{ needs.test-android.result }}"
-          check_job "Rust (Play Metadata / Native)" "${{ needs.test-rust.result }}"
-          check_job "Native (Adobe Scan C++)" "${{ needs.test-native.result }}"
+          count_domain() {
+            case "$1" in
+              success | failure | cancelled) DOMAIN_RUN=$((DOMAIN_RUN + 1)) ;;
+            esac
+          }
+
+          check_job "Detect Changes" "$DETECT_RESULT" "change detection did not complete"
+          check_job "Web (TypeScript / Site / Worker)" "$WEB_RESULT" \
+            "is_full_run=$FULL_RUN web=$WEB_CHANGED docs=$DOCS_CHANGED"
+          check_job "Android (Patches / Extension)" "$ANDROID_RESULT" \
+            "is_full_run=$FULL_RUN android=$ANDROID_CHANGED"
+          check_job "Rust (Play Metadata / Native)" "$RUST_RESULT" \
+            "is_full_run=$FULL_RUN rust=$RUST_CHANGED"
+          check_job "Native (Adobe Scan C++)" "$NATIVE_RESULT" \
+            "is_full_run=$FULL_RUN native=$NATIVE_CHANGED"
+
+          count_domain "$WEB_RESULT"
+          count_domain "$ANDROID_RESULT"
+          count_domain "$RUST_RESULT"
+          count_domain "$NATIVE_RESULT"
 
           echo "" >> "$GITHUB_STEP_SUMMARY"
 
           if [ "$FAILED" -ne 0 ]; then
             echo "❌ **One or more required verification jobs failed or were cancelled.**" >> "$GITHUB_STEP_SUMMARY"
             exit 1
-          else
-            echo "✅ **All required domain verification gates passed cleanly.**" >> "$GITHUB_STEP_SUMMARY"
           fi
+
+          # Zero-check guard: a green gate must include at least one domain job.
+          # Docs-only changes (docs/**, *.md, markdownlint config) are the sole
+          # allowance: they need only Web Verification, which runs the markdown
+          # lint and Documentation & Link Integrity tests. They must still run
+          # Web, so an all-skipped docs change fails here instead of passing.
+          if [ "$DOMAIN_RUN" -eq 0 ]; then
+            echo "❌ **No domain verification job ran.**" >> "$GITHUB_STEP_SUMMARY"
+            echo "" >> "$GITHUB_STEP_SUMMARY"
+            if [ "$DOCS_CHANGED" = "true" ]; then
+              echo "This is a docs-only change, but Web Verification was skipped. Docs-only runs must execute Web Verification for markdown and documentation tests." >> "$GITHUB_STEP_SUMMARY"
+            else
+              echo "Add the changed paths to a domain filter (or to the core filter) so this change cannot merge unverified." >> "$GITHUB_STEP_SUMMARY"
+            fi
+            echo "" >> "$GITHUB_STEP_SUMMARY"
+            echo "Detected changes: core=$CORE_CHANGED web=$WEB_CHANGED docs=$DOCS_CHANGED android=$ANDROID_CHANGED rust=$RUST_CHANGED native=$NATIVE_CHANGED is_full_run=$FULL_RUN." >> "$GITHUB_STEP_SUMMARY"
+            exit 1
+          fi
+
+          echo "✅ **All required domain verification gates passed cleanly.**" >> "$GITHUB_STEP_SUMMARY"

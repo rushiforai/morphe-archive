@@ -45,9 +45,9 @@ Consulta la [matriz de compatibilidad](docs/COMPATIBILIDAD.md) para conocer los 
 
 1. Instala [MicroG-RE](https://github.com/MorpheApp/MicroG-RE/releases) en el TV.
 2. Añade este repositorio como fuente de parches en Morphe Manager:
-   https://github.com/jair1c/farotv-patches
+   https://github.com/KyVexo/farotv-patches
 
-   <a href="https://morphe.software/add-source?github=jair1c/farotv-patches">
+   <a href="https://morphe.software/add-source?github=KyVexo/farotv-patches">
      <img src=".github/assets/add-to-morphe.svg" alt="Add to Morphe" height="48">
    </a>
 
@@ -58,7 +58,7 @@ Este repositorio **no** distribuye el APK de YouTube, ni original ni parcheado.
 ## 🩹 Lista de parches
 
 <!-- PATCHES_START EXPANDED -->
-> **[v1.7.0](https://github.com/jair1c/farotv-patches/releases/tag/v1.7.0)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;9 patches total
+> **[v1.7.0](https://github.com/KyVexo/farotv-patches/releases/tag/v1.7.0)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;9 patches total
 <details open>
 <summary>📦 YouTube for Android TV&nbsp;&nbsp;•&nbsp;&nbsp;8 patches</summary>
 <br>

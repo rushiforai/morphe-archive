@@ -43,7 +43,10 @@ import java.util.regex.Pattern;
 import java.util.zip.GZIPInputStream;
 import java.util.zip.GZIPOutputStream;
 
+import app.hoitruyenchu.extension.itruyenchu.patches.shared.AppInfo;
 import app.hoitruyenchu.extension.itruyenchu.patches.shared.HtcSettings;
+import app.hoitruyenchu.extension.itruyenchu.patches.shared.JsBridge;
+import app.hoitruyenchu.extension.itruyenchu.patches.shared.JsScripts;
 import okhttp3.OkHttpClient;
 
 /**
@@ -58,8 +61,9 @@ import okhttp3.OkHttpClient;
  * <p>
  * This class reads the first kilobyte of those files (HTTP Range, no login, nothing recorded on the
  * server), keeps the titles in {@code files/htc-chapter-titles/{slug}.json} and puts them into the
- * chapter list when the app downloads it, and into the copy the app keeps in AsyncStorage
- * ({@code s3:{url}}, refreshed every hour).
+ * chapter list when the app downloads it, and into the copy app 2.1.0 keeps in AsyncStorage
+ * ({@code s3:{url}}, refreshed every hour). App 3.0.0 keeps that copy in memory: {@link TitlesScript}
+ * makes it download the list again once titles that were still loading have arrived.
  * <p>
  * Public static methods are called from patched smali.
  */
@@ -78,6 +82,8 @@ public final class ChapterTitlesPatch {
 
     /** How long the app's chapter list request may wait for missing titles. */
     private static final long LIST_WAIT_MS = 2_500;
+    /** How long the titles still loading after that are waited for before the app is told (3.0.0). */
+    private static final long LOAD_NOTIFY_MS = 90_000;
     /** Chapters whose text has no "Chương N: title" line are tried again after this time. */
     private static final long NO_TITLE_RETRY_MS = 3L * 24 * 60 * 60 * 1000;
     private static final int RANGE_BYTES = 1024;
@@ -107,6 +113,11 @@ public final class ChapterTitlesPatch {
 
     // ---------------------------------------------------------------------------------------------
     // Hooks
+
+    /** End of ReactInstance.loadJSBundle(loader): app 3.0.0 gets {@link TitlesScript} after the bundle. */
+    public static void afterMainBundle(Object reactInstance) {
+        if (AppInfo.isV3()) JsScripts.load(reactInstance, TitlesScript.FILE_NAME, TitlesScript.SCRIPT, TAG);
+    }
 
     /** OkHttpClientProvider.createClientBuilder(): the app's network client. */
     public static void onCreateClientBuilder(OkHttpClient.Builder builder) {
@@ -157,6 +168,7 @@ public final class ChapterTitlesPatch {
             if (!done.await(LIST_WAIT_MS, TimeUnit.MILLISECONDS)) {
                 Log.i(TAG, slug + ": " + done.getCount() + " of " + missing.size()
                         + " titles still loading in the background");
+                if (AppInfo.isV3()) notifyWhenLoaded(book, done, book.known());
             }
         }
         int replaced = book.apply(list);
@@ -164,6 +176,25 @@ public final class ChapterTitlesPatch {
         if (replaced == 0) return null;
         byte[] json = list.toString().getBytes(StandardCharsets.UTF_8);
         return gzip ? gzip(json) : json;
+    }
+
+    /**
+     * App 3.0.0: once the titles still loading are there, tells {@link TitlesScript} to download the
+     * chapter list of the book again (the app keeps the first one in memory for an hour).
+     */
+    private static void notifyWhenLoaded(final Book book, final CountDownLatch done, final int knownBefore) {
+        Thread thread = new Thread(() -> {
+            try {
+                done.await(LOAD_NOTIFY_MS, TimeUnit.MILLISECONDS);
+            } catch (InterruptedException ignored) {
+            }
+            int known = book.known();
+            if (known > knownBefore && JsBridge.emit(TitlesScript.EVENT, book.slug)) {
+                Log.i(TAG, book.slug + ": " + (known - knownBefore) + " new titles, chapter list to reload");
+            }
+        }, "HTC-Titles-wait");
+        thread.setDaemon(true);
+        thread.start();
     }
 
     /** Puts the known titles into the app's stored copy {"timestamp":..,"data":{chapter list}}. */
@@ -257,6 +288,11 @@ public final class ChapterTitlesPatch {
         Book(String slug, File file) {
             this.slug = slug;
             this.file = file;
+        }
+
+        /** @return number of chapters with a known real title. */
+        synchronized int known() {
+            return titles.size();
         }
 
         /** Chapters of the list with a generic title and no known real title, most useful first. */

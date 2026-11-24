@@ -13,6 +13,7 @@ import java.util.List;
 
 import app.morphe.extension.shared.settings.IntegerSetting;
 import app.morphe.extension.tiktok.captions.CaptionStyle;
+import app.morphe.extension.tiktok.cleardisplay.RememberClearDisplayPatch;
 import app.morphe.extension.tiktok.feed.BurnInGuard;
 import app.morphe.extension.tiktok.feed.FeedTextSize;
 import app.morphe.extension.tiktok.feed.GridSort;
@@ -358,6 +359,15 @@ public final class InterfacePreferenceCategory extends ConditionalPreferenceCate
             ));
             addPreference(new TogglePreference(
                     context,
+                    "Date instead of age",
+                    "Recent videos show the date they were posted by the creator's name, like 10-12, in place of an age like 2d ago. Day before month and Write the month as a word change it the same way.",
+                    Settings.PUBLISH_DATE_INSTEAD_OF_AGE
+            ));
+        }
+        // TikTok Lite's Always show publish date has no profile grid hooks (#502).
+        if (SettingsStatus.alwaysShowPublishDateEnabled && SettingsStatus.publishDateGridsEnabled) {
+            addPreference(new TogglePreference(
+                    context,
                     "Show dates on profile grids",
                     "Show the day each video was posted under its view count on profile grids.",
                     Settings.PUBLISH_DATE_ON_GRID
@@ -469,11 +479,34 @@ public final class InterfacePreferenceCategory extends ConditionalPreferenceCate
                     "Shows the country's flag in place of its two letters, by the creator's name and by a commenter's time.",
                     Settings.REGION_AS_FLAG
             ));
+        }
+        // TikTok Lite (#502) only adds the country after the date by the creator's name.
+        if (SettingsStatus.authorRegionEnabled && SettingsStatus.authorRegionFullRowEnabled) {
             addPreference(new TogglePreference(
                     context,
                     "Show the country and date under the caption",
                     "Moves the country and the post date off the creator's row onto a line of their own below the caption.",
                     Settings.COUNTRY_DATE_UNDER_CAPTION
+            ));
+            NumberInputPreference countryDateSize = new NumberInputPreference(context, "Country and date text size",
+                    L10n.f(context, "Use 0 to match the post date's size, or %1$d to %2$d. Sizes only the line under the caption and keeps Android's font scaling.",
+                            FeedTextSize.MIN_TEXT_SIZE, FeedTextSize.MAX_TEXT_SIZE),
+                    Settings.COUNTRY_DATE_TEXT_SIZE, "%1$s point", "%1$s points") {
+                @Override protected int clamp(int value) { return FeedTextSize.clampSize(value); }
+            };
+            countryDateSize.zeroMeans("Post date's size");
+            addPreference(countryDateSize);
+            addPreference(new NumberInputPreference(
+                    context,
+                    "Country and date opacity",
+                    "How solid the line under the caption is drawn, from 10 to 100. Lower lets more of the video show through.",
+                    Settings.COUNTRY_DATE_OPACITY, "%1$s%%"
+            ));
+            addPreference(new TogglePreference(
+                    context,
+                    "Shadow under the country and date",
+                    "Draws a dark shadow under the line's letters so it stays readable on bright videos.",
+                    Settings.COUNTRY_DATE_SHADOW
             ));
             addPreference(new TogglePreference(
                     context,
@@ -673,24 +706,27 @@ public final class InterfacePreferenceCategory extends ConditionalPreferenceCate
         // They were the tail of the Feed filter page under "Feed elements", a page about
         // which videos arrive.
         if (SettingsStatus.feedFilterEnabled) {
-            addPreference(new TogglePreference(
-                    context,
-                    "Hide the search bar below videos",
-                    "Hide the suggested-search strip above the bottom tabs and let video details and side controls use its space. The top search button and comments stay unchanged.",
-                    Settings.HIDE_BOTTOM_SEARCH_BAR
-            ));
-            addPreference(new TogglePreference(
-                    context,
-                    "Hide the playlist bar",
-                    "Hide the playlist bar along the bottom of videos that belong to a series.",
-                    Settings.HIDE_PLAYLIST_BAR
-            ));
-            addPreference(new TogglePreference(
-                    context,
-                    "Hide the event badge",
-                    "Hide the floating promotional badge over the feed.",
-                    Settings.HIDE_EVENT_BADGE
-            ));
+            // TikTok Lite's Feed filter (#48) filters items only, so these three do nothing there.
+            if (SettingsStatus.fullFeedFilterEnabled) {
+                addPreference(new TogglePreference(
+                        context,
+                        "Hide the search bar below videos",
+                        "Hide the suggested-search strip above the bottom tabs and let video details and side controls use its space. The top search button and comments stay unchanged.",
+                        Settings.HIDE_BOTTOM_SEARCH_BAR
+                ));
+                addPreference(new TogglePreference(
+                        context,
+                        "Hide the playlist bar",
+                        "Hide the playlist bar along the bottom of videos that belong to a series.",
+                        Settings.HIDE_PLAYLIST_BAR
+                ));
+                addPreference(new TogglePreference(
+                        context,
+                        "Hide the event badge",
+                        "Hide the floating promotional badge over the feed.",
+                        Settings.HIDE_EVENT_BADGE
+                ));
+            }
             addPreference(new TogglePreference(
                     context,
                     "Hide inserted cards",
@@ -851,6 +887,13 @@ public final class InterfacePreferenceCategory extends ConditionalPreferenceCate
                     "%1$s millisecond", "%1$s milliseconds");
             delay.zeroMeans("No delay");
             addPreference(delay);
+            addPreference(new TogglePreference(context, "Fade the controls out",
+                    "The buttons, caption and tabs fade away instead of vanishing at once, and a touch during the fade brings them back. With Android's animations turned off they still vanish at once.",
+                    Settings.CLEAR_DISPLAY_FADE_OUT));
+            addPreference(new TogglePreference(context, "Tap brings the controls back",
+                    L10n.f(context, "A tap shows the hidden controls again instead of pausing the video. They hide again after the delay, or after %1$d seconds if the delay is shorter.",
+                            (int) (RememberClearDisplayPatch.TAP_SHOW_MS / 1000)),
+                    Settings.TAP_SHOWS_CLEARED_CONTROLS));
         }
         // Beside the automatic switch rather than at the end of Around the video, where the #84
         // reporter couldn't find it. It belongs to the overlay patch, so it shows without the
@@ -1002,7 +1045,11 @@ public final class InterfacePreferenceCategory extends ConditionalPreferenceCate
             addPreference(new ChoicePreference(context, "Burn-in guard", Settings.BURN_IN_GUARD,
                     new String[]{"Off", "Dim when idle", "Dim when idle and shift"},
                     new String[]{BurnInGuard.OFF, BurnInGuard.DIM, BurnInGuard.DIM_AND_SHIFT})
-                    .withNote("For OLED screens. After 5 seconds without a touch, the buttons, caption and tabs over the video dim to a quarter, and your next touch brings them back. Shift also moves everything on the feed a few pixels every 2 minutes."));
+                    .withNote("For OLED screens. After 5 seconds without a touch, the buttons, caption and tabs over the video dim to the level below, and your next touch brings them back. Shift also moves everything on the feed a few pixels every 2 minutes."));
+            addPreference(new NumberInputPreference(context, "Burn-in guard dim level",
+                    L10n.f(context, "How solid the buttons, caption and tabs are while dimmed, from %1$d to %2$d. Lower dims them more.",
+                            BurnInGuard.MIN_IDLE_LEVEL, BurnInGuard.MAX_IDLE_LEVEL),
+                    Settings.BURN_IN_GUARD_LEVEL, "%1$s%%"));
         }
     }
 

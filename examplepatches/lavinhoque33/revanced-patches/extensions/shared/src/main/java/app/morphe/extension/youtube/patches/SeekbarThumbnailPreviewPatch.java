@@ -642,6 +642,11 @@ public class SeekbarThumbnailPreviewPatch {
                     // Wait until the first bitmap so the popup shows immediately with the correct
                     // aspect ratio and Y offset, avoiding a jump from a default 16:9 position.
                     if (rootView.getWindowToken() != null && lastAppliedBitmap != null) {
+                        // Keep the frame padding and image outline; only hide the white fill.
+                        views.previewFrame.getBackground().setAlpha(
+                                Settings.HIDE_THUMBNAIL_PREVIEW_BORDER.get() ? 0 : 255
+                        );
+
                         thumbnailPreviewPopup.showAtLocation(rootView, Gravity.NO_GRAVITY, targetX, targetY);
                     }
                 } else {

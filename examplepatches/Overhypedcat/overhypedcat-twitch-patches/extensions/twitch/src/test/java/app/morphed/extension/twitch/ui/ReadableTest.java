@@ -33,8 +33,15 @@ public class ReadableTest {
         assertEquals("Quality unlock: connected to usher.ttvnw.net token Cr4FAAAAAAAA…",
                 Readable.message("Quality unlock: tunnel up through https://usher.ttvnw.net/api/x.m3u8?sig=1 token "
                         + "Cr4FAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"));
-        assertEquals("Running, 120 of 512 MB memory used, 30 requests",
-                Readable.message("Status: threads=80, memory=120/512MB, 30 requests"));
+        assertNull("routine: in the file only",
+                Readable.message("Status: app CPU 12%, java heap 80/512 MB, phone RAM free 2100/8000 MB, heat none, threads 80"));
+        assertEquals("Phone strained: app CPU 40%, phone RAM free 90/8000 MB (LOW), heat SEVERE (slowed down)",
+                Readable.message("Status: app CPU 40%, phone RAM free 90/8000 MB (LOW), heat SEVERE (slowed down)"));
+        assertNull(Readable.message("Video: PLAYING 1080p60, buffer ahead 2.1 s, latency 4.0 s, 60 fps shown, 0 dropped"));
+        assertEquals("Screen: blocked, busy in: a.B.c:1 < d.E.f:2 < g.H.i:3 < …",
+                Readable.message("Screen: blocked, busy in: a.B.c:1 < d.E.f:2 < g.H.i:3 < j.K.l:4 < m.N.o:5"));
+        assertEquals("Video: BUFFERING after 12.0 s PLAYING, 1080p60, buffer ahead 0.0 s",
+                Readable.message("Video: BUFFERING after 12.0 s PLAYING, 1080p60, buffer ahead 0.0 s"));
     }
 
     @Test

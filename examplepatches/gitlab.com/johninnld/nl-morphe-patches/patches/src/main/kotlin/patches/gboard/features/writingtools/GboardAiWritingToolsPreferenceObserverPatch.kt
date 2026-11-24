@@ -24,9 +24,9 @@ internal val gboardAiWritingTools1853PreferenceObserverPatch = bytecodePatch(
         val target = GboardMethodTarget("Lahvo;", "x", listOf("I", "Z"), "Z")
         val original = target.resolve(this)
         check(original.accessFlags == (AccessFlags.PUBLIC.value or AccessFlags.FINAL.value))
-        val owner = mutableClass("Legd;")
+        val owner = mutableClass(original.definingClass)
         check(owner.methods.none { it.name == "morpheWritingToolsStockRead" })
-        if (original.implementation!!.instructions.any { it.isMethodReference("Legd;->morpheCursorStockx(IZ)Z") }) {
+        if (original.implementation!!.instructions.any { it.isMethodReference("${original.definingClass}->morpheCursorStockx(IZ)Z") }) {
             val returns = original.implementation!!.instructions.indices.filter { original.implementation!!.instructions[it].isOpcode("RETURN") }
             check(returns.size == 1 && original.implementation!!.registerCount == 4)
             original.addInstructions(returns.single(), RuntimeCallEmitter.invoke(

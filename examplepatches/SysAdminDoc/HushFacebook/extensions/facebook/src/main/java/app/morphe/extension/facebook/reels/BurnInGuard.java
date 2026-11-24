@@ -37,10 +37,13 @@ import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.IdentityHashMap;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 import java.util.WeakHashMap;
@@ -51,7 +54,9 @@ import app.morphe.extension.facebook.settings.Settings;
 import app.morphe.extension.facebook.stories.StorySeenButton;
 import app.morphe.extension.shared.Utils;
 import app.morphe.extension.shared.diagnostics.HookStatus;
+import app.morphe.extension.shared.settings.BaseSettings;
 import app.morphe.extension.shared.settings.Setting;
+import app.morphe.extension.shared.settings.preference.LogBufferManager;
 
 /**
  * Burn-in guard (#288), HushGram's ported to Facebook: keeps a reel's fixed controls from sitting on
@@ -81,7 +86,9 @@ import app.morphe.extension.shared.settings.Setting;
  *
  * <p>What a touch is: a finger going down on something that takes taps other than the video itself
  * ({@link #quietAt}), or moving as a swipe does. A tap on the video (to pause or play, a double tap
- * to like) leaves the controls dimmed and the wait running. With Stay dim when I tap on ({@link
+ * to like) leaves the controls dimmed and the wait running, unless Tap the video to bring them back is
+ * on ({@link #tapBrings}, #523): then a tap on the video while dimmed brings them back and Facebook gets
+ * a cancel in place of its lift, so the video doesn't pause. With Stay dim when I tap on ({@link
  * #stayDim}), no finger on the Reels screen is a touch, swipes to the next reel included: the wait
  * runs from arriving on Reels, and once dimmed the controls stay dimmed until you leave it.
  *
@@ -147,6 +154,8 @@ public final class BurnInGuard {
     static final long SETTLE_MS = 600L;
     /** The most views looked at in one search, so a strange tree can't make a long one. */
     static final int MAX_VIEWS = 4000;
+    /** The views the Debug report's story lines name from each of kept and dimmed, biggest first. */
+    static final int REPORT_VIEWS = 16;
 
     /** Where the content goes, in steps: where Facebook put it, then once around it. */
     private static final int[][] PLACES = {
@@ -157,6 +166,7 @@ public final class BurnInGuard {
     static final String COUNT_SHIFTED = "Reels screen moved a step";
     static final String COUNT_QUIET = "Reels tap on the video left the controls dimmed";
     static final String COUNT_STAY_DIM = "Reels touch left the controls dimmed (Stay dim when I tap)";
+    static final String COUNT_TAP_BACK = "Reels tap on the video brought the controls back (Tap the video to bring them back)";
 
     /** The application this process's callbacks went on, so a second start adds none. */
     private static WeakReference<Application> watching = new WeakReference<>(null);
@@ -171,6 +181,21 @@ public final class BurnInGuard {
     private static final Focus FOCUS = new Focus();
     private static final Layout LAYOUT = new Layout();
     private static final Draw DRAW = new Draw();
+
+    /**
+     * The Debug report's look at the story viewer (#523): what the last dim pass there kept bright and
+     * what it dimmed, each view by class, resource name, box, share of the window, and whether it
+     * takes taps. Recorded only while Debug logging is on. No text or description on the screen is
+     * read.
+     */
+    public static final LogBufferManager.ReportSection REPORT = new LogBufferManager.ReportSection() {
+        @Override public String title() { return "BURN-IN GUARD"; }
+        @Override public List<String> lines() { return report(SystemClock.elapsedRealtime()); }
+        @Override public boolean isAppState() { return true; }
+    };
+    /** The story viewer's last dim pass, as the report writes it, or null before one. */
+    private static volatile List<String> storyLayout;
+    private static volatile long storyLayoutAt;
 
     private static Handler handler;
     /** The activity in front, the one every pass looks at. */
@@ -203,6 +228,8 @@ public final class BurnInGuard {
     private static boolean quiet;
     /** Where on the screen that finger went down. */
     private static float quietX, quietY;
+    /** That finger went down while the controls were dimmed, with Tap the video to bring them back on. */
+    private static boolean tapBack;
     /** When the next timed pass is due, or -1 when none is. */
     private static long tickAt = -1L;
     /** When a look made while guarding first didn't find the Reels screen, or -1 while none has. */
@@ -249,6 +276,11 @@ public final class BurnInGuard {
     /** Stay dim when I tap: no finger on the Reels screen brings the controls back. Off while paused. */
     static boolean stayDim() {
         return Settings.BURN_IN_STAY_DIM.get();
+    }
+
+    /** Tap the video to bring them back: a tap on the video while dimmed is a touch, kept from Facebook (#523). */
+    static boolean tapBrings() {
+        return Settings.BURN_IN_TAP_BACK.get();
     }
 
     /** The Dim to percent typed as [saved], held to 0 to 100: 25 when it's blank or not a number. */
@@ -335,11 +367,15 @@ public final class BurnInGuard {
             Window window = activity.getWindow();
             View decor = window == null ? null : window.peekDecorView();
             BurnInMode mode = mode();
-            watchLayouts(mode != BurnInMode.OFF);
+            // Faint Clean mode button (#519) looks for the Reels screen this way too, whatever the guard's choice.
+            boolean faint = CleanExitSpot.faintOn();
+            watchLayouts(mode != BurnInMode.OFF || faint);
             long now = SystemClock.uptimeMillis();
-            List<View> surfaces = mode == BurnInMode.OFF || decor == null || camera(activity)
+            List<View> surfaces = (mode == BurnInMode.OFF && !faint) || decor == null || camera(activity)
                     ? Collections.<View>emptyList() : playing(decor);
-            boolean on = decor != null && reelOf(decor, surfaces) != null;
+            View reel = decor == null ? null : reelOf(decor, surfaces);
+            if (faint && reel != null && !frontStory) CleanExitSpot.sawReel(reel);
+            boolean on = mode != BurnInMode.OFF && reel != null;
             if (!on && guarding && mode != BurnInMode.OFF && decor != null) {
                 // Mid-swipe, or a moment without focus: what's dimmed stays so, and a second look decides.
                 if (doubtSince < 0L) doubtSince = now;
@@ -582,8 +618,71 @@ public final class BurnInGuard {
             if (view != null && view.getAlpha() == entry.getValue()[1]) view.setAlpha(entry.getValue()[0]);
             entries.remove();
         }
+        if (frontStory) noteStoryLayout(decor, surfaces, beside);
         float factor = factor(level());
         for (View view : beside) dim(view, factor);
+    }
+
+    /** The Debug report's story section: nothing until the story viewer has dimmed with Debug logging on. */
+    static List<String> report(long now) {
+        List<String> layout = storyLayout;
+        if (layout == null) return Collections.emptyList();
+        List<String> out = new ArrayList<>();
+        out.add(String.format(Locale.ROOT, "story viewer, last dimmed %d s before this report",
+                Math.max(0L, (now - storyLayoutAt) / 1000L)));
+        out.addAll(layout);
+        return out;
+    }
+
+    /** Keeps what a dim pass in the story viewer kept bright and dimmed, with Debug logging on (#523). */
+    private static void noteStoryLayout(View decor, List<View> kept, Collection<View> dimmed) {
+        try {
+            if (!Utils.settingsReady() || !BaseSettings.DEBUG.get()) return;
+            long window = (long) decor.getWidth() * decor.getHeight();
+            if (window <= 0L) return;
+            List<String> lines = new ArrayList<>();
+            lines.add(String.format(Locale.ROOT, "window %dx%d", decor.getWidth(), decor.getHeight()));
+            for (View view : biggest(kept)) lines.add("kept: " + describe(view, window));
+            for (View view : biggest(dimmed)) lines.add("dimmed: " + describe(view, window));
+            storyLayout = lines;
+            storyLayoutAt = SystemClock.elapsedRealtime();
+        } catch (Throwable ignored) {
+            // The report goes without these lines rather than the pass going without its dim.
+        }
+    }
+
+    /** The first {@link #REPORT_VIEWS} of [views] by size, biggest first. */
+    private static List<View> biggest(Collection<View> views) {
+        List<View> sorted = new ArrayList<>(views);
+        Collections.sort(sorted, new Comparator<View>() {
+            @Override
+            public int compare(View a, View b) {
+                return Long.compare((long) b.getWidth() * b.getHeight(), (long) a.getWidth() * a.getHeight());
+            }
+        });
+        return sorted.size() > REPORT_VIEWS ? sorted.subList(0, REPORT_VIEWS) : sorted;
+    }
+
+    /** A view by class and resource name, its box in the window, its share of the window, and whether it takes taps. */
+    static String describe(View view, long window) {
+        String name = view.getClass().getName();
+        if (name.startsWith("android.") || name.startsWith("androidx.")) name = view.getClass().getSimpleName();
+        StringBuilder text = new StringBuilder(name);
+        if (view.getId() != View.NO_ID) {
+            try {
+                text.append(' ').append(view.getResources().getResourceEntryName(view.getId()));
+            } catch (Throwable ignored) {
+                // An id made at run time has no name.
+            }
+        }
+        int[] at = new int[2];
+        view.getLocationInWindow(at);
+        long area = (long) view.getWidth() * view.getHeight();
+        text.append(String.format(Locale.ROOT, " [%d,%d %dx%d, %d%%]", at[0], at[1], view.getWidth(),
+                view.getHeight(), Math.round(100.0 * area / window)));
+        if (view.isClickable()) text.append(", takes taps");
+        if (view instanceof ViewGroup) text.append(", ").append(((ViewGroup) view).getChildCount()).append(" children");
+        return text.toString();
     }
 
     @Nullable
@@ -829,35 +928,48 @@ public final class BurnInGuard {
      * A finger event on the window. While the guard is on, one that goes down on the video itself
      * isn't a touch ({@link #quietAt}) until it lifts, unless it moves farther than a tap does or a
      * second finger joins: a swipe to the next reel or a pinch counts from then. With Stay dim when I
-     * tap on, no finger on the Reels screen is a touch at all.
+     * tap on, no finger on the Reels screen is a touch at all. With Tap the video to bring them back on
+     * (#523), a tap on the video that went down while the controls were dimmed is a touch when it lifts,
+     * shorter than a long press, and answers true: the window hands Facebook a cancel for that lift, so
+     * the video neither pauses nor plays. Anything else answers false and goes to Facebook as it came.
      */
-    static void seen(MotionEvent event) {
+    static boolean seen(MotionEvent event) {
         int action = event.getActionMasked();
         if (guarding && stayDim()) {
             quiet = false;
+            tapBack = false;
             fingerDown = false;
             if (action == MotionEvent.ACTION_DOWN) HookStatus.counted(FAMILY, COUNT_STAY_DIM);
-            return;
+            return false;
         }
         if (action == MotionEvent.ACTION_DOWN) {
             quiet = guarding && quietAt(event.getRawX(), event.getRawY());
+            tapBack = quiet && dimming && tapBrings();
             if (quiet) {
                 quietX = event.getRawX();
                 quietY = event.getRawY();
                 HookStatus.counted(FAMILY, COUNT_QUIET);
-                return;
+                return false;
             }
         } else if (quiet) {
             if (action == MotionEvent.ACTION_UP || action == MotionEvent.ACTION_CANCEL) {
                 quiet = false;
-                return;
+                boolean back = tapBack && action == MotionEvent.ACTION_UP
+                        && event.getEventTime() - event.getDownTime() < ViewConfiguration.getLongPressTimeout();
+                tapBack = false;
+                if (!back) return false;
+                HookStatus.counted(FAMILY, COUNT_TAP_BACK);
+                touched(MotionEvent.ACTION_UP);
+                return true;
             }
-            if (action == MotionEvent.ACTION_MOVE && !swiped(event)) return;
+            if (action == MotionEvent.ACTION_MOVE && !swiped(event)) return false;
             quiet = false;
+            tapBack = false;
             touched(MotionEvent.ACTION_DOWN);
-            return;
+            return false;
         }
         touched(action);
+        return false;
     }
 
     /** The quiet finger moved farther from where it went down than a tap does. */
@@ -982,23 +1094,31 @@ public final class BurnInGuard {
         }
 
         @Override public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
+            MotionEvent kept = null;
             if (args != null && args.length == 1 && args[0] instanceof MotionEvent
                     && "dispatchTouchEvent".equals(method.getName())) {
+                MotionEvent event = (MotionEvent) args[0];
                 try {
-                    seen((MotionEvent) args[0]);
+                    // A tap that brought the dimmed controls back reaches Facebook as a cancel (#523).
+                    if (seen(event)) {
+                        kept = MotionEvent.obtain(event);
+                        kept.setAction(MotionEvent.ACTION_CANCEL);
+                    }
                 } catch (Throwable failure) {
                     HookStatus.threw(FAMILY, "burn-in guard touch", failure);
                 }
                 try {
-                    ReelCleanReturn.touched(((MotionEvent) args[0]).getActionMasked());
+                    ReelCleanReturn.touched(event.getActionMasked());
                 } catch (Throwable failure) {
                     HookStatus.threw(FAMILY, "Back to Clean mode touch", failure);
                 }
             }
             try {
-                return method.invoke(inner, args);
+                return method.invoke(inner, kept == null ? args : new Object[]{kept});
             } catch (InvocationTargetException failure) {
                 throw failure.getCause() == null ? failure : failure.getCause();
+            } finally {
+                if (kept != null) kept.recycle();
             }
         }
     }
@@ -1093,10 +1213,13 @@ public final class BurnInGuard {
         tickAt = -1L;
         touchedAt = 0L;
         doubtSince = -1L;
+        quiet = false;
+        tapBack = false;
         LAYOUT.lastLook = Long.MIN_VALUE / 2;
         DIMMED.clear();
         MOVED.clear();
         OVERLAYS.clear();
         WRAPPED.clear();
+        storyLayout = null;
     }
 }

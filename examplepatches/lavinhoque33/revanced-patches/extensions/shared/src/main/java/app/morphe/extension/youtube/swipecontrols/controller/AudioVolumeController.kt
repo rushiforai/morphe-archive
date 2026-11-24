@@ -4,6 +4,7 @@
  * https://github.com/MorpheApp/morphe-patches/pull/3412
  *
  * See the included NOTICE file for GPLv3 Section 7 terms that apply to this code.
+ * Modified by lavinhoque33, 2026-11-24.
  */
 
 package app.morphe.extension.youtube.swipecontrols.controller
@@ -25,6 +26,7 @@ import kotlin.properties.Delegates
 class AudioVolumeController(
     context: Context,
     private val targetStream: Int = AudioManager.STREAM_MUSIC,
+    private val allowBoost: Boolean = true,
 ) {
 
     /**
@@ -90,7 +92,7 @@ class AudioVolumeController(
      * The current boost above the maximum volume, in steps. Always zero if volume boost is off.
      */
     val boostStep: Int
-        get() = SoundBoostPatch.getBoostStep()
+        get() = if (allowBoost) SoundBoostPatch.getBoostStep() else 0
 
     /**
      * Adjusts the volume by whole steps, snapping to a multiple of [volumeStepSize]
@@ -102,6 +104,11 @@ class AudioVolumeController(
      */
     fun adjustVolumeBySteps(steps: Int) {
         if (!isAvailable) return
+
+        if (!allowBoost) {
+            adjustSystemVolumeBySteps(steps)
+            return
+        }
 
         var remaining = steps
         while (remaining != 0) {

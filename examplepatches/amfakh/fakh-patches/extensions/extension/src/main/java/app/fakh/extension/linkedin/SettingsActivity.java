@@ -1,3 +1,11 @@
+/*
+ * Portions based on Michii Patches by heyymichii, GPLv3:
+ * https://github.com/heyymichii/michii-patches
+ *
+ * Modifications copyright 2026 amfakh
+ * SPDX-License-Identifier: GPL-3.0-only
+ */
+
 package app.fakh.extension.linkedin;
 
 import android.app.ActionBar;
@@ -22,7 +30,6 @@ import android.text.InputType;
 import android.text.TextWatcher;
 import android.util.TypedValue;
 import android.view.Gravity;
-import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.Window;
@@ -43,6 +50,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Locale;
 
+import app.fakh.extension.shared.RowDrag;
 import app.fakh.extension.shared.TabSheet;
 
 /**
@@ -53,7 +61,6 @@ import app.fakh.extension.shared.TabSheet;
 @SuppressWarnings("unused")
 public final class SettingsActivity extends Activity {
     static final String BRAND = "Fakh Patches";
-    private static final String MICHII_URL = "https://github.com/heyymichii/michii-patches";
     static final int ACCENT_DARK = 0xFF2DBCB1;
     static final int ACCENT_LIGHT = 0xFF00897B;
 
@@ -318,7 +325,7 @@ public final class SettingsActivity extends Activity {
             categories.add(new Category("Download")
                     .toggle(Settings.DOWNLOAD_MEDIA, true, "Download media",
                             "On profile photos and banners, and in the ⋯ menu of posts.")
-                    .value("Save location", new ValueRow() {
+                    .value("Download location", new ValueRow() {
                         public String currentValue() {
                             return Settings.downloadSplitByType()
                                     ? I18n.f("Photos: %1$s\nVideos: %2$s", Downloads.location(false),
@@ -554,22 +561,6 @@ public final class SettingsActivity extends Activity {
             content.addView(sectionHeader(categories.get(i).title));
             renderItems(categories.get(i).items, null);
         }
-        content.addView(credit());
-    }
-
-    /** Small footer crediting the project these patches are based on; opens its GitHub page. */
-    private View credit() {
-        TextView view = text("Based on Michii Patches by heyymichii", 13, textSecondary, false);
-        view.setPadding(dp(24), dp(24), dp(24), dp(16));
-        view.setBackground(ripple(false));
-        view.setOnClickListener(v -> {
-            try {
-                startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse(MICHII_URL)));
-            } catch (Exception e) {
-                Downloads.toast(this, "Can't open the link");
-            }
-        });
-        return view;
     }
 
     private void renderItems(List<Item> items, List<String> categoryNames) {
@@ -1007,12 +998,20 @@ public final class SettingsActivity extends Activity {
             row.addView(icon, 0, iconParams);
             ImageView handle = new ImageView(this);
             LinearLayout.LayoutParams handleParams = new LinearLayout.LayoutParams(dp(24), dp(24));
-            handleParams.setMarginStart(dp(12));
+            handleParams.setMarginEnd(dp(12));
             if (spec[1] != null) {
                 handle.setImageDrawable(new IconDrawable(IconDrawable.DRAG_HANDLE, textSecondary));
-                handle.setOnTouchListener(new RowDrag(rows, row));
+                handle.setOnTouchListener(new RowDrag(rows, row, background, () -> {
+                    StringBuilder order = new StringBuilder();
+                    for (int r = 1; r < rows.getChildCount(); r++) {
+                        if (order.length() > 0) order.append(',');
+                        order.append(rows.getChildAt(r).getTag());
+                    }
+                    Settings.setString(Settings.TAB_ORDER, order.toString());
+                    showRestartBanner();
+                }));
             }
-            row.addView(handle, handleParams);
+            row.addView(handle, 0, handleParams);
             rows.addView(row);
         }
         sheet = TabSheet.show(this, rootView, "Navigation bar tabs", "Home is always shown first. Drag ≡ to sort.",
@@ -1063,77 +1062,6 @@ public final class SettingsActivity extends Activity {
             }
         }
         return new IconDrawable(spec[3], textPrimary);
-    }
-
-    /**
-     * Drags a row of the tabs sheet by its handle. The rows it passes slide out of its way while it moves, and on
-     * release it is moved to that place and the order is saved. Views are only moved on release, since removing the
-     * touched row from its parent would cancel the drag.
-     */
-    private final class RowDrag implements View.OnTouchListener {
-        private final LinearLayout rows;
-        private final View row;
-        private float startY;
-        private int target;
-        /** Removing the touched row makes the view system cancel the touch, which must not move the row again. */
-        private boolean moving;
-
-        RowDrag(LinearLayout rows, View row) {
-            this.rows = rows;
-            this.row = row;
-        }
-
-        @Override
-        public boolean onTouch(View handle, MotionEvent event) {
-            int index = rows.indexOfChild(row);
-            switch (event.getActionMasked()) {
-                case MotionEvent.ACTION_DOWN:
-                    handle.getParent().requestDisallowInterceptTouchEvent(true);
-                    startY = event.getRawY();
-                    target = index;
-                    row.setBackgroundColor(background);
-                    row.setElevation(dp(4));
-                    return true;
-                case MotionEvent.ACTION_MOVE: {
-                    float dy = event.getRawY() - startY;
-                    row.setTranslationY(dy);
-                    // The first row is Home, which stays where it is.
-                    target = Math.max(1, Math.min(rows.getChildCount() - 1,
-                            index + Math.round(dy / Math.max(1, row.getHeight()))));
-                    for (int i = 1; i < rows.getChildCount(); i++) {
-                        View other = rows.getChildAt(i);
-                        if (other == row) continue;
-                        float shift = 0;
-                        if (i > index && i <= target) shift = -row.getHeight();
-                        if (i < index && i >= target) shift = row.getHeight();
-                        other.setTranslationY(shift);
-                    }
-                    return true;
-                }
-                case MotionEvent.ACTION_UP:
-                case MotionEvent.ACTION_CANCEL:
-                    if (moving) return true;
-                    for (int i = 0; i < rows.getChildCount(); i++) rows.getChildAt(i).setTranslationY(0);
-                    row.setElevation(0);
-                    row.setBackground(ripple(false));
-                    if (target != index) {
-                        moving = true;
-                        rows.removeView(row);
-                        rows.addView(row, target);
-                        moving = false;
-                        StringBuilder order = new StringBuilder();
-                        for (int i = 1; i < rows.getChildCount(); i++) {
-                            if (order.length() > 0) order.append(',');
-                            order.append(rows.getChildAt(i).getTag());
-                        }
-                        Settings.setString(Settings.TAB_ORDER, order.toString());
-                        showRestartBanner();
-                    }
-                    return true;
-                default:
-                    return false;
-            }
-        }
     }
 
     /** A sheet of check rows, each with the icon of the same position in {@code icons}. */

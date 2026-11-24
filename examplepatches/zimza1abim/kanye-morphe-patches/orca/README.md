@@ -27,9 +27,10 @@ Morphe patch for the Android package `dev.orca.app`. Supported versions are list
   SHA-256 of the official bundle for that exact version, replaces it with the adapter and verifies
   the adapter's own checksum. Expo updates stay disabled in the manifest, so a downloaded bundle
   cannot outlive the patch.
-- Home draws each bot's uploaded picture instead of the first letter of its name, in the Feed tab's
-  Bots section and the Bots tab. Those rows read the upload's bytes through `bots.avatar.read`, once
-  per upload, and keep the read for the launch, as a bot's own screen already did.
+- Orca 0.0.70 draws each bot's uploaded picture itself. The patch adds the device copy behind
+  that read: the picture the app last drew is kept under the app's cache and drawn on the first
+  paint after a launch, so a restart shows the picture instead of the initial, and the file for an
+  upload the host replaced is removed rather than kept beside the new one.
 - The web shell — home, bot and worktree chats, review and files — fetches every resource through one
   WebView client. The patch serves the selected face from the shell's own origin under
   `/__morphe-font/` (allowed by its `font-src 'self'`) and writes a stylesheet link into the shell

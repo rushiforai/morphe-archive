@@ -5,66 +5,36 @@
 
 package app.morphe.patches.baridimob.misc.crashlytics
 
-import app.morphe.patcher.Fingerprint
-import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
-import app.morphe.patcher.patch.bytecodePatch
-import app.morphe.patcher.patch.resourcePatch
+import app.morphe.patcher.patch.mutableClassDefByOrNull
+import app.morphe.patcher.patch.patch
+import app.morphe.patcher.patch.resourceXml
 import app.morphe.patches.baridimob.shared.BaridimobConstants
-import app.morphe.patches.shared.dom.doRecursively
-import app.morphe.patches.shared.dom.removeFromParent
-import org.w3c.dom.Element
-import org.w3c.dom.Node
+import app.morphe.patches.shared.removeElements
+import app.morphe.patches.shared.returnEarlyVoidAll
 
-private const val META_DATA = "meta-data"
-private const val PROVIDER = "provider"
-
-/** Disables analytics initialization. */
 @Suppress("unused")
-private val removeCrashlyticsBytecodePatch = bytecodePatch {
-    compatibleWith(BaridimobConstants.COMPATIBILITY_BARIDIMOB)
-
-    execute {
-        val initFabricFingerprint = object : Fingerprint(
-            definingClass = "Lcom/bpcbt/android/app/application/MobileBankApp;",
-            name = "initFabric",
-            returnType = "V",
-            parameters = listOf(),
-        ) {}
-
-        runCatching { initFabricFingerprint.method }.getOrNull()?.let { method ->
-            method.addInstructions(0, "return-void")
-        }
-    }
-}
-
-/** Disables analytics and crash reporting. */
-@Suppress("unused")
-val removeCrashlyticsPatch = resourcePatch(
+val removeCrashlyticsPatch = patch(
     name = "Disable analytics and crash reporting",
     description = "Disables analytics and crash reporting while keeping push notifications.",
     default = true,
 ) {
+    category("Privacy")
     compatibleWith(BaridimobConstants.COMPATIBILITY_BARIDIMOB)
-    dependsOn(removeCrashlyticsBytecodePatch)
 
     execute {
-        document("AndroidManifest.xml").use { document ->
-            document.doRecursively { node ->
-                if (node is Element) {
-                    val name = node.getAttribute("android:name")
-                    val isCrashlyticsNode = when (node.tagName) {
-                        META_DATA -> name == "io.fabric.ApiKey"
-                            || (name.startsWith("com.google.firebase.components:")
-                                && (name.contains("crashlytics", ignoreCase = true)
-                                    || name.contains("sessions", ignoreCase = true)
-                                    || name.contains("analytics", ignoreCase = true)))
-                        PROVIDER -> name == "com.crashlytics.android.CrashlyticsInitProvider"
-                        else -> false
-                    }
-                    if (isCrashlyticsNode) {
-                        node.removeFromParent()
-                    }
-                }
+        mutableClassDefByOrNull("Lcom/bpcbt/android/app/application/MobileBankApp;")
+            ?.returnEarlyVoidAll { it.name == "initFabric" }
+
+        resourceXml("AndroidManifest.xml").use { manifest ->
+            manifest.removeElements(listOf("meta-data")) { el ->
+                val name = el.attribute("android:name").orEmpty()
+                name == "io.fabric.ApiKey" || (
+                    name.startsWith("com.google.firebase.components:") &&
+                        listOf("crashlytics", "sessions", "analytics").any { name.contains(it, ignoreCase = true) }
+                    )
+            }
+            manifest.removeElements(listOf("provider")) {
+                it.attribute("android:name") == "com.crashlytics.android.CrashlyticsInitProvider"
             }
         }
     }

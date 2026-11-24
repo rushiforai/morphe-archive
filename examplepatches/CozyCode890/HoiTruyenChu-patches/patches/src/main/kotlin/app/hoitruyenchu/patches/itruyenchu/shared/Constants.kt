@@ -16,6 +16,7 @@ internal object Constants {
     const val EXTENSION_RESUME_LISTENING = "$EXTENSION_PATCHES/resume/ResumeListeningPatch;"
     const val EXTENSION_TAP_TO_SEEK = "$EXTENSION_PATCHES/taptoseek/TapToSeekPatch;"
     const val EXTENSION_REMEMBER_SPEED = "$EXTENSION_PATCHES/speed/RememberSpeedPatch;"
+    const val EXTENSION_MINI_PLAYER = "$EXTENSION_PATCHES/player/MiniPlayerPatch;"
     const val EXTENSION_SETTINGS = "$EXTENSION_PATCHES/shared/HtcSettings;"
     const val EXTENSION_PATCH_FLAGS = "$EXTENSION_PATCHES/shared/HtcPatches;"
     const val SETTINGS_ACTIVITY = "app.hoitruyenchu.extension.itruyenchu.patches.settings.SettingsActivity"
@@ -26,7 +27,8 @@ internal object Constants {
         apkFileType = ApkFileType.APK,
         appIconColor = 0xFFFFFF,
         targets = listOf(
-            // Version the patches were developed and tested against.
+            // Versions the patches were developed and tested against.
+            AppTarget(version = "3.0.0"),
             AppTarget(version = "2.1.0"),
             // The hooks target expo-speech / React Native / AsyncStorage internals, not app code,
             // so newer app versions very likely work as well.

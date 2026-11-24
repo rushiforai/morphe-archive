@@ -315,12 +315,29 @@ public final class SettingsMenu {
                 enabled -> setEnabled(dependent, enabled)));
         list.addView(main);
 
-        if (patch.preview != null) {
+        if (patch.header != null) {
+            View block = null;
+            try {
+                block = patch.header.create(activity, this::replaceTop);
+            } catch (Throwable t) {
+                android.util.Log.e("southstar21", "Header failed", t);
+            }
+            if (block != null) {
+                LinearLayout.LayoutParams blockLp = new LinearLayout.LayoutParams(
+                        ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+                blockLp.topMargin = dp(18);
+                list.addView(block, blockLp);
+                dependent.add(block);
+            }
+        }
+
+        PatchSettings.CustomizePage page = patch.activeCustomizePage();
+        if (page != null && page.preview != null) {
             View space = sectionHeader(null);
             list.addView(space);
             LinearLayout customize = cardView();
-            customize.addView(navigationRow(patch.glyph, patch.color, patch.customizeTitle, patch.customizeSummary,
-                    "", () -> push(() -> buildCustomizePage(patch), true)));
+            customize.addView(navigationRow(patch.glyph, patch.color, page.title, page.summary,
+                    "", () -> push(() -> buildCustomizePage(patch, page), true)));
             list.addView(customize);
             dependent.add(space);
             dependent.add(customize);
@@ -353,9 +370,9 @@ public final class SettingsMenu {
      * and its settings scrolling beneath. Sliders apply while they're dragged, so the preview
      * follows the finger.
      */
-    private View buildCustomizePage(PatchSettings patch) {
+    private View buildCustomizePage(PatchSettings patch, PatchSettings.CustomizePage page) {
         LinearLayout list = pageList();
-        addGroups(list, patch, patch.customizeGroups, new ArrayList<>(), true);
+        addGroups(list, patch, page.groups, new ArrayList<>(), true);
 
         list.addView(sectionHeader(null));
         LinearLayout reset = cardView();
@@ -363,9 +380,9 @@ public final class SettingsMenu {
         resetText.setGravity(Gravity.CENTER);
         resetText.setMinHeight(dp(50));
         resetText.setBackground(ripple());
-        resetText.setOnClickListener(v -> confirm("Reset " + patch.customizeTitle + "?",
-                "The bar goes back to its default look.", "Reset", () -> {
-                    patch.resetCustomization();
+        resetText.setOnClickListener(v -> confirm("Reset " + page.title + "?",
+                "Everything on this page goes back to its default.", "Reset", () -> {
+                    for (Setting setting : page.settings) setting.reset();
                     replaceTop();
                 }));
         reset.addView(resetText, new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT,
@@ -374,7 +391,7 @@ public final class SettingsMenu {
 
         View preview = null;
         try {
-            preview = patch.preview.create(activity, this::replaceTop);
+            preview = page.preview.create(activity, this::replaceTop);
         } catch (Throwable t) {
             android.util.Log.e("southstar21", "Preview failed", t);
         }
@@ -752,7 +769,7 @@ public final class SettingsMenu {
         row.setOrientation(LinearLayout.VERTICAL);
         row.setGravity(Gravity.NO_GRAVITY);
         row.setPadding(dp(16), dp(12), dp(16), dp(12));
-        TextView chosen = text(setting.labels[setting.get()], 14, ACCENT, true);
+        TextView chosen = text(choiceLabel(setting, setting.get()), 14, ACCENT, true);
         LinearLayout top = new LinearLayout(activity);
         top.setGravity(Gravity.CENTER_VERTICAL);
         top.addView(labels(setting.title, setting.summary, false, setting),
@@ -768,10 +785,21 @@ public final class SettingsMenu {
             View chip;
             if (setting.colors != null) {
                 chip = new View(activity);
-                int color = setting.colors[i] != 0 ? setting.colors[i] : (dark ? 0xFF3A3A3C : 0xFFE5E5EA);
                 GradientDrawable dot = new GradientDrawable();
                 dot.setShape(GradientDrawable.OVAL);
-                dot.setColor(color);
+                if (setting.isCustom(i)) {
+                    // A rainbow ring around the picked color.
+                    dot.setGradientType(GradientDrawable.SWEEP_GRADIENT);
+                    dot.setColors(new int[]{0xFFFF3B30, 0xFFFFCC00, 0xFF34C759, 0xFF32ADE6, 0xFF5856D6,
+                            0xFFFF2D55, 0xFFFF3B30});
+                    GradientDrawable inner = new GradientDrawable();
+                    inner.setShape(GradientDrawable.OVAL);
+                    inner.setColor(setting.getCustomColor());
+                    inner.setStroke(dp(2), card);
+                    chip.setForeground(new android.graphics.drawable.InsetDrawable(inner, dp(6)));
+                } else {
+                    dot.setColor(setting.colors[i] != 0 ? setting.colors[i] : (dark ? 0xFF3A3A3C : 0xFFE5E5EA));
+                }
                 chip.setBackground(dot);
                 LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(dp(30), dp(30));
                 lp.rightMargin = dp(10);
@@ -787,9 +815,17 @@ public final class SettingsMenu {
             }
             chip.setContentDescription(setting.labels[i]);
             chip.setOnClickListener(v -> {
+                if (setting.isCustom(index)) {
+                    showColorPicker(setting, index, () -> {
+                        refreshCustomSwatch(setting, v);
+                        chosen.setText(choiceLabel(setting, setting.get()));
+                        markChoice(setting, chips, setting.get());
+                    });
+                    return;
+                }
                 setting.set(index);
                 if (setting.requiresRestart) markRestartNeeded();
-                chosen.setText(setting.labels[index]);
+                chosen.setText(choiceLabel(setting, index));
                 markChoice(setting, chips, index);
             });
             chips.add(chip);
@@ -813,7 +849,11 @@ public final class SettingsMenu {
             boolean on = i == chosen;
             if (setting.colors != null) {
                 GradientDrawable dot = (GradientDrawable) chip.getBackground();
-                dot.setStroke(on ? dp(3) : 0, on ? ACCENT : Color.TRANSPARENT);
+                // A hairline keeps a white swatch visible on a white card.
+                boolean faint = !dark && !setting.isCustom(i) && isLight(setting.colors[i]);
+                if (on) dot.setStroke(dp(3), ACCENT);
+                else if (faint) dot.setStroke(Math.max(1, dp(1)), 0xFFC7C7CC);
+                else dot.setStroke(0, Color.TRANSPARENT);
                 chip.setScaleX(on ? 1.08f : 1f);
                 chip.setScaleY(on ? 1.08f : 1f);
             } else {
@@ -824,6 +864,201 @@ public final class SettingsMenu {
                 ((TextView) chip).setTextColor(on ? Color.WHITE : textPrimary);
             }
         }
+    }
+
+    /** The option's name, with the picked color's hex for the custom one. */
+    private static String choiceLabel(ChoiceSetting setting, int index) {
+        if (!setting.isCustom(index)) return setting.labels[index];
+        return hex(setting.getCustomColor());
+    }
+
+    private static String hex(int color) {
+        return String.format("#%06X", color & 0xFFFFFF);
+    }
+
+    private static boolean isLight(int color) {
+        return color != 0 && Color.red(color) + Color.green(color) + Color.blue(color) > 690;
+    }
+
+    private void refreshCustomSwatch(ChoiceSetting setting, View chip) {
+        android.graphics.drawable.Drawable fg = chip.getForeground();
+        if (fg instanceof android.graphics.drawable.InsetDrawable) {
+            android.graphics.drawable.Drawable inner = ((android.graphics.drawable.InsetDrawable) fg).getDrawable();
+            if (inner instanceof GradientDrawable) ((GradientDrawable) inner).setColor(setting.getCustomColor());
+        }
+    }
+
+    /**
+     * Slides up a color wheel for {@code setting}'s custom option. The color applies live, so
+     * the preview above shows it; Cancel (or a tap outside) puts back what was there before.
+     *
+     * @param onDone runs after the sheet closes either way, to refresh the row
+     */
+    private void showColorPicker(ChoiceSetting setting, int customIndex, Runnable onDone) {
+        final int previousIndex = setting.get();
+        final int previousColor = setting.getCustomColor();
+        final boolean[] kept = {false};
+
+        Dialog sheet = new Dialog(activity, dark
+                ? android.R.style.Theme_DeviceDefault_Dialog_NoActionBar
+                : android.R.style.Theme_DeviceDefault_Light_Dialog_NoActionBar);
+        LinearLayout content = new LinearLayout(activity);
+        content.setOrientation(LinearLayout.VERTICAL);
+        content.setPadding(dp(20), dp(10), dp(20), dp(20));
+        GradientDrawable shape = new GradientDrawable();
+        shape.setColor(card);
+        float r = dp(24);
+        shape.setCornerRadii(new float[]{r, r, r, r, 0, 0, 0, 0});
+        content.setBackground(shape);
+
+        View handle = new View(activity);
+        GradientDrawable handleShape = new GradientDrawable();
+        handleShape.setColor(textTertiary);
+        handleShape.setCornerRadius(dp(3));
+        handle.setBackground(handleShape);
+        LinearLayout.LayoutParams handleLp = new LinearLayout.LayoutParams(dp(36), dp(5));
+        handleLp.gravity = Gravity.CENTER_HORIZONTAL;
+        handleLp.bottomMargin = dp(14);
+        content.addView(handle, handleLp);
+
+        // Title, then the color as a swatch and an editable hex code.
+        LinearLayout top = new LinearLayout(activity);
+        top.setGravity(Gravity.CENTER_VERTICAL);
+        top.addView(text("Custom " + setting.title.toLowerCase(java.util.Locale.ROOT), 22, textPrimary, true),
+                new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f));
+        View swatch = new View(activity);
+        GradientDrawable swatchShape = new GradientDrawable();
+        swatchShape.setShape(GradientDrawable.OVAL);
+        swatchShape.setStroke(Math.max(1, dp(1)), divider);
+        swatch.setBackground(swatchShape);
+        top.addView(swatch, new LinearLayout.LayoutParams(dp(28), dp(28)));
+        EditText hexInput = new EditText(activity);
+        hexInput.setTextSize(TypedValue.COMPLEX_UNIT_SP, 16);
+        hexInput.setTextColor(textPrimary);
+        hexInput.setTypeface(Typeface.MONOSPACE);
+        hexInput.setSingleLine(true);
+        hexInput.setFilters(new InputFilter[]{new InputFilter.LengthFilter(7)});
+        hexInput.setInputType(android.text.InputType.TYPE_CLASS_TEXT
+                | android.text.InputType.TYPE_TEXT_FLAG_CAP_CHARACTERS
+                | android.text.InputType.TYPE_TEXT_FLAG_NO_SUGGESTIONS);
+        hexInput.setImeOptions(android.view.inputmethod.EditorInfo.IME_ACTION_DONE);
+        hexInput.setBackgroundTintList(ColorStateList.valueOf(ACCENT));
+        LinearLayout.LayoutParams hexLp = new LinearLayout.LayoutParams(dp(110), ViewGroup.LayoutParams.WRAP_CONTENT);
+        hexLp.leftMargin = dp(10);
+        top.addView(hexInput, hexLp);
+        content.addView(top);
+
+        ColorWheelView wheel = new ColorWheelView(activity);
+        LinearLayout.LayoutParams wheelLp = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT,
+                ViewGroup.LayoutParams.WRAP_CONTENT);
+        wheelLp.topMargin = dp(12);
+        content.addView(wheel, wheelLp);
+
+        ColorWheelView.BrightnessBar brightness = new ColorWheelView.BrightnessBar(activity);
+        LinearLayout.LayoutParams barLp = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, dp(40));
+        barLp.topMargin = dp(8);
+        content.addView(brightness, barLp);
+        wheel.attach(brightness);
+
+        // Set while one of the wheel and the hex field updates the other, so it doesn't echo back.
+        final boolean[] syncing = {false};
+        wheel.setListener((color, fromUser) -> {
+            swatchShape.setColor(color);
+            if (!syncing[0]) {
+                syncing[0] = true;
+                hexInput.setText(hex(color));
+                if (hexInput.hasFocus()) hexInput.setSelection(hexInput.getText().length());
+                syncing[0] = false;
+            }
+            if (fromUser) {
+                // Live, so the preview above follows the wheel.
+                setting.setCustomColor(color);
+                if (setting.get() != customIndex) setting.set(customIndex);
+            }
+        });
+        hexInput.addTextChangedListener(new android.text.TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+            }
+
+            @Override
+            public void onTextChanged(CharSequence s, int start, int before, int count) {
+            }
+
+            @Override
+            public void afterTextChanged(android.text.Editable s) {
+                if (syncing[0]) return;
+                String value = s.toString().trim();
+                if (value.startsWith("#")) value = value.substring(1);
+                if (value.length() != 6) return;
+                int color;
+                try {
+                    color = 0xFF000000 | Integer.parseInt(value, 16);
+                } catch (NumberFormatException e) {
+                    return;
+                }
+                syncing[0] = true;
+                wheel.setColor(color);
+                syncing[0] = false;
+                setting.setCustomColor(color);
+                if (setting.get() != customIndex) setting.set(customIndex);
+            }
+        });
+        wheel.setColor(previousColor);
+        if (previousIndex != customIndex) setting.set(customIndex); // show it in the preview right away
+
+        LinearLayout buttons = new LinearLayout(activity);
+        LinearLayout.LayoutParams buttonsLp = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT,
+                ViewGroup.LayoutParams.WRAP_CONTENT);
+        buttonsLp.topMargin = dp(14);
+        TextView cancel = text("Cancel", 16, textPrimary, true);
+        cancel.setGravity(Gravity.CENTER);
+        cancel.setMinHeight(dp(48));
+        GradientDrawable cancelPill = new GradientDrawable();
+        cancelPill.setColor(dark ? 0xFF2C2C2E : 0xFFE5E5EA);
+        cancelPill.setCornerRadius(dp(24));
+        cancel.setBackground(new RippleDrawable(ColorStateList.valueOf(pressed), cancelPill, null));
+        cancel.setOnClickListener(v -> sheet.cancel());
+        LinearLayout.LayoutParams cancelLp = new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f);
+        cancelLp.rightMargin = dp(10);
+        buttons.addView(cancel, cancelLp);
+        TextView done = text("Done", 16, Color.WHITE, true);
+        done.setGravity(Gravity.CENTER);
+        done.setMinHeight(dp(48));
+        GradientDrawable donePill = new GradientDrawable();
+        donePill.setColor(ACCENT);
+        donePill.setCornerRadius(dp(24));
+        done.setBackground(new RippleDrawable(ColorStateList.valueOf(0x40FFFFFF), donePill, null));
+        done.setOnClickListener(v -> {
+            kept[0] = true;
+            setting.setCustomColor(wheel.getColor());
+            setting.set(customIndex);
+            if (setting.requiresRestart) markRestartNeeded();
+            sheet.dismiss();
+        });
+        buttons.addView(done, new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f));
+        content.addView(buttons, buttonsLp);
+
+        sheet.setOnDismissListener(d -> {
+            if (!kept[0]) {
+                setting.setCustomColor(previousColor);
+                setting.set(previousIndex);
+            }
+            onDone.run();
+        });
+        sheet.setContentView(content);
+        Window window = sheet.getWindow();
+        if (window != null) {
+            window.setLayout(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+            window.setGravity(Gravity.BOTTOM);
+            window.setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
+            window.setWindowAnimations(android.R.style.Animation_InputMethod);
+            // Light, so the live preview at the top of the page stays easy to see.
+            window.setDimAmount(0.15f);
+            window.setSoftInputMode(android.view.WindowManager.LayoutParams.SOFT_INPUT_ADJUST_RESIZE);
+        }
+        sheet.setCanceledOnTouchOutside(true);
+        sheet.show();
     }
 
     // endregion

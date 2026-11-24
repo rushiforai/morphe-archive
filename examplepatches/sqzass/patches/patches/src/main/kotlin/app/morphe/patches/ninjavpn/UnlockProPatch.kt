@@ -29,7 +29,7 @@ private val WRITER_CLASSES = listOf("Los0;", "Lat0;")
 @Suppress("unused")
 val unlockPremiumPatch = bytecodePatch(
     name = "Unlock Premium",
-    description = "Forces Ninja VPN's premium mode state to PREMIUM at every server/cache write site.",
+    description = "Forces Ninja VPN's premium mode state to PREMIUM at every server/cache write site. only some servers work (defaults to US if it doesn't).",
 ) {
     compatibleWith(
         Compatibility(

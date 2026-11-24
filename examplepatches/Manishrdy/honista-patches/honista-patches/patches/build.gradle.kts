@@ -57,7 +57,27 @@ val exportBaseline by tasks.registering(JavaExec::class) {
     mainClass.set("local.honista.ExportBaselineKt")
     args(rootProject.file("../apk/Honista_v13.1__x64.apk").absolutePath,
         rootProject.file("audit/classes.txt").absolutePath,
-        file("src/main/resources/honista/baseline.tsv").absolutePath)
+        file("src/main/resources/honista/baseline.tsv").absolutePath,
+        file("src/main/resources/honista/baseline.dex").absolutePath)
+}
+
+val verifyInput by tasks.registering(JavaExec::class) {
+    dependsOn("testClasses")
+    classpath = sourceSets["test"].runtimeClasspath
+    mainClass.set("local.honista.VerifyInputKt")
+    maxHeapSize = "3g"
+    args(rootProject.file("../apk/Honista_v13.1__x64.apk").absolutePath,
+        rootProject.file("audit/classes.txt").absolutePath)
+}
+
+val verifyOriginal by tasks.registering(JavaExec::class) {
+    dependsOn("testClasses", "buildAndroid")
+    classpath = sourceSets["test"].runtimeClasspath
+    mainClass.set("local.honista.VerifyBundleKt")
+    maxHeapSize = "6g"
+    args(file("build/libs/patches-${project.version}.mpp").absolutePath,
+        rootProject.file("../apk/Honista_v13.1__x64.apk").absolutePath,
+        "unused", layout.buildDirectory.dir("verify-original").get().asFile.absolutePath, "apply")
 }
 
 // Include the SDK and patcher classpath during D8 desugaring. The older plugin's

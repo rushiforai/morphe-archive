@@ -21,7 +21,6 @@ object Constants {
         ),
     )
 
-
     val COMPATIBILITY_MDPROXY = Compatibility(
         name = "MD PROXY VPN",
         packageName = "com.vpnproxymd.mdproxyvpn",
@@ -41,6 +40,17 @@ object Constants {
             AppTarget(
                 version = "1.10.1",
             ),
+        ),
+    )
+
+    val COMPATIBILITY_GALAXYMAXHZ = Compatibility(
+        name = "Galaxy MaxHz",
+        packageName = "com.tribalfs.gmh",
+        apkFileType = ApkFileType.APK,
+        appIconColor = 0x26C6DA,
+        targets = listOf(
+            AppTarget(version = "9.2.0x"),
+            AppTarget(version = "9.2.1x"),
         ),
     )
 }

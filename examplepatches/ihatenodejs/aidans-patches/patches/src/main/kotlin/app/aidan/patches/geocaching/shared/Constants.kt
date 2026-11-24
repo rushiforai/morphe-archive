@@ -16,6 +16,6 @@ val COMPATIBILITY_GEOCACHING = Compatibility(
         "6959a7790bff42cc28fbe41c20d457401e32f4854f414dbc390de9f1529c9295"
     ),
     targets = listOf(
-        AppTarget(version = "10.21.0", minSdk = 29)
+        AppTarget(version = "10.24.0", minSdk = 31)
     )
 )

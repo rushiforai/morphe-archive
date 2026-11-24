@@ -17,7 +17,7 @@ private fun manifest(path: String): Manifest {
         val block = apk.androidManifest
         val nodes = mutableListOf<Node>()
         fun visit(element: ResXmlElement) {
-            nodes.add(Node(element.name, element.attributes.asSequence().associate { it.name.substringAfter(':') to it.valueAsString }))
+            nodes.add(Node(element.name, element.attributes.asSequence().associate { it.name.substringAfter(':') to it.dataAsString }))
             element.elements.asSequence().forEach { visit(it as ResXmlElement) }
         }
         visit(block.manifestElement)

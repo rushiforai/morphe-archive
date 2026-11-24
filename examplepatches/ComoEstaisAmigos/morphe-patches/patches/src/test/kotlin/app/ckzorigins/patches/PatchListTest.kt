@@ -120,12 +120,11 @@ class PatchListTest {
         assertEquals(zombiesUnusedPermissionsPatch.name, unusedPermissionsPatch.name)
         assertEquals(zombiesUnusedPermissionsPatch.description, unusedPermissionsPatch.description)
         val telemetry = disableTelemetryPatch.description!!
-        assertTrue("Flurry" in telemetry, disableTelemetryPatch.name)
-        assertTrue("Tapjoy" in telemetry, disableTelemetryPatch.name)
-        assertTrue("PlayHaven" in telemetry, disableTelemetryPatch.name)
-        assertTrue("Chartboost" in telemetry, disableTelemetryPatch.name)
-        assertTrue("NTP" in telemetry, disableTelemetryPatch.name)
-        assertTrue("S3" in telemetry, disableTelemetryPatch.name)
+        assertEquals(
+            "Stops the game from sending usage data to analytics and ad services, " +
+                "and from contacting Glu's servers at launch.",
+            telemetry,
+        )
         assertFalse("backup" in telemetry, disableTelemetryPatch.name)
         assertFalse("clamp" in telemetry, disableTelemetryPatch.name)
         assertFalse("method bodies" in telemetry, disableTelemetryPatch.name)

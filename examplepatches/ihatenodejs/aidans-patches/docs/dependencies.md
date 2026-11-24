@@ -33,25 +33,38 @@ bun run audit --deps
 | --------- | --------------------------------------------------------------------------------------------------------- |
 | `0`       | Success: all checked dependencies are up-to-date or held, or update was cleanly applied.                  |
 | `1`       | Error: registry failure, network error, policy violation, stale/tampered plan, or tool execution failure. |
-| `2`       | Outdated: actionable updates are available or upstream releases are blocked by interpreter compatibility. |
+| `2`       | Outdated: actionable updates are available.                                                               |
 | `3`       | Declined: user cancelled the interactive update prompt.                                                   |
 
 ## Monorepo Coverage
 
 The updater covers all direct software dependencies and version-sensitive toolchain configurations in the repository:
 
-| Ecosystem               | Manifest / Source                                                            | Tracked Lockfiles                                                            |
-| ----------------------- | ---------------------------------------------------------------------------- | ---------------------------------------------------------------------------- |
-| JavaScript / Web        | `package.json`, `worker/package.json`, `site/package.json`                   | `bun.lock`, `worker/bun.lock`, `site/bun.lock`, `package-lock.json`          |
-| Python / Tooling        | `tools/apk-lab/pyproject.toml`                                               | `tools/apk-lab/uv.lock`                                                      |
-| Rust / Crates           | `tools/play-metadata/Cargo.toml`, `extensions/nhl-adblock-native/Cargo.toml` | `tools/play-metadata/Cargo.lock`, `extensions/nhl-adblock-native/Cargo.lock` |
-| Gradle Plugins          | `settings.gradle.kts`, `gradle/libs.versions.toml`                           | Gradle metadata                                                              |
-| External APK Binaries   | `tools/apk-lab/tools.lock.json`                                              | Integrity hashes and version probes                                          |
-| Code Quality Tooling    | `scripts/audit.ts` (`KTLINT_VERSION`)                                        | Pinned checksum verification                                                 |
-| GitHub Actions & Hooks  | `.github/workflows/*.yml`, `.pre-commit-config.yaml`                         | Pinned versions and commit hashes                                            |
-| Toolchain Runtimes      | Workflow setup inputs, `rust-toolchain.toml`, `build.gradle.kts` (NDK)       | Pinned versions across coordinated files                                     |
-| Embedded In-Repo Assets | `OsmMapView.java` (Leaflet CDN)                                              | Coupled asset URLs                                                           |
-| C++ / Native            | `extensions/adobescan-pdf-native/CMakeLists.txt`                             | CMake FetchContent archives and integrity hashes                             |
+| Ecosystem               | Manifest / Source                                                                                                                       | Tracked Lockfiles                                                   |
+| ----------------------- | --------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------- |
+| JavaScript / Web        | `package.json`, `worker/package.json`, `site/package.json`                                                                              | `bun.lock`, `worker/bun.lock`, `site/bun.lock`, `package-lock.json` |
+| Rust / Crates           | `tools/apk-lab/Cargo.toml`, `tools/play-metadata/Cargo.toml`, `tools/asset-prep/Cargo.toml`, `extensions/nhl-adblock-native/Cargo.toml` | Corresponding standalone `Cargo.lock` files                         |
+| Gradle Plugins          | `settings.gradle.kts`, `gradle/libs.versions.toml`                                                                                      | Gradle metadata                                                     |
+| External APK Binaries   | `tools/apk-lab/tools.lock.json`                                                                                                         | Integrity hashes and version probes                                 |
+| Code Quality Tooling    | `scripts/audit.ts` (`KTLINT_VERSION`)                                                                                                   | Pinned checksum verification                                        |
+| GitHub Actions          | `.github/workflows/*.yml`                                                                                                               | Pinned versions and commit hashes                                   |
+| Toolchain Runtimes      | Workflow setup inputs, `rust-toolchain.toml`, `build.gradle.kts` (NDK)                                                                  | Pinned versions across coordinated files                            |
+| Embedded In-Repo Assets | `OsmMapView.java` (Leaflet CDN)                                                                                                         | Coupled asset URLs                                                  |
+| C++ / Native            | `extensions/adobescan-pdf-native/CMakeLists.txt`                                                                                        | CMake FetchContent archives and integrity hashes                    |
+
+Repository hooks use Bun (`scripts/hooks.ts` and `scripts/install-hooks.ts`), not the
+Python pre-commit framework. `toml-eslint-parser` is required for TOML 1.0 syntax
+validation, including integers beyond JavaScript's safe-number range; Bun's built-in
+TOML reader is not a compatible validator. YAML checks use Bun's syntax parser and
+retain custom-tag/multiple-document acceptance. Pre-commit hook version tracking is
+retired with the framework; repository hooks are plain Bun scripts.
+
+Asset preparation is native Rust; normal icon workflows no longer install Pillow.
+The retired Python/Pillow environment is preserved only as private migration
+oracle evidence, not an ordinary build/test dependency of `asset-prep`. ZIP reader
+features retain Stored, Deflate, Bzip2 and LZMA; Cargo defaults that add unrelated
+codecs/crypto are disabled. The hash-pinned libjpeg-turbo 3.1.1 wrapper is deliberate
+exact-pixel compatibility, not the separate native PDF engine's codec version.
 
 ### Non-Dependency Exclusions
 

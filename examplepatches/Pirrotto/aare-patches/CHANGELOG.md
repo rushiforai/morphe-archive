@@ -1,3 +1,27 @@
+## [1.10.6](https://github.com/Pirrotto/aare-patches/compare/v1.10.5...v1.10.6) (2026-11-23)
+
+### 🐛 Bug Fixes
+
+* Voice messages – the helper picks the recording, AARE sees no other file ([0d93fac](https://github.com/Pirrotto/aare-patches/commit/0d93fac2c2ad6ae91f776dafc303870e9e27db53))
+
+## [1.10.5](https://github.com/Pirrotto/aare-patches/compare/v1.10.4...v1.10.5) (2026-11-23)
+
+### 🐛 Bug Fixes
+
+* Tunnel navigation keeps the estimate in a queue, with unit tests ([516eb2d](https://github.com/Pirrotto/aare-patches/commit/516eb2debbb436873d3ffa4181f05e5ba4a31460))
+
+## [1.10.4](https://github.com/Pirrotto/aare-patches/compare/v1.10.3...v1.10.4) (2026-11-23)
+
+### 🐛 Bug Fixes
+
+* Voice messages play only the matching recording, off by default ([091f7a2](https://github.com/Pirrotto/aare-patches/commit/091f7a298fc79cc47eede77d973f05dd3a8dbc10))
+
+## [1.10.3](https://github.com/Pirrotto/aare-patches/compare/v1.10.2...v1.10.3) (2026-11-23)
+
+### 🐛 Bug Fixes
+
+* Tunnel navigation off by default, with honest accuracy and limits ([ed3bf78](https://github.com/Pirrotto/aare-patches/commit/ed3bf78cc05c948e08e186b788b123c017b8ec9d))
+
 ## [1.10.2](https://github.com/Pirrotto/aare-patches/compare/v1.10.1...v1.10.2) (2026-11-22)
 
 ### 🐛 Bug Fixes

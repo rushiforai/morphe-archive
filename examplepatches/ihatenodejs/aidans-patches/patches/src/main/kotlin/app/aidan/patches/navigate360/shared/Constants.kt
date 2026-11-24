@@ -15,6 +15,6 @@ val COMPATIBILITY_NAVIGATE360 = Compatibility(
         "7253620866df0a00048e7c1f43976992330e2fdb06f094d47fbf20045f56ec4b"
     ),
     targets = listOf(
-        AppTarget(version = "26.19.22", minSdk = 31)
+        AppTarget(version = "26.23.8", minSdk = 31)
     )
 )

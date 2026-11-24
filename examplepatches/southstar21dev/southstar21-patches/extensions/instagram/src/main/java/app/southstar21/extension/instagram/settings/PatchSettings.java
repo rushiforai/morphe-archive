@@ -42,12 +42,35 @@ public final class PatchSettings {
     /** Demos for the "?" buttons, or null to explain in words only. */
     public DemoFactory demo;
 
-    /** An extra page of settings with a live preview, opened from the patch's page; null if none. */
-    public String customizeTitle, customizeSummary;
-    public PreviewFactory preview;
-    public List<SettingsGroup> customizeGroups = Collections.emptyList();
-    /** The settings of the customization page, for resetting. */
-    public List<Setting> customizeSettings = Collections.emptyList();
+    /** An extra page of settings with a live preview, opened from a row on the patch's page. */
+    public static final class CustomizePage {
+        public final String title, summary;
+        public final PreviewFactory preview;
+        public final List<SettingsGroup> groups;
+        /** The page's settings, for resetting it. */
+        public final List<Setting> settings;
+
+        CustomizePage(String title, String summary, PreviewFactory preview, List<SettingsGroup> groups,
+                      List<Setting> settings) {
+            this.title = title;
+            this.summary = summary;
+            this.preview = preview;
+            this.groups = groups;
+            this.settings = settings;
+        }
+    }
+
+    /** The customization pages, in the order added; only one at a time has a row on the patch's page. */
+    public List<CustomizePage> customizePages = new ArrayList<>();
+    /** Which page the row opens, by index; null for the first. */
+    private Callable<Integer> customizeChooser;
+    /** Every customization page's settings together, each once, for resetting. */
+    public List<Setting> customizeSettings = new ArrayList<>();
+
+    /** Built under the patch's on/off switch, e.g. a choice of styles; null for nothing. */
+    public PreviewFactory header;
+    /** Stored settings without a row of their own (chosen in the {@link #header}), reset with the patch. */
+    private final List<Setting> unlisted = new ArrayList<>();
 
     /**
      * @param key      prefix for the stored values, e.g. "liquid_glass"
@@ -105,18 +128,48 @@ public final class PatchSettings {
      * it. It's opened from a row on the patch's page.
      */
     public PatchSettings customize(String title, String summary, PreviewFactory preview, SettingsGroup... groups) {
-        this.customizeTitle = title;
-        this.customizeSummary = summary;
-        this.preview = preview;
         List<SettingsGroup> list = new ArrayList<>();
         List<Setting> all = new ArrayList<>();
         for (SettingsGroup group : groups) {
             if (group.settings.isEmpty()) continue;
             list.add(group);
-            all.addAll(group.settings);
+            for (Setting setting : group.settings) {
+                if (!all.contains(setting)) all.add(setting);
+                if (!customizeSettings.contains(setting)) customizeSettings.add(setting);
+            }
         }
-        this.customizeGroups = Collections.unmodifiableList(list);
-        this.customizeSettings = Collections.unmodifiableList(all);
+        customizePages.add(new CustomizePage(title, summary, preview, Collections.unmodifiableList(list),
+                Collections.unmodifiableList(all)));
+        return this;
+    }
+
+    /** With several customization pages: which one the patch's page links to, by index. */
+    public PatchSettings chooseCustomize(Callable<Integer> chooser) {
+        this.customizeChooser = chooser;
+        return this;
+    }
+
+    /** The customization page the patch's page links to now, or null if there is none. */
+    public CustomizePage activeCustomizePage() {
+        if (customizePages.isEmpty()) return null;
+        int index = 0;
+        try {
+            if (customizeChooser != null) index = customizeChooser.call();
+        } catch (Exception ignored) {
+            // The first page.
+        }
+        return customizePages.get(Math.max(0, Math.min(customizePages.size() - 1, index)));
+    }
+
+    /** Adds a block under the patch's on/off switch. */
+    public PatchSettings header(PreviewFactory header) {
+        this.header = header;
+        return this;
+    }
+
+    /** Settings stored without a row of their own (the {@link #header} sets them), reset with the patch. */
+    public PatchSettings unlisted(Setting... settings) {
+        Collections.addAll(unlisted, settings);
         return this;
     }
 
@@ -148,6 +201,7 @@ public final class PatchSettings {
     public void reset() {
         enabled.reset();
         for (Setting s : settings) s.reset();
+        for (Setting s : unlisted) s.reset();
         resetCustomization();
     }
 }

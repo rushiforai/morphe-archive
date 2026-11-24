@@ -32,9 +32,9 @@ final class GboardClipboardRuntimeSupport {
     static final String TAG = "GboardClipboard";
     static final String LOG_PREFIX = "[gboard-clipboard]";
 
-    static final String CLIPBOARD_LOADER_CALLABLE_CLASS = "fnb";
-    static final String CLIPBOARD_ADAPTER_CLASS = "fob";
-    static final String CLIPBOARD_VIEW_HOLDER_CLASS = "fnz";
+    static final String CLIPBOARD_LOADER_CALLABLE_CLASS = "lgo";
+    static final String CLIPBOARD_ADAPTER_CLASS = "lii";
+    static final String CLIPBOARD_VIEW_HOLDER_CLASS = "lif";
 
     static final long MINUTE_MS = 60_000L;
     static final long INFINITE_TTL_MS = -1L;
@@ -49,7 +49,7 @@ final class GboardClipboardRuntimeSupport {
     static final int STOCK_CLIPBOARD_PRUNE_TRIGGER = 120;
     static final int STOCK_CLIPBOARD_GROUP_LIMIT = 5;
     static final int STOCK_CLIPBOARD_CONTENT_MAX_LINES = 5;
-    static final int LAST_VISIBLE_TIMESTAMP_PREF_RES_ID = 0x7f14091c;
+    static final int LAST_VISIBLE_TIMESTAMP_PREF_RES_ID = 0x7f140914;
     static final String[] CURSOR_COUNT_PROJECTION =
             new String[] { "_id", "timestamp", "item_type", "uri" };
     static final String STOCK_SELECTION_RECENT_PINNED_SPECIAL =
@@ -217,7 +217,7 @@ final class GboardClipboardRuntimeSupport {
         }
         Field field = clipboardKeyboardContextField;
         if (field == null || !field.getDeclaringClass().isInstance(receiver)) {
-            field = findDeclaredFieldInHierarchy(receiver.getClass(), "z");
+            field = findDeclaredFieldInHierarchy(receiver.getClass(), "x");
             if (field == null || field.getType()!=Context.class
                     || !field.getDeclaringClass().getName().equals(
                         "com.google.android.libraries.inputmethod.keyboard.impl.AbstractKeyboard")) {
@@ -737,25 +737,25 @@ final class GboardClipboardRuntimeSupport {
         ReflectionHandles(ClassLoader classLoader) throws Throwable {
             Class<?> loaderCallableClass = resolveClass(classLoader,
                     CLIPBOARD_LOADER_CALLABLE_CLASS);
-            Class<?> loaderClass = resolveClass(classLoader, "fnc");
-            Class<?> dataHandlerClass = resolveClass(classLoader, "fok");
+            Class<?> loaderClass = resolveClass(classLoader, "lgr");
+            Class<?> dataHandlerClass = resolveClass(classLoader, "ljp");
             Class<?> adapterClass = resolveClass(classLoader, CLIPBOARD_ADAPTER_CLASS);
             Class<?> clipItemViewHolderClass = resolveClass(classLoader,
                     CLIPBOARD_VIEW_HOLDER_CLASS);
-            Class<?> clipClass = resolveClass(classLoader, "fmy");
-            Class<?> clipModelClass = resolveClass(classLoader, "fna");
-            Class<?> queryUtilsClass = resolveClass(classLoader, "fof");
-            Class<?> preferencesClass = resolveClass(classLoader, "qpn");
-            Class<?> preferenceBaseClass = resolveClass(classLoader, "cei");
+            Class<?> clipClass = resolveClass(classLoader, "lgl");
+            Class<?> clipModelClass = resolveClass(classLoader, "lgn");
+            Class<?> queryUtilsClass = resolveClass(classLoader, "lip");
+            Class<?> preferencesClass = resolveClass(classLoader, "ahws");
+            Class<?> preferenceBaseClass = resolveClass(classLoader, "ahvo");
 
             loaderCallableOwnerField = declaredField(loaderCallableClass, "a");
             loaderContextField = declaredField(loaderClass, "b");
-            dataHandlerContextField = declaredField(dataHandlerClass, "c");
-            dataHandlerDisabledField = declaredField(dataHandlerClass, "f");
-            dataHandlerCountField = declaredField(dataHandlerClass, "g");
+            dataHandlerContextField = declaredField(dataHandlerClass, "b");
+            dataHandlerDisabledField = declaredField(dataHandlerClass, "e");
+            dataHandlerCountField = declaredField(dataHandlerClass, "f");
             adapterContextField = declaredField(adapterClass, "e");
-            adapterItemsField = declaredField(adapterClass, "n");
-            adapterRecentCountField = declaredField(adapterClass, "o");
+            adapterItemsField = declaredField(adapterClass, "o");
+            adapterRecentCountField = declaredField(adapterClass, "p");
             adapterPinnedVisibleCountField = declaredField(adapterClass, "z");
             clipItemViewHolderTextField = declaredField(clipItemViewHolderClass, "t");
             clipIdField = declaredField(clipClass, "d");
@@ -774,9 +774,9 @@ final class GboardClipboardRuntimeSupport {
                     Context.class, List.class);
             primaryTimestampReadMethod = declaredMethod(dataHandlerClass, "a",
                     Context.class);
-            dataHandlerQueryByItemTypeMethod = declaredMethod(dataHandlerClass, "s",
+            dataHandlerQueryByItemTypeMethod = declaredMethod(dataHandlerClass, "A",
                     Uri.class, int.class);
-            dataHandlerCleanupCursorMethod = declaredMethod(dataHandlerClass, "t",
+            dataHandlerCleanupCursorMethod = declaredMethod(dataHandlerClass, "B",
                     Cursor.class);
             preferencesAccessorMethod = declaredMethod(preferencesClass, "I", Context.class);
             preferenceReadLongMethod = declaredMethod(preferenceBaseClass, "m",

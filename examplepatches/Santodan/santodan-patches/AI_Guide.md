@@ -38,19 +38,30 @@ launch license-check entry for rebuilt APKs. Run `verifyFylo`, `verifyFyloBundle
 and `verifyFyloApk`; retain all original Play configuration splits. Future versions
 must satisfy the structural matcher. Device behavior remains unverified.
 
+## NuvioTV badge labels
+
+Read [NuvioLabelCustomization.md](docs/NuvioLabelCustomization.md). The optional
+Customize labels patch activates the shared runtime only for 1.1.1. Preserve
+sparse native defaults and dynamic values; Copy offers Text, Label and All.
+Label/target switches retain drafts; Apply saves all and Cancel drops all.
+The label editor follows the owner mockup: fixed left header with Text/Label beside the dropdown, weighted scrolling controls
+below it, and an enlarged preview on the right. Read active Compose screen dimensions,
+disable platform-default dialog width, and preserve image aspect ratio. Sync dialogs use the validated native `B` method,
+and each settings bridge and conditional dialog needs a stable Compose group.
+Run `verifyNuvioLabelCustomization`, `verifyNuvioLabelsRuntime`, existing date
+and backup regressions, standalone/combined bundles and `verifyNuvioLabelsApk`.
+
 ## NuvioTV date-label appearance
 
-For beta.13 custom date-label colors, see [NuvioBeta13.md](docs/NuvioBeta13.md).
-Keep the native palette, color names, opacity controls and Apply/Cancel. Custom
-uses the native RGB-only editor with a movie-cover label preview and an independent
-Poster/Card button; it must not read or change Continue Watching layout settings.
-Capture the native palette's live `g1.o1` opacity before entering Custom, including
-unsaved edits, and preserve it through preview and both Apply steps. The editor's
-button says Apply; normal theme customization retains Save Theme.
-Run `verifyNuvioBeta13DateStyleRuntime`, `verifyNuvioLatest`, and
-`verifyNuvioDateColorApk -PnuvioDateColorApk=<rebuilt-apk>`. The APK audit rejects
-missing live-opacity, preview, caption and native-binding hooks. Device interaction
-is still a separate check. Release-owned versions and metadata are updated by CI.
+The latest target is **1.1.1 / 1081**. Read
+[NuvioDateLabelEditor.md](docs/NuvioDateLabelEditor.md). Date labels and Continue
+Watching remaining counts use entries in Customize labels. Remove the separate
+date appearance entry; preserve legacy date preferences until edited/reset.
+Remaining-count and all date-producing patches require the public Customize labels
+patch. Cache that public patch instance to avoid duplicate execution when multiple
+features depend on it. Keep count/date values dynamic and retain feature toggles.
+Verify standalone dependencies and combined output, runtime styling, legacy date
+reset and backup. Historical targets and fixtures remain unchanged.
 
 ## TFD Companion
 
@@ -70,7 +81,7 @@ installer-source spoof.
 
 ## NuvioTV metadata provider and Continue Watching artwork
 
-The optional **NuvioTV - Metadata add-on selection** targets official 1.1.0 only.
+The optional **NuvioTV - Metadata add-on selection** targets official 1.1.1 only.
 Read [NuvioMetadataAddon.md](docs/NuvioMetadataAddon.md). It selects an enabled
 metadata installation per profile and independently opts Continue Watching and
 library poster artwork into that provider. Library cards use native composition
@@ -86,15 +97,38 @@ Run `verifyNuvioMetadataAddon`, `verifyNuvioMetadataRuntime`,
 `verifyNuvioMetadataSettingsRuntime` and the latest standalone/combined bundle
 checks; these are included in `verifyNuvioLatest`.
 
-## NuvioTV official 1.1.0
+## NuvioTV official 1.1.1
 
-The latest reviewed target is **1.1.0 / 1077**. Read [Nuvio110.md](docs/Nuvio110.md).
-The active contract and `verifyNuvioLatest` use dedicated release fixtures.
+The active target is **1.1.1 / 1081**. Read [Nuvio111.md](docs/Nuvio111.md).
+All eighteen public patches target this original. `verifyNuvioLatest` uses
+dedicated `111` fixtures; historical fixtures remain unchanged. Controller fields,
+current-stream card, icon helpers, native library image helper and guarded method
+fingerprints were reviewed against both original APKs. The delivered APK audit
+`verifyNuvio111Apk` checks the runtime's migrated reflection strings too.
+For the playback-to-Home card disappearing while next-up resolves, read the
+1.1.1 transition section in [NuvioMergedProgress.md](docs/NuvioMergedProgress.md).
+Retain local completed shows only during initial/partial native publications;
+leave final removal authoritative. Run `verifyNuvio111HomeTransition`,
+`verifyNuvio111HomeTransitionRuntime`, playback overlay regressions and the
+standalone merge/combined bundle checks. Audit the delivered APK with
+`-Pnuvio111TransitionApk=<apk>`; the old `all-unsigned.apk` predates this fix.
+For live updates behind the player, use the newer local-projection section in
+that document. `verifyNuvio111LocalHomeRuntime` checks the coalesced local worker
+and native adapter. Keep bulk Home work paused during playback, allow the local
+projection to advance the affected show, and never add a provider refresh per
+position write. Preserve the cache-free resume clone and final native authority.
+
+## NuvioTV official 1.1.0 (preceding target)
+
+The preceding reviewed target was **1.1.0 / 1077**. Read [Nuvio110.md](docs/Nuvio110.md).
+That port introduced dedicated release fixtures.
 Beta.13 notes below describe the preceding target; its historical fixtures remain unchanged.
 
 ## Start here: creating or modifying a patch
 
-Shared local skills are in `E:\Morphe\Skills\morphe-*\SKILL.md`. Load the relevant
+Shared local skills are in `E:\Morphe\Skills\morphe-*\SKILL.md`; those folders are
+junctions to the tracked copies in this repository's `Skills/`, so edit and commit
+them here. Evidence under `E:\Morphe\Skills\inspection-evidence` is never committed. Load the relevant
 inspection, implementation, runtime, or verification workflow from there. Retained
 app evidence is in `E:\Morphe\Skills\inspection-evidence`; use those paths directly.
 OpenCode and Kilo discover the Skills directory through their user configuration.
@@ -149,7 +183,7 @@ verify the historical catalog/card-limit/premium delivery and `Catalog content v
 markers to distinguish it from the old integration. No installation was performed.
 The user subsequently confirmed on 2026-10-26 that the updated APK appears to work
 correctly. Keep this user-reported device result distinct from local APK checks.
-The local Desktop JAR is now 1.19.1; pass its path to verifyMorpheDesktopImport. Run `verifyMonetCatalog`,
+`verifyMorpheDesktopImport` uses the newest workspace Desktop JAR by default. Run `verifyMonetCatalog`,
 `verifyMonetCatalogRuntime`, `verifyMonetCatalogBundle` and `verifyMorpheDesktopImport`.
 
 For Monet Launcher `com.klevico.monet` **1.1.0** (code 134), see [Monet.md](docs/Monet.md).
@@ -166,7 +200,9 @@ specified. Keep this user-reported result distinct from local DEX/rebuild checks
 Run `verifyMonet`, `verifyMonetBundle`, `verifyAndroidBundle` and
 `verifyMorpheDesktopImport`. Both card-limit and catalog-row patches also support 1.1.0.
 
-The bundle targets Morphe Patcher **2.0.0** / Desktop **1.19.0**. Read
+The bundle targets Morphe Patcher **2.0.0** (first validated with Desktop 1.19.0).
+`verifyMorpheDesktopImport` defaults to the newest `morphe-desktop-*-all.jar` in
+`E:\Morphe` (currently 2.3.0); `-PmorpheDesktopJar=<path>` overrides it. Read
 `docs/MorpheCompatibility.md` for compatibility constructors, form factors,
 on-demand resource extraction and exact Desktop import verification. Do not
 validate this bundle with the older 1.18.1 CLI. Keep smali aligned with the
@@ -260,9 +296,12 @@ Paths below are relative to `E:\Morphe\santodan-patches` unless stated otherwise
 | `../backups/workspaces/` | Historical backup/staging workspaces; use the main repository for active work |
 | `../Apps/` | Patched app outputs; do not use as original patch inputs |
 
-At this guide update, relevant original inputs include NuvioTV `1.1.0-beta.13`,
-Pillo `0.6.27`, Reddit `2026.37.0`, MEO Android TV `5.7.0`, and Peafowl
-`GMS_27.5.1`. These are discovery hints, not a permanent version allowlist.
+As of 2026-11-23 the latest local originals are NuvioTV `1.1.1`, Monet `1.1.1`,
+Pillo `0.6.27`, Car Scanner `2.2.42`, TFD Companion `1.1.6`, Fylo `2.6` and Reddit
+`2026.47.0` (2026.45.0 is also present). Reddit content filters and home flairs target `2026.47.0`; Start as
+guest still targets `2026.37.0`. The separate upstream-style 2026.45.0 filter work
+lives in `E:\Morphe\morphe-patches-santodan`. These are discovery hints, not
+a permanent version allowlist.
 Rescan inputs for each task. Apps without existing patches need their own inspection.
 
 ### Implementation workflow
@@ -347,10 +386,13 @@ the user requests it. Report missing dependencies, fixtures, or device access pl
 For Kilo Code in VS Code, see [Kilo setup](docs/KiloCode.md). The configured
 workspace agent loads these same skills; their contents are shared across hosts.
 
-See [LM Studio setup](docs/LMStudio.md) and
-[system prompt](lmstudio/SYSTEM_PROMPT.md). Skills live under `lmstudio/skills/`:
+See [LM Studio setup](docs/LMStudio.md). The repository no longer carries an
+`lmstudio/` skill copy; the maintained skills are the shared
+`E:\Morphe\Skills\morphe-*` folders:
 
-- `morphe-inspect-app`: discover the latest original and prove native hook contracts.
+- `morphe-inspection-evidence`: locate retained evidence for the target version.
+- `morphe-inspect-app`: discover the latest original and prove native hook contracts
+  (includes the read-only `scripts/DexQuery.java`).
 - `morphe-create-patch`: implement bytecode/resource patches with current repo APIs.
 - `morphe-runtime-extension`: add runtime behavior and shared settings dependencies.
 - `morphe-verify-patch`: verify the compiled bundle, native behavior, and output scope.
@@ -743,24 +785,46 @@ ExoPlayer's missing playing period before seeking. Next-episode preload cooldown
 survive pause/buffering for the same target. See `docs/NuvioBeta9.md` for the
 reviewed DEX contract and focused scheduler/guard verification tasks.
 
-## Reddit 2026.37.0
+## Reddit 2026.47.0 (filters and flairs) / 2026.37.0 (guest)
 
 Three patches target package `com.reddit.frontpage`:
 
 1. **Reddit - Content filters (Experimental)** adds keyword and per-community flair
    filtering under **Morphe > Filters**. It installs the home-flair support patch as a
    dependency because reliable flair filtering requires native flair data in the feed.
+   Targets **2026.47.0 / 2647001** only (2026.45.0 support was replaced, not kept).
 2. **Reddit - Show flairs in home feed (Experimental)** restores native post-flair
    badges below titles, including cached and joined-community posts. Its display option
    is under **Morphe > Layout** and the patch can be enabled independently.
+   Targets **2026.47.0** only.
 3. **Reddit - Start as guest** invokes Reddit's native logged-out browsing action in
    place of the forced startup login screen. Login remains available from the account
    menu. This behavior is also available upstream through Morphe Patches PR #3109.
+   It still targets **2026.37.0** and has its own `VERSION` constant.
 
 The Reddit matchers are deliberately version-bound and fail closed when the expected
-bytecode layout is missing or ambiguous. `verifyRedditContentFilter` and
-`verifyRedditGuestMode` run focused checks against locally extracted original DEX files;
-those proprietary inputs are not stored in this repository.
+bytecode layout is missing or ambiguous. `verifyRedditContentFilter` runs against the
+2026.47.0 DEX in `Skills/inspection-evidence/reddit-2026.47.0` (base APK SHA-256
+`3f48864f…a8bae`, from `OriginalApps/com.reddit.frontpage_2026.47.0.apkm`);
+`verifyRedditGuestMode` still uses the 2026.37.0 `.inspect-reddit` fixtures. Those
+proprietary inputs are not stored in this repository.
+
+Each port is a name remap of the same hooks; almost every obfuscated name changes
+between Reddit releases. The extension reaches Reddit models by reflection, so every
+obfuscated class, field and method it names is checked by `verifyRedditContentFilter`;
+update the patch constants, the extension strings and the verifier contracts together.
+In 2026.47.0: `PostPreviewFeedElement` (`kk50`) keeps flairs at `q`, content at `G`
+(`H` is derived from other children) and children at `k`–`z`; `ClassicPostElement`
+(`y39`) keeps title at `q` and flairs at `t`; the posts-by-ID source constructor has
+10 parameters; the by-ID fetches are `g.d(ArrayList, …)` and `h.b(ArrayList, 5×Z, …)`;
+the repository provider is `G()`; `SubredditFeedScreen` exposes the name via `r5()`.
+The flair chip/row hooks and the feed post cell derive registers from the bytecode.
+Classic-post hiding hooks `l49.d/e/f`; the nested `l49.a` is covered by `d`.
+
+Both patches require Morphe's Reddit settings extension from the official bundle. The
+official Morphe 2.3.0 bundle lists Reddit only up to 2026.40.0, so a CLI check must force
+compatibility (`-f`) when adding an official patch such as Hide ads; Desktop users must
+allow non-recommended versions. These patches still check the exact version themselves.
 
 Post-detail hydration coalesces requests arriving within 25 ms into batches of up to
 50 IDs. Both the native query and public by-ID fallback request multiple posts together.

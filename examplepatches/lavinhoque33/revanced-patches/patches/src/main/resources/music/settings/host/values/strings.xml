@@ -625,10 +625,19 @@ Applies to both limits. At 1.75, four full-width characters count as 7"</string>
     <string name="morphe_music_play_album_songs_title">Play albums songs</string>
     <string name="morphe_music_fifo_add_to_queue_title">Add to queue in tap order</string>
     <string name="morphe_music_fifo_add_to_queue_summary">In a local, unshuffled queue, the song menu’s Add to queue puts songs after your other pending additions, before the rest of Up next. Play next still puts a song immediately next.</string>
+    <string name="morphe_music_ab_repeat_title">A–B repeat</string>
+    <string name="morphe_music_ab_repeat_summary">In Now Playing, tap Set A below the seekbar, then tap Set B at a later point. Tap Clear or seek outside the section to stop repeating.</string>
+    <string name="morphe_music_ab_repeat_set_a">A–B repeat: Set A</string>
+    <string name="morphe_music_ab_repeat_set_b">A: %1$s · Set B</string>
+    <string name="morphe_music_ab_repeat_active">Repeating %1$s – %2$s</string>
+    <string name="morphe_music_ab_repeat_clear">Clear</string>
+    <string name="morphe_music_ab_repeat_clear_description">Clear A–B repeat</string>
+    <string name="morphe_music_ab_repeat_invalid_start">Set A earlier in the track, leaving room for B.</string>
+    <string name="morphe_music_ab_repeat_invalid_end">Set B at least 0.25 seconds after A and 0.5 seconds before the end.</string>
+    <string name="morphe_music_ab_repeat_unavailable">A–B repeat is unavailable for the current playback.</string>
     <string name="morphe_music_playback_source_inspector_title">Playback source inspector</string>
     <string name="morphe_music_playback_source_inspector_summary">View confirmed audio and video sources for the current playback</string>
-    <string name="morphe_music_playback_source_inspector_now_playing_summary">View the current playback.
-        In Now Playing, touch and hold the three-dot Menu to inspect video without leaving the player.</string>
+    <string name="morphe_music_playback_source_inspector_now_playing_summary">View the current playback. In Now Playing, touch and hold the three-dot Menu to inspect video without leaving the player.</string>
     <string name="morphe_music_playback_source_inspector_snapshot">Snapshot from when you opened this dialog or last refreshed it.</string>
     <string name="morphe_music_playback_source_inspector_audio">Audio source: %1$s</string>
     <string name="morphe_music_playback_source_inspector_video">Video source: %1$s</string>
@@ -911,8 +920,10 @@ Use dark colors if possible, as the app does not support light themes"</string>
     <string name="revanced_disable_cairo_splash_animation_title">Disable Cairo splash animation</string>
     <string name="revanced_disable_dislike_redirection_summary">Disables redirection to the next track when clicking the Dislike button</string>
     <string name="revanced_disable_dislike_redirection_title">Disable dislike redirection</string>
-    <string name="revanced_disable_drc_audio_summary">Disables DRC (Dynamic Range Compression) applied to audio</string>
-    <string name="revanced_disable_drc_audio_title">Disable DRC audio</string>
+    <string name="morphe_music_disable_loudness_normalization_title">Disable loudness normalization</string>
+    <string name="morphe_music_disable_loudness_normalization_summary">Stops the player from lowering loud tracks to a standard level. Does not change which audio stream plays.</string>
+    <string name="morphe_music_prefer_original_audio_stream_title">Prefer original audio stream</string>
+    <string name="morphe_music_prefer_original_audio_stream_summary">Prefers audio without dynamic range compression when available. Keeps DRC audio when it is the only choice and does not modify downloads.</string>
     <string name="revanced_disable_miniplayer_gesture_summary">Disables swipe to change tracks in the miniplayer</string>
     <string name="revanced_disable_miniplayer_gesture_title">Disable miniplayer gesture</string>
     <!-- modified by lavinhoque33, 2026-10-16: media notification controls ported from Morphe -->

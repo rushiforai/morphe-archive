@@ -95,6 +95,8 @@ public final class ApkContractTest {
         }
         check(calls.getOrDefault("menuNotifiable", 0) == (readOnly ? 0 : 2),
                 "Optional quiet-mode presentation hooks (chat menu + chat list)");
+        check(calls.getOrDefault("chatListLastMessage", 0) == (readOnly ? 0 : 1),
+                "Optional chat-list attachment label hook");
         check(calls.getOrDefault("allowMuted", 0) == (readOnly ? 0 : 2), "Optional native per-room notification gates");
         check(calls.getOrDefault("interceptNotificationMute", 0) == 0, "No duplicate old service dispatch hook");
         Method saved = find("Luq8/z2;", "f", "Lts8/od;JLtq8/r;Ljava/lang/String;Lso8/m;ZZJ", "V");
@@ -179,6 +181,13 @@ public final class ApkContractTest {
         FiveRegisterInstruction chatListStateHook = (FiveRegisterInstruction) chatListStateHooks.get(0);
         check(chatListStateHook.getRegisterC() == 1 && chatListStateHook.getRegisterD() == 6,
                 "Chat-list state hook receives the chat ID and native notifiable flag");
+        List<Instruction> chatListLastMsgHooks = callsTo(chatListItem, ext + "Settings;", "chatListLastMessage");
+        check(chatListLastMsgHooks.size() == 1 && chatListLastMsgHooks.get(0) instanceof FiveRegisterInstruction,
+                "Chat-list attachment preview uses verified UI model constructor");
+        FiveRegisterInstruction chatListLastMsgHook = (FiveRegisterInstruction) chatListLastMsgHooks.get(0);
+        check(chatListLastMsgHook.getRegisterC() == 1 && chatListLastMsgHook.getRegisterD() == 8
+                        && chatListLastMsgHook.getRegisterE() == 10 && chatListLastMsgHook.getRegisterF() == 15,
+                "Chat-list attachment hook receives chatId, lastMessageRaw, lastTime, and hasDraft");
         Method chatListToggle = find("Ld42/d;", "u3", "Lf22/l;", "V");
         List<Instruction> chatListToggleHooks = callsTo(chatListToggle, ext + "Settings;", "interceptChatListToggle");
         check(chatListToggleHooks.size() == 1 && chatListToggleHooks.get(0) instanceof FiveRegisterInstruction,
@@ -192,6 +201,27 @@ public final class ApkContractTest {
                 "Native OpenChat chat-list toggle remains available");
         check(callsTo(chatListToggle, "Ld42/m;", "<init>").size() == 1,
                 "Native ServiceChat chat-list toggle remains available");
+        field("Ljp/naver/line/android/common/LineCommonFileProvider;", "g",
+                "Ljp/naver/line/android/common/LineCommonFileProvider$a;");
+        method("Ljp/naver/line/android/common/LineCommonFileProvider$a;", "d",
+                "Landroid/content/Context;Ljava/io/File;", "Landroid/net/Uri;");
+        field("Lj31/a;", "I4", "Lj31/a$b;");
+        method("Lj31/a;", "e", "Lj31/c;", "Ljava/io/File;");
+        method("Lj31/a;", "k", "Lj31/c;Lj31/e;", "Ljava/io/File;");
+        method("Lj31/c;", "<init>", "Ljava/lang/String;J", "V");
+        field("Lj31/e;", "IMAGE_STANDARD", "Lj31/e;");
+        field("Lj31/e;", "IMAGE_ORIGINAL", "Lj31/e;");
+        method("Le80/d;", "<init>",
+                "Ljava/lang/String;Ljava/lang/String;JLjava/lang/String;Llg1/a$c;Ljava/lang/String;Z", "V");
+        field("Lsu5/d;", "sa", "Lsu5/d$a;");
+        method("Lsu5/d;", "n", "JJ", "Ljava/io/File;");
+        method("Lsu5/d;", "k", "JJ", "Ljava/io/File;");
+        method("Lsu5/d;", "m", "JJ", "Ljava/io/File;");
+        field("Lsu5/o;", "va", "Lsu5/o$a;");
+        method("Lsu5/o;", "h", "Lzu5/d;", "Ljava/lang/String;");
+        method("Lzu5/d;", "<init>", "JJJLzu5/e;Ljava/lang/String;", "V");
+        field("Lkn/l;", "d", "Lkn/l$e;");
+        method("Llg1/a$c;", "<init>", "Ljava/lang/String;Ljava/lang/String;Ljava/util/List;", "V");
         }
         ClassDef click = classes.get(ext + "SettingsClick;");
         check(click != null && click.getInterfaces().size() == 3, "Settings callback has native function interfaces + Serializable");

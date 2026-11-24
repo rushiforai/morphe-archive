@@ -5,14 +5,15 @@
 package app.morphe.patches.bereal.misc.backup
 
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
-import app.morphe.patcher.patch.BytecodePatch
-import app.morphe.patcher.patch.bytecodePatch
-import app.morphe.patcher.patch.resourcePatch
-import app.morphe.patcher.util.matchSingle
+import app.morphe.patcher.patch.Patch
+import app.morphe.patcher.patch.document
+import app.morphe.patcher.patch.patch
 import app.morphe.patches.bereal.misc.settings.BEREAL_EXTENSION_PACKAGE
+import app.morphe.patches.bereal.misc.settings.berealHostedComponents
 import app.morphe.patches.bereal.misc.settings.markFeaturePatched
 import app.morphe.patches.bereal.misc.settings.settingsPatch
 import app.morphe.patches.shared.compat.AppCompatibilities
+import app.morphe.patches.shared.misc.hostedcomponents.workManagerReceiverHost
 import app.morphe.util.asSequence
 import org.w3c.dom.Element
 import app.morphe.patches.shared.misc.extension.berealSettingsExtensionPatch
@@ -22,6 +23,7 @@ private const val EXTENSION_CLASS = "${BEREAL_EXTENSION_PACKAGE}backup/MemoriesB
 private const val API_CLASS = "${BEREAL_EXTENSION_PACKAGE}backup/BeRealApi;"
 
 private const val SERVICE_CLASS = "app.hxreborn.extension.bereal.backup.BackupService"
+private const val CANCEL_RECEIVER_CLASS = "app.hxreborn.extension.bereal.backup.BackupCancelReceiver"
 
 private val backupPermissions = listOf(
     "android.permission.FOREGROUND_SERVICE",
@@ -29,7 +31,7 @@ private val backupPermissions = listOf(
     "android.permission.POST_NOTIFICATIONS",
 )
 
-private val addBackupServicePatch = resourcePatch {
+private val addBackupServicePatch = patch {
     dependsOn(berealSettingsExtensionPatch, morpheLibraryCoreExtensionPatch)
     execute {
         document("AndroidManifest.xml").use { document ->
@@ -58,19 +60,21 @@ private val addBackupServicePatch = resourcePatch {
 }
 
 @Suppress("unused")
-val backupMemoriesPatch: BytecodePatch = bytecodePatch(
+val backupMemoriesPatch: Patch = patch(
     name = "Back up memories",
     description = "Adds Back up memories to hxreborn patches. Saves every memory as separate back and front " +
         "photos with the time, place and caption, plus the BTS video. Writes JSON sidecars with location, friends' " +
-        "usernames and comments to Download/BeReal unless a folder is picked.",
+        "usernames and comments to Download/BeReal unless a folder is picked. " +
+        "On a mount install, keep BeReal open until it finishes.",
 ) {
     compatibleWith(AppCompatibilities.BEREAL)
     dependsOn(settingsPatch, addBackupServicePatch)
 
     execute {
         markFeaturePatched(EXTENSION_CLASS, backupMemoriesPatch)
+        berealHostedComponents.host(CANCEL_RECEIVER_CLASS, workManagerReceiverHost)
 
-        RetrofitCreateFingerprint.matchSingle().method.addInstructions(
+        RetrofitCreateFingerprint.method.addInstructions(
             0,
             "invoke-static { p0, p1 }, $API_CLASS->onCreate(Ljava/lang/Object;Ljava/lang/Class;)V",
         )

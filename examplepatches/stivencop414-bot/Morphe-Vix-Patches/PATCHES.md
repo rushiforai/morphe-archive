@@ -1,6 +1,6 @@
 # Patches
 
-> Generated from `patches-list.json` — **v0.3.1** (`main`) · **18 patches** across **3 apps** · back to [README](README.md)
+> Generated from `patches-list.json` — **v0.4.2** (`main`) · **19 patches** across **4 apps** · back to [README](README.md)
 
 ---
 
@@ -17,6 +17,16 @@
 | **Bypass forced update** | Disables the client forced-update decision while retaining optional update checks. Server-side version requirements can still apply. |
 | **Hide player campaign banners** | Disables the player's optional Megaphone banner overlay on phone and TV. This can hide announcements as well as promotions. |
 | **Remove advertising ID permissions** | Removes the Google advertising ID and Android Ad Services advertising ID permissions. Other identifiers and telemetry may remain. |
+
+---
+
+## Meitu (com.mt.mtxx.mtxx)
+
+**Supported versions:** `12.23.3`
+
+| Patch | Details |
+|---|---|
+| **Unlock VIP** | Reports an active VIP subscriber: isVip() returns true, isValidUser() returns 1, getVipType() returns 1 and VIP trial materials count as unlocked. Static fields E (isValidUser) and F (vipType) are initialized to 1. Server-side per-material rights and AIGC quotas are not affected. |
 
 ---
 

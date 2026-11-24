@@ -21,7 +21,7 @@ val universalUpdateCompatibilityPatch = bytecodePatch(
     description = "Keeps Google and Gemini version checks working when Disable Play Store updates is also selected.",
     default = true
 ) {
-    compatibleWith("com.google.android.googlequicksearchbox", "com.google.android.apps.bard")
+    compatibleWith(*VersionHookRegistry.compatibility("com.google.android.googlequicksearchbox", "com.google.android.apps.bard"))
     var ownPackage: String? = null
     execute {
         VersionHookRegistry.requireProfile(packageMetadata)
@@ -42,7 +42,7 @@ val universalUpdateCompatibilityPatch = bytecodePatch(
                 emptySet(), emptySet(),
                 ImmutableMethodImplementation(3, emptyList<Instruction>(), emptyList(), emptyList())
             ))
-            helper.addInstructions("""
+            helper.addInstructions(0, """
                 const-string v0, "${checkNotNull(ownPackage)}"
                 iget-object v1, v2, Landroid/content/pm/PackageInfo;->packageName:Ljava/lang/String;
                 invoke-virtual {v0, v1}, Ljava/lang/String;->equals(Ljava/lang/Object;)Z

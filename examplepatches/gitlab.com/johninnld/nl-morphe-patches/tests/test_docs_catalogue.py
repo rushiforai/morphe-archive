@@ -91,6 +91,23 @@ class ReadmeSummaryTests(unittest.TestCase):
 
 
 class SiteCatalogueTests(unittest.TestCase):
+    def test_phone_and_automotive_editions_with_same_package_keep_distinct_titles_and_guides(self):
+        data = fixture()
+        for index, patch in enumerate(data['patches']):
+            package = patch['compatiblePackages'][0]
+            package.update(packageName='io.homeassistant.companion.android',
+                           name='Home Assistant' if index == 0 else 'Home Assistant (Automotive)')
+        self.assertEqual(self.module.app_page(data['patches'][0]['compatiblePackages'][0]),
+                         ('homeassistant', 'other'))
+        self.assertEqual(self.module.app_page(data['patches'][1]['compatiblePackages'][0]),
+                         ('homeassistant-automotive', 'other'))
+        for language in ('en', 'nl'):
+            home = self.module.render_home_apps(data, language)
+            self.assertEqual(home.count('<article '), 2)
+            self.assertIn('Home Assistant (Automotive)', home)
+            self.assertIn('(apps/homeassistant.md)', home)
+            self.assertIn('(apps/homeassistant-automotive.md)', home)
+
     def test_repackaged_music_is_not_listed_as_a_separate_original(self):
         data = fixture()
         data['patches'] = data['patches'][:1]

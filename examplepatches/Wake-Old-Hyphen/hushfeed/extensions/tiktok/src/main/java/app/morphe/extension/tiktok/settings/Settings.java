@@ -159,6 +159,12 @@ public class Settings extends BaseSettings {
     public static final IntegerSetting AUTOMATIC_CLEAR_DISPLAY_DELAY =
             new IntegerSetting("automatic_clear_display_delay", 1000, false,
                     Setting.parent(AUTOMATIC_CLEAR_DISPLAY)).withRange(0, 30000);
+    /** A tap on a video the automatic clear hid the controls of brings them back instead of pausing (#501). */
+    public static final BooleanSetting TAP_SHOWS_CLEARED_CONTROLS = new BooleanSetting("tap_shows_cleared_controls",
+            FALSE, false, Setting.parent(AUTOMATIC_CLEAR_DISPLAY));
+    /** The controls fade away before the automatic clear hides them, instead of vanishing at once (#501). */
+    public static final BooleanSetting CLEAR_DISPLAY_FADE_OUT = new BooleanSetting("clear_display_fade_out",
+            FALSE, false, Setting.parent(AUTOMATIC_CLEAR_DISPLAY));
     public static final StringSetting PLAYBACK_QUALITY = new StringSetting("playback_quality", "auto");
     public static final StringSetting PLAYBACK_QUALITY_METERED = new StringSetting("playback_quality_metered", "off");
     /** The heaviest video to play, in Mb/s, or "off" (#454). */
@@ -359,6 +365,9 @@ public class Settings extends BaseSettings {
     /** The opposite: crop the video until it covers the window (issue #29). Fit wins when both are on. */
     public static final BooleanSetting FILL_VIDEO_TO_SCREEN =
             new BooleanSetting("fill_video_to_screen", FALSE);
+    /** With Fill on, wide and square videos are cropped to cover the window too (#505, after #394). */
+    public static final BooleanSetting FILL_WIDE_VIDEOS =
+            new BooleanSetting("fill_wide_videos", FALSE, false, Setting.parent(FILL_VIDEO_TO_SCREEN));
     /** Cover the window with the whole video by stretching it instead of cropping (#406). */
     public static final BooleanSetting STRETCH_VIDEO_TO_SCREEN =
             new BooleanSetting("stretch_video_to_screen", FALSE);
@@ -525,6 +534,29 @@ public class Settings extends BaseSettings {
     /** The time of day to send, in minutes after midnight. Noon leaves room for retries. */
     public static final IntegerSetting AUTO_STREAK_MINUTE = new IntegerSetting(
             "auto_streak_minute", 12 * 60, false, Setting.parent(AUTO_STREAK)).withRange(0, 24 * 60 - 1);
+    /**
+     * Sends at a different time each day, between {@link #AUTO_STREAK_MINUTE} and
+     * {@link #AUTO_STREAK_LATEST_MINUTE} (#507). Off by default.
+     */
+    public static final BooleanSetting AUTO_STREAK_RANDOM = new BooleanSetting(
+            "auto_streak_random", FALSE, false, Setting.parent(AUTO_STREAK));
+    /**
+     * The end of the random window, in minutes after midnight, on the same day as its start.
+     * Its row names the switch to turn on the way the store region row does: Random time each
+     * day while that's off, and Keep a streak going once it's on.
+     */
+    public static final IntegerSetting AUTO_STREAK_LATEST_MINUTE = new IntegerSetting(
+            "auto_streak_latest_minute", 20 * 60, false,
+            new Setting.Availability() {
+                @Override public boolean isAvailable() {
+                    return AUTO_STREAK.savedValue() && AUTO_STREAK_RANDOM.savedValue();
+                }
+
+                @Override public java.util.List<Setting<?>> getParentSettings() {
+                    return java.util.Collections.singletonList(
+                            AUTO_STREAK_RANDOM.savedValue() ? AUTO_STREAK : AUTO_STREAK_RANDOM);
+                }
+            }).withRange(0, 24 * 60 - 1);
     public static final StringSetting AUTO_STREAK_MESSAGE = new StringSetting(
             "auto_streak_message", "🔥", false, Setting.parent(AUTO_STREAK));
     /**
@@ -1019,6 +1051,8 @@ public class Settings extends BaseSettings {
     public static final BooleanSetting PUBLISH_DATE_DAY_FIRST = new BooleanSetting("publish_date_day_first", FALSE);
     /** TikTok's date by the creator's name with the month as a word, Oct 12, or 12 Oct with day first (#461). */
     public static final BooleanSetting PUBLISH_DATE_MONTH_NAME = new BooleanSetting("publish_date_month_name", FALSE);
+    /** A recent video's date by the creator's name in place of TikTok's age, 10-12 for 2d ago (#461). */
+    public static final BooleanSetting PUBLISH_DATE_INSTEAD_OF_AGE = new BooleanSetting("publish_date_instead_of_age", FALSE);
     public static final BooleanSetting PUBLISH_DATE_ON_GRID = new BooleanSetting("publish_date_on_grid", FALSE);
     public static final BooleanSetting VIDEO_LENGTH_ON_GRID = new BooleanSetting("video_length_on_grid", FALSE);
     public static final BooleanSetting HIDE_GRID_VIEW_COUNT = new BooleanSetting("hide_grid_view_count", FALSE);
@@ -1062,6 +1096,9 @@ public class Settings extends BaseSettings {
     /** How that bubble looks: the pill, or the round dial adapted from OmerKurdi79's fork (#248). */
     public static final StringSetting HOLD_SPEED_HUD_STYLE = new StringSetting(
             "hold_speed_hud_style", "pill", false, Setting.parent(HOLD_SPEED_SLIDE));
+    /** How big that bubble is drawn, in percent of its size at the phone's font size (#452). */
+    public static final IntegerSetting HOLD_SPEED_HUD_SIZE = new IntegerSetting(
+            "hold_speed_hud_size", 100, false, Setting.parent(HOLD_SPEED_SLIDE)).withRange(50, 150);
     /** Which way that slide goes: sideways with TikTok's pull-down lock, or up and down with a sideways lock (#248). */
     public static final StringSetting HOLD_SPEED_SLIDE_AXIS = new StringSetting(
             "hold_speed_slide_axis", "sideways", false, Setting.parent(HOLD_SPEED_SLIDE));
@@ -1441,6 +1478,8 @@ public class Settings extends BaseSettings {
      * couple of dp every two minutes. Over the feed and an opened video only.
      */
     public static final StringSetting BURN_IN_GUARD = new StringSetting("burn_in_guard", "off");
+    /** The level, in percent, Burn-in guard dims the controls to (#501). */
+    public static final IntegerSetting BURN_IN_GUARD_LEVEL = new IntegerSetting("burn_in_guard_level", 25).withRange(0, 90);
     public static final BooleanSetting HIDE_SHARE_GUIDE = new BooleanSetting("hide_share_guide", FALSE);
     public static final BooleanSetting HIDE_RAIL_FOLLOW = new BooleanSetting("hide_rail_follow", FALSE);
     public static final BooleanSetting HIDE_RAIL_LIKE = new BooleanSetting("hide_rail_like", FALSE);
@@ -1474,6 +1513,15 @@ public class Settings extends BaseSettings {
     public static final BooleanSetting REGION_AS_FLAG = new BooleanSetting("region_as_flag", FALSE);
     /** The country and the post time on a line of their own under the caption, off the creator's row (#410). */
     public static final BooleanSetting COUNTRY_DATE_UNDER_CAPTION = new BooleanSetting("country_date_under_caption", FALSE);
+    /** That line's own text size in points; 0 keeps the size of the post time it carries (#500). */
+    public static final IntegerSetting COUNTRY_DATE_TEXT_SIZE = new IntegerSetting("country_date_text_size", 0,
+            Setting.parent(COUNTRY_DATE_UNDER_CAPTION)).withRange(0, 48);
+    /** How solid that line is drawn, as a percentage of the name's color (#500). */
+    public static final IntegerSetting COUNTRY_DATE_OPACITY = new IntegerSetting("country_date_opacity", 100,
+            Setting.parent(COUNTRY_DATE_UNDER_CAPTION)).withRange(10, 100);
+    /** A dark shadow under that line's letters, so it reads on a bright video (#500). */
+    public static final BooleanSetting COUNTRY_DATE_SHADOW = new BooleanSetting("country_date_shadow", FALSE,
+            Setting.parent(COUNTRY_DATE_UNDER_CAPTION));
     public static final BooleanSetting SHOW_AUTHOR_HANDLE = new BooleanSetting("show_author_handle", FALSE);
     public static final BooleanSetting SHOW_ENGAGEMENT_RATE = new BooleanSetting("show_engagement_rate", FALSE);
     public static final BooleanSetting BLOCK_AUTHOR_BUTTON =
@@ -1569,6 +1617,13 @@ public class Settings extends BaseSettings {
     /** The time under each message in a chat, read at each row bind. See MessageTimes. */
     public static final BooleanSetting SHOW_MESSAGE_TIMES =
             new BooleanSetting("show_message_times", FALSE);
+    /**
+     * Keeps a chat you scrolled up in where it is when TikTok would move it to the newest message
+     * on its own, like coming back from a video or sending a reply. Read on each change to the
+     * chat's list. See KeepChatPlace.
+     */
+    public static final BooleanSetting KEEP_CHAT_PLACE =
+            new BooleanSetting("keep_chat_place", FALSE);
     public static final StringSetting HIDE_INBOX_CUSTOM_TITLES =
             new StringSetting("hide_inbox_custom_titles", "");
     // Feed filter additions. The list based ones are read live, so a sound blocked from

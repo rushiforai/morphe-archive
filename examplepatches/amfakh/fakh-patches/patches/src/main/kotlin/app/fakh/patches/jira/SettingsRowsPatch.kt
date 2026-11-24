@@ -1,5 +1,11 @@
+/*
+ * Copyright 2026 amfakh
+ * SPDX-License-Identifier: GPL-3.0-only
+ */
+
 package app.fakh.patches.jira
 
+import app.fakh.patches.shared.featuresPatch
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
 import app.morphe.patcher.patch.PatchException
 import app.morphe.patcher.patch.patch
@@ -50,7 +56,7 @@ private val fakhPatchesPagePatch = patch {
  */
 val settingsRowsPatch = patch {
     extendWith("extensions/extension.mpe")
-    dependsOn(fakhPatchesPagePatch)
+    dependsOn(fakhPatchesPagePatch, featuresPatch)
 
     execute {
         // The page's onMAMCreate starts with the superclass's own, which the extension cannot name at compile time.

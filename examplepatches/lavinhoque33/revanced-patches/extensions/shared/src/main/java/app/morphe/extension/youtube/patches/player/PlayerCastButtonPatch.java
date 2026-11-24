@@ -9,6 +9,9 @@ import app.morphe.extension.youtube.settings.Settings;
 
 @SuppressWarnings("unused")
 public final class PlayerCastButtonPatch {
+    private static final class CastLayout {
+        static final int ID = ResourceUtils.getLayoutIdentifier("player_cast_media_route_button");
+    }
 
     private PlayerCastButtonPatch() {
     }
@@ -16,8 +19,21 @@ public final class PlayerCastButtonPatch {
     /**
      * Injection point.
      */
-    public static int hideCastButton(int original) {
-        return Settings.HIDE_PLAYER_CAST_BUTTON.get() ? View.GONE : original;
+    public static void markPlayerCastButton(View view) {
+        int id = CastLayout.ID;
+        if (id == 0) return;
+
+        view.setTag(id, Boolean.TRUE);
+        if (Settings.HIDE_PLAYER_CAST_BUTTON.get()) view.setVisibility(View.GONE);
+    }
+
+    /**
+     * MediaRouteButton is shared with the toolbar. Only its player layout is marked for hiding.
+     */
+    public static int hideCastButton(View view, int original) {
+        return Settings.HIDE_PLAYER_CAST_BUTTON.get() && Boolean.TRUE.equals(view.getTag(CastLayout.ID))
+                ? View.GONE
+                : original;
     }
 
     /**

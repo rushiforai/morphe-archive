@@ -59,6 +59,9 @@ nbdist/
 bin/
 out/
 
+# Track the apk-lab binary source despite the build-output `bin/` rule
+!tools/apk-lab/src/bin/
+
 # Node
 node_modules/
 
@@ -78,21 +81,19 @@ node_modules/
 !.agents/skills/apk-lab/
 !.agents/skills/morphe-patches/
 .claude
+plans/
 
 # Font assets
 *.ttf
 patches/src/main/resources/fonts/
 
-# APK Lab & Python
+# APK Lab workspaces and local environments
 .apk-lab/
+.apk-lab-migration/
+docs/benchmarks/apk-lab/*.local.json
 .dev.vars*
-__pycache__/
-*.py[cod]
-*$py.class
-.pytest_cache/
 .venv/
 .tools/
-.ruff_cache/
 
 # Rust & Cargo
 target/
@@ -116,3 +117,8 @@ _deps/
 *.a
 *.o
 *.obj
+
+# Frozen native asset baseline captures are committed test fixtures.
+!tools/asset-prep/tests/fixtures/baseline/captures/
+!tools/asset-prep/tests/fixtures/baseline/captures/**
+!tools/asset-prep/tests/fixtures/font/*.ttf

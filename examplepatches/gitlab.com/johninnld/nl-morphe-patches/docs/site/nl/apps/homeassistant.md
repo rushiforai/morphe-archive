@@ -8,6 +8,8 @@ Gebruik de eigen auto-interface van Home Assistant met DriveDeck of een andere g
 
 Selecteer het volledige originele archief in Morphe Manager, inclusief de basis-, architectuur- en scherm-APK. Dit doel is de ARM64-build.
 
+Gebruik voor de Automotive-APK-port [Home Assistant (Automotive)](homeassistant-automotive.md).
+
 ## Patches
 
 | Patch | Standaard | Wat verandert er? |

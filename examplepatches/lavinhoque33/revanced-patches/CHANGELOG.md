@@ -1,3 +1,77 @@
+## Unreleased
+
+### Features
+
+* **YouTube – Seekbar:** **Hide old seekbar thumbnail border** removes the white frame around the old-style
+  seek preview. The image keeps its size, position and rounded corners. The option is off by default.
+* **YouTube & YouTube Music – Custom branding:** Patch options choose which icon packs are bundled. Only the
+  selected packs appear in the launcher aliases and the in-app **App icon** picker. The startup icon is always
+  kept. All packs stay included by default.
+* **YouTube & YouTube Music – Custom branding:** Add the legacy **ReVanced** and **Reseam** icon packs. They change
+  the launcher icon only; the app header and splash screen stay stock.
+* **YouTube – Downloads:** The built-in offline player now follows the RVX player settings, so downloaded
+  videos keep them without an internet connection. These cover custom playback speeds, default speed,
+  remembering the last speed, the speed menu style with its 0.05× slider, separate forward and backward
+  double-tap seek lengths, swipe controls, opening in fullscreen, player overlay opacity and seekbar colors.
+  **Always repeat** applies too, and with **Show always repeat button** on, the built-in player has the same
+  repeat button (long-press pauses after each repeat).
+
+### Bug Fixes
+
+* **YouTube – Home feed:** **Show channel names on Home** now also works when **Feed card layout** is **Classic**.
+  Cards whose data names the channel show that name instead of the handle.
+* **YouTube – Downloads:** If YouTube can't be reached, for example on Wi-Fi without working internet or when
+  the app's network access is blocked, downloads open in the built-in player instead of a page that can't load.
+* **YouTube Music – Third-party lyrics:** Repeated lines now highlight one at a time as each line's timestamp
+  arrives, rather than all at once. This works with and without word sync and separate background vocals.
+
+## [1.49.0](https://github.com/lavinhoque33/revanced-patches/compare/v1.48.0...v1.49.0) (2026-11-23)
+
+This stable release also includes A–B repeat, the original audio stream preference and the Player settings
+alignment fixes from [1.49.0-dev.1](#1490-dev1-2026-11-23).
+
+### Features
+
+* **YouTube – Home feed:** **Show channel names on Home** replaces a handle with the channel’s display name
+  when the card itself identifies the channel. Unresolved names keep their handles; no lookup request is sent.
+* **YouTube – Add to queue:** On supported 21.x versions, **Show Add to queue on thumbnails** adds a shortcut
+  to eligible video thumbnails when a queue is available. Tapping it adds that video without starting playback.
+* **YouTube – Video quality button:** The button shows the resolution currently playing, as a label such as **FHD**
+  or an exact value such as **1080**. When the button is available, the timestamp no longer duplicates its quality
+  label or picker. Turning the button off restores the timestamp behavior you selected.
+* **YouTube – Swipe controls:** Choose separate overlay styles for the side and top/bottom edges, including
+  a full horizontal overlay in the center. Set the background color separately from opacity. Portrait swipes
+  are optional and limited to the watch player. Supported swipe icons follow the selected player icon style.
+* **YouTube – Toolbar:** Turn off **Hide Cast button** to restore the toolbar entry on supported 21.x versions.
+  On 21.39.525 and 21.45.90, **Hide Companion button** controls the separate Companion action.
+* **YouTube – Miniplayer:** **Hide overlay buttons** now applies to the **Default** miniplayer as well.
+  Swipe down on the miniplayer to dismiss it. Default keeps its native buttons when touch exploration is active.
+
+### Bug Fixes
+
+* **YouTube – Swipe controls:** A touch starting on the seekbar stays with YouTube’s native scrubber
+  rather than activating a swipe shortcut during precise seeking.
+* **YouTube – Return YouTube Dislike:** Keep the Morphe-style dislike count drawn while the same video’s
+  action row updates, including when tapping Play/Pause or Like.
+* **YouTube – Seekbar:** Preserve the custom primary-to-accent gradient on the played segment in dark
+  portrait mode after the controls fade. The gray buffered segment is separate.
+
+## [1.49.0-dev.1](https://github.com/lavinhoque33/revanced-patches/compare/v1.48.0...v1.49.0-dev.1) (2026-11-23)
+
+### Features
+
+* **YouTube Music – A–B repeat:** Enable **RVX → Player → A–B repeat** to repeat a section of the current
+  track. In Now Playing, tap **Set A**, then **Set B** at a later position. Tap **Clear** to resume normal
+  playback. Pausing and using the seekbar still work; changing tracks clears the markers.
+* **YouTube Music – Audio:** **Prefer original audio stream** selects a non-DRC version when one is available
+  for the same audio track. **Disable loudness normalization** controls playback gain separately and retains
+  the previous setting. Neither setting replaces an existing stream download.
+
+### Bug Fixes
+
+* **YouTube Music – Settings:** **Add to queue in tap order** and **Playback source inspector** now use the same
+  icon column and text alignment as the other Player settings. Parent-only icon mode still hides leaf icons.
+
 ## [1.48.0](https://github.com/lavinhoque33/revanced-patches/compare/v1.47.1...v1.48.0) (2026-11-23)
 
 ### Features

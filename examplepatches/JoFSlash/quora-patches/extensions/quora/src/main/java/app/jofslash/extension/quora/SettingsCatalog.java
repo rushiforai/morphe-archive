@@ -36,7 +36,7 @@ final class SettingsCatalog {
         add("hideSeen", "Feed", "Items you already opened, when they come back.");
         add("hideOldAnswers", "Feed", "Answers older than the years set below.");
         add("filterKeywords", "Feed", "Items that mention your keywords (see Filters).");
-        add("blockAuthors", "Feed", "Items from the people and Spaces in Filters.");
+        add("blockAuthors", "Feed", "Items from the people and Spaces in Filters. Long-press a name to add it.");
         add("hideAnonymousAnswers", "Feed", "Answers written as \"Anonymous\".");
         add("hideCounts", "Feed", "Upvote, view, comment and share numbers.");
         add("hideDownvoteButton", "Feed", "The downvote button.");
@@ -47,6 +47,11 @@ final class SettingsCatalog {
         add("hideAskBox", "Feed", "The \"What do you want to ask or share?\" box.");
         add("hideMoreStories", "Feed", "The red \"More Stories\" button over the feed.");
         add("hideDismissedQuestions", "Feed", "Answers to questions you marked \"Not interested\".");
+        add("hideLowVoted", "Feed", "Answers with fewer upvotes than set below.");
+        add("hideReshares", "Feed", "Answers and posts someone only shared again.");
+        add("hideMediaOnly", "Feed", "Posts that are only a picture or a video.");
+        add("hideTranslated", "Feed", "Answers marked as translated from another language.");
+        add("pickToHide", "Feed", "Boxes you picked under More > Pick something to hide.");
         add("hideCommentBox", "Reading", "The \"Add a comment…\" field under answers.");
 
         add("copyAnswerText", "Reading", "A Copy button next to Share under answers.");
@@ -56,6 +61,8 @@ final class SettingsCatalog {
         add("bookmarks", "Reading", "A bookmark button under open answers; saved ones read offline (see Bookmarks).");
         add("translateAnswerText", "Reading", "A Translate button next to Share under answers.");
         add("readAloud", "Reading", "A Read aloud button next to Share under answers.");
+        add("readerView", "Reading", "A Reader view button next to Share under answers.");
+        add("readingTime", "Reading", "\"4 min read\" above longer answers.");
         add("fullscreenReading", "Reading", "Bars hide while you scroll down.");
         add("expandAnswers", "Reading", "Shortened answers open in full.");
         add("comfortableReading", "Reading", "More space between lines and paragraphs.");
@@ -82,6 +89,7 @@ final class SettingsCatalog {
         add("disableVibration", "App", "No vibration when you tap buttons.");
         add("disableSignInPrompts", "App", "No \"Save password?\" or automatic sign-in.");
         add("blockPromotionalNotifications", "App", "Drops digests and promotions.");
+        add("updateNotice", "App", "Shows here when newer patches are out, from GitHub once a day.");
         add("filterUpdates", "App", "Fixes for hiding things when Quora changes its pages, from GitHub once a day.");
     }
 

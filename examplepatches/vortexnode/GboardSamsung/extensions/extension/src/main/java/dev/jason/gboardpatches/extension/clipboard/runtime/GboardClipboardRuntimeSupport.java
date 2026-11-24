@@ -105,6 +105,16 @@ final class GboardClipboardRuntimeSupport {
                 clipboardPreferences(context));
     }
 
+    boolean shouldKeepWholeClipboardBlock() {
+        Context context = applicationContext();
+        if (context == null) {
+            return GboardClipboardSettings.DEFAULT_CLIPBOARD_SAMSUNG_MODE;
+        }
+        SharedPreferences preferences = clipboardPreferences(context);
+        return GboardClipboardSettings.readClipboardEnabled(preferences)
+                && GboardClipboardSettings.readClipboardSamsungMode(preferences);
+    }
+
     boolean shouldShowExpiryCountdown() {
         Context context = applicationContext();
         return context == null

@@ -13,4 +13,7 @@ interface GestureController {
      * @return was a gesture detected?
      */
     fun submitTouchEvent(motionEvent: MotionEvent): Boolean
+
+    /** End detector state without forwarding a CANCEL to the native player. */
+    fun cancelTouchEvent(event: MotionEvent)
 }

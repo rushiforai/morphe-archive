@@ -192,7 +192,7 @@ private fun Method.isNativeBlurRecorder(): Boolean {
 @Suppress("unused")
 val fixNavigationBarHazeExperimentalPatch = bytecodePatch(
     name = "Fix Navigation Bar Haze (Experimental)",
-    description = "D3-K1A.11-T5 Global Overlay Fix 1: Scaffold MainContent overlay, T4E-T4 runtime controls.",
+    description = "D3-K1A.11-T5 Global Overlay Fix 2: correct Scaffold MainContent slot, T4E-T4 runtime controls.",
     default = false
 ) {
     compatibleWith(Constants.COMPATIBILITY_X)
@@ -1161,43 +1161,34 @@ val fixNavigationBarHazeExperimentalPatch = bytecodePatch(
             """
         )
 
-        // T5 Global Overlay Fix 1: compose in the shared Scaffold MainContent Box.
-        // Preserve the original MainContent invocation and all native HazeSource logic.
-        // This is the selector 0x18 branch of ai.x.grok.ui.droplet.j1.
-        val globalContentOwner = "Lai/x/grok/ui/droplet/j1;"
+        // T5 Global Overlay Fix 2: inject into the actual Scaffold MainContent.
+        // v2 selector 0x1c delegates to private e(PaddingValues, Composer, Int).
+        // That method invokes the original Function4 content inside the
+        // Material3 MainContent Box; preserve the original call unchanged.
+        val globalContentOwner = "Landroidx/compose/foundation/text/v2;"
         val globalContent = mutableClassDefBy(globalContentOwner).methods.single {
-            it.name == "invoke" && it.returnType == "Ljava/lang/Object;" &&
+            it.name == "e" && it.returnType == "Ljava/lang/Object;" &&
                 it.parameterTypes.map { p -> p.toString() } ==
-                listOf("Ljava/lang/Object;", "Ljava/lang/Object;")
+                listOf("Ljava/lang/Object;", "Ljava/lang/Object;", "Ljava/lang/Object;")
         }
         val globalImpl = globalContent.implementation
-            ?: error("T5: missing shared MainContent wrapper")
+            ?: error("T5 Fix 2: missing MainContent delegate")
         val globalIns = globalImpl.instructions.toList()
         val originalContentCall =
-            "Landroidx/compose/runtime/internal/g;->invoke(Ljava/lang/Object;Ljava/lang/Object;Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;"
+            "Landroidx/compose/runtime/internal/g;->q(Ljava/lang/Object;Ljava/lang/Object;Ljava/lang/Object;Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;"
         val globalAnchors = globalIns.indices.filter { index ->
             if (globalContent.refAt(index) != originalContentCall ||
-                globalIns[index].opcode != Opcode.INVOKE_VIRTUAL) return@filter false
-            val call = globalIns[index] as? FiveRegisterInstruction ?: return@filter false
-            if (call.registerCount != 5 || call.registerC != 0 ||
-                call.registerD != 2 || call.registerE != 3 ||
-                call.registerF != 1 || call.registerG != 4) return@filter false
-            val from = maxOf(0, index - 22)
-            val preceding = (from until index).mapNotNull { globalContent.refAt(it) }
-            preceding.any { it.startsWith("Lcom/x/compose/core/o0;->d(") } &&
-                preceding.any { it.startsWith("Landroidx/compose/foundation/layout/e;->C(") } &&
+                globalIns[index].opcode != Opcode.INVOKE_VIRTUAL_RANGE) return@filter false
+            val call = globalIns[index] as? RegisterRangeInstruction ?: return@filter false
+            call.startRegister == 1 && call.registerCount == 6 &&
                 index + 1 < globalIns.size &&
                 globalIns[index + 1].opcode in
                 setOf(Opcode.GOTO, Opcode.GOTO_16, Opcode.GOTO_32)
         }
-        require(globalAnchors.size == 1) {
-            "T5: expected one selector-0x18 shared Scaffold MainContent invocation; found ${globalAnchors.size}"
-        }
-        // The verified native branch keeps v15 = HazeState and v1 = Composer.
-        // Both are live here, and no invoke result is consumed by the following goto.
-        require(globalImpl.registerCount >= 16) {
-            "T5: unexpected shared MainContent register layout"
-        }
+        require(globalImpl.registerCount == 11 && globalAnchors.size == 1 &&
+            globalIns.indices.any { globalContent.refAt(it) ==
+                "Lcom/x/ui/common/post/b;->e(Landroidx/compose/ui/Modifier;Ldev/chrisbanes/haze/a1;FI)Landroidx/compose/ui/Modifier;" }
+        ) { "T5 Fix 2: unexpected MainContent delegate layout" }
         val overlayName = "serajrComposeFeedNavOverlay"
         require(mutableClass.methods.none { it.name == overlayName })
         addStaticMethod(
@@ -1272,7 +1263,7 @@ val fixNavigationBarHazeExperimentalPatch = bytecodePatch(
             """
         )
         globalContent.addInstructions(globalAnchors.single() + 1,
-            "invoke-static {v15, v1}, ${MAIN_ACTIVITY}->${overlayName}(Ldev/chrisbanes/haze/a1;Landroidx/compose/runtime/Composer;)V")
+            "invoke-static {v2, v5}, ${MAIN_ACTIVITY}->${overlayName}(Ldev/chrisbanes/haze/a1;Landroidx/compose/runtime/Composer;)V")
 
         // Validated Bottom Bar visibility publication.
 

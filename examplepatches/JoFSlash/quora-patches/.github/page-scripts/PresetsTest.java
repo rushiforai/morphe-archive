@@ -34,6 +34,16 @@ public final class PresetsTest {
             System.err.println("FAIL Presets: For reading must keep everything Clean feed keeps");
             failures++;
         }
+        for (String key : Presets.PERSONAL) {
+            if (!keys.contains(key)) {
+                System.err.println("FAIL Presets: PERSONAL names " + key + ", which SettingsCatalog doesn't list");
+                failures++;
+            }
+            if (Presets.READING.contains(key)) {
+                System.err.println("FAIL Presets: " + key + " is personal, so no preset may name it");
+                failures++;
+            }
+        }
         if (!Presets.ADS_ONLY.contains("removeAds")) {
             System.err.println("FAIL Presets: Ads and privacy only must keep Remove ads on");
             failures++;

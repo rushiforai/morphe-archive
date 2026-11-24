@@ -33,9 +33,9 @@ public final class SyncScript {
 
     /**
      * Plain ES5, everything inside try/catch: an exception escaping here would be a fatal JS error.
-     * Module ids (app 2.1.0, dependencies of the HistoryScreen module 3370):
-     * 2713 = useAuthStore ("auth-storage"), 2735 = useReadStore ("read"),
-     * 2680 = react-native-toast-message, 2722 = API client (axios, used as {@code .default.post}).
+     * App modules (dependencies of HistoryScreen) come from {@code __htcR(name)}, ids per app version in
+     * AppInfo: auth = useAuthStore ("auth-storage"), read = useReadStore ("read"),
+     * toast = react-native-toast-message, api = API client (axios, used as {@code .default.post}).
      */
     static final String SCRIPT = ""
             + "(function () {\n"
@@ -47,10 +47,10 @@ public final class SyncScript {
             + "  try {\n"
             + "    var g = typeof globalThis !== 'undefined' ? globalThis : this;\n"
             + "    if (typeof g.__r !== 'function') { log('no __r'); return; }\n"
-            + "    var A = g.__r(2713) && g.__r(2713).useAuthStore;\n"
-            + "    var R = g.__r(2735) && g.__r(2735).useReadStore;\n"
-            + "    var Toast = esDefault(g.__r(2680));\n"
-            + "    var api = esDefault(g.__r(2722));\n"
+            + "    var A = g.__htcR('auth') && g.__htcR('auth').useAuthStore;\n"
+            + "    var R = g.__htcR('read') && g.__htcR('read').useReadStore;\n"
+            + "    var Toast = esDefault(g.__htcR('toast'));\n"
+            + "    var api = esDefault(g.__htcR('api'));\n"
             + "    if (!A || typeof A.getState !== 'function' || typeof A.subscribe !== 'function') { log('auth store not found'); return; }\n"
             + "    if (!R || typeof R.getState !== 'function' || typeof R.getState().addRecentRead !== 'function'\n"
             + "        || typeof R.getState().clearRecentReads !== 'function') { log('read store not found'); return; }\n"
@@ -91,7 +91,7 @@ public final class SyncScript {
             + "        return o;\n"
             + "      }\n"
             + "      var p;\n"
-            + "      try { p = api.post('/users/sync-books', { recentReads: local }); } catch (e) { finish(); log('post failed ' + e); return; }\n"
+            + "      try { p = api.post('/users/sync-books', { recentReads: local, htcOrder: 'oldest' }); } catch (e) { finish(); log('post failed ' + e); return; }\n"
             + "      p.then(function (res) {\n"
             + "        var opts = finish();\n"
             + "        try {\n"
@@ -167,7 +167,7 @@ public final class SyncScript {
             + "\n"
             + "    // 3. Back to the app after more than 5 minutes in the background.\n"
             + "    try {\n"
-            + "      var RN = g.__r(74);\n"
+            + "      var RN = g.__htcR('rn');\n"
             + "      var awayAt = 0;\n"
             + "      if (RN && RN.AppState && typeof RN.AppState.addEventListener === 'function') {\n"
             + "        RN.AppState.addEventListener('change', function (state) {\n"

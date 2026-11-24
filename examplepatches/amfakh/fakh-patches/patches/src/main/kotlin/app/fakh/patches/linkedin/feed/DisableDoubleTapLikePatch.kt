@@ -1,9 +1,18 @@
+/*
+ * Based on Michii Patches by heyymichii, GPLv3:
+ * https://github.com/heyymichii/michii-patches
+ *
+ * Modifications copyright 2026 amfakh
+ * SPDX-License-Identifier: GPL-3.0-only
+ */
+
 package app.fakh.patches.linkedin.feed
 
 import app.fakh.patches.linkedin.shared.Constants.COMPATIBILITY_LINKEDIN
+import app.fakh.patches.linkedin.shared.Constants.DISABLE_DOUBLE_TAP_LIKE
 import app.fakh.patches.linkedin.shared.Constants.EXTENSION_PACKAGE
-import app.fakh.patches.linkedin.shared.markIncluded
 import app.fakh.patches.linkedin.shared.settingsPatch
+import app.fakh.patches.shared.register
 import app.morphe.patcher.Fingerprint
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
 import app.morphe.patcher.patch.patch
@@ -33,7 +42,7 @@ val disableDoubleTapLikePatch = patch(
     dependsOn(settingsPatch)
 
     execute {
-        markIncluded("isDisableDoubleTapLikeIncluded")
+        register(DISABLE_DOUBLE_TAP_LIKE)
 
         // p3 is onDoubleClick. Range form because p3 can be above v15.
         ClickActionsFingerprint.method.addInstructions(

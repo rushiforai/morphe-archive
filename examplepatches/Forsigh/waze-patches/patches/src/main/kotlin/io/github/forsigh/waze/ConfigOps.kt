@@ -83,17 +83,28 @@ internal fun forceString(prefix: String, entries: Map<String, String>): String {
 
 /** Record that [keys] must read as [value]. */
 internal fun recordBoolean(patchId: String, value: Boolean, vararg keys: String) {
-    keys.forEach { Overrides.booleans[it] = value }
+    // Mirrored into the native store as well: the typed Java getter only covers Java consumers, and
+    // a key whose reader lives in the native layer applied cleanly and changed nothing (issue #24).
+    keys.forEach {
+        Overrides.booleans[it] = value
+        Overrides.nativeBooleans[it] = value
+    }
 }
 
 /** Record that each key must read as its paired Long value. */
 internal fun recordLong(patchId: String, vararg entries: Pair<String, Long>) {
-    entries.forEach { (key, value) -> Overrides.longs[key] = value }
+    entries.forEach { (key, value) ->
+        Overrides.longs[key] = value
+        Overrides.nativeLongs[key] = value
+    }
 }
 
 /** Record that each key must read as its paired String value. */
 internal fun recordString(patchId: String, vararg entries: Pair<String, String>) {
-    entries.forEach { (key, value) -> Overrides.strings[key] = value }
+    entries.forEach { (key, value) ->
+        Overrides.strings[key] = value
+        Overrides.nativeStrings[key] = value
+    }
 }
 
 /**
@@ -124,4 +135,57 @@ internal fun nativeSyncBlock(entries: Map<String, Boolean>): String = buildStrin
 internal fun recordNativeBoolean(prefix: String, value: Boolean, vararg keys: String) {
     keys.forEach { Overrides.nativeBooleans[it] = value }
     println("${prefix}Native: native config writes = ${keys.joinToString()}")
+}
+
+/**
+ * smali block writing Long keys into the native config store.
+ *
+ * Values are absolute. Scaling Waze's own value instead would need a remembered baseline: the
+ * sync callbacks fire more than once per session, so a multiplier applied to the current value
+ * compounds (250% of 250% on the second sync). That needs a static baseline per key and a device
+ * test, so the patch takes absolute numbers and leaves the time caps as explicit options.
+ *
+ * Registers: v0 = ConfigManager, v1 = key, v2/v3 = value.
+ */
+internal fun nativeLongSyncBlock(entries: Map<String, Long>): String = buildString {
+    appendLine("invoke-static {}, Lcom/waze/ConfigManager;->isReady()Z")
+    appendLine("move-result v0")
+    appendLine("if-eqz v0, :nlong_done")
+    appendLine("invoke-static {}, Lcom/waze/ConfigManager;->getInstance()Lcom/waze/ConfigManager;")
+    appendLine("move-result-object v0")
+    appendLine("if-nez v0, :nlong_done")
+    entries.forEach { (key, value) ->
+        appendLine("sget-object v1, Lcom/waze/config/ConfigValues;->$key:Lcom/waze/config/c;")
+        appendLine("if-nez v1, :nlong_done")
+        val load = if (value in Int.MIN_VALUE.toLong()..Int.MAX_VALUE.toLong()) "const-wide/32 v2, $value"
+                   else "const-wide v2, ${value}L"
+        appendLine(load)
+        appendLine("invoke-virtual {v0, v1, v2, v3}, Lcom/waze/ConfigManager;->setConfigValueLong(Lcom/waze/config/c;J)V")
+    }
+    appendLine(":nlong_done")
+    appendLine("return-void")
+}
+
+/** Registers Long keys that have to reach the native config store with an absolute value. */
+internal fun recordNativeLong(prefix: String, vararg entries: Pair<String, Long>) {
+    entries.forEach { (key, value) -> Overrides.nativeLongs[key] = value }
+    println("${prefix}NativeLong: absolute native writes = ${entries.joinToString { it.first }}")
+}
+
+/** smali block writing String keys into the native config store. v0 = ConfigManager, v1 = key, v2 = value. */
+internal fun nativeStringSyncBlock(entries: Map<String, String>): String = buildString {
+    appendLine("invoke-static {}, Lcom/waze/ConfigManager;->isReady()Z")
+    appendLine("move-result v0")
+    appendLine("if-eqz v0, :nstr_done")
+    appendLine("invoke-static {}, Lcom/waze/ConfigManager;->getInstance()Lcom/waze/ConfigManager;")
+    appendLine("move-result-object v0")
+    appendLine("if-nez v0, :nstr_done")
+    entries.forEach { (key, value) ->
+        appendLine("sget-object v1, Lcom/waze/config/ConfigValues;->$key:Lcom/waze/config/d;")
+        appendLine("if-nez v1, :nstr_done")
+        appendLine("const-string v2, \"${value.replace("\"", "\\\"")}\"")
+        appendLine("invoke-virtual {v0, v1, v2}, Lcom/waze/ConfigManager;->setConfigValueString(Lcom/waze/config/d;Ljava/lang/String;)V")
+    }
+    appendLine(":nstr_done")
+    appendLine("return-void")
 }

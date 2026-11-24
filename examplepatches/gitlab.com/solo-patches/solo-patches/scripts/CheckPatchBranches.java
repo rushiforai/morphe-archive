@@ -30,7 +30,8 @@ public final class CheckPatchBranches {
             "Lcom/yuewen/webnovel/wengine/view/WTextView;",
             "Lcom/qidian/QDReader/readerengine/view/menu/MenuThemeView;",
             "Lcom/qidian/Int/reader/read/menu/WReaderMenuBottomRowView;",
-            "Lapp/saketh/extension/controls/PatchControlsActivity;");
+            "Lapp/saketh/extension/controls/PatchControlsActivity;",
+            "Lcom/qidian/Int/reader/fragment/r0$e;");
 
     public static void main(String[] args) throws Exception {
         Set<String> found = new HashSet<>();

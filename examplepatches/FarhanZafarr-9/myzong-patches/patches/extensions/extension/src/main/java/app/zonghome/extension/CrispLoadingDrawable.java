@@ -17,7 +17,6 @@ public final class CrispLoadingDrawable extends Drawable implements Animatable {
     private final int size;
     private int accent,secondary,alpha=255;
     private boolean running;
-    private long began;
     private final Runnable frame=new Runnable() {
         @Override public void run() {
             if(running && isVisible()) {
@@ -41,9 +40,9 @@ public final class CrispLoadingDrawable extends Drawable implements Animatable {
         paint.setStrokeWidth(stroke);
         paint.setColor(secondary);paint.setAlpha(alpha/5);
         canvas.drawCircle(cx,cy,side*.40f,paint);canvas.drawCircle(cx,cy,side*.25f,paint);
-        long elapsed=SystemClock.uptimeMillis()-began;
-        float turn=(elapsed%2400)*.15f;
-        float pulse=(float)(.5+.5*Math.sin(elapsed*Math.PI/1200));
+        long elapsed=SystemClock.uptimeMillis();
+        float turn=LoadingPhase.turn(elapsed);
+        float pulse=LoadingPhase.pulse(elapsed);
         paint.setColor(accent);paint.setAlpha(alpha);
         oval.set(cx-side*.40f,cy-side*.40f,cx+side*.40f,cy+side*.40f);
         canvas.drawArc(oval,turn-90,95+125*pulse,false,paint);
@@ -52,14 +51,14 @@ public final class CrispLoadingDrawable extends Drawable implements Animatable {
         canvas.drawArc(oval,-turn*1.5f+90,220-100*pulse,false,paint);
     }
     @Override public void start() {
-        if(running)return;running=true;began=SystemClock.uptimeMillis();
-        invalidateSelf();scheduleSelf(frame,began+16);
+        if(running)return;running=true;
+        invalidateSelf();scheduleSelf(frame,SystemClock.uptimeMillis()+16);
     }
     @Override public void stop(){running=false;unscheduleSelf(frame);}
     @Override public boolean isRunning(){return running;}
     @Override public boolean setVisible(boolean visible,boolean restart) {
         boolean changed=super.setVisible(visible,restart);
-        if(visible){if(restart)stop();start();}else stop();return changed;
+        if(visible)start();else stop();return changed;
     }
     @Override public int getIntrinsicWidth(){return size;}
     @Override public int getIntrinsicHeight(){return size;}

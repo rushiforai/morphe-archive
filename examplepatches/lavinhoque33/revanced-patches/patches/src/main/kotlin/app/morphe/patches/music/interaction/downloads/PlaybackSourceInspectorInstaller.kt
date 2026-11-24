@@ -1,7 +1,7 @@
 /*
  * Copyright (C) 2026 lavinhoque33
  * Licensed under the GNU General Public License v3.0.
- * Modified by lavinhoque33, 2026-11-22.
+ * Modified by lavinhoque33, 2026-11-23.
  * Written by lavinhoque33, 2026-11-22.
  */
 package app.morphe.patches.music.interaction.downloads
@@ -340,6 +340,8 @@ private fun sampleFormats(
     move-result-object v1
     :video_ready
     invoke-static {$owner, v0, v1, v2, v3}, $report
+    iget-object v4, p0, $audio
+    invoke-static {$owner, v4, v0}, $INSPECTOR_CLASS->traceAudioVariant(Ljava/lang/Object;Ljava/lang/Object;$LOCAL_FORMAT)V
     return-void
 """
 

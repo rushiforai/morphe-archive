@@ -1,0 +1,55 @@
+{
+  "observed_at": "2026-11-22 JST",
+  "page": "https://www.animanch.com/category50000000000/",
+  "javascript": "https://bbs.animanch.com/main.js?1667032701",
+  "thread_page": "https://bbs.animanch.com/board/1/",
+  "observed_page_fields": [
+    "title",
+    "category",
+    "name",
+    "text",
+    "file1",
+    "upname",
+    "thread"
+  ],
+  "post_flow": [
+    {
+      "stage": "precheck",
+      "method": "POST",
+      "url": "https://bbs.animanch.com/inc/comment.php?preCheck",
+      "encoding": "jQuery $.ajax data (form-urlencoded by default)",
+      "fields": "resform input[type=text], textarea, select"
+    },
+    {
+      "stage": "submission",
+      "method": "POST",
+      "url": "https://bbs.animanch.com/inc/comment.php",
+      "encoding": "jQuery $.ajax data",
+      "success": "JSON parsed; number, thread, jump used; failure responseText shown"
+    },
+    {
+      "stage": "file_upload",
+      "method": "POST",
+      "url": "https://bbs.animanch.com/upload/",
+      "encoding": "FormData multipart; contentType=false, processData=false",
+      "fields": [
+        "file1",
+        "upname",
+        "thread"
+      ],
+      "alternative_multi_attachment_fields": [
+        "files[]",
+        "upname",
+        "thread"
+      ]
+    }
+  ],
+  "client_validation": "new thread requires image (checked when title is in postdata and no selected file)",
+  "public_GET_observation": {
+    "thread_page_set_cookie_name": "PHPSESSID",
+    "posting_cookie_mandatory": "not proven",
+    "captcha": "not present in inspected main.js or page text; server/WAF checks not excluded",
+    "login": "no account sign-in endpoint confirmed in sampled UI"
+  },
+  "external_posts_made": 0
+}

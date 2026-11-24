@@ -282,7 +282,7 @@ internal fun applyClipboard1853ItemBindWrapper(
         4, """
             ${RuntimeCallEmitter.invoke(ITEM_BIND_BEFORE_RUNTIME_CALL, "p0 .. p2")}
             :clipboard_try
-            invoke-direct {p0, p1, p2}, ${target.definingClass}->$helper(Lks;I)V
+            invoke-direct {p0, p1, p2}, ${target.definingClass}->$helper(${RECYCLER_VIEW_HOLDER_CLASS}I)V
             :clipboard_end
             .catchall {:clipboard_try .. :clipboard_end} :clipboard_failed
             ${RuntimeCallEmitter.invoke(ITEM_BIND_RUNTIME_CALL, "p0 .. p2")}

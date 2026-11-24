@@ -205,7 +205,9 @@ public final class ExternalBoardAuth {
     }
     /** Native inline error labels do not go through AlertDialog or WebView. */
     public static void postingError(Object owner,CharSequence message) {
-        observeFor(activity(owner),message);
+        Activity editor=activity(owner);
+        BackgroundPostingUi.nativeErrorMessage(editor,message);
+        observeFor(editor,message);
     }
     private static void observeFor(Activity activity,CharSequence message) {
         if(message==null || !BoardAuthRules.required(message.toString())) return;

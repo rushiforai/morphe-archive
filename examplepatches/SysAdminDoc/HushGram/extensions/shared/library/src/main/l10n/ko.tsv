@@ -791,6 +791,9 @@ Takes Reply off each comment in a post's or reel's comments. View more replies s
 # context: Comments: a Hide comments switch that takes the heart (the like button) and the like count under it off each comment in a comment sheet (#762).
 Hide likes on comments	댓글의 좋아요 숨기기
 Takes the heart and the like count off each comment in a post's or reel's comments.	게시물이나 릴스의 댓글마다 하트와 좋아요 수를 없앱니다.
+# context: Comments: a Hide comments switch that takes AI labels like AI-generated profile off the line with a commenter's name and time in a comment sheet (#787). AI-generated profile is a label Instagram shows there, use this language's Instagram words for it if you know them.
+Hide AI labels on comments	댓글의 AI 라벨 숨기기
+Takes AI-generated profile and similar AI labels off the line with a commenter's name. The name and the time stay.	댓글 작성자 이름 줄에서 'AI 생성 프로필' 같은 AI 라벨을 없앱니다. 이름과 시간은 그대로 둡니다.
 # context: Comments: a Hide comments switch that takes the comment box off the bottom of a comment sheet (#762). Comment box is the field where you type a comment; Post is Instagram's own label on its send button, use this language's Instagram word for it.
 Hide the comment box	댓글 입력창 숨기기
 Takes the comment box, with your picture and Post, off the bottom of a post's or reel's comments. Turn it off when you want to comment.	게시물이나 릴스 댓글 아래쪽에서 내 사진과 게시 버튼이 있는 댓글 입력창을 없앱니다. 댓글을 달고 싶을 때는 꺼 주세요.
@@ -915,6 +918,10 @@ The chip sits under the posts, followers and following counts.	칩이 게시물,
 A smaller chip, centered under the profile picture. A profile with no room there gets the small chip under the counts.	더 작은 칩을 프로필 사진 아래 가운데에 표시합니다. 그곳에 자리가 없는 프로필은 작은 칩을 숫자 아래에 표시합니다.
 Turn on Show it as a chip to use this choice.	이 옵션을 사용하려면 ‘칩으로 표시’를 켜세요
 Turn on Show if a profile follows you to use this choice.	이 옵션을 사용하려면 ‘프로필이 나를 팔로우하는지 표시’를 켜세요
+# context: Profiles: switch under Show if a profile follows you. A green check or red cross by the menu in a profile's top bar (#842)
+Show it as an icon at the top	상단에 아이콘으로 표시
+# context: Profiles: summary of Show it as an icon at the top. The chip is the Show it as a chip label
+Puts a green check by the menu at the top of the profile when they follow you and a red cross when they don't, instead of the words or the chip. Tap it to see the rest of what Instagram has said about you two.	상대가 나를 팔로우하면 프로필 상단 메뉴 옆에 초록색 체크를, 팔로우하지 않으면 빨간색 X를 문구나 칩 대신 표시합니다. 탭하면 Instagram이 두 사람에 대해 알려준 나머지 정보를 볼 수 있습니다.
 The Add comment bar under a reel you open from a profile's reposts. The comment button still opens the comments.	프로필의 다시 게시한 항목에서 연 릴스 아래의 댓글 달기 창입니다. 댓글 버튼은 계속 댓글을 엽니다.
 Hide the comment bar on all reels	모든 릴스의 댓글 창 숨기기
 The Add a comment bar under every reel, including the ones in the Reels tab. The comment button still opens the comments.	릴스 탭을 포함한 모든 릴스 아래의 댓글 달기 창입니다. 댓글 버튼은 계속 댓글을 엽니다.
@@ -968,6 +975,8 @@ Turns Instagram's blue, on Follow buttons, links and the like, into the color yo
 Badges in the accent color	배지를 강조 색상으로
 The red dots and counts for new messages and notifications take the color you picked. Restart Instagram to see the change.	새 메시지와 알림을 알리는 빨간 점과 숫자가 선택한 색상으로 바뀝니다. 변경 사항을 보려면 Instagram을 다시 시작하세요.
 Icons in the accent color	아이콘을 강조 색상으로
+Reel buttons in the accent color	릴스 버튼을 강조 색상으로
+The buttons beside a reel and their counts take the color you picked instead of white. Restart Instagram to see the change.	릴스 옆의 버튼과 숫자가 흰색 대신 선택한 색상으로 바뀝니다. 변경 사항을 보려면 Instagram을 다시 시작하세요.
 Instagram's icons on the top bar, the tab bar and under posts take the color you picked. Text stays as it is. Restart Instagram to see the change.	상단 바, 탭 바, 게시물 아래에 있는 Instagram 아이콘이 선택한 색상으로 바뀝니다. 텍스트는 그대로 유지됩니다. 변경 사항을 보려면 Instagram을 다시 시작하세요.
 Story rings in the accent color	스토리 링을 강조 색상으로
 Story rings take the color you picked instead of Instagram's gradient. A few other gradients share those colors and change with them. Restart Instagram to see the change.	스토리 링이 Instagram의 그라데이션 대신 선택한 색상으로 바뀝니다. 같은 색상을 쓰는 다른 그라데이션 몇 가지도 함께 바뀝니다. 변경 사항을 보려면 Instagram을 다시 시작하세요.
@@ -1017,7 +1026,7 @@ Half a second	0.5초
 1.5 seconds	1.5초
 On this Instagram build it covers %1$d of %2$d routes. The diagnostic report lists the rest.	이 Instagram 빌드에서는 경로 %2$d개 중 %1$d개를 다룹니다. 나머지는 진단 보고서에 나와 있습니다.
 Hide suggested accounts in Messages	메시지에서 추천 계정 숨기기
-Takes the accounts Instagram suggests off the bottom of your messages. Your chats and follow requests stay. Restart Instagram to see the change.	메시지 하단에서 Instagram이 추천하는 계정을 숨깁니다. 채팅과 팔로우 요청은 그대로 유지됩니다. 변경 사항을 보려면 Instagram을 다시 시작하세요.
+Takes the accounts Instagram suggests off the bottom of your messages and out of the search there. Your chats and follow requests stay. Restart Instagram to see the change.	메시지 하단과 메시지 검색에서 Instagram이 추천하는 계정을 숨깁니다. 채팅과 팔로우 요청은 그대로 유지됩니다. 변경 사항을 보려면 Instagram을 다시 시작하세요.
 # context: switch on the Messages page after Hide suggested accounts in Messages; New message is Instagram's own label for the pencil button in the inbox top bar and the screen it opens (#762)
 Hide the New message button	새 메시지 버튼 숨기기
 Takes the pencil button for a new message off the top of your messages.	메시지 상단에서 새 메시지를 쓰는 연필 버튼을 숨깁니다.
@@ -1452,6 +1461,7 @@ On a carousel, the download icon saves all of its pages at once instead of askin
 Hide reels by caption words	캡션 단어로 릴스 숨기기
 Also on Home	홈에도 적용
 Leaves out posts on Home whose caption holds a word or phrase from the list too. Pull down on Home to refresh after changing it.	캡션에 목록의 단어나 문구가 있는 홈 게시물도 숨깁니다. 바꾼 뒤에는 홈을 아래로 당겨 새로고침하세요.
+Leaves out posts on Home that use a hidden sound too. Pull down on Home to refresh after changing it.	숨긴 사운드를 쓰는 홈 게시물도 숨깁니다. 바꾼 뒤에는 홈을 아래로 당겨 새로고침하세요.
 Leaves out reels in the Reels tab whose caption holds a word or phrase from the list below. A reel you open yourself still plays.	릴스 탭에서 캡션에 아래 목록의 단어나 문구가 들어 있는 릴스를 뺍니다. 직접 연 릴스는 그대로 재생됩니다.
 Blocked words	차단한 단어
 Words or phrases, with a comma or a new line between them. Capital letters don't matter, a hashtag works too, and an @name hides that account's posts.	단어나 문구를 쉼표나 줄바꿈으로 구분해 입력하세요. 대소문자는 상관없고 해시태그도 되며, @이름을 넣으면 그 계정의 게시물이 숨겨집니다.
@@ -1743,6 +1753,11 @@ Find a post, reel, story or profile you saw before.	전에 본 게시물, 릴스
 Recently seen	최근에 본 항목
 Open profile	프로필 열기
 Remove from history	기록에서 삭제
+# context: the long press menu on a row of the viewing history page (#228). Open opens the post, reel, story's person or profile in Instagram. The account is whoever posted the row, or the profile itself. Removed %d from history is a short toast with how many rows went.
+Show all from this account	이 계정의 항목 모두 보기
+Open	열기
+Remove all from this account	이 계정의 항목 모두 삭제
+Removed %d from history	기록에서 %d개 삭제됨
 # context: the viewing history page's button that switches its rows to a grid of big pictures, then back
 Show as grid	격자로 보기
 Show as list	목록으로 보기
@@ -2409,6 +2424,8 @@ Removed the folder %s	%s 폴더를 삭제했습니다
 Renamed the folder to %s	폴더 이름을 %s(으)로 변경했습니다
 # context: row in the long press menu on an account on the Saved profiles page, and title of the folder checklist it opens; an account can be in several folders (#687)
 Choose folders	폴더 선택
+# context: a row in the menu on a saved account's profile (#629) naming the Saved profiles folders it's in, comma separated; tapping it opens the folder picker.
+Folders: %s	폴더: %s
 # context: toast after Choose folders with every folder unticked; %s is the account's username, which stays saved (#687)
 @%s is in no folder now	이제 @%s 님은 어느 폴더에도 없습니다
 # context: toast after Choose folders leaves the account in one folder; %1$s is its username, %2$s the folder's name (#687)
@@ -2537,10 +2554,18 @@ Shows the time played and the video's length over the seek bar on feed videos, l
 Show the time left	남은 시간 표시
 # context: Summary of Show the time left; -0:33 / 0:45 is an example time, keep the digits and the minus sign as they are (#711)
 The time on the seek bar counts down what's left of the video, like -0:33 / 0:45. A tap on the time switches back.	탐색 막대의 시간이 -0:33 / 0:45처럼 동영상의 남은 시간을 거꾸로 셉니다. 시간을 탭하면 다시 바뀝니다.
+# context: Feed settings: a switch under Time on the seek bar that moves the time from the middle of the bar to the corner under Instagram's tags button (#711)
+Time under the tags button	태그 버튼 아래에 시간 표시
+# context: Summary of Time under the tags button (#711)
+Puts the time in the corner under the tags button instead of the middle of the bar.	시간을 막대 가운데 대신 태그 버튼 아래 모서리에 표시합니다.
 # context: Feed settings: a switch under Tap a feed video to pause it that keeps any tap on a feed video from opening Reels (#706)
 Taps on feed videos stay in the feed	피드 동영상을 탭해도 피드에 머물기
 # context: Summary of Taps on feed videos stay in the feed; Tap a feed video to pause it is the switch above it, use its translation (#706)
 A tap on a feed video, or on the screen it shows when it ends, no longer opens it full screen in Reels. Tap a feed video to pause it still pauses it, and the buttons on that screen still work.	피드 동영상이나 동영상이 끝날 때 나오는 화면을 탭해도 더 이상 릴스에서 전체 화면으로 열리지 않습니다. 피드 동영상을 탭하여 일시정지는 그대로 동영상을 일시정지하고, 그 화면의 버튼도 그대로 작동합니다.
+# context: Feed settings: a switch under Tap a feed video to pause it that pauses only for a tap in the middle of the video (#706)
+Only the middle pauses it	가운데만 일시정지
+# context: Summary of Only the middle pauses it; Taps on feed videos stay in the feed is another switch, use its translation (#706)
+Only a tap in the middle of the video, where Instagram puts its play button, pauses or plays it. A tap anywhere else opens it in Reels, unless Taps on feed videos stay in the feed is on.	Instagram이 재생 버튼을 두는 동영상 가운데를 탭할 때만 일시정지하거나 재생합니다. 다른 곳을 탭하면 Reels에서 열립니다. 단, 피드 동영상을 탭해도 피드에 머물기가 켜져 있으면 열리지 않습니다.
 # context: Item in Items in the three-dot menus under Feed: Instagram's Report row in the menus behind the three dots (#697)
 Report	신고
 # context: Item in Items in the three-dot menus under Feed: Instagram's Unfollow row (#697)
@@ -2575,6 +2600,10 @@ Keeps 2x only when you hold the video for about 3 seconds. Let go sooner and it 
 Keep the name while you hold	길게 누르는 동안 이름 유지
 # context: Summary of Keep the name while you hold, a switch under Hold for 2x on feed videos (#552)
 The name over a feed video stays while you hold it for 2x. Instagram's 2x and time labels don't show then.	피드 동영상을 2배속으로 길게 누르는 동안 동영상 위의 이름이 그대로 있습니다. Instagram의 2배속 및 시간 표시는 나타나지 않습니다.
+# context: Title of a switch under Hold for 2x on feed videos (#639)
+Hold the middle to pause it	가운데를 길게 눌러 일시정지
+# context: Summary of Hold the middle to pause it, a switch under Hold for 2x on feed videos (#639)
+Holding the middle of a feed video pauses it until you let go. Hold its left or right side for 2x.	피드 동영상 가운데를 길게 누르면 손을 뗄 때까지 일시정지됩니다. 왼쪽이나 오른쪽을 길게 누르면 2x로 재생됩니다.
 # context: Stories settings: title and dialog title of the list under Story ring size that picks how thick story rings are drawn (#528)
 Ring thickness	링 두께
 # context: Stories settings: the Ring thickness choice that keeps the thickness Instagram gives story rings (#528)
@@ -2786,6 +2815,7 @@ Record this call	이 통화 녹음
 Stop recording	녹음 중지
 # context: a toast when the Record button can't start a recording (#732)
 Couldn't start recording this call	통화 녹음을 시작하지 못했어요
+Record calls closed Instagram, so it's off now.	통화 녹음 때문에 Instagram이 닫혀서 껐어요.
 # context: a toast when a finished call recording can't be saved to the phone (#732)
 Couldn't save the call recording	통화 녹음을 저장하지 못했어요
 # context: a toast when a recording ends with no sound in it (#732)
@@ -2808,3 +2838,31 @@ Even on silent	무음 모드에서도
 Feed videos start with sound with the phone on silent or vibrate too. Only the media volume counts.	휴대전화가 무음이나 진동 모드여도 피드 동영상이 소리와 함께 시작됩니다. 미디어 볼륨만 적용됩니다.
 Also in search	검색에도 적용
 Takes rows of the Explore grid and of search results out when a post in them holds a word or phrase from the list, or comes from an account the list names with @.	목록의 단어나 문구가 들어간 게시물이나, 목록에 @로 적은 계정의 게시물이 있는 탐색 그리드와 검색 결과의 줄을 뺍니다.
+Holding a post's Share button shows a row of people to send it to. Instagram shows four, and this shows as many as fit across the screen.	게시물의 공유 버튼을 길게 누르면 보낼 사람들이 한 줄로 표시됩니다. Instagram은 네 명을 보여 주지만, 이 설정은 화면 너비에 들어가는 만큼 보여 줍니다.
+More people when you hold Share	공유를 길게 누를 때 더 많은 사람 표시
+Copy hashtags	해시태그 복사
+Hashtags	해시태그
+Hashtags copied	해시태그를 복사했습니다
+Couldn't copy the hashtags	해시태그를 복사할 수 없습니다
+Translate caption	캡션 번역
+No app here can translate it	번역할 수 있는 앱이 없습니다
+# context: Reels switch Hide reels you've seen and its summary (#830)
+Hide reels you've seen	이미 본 릴스 숨기기
+Leaves reels you've already watched out of the Reels tab when Instagram shows them again. Reels you open from a profile or a chat still play. The last 3000 are kept on this phone.	이미 본 릴스를 Instagram이 다시 보여 줄 때 릴스 탭에서 빼 줍니다. 프로필이나 채팅에서 여는 릴스는 그대로 재생됩니다. 최근 3000개가 이 휴대폰에 저장됩니다.
+# context: Messages switch Chat groups, its chat menu row, dialogs and toasts (discussion #838)
+Chat groups	채팅 그룹
+Long press a chat and tap Move to group to put it in a group you name. It leaves your main inbox. Long press the Messages button to show one group, or all chats. Groups stay on this phone.	채팅을 길게 누르고 그룹으로 이동을 탭하면 직접 이름 붙인 그룹에 넣을 수 있습니다. 그 채팅은 기본 받은 메시지함에서 빠집니다. 메시지 버튼을 길게 누르면 그룹 하나 또는 모든 채팅을 볼 수 있습니다. 그룹은 이 휴대폰에 저장됩니다.
+Move to group	그룹으로 이동
+Group or hide chat	그룹으로 이동 또는 숨기기
+No group	그룹 없음
+New group	새 그룹
+Group name	그룹 이름
+All chats	모든 채팅
+Showing all chats	모든 채팅을 표시합니다
+Showing %1$s	%1$s 표시 중
+%1$s is in %2$s	%1$s: %2$s 그룹
+%1$s is back in your inbox	%1$s: 받은 메시지함으로 이동
+Long press a chat to group it	채팅을 길게 눌러 그룹에 넣으세요
+# context: Stories switch Story rings on saved posts and its summary, for posts on the Saved page (#790)
+Story rings on saved posts	저장한 게시물의 스토리 링
+Posts you saved show the story ring around the author's picture, like Home does, and a tap on it opens their story. It only uses stories Instagram has already loaded.	저장한 게시물에서도 홈처럼 작성자 사진에 스토리 링이 보이고, 누르면 스토리가 열립니다. Instagram이 이미 불러온 스토리만 사용합니다.

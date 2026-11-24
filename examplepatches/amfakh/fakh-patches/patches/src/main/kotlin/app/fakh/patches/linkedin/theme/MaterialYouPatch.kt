@@ -1,9 +1,20 @@
+/*
+ * Based on Michii Patches by heyymichii, GPLv3:
+ * https://github.com/heyymichii/michii-patches
+ *
+ * Modifications copyright 2026 amfakh
+ * SPDX-License-Identifier: GPL-3.0-only
+ */
+
 package app.fakh.patches.linkedin.theme
 
 import app.fakh.patches.linkedin.shared.Constants.COMPATIBILITY_LINKEDIN
 import app.fakh.patches.linkedin.shared.Constants.EXTENSION_PACKAGE
-import app.fakh.patches.linkedin.shared.markIncluded
+import app.fakh.patches.linkedin.shared.Constants.MATERIAL_YOU
+import app.fakh.patches.linkedin.shared.Constants.PITCH_BLACK
+import app.fakh.patches.linkedin.shared.Constants.REMOVE_GAPS_AND_DIVIDERS
 import app.fakh.patches.linkedin.shared.settingsPatch
+import app.fakh.patches.shared.register
 import app.morphe.patcher.Fingerprint
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
 import app.morphe.patcher.methodCall
@@ -724,7 +735,7 @@ val removeGapsAndDividersPatch = patch(
             }
             if (found == 0) throw PatchException("No divider color in ${location.first}")
         }
-        markIncluded("isRemoveGapsAndDividersIncluded")
+        register(REMOVE_GAPS_AND_DIVIDERS)
     }
 }
 
@@ -882,7 +893,7 @@ val materialYouPatch = patch(
     dependsOn(settingsPatch, materialYouResourcePatch, materialYouBackgroundsResourcePatch, colorHooksPatch)
 
     execute {
-        markIncluded("isMaterialYouIncluded")
+        register(MATERIAL_YOU)
     }
 }
 
@@ -937,7 +948,7 @@ val amoledBlackPatch = patch(
     dependsOn(settingsPatch, amoledResourcePatch, colorHooksPatch)
 
     execute {
-        markIncluded("isAmoledBlackIncluded")
+        register(PITCH_BLACK)
 
         // Every screen's activity picks the black resources through its base context.
         mutableClass("Landroidx/appcompat/app/AppCompatActivity;").methods.first { it.name == "attachBaseContext" }

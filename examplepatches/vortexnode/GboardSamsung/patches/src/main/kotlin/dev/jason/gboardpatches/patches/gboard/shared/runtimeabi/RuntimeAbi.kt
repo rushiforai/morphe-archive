@@ -77,6 +77,7 @@ internal enum class RuntimeCallId(internal val encodedAbi: String) {
     CLIPBOARD_RUNTIME_HANDLE_CUSTOM_PRUNE("Ldev/jason/gboardpatches/extension/clipboard/GboardClipboardRuntime;->handleCustomPrune(Ljava/lang/Object;)Z"),
     CLIPBOARD_RUNTIME_MAYBE_BUILD_LOADER_RESULT("Ldev/jason/gboardpatches/extension/clipboard/GboardClipboardRuntime;->maybeBuildLoaderResult(Ljava/lang/Object;)Ljava/lang/Object;"),
     CLIPBOARD_RUNTIME_RESOLVE_COLUMN_COUNT_OVERRIDE("Ldev/jason/gboardpatches/extension/clipboard/GboardClipboardRuntime;->resolveColumnCountOverride(Ljava/lang/Object;)Ljava/lang/Integer;"),
+    CLIPBOARD_RUNTIME_SHOULD_KEEP_WHOLE_BLOCK("Ldev/jason/gboardpatches/extension/clipboard/GboardClipboardRuntime;->shouldKeepWholeClipboardBlock(Ljava/lang/Object;)Z"),
     CUSTOM_THEME_RUNTIME_HANDLE_ACTIVITY_RESULT("Ldev/jason/gboardpatches/extension/customtheme/GboardCustomThemeOfficialImportRuntime;->handleActivityResult(Ljava/lang/Object;IILandroid/content/Intent;)Z"),
     CUSTOM_THEME_RUNTIME_INTERCEPT_PLUS("Ldev/jason/gboardpatches/extension/customtheme/GboardCustomThemeOfficialImportRuntime;->interceptPlus(Ljava/lang/Object;Ljava/lang/Object;Ljava/lang/Object;I)Z"),
     DEVICE_INTELLIGENCE_RUNTIME_APPLY_FLAG_VALUE("Ldev/jason/gboardpatches/extension/featureflags/GboardFeatureFlagsRuntime;->applyDeviceIntelligenceFlagValue(Ljava/lang/String;Ljava/lang/Object;)Ljava/lang/Object;"),

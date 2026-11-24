@@ -1,8 +1,8 @@
 package app.ckzombies.patches.nativelib
 
+import app.adebisi.patches.shared.sha256
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
-import java.security.MessageDigest
 
 /** One 32-bit word to replace, addressed by virtual address, with the value it must hold first. */
 internal data class WordEdit(val vaddr: Long, val old: Long, val new: Long)
@@ -205,7 +205,6 @@ internal class Elf32(bytes: ByteArray) {
         private const val SHT_NULL = 0L
         private const val PAGE = 4096
 
-        fun sha256(data: ByteArray): String =
-            MessageDigest.getInstance("SHA-256").digest(data).joinToString("") { "%02x".format(it) }
+        fun sha256(data: ByteArray): String = data.sha256()
     }
 }

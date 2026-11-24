@@ -23,9 +23,9 @@ KingInstaller as a fallback).
 ## 🩹 Patches
 
 <!-- PATCHES_START EXPANDED -->
-> **[v0.30.65](https://github.com/Forsigh/waze-patches/releases/tag/v0.30.65)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;36 patches total
+> **[v0.30.66](https://github.com/Forsigh/waze-patches/releases/tag/v0.30.66)**&nbsp;&nbsp;•&nbsp;&nbsp;37 patches total
 <details open>
-<summary>📦 Waze&nbsp;&nbsp;•&nbsp;&nbsp;36 patches</summary>
+<summary>📦 Waze&nbsp;&nbsp;•&nbsp;&nbsp;37 patches</summary>
 <br>
 
 **🎯 Supported versions:**
@@ -35,8 +35,7 @@ KingInstaller as a fallback).
 
 | 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
 |----------|----------------|-----------|
-| **AMOLED Dark Mode For UI** | Makes the dark UI pure black. |  |
-| **Alert distances** | How early alerts sound, plus a speed-bump switch and per-alert distances. | • Alert distance level<br>• Speed bump (ramp) warnings<br>• Police<br>• Hazards<br>• Crashes<br>• Traffic jams<br>• Speed cams - streets<br>• Speed cams - highways<br>• Speed cams - freeways<br>• Blocked lanes<br>• Gap between alerts |
+| **Alert distances** | How early alerts sound, plus a speed-bump switch and per-alert distances. Pick a level; Standard changes nothing. | • Alert distance level<br>• Speed bump (ramp) warnings<br>• Police<br>• Hazards<br>• Crashes<br>• Traffic jams<br>• Speed cams - streets<br>• Speed cams - highways<br>• Speed cams - freeways<br>• Blocked lanes<br>• Gap between alerts<br>• Speed cameras - all types |
 | **Allow high refresh rate** | Runs above 60 Hz, up to your screen's limit. | • Target refresh rate (Hz) |
 | **Any audio app as a Waze audio partner** | Adds a music app of your choice to Waze's audio player, even though it does not ship Waze's SDK. It only needs a media browser service, like Android Auto. Default: BitChord. | • Audio app package name<br>• Audio app name |
 | **Auto zoom** | Keeps your auto-zoom choice from being reset. | • Auto-zoom mode |
@@ -57,9 +56,10 @@ KingInstaller as a fallback).
 | **Launch screen background colour** | Colour behind the Waze logo while the app starts. #00000000 makes it transparent. | • Background colour<br>• Custom colour |
 | **Live drive sharing** | Adds the hidden share-your-drive link. |  |
 | **New alert icons** | Uses Waze's newer alert icons. |  |
-| **No Android Auto telemetry** | Stops Waze sending Android Auto screen-switch timings to its analytics. |  |
+| **No usage stats** | Stops Waze building, storing and uploading usage statistics, and turns off its background thread-responsiveness monitors. Driving, reports and alerts are unaffected. |  |
 | **Picture-in-picture** | Floats Waze in a 9:16 window every time you leave it. Known issues: touch does not work on the floating window, and the UI does not scale down. |  |
 | **Remove ads** | Removes ads. | • Block beacon popups |
+| **Remove telemetry** | Stops crash reports, usage analytics and performance data leaving the app. Traffic reporting and alerts keep working. |  |
 | **Rename app** | Stock name by default. Type your own to replace what the launcher shows. The package stays com.waze. | • App name |
 | **Resume drive prompt** | Stops Waze asking to resume the last trip. | • When Waze offers to resume the last trip |
 | **Show FPS counter** | Shows the frame-rate counter. |  |
@@ -69,6 +69,7 @@ KingInstaller as a fallback).
 | **Speedometer & limit sign** | Size of the speedometer and limit sign, and keeps them on screen. | • Always show speedometer<br>• Speedometer size<br>• Speed limit sign size |
 | **Theme** | Picks the map theme for day and night. | • Day theme<br>• Night theme |
 | **Traffic meter** | Shows the traffic meter on the car screen. |  |
+| **UI Themes** | Chrome colour themes, picked separately for light and dark mode. Stock leaves each mode untouched. | • Light theme<br>• Dark theme |
 | **Unlock driver moods** | Unlocks all moods on the device. |  |
 | **YouTube Music as a Waze audio partner** | Lets Morphe YouTube Music and stock YouTube Music play through Waze's audio player. |  |
 

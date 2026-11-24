@@ -4,6 +4,9 @@
  */
 package app.hushgram.extension.instagram.feed;
 
+import android.content.res.Resources;
+import android.os.SystemClock;
+
 import androidx.annotation.Nullable;
 
 import java.lang.ref.WeakReference;
@@ -58,6 +61,19 @@ import app.hushgram.extension.shared.diagnostics.HookStatus;
  * come. Taps on feed videos stay in the feed (#706) ends the launcher for every tap on a video, and for
  * a tap on the end screen's backdrop, whether or not the pause switch is on.
  *
+ * <p>Only the middle pauses it (#706) narrows the pause to a tap within {@link #MIDDLE_DP} of the video's
+ * center, where Instagram draws its play button. The tap handler and the press entry hand over the point
+ * Instagram made from the touch, which keeps the tapped view's size and the tap's place in it. A tap
+ * anywhere else is left to Instagram and marked, so the launcher it reaches next lets it open Reels
+ * instead of pausing it there, or keeps it in the feed when Taps on feed videos stay in the feed is on.
+ * A press held off the middle goes to Instagram too. A point this can't read counts as the middle, so
+ * the tap pauses the way it did before.
+ *
+ * <p>Hold the middle to pause it (#639), under Hold for 2x on feed videos, has {@link #pressed} take a press on the
+ * middle third of the video before anything else, whether or not the pause switch is on: the playing video pauses
+ * while the finger stays down, and the lift plays it again, whichever of the tap, the Reels launcher or the release
+ * hears of it first. Hold for 2x keeps the left and right thirds.
+ *
  * <p>Everything else is left to Instagram: a sponsored post, a photo, a carousel on a photo, a video
  * the controller doesn't have playing, a feed with no video controller. So is every tap or press while
  * the switch is off, HushGram is paused or the settings aren't ready, and any one this throws on
@@ -86,8 +102,28 @@ public final class FeedTapPause {
     static final String PRESS_TAKEN = "held presses taken as taps";
     static final String PRESS_LEFT = "held presses left to Instagram";
 
+    /**
+     * What {@link HookStatus} counts with Only the middle pauses it on: taps off the middle, left to Instagram for
+     * Reels, and presses held off the middle, left to Instagram too.
+     */
+    static final String LEFT_OFF_MIDDLE = "taps left, off the middle";
+    static final String PRESS_OFF_MIDDLE = "held presses left, off the middle";
+
+    /** How far from the video's center a tap still pauses it with Only the middle pauses it on: past a 64dp play button's edge. */
+    static final float MIDDLE_DP = 40f;
+
+    /** How long a tap left off the middle stays marked for the Reels opening it leads to. */
+    static final long OFF_MIDDLE_MS = 1500;
+
     /** What {@link HookStatus} counts: the tap that ends a hold for 2x, which leaves the video as it was. */
     static final String HOLD_LIFT_LEFT = "lifts of a hold for 2x left alone";
+
+    /**
+     * What {@link HookStatus} counts with Hold the middle to pause it on (#639): holds on the middle third that paused
+     * the video, and the lifts that played it again.
+     */
+    static final String PRESS_STILL = "held presses on the middle that paused";
+    static final String STILL_LIFTED = "lifts that played a held video again";
 
     /** What {@link HookStatus} counts for each Reels opening with the switch on, followed by its entry point's name. */
     static final String OPENED_FROM = "Reels openings from ";
@@ -155,6 +191,10 @@ public final class FeedTapPause {
         /** Tells the post's state whether its video was playing when it was tapped. */
         @Nullable
         Object mark(Object state, boolean wasPlaying);
+
+        /** The tapped view's width and height and the tap's x and y in it, a float[] of four, from Instagram's [point]. */
+        @Nullable
+        Object spotOf(Object point);
     }
 
     /** {@link FeedPlayerReader}'s stubs, which the patch fills in. */
@@ -198,6 +238,10 @@ public final class FeedTapPause {
         @Override public Object mark(Object state, boolean wasPlaying) {
             return FeedPlayerReader.mark(state, Boolean.valueOf(wasPlaying));
         }
+
+        @Override public Object spotOf(Object point) {
+            return FeedPlayerReader.spotOf(point, null, null, null);
+        }
     }
 
     /** The controller a gesture pauses or plays through, and whether its player was playing. */
@@ -225,26 +269,48 @@ public final class FeedTapPause {
     @Nullable
     private static volatile WeakReference<Object> heldFast;
 
+    /**
+     * The post state of the press on the middle third that Hold the middle to pause it took (#639), until the tap, the
+     * Reels opening or the release that ends it. {@link #heldStillPlays} says whether that lift plays the video again,
+     * which it does when the press paused it.
+     */
+    @Nullable
+    private static volatile WeakReference<Object> heldStill;
+    private static volatile boolean heldStillPlays;
+
+    /** The post state of the last tap {@link #tapped} left off the middle, and when, for the Reels opening it leads to. */
+    @Nullable
+    private static volatile WeakReference<Object> offTap;
+    private static volatile long offTapAt;
+
     private FeedTapPause() {
     }
 
     /**
-     * Asked first thing in the feed's tap handler, with the handler, the post that was tapped and
-     * that post's state. True means the tap paused or played the video and the handler is done.
-     * False leaves the tap to Instagram: the switch is off, HushGram is paused, the settings aren't
-     * ready, the post is sponsored or isn't the video the controller has playing, the patch's stubs
-     * are unfilled, or something in here threw before the video was paused or played. Never throws.
+     * Asked first thing in the feed's tap handler, with the handler, the post that was tapped, that
+     * post's state and Instagram's point for the tap. True means the tap paused or played the video and
+     * the handler is done. False leaves the tap to Instagram: the switch is off, HushGram is paused, the
+     * settings aren't ready, the tap is off the middle with Only the middle pauses it on, the post is
+     * sponsored or isn't the video the controller has playing, the patch's stubs are unfilled, or
+     * something in here threw before the video was paused or played. Never throws.
      */
-    public static boolean tapped(@Nullable Object handler, @Nullable Object media, @Nullable Object state) {
+    public static boolean tapped(@Nullable Object handler, @Nullable Object media, @Nullable Object state,
+                                 @Nullable Object point) {
         boolean endsHold;
         try {
             HookStatus.invoked(FamilyNames.FEED_TAP_PAUSE);
             if (handler == null || media == null || state == null) return false;
+            // The lift of a hold on the middle that paused the video plays it again, whatever the pause switch says.
+            if (letGoStill(state)) return liftStill(feed -> feed.controllerOf(handler), media, state, TAP);
             if (!switchedOn()) return false;
             HookStatus.bound(FamilyNames.FEED_TAP_PAUSE, TAP);
             // A tap that ends a held press this took is that press's own, which leaves its lift nothing to do.
             letGo(state);
             endsHold = letGoFast(state);
+            if (!endsHold && offMiddle(point)) {
+                leaveOffMiddle(state);
+                return false;
+            }
         } catch (Throwable failure) {
             HookStatus.threw(FamilyNames.FEED_TAP_PAUSE, TAP, failure);
             return false;
@@ -255,17 +321,20 @@ public final class FeedTapPause {
 
     /**
      * Asked first thing in the press entry of the feed's tap handler class, which a press held past
-     * Instagram's hold delay reaches in place of the tap handler, with the handler, the post and its
-     * state. True takes the press: nothing is paused or played yet, the press entry returns, and the
-     * post's state is held for the tap or the lift that ends the press. False leaves the press to
-     * Instagram, on the same grounds as {@link #tapped}. Not counted as invoked, so a report's
-     * invoked stays the taps that reached the tap handler. Never throws.
+     * Instagram's hold delay reaches in place of the tap handler, with the handler, the post, its
+     * state and Instagram's point for the press. True takes the press: nothing is paused or played yet,
+     * the press entry returns, and the post's state is held for the tap or the lift that ends the press.
+     * False leaves the press to Instagram, on the same grounds as {@link #tapped}. Not counted as
+     * invoked, so a report's invoked stays the taps that reached the tap handler. Never throws.
      */
-    public static boolean pressed(@Nullable Object handler, @Nullable Object media, @Nullable Object state) {
+    public static boolean pressed(@Nullable Object handler, @Nullable Object media, @Nullable Object state,
+                                  @Nullable Object point) {
         held = null;
         heldFast = null;
+        heldStill = null;
         try {
             if (handler == null || media == null || state == null) return false;
+            if (FeedHoldSpeed.middlePauses() && onMiddleThird(point)) return holdStill(handler, media, state);
             if (!switchedOn()) return false;
             if (FeedHoldSpeed.holding()) {
                 heldFast = new WeakReference<>(state);
@@ -273,6 +342,11 @@ public final class FeedTapPause {
                 return false;
             }
             HookStatus.bound(FamilyNames.FEED_TAP_PAUSE, PRESS);
+            if (offMiddle(point)) {
+                HookStatus.counted(FamilyNames.FEED_TAP_PAUSE, PRESS_OFF_MIDDLE);
+                Logger.printDebug(() -> "Feed video: left a held press off the middle to Instagram");
+                return false;
+            }
             Videos feed = videos;
             if (target(feed, feed.controllerOf(handler), media, state, true) == null) return false;
             held = new WeakReference<>(state);
@@ -296,6 +370,11 @@ public final class FeedTapPause {
      */
     public static void released(@Nullable Object handler, @Nullable Object media, @Nullable Object state, int lifted) {
         try {
+            // A hold on the middle that paused the video plays it again as it ends, lifted or taken over by a scroll.
+            if (state != null && handler != null && media != null && letGoStill(state)) {
+                liftStill(feed -> feed.controllerOf(handler), media, state, RELEASE);
+                return;
+            }
             // A hold for 2x is over either way, so no later tap gets taken for its lift.
             if (state != null) letGoFast(state);
             if (state == null || !letGo(state) || lifted == 0) return;
@@ -317,8 +396,9 @@ public final class FeedTapPause {
      * ends a held press {@link #pressed} took is that press's own, so its lift does nothing more. With
      * {@link Settings#FEED_TAPS_STAY_IN_FEED} on (#706), a tap on a video that isn't paused or played, and a
      * tap on a finished reel's end screen ({@link #BACKGROUND_TAP}), answer true as well, so Reels never
-     * opens from a tap; the end screen's buttons and every other way in still open it. Not counted as
-     * invoked, like the press. Never throws.
+     * opens from a tap; the end screen's buttons and every other way in still open it. A tap {@link #tapped}
+     * left off the middle opens Reels, or stays in the feed with that switch on, without a pause. Not
+     * counted as invoked, like the press. Never throws.
      */
     public static boolean opening(@Nullable Object launcher, @Nullable Object entryPoint, @Nullable Object media,
                                   @Nullable Object state) {
@@ -327,6 +407,7 @@ public final class FeedTapPause {
         boolean endsHold;
         try {
             if (launcher == null || media == null || state == null) return false;
+            if (letGoStill(state)) return liftStill(feed -> feed.controllerOfLauncher(launcher), media, state, OPEN);
             pauses = switchedOn();
             keeps = Utils.settingsReady() && Settings.FEED_TAPS_STAY_IN_FEED.get();
             if (!pauses && !keeps) return false;
@@ -337,6 +418,7 @@ public final class FeedTapPause {
             if (!onVideo) return keeps && BACKGROUND_TAP.equals(from) && kept(from);
             letGo(state);
             endsHold = letGoFast(state);
+            if (leftOffMiddle(state)) return keeps && kept(from);
             if (!pauses) return kept(from);
         } catch (Throwable failure) {
             HookStatus.threw(FamilyNames.FEED_TAP_PAUSE, OPEN, failure);
@@ -456,6 +538,116 @@ public final class FeedTapPause {
         return Utils.settingsReady() && Settings.TAP_FEED_VIDEO_TO_PAUSE.get();
     }
 
+    /**
+     * Whether Only the middle pauses it is on and Instagram's [point] puts the tap more than {@link #MIDDLE_DP} from
+     * the middle of the view it landed on. False with the switch off, no point, or a spot this can't read, so the tap
+     * pauses as it did before.
+     */
+    private static boolean offMiddle(@Nullable Object point) {
+        if (point == null || !Settings.FEED_TAP_MIDDLE_ONLY.get()) return false;
+        Object spot = videos.spotOf(point);
+        if (unfilled(spot, "the tap's spot")) return false;
+        if (!(spot instanceof float[]) || ((float[]) spot).length != 4) return false;
+        float[] at = (float[]) spot;
+        return !inMiddle(at[0], at[1], at[2], at[3], Resources.getSystem().getDisplayMetrics().density);
+    }
+
+    /** Whether a tap at [x], [y] on a view [width] by [height] lands within {@link #MIDDLE_DP} of its center. A view with no size is all middle. */
+    static boolean inMiddle(float width, float height, float x, float y, float density) {
+        if (width <= 0 || height <= 0) return true;
+        float reach = MIDDLE_DP * density;
+        float across = x - width / 2f;
+        float down = y - height / 2f;
+        return across * across + down * down <= reach * reach;
+    }
+
+    /** Marks the tap on [state] as left off the middle, so the Reels opening it leads to isn't taken for a pause. */
+    private static void leaveOffMiddle(Object state) {
+        offTap = new WeakReference<>(state);
+        offTapAt = SystemClock.uptimeMillis();
+        HookStatus.counted(FamilyNames.FEED_TAP_PAUSE, LEFT_OFF_MIDDLE);
+        Logger.printDebug(() -> "Feed video: left a tap off the middle to Instagram");
+    }
+
+    /** Whether [state] is the tap last left off the middle, no more than {@link #OFF_MIDDLE_MS} ago, which this then lets go of. */
+    private static boolean leftOffMiddle(Object state) {
+        WeakReference<Object> tap = offTap;
+        if (tap == null || tap.get() != state) return false;
+        offTap = null;
+        return SystemClock.uptimeMillis() - offTapAt <= OFF_MIDDLE_MS;
+    }
+
+    /**
+     * Takes a hold on the middle third with Hold the middle to pause it on (#639): pauses the video when [media] is the
+     * one playing, and holds on to [state] for the lift that plays it again. A video already paused stays paused, and
+     * its press and lift are taken too, so a hold on the middle never opens Reels. False leaves the press to Instagram
+     * on the same checks a tap makes (an ad, another post, no controller). Never throws.
+     */
+    private static boolean holdStill(Object handler, Object media, Object state) {
+        try {
+            HookStatus.bound(FamilyNames.FEED_TAP_PAUSE, PRESS);
+            Videos feed = videos;
+            Target target = target(feed, feed.controllerOf(handler), media, state, true);
+            if (target == null) return false;
+            if (!target.wasPlaying) {
+                heldStillPlays = false;
+                heldStill = new WeakReference<>(state);
+                Logger.printDebug(() -> "Feed video: took a hold on the middle of a paused video");
+                return true;
+            }
+            boolean paused = toggle(found -> found.controllerOf(handler), media, state, PRESS);
+            if (!paused) return false;
+            heldStillPlays = true;
+            heldStill = new WeakReference<>(state);
+            HookStatus.counted(FamilyNames.FEED_TAP_PAUSE, PRESS_STILL);
+            Logger.printDebug(() -> "Feed video: a hold on the middle paused it until the lift");
+            return true;
+        } catch (Throwable failure) {
+            heldStill = null;
+            HookStatus.threw(FamilyNames.FEED_TAP_PAUSE, PRESS, failure);
+            return false;
+        }
+    }
+
+    /**
+     * Ends a hold on the middle (#639) as its finger lifts: plays the video again when the press paused it. The lift is
+     * the hold's either way, so true keeps it from reaching Instagram as a tap that opens Reels. Never throws.
+     */
+    private static boolean liftStill(Function<Videos, Object> reach, Object media, Object state, String hook) {
+        if (heldStillPlays && toggle(reach, media, state, hook)) {
+            HookStatus.counted(FamilyNames.FEED_TAP_PAUSE, STILL_LIFTED);
+        }
+        return true;
+    }
+
+    /**
+     * Whether Instagram's [point] puts the press on the middle third of the view's width, the part Hold the middle to
+     * pause it takes from the 2x strips. False with no point or a spot this can't read, which leaves the press to
+     * Instagram's own strips.
+     */
+    private static boolean onMiddleThird(@Nullable Object point) {
+        if (point == null) return false;
+        Object spot = videos.spotOf(point);
+        if (unfilled(spot, "the tap's spot")) return false;
+        if (!(spot instanceof float[]) || ((float[]) spot).length != 4) return false;
+        float[] at = (float[]) spot;
+        return inMiddleThird(at[0], at[2]);
+    }
+
+    /** Whether [x] lands on the middle third of a view [width] wide, the edges included. A view with no width has none. */
+    static boolean inMiddleThird(float width, float x) {
+        if (width <= 0) return false;
+        return x >= width / 3f && x <= width * 2f / 3f;
+    }
+
+    /** Whether [state] is the press a hold on the middle paused, which this then lets go of. */
+    private static boolean letGoStill(Object state) {
+        WeakReference<Object> press = heldStill;
+        if (press == null || press.get() != state) return false;
+        heldStill = null;
+        return true;
+    }
+
     /** Whether [state] is the held press's, which this then lets go of. */
     private static boolean letGo(Object state) {
         WeakReference<Object> press = held;
@@ -491,5 +683,7 @@ public final class FeedTapPause {
         videos = new Patched();
         held = null;
         heldFast = null;
+        heldStill = null;
+        offTap = null;
     }
 }

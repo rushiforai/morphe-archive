@@ -48,6 +48,10 @@ class SwipedReelRepliesTest {
     private val owner = "Lfixture/Collector;"
     private val initCall = "$info-><init>(Lfixture/Sender;Ljava/lang/String;Ljava/lang/String;Ljava/util/List;)V"
     private val state = "Lfixture/State;"
+    private val source = "Lfixture/Source;"
+    private val sender = "Lfixture/Sender;"
+    private val user = "Lcom/instagram/user/model/User;"
+    private val store = "Lfixture/Store;"
     private val final = AccessFlags.PUBLIC.value or AccessFlags.FINAL.value
     private val static = AccessFlags.PUBLIC.value or AccessFlags.STATIC.value or AccessFlags.FINAL.value
 
@@ -57,7 +61,8 @@ class SwipedReelRepliesTest {
             .filter { AccessFlags.PUBLIC.isSet(it.accessFlags) && AccessFlags.STATIC.isSet(it.accessFlags) }
             .map { "${it.name}(${it.parameterTypes.joinToString("")})${it.returnType}" }
         val wanted = listOf(COLLECTED, REPLY_TO, REPLY_INFO).map { it.substringAfter("->") } +
-            listOf("messageOf(Ljava/lang/Object;)Ljava/lang/String;", "count(Ljava/lang/Object;)I", "item(Ljava/lang/Object;I)Ljava/lang/Object;")
+            listOf("messageOf(Ljava/lang/Object;)Ljava/lang/String;", "count(Ljava/lang/Object;)I", "item(Ljava/lang/Object;I)Ljava/lang/Object;",
+                OWN_MESSAGE.substringAfter("->"))
         for (hook in wanted) assertTrue("$hook is not in the extension: $declared", hook in declared)
         val notice = ExtensionDex.classDef(CHAT_REELS_NOTICE).methods
             .filter { AccessFlags.PUBLIC.isSet(it.accessFlags) && AccessFlags.STATIC.isSet(it.accessFlags) }
@@ -227,6 +232,148 @@ class SwipedReelRepliesTest {
         assertEquals(listOf(Opcode.MOVE_RESULT_OBJECT, Opcode.RETURN_OBJECT), bridge("item").subList(2, 4).map { it.opcode })
     }
 
+    /**
+     * A reel paged in past the chat's loaded messages has no info anywhere, so its quick reactions did
+     * nothing (#804). The extension's bridge builds one from the message id, first sender and time the
+     * reel carries, the way Instagram's data source builds it, and answers null when any is missing.
+     */
+    @Test
+    fun aReelsOwnMessageIsBuiltLikeInstagramsDataSourceBuildsIt() {
+        val context = context()
+        val collector = collector()
+        val replies = context.findReplyBar(collector)
+        val found = context.findReelMessage(collector, replies)
+        assertEquals("$source->build", found.builder)
+        assertEquals("$item->message:Ljava/lang/String;", "${found.message}")
+        assertEquals("$item->senders:Ljava/util/List;", "${found.senders}")
+        assertEquals("$item->sent:Ljava/lang/Long;", "${found.sent}")
+        assertEquals(sender, found.sender)
+        assertEquals("Ljava/lang/Object;-><init>()V", "${found.senderInit}")
+        assertEquals("$sender->user:$user", "${found.user}")
+        assertEquals("$sender->time:J", "${found.time}")
+
+        context.buildRepliesFromReels(found)
+
+        val bridge = context.mutableClassDefBy(CHAT_REELS).methods.single { it.name == "ownMessage" }
+        val code = bridge.visualCode()
+        assertEquals(listOf(item, "$item->message:Ljava/lang/String;"), code.take(2).map { it.text() })
+        val texts = code.mapNotNull { it.text() }
+        for (wanted in listOf("$item->senders:Ljava/util/List;", "$item->sent:Ljava/lang/Long;", sender, "Ljava/lang/Object;-><init>()V",
+            "$sender->user:$user", "$sender->time:J", info, initCall)) {
+            assertTrue("the bridge uses $wanted: $texts", wanted in texts)
+        }
+        val returns = code.filter { it.opcode == Opcode.RETURN_OBJECT }
+        assertEquals("the info, or null", 2, returns.size)
+        val nulls = code.indices.filter { code[it].opcode == Opcode.CONST_4 && (code[it] as OneRegisterInstruction).registerA == 0 }
+        assertTrue("null when the reel carries nothing", nulls.any { code.getOrNull(it + 1)?.opcode == Opcode.RETURN_OBJECT })
+        assertTrue("static", AccessFlags.STATIC.isSet(bridge.accessFlags))
+
+        assertEquals("two builders reading the same way agree", "$source->build", context(builders = listOf("message", "message")).let {
+            it.findReelMessage(collector, it.findReplyBar(collector)).builder
+        })
+    }
+
+    @Test
+    fun aReelsOwnMessageItCantReadKeepsInstagramsReplyBar() {
+        val collector = collector()
+        val way = "expected one way to build a $info from a $item's own message, found"
+        val cases = listOf(
+            context(builders = emptyList()) to "$way 0",
+            context(builders = listOf("message", "other")) to "$way 2",
+            context(itemFlags = 0) to "$item->",
+            context(senderFlags = AccessFlags.PUBLIC.value or AccessFlags.FINAL.value) to "$sender->",
+        )
+        for ((context, expected) in cases) {
+            val replies = context.findReplyBar(collector)
+            val refusal = assertThrows(PatchException::class.java) { context.findReelMessage(collector, replies) }
+            assertTrue("${refusal.message} should start with $expected", refusal.message!!.contains(expected))
+            assertEquals("the rest of the patch still goes in", null, context.findReelMessageOrWarn(collector, replies))
+        }
+    }
+
+    /**
+     * A reaction or a reply sent from a chat's reel goes out with the info its reel gets here, and
+     * Instagram's bar sends nothing when that's null (#844). On 456.1 (0URq.A03 on 386215122) a chat's
+     * viewer reaches the info three ways, a play pile's kept list, the store's one entry and the
+     * store's lookup for the reel, all meeting at one null test, while a Blend's viewer, which never
+     * holds a chat's reels, returns the store's lookup straight away. Every chat way asks the extension
+     * where they meet, once, and the Blend's way keeps Instagram's.
+     */
+    @Test
+    fun everyWayAChatReelsReplyGoesOutAsksForItsOwnMessage() {
+        val getter = """
+            invoke-static {p0}, $bar->currentItem($bar)$item
+            move-result-object v6
+            const/4 v2, 0x0
+            if-eqz v6, :none
+            iget-boolean v5, p0, $bar->pile:Z
+            if-nez v5, :chat
+            iget-object v0, p0, $bar->store:$store
+            if-nez v0, :chat
+            :none
+            return-object v2
+            :chat
+            iget-boolean v0, p0, $bar->chat:Z
+            if-nez v0, :direct
+            iget-object v0, p0, $bar->store:$store
+            invoke-virtual {v0, v6}, $store->lookup($item)$info
+            move-result-object v0
+            return-object v0
+            :direct
+            const/4 v3, 0x0
+            if-nez v5, :pile
+            iget-object v1, p0, $bar->store:$store
+            iget v0, v1, $store->count:I
+            if-nez v0, :lookup
+            invoke-virtual {v1, v3}, $store->at(I)$info
+            move-result-object v3
+            goto :join
+            :pile
+            iget-object v0, p0, $bar->kept:Ljava/util/List;
+            invoke-interface {v0, v3}, Ljava/util/List;->get(I)Ljava/lang/Object;
+            move-result-object v3
+            check-cast v3, $info
+            goto :join
+            :lookup
+            invoke-virtual {v1, v6}, $store->lookup($item)$info
+            move-result-object v3
+            :join
+            if-nez v3, :done
+            const-string v0, "$REPLY_INFO_MISSING"
+            return-object v3
+            :done
+            return-object v3
+        """
+        val context = context(getter = getter)
+        val collector = collector()
+        val found = context.findReplyBar(collector)
+        assertEquals("the info tested where the ways meet", 3, found.currentInfo)
+        val stock = found.current.visualCode().map { it.opcode }
+
+        context.giveSwipedReelsTheirReplies(collector, found)
+
+        val code = found.current.visualCode()
+        val asks = code.indices.filter { code[it].text() == REPLY_INFO }
+        assertEquals("asked once, where the ways meet", 1, asks.size)
+        val at = asks.single() - 4
+        val (viewer, reel) = found.currentFree
+        assertEquals("handed Instagram's info, the source and the reel", listOf(3, viewer, reel), code[asks.single()].arguments())
+        assertEquals("$bar->currentItem($bar)$item", code[at + 1].text())
+        assertEquals("$bar->source:$VIEWER_SOURCE", code[at + 3].text())
+        assertEquals("the answer cast", info, code[at + 6].text())
+        val test = code[at + 7]
+        assertEquals("then Instagram's test", Opcode.IF_NEZ, test.opcode)
+        assertEquals(3, (test as OneRegisterInstruction).registerA)
+        val targets = found.current.jumpTargets()
+        assertTrue("every chat way lands on the hook: $targets", at in targets)
+        assertFalse("none jumps past it: $targets", at + 7 in targets)
+
+        val blend = code.indices.first { code[it].opcode == Opcode.RETURN_OBJECT && (code[it] as OneRegisterInstruction).registerA == 0 }
+        assertEquals("the Blend's way returns the store's lookup as it was", "$store->lookup($item)$info", code[blend - 2].text())
+        assertTrue("before the hook", blend < at)
+        assertEquals("nothing else changed", stock, code.subList(0, at).map { it.opcode } + code.subList(at + 7, code.size).map { it.opcode })
+    }
+
     /** The hook sits at [at], takes the answer back into the info's register and casts it before Instagram's test, and the jump lands on it. */
     private fun assertTaken(what: String, code: List<Instruction>, method: Method, at: Int) {
         val test = at + 7
@@ -384,6 +531,10 @@ class SwipedReelRepliesTest {
         throughState: Boolean = false,
         statePublic: Boolean = true,
         adapterSpoiled: Boolean = false,
+        builders: List<String> = listOf("message"),
+        senderFlags: Int = AccessFlags.PUBLIC.value,
+        itemFlags: Int = AccessFlags.PUBLIC.value,
+        getter: String? = null,
     ): BytecodePatchContext {
         val pageOwner = if (pageApart) "Lfixture/Pages;" else if (hoisted != null) base else bar
         val handed = if (handsPage) "p1" else "p2"
@@ -448,7 +599,7 @@ class SwipedReelRepliesTest {
         }
         // Shaped like 456's 0I4a.A03: the info kept cast and sent on with a goto, or looked up, then tested,
         // and its missing info reported.
-        val current = method(
+        val current = if (getter != null) method(bar, "current", listOf(bar), info, 7, static, getter) else method(
             bar, "current", listOf(bar), info, 3, static,
             """
                 iget-object v1, p0, $bar->first:Ljava/lang/Object;
@@ -510,8 +661,44 @@ class SwipedReelRepliesTest {
                 "invoke-direct {p0}, Ljava/lang/Object;-><init>()V\n$stores\nreturn-void",
             )
         }
+        // Shaped like 456.1's 07NS.A1Z: the data source builds a chat reel's info from what the reel carries.
+        val built = builders.mapIndexed { index, field ->
+            method(
+                source, if (index == 0) "build" else "build$index", listOf(item), info, 7, static,
+                """
+                    iget-object v0, p0, $item->senders:Ljava/util/List;
+                    if-eqz v0, :none
+                    const/4 v1, 0x0
+                    invoke-interface {v0, v1}, Ljava/util/List;->get(I)Ljava/lang/Object;
+                    move-result-object v0
+                    check-cast v0, $user
+                    iget-object v1, p0, $item->sent:Ljava/lang/Long;
+                    if-eqz v1, :none
+                    invoke-virtual {v1}, Ljava/lang/Long;->longValue()J
+                    move-result-wide v1
+                    new-instance v3, $sender
+                    invoke-direct {v3}, Ljava/lang/Object;-><init>()V
+                    iput-object v0, v3, $sender->user:$user
+                    iput-wide v1, v3, $sender->time:J
+                    iget-object v4, p0, $item->$field:Ljava/lang/String;
+                    const-string v5, ""
+                    const/4 v6, 0x0
+                    new-instance v0, $info
+                    invoke-direct {v0, v3, v4, v5, v6}, $initCall
+                    return-object v0
+                    :none
+                    const/4 v0, 0x0
+                    return-object v0
+                """,
+            )
+        }
+        val itemFields = listOf("message" to "Ljava/lang/String;", "other" to "Ljava/lang/String;", "senders" to "Ljava/util/List;", "sent" to "Ljava/lang/Long;")
+            .map { (name, type) -> ImmutableField(item, name, type, itemFlags, null, null, null) }
+        val senderFields = listOf(ImmutableField(sender, "user", user, senderFlags, null, null, null), ImmutableField(sender, "time", "J", senderFlags, null, null, null))
         val barSuper = if (hoisted != null) base else "Ljava/lang/Object;"
         val classes: List<ClassDef> = listOf(classDef(bar, barMethods, barFields, barSuper), classDef(info, constructors)) +
+            classDef(item, emptyList(), itemFields) + classDef(sender, emptyList(), senderFields) +
+            classDef(source, built) +
             (if (apart) listOf(classDef(itemOwner, listOf(currentItem))) else emptyList()) +
             (if (pageOwner != bar) listOf(classDef(pageOwner, select)) else emptyList()) +
             classDef(state, emptyList(), listOf(stateAdapter)) + classDef("Lfixture/Pool;", listOf(pool)) +

@@ -18,6 +18,10 @@ import org.jsoup.nodes.Element;
 /** Opt-in loopback transport for ChMate's standard subject/DAT/posting reader. */
 final class SiteBoardGateway {
     static final String PREFS="haiagaru.site-boards";
+    static boolean backupSetting(String key){
+        return "enabled".equals(key)||"boards".equals(key)||key.startsWith("boardEnabled:")
+            ||key.startsWith("bbs.haiagaru_")&&key.endsWith(".enable");
+    }
     static final String KEY_PATTERN="h(?:[bfa])?[a-f0-9]{32}";
     private static final class RoutePatterns {
         private static final Pattern CHARSET=Pattern.compile("(?i)charset\\s*=\\s*[\"']?([A-Za-z0-9_-]+)");
@@ -133,8 +137,9 @@ final class SiteBoardGateway {
         SharedPreferences.Editor migration=prefs.edit();boolean changed=false;
         for(String key:boards.keySet())if(!prefs.contains(nativeFlag(key))&&(key.length()==33||prefs.contains("boardEnabled:"+key))){migration.putBoolean(nativeFlag(key),enabled()&&prefs.getBoolean("boardEnabled:"+key,true));changed=true;}
         boolean enableNewSites=false;
+        boolean explicitlyDisabled=prefs.contains("enabled")&&!enabled();
         for(String kind:SiteBoardMenuProtocol.KINDS)if(!prefs.contains(siteFlag(kind))){
-            migration.putBoolean(siteFlag(kind),true);enableNewSites=true;changed=true;
+            migration.putBoolean(siteFlag(kind),!explicitlyDisabled);enableNewSites|=!explicitlyDisabled;changed=true;
         }
         // The per-site options are the new opt-in boundary. Seed the transport too
         // when introducing their initial-on defaults; preserve all saved site OFFs.

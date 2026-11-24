@@ -9,22 +9,22 @@ import app.morphe.patcher.InstructionLocation.MatchAfterImmediately
 import app.morphe.patcher.InstructionLocation.MatchAfterWithin
 import app.morphe.patcher.anyInstruction
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
-import app.morphe.patcher.extensions.InstructionExtensions.replaceInstruction
 import app.morphe.patcher.fieldAccess
 import app.morphe.patcher.literal
 import app.morphe.patcher.methodCall
 import app.morphe.patcher.opcode
-import app.morphe.patcher.patch.BytecodePatchContext
 import app.morphe.patcher.patch.PatchException
-import app.morphe.patcher.patch.bytecodePatch
-import app.morphe.patcher.patch.resourcePatch
+import app.morphe.patcher.patch.document
+import app.morphe.patcher.patch.mutableClassDefBy
+import app.morphe.patcher.patch.patch
 import app.morphe.patcher.resource.ResourceType
 import app.morphe.patcher.resource.hasResourceId
-import app.morphe.patcher.util.getReference
 import app.morphe.patcher.util.returnEarly
+import app.morphe.patches.shared.misc.hostedcomponents.CORE_COMPONENT_FACTORY
+import app.morphe.patches.shared.misc.hostedcomponents.ComponentHost
+import app.morphe.patches.shared.misc.hostedcomponents.HostedComponents
 import app.morphe.patches.shared.misc.smali.descriptor
 import app.morphe.patches.shared.misc.smali.replaceResourceIdStubs
-import app.morphe.util.indexOfFirstInstructionOrThrow
 import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
 import com.android.tools.smali.dexlib2.iface.reference.FieldReference
@@ -36,10 +36,6 @@ private val logger = Logger.getLogger("PatchesSettings")
 
 internal const val SETTINGS_ROW_TITLE = "hxreborn patches"
 private const val SETTINGS_ACTIVITY_CLASS = "app.hxreborn.extension.proton.PatchesSettingsActivity"
-private const val CORE_COMPONENT_FACTORY_CLASS = "Landroidx/core/app/CoreComponentFactory;"
-private const val CORE_COMPONENT_FACTORY_NAME = "androidx.core.app.CoreComponentFactory"
-private const val APP_COMPONENT_FACTORY_CLASS = "Landroid/app/AppComponentFactory;"
-private const val PATCHES_COMPONENT_FACTORY_CLASS = "${PROTON_EXTENSION_PACKAGE}PatchesComponentFactory;"
 private const val BUNDLE_VERSION_RESOURCE = "/proton-bundle-version.txt"
 private const val PATCHES_THEME_CLASS = "${PROTON_EXTENSION_PACKAGE}PatchesTheme;"
 private const val APP_COMPAT_MODE_NIGHT_NO = 1
@@ -68,24 +64,15 @@ internal fun patchesSettingsActivityPatch(
     themeStyle: String,
     hostActivity: String,
     settingsClass: String,
-) = bytecodePatch {
+) = patch {
+    val hostedComponents = HostedComponents(CORE_COMPONENT_FACTORY)
     dependsOn(
         switchColorsPatch,
-        resourcePatch {
+        hostedComponents.patch,
+        patch {
             finalize {
                 document("AndroidManifest.xml").use { document ->
-                    val activities = document.getElementsByTagName("activity")
-                    val hostDeclared = (0 until activities.length).any {
-                        (activities.item(it) as Element).getAttribute("android:name") == hostActivity
-                    }
-                    if (!hostDeclared) throw PatchException("Missing host activity $hostActivity")
-
                     val application = document.getElementsByTagName("application").item(0) as Element
-                    val componentFactory = application.getAttribute("android:appComponentFactory")
-                    if (componentFactory != CORE_COMPONENT_FACTORY_NAME) {
-                        throw PatchException("Unexpected appComponentFactory $componentFactory")
-                    }
-
                     val activity = document.createElement("activity")
                     activity.setAttribute("android:name", SETTINGS_ACTIVITY_CLASS)
                     activity.setAttribute("android:exported", "false")
@@ -96,33 +83,17 @@ internal fun patchesSettingsActivityPatch(
         },
     )
     execute {
+        hostedComponents.host(SETTINGS_ACTIVITY_CLASS, ComponentHost("activity", hostActivity))
         bindAppSettings(settingsClass)
         try {
             replacePatchesThemeStubs()
         } catch (ex: PatchException) {
             logger.warning("Skipped the patches screen theme: ${ex.message}")
         }
-        mutableClassDefBy(PATCHES_MENU_CLASS).methods.single { it.name == "hostActivity" }
-            .returnEarly(hostActivity)
-
-        mutableClassDefBy(CORE_COMPONENT_FACTORY_CLASS).apply {
-            if (superclass != APP_COMPONENT_FACTORY_CLASS) {
-                throw PatchException("$CORE_COMPONENT_FACTORY_CLASS extends $superclass")
-            }
-            setSuperClass(PATCHES_COMPONENT_FACTORY_CLASS)
-
-            methods.single { it.name == "<init>" && it.parameterTypes.isEmpty() }.apply {
-                val index = indexOfFirstInstructionOrThrow {
-                    opcode == Opcode.INVOKE_DIRECT &&
-                        getReference<MethodReference>()?.definingClass == APP_COMPONENT_FACTORY_CLASS
-                }
-                replaceInstruction(index, "invoke-direct { p0 }, $PATCHES_COMPONENT_FACTORY_CLASS-><init>()V")
-            }
-        }
     }
 }
 
-private fun BytecodePatchContext.replacePatchesThemeStubs() {
+private fun replacePatchesThemeStubs() {
     with(mutableClassDefBy(PATCHES_THEME_CLASS)) {
         replaceResourceIdStubs(
             ResourceType.ATTR,
@@ -150,7 +121,7 @@ private fun BytecodePatchContext.replacePatchesThemeStubs() {
     }
 }
 
-internal fun BytecodePatchContext.injectBundleVersion() {
+internal fun injectBundleVersion() {
     val bundleVersion = PatchesSettingsVersion::class.java
         .getResourceAsStream(BUNDLE_VERSION_RESOURCE)?.bufferedReader()?.use {
             it.readText().trim()
@@ -160,7 +131,7 @@ internal fun BytecodePatchContext.injectBundleVersion() {
         .returnEarly(bundleVersion)
 }
 
-internal fun BytecodePatchContext.injectAppCompatDefaultNightMode() {
+internal fun injectAppCompatDefaultNightMode() {
     val appCompatDelegate = AppCompatDelegateImplFingerprint.originalClassDef.superclass
     val nightModeReads = CoreNightModeFingerprint.matchAll()
         .map { (it.instructionMatches.first().instruction as ReferenceInstruction).reference }

@@ -1,0 +1,69 @@
+{
+  "name": "Booking.com",
+  "workflow": "emulator-booking.yml",
+  "patches": "patches/src/main/kotlin/app/jofslash/patches/booking",
+  "extension": "extensions/booking",
+  "docs": "docs/booking/README.md",
+  "readme": {
+    "style": "kept",
+    "sections": {
+      "Prices": "Price"
+    }
+  },
+  "store": "https://play.google.com/store/apps/details?id=com.booking",
+  "package": "com.booking",
+  "summary": "Compare the price with the hotel's own website, watch prices, check crossed-out prices and reviews, and take out scarcity messages, sponsored results and upsells.",
+  "owners": [
+    "Booking.com"
+  ],
+  "apk": {
+    "release": "booking",
+    "version": "first",
+    "asset": "*.apkm",
+    "file": "booking.apkm"
+  },
+  "android": {
+    "note": "Booking.com 71.1 needs Android 12L or newer: a few versions from there, and the next one, whose image is only in the SDK's canary channel so far. The release tries the oldest supported version, the newest stable one and the next one; a pull request the oldest and the newest stable.",
+    "pull_request": [
+      {
+        "api": "32",
+        "android": "12L",
+        "channel": "stable"
+      },
+      {
+        "api": "36",
+        "android": "16",
+        "channel": "stable"
+      }
+    ],
+    "full": [
+      {
+        "api": "32",
+        "android": "12L",
+        "channel": "stable"
+      },
+      {
+        "api": "36",
+        "android": "16",
+        "channel": "stable"
+      },
+      {
+        "api": "37.0",
+        "android": "17",
+        "channel": "canary"
+      }
+    ]
+  },
+  "check": [
+    "python3 .github/scripts/check_app.py booking \"$APK\" --cli \"$CLI\" --install --expect-screen --compare-original --adb adb"
+  ],
+  "versions": {
+    "pattern": "\\d+(\\.\\d+)+",
+    "example": "71.2",
+    "source": "apkmirror",
+    "apkmirror": "/apk/booking-com-hotel-reservations/booking-com-hotel-reservations/",
+    "file": "apkm",
+    "shows": "shows its own screen",
+    "phone_test": "try a search and a hotel page on a phone: the emulator test only starts the app."
+  }
+}

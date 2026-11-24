@@ -22,7 +22,7 @@ buildscript {
         mavenCentral()
     }
     dependencies {
-        // Latest stable Android Gradle plugin compatible with Gradle 9.9.1.
+        // Latest stable Android Gradle plugin compatible with Gradle 9.9.2.
         classpath("com.android.tools.build:gradle:9.5.1")
 
         // Security updates for AGP / Morphe buildscript transitive dependencies.
@@ -42,7 +42,7 @@ buildscript {
 }
 
 plugins {
-    id("app.morphe.patches") version "2.1.1"
+    id("app.morphe.patches") version "2.1.2"
 }
 
 // Apply dependency security upgrades to all project and plugin classpaths,

@@ -30,6 +30,7 @@ import android.content.Intent;
 import app.morphe.extension.shared.Utils;
 
 import app.hxreborn.extension.shared.ActivityCallbacksAdapter;
+import app.hxreborn.extension.shared.HostedComponents;
 
 @SuppressWarnings("unused")
 public final class PatchContext {
@@ -71,7 +72,7 @@ public final class PatchContext {
         if (activity == null) {
             intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
         }
-        context.startActivity(intent);
+        HostedComponents.startActivity(context, intent);
     }
 
 }

@@ -876,7 +876,8 @@ public final class HushgramPreferenceFragment extends AbstractPreferenceFragment
                             || Settings.SEEK_BAR_SHAPE.key.equals(key)
                             || Settings.FEED_SEEK_SHAPE.key.equals(key)
                             || Settings.FEED_DOUBLE_TAP_SKIP_SECONDS.key.equals(key)
-                            || Settings.FEED_SEEK_TIME.key.equals(key) || Settings.FEED_SEEK_TIME_LEFT.key.equals(key));
+                            || Settings.FEED_SEEK_TIME.key.equals(key) || Settings.FEED_SEEK_TIME_LEFT.key.equals(key)
+                            || Settings.FEED_SEEK_TIME_UNDER_TAGS.key.equals(key));
                     belongs |= family == PatchFamily.REEL_DOUBLE_TAP_SKIP
                             && Settings.DOUBLE_TAP_SKIP_REELS_SECONDS.key.equals(key);
                     belongs |= family == PatchFamily.FEED_AUTO_SCROLL && Settings.FEED_AUTO_SCROLL_SECONDS.key.equals(key);
@@ -918,7 +919,7 @@ public final class HushgramPreferenceFragment extends AbstractPreferenceFragment
                     belongs |= (family == PatchFamily.REEL_DOWNLOAD || family == PatchFamily.REEL_TAP_AND_VOLUME)
                             && (Settings.MUTE_BUTTON_ON_REELS.key.equals(key) || Settings.MUTE_BUTTON_IN_CLEAR_MODE.key.equals(key));
                     belongs |= family == PatchFamily.REEL_DOWNLOAD && (Settings.HIDE_SOUND_REELS.key.equals(key)
-                            || HIDDEN_SOUNDS_ROW.equals(key));
+                            || HIDDEN_SOUNDS_ROW.equals(key) || Settings.HIDE_SOUND_HOME.key.equals(key));
                     belongs |= family == PatchFamily.ACCENT_COLOR && (Settings.ACCENT_HUE.key.equals(key)
                             || Settings.ACCENT_CUSTOM.key.equals(key));
                     belongs |= family == PatchFamily.FONT && (Settings.FONT.key.equals(key)
@@ -6490,6 +6491,8 @@ public final class HushgramPreferenceFragment extends AbstractPreferenceFragment
                 return L10n.t("WhatsApp");
             case "copy_link":
                 return L10n.t("Copy link");
+            case "meta_ai":
+                return L10n.t("Meta AI");
             case "download_media":
                 return L10n.t("Download");
             case "user_sms":

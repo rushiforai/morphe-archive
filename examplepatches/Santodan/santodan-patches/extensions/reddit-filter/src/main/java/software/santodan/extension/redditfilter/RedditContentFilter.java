@@ -126,7 +126,7 @@ public final class RedditContentFilter {
     public static void rememberSubredditScreen(Object composable) {
         try {
             Object screen = field(composable, "a");
-            Method name = screen.getClass().getDeclaredMethod("n5");
+            Method name = screen.getClass().getDeclaredMethod("r5");
             name.setAccessible(true);
             String community = normalizeCommunity(string(name.invoke(screen)));
             recordUiEvent(null, "screen community=" + community + " previous=" + lastFeedScreenCommunity
@@ -281,13 +281,13 @@ public final class RedditContentFilter {
         try {
             List<Object> result = new ArrayList<>(original.size());
             for (Object item : original)
-                if (item == null || !item.getClass().getName().equals("aog0")) result.add(item);
+                if (item == null || !item.getClass().getName().equals("hzj0")) result.add(item);
             Set<String> labels = new TreeSet<>(String.CASE_INSENSITIVE_ORDER);
-            for (Object item : original) if (item != null && item.getClass().getName().equals("yng0"))
+            for (Object item : original) if (item != null && item.getClass().getName().equals("fzj0"))
                 labels.add(normalizeFlair(string(field(item, "c"))));
-            Class<?> channel = Class.forName("yng0");
-            Class<?> status = Class.forName("xmk0");
-            Object defaultStatus = Class.forName("ki6").getField("k0").get(null);
+            Class<?> channel = Class.forName("fzj0");
+            Class<?> status = Class.forName("l0o0");
+            Object defaultStatus = Class.forName("b3q").getField("l0").get(null);
             java.lang.reflect.Constructor<?> constructor = channel.getDeclaredConstructor(String.class,
                 String.class, String.class, boolean.class, status, int.class, String.class, List.class);
             constructor.setAccessible(true);
@@ -334,7 +334,7 @@ public final class RedditContentFilter {
     /** Reuses Reddit's chip layout while supplying the template palette or a filtered palette. */
     public static Object styleFlairChip(Object model, Object original) {
         chipStyleCalls++;
-        if (model == null || original == null || !model.getClass().getName().equals("yng0")) {
+        if (model == null || original == null || !model.getClass().getName().equals("fzj0")) {
             lastChipStyle = "not a flair model";
             return original;
         }
@@ -379,11 +379,11 @@ public final class RedditContentFilter {
                 background = android.graphics.Color.parseColor(parts[0]);
             }
             Class<?> function = Class.forName("kotlin.jvm.functions.Function1");
-            Class<?> paletteType = Class.forName("d8j");
+            Class<?> paletteType = Class.forName("rjk");
             Field provider = paletteType.getDeclaredField("a");
             provider.setAccessible(true);
             Object onLightBackground = provider.get(original);
-            java.lang.reflect.Constructor<?> constructor = Class.forName("c8j")
+            java.lang.reflect.Constructor<?> constructor = Class.forName("qjk")
                 .getDeclaredConstructor(long.class, function);
             constructor.setAccessible(true);
             Object result = constructor.newInstance(((long) background) << 32, onLightBackground);
@@ -401,9 +401,9 @@ public final class RedditContentFilter {
                                            boolean enabled, String label, Object role, Object onClick) {
         try {
             Object model = FLAIR_CALLBACK_MODELS.get(onClick);
-            if (model == null && onClick != null && onClick.getClass().getName().equals("qm7"))
+            if (model == null && onClick != null && onClick.getClass().getName().equals("jw7"))
                 model = field(onClick, "e");
-            if (model != null && model.getClass().getName().equals("yng0")) {
+            if (model != null && model.getClass().getName().equals("fzj0")) {
                 String community = normalizeCommunity(string(field(model, "a")));
                 String flair = string(field(model, "c"));
                 if (!community.isEmpty() && !flair.isEmpty()) {
@@ -638,7 +638,7 @@ public final class RedditContentFilter {
         Object model = CHANNEL_MODEL.get();
         CHANNEL_MODEL.remove();
         try {
-            if (model != null && model.getClass().getName().equals("yng0")) {
+            if (model != null && model.getClass().getName().equals("fzj0")) {
                 String community = normalizeCommunity(string(field(model, "b")));
                 String flair = string(field(model, "c"));
                 if (!community.isEmpty() && !flair.isEmpty()) {
@@ -664,7 +664,7 @@ public final class RedditContentFilter {
     }
 
     private static Method channelModifierMethod(String name, int parameters) throws ClassNotFoundException {
-        for (Method method : Class.forName("cy8").getDeclaredMethods())
+        for (Method method : Class.forName("m89").getDeclaredMethods())
             if (method.getName().equals(name) && method.getParameterTypes().length == parameters) {
                 method.setAccessible(true);
                 return method;
@@ -701,7 +701,7 @@ public final class RedditContentFilter {
     }
 
     public static Object wrapChannelClick(Object model, Object original) {
-        if (model == null || original == null || !model.getClass().getName().equals("yng0")) return original;
+        if (model == null || original == null || !model.getClass().getName().equals("fzj0")) return original;
         try {
             String community = normalizeCommunity(string(field(model, "b")));
             String label = string(field(model, "c"));
@@ -738,7 +738,7 @@ public final class RedditContentFilter {
     }
 
     public static Object dimFilteredChannel(Object model, Object emphasis) {
-        if (model == null || !model.getClass().getName().equals("yng0")) return emphasis;
+        if (model == null || !model.getClass().getName().equals("fzj0")) return emphasis;
         try {
             String community = normalizeCommunity(string(field(model, "b")));
             String flair = string(field(model, "c"));
@@ -767,7 +767,7 @@ public final class RedditContentFilter {
     private static void initializePostByIdSource() {
         if (postByIdSource != null || linkRepository == null) return;
         try {
-            Method provider = linkRepository.getClass().getDeclaredMethod("E");
+            Method provider = linkRepository.getClass().getDeclaredMethod("G");
             provider.setAccessible(true);
             Object source = provider.invoke(linkRepository);
             if (source != null) postByIdSource = source;
@@ -836,7 +836,7 @@ public final class RedditContentFilter {
             if (finished.compareAndSet(false, true)) POST_LOOKUPS.execute(() -> finishPostBatch(ids));
         };
         try {
-            Class<?> continuation = Class.forName("fmc");
+            Class<?> continuation = Class.forName("o7d");
             Object emptyContext = Class.forName("kotlin.coroutines.EmptyCoroutineContext")
                 .getField("INSTANCE").get(null);
             Object completion = Proxy.newProxyInstance(continuation.getClassLoader(),
@@ -856,12 +856,12 @@ public final class RedditContentFilter {
             Method fetch;
             Object immediate;
             if (linkSource) {
-                fetch = source.getClass().getDeclaredMethod("b", ArrayList.class,
+                fetch = source.getClass().getDeclaredMethod("b", ArrayList.class, boolean.class,
                     boolean.class, boolean.class, boolean.class, boolean.class, continuationImpl);
                 fetch.setAccessible(true);
-                immediate = fetch.invoke(source, ids, false, false, false, false, state);
+                immediate = fetch.invoke(source, ids, false, false, false, false, false, state);
             } else {
-                fetch = source.getClass().getDeclaredMethod("c", ArrayList.class, continuationImpl);
+                fetch = source.getClass().getDeclaredMethod("d", ArrayList.class, continuationImpl);
                 fetch.setAccessible(true);
                 immediate = fetch.invoke(source, ids, state);
             }
@@ -940,9 +940,9 @@ public final class RedditContentFilter {
         new Thread(() -> {
             try {
                 Object client = field(source, source == subredditSource ? "j" : "c");
-                Object query = Class.forName("kbl").getConstructor(String.class).newInstance(community);
-                Class<?> clientType = Class.forName("pon");
-                Class<?> continuationType = Class.forName("fmc");
+                Object query = Class.forName("zrm").getConstructor(String.class).newInstance(community);
+                Class<?> clientType = Class.forName("j8p");
+                Class<?> continuationType = Class.forName("o7d");
                 Object emptyContext = Class.forName("kotlin.coroutines.EmptyCoroutineContext")
                     .getField("INSTANCE").get(null);
                 Handler main = new Handler(Looper.getMainLooper());
@@ -1226,7 +1226,7 @@ public final class RedditContentFilter {
         try {
             String id = string(field(post, "e"));
             String community = normalizeCommunity(string(field(post, "k")));
-            Object flairElement = field(post, "s");
+            Object flairElement = field(post, "t");
             Set<String> values = new LinkedHashSet<>();
             collectStrings(flairElement, 0, Collections.newSetFromMap(new IdentityHashMap<>()), values);
             lastClassicPost = id + " " + community + " flairs=" + joinValues(values);
@@ -1235,7 +1235,7 @@ public final class RedditContentFilter {
             SharedPreferences preferences = prefs(context);
             for (FlairRule rule : parseFlairs(preferences.getString(FLAIRS, "")))
                 if (rule.community.equals(community) && containsIgnoreCase(values, rule.flair)) {
-                    PostInfo info = new PostInfo(string(field(post, "p")), "", "", community, rule.flair);
+                    PostInfo info = new PostInfo(string(field(post, "q")), "", "", community, rule.flair);
                     POSTS.put(id, info);
                     if (id.startsWith("t3_")) POSTS.put(id.substring(3), info);
                     else POSTS.put("t3_" + id, info);
@@ -1263,7 +1263,7 @@ public final class RedditContentFilter {
             String id = string(field(post, "e"));
             String community = normalizeCommunity(string(field(post, "k")));
             Set<String> renderedFlairs = new LinkedHashSet<>();
-            collectStrings(field(post, "s"), 0,
+            collectStrings(field(post, "t"), 0,
                 Collections.newSetFromMap(new IdentityHashMap<>()), renderedFlairs);
             List<FlairRule> rules = parseFlairs(prefs(context).getString(FLAIRS, ""));
             boolean filteredCommunity = false;
@@ -1387,9 +1387,9 @@ public final class RedditContentFilter {
 
     /** Adds the missing native flair child to cached-preview feed elements. */
     private static void addFlairToFeedElement(Object element, String id, PostInfo post) {
-        if (element == null || !"w230".equals(element.getClass().getName())) return;
+        if (element == null || !"kk50".equals(element.getClass().getName())) return;
         try {
-            Field existingField = element.getClass().getDeclaredField("n");
+            Field existingField = element.getClass().getDeclaredField("q");
             existingField.setAccessible(true);
             if (existingField.get(element) != null) return;
             String color = post.backgroundColor.isEmpty() ? "#3A3D40" : post.backgroundColor;
@@ -1407,38 +1407,39 @@ public final class RedditContentFilter {
                         break;
                     }
             }
-            Class<?> badgeType = Class.forName("je20");
+            Class<?> badgeType = Class.forName("mu40");
             Object badge = badgeType.getConstructor(String.class, String.class, String.class,
                 String.class, String.class, String.class, String.class, String.class,
                 String.class).newInstance(post.flair, null, id, post.community, "",
                     textColor, color, post.flair, post.flair);
-            Method listFactory = Class.forName("fs80").getDeclaredMethod("R", Object[].class);
+            Method listFactory = Class.forName("vcf").getDeclaredMethod("y0", Object[].class);
             listFactory.setAccessible(true);
             Object badges = listFactory.invoke(null, (Object) new Object[] { badge });
-            Class<?> flairType = Class.forName("lg20");
+            Class<?> flairType = Class.forName("pw40");
             java.lang.reflect.Constructor<?> constructor = flairType.getDeclaredConstructor(
-                String.class, String.class, boolean.class, Class.forName("ni20"), Class.forName("v4p"));
+                String.class, String.class, boolean.class, Class.forName("sy40"), Class.forName("kpq"));
             constructor.setAccessible(true);
             Object flair = constructor.newInstance(id, string(inheritedField(element, "b")), false,
                 field(element, "h"), badges);
             existingField.set(element, flair);
 
             ArrayList<Object> children = new ArrayList<>();
-            for (String name : new String[] { "i", "j", "k", "l", "m", "n", "o", "p",
-                    "q", "r", "s", "t", "u" }) {
+            // Child order of PostPreviewFeedElement's native content list (k through z).
+            for (String name : new String[] { "k", "l", "m", "n", "o", "p", "q", "r",
+                    "s", "t", "u", "v", "w", "x", "y", "z" }) {
                 Object child = field(element, name);
                 if (child != null) children.add(child);
             }
-            Method compact = Class.forName("fs80").getDeclaredMethod("X", Iterable.class);
+            Method compact = Class.forName("vcf").getDeclaredMethod("N0", Iterable.class);
             compact.setAccessible(true);
-            Field content = element.getClass().getDeclaredField("B");
+            Field content = element.getClass().getDeclaredField("G");
             content.setAccessible(true);
             content.set(element, compact.invoke(null, children));
             homeFlairsDisplayed++;
             lastHomeFlairDisplay = id + " preview displayed: " + post.flair;
             if (context != null && prefs(context).getBoolean(DEBUG, false))
                 appendDecision("ELEMENT FLAIR id=" + id + " community=" + post.community
-                    + " flair=" + post.flair + " class=w230");
+                    + " flair=" + post.flair + " class=kk50");
         } catch (ReflectiveOperationException | RuntimeException error) {
             lastHomeFlairDisplay = id + " preview failed " + error.getClass().getSimpleName()
                 + ": " + error.getMessage();
@@ -1504,7 +1505,7 @@ public final class RedditContentFilter {
                 return section;
             }
             for (Object child : (Iterable<?>) children)
-                if (child != null && child.getClass().getName().equals("mg20")) {
+                if (child != null && child.getClass().getName().equals("qw40")) {
                     lastHomeFlairDisplay = id + " native flair already present";
                     return section;
                 }
@@ -1520,21 +1521,21 @@ public final class RedditContentFilter {
                         textColor = colors[1];
                     break;
                 }
-            Class<?> badgeType = Class.forName("je20");
+            Class<?> badgeType = Class.forName("mu40");
             Object badge = badgeType.getConstructor(String.class, String.class, String.class,
                 String.class, String.class, String.class, String.class, String.class,
                 String.class).newInstance(post.flair, null, id, post.community, "",
                     textColor, color, post.flair, post.flair);
-            Method listFactory = Class.forName("fs80").getDeclaredMethod("R", Object[].class);
+            Method listFactory = Class.forName("vcf").getDeclaredMethod("y0", Object[].class);
             listFactory.setAccessible(true);
             Object flairList = listFactory.invoke(null, (Object) new Object[] { badge });
-            Class<?> flairElementType = Class.forName("lg20");
+            Class<?> flairElementType = Class.forName("pw40");
             java.lang.reflect.Constructor<?> flairElementConstructor = flairElementType.getDeclaredConstructor(
-                String.class, String.class, boolean.class, Class.forName("ni20"), Class.forName("v4p"));
+                String.class, String.class, boolean.class, Class.forName("sy40"), Class.forName("kpq"));
             flairElementConstructor.setAccessible(true);
             Object flairElement = flairElementConstructor.newInstance(id, string(field(section, "c")),
                 false, field(section, "d"), flairList);
-            java.lang.reflect.Constructor<?> wrapper = Class.forName("mg20")
+            java.lang.reflect.Constructor<?> wrapper = Class.forName("qw40")
                 .getDeclaredConstructor(flairElementType);
             wrapper.setAccessible(true);
             Object row = wrapper.newInstance(flairElement);
@@ -1542,7 +1543,7 @@ public final class RedditContentFilter {
             int titleIndex = -1;
             for (Object child : (Iterable<?>) children) {
                 reordered.add(child);
-                if (child != null && child.getClass().getName().equals("usi"))
+                if (child != null && child.getClass().getName().equals("f2k"))
                     titleIndex = reordered.size();
             }
             reordered.add(titleIndex >= 0 ? titleIndex : Math.min(2, reordered.size()), row);
@@ -1715,22 +1716,22 @@ public final class RedditContentFilter {
                     result.header = "subredditId:" + string(field(header, "s"))
                         + ", subredditIdentifier:" + string(field(header, "t"))
                         + ", details:" + string(field(header, "m"));
-                } else if (name.equals("aj30") || name.equals("bwi0")) {
+                } else if (name.equals("k560") || name.equals("d8m0")) {
                     Field title = child.getClass().getDeclaredField("b"); title.setAccessible(true);
                     Object value = title.get(child); if (value instanceof String) result.titles.add((String) value);
-                } else if (name.equals("usi")) {
+                } else if (name.equals("f2k")) {
                     Field wrapped = child.getClass().getDeclaredField("a"); wrapped.setAccessible(true);
                     Object titleElement = wrapped.get(child);
                     Field title = titleElement.getClass().getDeclaredField("i"); title.setAccessible(true);
                     Object value = title.get(titleElement); if (value instanceof String) result.titles.add((String) value);
-                } else if (name.equals("mg20")) {
+                } else if (name.equals("qw40")) {
                     Field element = child.getClass().getDeclaredField("a"); element.setAccessible(true);
                     Object flairElement = element.get(child);
                     Field flairs = flairElement.getClass().getDeclaredField("i"); flairs.setAccessible(true);
                     collectStrings(flairs.get(flairElement), 0,
                         Collections.newSetFromMap(new IdentityHashMap<>()), result.flairs);
-                } else if (inspectOther && (name.equals("s8k") || name.equals("fsi")
-                    || name.equals("kf40") || name.equals("m1p"))) {
+                } else if (inspectOther && (name.equals("fml") || name.equals("q1k")
+                    || name.equals("x270") || name.equals("dmq"))) {
                     collectStrings(child, 0, Collections.newSetFromMap(new IdentityHashMap<>()), result.other);
                 }
                 } catch (ReflectiveOperationException | RuntimeException ignored) { }

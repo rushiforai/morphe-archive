@@ -16,7 +16,7 @@ public final class GeocacheFilterBridge {
     }
 
     /**
-     * Sanitizes the FilterModel (ck3) created by FilterPreferences.h (dk3.h).
+     * Sanitizes the filter preferences model (so3) built by FilterPreferences.h (to3.h).
      */
     public static Object sanitizeFilterModel(Object filterModel) {
         if (filterModel == null) {
@@ -54,16 +54,6 @@ public final class GeocacheFilterBridge {
             Log.e(TAG, "Error sanitizing filterModel", t);
         }
         return filterModel;
-    }
-
-    /**
-     * Sanitizes selected cache types before building the search parameters.
-     * Always returns null so that the `cacheTypes` query parameter is omitted from
-     * /mobile/v2/map/search, allowing all viewport caches to be downloaded without HTTP 403 Forbidden
-     * and filtered cleanly client-side.
-     */
-    public static List sanitizeCacheTypes(List selectedTypes, Object filterModel) {
-        return null;
     }
 
     /**
@@ -301,16 +291,26 @@ public final class GeocacheFilterBridge {
         return true;
     }
 
-    public static Object getCurrentFilterModel() {
+    private static Object getApplicationInstance() {
         try {
             Class<?> appClass = Class.forName("com.groundspeak.geocaching.intro.GeoApplication");
-            Field pField = appClass.getDeclaredField("P");
-            pField.setAccessible(true);
-            Object appInstance = pField.get(null);
+            Field instanceField = appClass.getDeclaredField("R");
+            instanceField.setAccessible(true);
+            return instanceField.get(null);
+        } catch (Throwable t) {
+            Log.e(TAG, "Error resolving GeoApplication instance", t);
+            return null;
+        }
+    }
+
+    public static Object getCurrentFilterModel() {
+        try {
+            Object appInstance = getApplicationInstance();
             if (appInstance != null) {
-                Field dField = appClass.getDeclaredField("D");
-                dField.setAccessible(true);
-                Object filterPrefs = dField.get(appInstance);
+                Class<?> appClass = appInstance.getClass();
+                Field prefsField = appClass.getDeclaredField("E");
+                prefsField.setAccessible(true);
+                Object filterPrefs = prefsField.get(appInstance);
                 if (filterPrefs != null) {
                     Method hMethod = filterPrefs.getClass().getMethod("h");
                     return hMethod.invoke(filterPrefs);
@@ -324,18 +324,16 @@ public final class GeocacheFilterBridge {
 
     public static String getCurrentUsername() {
         try {
-            Class<?> appClass = Class.forName("com.groundspeak.geocaching.intro.GeoApplication");
-            Field pField = appClass.getDeclaredField("P");
-            pField.setAccessible(true);
-            Object appInstance = pField.get(null);
+            Object appInstance = getApplicationInstance();
             if (appInstance != null) {
-                Field cField = appClass.getDeclaredField("C");
-                cField.setAccessible(true);
-                Object l3c = cField.get(appInstance);
-                if (l3c != null) {
-                    Field wField = l3c.getClass().getDeclaredField("w");
-                    wField.setAccessible(true);
-                    return (String) wField.get(l3c);
+                Class<?> appClass = appInstance.getClass();
+                Field userField = appClass.getDeclaredField("C");
+                userField.setAccessible(true);
+                Object userSession = userField.get(appInstance);
+                if (userSession != null) {
+                    Field nameField = userSession.getClass().getDeclaredField("w");
+                    nameField.setAccessible(true);
+                    return (String) nameField.get(userSession);
                 }
             }
         } catch (Throwable ignored) {

@@ -5,6 +5,7 @@
  * https://github.com/anddea/revanced-patches
  *
  * Licensed under the GNU General Public License v3.0.
+ * Modified by lavinhoque33, 2026-11-24.
  * Modified by lavinhoque33, 2026-11-05.
  * Written by lavinhoque33, 2026-10-10.
  */
@@ -15,13 +16,16 @@ import static app.morphe.extension.shared.utils.StringRef.str;
 
 import android.annotation.SuppressLint;
 import android.app.Activity;
+import android.app.AlertDialog;
+import android.app.Dialog;
+import android.content.Intent;
 import android.content.pm.ActivityInfo;
 import android.content.res.Configuration;
 import android.graphics.Color;
-import android.graphics.drawable.ClipDrawable;
 import android.graphics.drawable.Drawable;
 import android.graphics.drawable.GradientDrawable;
 import android.graphics.drawable.LayerDrawable;
+import android.graphics.drawable.StateListDrawable;
 import android.os.Build;
 import android.os.Handler;
 import android.os.Looper;
@@ -42,14 +46,27 @@ import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.SeekBar;
+import android.widget.ScrollView;
 import android.widget.TextView;
 
-import java.util.Locale;
+import androidx.annotation.Nullable;
 
+import java.util.Arrays;
+
+import app.morphe.extension.shared.ui.SheetBottomDialog;
+import app.morphe.extension.shared.utils.BaseThemeUtils;
 import app.morphe.extension.shared.utils.Logger;
+import app.morphe.extension.shared.utils.ResourceUtils;
 import app.morphe.extension.shared.utils.Utils;
+import app.morphe.extension.youtube.patches.overlaybutton.AlwaysRepeatButton;
+import app.morphe.extension.youtube.patches.player.DoubleTapSeekPatch;
+import app.morphe.extension.youtube.patches.player.ExitFullscreenPatch.FullscreenMode;
 import app.morphe.extension.youtube.patches.player.SeekbarColorPatch;
+import app.morphe.extension.youtube.patches.video.CustomPlaybackSpeedPatch;
+import app.morphe.extension.youtube.patches.video.CustomPlaybackSpeedPatch.PlaybackSpeedMenuType;
 import app.morphe.extension.youtube.settings.Settings;
+import app.morphe.extension.youtube.utils.PlaybackSpeedControls;
+import app.morphe.extension.youtube.videoplayer.PlayerIcons;
 
 /**
  * Video screen of the offline player. The player itself is {@link OfflinePlayer}; this screen
@@ -58,12 +75,16 @@ import app.morphe.extension.youtube.settings.Settings;
 @SuppressLint({"ClickableViewAccessibility", "SetTextI18n"})
 final class OfflinePlayerScreen implements OfflineScreens.Screen, OfflinePlayer.Listener {
     private static final long CONTROLS_TIMEOUT_MS = 3000;
+    private static final long SEEK_HINT_TIMEOUT_MS = 1_200;
     private static final long PROGRESS_INTERVAL_MS = 500;
-    private static final float[] SPEEDS = {0.25f, 0.5f, 0.75f, 1f, 1.25f, 1.5f, 1.75f, 2f};
+    private static final String EXTRA_FULLSCREEN = "rvx_offline_fullscreen";
 
     private final Activity activity;
     private final Handler handler = new Handler(Looper.getMainLooper());
     private final FrameLayout root;
+    private final int scrimColor;
+    @Nullable
+    private final OfflineSwipeControls swipes;
     private final SurfaceView surfaceView;
     /** Stands in for the picture of an audio-only download. */
     private final ImageView artworkView;
@@ -74,6 +95,8 @@ final class OfflinePlayerScreen implements OfflineScreens.Screen, OfflinePlayer.
     private final ImageButton next;
     private final ImageButton speedButton;
     private final ImageButton aspectButton;
+    @Nullable
+    private final ImageButton repeatButton;
     private final ImageButton fullscreenButton;
     private final SeekBar seekBar;
     private final TextView position;
@@ -86,6 +109,10 @@ final class OfflinePlayerScreen implements OfflineScreens.Screen, OfflinePlayer.
     private boolean userSeeking;
     private boolean resumed;
     private boolean destroyed;
+    private boolean fullscreen;
+    private boolean swipeClaimed;
+    private Dialog speedMenu;
+    private OfflineVideo speedMenuItem;
 
     private final Runnable hideControls = () -> setControlsVisible(false);
     private final Runnable progressTicker = new Runnable() {
@@ -151,8 +178,6 @@ final class OfflinePlayerScreen implements OfflineScreens.Screen, OfflinePlayer.
         final int hintPadding = Utils.dipToPixels(12);
         seekHint.setPadding(hintPadding * 2, hintPadding, hintPadding * 2, hintPadding);
         seekHint.setVisibility(View.GONE);
-        root.addView(seekHint, new FrameLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT,
-                ViewGroup.LayoutParams.WRAP_CONTENT, Gravity.CENTER));
 
         sponsorSkip = text(16, Color.WHITE);
         sponsorSkip.setBackgroundColor(0xDD333333);
@@ -166,7 +191,10 @@ final class OfflinePlayerScreen implements OfflineScreens.Screen, OfflinePlayer.
 
         // region controls
         FrameLayout overlay = new FrameLayout(activity);
-        overlay.setBackgroundColor(0x66000000);
+        int opacity = Utils.validateValue(Settings.CUSTOM_PLAYER_OVERLAY_OPACITY, 0, 100,
+                "revanced_custom_player_overlay_opacity_invalid_toast");
+        scrimColor = (0x66 * opacity / 100) << 24;
+        overlay.setBackgroundColor(scrimColor);
         overlay.setFitsSystemWindows(true);
         controls = overlay;
 
@@ -183,8 +211,13 @@ final class OfflinePlayerScreen implements OfflineScreens.Screen, OfflinePlayer.
         title.setEllipsize(android.text.TextUtils.TruncateAt.END);
         top.addView(title, new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f));
         top.addView(subtitles.control());
+        repeatButton = Settings.OVERLAY_BUTTON_ALWAYS_REPEAT.get() ? createRepeatButton() : null;
+        if (repeatButton != null) {
+            int buttonSize = Utils.dipToPixels(48);
+            top.addView(repeatButton, new LinearLayout.LayoutParams(buttonSize, buttonSize));
+        }
         speedButton = button("speed", str("revanced_offline_player_speed"));
-        speedButton.setOnClickListener(this::showSpeedMenu);
+        speedButton.setOnClickListener(v -> showSpeedMenu());
         top.addView(speedButton);
         aspectButton = button("aspect", str("revanced_offline_player_aspect"));
         aspectButton.setOnClickListener(v -> cycleAspectMode());
@@ -266,6 +299,11 @@ final class OfflinePlayerScreen implements OfflineScreens.Screen, OfflinePlayer.
         sponsorSkip.bringToFront();
         // endregion
 
+        swipes = OfflineSwipeControls.create(activity, root);
+        seekHint.setTranslationY(-Utils.dipToPixels(56));
+        root.addView(seekHint, new FrameLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT,
+                ViewGroup.LayoutParams.WRAP_CONTENT, Gravity.CENTER));
+
         GestureDetector gestures = new GestureDetector(activity, new GestureDetector.SimpleOnGestureListener() {
             @Override
             public boolean onDown(MotionEvent e) {
@@ -279,19 +317,28 @@ final class OfflinePlayerScreen implements OfflineScreens.Screen, OfflinePlayer.
             }
 
             @Override
-            public boolean onDoubleTap(MotionEvent e) {
-                final boolean forward = e.getX() > root.getWidth() / 2f;
-                if (forward) OfflinePlayer.seekForward();
-                else OfflinePlayer.seekBackward();
-                showSeekHint(forward ? "+10s" : "−10s");
+            public void onLongPress(MotionEvent event) {
+                if (swipes != null) swipes.onLongPress();
+            }
+
+            @Override
+            public boolean onDoubleTapEvent(MotionEvent event) {
+                // The second down could become a swipe. Seek only after the tap is released.
+                if (event.getActionMasked() == MotionEvent.ACTION_UP && OfflinePlayer.isPrepared()) {
+                    int seconds = DoubleTapSeekPatch.getOfflineSeconds(event.getX() > root.getWidth() / 2f);
+                    Logger.printDebug(() -> "Double-tap seek: offset=" + (seconds >= 0 ? "+" : "") + seconds + "s");
+                    OfflinePlayer.seekBy(seconds * 1_000L);
+                    showSeekHint(str("revanced_offline_player_seek_hint", seconds));
+                }
                 return true;
             }
         });
-        // The overlay sits on top, so it receives the touches that miss its buttons.
-        overlay.setOnTouchListener((v, event) -> gestures.onTouchEvent(event));
+        // Interactive children handle their own touches; one detector handles the remaining player surface.
+        root.setOnTouchListener((view, event) -> handlePlayerTouch(view, event, gestures));
 
         activity.setContentView(root);
-        applyFullscreen(isLandscape());
+        fullscreen = activity.getIntent().getBooleanExtra(EXTRA_FULLSCREEN, isLandscape());
+        applyFullscreen(fullscreen);
 
         if (!openRequestedVideo()) {
             activity.finish();
@@ -304,7 +351,8 @@ final class OfflinePlayerScreen implements OfflineScreens.Screen, OfflinePlayer.
 
     /** @return False if there is nothing to show. */
     private boolean openRequestedVideo() {
-        String key = activity.getIntent().getStringExtra(OfflineScreens.EXTRA_VIDEO_ID);
+        Intent intent = activity.getIntent();
+        String key = intent.getStringExtra(OfflineScreens.EXTRA_VIDEO_ID);
         if (key == null) {
             // From the playback notification: show whatever plays.
             if (OfflinePlayer.isSessionActive()) return true;
@@ -316,8 +364,51 @@ final class OfflinePlayerScreen implements OfflineScreens.Screen, OfflinePlayer.
             Utils.showToastShort(str("revanced_offline_video_missing"));
             return false;
         }
+        // A configuration change reattaches the surface, even if the queue has moved on.
+        intent.removeExtra(OfflineScreens.EXTRA_VIDEO_ID);
         OfflinePlayer.play(video, OfflineScreens.order());
+        if (!video.audioOnly) {
+            switch (Settings.OPEN_VIDEOS_FULLSCREEN.get()) {
+                case PORTRAIT -> setFullscreen(true, ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
+                case LANDSCAPE -> setFullscreen(true, ActivityInfo.SCREEN_ORIENTATION_SENSOR_LANDSCAPE);
+                case DISABLED -> { }
+            }
+        }
         return true;
+    }
+
+    private boolean handlePlayerTouch(View view, MotionEvent event, GestureDetector taps) {
+        switch (event.getActionMasked()) {
+            case MotionEvent.ACTION_DOWN -> {
+                swipeClaimed = false;
+                if (swipes != null) swipes.begin(view, event, fullscreen);
+            }
+            case MotionEvent.ACTION_MOVE -> {
+                if (swipes != null && swipes.move(event) && !swipeClaimed) {
+                    swipeClaimed = true;
+                    cancelTaps(event, taps);
+                }
+            }
+            case MotionEvent.ACTION_POINTER_DOWN -> {
+                if (!swipeClaimed) cancelTaps(event, taps);
+                swipeClaimed = true;
+                if (swipes != null) swipes.finish(false);
+            }
+            case MotionEvent.ACTION_UP, MotionEvent.ACTION_CANCEL -> {
+                if (swipes != null) swipes.finish(event.getActionMasked() == MotionEvent.ACTION_UP && swipeClaimed);
+            }
+            default -> { }
+        }
+
+        if (!swipeClaimed) taps.onTouchEvent(event);
+        return true;
+    }
+
+    private static void cancelTaps(MotionEvent event, GestureDetector taps) {
+        MotionEvent cancel = MotionEvent.obtain(event);
+        cancel.setAction(MotionEvent.ACTION_CANCEL);
+        taps.onTouchEvent(cancel);
+        cancel.recycle();
     }
 
     // region views
@@ -332,8 +423,13 @@ final class OfflinePlayerScreen implements OfflineScreens.Screen, OfflinePlayer.
     }
 
     private ImageButton button(String icon, String description) {
-        ImageButton button = new ImageButton(activity);
+        ImageButton button = button(description);
         setIcon(button, icon);
+        return button;
+    }
+
+    private ImageButton button(String description) {
+        ImageButton button = new ImageButton(activity);
         button.setBackgroundColor(Color.TRANSPARENT);
         button.setContentDescription(description);
         final int padding = Utils.dipToPixels(12);
@@ -346,19 +442,67 @@ final class OfflinePlayerScreen implements OfflineScreens.Screen, OfflinePlayer.
         button.setImageDrawable(OfflineUi.icon(activity, icon, Color.WHITE));
     }
 
+    @Nullable
+    private ImageButton createRepeatButton() {
+        ImageButton repeat = button(str("revanced_offline_player_repeat"));
+        Drawable icon = repeatIcon(repeat);
+        if (icon == null) return null;
+
+        repeat.setImageDrawable(icon);
+        updateRepeatButton(repeat);
+        repeat.setOnClickListener(view -> {
+            AlwaysRepeatButton.toggleRepeat();
+            updateRepeatButton(repeat);
+            scheduleHide();
+        });
+        repeat.setOnLongClickListener(view -> {
+            AlwaysRepeatButton.toggleRepeatPause();
+            updateRepeatButton(repeat);
+            scheduleHide();
+            return true;
+        });
+        return repeat;
+    }
+
+    @Nullable
+    private Drawable repeatIcon(ImageButton repeat) {
+        Drawable off = PlayerIcons.styledDrawable("morphe_loop_video_button_off");
+        Drawable on = off == null ? null : PlayerIcons.styledDrawable("morphe_loop_video_button_on");
+        if (on == null) {
+            int selector = ResourceUtils.getDrawableIdentifier("revanced_repeat_button");
+            if (selector != 0) return activity.getDrawable(selector);
+
+            int stock = ResourceUtils.getDrawableIdentifier("yt_outline_arrow_repeat_1_white_24");
+            if (stock == 0) return null;
+            off = activity.getDrawable(stock);
+            on = activity.getDrawable(stock);
+            if (off == null || on == null) return null;
+        }
+
+        Integer tint = AlwaysRepeatButton.activatedTint(repeat);
+        if (tint != null) on.mutate().setTint(tint);
+        StateListDrawable states = new StateListDrawable();
+        states.addState(new int[]{android.R.attr.state_selected}, on);
+        states.addState(new int[0], off);
+        return states;
+    }
+
+    private void updateRepeatButton(ImageButton repeat) {
+        AlwaysRepeatButton.updateRepeatState(repeat);
+        boolean pauseAfterRepeat = Settings.ALWAYS_REPEAT_PAUSE.get();
+        repeat.setContentDescription(str(pauseAfterRepeat ? "revanced_offline_player_repeat_pause"
+                : "revanced_offline_player_repeat"));
+    }
+
     /** Draws the seekbar like YouTube's: a thin track, the progress and a dot in the seekbar color. */
     private void styleSeekBar(SeekBar bar) {
-        final int accent = SeekbarColorPatch.getSeekbarColor();
+        final int primary = SeekbarColorPatch.getSeekbarColor();
         final int trackHeight = Utils.dipToPixels(3);
         final float radius = trackHeight / 2f;
         GradientDrawable track = new GradientDrawable();
         track.setColor(0x4DFFFFFF);
         track.setCornerRadius(radius);
-        GradientDrawable progress = new GradientDrawable();
-        progress.setColor(accent);
-        progress.setCornerRadius(radius);
-        LayerDrawable layers = new LayerDrawable(new Drawable[]{
-                track, new ClipDrawable(progress, Gravity.START, ClipDrawable.HORIZONTAL)});
+        LayerDrawable layers = new LayerDrawable(new Drawable[]{track, new OfflineSeekbarProgress(primary)});
         layers.setId(0, android.R.id.background);
         layers.setId(1, android.R.id.progress);
         for (int i = 0; i < 2; i++) {
@@ -368,7 +512,7 @@ final class OfflinePlayerScreen implements OfflineScreens.Screen, OfflinePlayer.
         bar.setProgressDrawable(layers);
         GradientDrawable thumb = new GradientDrawable();
         thumb.setShape(GradientDrawable.OVAL);
-        thumb.setColor(accent);
+        thumb.setColor(primary);
         thumb.setSize(Utils.dipToPixels(14), Utils.dipToPixels(14));
         bar.setThumb(thumb);
         bar.setSplitTrack(false);
@@ -378,7 +522,7 @@ final class OfflinePlayerScreen implements OfflineScreens.Screen, OfflinePlayer.
         seekHint.setText(text);
         seekHint.setVisibility(View.VISIBLE);
         handler.removeCallbacks(hideSeekHint);
-        handler.postDelayed(hideSeekHint, 700);
+        handler.postDelayed(hideSeekHint, SEEK_HINT_TIMEOUT_MS);
     }
 
     private final Runnable hideSeekHint = this::hideSeekHint;
@@ -394,36 +538,81 @@ final class OfflinePlayerScreen implements OfflineScreens.Screen, OfflinePlayer.
         for (int i = 0; i < group.getChildCount(); i++) {
             group.getChildAt(i).setVisibility(visible ? View.VISIBLE : View.INVISIBLE);
         }
-        controls.setBackgroundColor(visible ? 0x66000000 : Color.TRANSPARENT);
+        controls.setBackgroundColor(visible ? scrimColor : Color.TRANSPARENT);
         if (visible) scheduleHide();
     }
 
     private void scheduleHide() {
         handler.removeCallbacks(hideControls);
-        if (OfflinePlayer.isPlaying() && !userSeeking) {
+        if (!destroyed && OfflinePlayer.isPlaying() && !userSeeking && speedMenu == null) {
             handler.postDelayed(hideControls, CONTROLS_TIMEOUT_MS);
         }
     }
 
-    private void showSpeedMenu(View anchor) {
-        final float current = OfflinePlayer.getSpeed();
-        String[] labels = new String[SPEEDS.length];
-        int selected = 0;
-        for (int i = 0; i < SPEEDS.length; i++) {
-            labels[i] = SPEEDS[i] == 1f ? str("revanced_offline_player_speed_normal")
-                    : String.format(Locale.US, "%sx", trim(SPEEDS[i]));
-            if (SPEEDS[i] == current) selected = i;
-        }
+    private void showSpeedMenu() {
+        speedMenuItem = OfflinePlayer.getCurrent();
+        boolean custom = Settings.ENABLE_CUSTOM_PLAYBACK_SPEED.get();
+        float[] presets = CustomPlaybackSpeedPatch.getArray(OfflinePlaybackOptions.STOCK_SPEEDS);
+        PlaybackSpeedMenuType style = custom ? Settings.CUSTOM_PLAYBACK_SPEED_MENU_TYPE.get()
+                : PlaybackSpeedMenuType.YOUTUBE_LEGACY;
         handler.removeCallbacks(hideControls);
-        OfflineUi.showChoices(activity, null, labels, selected, Color.WHITE, which -> {
-            OfflinePlayer.setSpeed(SPEEDS[which]);
+
+        speedMenu = switch (style) {
+            case CUSTOM_MODERN -> showModernSpeedMenu(presets);
+            case CUSTOM_NO_THEME, CUSTOM_LEGACY, YOUTUBE_LEGACY -> showSpeedChoices(presets, style);
+        };
+        speedMenu.setOnDismissListener(d -> {
+            speedMenu = null;
+            speedMenuItem = null;
             scheduleHide();
         });
     }
 
-    private static String trim(float value) {
-        String text = String.valueOf(value);
-        return text.endsWith(".0") ? text.substring(0, text.length() - 2) : text;
+    private Dialog showModernSpeedMenu(float[] presets) {
+        var content = SheetBottomDialog.createMainLayout(activity, BaseThemeUtils.getDialogBackgroundColor());
+        TextView currentSpeed = new TextView(activity);
+        PlaybackSpeedControls.addCenteredHeader(content, currentSpeed);
+        PlaybackSpeedControls.addTo(content, currentSpeed, presets, OfflinePlayer::getSpeed, this::selectSpeed, false);
+
+        ScrollView scroll = SheetBottomDialog.createCappedScrollView(activity);
+        scroll.addView(content);
+        var dialog = SheetBottomDialog.createSlideDialog(activity, scroll, 200);
+        dialog.show();
+        return dialog;
+    }
+
+    private Dialog showSpeedChoices(float[] presets, PlaybackSpeedMenuType style) {
+        float current = OfflinePlayer.getSpeed();
+        float[] choices = OfflinePlaybackOptions.speedChoices(presets, current);
+        int selected = Arrays.binarySearch(choices, current);
+        String[] labels = new String[choices.length];
+        for (int i = 0; i < choices.length; i++) {
+            float rate = choices[i];
+            labels[i] = rate == 1f ? str("revanced_offline_player_speed_normal") : rate + "x";
+        }
+        String heading = str("revanced_offline_player_speed");
+        if (style == PlaybackSpeedMenuType.CUSTOM_LEGACY) {
+            return OfflineUi.showChoices(activity, heading, labels, selected, Color.WHITE,
+                    which -> selectSpeed(choices[which]));
+        }
+
+        AlertDialog.Builder builder = style == PlaybackSpeedMenuType.CUSTOM_NO_THEME
+                ? new AlertDialog.Builder(activity)
+                : Utils.getDialogBuilder(activity);
+        return builder.setTitle(heading).setSingleChoiceItems(labels, selected, (dialog, which) -> {
+            selectSpeed(choices[which]);
+            dialog.dismiss();
+        }).show();
+    }
+
+    private void selectSpeed(float rate) {
+        if (speedMenuItem == OfflinePlayer.getCurrent() && OfflinePlayer.setSpeed(rate)) {
+            OfflinePlayer.rememberSpeed();
+        }
+    }
+
+    private void dismissSpeedMenu() {
+        if (speedMenu != null) speedMenu.dismiss();
     }
 
     private void fitVideo() {
@@ -523,13 +712,26 @@ final class OfflinePlayerScreen implements OfflineScreens.Screen, OfflinePlayer.
     }
 
     private void toggleFullscreen() {
-        // Rotating recreates the activity (LicenseActivity handles no configuration changes);
-        // the new screen re-attaches its surface to the running player.
-        final boolean toLandscape = !isLandscape();
-        activity.setRequestedOrientation(toLandscape
-                ? ActivityInfo.SCREEN_ORIENTATION_SENSOR_LANDSCAPE
-                : ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
-        applyFullscreen(toLandscape);
+        if (fullscreen) exitFullscreen();
+        else setFullscreen(true, ActivityInfo.SCREEN_ORIENTATION_SENSOR_LANDSCAPE);
+    }
+
+    private void exitFullscreen() {
+        setFullscreen(false, ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
+    }
+
+    private void setFullscreen(boolean fullscreen, int orientation) {
+        // LicenseActivity may be recreated; the new screen restores presentation and reattaches.
+        if (swipes != null && this.fullscreen != fullscreen) {
+            swipes.finish(false);
+            if (!fullscreen) swipes.saveBrightness();
+            else if (resumed) swipes.restoreBrightness(true);
+        }
+
+        this.fullscreen = fullscreen;
+        activity.getIntent().putExtra(EXTRA_FULLSCREEN, fullscreen);
+        applyFullscreen(fullscreen);
+        activity.setRequestedOrientation(orientation);
     }
 
     @SuppressWarnings("deprecation")
@@ -568,6 +770,8 @@ final class OfflinePlayerScreen implements OfflineScreens.Screen, OfflinePlayer.
             activity.finish();
             return;
         }
+        if (speedMenu != null && speedMenuItem != video) dismissSpeedMenu();
+        speedButton.setEnabled(OfflinePlayer.isPrepared());
         title.setText(video.title);
         showArtwork(video);
         aspectButton.setVisibility(video.audioOnly ? View.GONE : View.VISIBLE);
@@ -600,10 +804,19 @@ final class OfflinePlayerScreen implements OfflineScreens.Screen, OfflinePlayer.
     }
 
     @Override
+    public void onPlaybackEnded() {
+        if (!resumed || !fullscreen || destroyed) return;
+        FullscreenMode mode = Settings.EXIT_FULLSCREEN.get();
+        if (mode == FullscreenMode.PORTRAIT_LANDSCAPE
+                || (isLandscape() ? mode == FullscreenMode.LANDSCAPE : mode == FullscreenMode.PORTRAIT)) {
+            exitFullscreen();
+        }
+    }
+
+    @Override
     public boolean onBackPressed() {
-        if (!destroyed && OfflinePlayer.getCurrent() != null && isLandscape()
-                && activity.getRequestedOrientation() == ActivityInfo.SCREEN_ORIENTATION_SENSOR_LANDSCAPE) {
-            toggleFullscreen();
+        if (!destroyed && OfflinePlayer.getCurrent() != null && fullscreen) {
+            exitFullscreen();
             return true;
         }
         return false;
@@ -612,15 +825,22 @@ final class OfflinePlayerScreen implements OfflineScreens.Screen, OfflinePlayer.
     @Override
     public void onResume() {
         resumed = true;
+        if (OfflinePlayer.hasPlaybackEnded()) onPlaybackEnded();
+        if (repeatButton != null) updateRepeatButton(repeatButton);
         handler.removeCallbacks(progressTicker);
         handler.post(progressTicker);
         if (OfflinePlayer.isPlaying()) handler.post(subtitleTicker);
-        applyFullscreen(isLandscape());
+        applyFullscreen(fullscreen);
+        if (swipes != null) swipes.restoreBrightness(fullscreen);
     }
 
     @Override
     public void onPause() {
         resumed = false;
+        if (swipes != null) {
+            swipes.finish(false);
+            swipes.saveBrightness();
+        }
         handler.removeCallbacks(progressTicker);
         handler.removeCallbacks(subtitleTicker);
     }
@@ -628,6 +848,8 @@ final class OfflinePlayerScreen implements OfflineScreens.Screen, OfflinePlayer.
     @Override
     public void onDestroy() {
         destroyed = true;
+        if (speedMenu instanceof SheetBottomDialog.SlideDialog sheet) sheet.dismissWithoutAnimation();
+        else dismissSpeedMenu();
         subtitles.close();
         handler.removeCallbacksAndMessages(null);
         OfflinePlayer.removeListener(this);

@@ -7,14 +7,19 @@ package app.morphe.patches.readera.misc.notes
 import app.morphe.patcher.Fingerprint
 import app.morphe.patcher.extensions.InstructionExtensions.getInstruction
 import app.morphe.patcher.extensions.InstructionExtensions.replaceInstruction
-import app.morphe.patcher.patch.BytecodePatchContext
 import app.morphe.patcher.patch.PatchException
-import app.morphe.patcher.patch.bytecodePatch
-import app.morphe.patcher.patch.resourcePatch
+import app.morphe.patcher.patch.classDefBy
+import app.morphe.patcher.patch.classDefByOrNull
+import app.morphe.patcher.patch.decode
+import app.morphe.patcher.patch.document
+import app.morphe.patcher.patch.mutableClassDefBy
+import app.morphe.patcher.patch.patch
 import app.morphe.patcher.util.getReference
 import app.morphe.patches.readera.shared.DRAWER_QUOTES_ITEM
 import app.morphe.patches.readera.shared.disableSignatureChecksPatch
 import app.morphe.patches.readera.shared.patchesSettingsPatch
+import app.morphe.patches.readera.shared.readEraHostedComponents
+import app.morphe.patches.readera.shared.readEraScreenHost
 import app.morphe.patches.readera.shared.registerReadEraPatch
 import app.morphe.patches.readera.shared.showDrawerItem
 import app.morphe.patches.readera.shared.stringNamesByEnglishText
@@ -58,7 +63,7 @@ private val ENGLISH_TEXT_BY_NOTES_STRING = mapOf(
 
 private class NotePosition(val model: String, val position: String)
 
-private val notesStringsPatch = resourcePatch {
+private val notesStringsPatch = patch {
     execute {
         val namesByText = stringNamesByEnglishText()
         val sourceNames = ENGLISH_TEXT_BY_NOTES_STRING.mapValues { (name, text) ->
@@ -82,9 +87,10 @@ private val notesStringsPatch = resourcePatch {
     }
 }
 
-private val notesActivityManifestPatch = resourcePatch {
-    dependsOn(readeraQuotesAndNotesSectionExtensionPatch, sharedDimensionsExtensionPatch)
+private val notesActivityManifestPatch = patch {
+    dependsOn(readeraQuotesAndNotesSectionExtensionPatch, sharedDimensionsExtensionPatch, readEraHostedComponents.patch)
     execute {
+        readEraHostedComponents.host(NOTES_ACTIVITY, readEraScreenHost)
         document("AndroidManifest.xml").use { document ->
             val application = document.getElementsByTagName("application").item(0) as Element
             val activity = document.createElement("activity")
@@ -96,7 +102,7 @@ private val notesActivityManifestPatch = resourcePatch {
 }
 
 @Suppress("unused")
-val quotesAndNotesPatch = bytecodePatch(
+val quotesAndNotesPatch = patch(
     name = "Quotes and notes section",
     description = "Adds a side menu page with the quotes, bookmarks and reviews from every book. " +
         "Tapping one opens the book at that spot.",
@@ -155,7 +161,7 @@ val quotesAndNotesPatch = bytecodePatch(
     }
 }
 
-private fun BytecodePatchContext.notePosition(jump: Fingerprint): NotePosition {
+private fun notePosition(jump: Fingerprint): NotePosition {
     val (positionCast, _) = jump.instructionMatches
     val position = positionCast.instruction.getReference<TypeReference>()!!.type
     val model = classDefBy(position).methods.single { method ->

@@ -21,7 +21,7 @@ risk. See the [license](LICENSE) for details.
 ## Patches list
 
 <!-- PATCHES_START EXPANDED -->
-> **[v1.14.2](https://github.com/JacksonJones2003/origin-island-patches/releases/tag/v1.14.2)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;10 patches total
+> **[v1.15.0](https://github.com/JacksonJones2003/origin-island-patches/releases/tag/v1.15.0)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;11 patches total
 <details open>
 <summary>📦 YouTube&nbsp;&nbsp;•&nbsp;&nbsp;3 patches</summary>
 <br>
@@ -58,7 +58,7 @@ risk. See the [license](LICENSE) for details.
 </details>
 
 <details open>
-<summary>📦 Apple Music&nbsp;&nbsp;•&nbsp;&nbsp;1 patch</summary>
+<summary>📦 Apple Music&nbsp;&nbsp;•&nbsp;&nbsp;2 patches</summary>
 <br>
 
 **🎯 Supported versions:**
@@ -69,6 +69,7 @@ risk. See the [license](LICENSE) for details.
 | 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
 |----------|----------------|-----------|
 | [Origin Island music card](#origin-island-music-card) | Lets the OriginOS music card on the lock screen and Origin Island show lyrics, like songs, switch between repeat and shuffle, and show the playlist and play from it. This does not get past any checks of the app, so the app may refuse to work once it is patched. |  |
+| [Queue beside the player](#queue-beside-the-player) | On an unfolded foldable phone or a tablet, shows the queue beside the player, or the lyrics with the lyrics button, with the cover and controls on the other half. |  |
 
 </details>
 
@@ -474,6 +475,33 @@ The watch page lays out its parts itself: it measures each for its space, places
 an offset, and clips it there as it draws it. The patch has the panels measured, placed and drawn
 for the space under the player instead, ends them at the bottom of the screen, and keeps the
 suggested videos shown and undimmed while a panel would cover them.
+
+## Queue beside the player (Apple Music)
+
+On an unfolded foldable phone or a tablet, the player shows its cover and controls on one half
+and the queue of Apple Music on the other, the way the queue sits beside the player on a big
+screen. Songs can be dragged into another order and removed there as in the queue of the player
+itself, with the shuffle, repeat and autoplay buttons above them.
+
+- The lyrics button shows the lyrics in place of the queue instead of in place of the cover, at
+  the line that is sung.
+- A clock button above the queue shows or hides the history, which is hidden at first.
+- When nothing plays after the song, the queue says so.
+- Folded, or on a window too small for two halves, nothing changes.
+
+Tested with Apple Music 7.0.3 on a vivo V2545A foldable.
+
+### How it works
+
+The patch keeps the parts of the player Apple Music shows one at a time, the song, its queue and
+its lyrics, and adds a second queue and lyrics of Apple Music beside the song, made the same way
+the player makes them. Apple Music takes the size of its cover and moving artwork only once, so
+the song is laid out as wide as its half from the start, the same width in both orientations,
+and the player is measured by that half.
+
+The queue and the lyrics only connect to the player once a small video view of them is drawn, so
+that view is kept drawn but out of sight. The history is left out of the queue until the clock
+button asks for it, so its rows are not there otherwise.
 
 ## Pause on fold (YouTube, YouTube Music, LastWave)
 

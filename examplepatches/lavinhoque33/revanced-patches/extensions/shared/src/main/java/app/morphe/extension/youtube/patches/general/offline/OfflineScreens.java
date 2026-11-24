@@ -5,6 +5,7 @@
  * https://github.com/anddea/revanced-patches
  *
  * Licensed under the GNU General Public License v3.0.
+ * Modified by lavinhoque33, 2026-11-24.
  * Written by lavinhoque33, 2026-10-10.
  * Modified by lavinhoque33, 2026-10-24.
  */
@@ -17,12 +18,16 @@ import android.content.Context;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Looper;
+import android.view.ViewConfiguration;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
 import com.google.protobuf.MessageLite;
 
+import java.lang.ref.WeakReference;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -74,6 +79,7 @@ public final class OfflineScreens {
     }
 
     private static final WeakHashMap<Activity, Screen> screens = new WeakHashMap<>();
+    private static final WeakHashMap<Activity, PendingPlayerOpen> pendingPlayerOpens = new WeakHashMap<>();
     private static boolean lifecycleCallbacksRegistered;
 
     private OfflineScreens() {
@@ -123,16 +129,108 @@ public final class OfflineScreens {
      * Plays a download, in YouTube's player if the setting is on and it can play the file,
      * otherwise in the built-in player.
      */
-    static void openPlayer(@Nullable Context context, @Nullable String key) {
-        // modified by lavinhoque33, 2026-10-20: YouTube's player first, the built-in player as the fallback.
-        OfflineVideo video = key == null ? null : OfflineIndex.get(key);
-        if (video != null && OfflineStreamSource.open(context, video)) return;
-        openBuiltInPlayer(context, key);
+    static void openPlayer(Activity activity, String key) {
+        PendingPlayerOpen pending = pendingPlayerOpens.get(activity);
+        if (pending != null && key.equals(pending.key)) return;
+
+        OfflineVideo video = OfflineIndex.get(key);
+        queuePlayerOpen(activity, key, video, false);
     }
 
-    static void openBuiltInPlayer(@Nullable Context context, @Nullable String key) {
-        Context base = context != null ? context : Utils.getContext();
-        start(context, playerIntent(base, key));
+    static void openBuiltInPlayer(Activity activity, String key) {
+        cancelPendingOpen(activity);
+        start(activity, playerIntent(activity, key));
+    }
+
+    private static void queuePlayerOpen(Activity activity, @Nullable String key, @Nullable OfflineVideo video,
+                                        boolean inHost) {
+        cancelPendingOpen(activity);
+        PendingPlayerOpen request = new PendingPlayerOpen(activity, key, video, inHost);
+        pendingPlayerOpens.put(activity, request);
+        request.start();
+    }
+
+    private static void cancelPendingOpen(Activity activity) {
+        PendingPlayerOpen request = pendingPlayerOpens.remove(activity);
+        if (request != null) request.handler.removeCallbacksAndMessages(null);
+    }
+
+    /** Main-thread launch state. Replacing or leaving a row invalidates its worker result. */
+    private static final class PendingPlayerOpen {
+        private final Activity activity;
+        @Nullable
+        private final String key;
+        @Nullable
+        private final OfflineVideo video;
+        private final boolean inHost;
+        private final Handler handler = new Handler(Looper.getMainLooper());
+        private final Runnable timeout = () -> probeFinished(false);
+        private boolean resumed;
+        private boolean resolved;
+        private boolean useWatchPlayer;
+
+        private PendingPlayerOpen(Activity activity, @Nullable String key, @Nullable OfflineVideo video,
+                                  boolean inHost) {
+            this.activity = activity;
+            this.key = key;
+            this.video = video;
+            this.inHost = inHost;
+            // A library tap already has a resumed host. A notification opens a new activity.
+            resumed = !inHost;
+        }
+
+        private void start() {
+            if (video == null || !OfflineStreamSource.canTryWatchPlayer(video)) {
+                resolved = true;
+                openIfReady();
+                return;
+            }
+
+            // DNS resolution may outlive a socket timeout. Do not leave the user waiting for it.
+            handler.postDelayed(timeout, OfflineWatchProbe.TIMEOUT_MS);
+            WeakReference<PendingPlayerOpen> owner = new WeakReference<>(this);
+            Utils.runOnBackgroundThread(() -> {
+                boolean reachable = OfflineWatchProbe.isReachable();
+                PendingPlayerOpen request = owner.get();
+                if (request != null) request.handler.post(() -> request.probeFinished(reachable));
+            });
+        }
+
+        private void probeFinished(boolean reachable) {
+            if (pendingPlayerOpens.get(activity) != this || resolved) return;
+            handler.removeCallbacks(timeout);
+            resolved = true;
+            useWatchPlayer = reachable;
+            if (!reachable) {
+                Logger.printInfo(() -> "YouTube reachability probe failed or timed out; using the built-in player for "
+                        + key);
+            }
+            openIfReady();
+        }
+
+        private void openIfReady() {
+            if (!resumed || !resolved || activity.isFinishing() || activity.isDestroyed()) return;
+
+            boolean openedWatchPlayer = useWatchPlayer && video != null
+                    && OfflineStreamSource.openWatchPlayer(activity, video);
+            if (inHost) {
+                activity.getIntent().removeExtra(EXTRA_PREFER_YOUTUBE);
+                if (openedWatchPlayer) {
+                    activity.finish();
+                } else {
+                    Screen screen = showScreen(activity, false);
+                    if (screen != null) screen.onResume();
+                }
+                cancelPendingOpen(activity);
+            } else {
+                if (!openedWatchPlayer) OfflineScreens.start(activity, playerIntent(activity, key));
+
+                // Suppress a second tap while Android is bringing the next activity forward.
+                handler.postDelayed(() -> {
+                    if (pendingPlayerOpens.get(activity) == this) cancelPendingOpen(activity);
+                }, ViewConfiguration.getDoubleTapTimeout());
+            }
+        }
     }
 
     // endregion
@@ -150,25 +248,30 @@ public final class OfflineScreens {
         final boolean player = PLAYER_INTENT.equals(data);
         if (!library && !player) return false;
 
-        // modified by lavinhoque33, 2026-10-20: a tap on a finished download goes to YouTube's player when it can play the file.
+        registerLifecycleCallbacks(activity);
+
         if (player && activity.getIntent().getBooleanExtra(EXTRA_PREFER_YOUTUBE, false)) {
             String key = activity.getIntent().getStringExtra(EXTRA_VIDEO_ID);
             OfflineVideo video = key == null ? null : OfflineIndex.get(key);
-            if (video != null && OfflineStreamSource.open(activity, video)) {
-                activity.finish();
-                return true;
-            }
+            queuePlayerOpen(activity, key, video, true);
+            return true;
         }
 
+        showScreen(activity, library);
+        return true;
+    }
+
+    @Nullable
+    private static Screen showScreen(Activity activity, boolean library) {
         try {
-            registerLifecycleCallbacks(activity);
             Screen screen = library ? new OfflineLibraryScreen(activity) : new OfflinePlayerScreen(activity);
             screens.put(activity, screen);
             Logger.printInfo(() -> "Showing offline " + (library ? "library" : "player"));
+            return screen;
         } catch (Exception ex) {
             Logger.printException(() -> "Could not show the offline screen", ex);
         }
-        return true;
+        return null;
     }
 
     /**
@@ -186,7 +289,7 @@ public final class OfflineScreens {
      * settings search.
      */
     public static boolean hostsScreen(Activity activity) {
-        return screens.containsKey(activity);
+        return screens.containsKey(activity) || pendingPlayerOpens.containsKey(activity);
     }
 
     /**
@@ -320,11 +423,22 @@ public final class OfflineScreens {
             @Override
             public void onActivityResumed(@NonNull Activity activity) {
                 Screen screen = screens.get(activity);
+                PendingPlayerOpen pending = pendingPlayerOpens.get(activity);
+                if (screen == null && pending != null) {
+                    pending.resumed = true;
+                    pending.openIfReady();
+                    return;
+                }
                 if (screen != null) screen.onResume();
             }
 
             @Override
             public void onActivityPaused(@NonNull Activity activity) {
+                PendingPlayerOpen pending = pendingPlayerOpens.get(activity);
+                if (pending != null) {
+                    if (pending.inHost) pending.resumed = false;
+                    else cancelPendingOpen(activity);
+                }
                 Screen screen = screens.get(activity);
                 if (screen != null) screen.onPause();
             }
@@ -339,6 +453,7 @@ public final class OfflineScreens {
 
             @Override
             public void onActivityDestroyed(@NonNull Activity activity) {
+                cancelPendingOpen(activity);
                 Screen screen = screens.remove(activity);
                 if (screen != null) screen.onDestroy();
             }

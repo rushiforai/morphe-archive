@@ -1,7 +1,7 @@
 package app.aidan.patches.geocaching.dev
 
 import app.aidan.patches.geocaching.shared.COMPATIBILITY_GEOCACHING
-import app.aidan.patches.geocaching.shared.patchAllL3cChecksToValue
+import app.aidan.patches.geocaching.shared.patchAllPremiumChecksToValue
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
 import app.morphe.patcher.patch.BytecodePatchContext
 import app.morphe.patcher.patch.PatchException
@@ -9,9 +9,9 @@ import app.morphe.patcher.patch.booleanOption
 import app.morphe.patcher.patch.bytecodePatch
 import com.android.tools.smali.dexlib2.AccessFlags
 import com.android.tools.smali.dexlib2.Opcode
-import com.android.tools.smali.dexlib2.iface.instruction.NarrowLiteralInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
+import com.android.tools.smali.dexlib2.iface.reference.MethodReference
 
 val enableDeveloperToolsPatch = bytecodePatch(
     name = "Enable Developer Tools and Feature Flags",
@@ -27,13 +27,6 @@ val enableDeveloperToolsPatch = bytecodePatch(
         title = "Expose Debug Menu in Settings",
         description = "Restores the internal Debug Menu item in Settings (LaunchDarkly overrides, Remote Config overrides, AutoLogger, Style/Component/Tooltip previews, and DebugSharedPrefs toggles).",
         default = true
-    )
-
-    val enableAchievementDebugTap = booleanOption(
-        key = "enableAchievementDebugTap",
-        title = "Enable Achievement Debug Tap",
-        description = "Enables the internal Debug.TEST_AWARD tap handler in AchievementActivity to test confetti and cycle achievement states.",
-        default = false
     )
 
     // Remaining Client Membership Gates
@@ -59,38 +52,24 @@ val enableDeveloperToolsPatch = bytecodePatch(
     )
 
     // LaunchDarkly Feature Flag Selectors
-    val enableCacheDetailsRedesign = booleanOption(
-        key = "enableCacheDetailsRedesign",
-        title = "Enable Cache Details Redesign",
-        description = "Enables the redesigned Geocache Details layout (cache-details-rework).",
-        default = true
-    )
-
-    val showTotalLogCount = booleanOption(
-        key = "showTotalLogCount",
-        title = "Show Total Log Count",
-        description = "Shows the total log count in geocache activity and details (show-total-log-count).",
-        default = true
-    )
-
     val enableShareablesInApp = booleanOption(
         key = "enableShareablesInApp",
         title = "Enable Shareables",
-        description = "Enables in-app Shareables, filter, and FTUE (show-shareables-in-app, mobile-shareables-filter, mobile-shareables-ftue).",
+        description = "Enables in-app Shareables and the Shareables filter (show-shareables, mobile-shareables-filter).",
         default = false
     )
 
     val enableCollaborativeLists = booleanOption(
         key = "enableCollaborativeLists",
         title = "Enable Collaborative Lists",
-        description = "Enables the collaborative lists feature in Listhub (collaborative-lists).",
+        description = "Enables the collaborative lists feature in Listhub (collab-list-release).",
         default = false
     )
 
     val enableLodestones = booleanOption(
         key = "enableLodestones",
         title = "Enable Lodestones",
-        description = "Enables Lodestone features across the app (show-lodestones-mobile).",
+        description = "Enables Lodestone features across the app (show-lodestones-mobile, show-lodestone-mobile-finders).",
         default = false
     )
 
@@ -101,76 +80,31 @@ val enableDeveloperToolsPatch = bytecodePatch(
         default = false
     )
 
-    val enableBetterEventsFilter = booleanOption(
-        key = "enableBetterEventsFilter",
-        title = "Enable Better Events Filter",
-        description = "Enables Better Events filter, map, and AR attribute (better-events-filter, better-events-map, show-ar-attribute-in-filter).",
-        default = false
-    )
-
-    val enableSelectCacheTypes = booleanOption(
-        key = "enableSelectCacheTypes",
-        title = "Enable Select Cache Types",
-        description = "Enables select cache types and filter settings saving (select-cache-types, save-filter-settings).",
-        default = false
-    )
-
-    val enableDiagnosticFlags = booleanOption(
-        key = "enableDiagnosticFlags",
-        title = "Enable Diagnostic Flags",
-        description = "Enables diagnostic info, FCM token display, ANR data prompt, API regions, and map timeout.",
-        default = false
-    )
-
     // Remote Config Override Selectors
     val forceMapTrayEnabled = booleanOption(
         key = "forceMapTrayEnabled",
         title = "Force Map Tray Enabled",
-        description = "Forces the map tray feature enabled (RemoteConfig.MAP_TRAY).",
+        description = "Forces the map tray feature enabled (mapTray).",
         default = false
     )
 
     val forceHideLastLogCount = booleanOption(
         key = "forceHideLastLogCount",
         title = "Force Hide Last Log DNF",
-        description = "Forces hiding the last log DNF count (RemoteConfig.HIDE_LAST_LOG_DNF).",
+        description = "Forces hiding the last log DNF count (hideLastLogDNF).",
         default = false
     )
 
     val forceShowDowntimeBanner = booleanOption(
         key = "forceShowDowntimeBanner",
         title = "Force Show Downtime Banner",
-        description = "Forces the downtime maintenance banner visible (RemoteConfig.SHOW_DOWNTIME_BANNER).",
-        default = false
-    )
-
-    val forceDisableMapAutoUpdate = booleanOption(
-        key = "forceDisableMapAutoUpdate",
-        title = "Force Disable Map Auto Update",
-        description = "Disables automatic map updating when panning/zooming (RemoteConfig.MAP_AUTO_UPDATE_DISABLED).",
-        default = false
-    )
-
-    val forceSendDiagnosticLogs = booleanOption(
-        key = "forceSendDiagnosticLogs",
-        title = "Force Send Diagnostic Logs",
-        description = "Forces sending diagnostic logs with bug reports (RemoteConfig.SEND_DIAGNOSTIC_INFO_LOGS).",
-        default = false
-    )
-
-    val forceLinearCalloutsEnabled = booleanOption(
-        key = "forceLinearCalloutsEnabled",
-        title = "Force Linear Callouts Enabled",
-        description = "Forces linear callout views enabled (RemoteConfig.LINEAR_CALLOUTS_ENABLED).",
+        description = "Forces the downtime maintenance banner visible (showMobileDowntimeBanner).",
         default = false
     )
 
     execute {
         if (exposeDebugMenuInSettings.value == true) {
             patchSettingsDebugMenu()
-        }
-        if (enableAchievementDebugTap.value == true) {
-            patchAchievementDebugTap()
         }
         if (unlockTrailsMapTypeGate.value == true) {
             patchTrailsMapTypeGate()
@@ -183,45 +117,21 @@ val enableDeveloperToolsPatch = bytecodePatch(
         }
 
         val ldFlags = mutableListOf<String>()
-        if (enableCacheDetailsRedesign.value == true) {
-            ldFlags.add("cache-details-rework")
-        }
-        if (showTotalLogCount.value == true) {
-            ldFlags.add("show-total-log-count")
-        }
         if (enableShareablesInApp.value == true) {
-            ldFlags.add("show-shareables-in-app")
+            ldFlags.add("show-shareables")
             ldFlags.add("mobile-shareables-filter")
-            ldFlags.add("mobile-shareables-ftue")
             patchShareablesBillingGate()
         }
         if (enableCollaborativeLists.value == true) {
-            ldFlags.add("collaborative-lists")
+            ldFlags.add("collab-list-release")
         }
         if (enableLodestones.value == true) {
             ldFlags.add("show-lodestones-mobile")
+            ldFlags.add("show-lodestone-mobile-finders")
         }
         if (enableEditLogDate.value == true) {
             ldFlags.add("edit-geocache-log")
             ldFlags.add("show-log-date-selector")
-        }
-        if (enableBetterEventsFilter.value == true) {
-            ldFlags.add("better-events-filter")
-            ldFlags.add("better-events-map")
-            ldFlags.add("show-ar-attribute-in-filter")
-        }
-        if (enableSelectCacheTypes.value == true) {
-            ldFlags.add("select-cache-types")
-            ldFlags.add("save-filter-settings")
-        }
-        if (enableDiagnosticFlags.value == true) {
-            ldFlags.add("show-fcm-token-mobile")
-            ldFlags.add("include-diagnostic-info")
-            ldFlags.add("prompt-user-for-anr-data")
-            ldFlags.add("use-api-for-regions")
-            ldFlags.add("map-ready-timeout")
-            ldFlags.add("stats-ftue")
-            ldFlags.add("terms-of-use-dialog")
         }
         if (ldFlags.isNotEmpty()) {
             patchLaunchDarklyFlags(ldFlags)
@@ -229,22 +139,13 @@ val enableDeveloperToolsPatch = bytecodePatch(
 
         val rcFlags = mutableListOf<String>()
         if (forceMapTrayEnabled.value == true) {
-            rcFlags.add("RemoteConfig.MAP_TRAY")
+            rcFlags.add("mapTray")
         }
         if (forceHideLastLogCount.value == true) {
-            rcFlags.add("RemoteConfig.HIDE_LAST_LOG_DNF")
+            rcFlags.add("hideLastLogDNF")
         }
         if (forceShowDowntimeBanner.value == true) {
-            rcFlags.add("RemoteConfig.SHOW_DOWNTIME_BANNER")
-        }
-        if (forceDisableMapAutoUpdate.value == true) {
-            rcFlags.add("RemoteConfig.MAP_AUTO_UPDATE_DISABLED")
-        }
-        if (forceSendDiagnosticLogs.value == true) {
-            rcFlags.add("RemoteConfig.SEND_DIAGNOSTIC_INFO_LOGS")
-        }
-        if (forceLinearCalloutsEnabled.value == true) {
-            rcFlags.add("RemoteConfig.LINEAR_CALLOUTS_ENABLED")
+            rcFlags.add("showMobileDowntimeBanner")
         }
         if (rcFlags.isNotEmpty()) {
             patchRemoteConfigFlags(rcFlags)
@@ -253,130 +154,84 @@ val enableDeveloperToolsPatch = bytecodePatch(
 }
 
 /**
- * Restores the internal Debug Menu item in SettingsFragment.v Compose group 0x3d133189.
+ * Restores the internal Debug Menu item in SettingsFragment.w by appending an fma.b row
+ * section after the last settings section.
  */
 private fun BytecodePatchContext.patchSettingsDebugMenu() {
-    val lClass = mutableClassDefBy("Lcom/groundspeak/geocaching/intro/fragments/settings/l;")
-    val initMethod = lClass.methods.firstOrNull {
+    val debugRowClass = mutableClassDefBy("Lcom/groundspeak/geocaching/intro/fragments/settings/m;")
+    val initMethod = debugRowClass.methods.firstOrNull {
         it.name == "<init>"
-    } ?: throw PatchException("l.<init> not found")
+    } ?: throw PatchException("settings/m.<init> not found")
     initMethod.accessFlags = (initMethod.accessFlags and AccessFlags.PRIVATE.value.inv()) or AccessFlags.PUBLIC.value
 
     val settingsClass = mutableClassDefBy("Lcom/groundspeak/geocaching/intro/fragments/settings/SettingsFragment;")
-    val vMethod = settingsClass.methods.firstOrNull {
-        it.name == "v" && it.returnType == "V" && it.implementation != null
-    } ?: throw PatchException("SettingsFragment.v not found")
+    val wMethod = settingsClass.methods.firstOrNull {
+        it.name == "w" &&
+            it.returnType == "V" &&
+            it.parameterTypes.map(CharSequence::toString) ==
+            listOf("Lct8;", "Lgo1;", "I") &&
+            it.implementation != null
+    } ?: throw PatchException("SettingsFragment.w(Lct8;Lgo1;I)V not found")
 
-    val impl = vMethod.implementation ?: throw PatchException("Missing implementation in SettingsFragment.v")
+    val impl = wMethod.implementation ?: throw PatchException("Missing implementation in SettingsFragment.w")
     val instructions = impl.instructions.toList()
 
-    val constGroupIdx = instructions.indexOfFirst {
-        it.opcode == Opcode.CONST && (it as? NarrowLiteralInstruction)?.narrowLiteral == 0x3d133189
+    val sectionIndices = instructions.withIndex().filter { (_, instruction) ->
+        instruction.opcode == Opcode.INVOKE_STATIC &&
+            (instruction as? ReferenceInstruction)?.reference?.let { ref ->
+                (ref as? MethodReference)?.let { m ->
+                    m.name == "b" && m.definingClass == "Lfma;"
+                } == true
+            } == true
+    }.map { it.index }
+    if (sectionIndices.isEmpty()) {
+        throw PatchException("No Lfma;->b sections found in SettingsFragment.w")
     }
-    if (constGroupIdx < 0) {
-        throw PatchException("Could not find debug Compose group 0x3d133189 in SettingsFragment.v")
-    }
+    val insertIdx = sectionIndices.last() + 1
 
-    val endGroupIdx = instructions.subList(constGroupIdx, instructions.size).indexOfFirst {
-        it.opcode == Opcode.INVOKE_VIRTUAL &&
-            (it as? ReferenceInstruction)?.reference?.toString()?.contains("->t(Z)V") == true
-    }
-    if (endGroupIdx < 0) {
-        throw PatchException("Could not find group end invoke-virtual in SettingsFragment.v")
-    }
-    val insertIdx = constGroupIdx + endGroupIdx
-
+    // v0 is the fragment and v7 the composer at this point. v3, v4, v5 and v8 are dead:
+    // the original code immediately overwrites them (const-string v3 "10.24.0", v4/v5/v8).
     val smali = """
-        new-instance v3, Lcom/groundspeak/geocaching/intro/fragments/settings/l;
-        invoke-direct {v3}, Lcom/groundspeak/geocaching/intro/fragments/settings/l;-><init>()V
-        invoke-static {v3}, Lg81;->c(Ljava/lang/Object;)Ljava/util/List;
+        new-instance v3, Lcom/groundspeak/geocaching/intro/fragments/settings/m;
+        invoke-direct {v3}, Lcom/groundspeak/geocaching/intro/fragments/settings/m;-><init>()V
+        invoke-static {v3}, Lba1;->c(Ljava/lang/Object;)Ljava/util/List;
         move-result-object v3
-        invoke-static {v3, v5, v9, v7, v6}, Le8a;->b(Ljava/util/List;Lcom/groundspeak/geocaching/intro/fragments/settings/SettingsViewModel;Li24;Ltl1;I)V
+        invoke-virtual {v0}, Lcom/groundspeak/geocaching/intro/fragments/settings/SettingsFragment;->x()Lcom/groundspeak/geocaching/intro/fragments/settings/SettingsViewModel;
+        move-result-object v5
+        new-instance v8, Lzla;
+        const/4 v4, 0x0
+        invoke-direct {v8, v0, v4}, Lzla;-><init>(Lcom/groundspeak/geocaching/intro/fragments/settings/SettingsFragment;B)V
+        check-cast v8, Lx74;
+        const/4 v4, 0x0
+        invoke-static {v3, v5, v8, v7, v4}, Lfma;->b(Ljava/util/List;Lcom/groundspeak/geocaching/intro/fragments/settings/SettingsViewModel;Lx74;Lgo1;I)V
     """.trimIndent()
 
-    vMethod.addInstructions(insertIdx, smali)
-}
-
-/**
- * Enables the internal Debug.TEST_AWARD tap handler in AchievementActivity and back-press callback r6.
- */
-private fun BytecodePatchContext.patchAchievementDebugTap() {
-    val achClass = mutableClassDefBy("Lcom/groundspeak/geocaching/intro/activities/AchievementActivity;")
-    val targetMethods = achClass.methods.filter { method ->
-        method.implementation?.instructions?.any {
-            it.opcode == Opcode.CONST_STRING &&
-                (it as? ReferenceInstruction)?.reference?.toString() == "Debug.TEST_AWARD"
-        } == true
-    }
-    for (method in targetMethods) {
-        val impl = method.implementation ?: continue
-        val instructions = impl.instructions.toList()
-        val strIdx = instructions.indexOfFirst {
-            it.opcode == Opcode.CONST_STRING &&
-                (it as? ReferenceInstruction)?.reference?.toString() == "Debug.TEST_AWARD"
-        }
-        if (strIdx >= 0) {
-            val moveResultIdx = instructions.subList(strIdx, instructions.size).indexOfFirst {
-                it.opcode == Opcode.MOVE_RESULT
-            }
-            if (moveResultIdx >= 0) {
-                val actualIdx = strIdx + moveResultIdx
-                val reg = (instructions[actualIdx] as OneRegisterInstruction).registerA
-                method.addInstructions(actualIdx + 1, "const/4 v$reg, 0x1")
-            }
-        }
-    }
-
-    val r6Class = mutableClassDefBy("Lr6;")
-    val r6Methods = r6Class.methods.filter { method ->
-        method.implementation?.instructions?.any {
-            it.opcode == Opcode.CONST_STRING &&
-                (it as? ReferenceInstruction)?.reference?.toString() == "Debug.TEST_AWARD"
-        } == true
-    }
-    for (method in r6Methods) {
-        val impl = method.implementation ?: continue
-        val instructions = impl.instructions.toList()
-        val strIdx = instructions.indexOfFirst {
-            it.opcode == Opcode.CONST_STRING &&
-                (it as? ReferenceInstruction)?.reference?.toString() == "Debug.TEST_AWARD"
-        }
-        if (strIdx >= 0) {
-            val moveResultIdx = instructions.subList(strIdx, instructions.size).indexOfFirst {
-                it.opcode == Opcode.MOVE_RESULT
-            }
-            if (moveResultIdx >= 0) {
-                val actualIdx = strIdx + moveResultIdx
-                val reg = (instructions[actualIdx] as OneRegisterInstruction).registerA
-                method.addInstructions(actualIdx + 1, "const/4 v$reg, 0x1")
-            }
-        }
-    }
+    wMethod.addInstructions(insertIdx, smali)
 }
 
 /**
  * Unlocks Trails and Wheelchair Trails map types in MapTypeSelectionFragment.
  */
 private fun BytecodePatchContext.patchTrailsMapTypeGate() {
-    val o17Class = mutableClassDefBy("Lo17;")
-    val invokeMethod = o17Class.methods.firstOrNull {
+    val nb7Class = mutableClassDefBy("Lnb7;")
+    val invokeMethod = nb7Class.methods.firstOrNull {
         it.name == "invoke" && it.returnType == "Ljava/lang/Object;" && it.implementation != null
-    } ?: throw PatchException("o17.invoke not found")
+    } ?: throw PatchException("nb7.invoke not found")
 
-    val impl = invokeMethod.implementation ?: throw PatchException("Missing implementation in o17.invoke")
+    val impl = invokeMethod.implementation ?: throw PatchException("Missing implementation in nb7.invoke")
     val instructions = impl.instructions.toList()
     val strIdx = instructions.indexOfFirst {
         it.opcode == Opcode.CONST_STRING &&
             (it as? ReferenceInstruction)?.reference?.toString() == "userIsPremium"
     }
     if (strIdx < 0) {
-        throw PatchException("Could not find userIsPremium in o17.invoke")
+        throw PatchException("Could not find userIsPremium in nb7.invoke")
     }
     val moveResultIdx = instructions.subList(strIdx, instructions.size).indexOfFirst {
         it.opcode == Opcode.MOVE_RESULT
     }
     if (moveResultIdx < 0) {
-        throw PatchException("Could not find move-result after userIsPremium in o17.invoke")
+        throw PatchException("Could not find move-result after userIsPremium in nb7.invoke")
     }
     val actualIdx = strIdx + moveResultIdx
     val reg = (instructions[actualIdx] as OneRegisterInstruction).registerA
@@ -387,39 +242,39 @@ private fun BytecodePatchContext.patchTrailsMapTypeGate() {
  * Unlocks newsletter language settings in NewsletterSettingsFragment.
  */
 private fun BytecodePatchContext.patchNewsletterSettingsGate() {
-    val uq6Class = mutableClassDefBy("Luq6;")
-    val invokeMethod = uq6Class.methods.firstOrNull {
+    val q97Class = mutableClassDefBy("Lq97;")
+    val invokeMethod = q97Class.methods.firstOrNull {
         it.name == "invoke" && it.returnType == "Ljava/lang/Object;" && it.implementation != null
-    } ?: throw PatchException("uq6.invoke not found")
-    patchAllL3cChecksToValue(invokeMethod, "NewsletterSettingsFragment isUserPremium (uq6.invoke)", true)
+    } ?: throw PatchException("q97.invoke not found")
+    patchAllPremiumChecksToValue(invokeMethod, "NewsletterSettingsFragment isUserPremium (q97.invoke)", true)
 }
 
 /**
  * Unlocks Hide Cache controls and ConversationViewModel GC code validation.
  */
 private fun BytecodePatchContext.patchHideCachePremiumOption() {
-    val hideCacheClass = mutableClassDefBy("Lcom/groundspeak/geocaching/intro/profile/hidesandfinds/hidecache/HideCacheViewModel;")
-    val initMethod = hideCacheClass.methods.firstOrNull {
-        it.name == "<init>" && it.implementation != null
-    } ?: throw PatchException("HideCacheViewModel.<init> not found")
-    patchAllL3cChecksToValue(initMethod, "HideCacheViewModel.<init>", true)
+    val hideCacheClass = mutableClassDefBy("Lcom/groundspeak/geocaching/intro/profile/hidesandfinds/hidecache/t;")
+    val premiumMethod = hideCacheClass.methods.firstOrNull {
+        it.name == "i" && it.returnType == "Z" && it.implementation != null
+    } ?: throw PatchException("hidecache/t.i()Z not found")
+    patchAllPremiumChecksToValue(premiumMethod, "hidecache/t.i", true)
 
     val convoClass = mutableClassDefBy("Lcom/groundspeak/geocaching/intro/messagecenter/ConversationViewModel\$validateGcCode\$2;")
     val convoMethod = convoClass.methods.firstOrNull {
         it.name == "invokeSuspend" && it.implementation != null
     } ?: throw PatchException("ConversationViewModel\$validateGcCode\$2.invokeSuspend not found")
-    patchAllL3cChecksToValue(convoMethod, "ConversationViewModel\$validateGcCode\$2", true)
+    patchAllPremiumChecksToValue(convoMethod, "ConversationViewModel\$validateGcCode\$2", true)
 }
 
 /**
  * Unlocks billing gate in ShareablesViewModel init.
  */
 private fun BytecodePatchContext.patchShareablesBillingGate() {
-    val shareablesClass = mutableClassDefBy("Lcom/groundspeak/geocaching/intro/shareables/j;")
+    val shareablesClass = mutableClassDefBy("Lcom/groundspeak/geocaching/intro/shareables/o;")
     val shareablesInit = shareablesClass.methods.firstOrNull {
         it.name == "<init>" && it.implementation != null
-    } ?: throw PatchException("shareables.j.<init> not found")
-    patchAllL3cChecksToValue(shareablesInit, "shareables.j.<init>", true)
+    } ?: throw PatchException("shareables.o.<init> not found")
+    patchAllPremiumChecksToValue(shareablesInit, "shareables.o.<init>", true)
 }
 
 /**
@@ -464,19 +319,19 @@ private fun BytecodePatchContext.patchLaunchDarklyFlags(flags: List<String>) {
 }
 
 /**
- * Evaluates Remote Config feature flags to true in Leh9.a, while preserving manual
+ * Evaluates Remote Config feature flags to true in ku9.a, while preserving manual
  * in-app overrides from RemoteConfigDebugFragment.
  */
 private fun BytecodePatchContext.patchRemoteConfigFlags(flags: List<String>) {
-    val rcClass = mutableClassDefBy("Leh9;")
+    val rcClass = mutableClassDefBy("Lku9;")
     val aMethod = rcClass.methods.firstOrNull {
         it.name == "a" && it.parameterTypes.size == 3 && it.returnType == "Z" && it.implementation != null
-    } ?: throw PatchException("Leh9.a(Leh9, String, boolean) not found")
+    } ?: throw PatchException("ku9.a(ku9, String, boolean) not found")
 
     val sb = StringBuilder()
     sb.appendLine(
         """
-        iget-object v0, p0, Leh9;->a:Landroid/content/Context;
+        iget-object v0, p0, Lku9;->a:Landroid/content/Context;
         const-string v1, "RemoteConfig.REMOTE_CONFIG_DEBUG_PREFS"
         const/4 p0, 0x0
         invoke-virtual {v0, v1, p0}, Landroid/content/Context;->getSharedPreferences(Ljava/lang/String;I)Landroid/content/SharedPreferences;

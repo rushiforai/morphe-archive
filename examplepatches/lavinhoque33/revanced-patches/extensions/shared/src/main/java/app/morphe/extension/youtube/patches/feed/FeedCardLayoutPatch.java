@@ -5,7 +5,7 @@
  * https://github.com/MorpheApp/morphe-patches/pull/3801
  *
  * See the included NOTICE file for GPLv3 Section 7 terms that apply to this code.
- * Modified by lavinhoque33, 2026-11-10.
+ * Modified by lavinhoque33, 2026-11-23.
  */
 
 package app.morphe.extension.youtube.patches.feed;
@@ -1283,7 +1283,8 @@ public class FeedCardLayoutPatch {
                                         .setBackColor(COLLECTION_STACK_BACK_COLOR));
                     }
 
-                    LockupMetadataViewModel metadata = lockupViewModel.getMetadata().getLockupMetadataViewModel();
+                    LockupMetadataViewModel metadata = HomeFeedChannelNamesPatch.metadataForClassicLayout(
+                            lockupViewModel).getLockupMetadataViewModel();
                     // Joins the metadata rows of a card into one text, like the classic layout.
                     ContentMetadata rows = metadata.getMetadata();
                     ContentMetadataViewModel viewModel = rows.getContentMetadataViewModel();

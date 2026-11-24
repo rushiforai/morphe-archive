@@ -22,6 +22,9 @@ internal const val STOCK_LABEL_COLOR = "#ff282828"
 private const val LAYOUT_PARAMS_CLASS = "Landroid/view/WindowManager\$LayoutParams;"
 private const val COLOR_CLASS = "Landroid/graphics/Color;"
 
+internal val homeBackgroundSetColor =
+    methodCall(definingClass = "Landroid/graphics/Paint;", name = "setColor", location = MatchAfterImmediately())
+
 internal object HomeBackgroundPaintFingerprint : Fingerprint(
     returnType = "V",
     parameters = listOf(),
@@ -31,7 +34,7 @@ internal object HomeBackgroundPaintFingerprint : Fingerprint(
         literal(0xc7, location = MatchAfterImmediately()),
         methodCall(definingClass = COLOR_CLASS, name = "rgb", location = MatchAfterImmediately()),
         opcode(Opcode.MOVE_RESULT, location = MatchAfterImmediately()),
-        methodCall(definingClass = "Landroid/graphics/Paint;", name = "setColor", location = MatchAfterImmediately()),
+        homeBackgroundSetColor,
     ),
 )
 
@@ -51,12 +54,14 @@ internal object RadarLabelColorFingerprint : Fingerprint(
     ),
 )
 
+internal val statusBarTintTranslucentFlag = literal(FLAG_TRANSLUCENT_STATUS)
+
 internal object StatusBarTintFingerprint : Fingerprint(
     returnType = "V",
     parameters = listOf("Landroid/app/Activity;", "I", "I"),
     filters = listOf(
         fieldAccess(definingClass = LAYOUT_PARAMS_CLASS, name = "flags", opcode = Opcode.IGET),
-        literal(FLAG_TRANSLUCENT_STATUS),
+        statusBarTintTranslucentFlag,
         fieldAccess(
             definingClass = LAYOUT_PARAMS_CLASS,
             name = "flags",
@@ -67,11 +72,13 @@ internal object StatusBarTintFingerprint : Fingerprint(
     ),
 )
 
+internal val splashTranslucentStatusFlag = literal(FLAG_TRANSLUCENT_STATUS, location = MatchAfterWithin(1))
+
 internal object SplashTranslucentStatusFingerprint : Fingerprint(
     filters = listOf(
         string("arg_is_running"),
         methodCall(definingClass = "Landroid/app/Activity;", name = "getWindow"),
-        literal(FLAG_TRANSLUCENT_STATUS, location = MatchAfterWithin(1)),
+        splashTranslucentStatusFlag,
         methodCall(definingClass = "Landroid/view/Window;", name = "addFlags", location = MatchAfterImmediately()),
     ),
 )

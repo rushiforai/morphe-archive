@@ -10,8 +10,6 @@ import android.view.ViewGroup;
 
 import androidx.annotation.NonNull;
 
-import org.apache.commons.lang3.ArrayUtils;
-
 import java.util.Arrays;
 
 import app.morphe.extension.shared.utils.Logger;
@@ -159,28 +157,7 @@ public class CustomPlaybackSpeedPatch {
                 return;
             }
 
-            String[] speedStrings = Settings.CUSTOM_PLAYBACK_SPEEDS.get().split("\\s+");
-            Arrays.sort(speedStrings);
-            if (speedStrings.length == 0) {
-                throw new IllegalArgumentException();
-            }
-            customPlaybackSpeeds = new float[speedStrings.length];
-            int i = 0;
-            for (String speedString : speedStrings) {
-                final float speedFloat = Float.parseFloat(speedString);
-                if (speedFloat <= 0 || ArrayUtils.contains(customPlaybackSpeeds, speedFloat)) {
-                    throw new IllegalArgumentException();
-                }
-
-                if (speedFloat > PLAYBACK_SPEED_MAXIMUM) {
-                    resetCustomSpeeds(str("revanced_custom_playback_speeds_invalid", PLAYBACK_SPEED_MAXIMUM));
-                    loadCustomSpeeds();
-                    return;
-                }
-
-                customPlaybackSpeeds[i] = speedFloat;
-                i++;
-            }
+            customPlaybackSpeeds = PlaybackSpeedValues.parsePresets(Settings.CUSTOM_PLAYBACK_SPEEDS.get());
 
             if (customSpeedEntries != null) return;
 
@@ -189,7 +166,7 @@ public class CustomPlaybackSpeedPatch {
             customSpeedEntries[0] = getString("quality_auto");
             customSpeedEntryValues[0] = "-2.0";
 
-            i = 1;
+            int i = 1;
             for (float speed : customPlaybackSpeeds) {
                 String speedString = String.valueOf(speed);
                 customSpeedEntries[i] = speed != 1.0f
@@ -198,6 +175,9 @@ public class CustomPlaybackSpeedPatch {
                 customSpeedEntryValues[i] = speedString;
                 i++;
             }
+        } catch (PlaybackSpeedValues.SpeedTooHighException ex) {
+            resetCustomSpeeds(str("revanced_custom_playback_speeds_invalid", PLAYBACK_SPEED_MAXIMUM));
+            loadCustomSpeeds();
         } catch (Exception ex) {
             Logger.printInfo(() -> "Parse error", ex);
             resetCustomSpeeds(str("revanced_custom_playback_speeds_parse_exception"));

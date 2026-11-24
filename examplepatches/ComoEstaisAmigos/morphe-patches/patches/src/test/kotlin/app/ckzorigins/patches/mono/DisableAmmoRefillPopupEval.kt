@@ -2,7 +2,7 @@ package app.ckzorigins.patches.mono
 
 import app.ckzorigins.patches.compat.modernAndroidPatch
 import app.ckzorigins.patches.intro.playIntroOncePatch
-import app.ckzorigins.patches.shared.toHex
+import app.adebisi.patches.shared.toHex
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse

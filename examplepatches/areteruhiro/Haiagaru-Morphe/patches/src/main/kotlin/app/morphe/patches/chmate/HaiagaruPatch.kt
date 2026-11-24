@@ -2075,6 +2075,7 @@ private val haiagaruBytecodePatch = bytecodePatch {
             patchPostVersionInfo(profile.applicationClass)
         }
         patchImageViewerRotationButton(packageMetadata.versionName)
+        if (packageMetadata.versionName == "0.8.10.242 dev") patchImageViewerBottomActions242()
         patchThreadSearchText(packageMetadata.versionName)
         patchSettingsSearchAliases(packageMetadata.versionName)
         patchLargeImageAlignment(packageMetadata.versionName)
@@ -3535,6 +3536,16 @@ private fun BytecodePatchContext.patchBackgroundPostingReload(version: String) {
         invoke-static/range {p0 .. p0}, Lapp/morphe/extension/chmate/BackgroundPostingUi;->nativePosted(Ljava/lang/Object;)V
     """.trimIndent())
 
+    // 242 also completes posts through a coroutine, bypassing the reply task callback.
+    if (!old && !middle) {
+        val coroutine = mutableClassDefBy("Ljp/syoboi/a2chMate/feature/resedit/ResEditFragment\$write;")
+        val complete = coroutine.methods.single { it.name == "invokeSuspend" }
+        val success = complete.implementation!!.instructions.withIndex().single { (_, instruction) ->
+            (instruction as? ReferenceInstruction)?.reference.toString() == "Landroid/app/Activity;->setResult(I)V"
+        }
+        complete.addInstructions(success.index + 1, "invoke-static/range {p0 .. p0}, Lapp/morphe/extension/chmate/BackgroundPostingUi;->nativePosted(Ljava/lang/Object;)V")
+    }
+
     val thread = mutableClassDefBy(if (old) "Lo/pa;" else "Ljp/syoboi/a2chMate/ui/reslist/ResListFragment;")
     val resume = thread.methods.single { it.name == "onResume" && it.parameterTypes.isEmpty() }
     // Only a resume-triggered network refresh supersedes our pending refresh.
@@ -3885,6 +3896,45 @@ private fun app.morphe.patcher.patch.BytecodePatchContext.patchThreadSearchText(
     method.replaceInstruction(site.index,"move-object v${field.registerA}, v${field.registerB}")
     if(reset>site.index+1)method.replaceInstruction(site.index+1,"nop")
     method.replaceInstruction(reset,"invoke-static {v${call.registerC}, v${call.registerD}}, Lapp/morphe/extension/chmate/ThreadSearchText;->reset(Ljava/util/regex/Matcher;Ljava/lang/Object;)Ljava/util/regex/Matcher;")
+}
+
+private fun app.morphe.patcher.patch.BytecodePatchContext.patchImageViewerBottomActions242() {
+    val fragment = mutableClassDefBy("Lo/VN10;")
+    val hook = "Lapp/morphe/extension/chmate/ImageViewerRotationButton;"
+    // The enB19 lambda supplies the bottom action row. The other ComposeView supplies separate controls.
+    val setups = fragment.methods.flatMap { method ->
+        val body = method.implementation?.instructions?.toList().orEmpty()
+        body.mapIndexedNotNull { index, instruction ->
+            val call = (instruction as? ReferenceInstruction)?.reference as? MethodReference
+            if (call?.definingClass != "Lo/r7ExternalSyntheticLambda0;" || call.name != "setContent" ||
+                body.subList(maxOf(0, index - 8), index).none {
+                    (it as? ReferenceInstruction)?.reference?.toString() == "Lo/enB19;"
+                }) null else method to index
+        }
+    }
+    val (setup, index) = setups.single()
+    val call = setup.implementation!!.instructions.elementAt(index) as FiveRegisterInstruction
+    // v1 held the Compose lambda key and is dead at setContent.
+    setup.addInstructionsWithLabels(index, """
+        invoke-static {v${call.registerC}}, $hook->hideBottomActions(Landroid/view/View;)Z
+        move-result v1
+        if-nez v1, :skip_bottom_content
+        invoke-virtual {v${call.registerC}, v${call.registerD}}, Lo/r7ExternalSyntheticLambda0;->setContent(Lo/zzcch;)V
+        :skip_bottom_content
+    """.trimIndent() + "\nnop")
+    setup.removeInstruction(index + 5)
+
+    val show = fragment.methods.single {
+        it.name == "c" && it.parameterTypes == listOf("Landroid/view/View;", "Z") && it.returnType == "V"
+    }
+    show.addInstructionsWithLabels(0, """
+        invoke-static {p0}, $hook->isHiddenBottomActions(Landroid/view/View;)Z
+        move-result v0
+        if-eqz v0, :show_native
+        return-void
+        :show_native
+        nop
+    """.trimIndent())
 }
 
 private fun app.morphe.patcher.patch.BytecodePatchContext.patchImageViewerRotationButton(
@@ -5102,13 +5152,6 @@ val haiagaruPatch = resourcePatch(
         allowedExtensions = listOf("ttf", "otf"),
     )
 
-    val dedicatedCheckerViewer = stringOption(
-        key = "dedicatedCheckerViewer",
-        default = "true",
-        title = "必死チェッカー専用ビュワー",
-        description = "true=ChMate内の専用ビュワーを有効化、false=ChMate本来の外部ブラウザ動作。",
-    )
-
     val imageNgTfliteFix = stringOption(
         key = "imageNgTfliteFix",
         default = "true",
@@ -5242,6 +5285,12 @@ val haiagaruPatch = resourcePatch(
                 quickFilters.setAttributeNS("http://schemas.android.com/apk/res/android", "android:defaultValue", "0")
                 quickFilters.setAttributeNS("http://schemas.android.com/apk/res/android", "android:summary", "人気レス・画像・動画などのレスフィルターを開きます。未使用のジェスチャーを割り当ててください")
                 anchor.parentNode.insertBefore(quickFilters, refreshTabs.nextSibling)
+                val directCopy = settings.createElement("jp.syoboi.a2chMate.ui.setting.preference.gesture.GesturePreference")
+                directCopy.setAttributeNS("http://schemas.android.com/apk/res/android", "android:title", "長押しコピー ON／OFF")
+                directCopy.setAttributeNS("http://schemas.android.com/apk/res/android", "android:key", "haiagaruGestureDirectCopy")
+                directCopy.setAttributeNS("http://schemas.android.com/apk/res/android", "android:defaultValue", "0")
+                directCopy.setAttributeNS("http://schemas.android.com/apk/res/android", "android:summary", "ツールバーの長押しコピーと同じON／OFF切替です。初期は未割り当て。未使用のジェスチャーを割り当ててください")
+                anchor.parentNode.insertBefore(directCopy, quickFilters.nextSibling)
             }
         }
         if (replaceImageNgTflite && imageNgLibraryFile.value.orEmpty().isNotBlank() && packageMetadata.versionName == "0.8.10.191 dev") {
@@ -5433,6 +5482,7 @@ val haiagaruPatch = resourcePatch(
             "haiagaru_thread_watch" to "このスレの新着通知",
             "haiagaru_stock_posting" to "標準アプリで書き込むを開く",
             "haiagaru_response_select" to "選択（レス複数選択）",
+            "haiagaru_thread_tab_groups" to "グループ化",
             "haiagaru_response_notes" to "メモ",
             "haiagaru_gigafile_upload" to "GigaFile（ギガファイル）便でファイルをアップロード",
             "haiagaru_refresh_open_tabs" to "開いているスレ・板を一括更新",
@@ -5451,6 +5501,7 @@ val haiagaruPatch = resourcePatch(
             }
             val iconPath = when (name) {
                 "haiagaru_gigafile_upload" -> "M6,2h8l5,5v15H6zM8,4v16h9V9h-5V4zM14,5v2h2zM9,12h7v2H9zM9,16h7v2H9z"
+                "haiagaru_thread_tab_groups" -> "M3,3h8v8H3zM13,3h8v8h-8zM3,13h8v8H3zM13,13h8v8h-8z"
                 "haiagaru_response_notes" -> "M4,3h12l4,4v14H4zM6,5v14h12V8h-4V5zM8,10h8v2H8zM8,14h8v2H8z"
                 "haiagaru_response_select" ->
                     "M19,3H5a2,2 0,0 0,-2 2v14a2,2 0,0 0,2 2h14a2,2 0,0 0,2 -2V5a2,2 0,0 0,-2 -2zM10,17l-5,-5 1.41,-1.41L10,14.17l7.59,-7.58L19,8z"
@@ -5516,14 +5567,7 @@ val haiagaruPatch = resourcePatch(
             throw PatchException("emojiModeは missing / all / off のいずれかを指定してください: $requestedEmojiMode")
         }
         val requestedFontPath = emojiFontPath.value.orEmpty().trim()
-        val dedicatedViewerEnabled = when (dedicatedCheckerViewer.value.orEmpty().trim().lowercase(Locale.ROOT)) {
-            "true", "1", "yes", "on" -> true
-            "false", "0", "no", "off" -> false
-            else -> throw PatchException(
-                "dedicatedCheckerViewerは true / false のいずれかを指定してください: "
-                    + dedicatedCheckerViewer.value
-            )
-        }
+        val dedicatedViewerEnabled = true
         if (requestedFontPath.isNotBlank() && requestedEmojiMode != "off") {
             val customFont = File(requestedFontPath)
             if (!customFont.isFile || !customFont.canRead()) {

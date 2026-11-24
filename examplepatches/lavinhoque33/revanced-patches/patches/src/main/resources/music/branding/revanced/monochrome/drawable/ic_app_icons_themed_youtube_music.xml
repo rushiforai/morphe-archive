@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Copyright (C) ReVanced contributors
+  Licensed under the GNU General Public License v3.0.
+  Modified by lavinhoque33, 2026-11-23: monochrome of the v4.16.0 launcher foreground.
+-->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="432"
+    android:viewportHeight="432">
+    <path
+        android:fillColor="#FFFFFFFF"
+        android:pathData="M170,170 L172,168 L180,168 L214,246 L218,246 L222,238 L222,235 L226,229 L229,219
+            L233,213 L233,210 L237,204 L240,194 L248,179 L251,169 L260,168 L262,170 L262,174
+            L259,178 L259,181 L251,196 L251,199 L240,221 L240,224 L230,244 L230,247 L226,253
+            L226,256 L221,264 L211,264 L209,262 L206,253 L202,247 L202,244 L198,238 L198,235
+            L195,231 L195,228 L192,224 L192,221 L181,199 L181,196 L174,183 L174,180 L170,174 Z" />
+    <path
+        android:fillColor="#FFFFFFFF"
+        android:pathData="M189,169 L191,168 L241,168 L243,169 L243,173 L241,177 L239,178 L237,184 L235,185
+            L233,191 L231,192 L230,196 L228,197 L226,203 L224,204 L218,216 L213,215 L204,197
+            L202,196 L200,190 L198,189 L193,178 L191,177 L189,173 Z" />
+</vector>

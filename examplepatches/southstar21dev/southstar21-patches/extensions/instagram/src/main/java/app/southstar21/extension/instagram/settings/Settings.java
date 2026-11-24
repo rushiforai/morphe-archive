@@ -30,6 +30,7 @@ public final class Settings {
     private static List<PatchSettings> all() {
         return Arrays.asList(
                 LiquidGlassNavBarPatch.SETTINGS,
+                LiquidGlassNavBarPatch.EFFECTS,
                 HideNavigationButtonsPatch.SETTINGS,
                 DisableReelsPatch.SETTINGS,
                 HideAdsPatch.SETTINGS,
@@ -79,6 +80,29 @@ public final class Settings {
         if (prefs == null) return false;
         prefs.registerOnSharedPreferenceChangeListener(listener);
         return true;
+    }
+
+    /**
+     * A stored flag that isn't a setting (reset leaves it alone), or {@code compute}'s answer,
+     * stored the first time so it never changes after. Null while the preferences aren't there.
+     */
+    public static Boolean decideOnce(String key, java.util.concurrent.Callable<Boolean> compute) {
+        SharedPreferences prefs = preferencesOrNull();
+        if (prefs == null) return null;
+        if (prefs.contains(key)) return prefs.getBoolean(key, false);
+        boolean value;
+        try {
+            value = compute.call();
+        } catch (Exception e) {
+            return null;
+        }
+        prefs.edit().putBoolean(key, value).apply();
+        return value;
+    }
+
+    /** The application, or null this early. */
+    public static Context applicationOrNull() {
+        return contextOrNull();
     }
 
     static SharedPreferences preferencesOrNull() {

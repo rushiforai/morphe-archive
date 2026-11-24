@@ -1,0 +1,49 @@
+{
+  "version": "fixture",
+  "patches": [
+    {
+      "compatiblePackages": [
+        {
+          "packageName": "com.example.gamma",
+          "name": "Gamma App"
+        },
+        {
+          "packageName": "com.example.alpha",
+          "name": "Alpha App"
+        },
+        {
+          "packageName": "com.example.beta",
+          "name": "Beta App"
+        }
+      ]
+    },
+    {
+      "compatiblePackages": [
+        {
+          "packageName": "com.example.alpha",
+          "name": "Ignored Second Name"
+        },
+        {
+          "packageName": "com.example.delta",
+          "name": ""
+        },
+        {
+          "packageName": "com.example.epsilon",
+          "name": "Epsilon App"
+        },
+        {
+          "packageName": "com.example.zeta",
+          "name": "Zeta App"
+        },
+        {
+          "packageName": "com.example.eta",
+          "name": "Eta App"
+        },
+        {
+          "packageName": "com.example.theta",
+          "name": "Theta App"
+        }
+      ]
+    }
+  ]
+}

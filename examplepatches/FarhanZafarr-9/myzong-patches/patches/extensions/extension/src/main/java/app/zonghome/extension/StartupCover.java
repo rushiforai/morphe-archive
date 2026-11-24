@@ -40,7 +40,9 @@ public final class StartupCover {
             setBackgroundColor(CharcoalTheme.BG);setClickable(true);setFocusable(true);
             setElevation(1000*getResources().getDisplayMetrics().density);
             ImageView logo=new ImageView(activity);
-            logo.setImageResource(activity.getApplicationInfo().icon);
+            // Use the shared splash drawable; launcher presets alias it to their matching vector.
+            int logoId=getResources().getIdentifier("wrap_splash_logo","drawable",activity.getPackageName());
+            if(logoId!=0)logo.setImageResource(logoId);
             logo.setScaleType(ImageView.ScaleType.FIT_CENTER);
             int side=Math.round(96*getResources().getDisplayMetrics().density);
             addView(logo,new FrameLayout.LayoutParams(side,side,Gravity.CENTER));

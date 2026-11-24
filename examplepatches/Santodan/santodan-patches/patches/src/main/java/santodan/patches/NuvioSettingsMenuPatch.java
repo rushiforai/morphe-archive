@@ -10,6 +10,7 @@ import com.android.tools.smali.dexlib2.Opcode;
 import com.android.tools.smali.dexlib2.builder.instruction.BuilderInstruction35c;
 import com.android.tools.smali.dexlib2.builder.instruction.BuilderInstruction3rc;
 import com.android.tools.smali.dexlib2.builder.instruction.BuilderInstruction11x;
+import com.android.tools.smali.dexlib2.builder.instruction.BuilderInstruction22x;
 import com.android.tools.smali.dexlib2.builder.instruction.BuilderInstruction21c;
 import com.android.tools.smali.dexlib2.builder.instruction.BuilderInstruction21t;
 import com.android.tools.smali.dexlib2.builder.instruction.BuilderInstruction10x;
@@ -47,14 +48,17 @@ public final class NuvioSettingsMenuPatch {
                 validateStateFactory(new MutableClass(context.classDefBy(NuvioNative.COMPOSE_FACTORY_TYPE)));
                 for (String reference : DATE_COLOR_APIS)
                     validateDateColorApi(new MutableClass(context.classDefBy(reference.substring(0, reference.indexOf("->")))), reference);
-                for (String reference : List.of(NuvioNative.REF_DATE_PREVIEW_CROP)) {
+                for (String reference : List.of(NuvioNative.REF_DATE_PREVIEW_CROP, NuvioNative.REF_DATE_ROW_ALIGNMENT)) {
                     boolean present = false;
                     for (var field : context.classDefBy(referenceOwner(reference)).getFields())
-                        if (field.toString().equals(reference) && ((field.getAccessFlags() & 8) != 0) == reference.equals(NuvioNative.REF_DATE_PREVIEW_CROP)) present = true;
+                        if (field.toString().equals(reference) && (field.getAccessFlags() & 8) != 0) present = true;
                     if (!present) throw new IllegalStateException("Missing native cover preview field: " + reference);
                 }
                 hookDateColorSwatch(context.mutableClassDefBy(NuvioNative.SETTINGS_STYLE_TYPE));
                 hookDateColorOpacity(context.mutableClassDefBy(NuvioNative.SETTINGS_STYLE_TYPE));
+                validateDateColorApi(new MutableClass(context.classDefBy(referenceOwner(NuvioNative.REF_DATE_COLOR_PICKER))),
+                    NuvioNative.REF_DATE_COLOR_PICKER);
+                hookDateEditorControls(context.mutableClassDefBy(referenceOwner(NuvioNative.REF_DATE_CUSTOM_EDITOR)));
                 hookDateEditorPreview(context.mutableClassDefBy(referenceOwner(NuvioNative.REF_DATE_CUSTOM_PREVIEW)));
                 hookDateEditorApply(context.mutableClassDefBy(referenceOwner(NuvioNative.REF_DATE_EDITOR_SAVE_LABEL)));
                 hookPreviewMovie(context.mutableClassDefBy(referenceOwner(NuvioNative.REF_DATE_PREVIEW_META_INIT)));
@@ -79,12 +83,13 @@ public final class NuvioSettingsMenuPatch {
 
     static final List<String> DATE_COLOR_APIS = List.of(NuvioNative.REF_DATE_CUSTOM_COLOR_DIALOG,
         NuvioNative.REF_DATE_CUSTOM_COLOR_INIT, NuvioNative.REF_DATE_CUSTOM_COLOR_GET,
-        NuvioNative.REF_DATE_COLUMN_POLICY, NuvioNative.REF_DATE_SPACED_BY, NuvioNative.REF_DATE_BOX_POLICY,
+        NuvioNative.REF_DATE_COLUMN_POLICY, NuvioNative.REF_DATE_ROW_POLICY, NuvioNative.REF_DATE_SPACED_BY, NuvioNative.REF_DATE_BOX_POLICY,
         NuvioNative.REF_DATE_NODE_UPDATE, NuvioNative.REF_DATE_NODE_INIT, NuvioNative.REF_DATE_MATERIALIZE,
         NuvioNative.REF_DATE_TEXT, NuvioNative.REF_DATE_PREVIEW_IMAGE, NuvioNative.REF_DATE_PREVIEW_HEIGHT,
         NuvioNative.REF_DATE_PREVIEW_META_ID, NuvioNative.REF_DATE_PREVIEW_META_CONTENT, NuvioNative.REF_DATE_PREVIEW_META_NAME,
         NuvioNative.REF_DATE_PREVIEW_META_POSTER, NuvioNative.REF_DATE_PREVIEW_META_LANDSCAPEPOSTER, NuvioNative.REF_DATE_PREVIEW_META_BACKGROUND,
-        NuvioNative.REF_SETTINGS_ROWS_D);
+        NuvioNative.REF_SETTINGS_ROWS_D, NuvioNative.REF_SETTINGS_ROWS_A, NuvioNative.REF_SETTINGS_ROWS_J,
+        NuvioNative.REF_DATE_SCROLL_STATE, NuvioNative.REF_DATE_SCROLL, NuvioNative.REF_DATE_PERCENT_ROW);
 
     static void validateDateColorApi(MutableClass owner, String reference) {
         MutableMethod method = owner.getMethods().stream().filter(candidate -> candidate.toString().equals(reference))
@@ -156,6 +161,54 @@ public final class NuvioSettingsMenuPatch {
     }
 
     private static String referenceOwner(String reference) { return reference.substring(0, reference.indexOf("->")); }
+
+    static void hookDateEditorControls(MutableClass owner) {
+        MutableMethod target = owner.getMethods().stream().filter(method -> method.toString().equals(NuvioNative.REF_DATE_CUSTOM_EDITOR))
+            .reduce((a, b) -> { throw new IllegalStateException("Ambiguous custom color editor"); })
+            .orElseThrow(() -> new IllegalStateException("Missing custom color editor"));
+        if ((target.getAccessFlags() & 8) == 0 || target.getImplementation() == null ||
+            !NuvioPlaybackButtonsPatch.fingerprint(target).equals(NuvioNative.HASH_DATE_CUSTOM_EDITOR))
+            throw new IllegalStateException("Custom editor changed or already hooked");
+        List<Instruction> body = NuvioAiringSeriesPatch.instructions(target);
+        int picker = NuvioAnchors.reference(body, NuvioNative.REF_DATE_COLOR_PICKER, "native color picker");
+        int preview = NuvioAnchors.reference(body, NuvioNative.REF_DATE_CUSTOM_PREVIEW, "native sibling preview");
+        if (!(body.get(picker) instanceof com.android.tools.smali.dexlib2.iface.instruction.RegisterRangeInstruction) ||
+            !(body.get(preview) instanceof FiveRegisterInstruction) || preview <= picker + 2)
+            throw new IllegalStateException("Color picker/preview layout changed");
+        var call = (com.android.tools.smali.dexlib2.iface.instruction.RegisterRangeInstruction) body.get(picker);
+        int scratch = call.getStartRegister() + 4; // Null modifier; dead after the picker call.
+        int composer = call.getStartRegister() + 5;
+        var modelMove = body.get(preview - 2);
+        var restore = body.get(picker + 2);
+        if (call.getRegisterCount() != 7 || scratch > 15 || composer > 15 ||
+            modelMove.getOpcode() != Opcode.MOVE_OBJECT_FROM16 ||
+            ((TwoRegisterInstruction) modelMove).getRegisterA() != ((FiveRegisterInstruction) body.get(preview)).getRegisterC() ||
+            restore.getOpcode() != Opcode.MOVE_OBJECT || ((TwoRegisterInstruction) restore).getRegisterA() != scratch ||
+            ((TwoRegisterInstruction) restore).getRegisterB() != composer)
+            throw new IllegalStateException("Custom editor register lifetimes changed");
+        int model = ((TwoRegisterInstruction) modelMove).getRegisterB();
+        int header = NuvioAnchors.reference(body, NuvioNative.REF_DATE_ROW_ALIGNMENT, "first editor content");
+        int headerScratch = ((OneRegisterInstruction) body.get(header)).getRegisterA();
+        if (header >= picker || body.get(header).getOpcode() != Opcode.SGET_OBJECT ||
+            !NuvioPlaybackButtonsPatch.reference(body.get(header - 1)).equals(NuvioNative.REF_DATE_NODE_UPDATE) ||
+            !(body.get(header - 1) instanceof FiveRegisterInstruction))
+            throw new IllegalStateException("Top editor column changed");
+        var parentUpdate = (FiveRegisterInstruction) body.get(header - 1);
+        int headerComposer = parentUpdate.getRegisterC();
+        if (headerScratch > 15 || headerComposer > 15 || parentUpdate.getRegisterD() != headerScratch)
+            throw new IllegalStateException("Top editor register lifetimes changed");
+        // The original next two instructions restore the composer into the dead modifier register.
+        target.getImplementation().addInstruction(picker + 1, new BuilderInstruction22x(Opcode.MOVE_OBJECT_FROM16, scratch, model));
+        target.getImplementation().addInstruction(picker + 2, new BuilderInstruction35c(Opcode.INVOKE_STATIC, 2,
+            scratch, composer, 0, 0, 0, new ImmutableMethodReference(DATE_STYLE, "renderEditorControls",
+                List.of("Ljava/lang/Object;", "Ljava/lang/Object;"), "V")));
+        // Insert the target row as the first child of the editor's outer column.
+        // The original sget immediately replaces the dead materialized-modifier scratch.
+        target.getImplementation().addInstruction(header, new BuilderInstruction22x(Opcode.MOVE_OBJECT_FROM16, headerScratch, model));
+        target.getImplementation().addInstruction(header + 1, new BuilderInstruction35c(Opcode.INVOKE_STATIC, 2,
+            headerScratch, headerComposer, 0, 0, 0, new ImmutableMethodReference(DATE_STYLE, "renderEditorTargetRow",
+                List.of("Ljava/lang/Object;", "Ljava/lang/Object;"), "V")));
+    }
 
     static void hookDateEditorPreview(MutableClass owner) {
         MutableMethod target = owner.getMethods().stream().filter(method -> method.toString().equals(NuvioNative.REF_DATE_CUSTOM_PREVIEW))

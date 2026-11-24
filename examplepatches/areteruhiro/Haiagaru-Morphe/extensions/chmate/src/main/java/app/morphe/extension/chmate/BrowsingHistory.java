@@ -22,6 +22,8 @@ public final class BrowsingHistory {
     private static final String PREFS = "io.github.areteruhiro.chmate.haiagaru.ui-config";
     private static final List<Display> displays=new ArrayList<>();
     private static final List<Legacy> legacyFragments=new ArrayList<>();
+    private static final Map<Object,Map<String,List<?>>> foldSources=new java.util.WeakHashMap<>();
+    private static final ThreadLocal<Boolean> folding=new ThreadLocal<>();
     private static final LinkedHashMap<String,DeletedHistory> deletedHistory=new LinkedHashMap<>();
     private static final LinkedHashMap<String,DeletedHistory> archivedThreads=new LinkedHashMap<>();
     private static final ThreadLocal<HistoryDelete> HISTORY_DELETE=new ThreadLocal<>();
@@ -30,8 +32,8 @@ public final class BrowsingHistory {
         HistoryDelete(Object f,int m,long i,String b,long v){fragment=f;mode=m;id=i;board=b;visited=v;}
     }
     private static final class Display {
-        final WeakReference<List<Object>> output;List<?> source;final int mode;
-        Display(List<Object> o,List<?> s,int m){output=new WeakReference<>(o);source=s;mode=m;}
+        final WeakReference<List<Object>> output;List<?> source,expanded;final int mode;
+        Display(List<Object> o,List<?> s,int m){output=new WeakReference<>(o);source=s;mode=m;expanded=HomeThreadOrder.expandedForDisplay();}
     }
     private static final class DeletedHistory {
         final long visited,expiresAt;
@@ -55,31 +57,37 @@ public final class BrowsingHistory {
         }
         return HomeThreadOrder.mode(fragment);
     }
-    /** Remove a fully deleted thread from open HOME history lists immediately. */
+    /** Remove a fully deleted thread from every open HOME thread list immediately. */
     public static void nativeThreadDeleted(Object nativeBoard,long threadId){
         if(context==null||nativeBoard==null||threadId<=0)return;
         final String board=nativeBoard.toString();
         if(board.isEmpty())return;
-        boolean archived=ArchiveOrigins.consumeHomeArchive(board,threadId);
+        ArchiveOrigins.consumeHomeArchive(board,threadId);
         long visited=historyVisited(board,threadId);
         // When HOME is not open, a newly loaded stale row still needs a cutoff.
         // A later reopen receives a newer native visit timestamp and is allowed back.
         if(visited<=0)visited=System.currentTimeMillis();
-        try{HiddenDroppedThreads.removeRememberedHistoryThread(board,threadId);}
-        catch(RuntimeException error){Log.w("Haiagaru","Deleted history source update unavailable",error);}
-        try{removeDeletedHistoryThread(board,threadId,visited);}
-        catch(RuntimeException error){Log.w("Haiagaru","Deleted history display update unavailable",error);}
+        final long removedVisited=visited;
         Runnable update=()->{
-            if(archived)markArchived(board,threadId);
+            // The native delete caller still holds adapter positions until it
+            // returns. Mutating its source in that stack can remove the next
+            // row or leave a stale selection after the final starred row.
+            try{HiddenDroppedThreads.removeRememberedHistoryThread(board,threadId);}
+            catch(RuntimeException error){Log.w("Haiagaru","Deleted history source update unavailable",error);}
+            try{removeDeletedHistoryThread(board,threadId,removedVisited);}
+            catch(RuntimeException error){Log.w("Haiagaru","Deleted history display update unavailable",error);}
+            // Favorites/unread also retain display copies. The same short-lived
+            // removal guard used after archiving prevents their stale source
+            // from restoring a deleted row before the next native reload.
+            markArchived(board,threadId);
             Activity activity=homeActivity();
             if(activity!=null)refreshVisible(activity);
             else{
                 List<Legacy> tracked;synchronized(legacyFragments){tracked=new ArrayList<>(legacyFragments);}
-                for(Legacy entry:tracked){Object fragment=entry.fragment.get();if(fragment!=null&&(archived||HiddenDroppedThreads.historyMode(entry.mode)))applyLegacy(fragment,entry.mode);}
+                for(Legacy entry:tracked){Object fragment=entry.fragment.get();if(fragment!=null)applyLegacy(fragment,entry.mode);}
             }
         };
-        if(android.os.Looper.myLooper()==android.os.Looper.getMainLooper())update.run();
-        else new android.os.Handler(android.os.Looper.getMainLooper()).post(update);
+        new android.os.Handler(android.os.Looper.getMainLooper()).post(update);
     }
     private static long historyVisited(String board,long threadId){
         String key=board+"\n"+threadId;long result=0;
@@ -170,9 +178,11 @@ public final class BrowsingHistory {
         return copy;
     }
     private static List<?> transformValues(List<?> input,int mode){
+        boolean search = GlobalSearchHome.isModernSearchResult(input);
         input=withoutArchivedThreads(GlobalSearchHome.rows(input),mode);
         if(HiddenDroppedThreads.historyMode(mode))input=withoutRecentlyDeleted(input);
         input=HiddenDroppedThreads.filter(input,mode);
+        if (search) return HomeThreadOrder.applyModernSearch(input, mode);
         // Native HOME IDs: 101 = unread, 103 = browsing history, 104 = posted.
         // Never override unread sorting (including its native board-sort option).
         if (input == null || Math.abs(mode) != 103 || !enabled()) return HomeThreadOrder.apply(input,mode);
@@ -295,6 +305,8 @@ public final class BrowsingHistory {
             try{filterLegacyAdapter(adapter, mode, true);}
             catch(Exception error){Log.w("Haiagaru","Normal history rows could not be rebuilt after refresh",error);}
             finally{((BaseAdapter) adapter).notifyDataSetChanged();}
+            // Legacy HOME can replace the ListView after the fragment has resumed.
+            HomeBoardFoldLabels.ensureAttached(fragment);
         } catch (Exception error) {
             Log.w("Haiagaru", "Normal history adapter left unchanged", error);
         }
@@ -314,12 +326,18 @@ public final class BrowsingHistory {
             String[] fields = legacy191 ? new String[]{"g", "i", "j"} : new String[]{"g", "d"};
             Object[] replacements = new Object[fields.length];
             java.util.IdentityHashMap<Object,Object> processed=new java.util.IdentityHashMap<>();
+            java.util.IdentityHashMap<Object,List<?>> expandedCopies=new java.util.IdentityHashMap<>();
             for (int i = 0; i < fields.length; i++) {
                 Object original = field(adapter, fields[i]).get(adapter);
                 // Native lazy/search adapters may not have populated every cache yet.
                 // An absent source cache must not bypass filtering of the visible list.
                 if (!(original instanceof List)) {replacements[i]=original;continue;}
-                if(processed.containsKey(original)){replacements[i]=processed.get(original);continue;}
+                if(processed.containsKey(original)){
+                    replacements[i]=processed.get(original);
+                    List<?> expanded=expandedCopies.get(original);
+                    if(expanded!=null)foldSources.computeIfAbsent(adapter,k->new java.util.HashMap<>()).put(fields[i],expanded);
+                    continue;
+                }
                 List<?> source=HiddenDroppedThreads.source(original,(List<?>)original);
                 // Notification must preserve the native search result/order. The full sort
                 // path restores from its source; the final boundary only removes dropped rows.
@@ -328,6 +346,9 @@ public final class BrowsingHistory {
                                 ? HiddenDroppedThreads.filter((List<?>)original, mode) : source;
                 // transformValues already runs both passes for the full sort.
                 if(!group){ordered=withoutArchivedThreads(GlobalSearchHome.rows(ordered),mode);ordered=HomeThreadOrder.apply(ordered,mode);}
+                List<?> expanded=HomeThreadOrder.expandedForDisplay();
+                if(expanded!=null)expandedCopies.put(original,expanded);
+                if(expanded!=null)foldSources.computeIfAbsent(adapter,k->new java.util.HashMap<>()).put(fields[i],expanded);
                 if(ordered==original){replacements[i]=original;processed.put(original,original);continue;}
                 replacements[i] = original.getClass().getConstructor(List.class).newInstance(ordered);
                 HiddenDroppedThreads.remember(replacements[i],source,mode);
@@ -337,6 +358,7 @@ public final class BrowsingHistory {
     }
     /** Runs at the final adapter notification boundary; never notifies recursively. */
     public static void beforeLegacyNotify(Object adapter) {
+        if(Boolean.TRUE.equals(folding.get()))return;
         List<Legacy> tracked; synchronized(legacyFragments){tracked=new ArrayList<>(legacyFragments);}
         for(Legacy entry:tracked){
             Object fragment=entry.fragment.get();if(fragment==null)continue;
@@ -353,6 +375,7 @@ public final class BrowsingHistory {
             for(Display display:displays){
                 List<Object> output=display.output.get();if(output==null)continue;
                 List<?> next=transformValues(display.source,display.mode);
+                display.expanded=HomeThreadOrder.expandedForDisplay();
                 if(!output.equals(next)){output.clear();output.addAll(next);}
             }
             displays.removeIf(d->d.output.get()==null);
@@ -366,6 +389,39 @@ public final class BrowsingHistory {
             }catch(Exception error){Log.w("Haiagaru","HOME display refresh unavailable",error);}
         }
         if(activity!=null&&activity.getWindow()!=null)notifyLists(activity.getWindow().getDecorView());
+    }
+    /** A heading tap only projects existing ordered rows; no NG/DB checks or sorting. */
+    static void refreshCategory(Object fragment,Activity activity,int mode){
+        try{
+            boolean legacy=fragment.getClass().getName().equals("o.r8lambdaTb_p0z6z2AqSZIga1YhmAVmiTPk")
+                    ||fragment.getClass().getName().equals("jp.syoboi.a2chMate.fragment.HomeFragment");
+            if(legacy){
+                Object adapter=field(fragment,fragment.getClass().getName().startsWith("o.")?"e":"i").get(fragment);
+                Map<String,List<?>> sources=foldSources.get(adapter);
+                if(sources==null){applyLegacy(fragment,mode);return;}
+                for(Map.Entry<String,List<?>> entry:sources.entrySet()){
+                    Field target=field(adapter,entry.getKey());Object original=target.get(adapter);
+                    if(!(original instanceof List))continue;
+                    List<?> rows=HomeThreadOrder.refold(entry.getValue(),mode);
+                    Object replacement=original.getClass().getConstructor(List.class).newInstance(rows);
+                    HiddenDroppedThreads.remember(replacement,HiddenDroppedThreads.source(original,(List<?>)original),mode);
+                    target.set(adapter,replacement);
+                }
+                folding.set(true);
+                try{((BaseAdapter)adapter).notifyDataSetChanged();}finally{folding.remove();}
+            }else{
+                synchronized(displays){
+                    displays.removeIf(d->d.output.get()==null);
+                    for(Display display:displays)if(display.mode==mode&&display.expanded!=null){
+                        List<Object> output=display.output.get();if(output==null)continue;
+                        List<?> rows=HomeThreadOrder.refold(display.expanded,mode);
+                        output.clear();output.addAll(rows);
+                    }
+                }
+                View root=(View)fragment.getClass().getMethod("getView").invoke(fragment);
+                if(root!=null)notifyLists(root);
+            }
+        }catch(Exception error){Log.w("Haiagaru","HOME heading projection unavailable",error);refreshVisible(activity);}
     }
     private static void notifyLists(View view){
         try{

@@ -126,6 +126,10 @@ A reel's Download button, the Download button under a post and a video's Downloa
 A reel's More menu gets Copy caption, which copies the whole caption, even the part behind See more.	قائمة المزيد في الريل تحصل على نسخ الوصف، الذي ينسخ الوصف كاملًا، حتى الجزء الذي وراء عرض المزيد.
 A reel's progress bar stays full size, ready to drag. A full-screen video's controls stay until you tap.	شريط تقدم الريل يبقى بحجمه الكامل، جاهزًا للسحب. أدوات الفيديو بملء الشاشة تبقى حتى تنقر.
 A saved video that ends stays on screen instead of opening the next one. Swipe up when you want the next.	فيديو محفوظ ينتهي يبقى على الشاشة بدلًا من فتح التالي. اسحب لأعلى عندما تريد التالي.
+# context: switch title under Play saved videos in a row; on, a saved post the row reaches stays on screen instead of being skipped, and a swipe past its end moves on
+Show saved posts in the row	إظهار المنشورات المحفوظة في التتابع
+# context: summary of that switch
+A saved post in the row stays on screen instead of being skipped. Swipe up past its end for the next saved video, or down past its top for the one before.	يبقى المنشور المحفوظ في التتابع على الشاشة بدلًا من تخطيه. اسحب لأعلى بعد نهايته للفيديو المحفوظ التالي، أو لأسفل بعد أعلاه للسابق.
 A small label at the top of Reels shows the minutes you've watched. Time on other tabs doesn't count, and 15 minutes away starts it over.	ملصق صغير في أعلى ريلز يعرض الدقائق التي شاهدتها. الوقت في التبويبات الأخرى لا يُحسب، و15 دقيقة بعيدًا تبدأ العدّ من جديد.
 A song you add to a photo for your Story plays for up to 30 seconds instead of 15. Applies to the next song you pick.	أغنية تضيفها إلى صورة لقصتك تُعرض حتى 30 ثانية بدلًا من 15. تُطبَّق على الأغنية التالية التي تختارها.
 A story you scrolled past in the Stories tray leaves it the next time you open Facebook, even if you didn't watch it. A new story brings that person back.	قصة تجاوزتها في درج القصص تتركه في المرة التالية التي تفتح فيها فيسبوك، حتى لو لم تشاهدها. قصة جديدة تُعيد ذلك الشخص.
@@ -347,6 +351,8 @@ Choose where Facebook opens from its icon. Notifications and links still open th
 Choose which links open here	اختر أي الروابط تفتح هنا
 Clean mode	الوضع النظيف
 Clean mode button on reels	زر الوضع النظيف على ريلز
+Faint Clean mode button	زر الوضع النظيف باهت
+Facebook's button for leaving Clean mode shows faint, so the text in the video under it stays readable. It still works when you tap it.	يظهر زر فيسبوك للخروج من الوضع النظيف باهتًا، فيبقى النص الموجود في الفيديو تحته مقروءًا. ما زال يعمل عند النقر عليه.
 Cleaner reels and video controls	أدوات أنظف للريلز والفيديو
 Clear	مسح
 Clear all	مسح الكل
@@ -442,7 +448,7 @@ Dark box behind folded captions	صندوق داكن خلف الأوصاف الم
 Dark box behind open captions	صندوق داكن خلف الأوصاف المفتوحة
 Dark box behind reel names	صندوق داكن خلف أسماء الريل
 Dark box behind story names	صندوق داكن خلف أسماء القصص
-Dark mode and this screen use colors from your wallpaper (blue on Android 11). Turn on dark mode in Facebook to see it.	الوضع الداكن وهذه الشاشة يستخدمان ألوانًا من خلفية شاشة هاتفك (الأزرق على أندرويد 11). فعّل الوضع الداكن في فيسبوك لتراه.
+Dark mode and this screen use colors from your wallpaper (blue on Android 11). Turn it off to go back to the old colors without patching again. Restart Facebook to see the change.	الوضع الداكن وهذه الشاشة يستخدمان ألوانًا من خلفية شاشة هاتفك (الأزرق على أندرويد 11). أوقفه لتعود إلى الألوان السابقة دون أن تعدّل مرة أخرى. أعد تشغيل فيسبوك لترى التغيير.
 Dark mode uses %1$s instead of dark gray. Turn on dark mode in Facebook to see it.	الوضع الداكن يستخدم %1$s بدلًا من الرمادي الداكن. فعّل الوضع الداكن في فيسبوك لتراه.
 Dark mode uses black instead of dark gray. Turn on dark mode in Facebook to see it.	الوضع الداكن يستخدم الأسود بدلًا من الرمادي الداكن. فعّل الوضع الداكن في فيسبوك لتراه.
 Dark mode's backgrounds use %1$s. Restart Facebook to see the change.	خلفيات الوضع الداكن تستخدم %1$s. أعد تشغيل فيسبوك لترى التغيير.
@@ -592,6 +598,11 @@ Fixes saved videos that play without sound in WhatsApp, video editors such as Ca
 Fold long comments	طي التعليقات الطويلة
 Fold long comments will fold comments where Facebook does.	طي التعليقات الطويلة سيطوي التعليقات حيث يطويها فيسبوك.
 Fold long comments will show %1$s before See more.	طي التعليقات الطويلة سيُظهر %1$s قبل عرض المزيد.
+Fold reel captions	طي أوصاف الريل
+Long reel captions fold where Facebook folds them.	أوصاف الريل الطويلة تُطوى حيث يطويها فيسبوك.
+A long reel caption shows %1$s before more.	وصف الريل الطويل يعرض %1$s قبل المزيد.
+Fold reel captions will fold captions where Facebook does.	طي أوصاف الريل سيطوي الأوصاف حيث يطويها فيسبوك.
+Fold reel captions will show %1$s before more.	طي أوصاف الريل سيُظهر %1$s قبل المزيد.
 Fold long posts	طي المنشورات الطويلة
 Fold long posts will fold posts where Facebook does.	طي المنشورات الطويلة سيطوي المنشورات حيث يطويها فيسبوك.
 Fold long posts will show %1$s before See more.	طي المنشورات الطويلة سيُظهر %1$s قبل عرض المزيد.
@@ -737,6 +748,7 @@ Hide rings on profiles	إخفاء الحلقات على الملفات الشخ�
 Hide Save on reels	إخفاء حفظ على ريلز
 Hide seen stories	إخفاء القصص المرئية
 Hide Send under posts	إخفاء إرسال تحت المنشورات
+Hide Save under posts	إخفاء حفظ تحت المنشورات
 Hide Share on reels	إخفاء مشاركة على ريلز
 Hide Share under posts	إخفاء مشاركة تحت المنشورات
 Hide song and effect credits	إخفاء سطر الأغنية والتأثيرات
@@ -883,7 +895,7 @@ Hides the "Commission eligible" label under the creator's name on reels.	يخف�
 Hides the "Follow" link next to the name on posts from Pages and people you don't follow. Tapping the name still opens the profile. A change shows on the posts drawn after it.	يخفي رابط المتابعة بجانب الاسم على منشورات الصفحات والأشخاص الذين لا تتابعهم. النقر على الاسم ما زال يفتح الملف الشخصي. يظهر التغيير على المنشورات المرسومة بعده.
 Hides the "Related posts" list Facebook adds under some posts, with its titles written by Meta AI. The post and its comments stay.	يخفي قائمة المنشورات ذات الصلة التي يضيفها فيسبوك تحت بعض المنشورات، وعناوينها المكتوبة بواسطة Meta AI. المنشور وتعليقاته يبقون.
 Hides the "Subscribe" link next to a creator's name on posts and videos. Tapping the name still opens the profile. A change shows on the posts drawn after it.	يخفي رابط الاشتراك بجانب اسم ناشر على المنشورات والفيديوهات. النقر على الاسم ما زال يفتح الملف الشخصي. يظهر التغيير على المنشورات المرسومة بعده.
-Hides the "Threads you might like" card between reels. Off by default, since it hasn't been tried on a real account yet.	يخفي بطاقة سلاسل قد تعجبك بين الريلز. متوقف افتراضيًا، لأنه لم يُجرَّب على حساب حقيقي بعد.
+Hides the "Threads you might like" card and other Meta promotions between reels. Off by default, since it hasn't been tried on a real account yet.	يخفي بطاقة سلاسل قد تعجبك وعروض Meta الترويجية الأخرى بين الريلز. متوقف افتراضيًا، لأنه لم يُجرَّب على حساب حقيقي بعد.
 Hides the "Want to see more posts from friends?" card with its Find friends button where your friends' posts run out.	يخفي بطاقة هل تريد رؤية منشورات أكثر من الأصدقاء؟ مع زر العثور على الأصدقاء حيث تنتهي منشورات أصدقائك.
 Hides the "What's on your mind?" row at the top of Home. The create button in the top bar still starts a post.	يخفي صف ماذا يدور في ذهنك؟ في أعلى الرئيسية. زر الإنشاء في الشريط العلوي ما زال يبدأ منشورًا.
 Hides the banners at the top of Chats, like the one asking you to turn on notifications.	يخفي الشرائط في أعلى المحادثات، مثل التي تطلب منك تشغيل الإشعارات.
@@ -1010,7 +1022,7 @@ Keep feed position on return	الاحتفاظ بموضع الخلاصة عند �
 Keep feed videos muted	إبقاء فيديوهات الخلاصة مكتومة
 Keep playing in the background	الاستمرار في التشغيل في الخلفية
 Next reel in the background	الريل التالي في الخلفية
-When a reel playing in the background ends, the next reel plays instead of the same one again. It goes through the reels Reels had loaded when you left. Works with Keep playing in the background on.	عندما ينتهي ريل يعمل في الخلفية، يُشغَّل الريل التالي بدلًا من إعادة الريل نفسه. يمرّ عبر الريلز التي كانت ريلز قد حمّلتها عندما غادرت. يعمل مع تشغيل الاستمرار في التشغيل في الخلفية.
+When a reel playing in the background ends, the next reel plays instead of the same one again, and Reels keeps loading more as it goes. Works with Keep playing in the background on.	عندما ينتهي ريل يعمل في الخلفية، يُشغَّل الريل التالي بدلًا من إعادة الريل نفسه، وتواصل ريلز تحميل المزيد أثناء ذلك. يعمل مع تشغيل الاستمرار في التشغيل في الخلفية.
 Keep post dates	الاحتفاظ بتواريخ المنشورات
 Keep seen posts hidden for	إبقاء المنشورات المرئية مخفية لمدة
 Keep Settings and privacy expanded	إبقاء الإعدادات والخصوصية موسّعة
@@ -1027,6 +1039,10 @@ Keep watched entries for	الاحتفاظ بالسجلات المشاهدة لم
 Keeps a list on this phone of the reels, videos and stories you watch, so you can find one again after the feed refreshes. Nothing leaves your phone.	يُبقي قائمة على هاتفك بالريلز والفيديوهات والقصص التي تشاهدها، حتى تتمكن من العثور على واحدة منها مرة أخرى بعد تحديث الخلاصة. لا شيء يغادر هاتفك.
 Keeps Facebook dark no matter its own setting. Meant for tablets where Facebook has no Dark mode switch. Restart Facebook to see the change.	يُبقي فيسبوك داكنًا مهما كان إعداده الخاص. مخصص للأجهزة اللوحية حيث لا يوجد زر الوضع الداكن في فيسبوك. أعد تشغيل فيسبوك لترى التغيير.
 Keeps the Comment button on reels whose comments are turned off, so you can still read the ones already there. A change shows from the next reel.	يُبقي زر التعليق على الريل التي تم إيقاف تعليقاتها، حتى تتمكن من قراءة الموجود بالفعل. يظهر التغيير من الريل التالي.
+# context: switch title under Reels; on, a long video in the Reels viewer (a film or a live replay) gets Facebook's Like, Comment, Share and Save buttons down its right side, which Facebook leaves off
+Side buttons on long videos	أزرار جانبية للفيديوهات الطويلة
+# context: summary of that switch; Like, Comment, Share and Save are Facebook's own button names
+Brings back Like, Comment, Share and Save down the side of a long video in the Reels viewer, where Facebook leaves them off. A change shows from the next video.	يعيد أزرار الإعجاب والتعليق والمشاركة والحفظ على جانب الفيديو الطويل في عارض Reels، حيث يحذفها فيسبوك. يظهر التغيير من الفيديو التالي.
 Keeps the Messenger button but drops the unread count on it.	يُبقي زر Messenger ولكنه يزيل العدّاد غير المقروء عليه.
 Kept: %s	محفوظ: %s
 Languages to keep	اللغات المطلوب الاحتفاظ بها
@@ -1091,7 +1107,7 @@ Mark as seen	تمييز كمُشاهد
 Mark as seen button	زر تمييز كمُشاهد
 Mark new settings	تمييز الإعدادات الجديدة
 Marked as seen and sent	موسوم كمُشاهد ومرسل
-Marked as seen. Tap again to undo.	موسوم كمُشاهد. اضغط مرة أخرى للتراجع.
+Marked as seen	موسوم كمُشاهد
 Marketplace	Marketplace
 Marketplace is hidden in Facebook's tab settings. Show it under Settings, Tab bar, Customize the bar. Your normal tabs stay available.	Marketplace مخفي في إعدادات تبويبات فيسبوك. أظهره ضمن الإعدادات، شريط التبويبات، تخصيص الشريط. تبقى تبويباتك العادية متاحة.
 Marketplace only	Marketplace فقط
@@ -1214,6 +1230,8 @@ On the Reels screen, the buttons, caption and bars fade when you leave them alon
 On the Reels screen, the buttons, caption and bars fade when you leave them alone. Touching one of them brings them back.	على شاشة الريلز، الأزرار والوصف والأشرطة تخفّ عندما تتركها وحدها. لمس أحدهم يعيدها.
 Once a day, when Facebook starts, checks GitHub for a newer Hushfacebook and tells you at the top of this page. Nothing downloads on its own.	مرة واحدة يوميًا، عندما يبدأ فيسبوك، يتحقق من GitHub بحثًا عن Hushfacebook أحدث ويخبرك في أعلى هذه الصفحة. لا شيء يُنزّل من تلقاء نفسه.
 Once Burn-in guard fades the buttons, they stay faded on Reels whatever you tap or swipe, the next reel too. They still work. Leaving Reels brings them back.	بمجرد أن يخفت حارس الاحتراق الأزرار، تبقى باهتة على ريلز مهما نقرت أو سحبت، والريل التالي أيضًا. ما زالت تعمل. مغادرة ريلز تعيدها.
+Tap the video to bring them back	انقر على الفيديو لإعادتها
+Once Burn-in guard fades the buttons, a tap on the video brings them back without pausing it. The next tap pauses as usual.	بمجرد أن يخفت حارس الاحتراق الأزرار، تعيدها نقرة على الفيديو دون إيقافه مؤقتًا. النقرة التالية توقفه مؤقتًا كالمعتاد.
 Once dimmed, the buttons, caption and bars show at %1$s percent.	بمجرد أن يخفت، الأزرار والوصف والأشرطة تُظهر بنسبة %1$s.
 Once dimmed, the buttons, caption and bars show at %1$s percent. Type a number to change it.	بمجرد أن يخفت، الأزرار والوصف والأشرطة تُظهر بنسبة %1$s. اكتب رقمًا لتغييره.
 One name, ID or site per line	اسم واحد، معرّف أو موقع في كل سطر
@@ -1684,6 +1702,8 @@ Support Hushfacebook	دعم Hushfacebook
 Support the project	دعم المشروع
 Supported links	الروابط المدعومة
 Swiping to the next or previous person's stories slides them across instead of turning them like a cube. Applies from your next swipe.	السحب إلى قصص الشخص التالي أو السابق يمررها عبرها بدلاً من قلبها كمكعب. يُطبّق من your next swipe.
+Show the time on every story	إظهار الوقت على كل قصة
+Stories that leave out how long ago they were posted, like a Page's, show it next to the name the way a friend's story does. Applies from the next story you open.	القصص التي لا تذكر منذ متى نُشرت، مثل قصص الصفحات، تعرضه بجانب الاسم كما تفعل قصة صديقك. يسري من القصة التالية التي تفتحها.
 Switches that are on	المفاتيح المفعّلة
 Tab bar	شريط التبويبات
 Tab bar at the bottom	شريط التبويبات في الأسفل
@@ -1705,6 +1725,10 @@ Takes away Send to group when you pick two or more people, and the share sheet's
 Takes away the friend's picture with a reaction on it that Facebook puts on a photo or video when a friend reacted. A change shows on the posts drawn after it.	يزيل صورة الصديق مع تفاعل عليها التي يضعها فيسبوك على صورة أو فيديو عندما تفاعل صديق. يظهر التغيير على المنشورات المرسومة بعده.
 Takes away the line that says someone is typing a comment. Your own typing is a separate switch under Privacy.	يزيل السطر الذي يقول أن شخصًا ما يكتب تعليقًا. كتابتك الخاصة هي مفتاح منفصل تحت الخصوصية.
 Takes away the line under a post that names who reacted, like "Name and others reacted". A change shows on the posts drawn after it.	يزيل السطر تحت المنشور الذي يسمّي من تفاعل، مثل "اسم وآخرون تفاعلوا". يظهر التغيير على المنشورات المرسومة بعده.
+# context: switch title under News feed; on, a post whose author turned comments off or limited who can comment keeps Facebook's Comment button, so its comments can still be read
+Show Comment on posts with comments off	إظهار تعليق على المنشورات المتوقفة تعليقاتها
+# context: summary of that switch; Comment is Facebook's own button name
+Keeps the Comment button on posts whose author turned comments off or limited who can comment, so you can still read the ones already there. A change shows on the posts drawn after it.	يُبقي زر التعليق على المنشورات التي أوقف صاحبها التعليقات أو حدّد من يمكنه التعليق، حتى تتمكن من قراءة الموجود بالفعل. يظهر التغيير على المنشورات المرسومة بعده.
 Takes Like off the row under comments. Reply and the reaction count stay.	يزيل الإعجاب من الصف تحت التعليقات. الرد وعدد التفاعل يبقون.
 Takes out the cards between stories that ask you to make one, including the full screen card that asks you to continue the story with photos from your gallery. Applies the next time you open stories.	يزيل البطاقات بين القصص التي تطلب منك عمل واحدة، بما في ذلك بطاقة ملء الشاشة التي تطلب منك مواصلة القصة بصور من معرضك. يُطبّق في المرة التالية التي تفتح فيها القصص.
 Takes out the empty band some phones show above a listing's top row, like Pixels on Android 17.	يزيل النطاق الفارغ الذي تظهره بعض الهواتف فوق الصف العلوي من الإعلان، مثل Pixels على أندرويد 17.
@@ -1833,7 +1857,7 @@ The list is full, so the rest weren't added.	القائمة ممتلئة، لذ�
 The Messenger link test couldn't start. Try again.	تعذّر بدء اختبار رابط Messenger. حاول مرة أخرى.
 The Meta AI shortcut leaves the Menu's list with Feeds, Marketplace, Reels and Groups, and the next shortcut moves up into its place.	اختصار Meta AI يغادر قائمة القائمة مع الخلاصات وMarketplace وريلز والمجموعات، والاختصار التالي يتحرك لأعلى ليأخذ مكانه.
 The Muse card, Meta's ad for its AI agent app, leaves the top of Facebook's Menu.	بطاقة Muse، إعلان Meta لتطبيق وكيل الذكاء الاصطناعي الخاص بها، تغادر أعلى قائمة فيسبوك.
-The name at the bottom of a reel sits on the same dark box, so it's easy to read over a bright video. A change shows from the next reel.	الاسم في أسفل الريل يجلس على نفس الصندوق الداكن، بحيث يكون سهل القراءة فوق فيديو ساطع. يظهر التغيير من الريل التالي.
+The name at the bottom of a reel, with the date and details under it, sits on the same dark box, so it's easy to read over a bright video. A change shows from the next reel.	الاسم في أسفل الريل، مع التاريخ والتفاصيل تحته، يجلس على نفس الصندوق الداكن، بحيث يكون سهل القراءة فوق فيديو ساطع. يظهر التغيير من الريل التالي.
 The newest Hushfacebook release is %1$s.	أحدث إصدار Hushfacebook هو %1$s.
 The phone's font at its regular weight.	خط الهاتف بوزنه العادي.
 The phone's language	لغة الهاتف
@@ -2015,7 +2039,7 @@ Weight loss ads	إعلانات فقدان الوزن
 What always comes through	ما يأتي دائمًا
 What you search for, and the pages and profiles you open from a search, aren't added to your Facebook search history. Searches already there stay until you delete them.	ما تبحث عنه، والصفحات والملفات الشخصية التي تفتحها من بحث، لا تُضاف إلى سجل بحث فيسبوك الخاص بك. عمليات البحث الموجودة بالفعل تبقى حتى تحذفها.
 WhatsApp and some editors may not accept this video	WhatsApp وبعض المحررين قد لا يقبلون هذا الفيديو
-When a video in your feed has the poster's name on top of the video, that name sits on the same dark box. A change shows on the posts drawn after it.	عندما يكون لفيديو في خلاصتك اسم الناشر فوق الفيديو، ذلك الاسم يجلس على نفس الصندوق الداكن. يظهر التغيير على المنشورات المرسومة بعده.
+When a video in your feed has the poster's name on top of the video, that name and the date under it sit on the same dark box. A change shows on the posts drawn after it.	عندما يكون لفيديو في خلاصتك اسم الناشر فوق الفيديو، يجلس ذلك الاسم والتاريخ تحته على نفس الصندوق الداكن. يظهر التغيير على المنشورات المرسومة بعده.
 When Facebook also sends an HDR video in SDR at the same size, play that version instead. The screen doesn't brighten and the picture stays as sharp. Works with the switch above on or off.	عندما يرسل فيسبوك أيضًا فيديو HDR بصيغة SDR بنفس الحجم، شغّل تلك النسخة بدلاً منه. الشاشة لا تضيء والصورة تبقى حادة. يعمل مع تشغيل أو إيقاف المفتاح أعلاه.
 When Facebook crashes, the error goes in a text file in Download/Hushfacebook, so you can send it with a bug report even if Facebook won't open. Links and IDs are left out. The newest five are kept.	عندما يتعطّل فيسبوك، يذهب الخطأ في ملف نصي في Download/Hushfacebook، حتى تتمكن من إرساله مع بلاغ خطأ حتى لو لم يفتح فيسبوك. الروابط والمعرّفات تُترك خارجًا. يتم الاحتفاظ بأحدث خمسة.
 When Facebook opens on Feeds, the Feeds tab opens on %1$s. If your Feeds tab doesn't have it, it opens as usual.	عندما يفتح فيسبوك على الخلاصات، تبويب الخلاصات يفتح على %1$s. إذا لم يكن تبويب الخلاصات لديك يحتويه، يُفتح كالمعتاد.

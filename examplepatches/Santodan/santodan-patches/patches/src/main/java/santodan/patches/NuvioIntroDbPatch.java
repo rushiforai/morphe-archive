@@ -26,13 +26,13 @@ public final class NuvioIntroDbPatch {
             builder.execute(context -> {
                 if (!NuvioNative.PACKAGE_NAME.equals(context.getPackageMetadata().getPackageName()) ||
                     !NuvioNative.VERSION.equals(context.getPackageMetadata().getVersionName()))
-                    throw new IllegalStateException("IntroDB requires NuvioTV 1.1.0");
+                    throw new IllegalStateException("IntroDB requires NuvioTV 1.1.1");
                 validateState(new MutableClass(context.classDefBy(NuvioNative.PLAYER_STATE_TYPE)));
                 for (String signature : UI) require(new MutableClass(context.classDefBy(signature.substring(0, signature.indexOf("->")))), signature);
                 validateInputFocus(new MutableClass(context.classDefBy(NuvioNative.INPUT_FOCUS_TYPE)), Integer.parseInt(NuvioNative.INPUT_FOCUS_BRANCH));
                 fields(new MutableClass(context.classDefBy(NuvioNative.PLAYER_MAIN_ROW_TYPE)), "c:Lbb/vl;", "d:Lbb/sl;", "i:Lb2/a0;", "j:Lkotlin/jvm/functions/Function0;", "k:Lkotlin/jvm/functions/Function0;");
                 fields(new MutableClass(context.classDefBy(NuvioNative.PLAYER_MODEL_TYPE)), "Y:Lbb/lc;");
-                fields(new MutableClass(context.classDefBy(NuvioNative.PLAYER_CONTROLLER_TYPE)), "H0:Lkotlinx/coroutines/flow/StateFlow;", "U0:Lkotlinx/coroutines/Job;");
+                fields(new MutableClass(context.classDefBy(NuvioNative.PLAYER_CONTROLLER_TYPE)), NuvioNative.CONTROLLER_SESSION_FIELD + ":Lkotlinx/coroutines/flow/StateFlow;", NuvioNative.CONTROLS_JOB_FIELD + ":Lkotlinx/coroutines/Job;");
                 fields(new MutableClass(context.classDefBy(NuvioNative.PLAYER_SESSION_TYPE)), "d:Z");
                 fields(new MutableClass(context.classDefBy(NuvioNative.DROPDOWN_OPTION_TYPE)), "a:Ljava/lang/String;", "b:Ljava/lang/String;");
                 fields(new MutableClass(context.classDefBy(NuvioNative.NATIVE_COLORS_TYPE)), "b:J", "c:J", "l:J", "x:J");
@@ -61,11 +61,11 @@ public final class NuvioIntroDbPatch {
             return Unit.INSTANCE;
         });
     }
-    static final String TIMER_HASH = "3dae2f6f88f53d20757a4a47de1efd71caf82ab9a303ec3e8010c9f406203b15";
+    static final String TIMER_HASH = "ad922113f8fdc5c606ca4293473294f204981131201986a047b7b92b77ff6a2f";
     static final String PAUSE_TIMER = NuvioNative.PLAYER_TIMERS_TYPE + "->" + NuvioNative.PAUSE_TIMER_METHOD + "(" + NuvioNative.PLAYER_CONTROLLER_TYPE + ")V";
     static final String CANCEL_PAUSE = NuvioNative.PLAYER_TIMERS_TYPE + "->" + NuvioNative.CANCEL_PAUSE_METHOD + "(" + NuvioNative.PLAYER_CONTROLLER_TYPE + ")V";
-    static final String PAUSE_TIMER_HASH = "726f3aef1f8717e532de42164c4c2cc9192071ad5b4872a95751ef1baddcb6fe";
-    static final String CANCEL_PAUSE_HASH = "3546a176e7b4a91f5bbe2dfc328c213778c3b89b5906246fc05dff7f88ebf58a";
+    static final String PAUSE_TIMER_HASH = "c4536f4e2957466c4a24400f355041e4cbb05f6a7094531c345180f96ec1d4a0";
+    static final String CANCEL_PAUSE_HASH = "a86607f3b54f9945a6d58543f9b5d6b62f575301dd0637cb08643b17a4f88d67";
     static final String HOLD_TIMER = EXT + "->holdControlsTimer(Ljava/lang/Object;)Z";
     static void validateTimer(MutableMethod method) {
         String hash = method.toString().equals(NuvioNative.REF_PLAYER_TIMERS_F) ? TIMER_HASH :

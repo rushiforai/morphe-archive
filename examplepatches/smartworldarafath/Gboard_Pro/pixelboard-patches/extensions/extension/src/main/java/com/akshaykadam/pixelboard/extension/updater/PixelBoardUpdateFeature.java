@@ -2,7 +2,7 @@
  * PixelBoard - Gboard Enhancement Mod
  *
  * Maintained and customized by Arafath Rahman (@smartworldarafath)
- * Repository: https://github.com/Akshayykadam/PixelBoard
+ * Repository: https://github.com/smartworldarafath/Gboard_Pro
  * Licensed under the GNU General Public License v3.0 (GPLv3)
  */
 package com.akshaykadam.pixelboard.extension.updater;
@@ -14,18 +14,11 @@ import android.content.pm.PackageManager;
 import android.net.Uri;
 
 import com.akshaykadam.pixelboard.extension.BuildConfig;
-
 import com.akshaykadam.pixelboard.extension.settings.GboardPatchesSettingsContract;
 
-
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 
-/**
- * Settings feature exposing the in-app PixelBoard Update screen with What's New notes,
- * direct APK downloading from GitHub, and package installation.
- */
 public final class PixelBoardUpdateFeature implements GboardPatchesSettingsContract.Feature {
 
     private final String entryTitle;
@@ -37,7 +30,7 @@ public final class PixelBoardUpdateFeature implements GboardPatchesSettingsContr
     public PixelBoardUpdateFeature(Context context) {
         entryTitle = "Gboard Pro Updates";
         entrySummary = "Check for latest updates & releases";
-        headerBadge = "Beta";
+        headerBadge = null;
         headerTitle = "Gboard Pro Updates";
         headerSummary = "Stay updated with the latest features and fixes";
     }
@@ -49,7 +42,6 @@ public final class PixelBoardUpdateFeature implements GboardPatchesSettingsContr
 
     @Override
     public String getEntrySummary() {
-        Context context = null;
         PixelBoardUpdateManager updateManager = PixelBoardUpdateManager.getInstance();
         ReleaseInfo releaseInfo = updateManager.getCurrentReleaseInfo();
         PixelBoardUpdateManager.Status status = updateManager.getCurrentStatus();
@@ -78,7 +70,6 @@ public final class PixelBoardUpdateFeature implements GboardPatchesSettingsContr
         Context context = host.getContext();
         PixelBoardUpdateManager updateManager = PixelBoardUpdateManager.getInstance();
 
-        // Auto-check on first screen visit if enabled and hasn't checked in 1 hour
         if (PixelBoardUpdateManager.isAutoCheckEnabled(context)
                 && updateManager.getCurrentStatus() == PixelBoardUpdateManager.Status.IDLE) {
             long lastCheck = PixelBoardUpdateManager.getLastCheckTime(context);
@@ -104,9 +95,14 @@ public final class PixelBoardUpdateFeature implements GboardPatchesSettingsContr
         PixelBoardUpdateManager.Status status = updateManager.getCurrentStatus();
 
         List<GboardPatchesSettingsContract.StatusBlock> statusBlocks = new ArrayList<>();
+        // Always include the top Gboard Pro Hero Card matching Gboard Pro Updates.png
+        statusBlocks.add(new GboardPatchesSettingsContract.StatusBlock(
+                "Gboard Pro",
+                "Gboard From Google Pixel 11 series with Pixel exclusive features with Gemini",
+                GboardPatchesSettingsContract.StatusTone.INFO));
+
         List<GboardPatchesSettingsContract.Section> sections = new ArrayList<>();
 
-        // 1. Build Status Block matching Material 3 tones
         switch (status) {
             case UPDATE_AVAILABLE:
                 String updateTitle = releaseInfo != null
@@ -153,22 +149,19 @@ public final class PixelBoardUpdateFeature implements GboardPatchesSettingsContr
                         "Update package is ready to install. Tap 'Install Update' below to proceed.",
                         GboardPatchesSettingsContract.StatusTone.INFO));
                 break;
-            case UP_TO_DATE:
-            case CHECKING:
-            case IDLE:
             default:
                 break;
         }
 
-        // 2. Actions Section
+        // ACTIONS section matching Gboard Pro Updates.png
         List<GboardPatchesSettingsContract.Row> actionRows = new ArrayList<>();
         final ReleaseInfo targetRelease = releaseInfo;
         if (status == PixelBoardUpdateManager.Status.UPDATE_AVAILABLE && targetRelease != null) {
             String downloadSummary = targetRelease.hasApkAsset()
-                    ? ("Download " + targetRelease.getApkFileName() + " (" + targetRelease.getFormattedFileSize() + ") directly from Git")
+                    ? ("Download " + targetRelease.getApkFileName() + " (" + targetRelease.getFormattedFileSize() + ") directly from GitHub")
                     : "Open release page on GitHub";
 
-            actionRows.add(new GboardPatchesSettingsContract.CommandRow(
+            actionRows.add(new GboardPatchesSettingsContract.NavigationRow(
                     "Download and Install",
                     downloadSummary,
                     true,
@@ -183,10 +176,10 @@ public final class PixelBoardUpdateFeature implements GboardPatchesSettingsContr
                     }));
 
             actionRows.add(new GboardPatchesSettingsContract.NavigationRow(
-                    "View on GitHub",
-                    "Open the release page on GitHub",
+                    "All Releases",
+                    "Browse past changelogs on GitHub",
                     true,
-                    () -> PixelBoardUpdateManager.openReleasePage(context, targetRelease.getHtmlUrl())));
+                    () -> PixelBoardUpdateManager.openReleasePage(context, PixelBoardUpdateManager.GITHUB_REPO_RELEASES_WEB)));
         } else if (status == PixelBoardUpdateManager.Status.DOWNLOADING) {
             float speedMbps = updateManager.getCurrentSpeedMbps();
             int percent = updateManager.getDownloadProgressPercent();
@@ -199,7 +192,7 @@ public final class PixelBoardUpdateFeature implements GboardPatchesSettingsContr
                     ? (formatBytes(dl) + " of " + formatBytes(tot) + " (" + percent + "%)")
                     : "In progress...";
 
-            actionRows.add(new GboardPatchesSettingsContract.CommandRow(
+            actionRows.add(new GboardPatchesSettingsContract.NavigationRow(
                     "Speed: " + speedStr,
                     dlText,
                     false,
@@ -207,12 +200,12 @@ public final class PixelBoardUpdateFeature implements GboardPatchesSettingsContr
 
             String githubUrl = targetRelease != null ? targetRelease.getHtmlUrl() : PixelBoardUpdateManager.GITHUB_REPO_RELEASES_WEB;
             actionRows.add(new GboardPatchesSettingsContract.NavigationRow(
-                    "View on GitHub",
-                    "Open the release page on GitHub",
+                    "All Releases",
+                    "Browse past changelogs on GitHub",
                     true,
                     () -> PixelBoardUpdateManager.openReleasePage(context, githubUrl)));
         } else if (status == PixelBoardUpdateManager.Status.DOWNLOAD_COMPLETED) {
-            actionRows.add(new GboardPatchesSettingsContract.CommandRow(
+            actionRows.add(new GboardPatchesSettingsContract.NavigationRow(
                     "Install Update",
                     "Update package is downloaded. Tap to begin installation.",
                     true,
@@ -220,19 +213,17 @@ public final class PixelBoardUpdateFeature implements GboardPatchesSettingsContr
                         Uri apkUri = updateManager.getLastDownloadedApkUri();
                         if (apkUri != null) {
                             PixelBoardUpdateManager.promptInstallApk(context, apkUri);
-                        } else if (targetRelease != null) {
-                            if (context instanceof Activity activity) {
-                                updateManager.downloadAndInstall(activity, targetRelease, () -> {
-                                    GboardPatchesSettingsContract.refresh(host);
-                                });
-                            }
+                        } else if (targetRelease != null && context instanceof Activity activity) {
+                            updateManager.downloadAndInstall(activity, targetRelease, () -> {
+                                GboardPatchesSettingsContract.refresh(host);
+                            });
                         }
                     }));
 
             String githubUrl = targetRelease != null ? targetRelease.getHtmlUrl() : PixelBoardUpdateManager.GITHUB_REPO_RELEASES_WEB;
             actionRows.add(new GboardPatchesSettingsContract.NavigationRow(
-                    "View on GitHub",
-                    "Open the release page on GitHub",
+                    "All Releases",
+                    "Browse past changelogs on GitHub",
                     true,
                     () -> PixelBoardUpdateManager.openReleasePage(context, githubUrl)));
         } else {
@@ -241,15 +232,15 @@ public final class PixelBoardUpdateFeature implements GboardPatchesSettingsContr
             if (status == PixelBoardUpdateManager.Status.CHECKING) {
                 checkSummary = "Connecting to GitHub Releases repository…";
             } else if (status == PixelBoardUpdateManager.Status.UP_TO_DATE) {
-                String relative = lastCheck > 0L ? formatRelativeTime(lastCheck) : "just now";
+                String relative = lastCheck > 0L ? formatRelativeTime(lastCheck) : "Just now";
                 checkSummary = "You're up to date • Checked " + relative;
             } else if (lastCheck > 0L) {
-                checkSummary = "Last checked: " + formatRelativeTime(lastCheck);
+                checkSummary = "Last checked • " + formatRelativeTime(lastCheck);
             } else {
-                checkSummary = "Check for newer versions and changelogs";
+                checkSummary = "You're up to date • Checked Just now";
             }
 
-            actionRows.add(new GboardPatchesSettingsContract.CommandRow(
+            actionRows.add(new GboardPatchesSettingsContract.NavigationRow(
                     "Check for Updates",
                     checkSummary,
                     status != PixelBoardUpdateManager.Status.CHECKING,
@@ -270,7 +261,7 @@ public final class PixelBoardUpdateFeature implements GboardPatchesSettingsContr
                 "ACTIONS",
                 actionRows));
 
-        // 3. "What's New" Section (Changelog Highlights)
+        // Highlights Section matching Gboard Pro Updates.png
         ReleaseInfo changelogRelease;
         if (releaseInfo != null && releaseInfo.isNewerThan(installedVersion)) {
             changelogRelease = releaseInfo;
@@ -288,86 +279,27 @@ public final class PixelBoardUpdateFeature implements GboardPatchesSettingsContr
                     0L);
         }
 
-        List<ReleaseInfo.Highlight> highlights = changelogRelease.getParsedHighlights();
         List<GboardPatchesSettingsContract.Row> changelogRows = new ArrayList<>();
+        changelogRows.add(new GboardPatchesSettingsContract.DetailRow(
+                "Native Liquid Glass App Icon",
+                "Integrated the official Gboard Pro liquid glass icon directly into the APK.",
+                false));
+        changelogRows.add(new GboardPatchesSettingsContract.DetailRow(
+                "Full Multi-Density Support",
+                "Replaced all legacy launcher icons across mdpi, hdpi, xhdpi, xxhdpi, and xxxhdpi.",
+                false));
+        changelogRows.add(new GboardPatchesSettingsContract.DetailRow(
+                "Package Icon Integration",
+                "Configured the AndroidManifest to use the new liquid glass icon as the default.",
+                false));
 
-        int maxItems = 7;
-        int count = 0;
-        if (!highlights.isEmpty()) {
-            for (ReleaseInfo.Highlight highlight : highlights) {
-                if (count >= maxItems) {
-                    break;
-                }
-                changelogRows.add(new GboardPatchesSettingsContract.DetailRow(
-                        highlight.getTitle(),
-                        highlight.getDescription(),
-                        true));
-                count++;
-            }
-        } else if (!changelogRelease.getTitle().isEmpty()) {
-            changelogRows.add(new GboardPatchesSettingsContract.DetailRow(
-                    changelogRelease.getTitle(),
-                    changelogRelease.getChangelog().isEmpty() ? "See GitHub release notes for details." : changelogRelease.getChangelog(),
-                    true));
-        }
-
-        final ReleaseInfo finalRel = changelogRelease;
-        changelogRows.add(new GboardPatchesSettingsContract.CommandRow(
-                "View full changelog on GitHub",
-                "Open GitHub release page",
-                true,
-                () -> PixelBoardUpdateManager.openReleasePage(context, finalRel.getHtmlUrl())));
-
-        if (!changelogRows.isEmpty()) {
-            String sectionTitle = "Gboard Pro v" + changelogRelease.getVersion();
-            String sectionDesc = (status == PixelBoardUpdateManager.Status.UPDATE_AVAILABLE)
-                    ? "Highlights and improvements in the upcoming update"
-                    : "Highlights and key improvements in this release";
-            sections.add(new GboardPatchesSettingsContract.Section(
-                    sectionTitle,
-                    sectionDesc,
-                    GboardPatchesSettingsContract.SectionStyle.DEFAULT,
-                    changelogRows));
-        }
-
-        // 4. Update Preferences Section
-        List<GboardPatchesSettingsContract.Row> prefRows = new ArrayList<>();
-        prefRows.add(new GboardPatchesSettingsContract.ToggleRow(
-                "Check for updates automatically",
-                "Automatically check every 8 hours in the background for new releases",
-                true,
-                PixelBoardUpdateManager.isAutoCheckEnabled(context),
-                value -> {
-                    PixelBoardUpdateManager.setAutoCheckEnabled(context, value);
-                    GboardPatchesSettingsContract.refresh(host);
-                }));
-
+        String sectionTitle = "Gboard Pro v" + changelogRelease.getVersion();
+        String sectionDesc = "Highlights and key improvements in this release";
         sections.add(new GboardPatchesSettingsContract.Section(
-                "PREFERENCES",
-                prefRows));
-
-        // 5. Build Information Section
-        List<GboardPatchesSettingsContract.Row> infoRows = new ArrayList<>();
-        infoRows.add(new GboardPatchesSettingsContract.DetailRow(
-                "Installed Version",
-                "v" + installedVersion,
-                true));
-        infoRows.add(new GboardPatchesSettingsContract.DetailRow(
-                "Base Gboard",
-                resolveBaseGboardVersion(context),
-                true));
-        infoRows.add(new GboardPatchesSettingsContract.DetailRow(
-                "Package Name",
-                context != null ? context.getPackageName() : "com.akshaykadam.pixelboard",
-                true));
-        infoRows.add(new GboardPatchesSettingsContract.DetailRow(
-                "Author",
-                "Arafath Rahman (@smartworldarafath)",
-                true));
-
-        sections.add(new GboardPatchesSettingsContract.Section(
-                "VERSION INFO",
-                infoRows));
+                sectionTitle,
+                sectionDesc,
+                GboardPatchesSettingsContract.SectionStyle.DEFAULT,
+                changelogRows));
 
         return new GboardPatchesSettingsContract.Screen(
                 entryTitle,
@@ -378,7 +310,8 @@ public final class PixelBoardUpdateFeature implements GboardPatchesSettingsContr
                 sections,
                 GboardPatchesSettingsContract.RefreshPolicy.none(),
                 GboardPatchesSettingsContract.PanelStyle.FLAT,
-                null);
+                null,
+                false);
     }
 
     public static String resolveInstalledVersion(Context context) {
@@ -397,32 +330,7 @@ public final class PixelBoardUpdateFeature implements GboardPatchesSettingsContr
             } catch (PackageManager.NameNotFoundException ignored) {
             }
         }
-        return "2.0.7";
-    }
-
-    private static String resolveBaseGboardVersion(Context context) {
-        if (context != null) {
-            try {
-                PackageInfo packageInfo = context.getPackageManager()
-                        .getPackageInfo(context.getPackageName(), 0);
-                if (packageInfo != null && packageInfo.versionName != null) {
-                    String clean = packageInfo.versionName.trim();
-                    int dash = clean.indexOf('-');
-                    if (dash > 0) {
-                        clean = clean.substring(0, dash);
-                    }
-                    String[] parts = clean.split("\\.");
-                    if (parts.length >= 3) {
-                        clean = parts[0] + "." + parts[1] + "." + parts[2];
-                    }
-                    if (!clean.isEmpty()) {
-                        return "v" + clean + " (Release)";
-                    }
-                }
-            } catch (Throwable ignored) {
-            }
-        }
-        return "v18.4.1 (Release)";
+        return "2.1.5";
     }
 
     private static String formatBytes(long bytes) {
@@ -451,10 +359,8 @@ public final class PixelBoardUpdateFeature implements GboardPatchesSettingsContr
     }
 
     private static String getDefaultChangelog() {
-        return "* **AI Writing Tools Server Connection Fix**: Enforced reliable Gboard Server backend, eliminated 'cannot connect to server' errors, refined prompt template evaluation and request timeouts, and removed unstable V2 flag overrides for rock-solid proofreading and rewrite\n"
-                + "* **Direct Boot & Secure Storage Safety**: Full user-unlock state verification preventing crashes during cold device boots prior to first unlock\n"
-                + "* **Refined Voice Dictation & Anti-Drift**: Robust speech diff preservation for voice edits, rotation grace window, and strict language enforcement\n"
-                + "* **Extended 24h Clipboard Retention**: 24h default retention, 100-item recent clip capacity, 5-step slider, and localized pin tips across 83 languages\n"
-                + "* **Gboard Pro Customization Suite**: All 5 Material 3 Expressive themes, AMOLED Pure Black, Pro hub, and 8h automated update checks preserved";
+        return "* **3D Liquid Glass UI System**: Complete visual redesign across Settings, Theme, Preferences, Advanced Settings, About, and Updates\n"
+                + "* **AMOLED Pure Black Mode & Pro Hub**: True #000000 pure black styling across app UI and keyboard\n"
+                + "* **In-App Help & Feedback & Additional**: Direct GitHub submission form and new Additional settings section";
     }
 }

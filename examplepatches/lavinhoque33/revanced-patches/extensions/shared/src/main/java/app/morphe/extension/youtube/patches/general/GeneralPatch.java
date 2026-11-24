@@ -9,7 +9,7 @@
  * - inotia00 (https://github.com/inotia00)
  *
  * Licensed under the GNU General Public License v3.0.
- * Modified by lavinhoque33, 2026-11-20.
+ * Modified by lavinhoque33, 2026-11-23.
  *
  * ------------------------------------------------------------------------
  * GPLv3 Section 7 – Additional Terms & Attribution Requirements
@@ -1022,18 +1022,6 @@ public class GeneralPatch {
     private static Drawable getHeaderDrawable(Activity mActivity, int resourceId) {
         // Rest of the implementation added by patch.
         return ResourceUtils.getDrawable("");
-    }
-
-    public static boolean hideCastButton(boolean original) {
-        return !Settings.HIDE_TOOLBAR_CAST_BUTTON.get() && original;
-    }
-
-    public static void hideCastButton(MenuItem menuItem) {
-        if (!Settings.HIDE_TOOLBAR_CAST_BUTTON.get())
-            return;
-
-        menuItem.setVisible(false);
-        menuItem.setEnabled(false);
     }
 
     public static void hideCreateButton(String enumString, View view) {

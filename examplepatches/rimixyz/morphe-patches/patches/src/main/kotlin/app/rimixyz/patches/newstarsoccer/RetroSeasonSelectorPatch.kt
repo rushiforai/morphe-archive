@@ -32,7 +32,7 @@ private const val BB_CLASS = "Lcom/newstargames/newstarsoccer/bb_;"
 val retroSeasonSelectorPatch = patch(
     name = "Retro season selector",
     description = "Prompts to choose a historical club database (2011–2026) bundled in the APK whenever you start a new career. Existing careers are unaffected.",
-    default = false,
+    default = true,
 ) {
     compatibleWith(COMPATIBILITY_NEWSTARSOCER)
 

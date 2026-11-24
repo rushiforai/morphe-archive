@@ -43,7 +43,7 @@ bun run --cwd site preview
 
 - Edit `src/` and intentional assets in `public/`.
 - Never edit `dist/`, `.astro/`, or `node_modules/`; they are generated/ignored.
-- `public/icons/<package>.png` is synchronized by `../.github/scripts/sync_app_icons.py`. Use `bun run --cwd site check:icons` for validation; use the sync script's mutating modes only when intentionally refreshing icons.
+- `public/icons/<package>.png` is synchronized by the native `asset-prep icons` command through `bun scripts/asset-prep.ts` from the repository root. `bun run --cwd site check:icons` bootstraps the host tool and performs offline discovery; mutating modes are only for intentional refreshes. Equal decoded pixels preserve existing PNG bytes/mtime.
 - Do not copy package versions or patch lists into site code when they can be derived from root metadata.
 - `deploy-site.yml` owns CI build/deployment. Do not invoke a production Pages deployment for routine verification.
 

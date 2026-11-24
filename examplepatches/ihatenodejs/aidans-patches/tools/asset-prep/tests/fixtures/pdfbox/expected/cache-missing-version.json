@@ -1,0 +1,14 @@
+{
+  "args": [
+    "--gradle-home",
+    "/Users/aidan/Projects/aidans-patches/tools/asset-prep/tests/fixtures/pdfbox/gradle-home",
+    "--version",
+    "9.9.9",
+    "--output",
+    "/var/folders/q_/8vvtb5m90p95bxyjx1dw609r0000gn/T/asset-pdfbox-capture-ytqouz1z/cache-missing-version.zip"
+  ],
+  "exit": 1,
+  "stdout": "",
+  "stderr": "pdfbox-android 9.9.9.aar not found in Gradle cache\n",
+  "outputExists": false
+}

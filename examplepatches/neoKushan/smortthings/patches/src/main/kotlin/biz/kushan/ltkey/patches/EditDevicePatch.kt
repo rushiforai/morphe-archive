@@ -12,13 +12,14 @@ private const val EXTENSION_CLASS = "Lbiz/kushan/ltkey/DtEntry;"
  * tap-to-copy) for use in Home Assistant LocalThings. Extraction reuses the app's own
  * CryptoManager; nothing is sent anywhere. Shows nothing unless a validated key is present.
  *
- * Proof of concept — developed/tested against OneConnect 1.8.52.23 and a single HW-Q950A soundbar.
+ * Proof of concept — developed/tested against OneConnect 1.8.52.23 and a single HW-Q950A soundbar;
+ * anchors re-confirmed unchanged on 1.8.54.23.
  */
 @Suppress("unused")
 val editDevicePatch = patch(
     name = "LocalThings Owner PSK in device settings",
     description = "Shows a device's OwnerPSK (for Home Assistant LocalThings) on its Edit screen, " +
-        "extracted locally via the app's own key store. Tested on HW-Q950A / SmartThings 1.8.52.23.",
+        "extracted locally via the app's own key store. Tested on HW-Q950A / SmartThings 1.8.54.23, 1.8.52.23.",
     default = true,
 ) {
     compatibleWith(COMPATIBILITY_SMARTTHINGS)

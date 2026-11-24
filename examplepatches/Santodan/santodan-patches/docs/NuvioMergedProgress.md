@@ -1,6 +1,109 @@
 # NuvioTV merged tracking progress
 
-Current target: **NuvioTV 1.1.0-beta.10 (1073)**. See [beta.10 contracts and verification](NuvioBeta10.md), including the quick-startup reconciliation correction. The current quick path shows saved CW first, skips old bulk membership decoding before refresh, then awaits native automatic provider refresh and publishes its result. Native cooldowns remain in effect. The sampling-only quick path described below is historical and superseded for the current target.
+Current target: **NuvioTV 1.1.1 (1081)**. See [the current port](Nuvio111.md).
+The beta sections below retain their original investigation context.
+
+## Live local Home updates during playback (1.1.1, 2026-11-21)
+
+Successful native playback writes now drive a separate, conflated local Home
+projection even while the full Home metadata pipeline is paused behind the player.
+Position updates create/update the native InProgress card directly, without a
+metadata lookup. At the native completion threshold, one bounded background task
+calls the existing single-show next-up builder. Repeated writes for that same
+completed episode do not cancel/restart the lookup. Episode selection, watched
+membership, release eligibility and artwork fallbacks remain native; the patch
+does not increment episode numbers itself.
+
+This path does not call merge/sync/provider refresh. Existing startup and explicit
+quick/normal sync behavior remains separate. Metadata can still need a native
+lookup when absent from cache, but the work starts during playback rather than
+waiting for Home navigation or tracker synchronization. There is one active local
+projection request, a ten-second lookup deadline and a thirty-second failure retry
+cooldown driven by later local events. Profile/target changes and app backgrounding
+cancel work; publication rechecks the current local journal and Home owner.
+No partial-position update starts episode metadata work.
+
+Home state publication uses the original 1.1.1 copy helper with only Continue
+Watching/Upcoming list arguments changed. Native sorting and Upcoming splitting
+remain in place. Other cards and all other Home settings survive each update.
+Native null results remove a finished series only when its metadata was resolved
+and the native finished-show state confirms the conclusion; unavailable metadata
+keeps the current card. Episode-specific thumbnails/descriptions are reused only
+for the same episode, so autoplay does not carry the preceding episode's metadata.
+
+Returning to Home now resumes the original observer through a reviewed generated
+`ya.v3.santodanLocalHomeResume(ya.v3):void` method. It skips the older disk-snapshot
+replay while preserving the native observer body. Initial app startup still restores
+its native cache. The last local projection is retained through initial/partial
+Home stages so an older cached proposal cannot undo it; final native resolution
+remains authoritative. This is one transient projection, not a persistent cache.
+
+Additional native contracts are in `native.properties`: snapshot `ya.i0` settings,
+`ya.k5.m(Home,WatchProgress,boolean,k0,ContinuationImpl):Object`, native sort/split,
+the full `ya.t2.a` copy signature, and the native `ya.d0` constructor. Exact original
+method hashes and field signatures are checked before patching. Settings capture
+runs only at the initial entry of the native Home snapshot coroutine.
+
+`verifyNuvio111LocalHomeRuntime` exercises the production queue and native adapter
+with the reviewed 1.1.1 ABI: immediate local publication without a sync trigger,
+completion coalescing, zero partial metadata requests, stale/profile/disabled/
+timeout guards, native constructor/resolver/sort/state-copy binding, finished vs
+unavailable metadata, autoplay and preservation of unrelated state. The transition
+DEX/APK verifier checks settings capture and the cache-free observer clone too.
+The unversioned maintenance verifier validates field references ending in `_TYPE`
+as fields, and separately proves that the generated resume reference is installed.
+
+Delivery:
+`../Apps/NuvioTV/NuvioTV-1.1.1-patches-0.20.0-all-local-live-unsigned.apk`.
+The earlier `all-cw-transition-unsigned.apk` only retained the card during the
+lookup; it does not include this background local updater. Native lookup latency
+and playback/frame behavior on the Mi Box still require device confirmation.
+
+## Continue Watching transition after playback (1.1.1, 2026-11-21)
+
+The user reported that a completed episode appeared watched in Details, but its
+show disappeared from Home for 10–30 seconds before returning with the correct
+next episode on a Mi Box Gen 1. The local playback journal already supplies the
+completed seed correctly. Native Home first publishes resumable/cached items,
+then resolves and publishes next-up items; an advanced seed invalidates the old
+cached next-up card before its replacement is ready.
+
+The merge patch now retains the existing visible card for a missing show backed
+by a current local completed playback record during native **initial and partial**
+publications. An available native replacement wins immediately. The final native
+publication remains unchanged and can remove a fully watched or dismissed show.
+No next-episode record is invented, no tracker/metadata request is added, and no
+additional persistent cache is created. Existing Home order is retained for the
+pending card. Disabled merging, partial rewatches, unrelated removals, aliases,
+empty/new-profile Home state and final removals retain their intended behavior.
+Native next-episode lookup can still take time on older hardware.
+
+Exact original-Dex hooks: `ya.y4.invokeSuspend(Object):Object`, first
+`ya.k5.D(List,ContinueWatchingSortMode):Pair` call at instruction 1681, and
+`ya.x4.invokeSuspend(Object):Object`, its sole D call at instruction 297.
+The second y4 D call is the final publication and is untouched. Full native
+fingerprints guard the original bodies; injection uses existing low registers.
+Home state, coroutine-owner and card bindings come from `native.properties` and
+are checked against original 1.1.1. Evidence is in
+`../Skills/inspection-evidence/.inspect-nuvio-111/home-transition-*`.
+
+`verifyNuvio111HomeTransitionRuntime` exercises a blocked native resolver with
+repeated intermediate publications, replacement, final removal, cold/profile-empty
+state and alias deduplication. `verifyNuvio111HomeTransition` verifies original
+bindings, missing/changed/ambiguous/already-patched rejection, DEX roundtrip,
+unchanged native branches/exception regions/final publication, and optionally the
+actual APK via `-Pnuvio111TransitionApk=<apk>`. Both run in `verifyNuvioLatest`.
+Standalone merge and combined packaged verification require both new hooks.
+
+The fixed output is
+`../Apps/NuvioTV/NuvioTV-1.1.1-patches-0.20.0-all-cw-transition-unsigned.apk`.
+The earlier `all-unsigned.apk` predates this fix. The output is unsigned and has
+not been installed or tested on the Mi Box; remote focus and the observed
+playback-to-Home transition still need device confirmation.
+
+## Historical beta.10 startup behavior
+
+See [beta.10 contracts and verification](NuvioBeta10.md), including the quick-startup reconciliation correction. That quick path shows saved CW first, skips old bulk membership decoding before refresh, then awaits native automatic provider refresh and publishes its result. Native cooldowns remain in effect. The earlier sampling-only quick path described below is historical and superseded.
 
 For beta.10 immediate playback updates, the local-write observer must pass
 native `data.local.vb/wb/tb/ub` resume states through unchanged for `bc.C/D/A/B`.

@@ -5,145 +5,69 @@
 
 package app.morphe.patches.myooredoo.misc.developeroptions
 
-import app.morphe.patches.myooredoo.shared.Constants
 import app.morphe.patcher.Fingerprint
 import app.morphe.patcher.extensions.InstructionExtensions.addInstruction
-import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
-import app.morphe.patcher.extensions.InstructionExtensions.instructions
-import app.morphe.patcher.patch.bytecodePatch
+import app.morphe.patcher.extensions.InstructionExtensions.getInstruction
+import app.morphe.patcher.methodCall
+import app.morphe.patcher.patch.mutableClassDefByOrNull
+import app.morphe.patcher.patch.patch
+import app.morphe.patcher.util.findInstructionIndicesReversed
+import app.morphe.patcher.util.returnEarly
+import app.morphe.patches.myooredoo.shared.Constants
+import app.morphe.patches.shared.replyFlutterBool
+import app.morphe.patches.shared.returnEarlyAll
+import app.morphe.util.indexOfFirstInstruction
 import com.android.tools.smali.dexlib2.Opcode
-import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
-import com.android.tools.smali.dexlib2.iface.reference.MethodReference
 
-/** Disables developer options detection. */
+private val SETTINGS_CLASSES = listOf(
+    "Landroid/provider/Settings\$Secure;",
+    "Landroid/provider/Settings\$Global;",
+)
+
 @Suppress("unused")
-val disableDeveloperOptionsPatch = bytecodePatch(
+val disableDeveloperOptionsPatch = patch(
     name = "Disable developer options detection",
-    description = "Stops the app from detecting that Developer Options or USB debugging are " +
-            "enabled on the device, removing the blocking security dialog.",
+    description = "Stops the app from detecting Developer Options, USB debugging or " +
+            "debuggable flags, removing the blocking security dialog.",
     default = true,
 ) {
+    category("Security")
     compatibleWith(Constants.COMPATIBILITY_MYOOREDOO)
 
     execute {
-        /** Updates security setting checks. */
-        fun neutralizeSecureGetInt(method: app.morphe.patcher.util.proxy.mutableTypes.MutableMethod) {
-            val implementation = method.implementation ?: return
-            val insns = implementation.instructions.toList()
-            val replacements = buildList {
-                insns.forEachIndexed { index, instruction ->
-                    if (instruction is ReferenceInstruction) {
-                        val reference = instruction.reference
-                        if (reference is MethodReference &&
-                            reference.name == "getInt" &&
-                            reference.definingClass == "Landroid/provider/Settings\$Secure;"
-                        ) {
-                            // Find the following move-result and zero its destination
-                            // register. The previous implementation wrote to p0,
-                            // which is the receiver/context register for these
-                            // methods and left the actual result unchanged.
-                            var cursor = index + 1
-                            while (cursor < insns.size) {
-                                if (insns[cursor].opcode == Opcode.MOVE_RESULT) {
-                                    val resultRegister =
-                                        (insns[cursor] as OneRegisterInstruction).registerA
-                                    add(cursor to resultRegister)
-                                    break
-                                }
-                                cursor++
-                            }
-                        }
+        // Zero Settings.Secure/Global.getInt() results in MainActivity's channel dispatcher.
+        runCatching {
+            val method = Fingerprint(
+                definingClass = "Lcom/example/ooredoo_selfcare_algeria/MainActivity;",
+                returnType = "V",
+                strings = listOf("development_settings_enabled"),
+            ).method
+
+            SETTINGS_CLASSES.forEach { settingsClass ->
+                method.findInstructionIndicesReversed(
+                    methodCall(definingClass = settingsClass, name = "getInt"),
+                ).forEach { callIdx ->
+                    val moveIdx = method.indexOfFirstInstruction(callIdx + 1, Opcode.MOVE_RESULT)
+                    if (moveIdx >= 0) {
+                        val reg = method.getInstruction<OneRegisterInstruction>(moveIdx).registerA
+                        method.addInstruction(moveIdx + 1, "const/16 v$reg, 0x0")
                     }
                 }
             }
-
-            // Insert from the end so adding an instruction does not invalidate
-            // the indexes collected from the original implementation.
-            replacements.asReversed().forEach { (index, register) ->
-                method.addInstruction(index + 1, "const/16 v$register, 0x0")
-            }
         }
 
-        // MainActivity channel dispatcher: reads "development_settings_enabled" and "adb_enabled".
-        // Omit method name so it matches both direct configureFlutterEngine and synthetic lambdas.
-        val mainActivitySettingsFingerprint = object : Fingerprint(
-            definingClass = "Lcom/example/ooredoo_selfcare_algeria/MainActivity;",
-            returnType = "V",
-            strings = listOf("development_settings_enabled"),
-        ) {}
-        // RjsnifferPlugin dispatcher: contains "runprog3" and the "adb_enabled" read
-        val rjsnifferFingerprint = object : Fingerprint(
-            definingClass = "Lcom/emrys/rjsniffer/rjsniffer/RjsnifferPlugin;",
-            name = "onMethodCall",
-            returnType = "V",
-            parameters = listOf(
-                "Lio/flutter/plugin/common/MethodCall;",
-                "Lio/flutter/plugin/common/MethodChannel\$Result;",
-            ),
-            strings = listOf("runprog3"),
-        ) {}
-        // DevelopmentModeCheck.developmentModeCheck / usbDebuggingCheck
-        val developmentModeCheckFingerprint = object : Fingerprint(
-            definingClass = "Lcom/xamdesign/safe_device/DevelopmentMode/DevelopmentModeCheck;",
-            returnType = "Z",
-            parameters = listOf("Landroid/content/Context;"),
-            strings = listOf("development_settings_enabled"),
-        ) {}
-        val usbDebuggingCheckFingerprint = object : Fingerprint(
-            definingClass = "Lcom/xamdesign/safe_device/DevelopmentMode/DevelopmentModeCheck;",
-            returnType = "Z",
-            parameters = listOf("Landroid/content/Context;"),
-            strings = listOf("adb_enabled"),
-        ) {}
-        // RootCheckerPlusPlugin.isDeveloperMode
-        val rootCheckerDeveloperModeFingerprint = object : Fingerprint(
-            definingClass = "Lcom/example/root_checker_plus/RootCheckerPlusPlugin;",
-            name = "isDeveloperMode",
-            returnType = "Z",
-            parameters = listOf(),
-            strings = listOf("development_settings_enabled"),
-        ) {}
+        // Neutralize boolean checks across DevelopmentModeCheck, RootCheckerPlus, and MainActivity.
+        mutableClassDefByOrNull("Lcom/xamdesign/safe_device/DevelopmentMode/DevelopmentModeCheck;")
+            ?.returnEarlyAll(false)
 
-        listOf(
-            mainActivitySettingsFingerprint,
-            rjsnifferFingerprint,
-        ).forEach { fingerprint ->
-            runCatching { fingerprint.method }.getOrNull()?.let { method ->
-                neutralizeSecureGetInt(method)
-            }
-        }
+        mutableClassDefByOrNull("Lcom/example/root_checker_plus/RootCheckerPlusPlugin;")
+            ?.methods?.firstOrNull { it.name == "isDeveloperMode" }?.returnEarly(false)
 
-        listOf(
-            developmentModeCheckFingerprint,
-            usbDebuggingCheckFingerprint,
-            rootCheckerDeveloperModeFingerprint,
-        ).forEach { fingerprint ->
-            runCatching { fingerprint.method }.getOrNull()?.let { method ->
-                method.addInstructions(
-                    0,
-                    """
-                        const/4 v0, 0x0
-                        return v0
-                    """
-                )
-            }
-        }
+        mutableClassDefByOrNull("Lcom/example/ooredoo_selfcare_algeria/MainActivity;")
+            ?.returnEarlyAll(false) { it.returnType == "Z" && (it.name == "isDebug" || it.name == "a") }
 
-        // RjsnifferPlugin: the JS-injection bridge gate (returns injection availability).
-        // Force the whole dispatcher to report "unavailable" so neither adb nor frida can
-        // enable the bridge (and no security signal is ever derived from it).
-        runCatching { rjsnifferFingerprint.method }.getOrNull()?.let { method ->
-            method.addInstructions(
-                0,
-                """
-                    const/4 v0, 0x0
-                    invoke-static {v0}, Ljava/lang/Boolean;->valueOf(Z)Ljava/lang/Boolean;
-                    move-result-object v0
-                    invoke-interface {p2, v0}, Lio/flutter/plugin/common/MethodChannel${'$'}Result;->success(Ljava/lang/Object;)V
-                    return-void
-                """
-            )
-        }
+        mutableClassDefByOrNull("Lcom/emrys/rjsniffer/rjsniffer/RjsnifferPlugin;")
+            ?.methods?.firstOrNull { it.name == "onMethodCall" }?.replyFlutterBool(false)
     }
 }

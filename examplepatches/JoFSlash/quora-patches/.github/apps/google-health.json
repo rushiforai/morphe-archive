@@ -1,0 +1,96 @@
+{
+  "name": "Google Health",
+  "workflow": "emulator-google-health.yml",
+  "patches": "patches/src/main/kotlin/app/jofslash/patches/googlehealth",
+  "extension": "extensions/googlehealth",
+  "docs": "docs/google-health/README.md",
+  "readme": {
+    "style": "generated",
+    "order": [
+      "Privacy",
+      "App"
+    ],
+    "intro": {
+      "Privacy": "On by default. They change nothing you see.",
+      "App": "Signing in, prompts and how the app behaves."
+    }
+  },
+  "store": "https://play.google.com/store/apps/details?id=com.fitbit.FitbitMobile",
+  "package": "com.fitbit.FitbitMobile",
+  "store_note": "(Fitbit)",
+  "summary": "Sign in through MicroG-RE instead of Google Play services, no surveys or nags, a black theme, screenshots on every screen, and a clone next to the official app.",
+  "owners": [
+    "Google",
+    "Fitbit"
+  ],
+  "apk": {
+    "release": "google-health",
+    "version": "newest",
+    "asset": "*.apkm",
+    "file": "google-health.apkm"
+  },
+  "android": {
+    "note": "Google Health needs Android 12L or newer: every version from there, and the next one, whose image is only in the SDK's canary channel so far. The release tries the oldest supported version, the newest stable one and the next one; a pull request the oldest and the newest stable.",
+    "pull_request": [
+      {
+        "api": "32",
+        "android": "12L",
+        "channel": "stable"
+      },
+      {
+        "api": "36",
+        "android": "16",
+        "channel": "stable",
+        "verify": true
+      }
+    ],
+    "full": [
+      {
+        "api": "32",
+        "android": "12L",
+        "channel": "stable"
+      },
+      {
+        "api": "36",
+        "android": "16",
+        "channel": "stable",
+        "verify": true
+      },
+      {
+        "api": "37.0",
+        "android": "17",
+        "channel": "canary"
+      }
+    ]
+  },
+  "checks": {
+    "error_tag": "E/JoFSlashPatches",
+    "screen": "text=\"Sign in with Google\"",
+    "screen_shown": "The welcome screen with the sign-in button is on screen.",
+    "screen_missing": "The welcome screen didn't show within a minute.",
+    "clone": {
+      "patch": "Clone app",
+      "package": "com.fitbit.FitbitMobile.clone"
+    }
+  },
+  "check": [
+    "python3 .github/scripts/check_app.py google-health \"$APK\" --cli \"$CLI\" --install --expect-screen --compare-original --adb adb ${DEXDUMP:+--dexdump \"$DEXDUMP\"}",
+    "python3 .github/scripts/check_app.py google-health \"$APK\" --cli \"$CLI\" --install --expect-screen --clone --adb adb"
+  ],
+  "test_inputs": [
+    ".github/scripts/verify_google_health.py"
+  ],
+  "versions": {
+    "pattern": "\\d+(\\.\\d+)+\\.health-mobile-(?P<code>\\d+)-\\d+",
+    "example": "5.13.health-mobile-1104148438-1023845615",
+    "source": "apkmirror",
+    "apkmirror": "/apk/google-inc/google-health-fitbit/",
+    "file": "apkm",
+    "more_signatures": [
+      "80637b399756fe72817966fa4da2977a8e3efad6"
+    ],
+    "shows": "shows its welcome screen",
+    "phone_test": "sign in on a phone: signing in through MicroG-RE can't be tried on the emulator.",
+    "check_flags": "--expect-welcome"
+  }
+}

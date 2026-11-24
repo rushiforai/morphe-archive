@@ -10,7 +10,7 @@ Parches compatibles con Morphe para **TikTok Lite 47.8.15**, paquete `com.zhilia
 
 ## Instalación probada con Morphe Desktop
 
-1. Consigue los APK originales de tu instalación y el archivo `.mpp` de [GitHub Releases](https://github.com/jair1c/tiktok-lite-patches/releases). En Morphe, habilita las versiones preliminares si quieres consultar la serie dev.
+1. Consigue los APK originales de tu instalación y el archivo `.mpp` de [GitHub Releases](https://github.com/KyVexo/tiktok-lite-patches/releases). En Morphe, habilita las versiones preliminares si quieres consultar la serie dev.
 2. En una ejecución con selección exclusiva, aplica **Hide feed ads** a `base.apk`. Esta parte del parcheo es necesaria para que funcionen los parches del split.
 3. En otra ejecución con selección exclusiva, aplica **Prefer clean source for video downloads** y **Open mod settings from profile** a `split_df_edit_filter.apk`.
 4. Conserva los nombres de los splits y usa el mismo identificador y certificado para todos los APK de la instalación. Para actualizar una instalación parcheada, conserva su clave de firma.

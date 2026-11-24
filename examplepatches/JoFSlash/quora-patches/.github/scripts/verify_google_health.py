@@ -9,7 +9,7 @@ Usage:
     python .github/scripts/verify_google_health.py <patched.apk> --dexdump <dexdump> [--patch NAME ...]
 
 Without --patch, every patch below is checked. Exits 0 when every check passed, 1 when one failed.
-Also used by check_google_health.py.
+Also used by check_app.py google-health (.github/scripts/apps/google-health.py).
 """
 import argparse
 import pathlib

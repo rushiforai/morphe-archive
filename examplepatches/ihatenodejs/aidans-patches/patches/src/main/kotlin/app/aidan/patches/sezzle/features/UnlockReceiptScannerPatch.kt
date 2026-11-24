@@ -13,33 +13,35 @@ private val UPSIDE_RECEIPT_SCANNER_ENABLED_FUNCTION_PREFIX = byteArrayOf(
     0x3b
 )
 
-private val RECEIPT_SCANNER_V2_VISIBILITY_SELECTOR = byteArrayOf(
-    0x89.toByte(),
-    0x01,
-    0x01,
-    0x45,
-    0x01,
-    0x01,
-    0x00,
-    0x26,
-    0xb9.toByte(),
-    0x45,
-    0x02,
-    0x01,
-    0x01,
-    0x98.toByte(),
-    0xf4.toByte(),
-    0x90.toByte(),
-    0x01,
-    0x1d,
-    0x16,
-    0x17,
-    0x00,
-    0x02,
-    0x01,
-    0x76,
-    0x00
-)
+private const val EARN_SLICE = "earnSlice"
+private const val RECEIPT_SCANNER_V2_PROPERTY = "showReceiptScannerV2"
+private const val RECEIPT_SCANNER_V2_SHOW_VALUE = "show"
+
+/**
+ * Reconstructs the short selector function that reads
+ * `earnSlice.showReceiptScannerV2 === "show"` using the current string table.
+ */
+private fun HermesBundleEditor.buildReceiptScannerV2VisibilitySelector(): ByteArray {
+    fun shortId(name: String): ByteArray {
+        val id = findStringId(name)
+            ?: throw PatchException("String '$name' not found")
+        require(id <= 0xFFFF) { "String '$name' id $id does not fit GetById" }
+        return byteArrayOf((id and 0xFF).toByte(), ((id ushr 8) and 0xFF).toByte())
+    }
+
+    val earnSliceBytes = shortId(EARN_SLICE)
+    val propertyBytes = shortId(RECEIPT_SCANNER_V2_PROPERTY)
+    val showBytes = shortId(RECEIPT_SCANNER_V2_SHOW_VALUE)
+
+    return byteArrayOf(
+        0x89.toByte(), 0x01, 0x01,
+        0x45, 0x01, 0x01, 0x00, *earnSliceBytes,
+        0x45, 0x02, 0x01, 0x01, *propertyBytes,
+        0x90.toByte(), 0x01, *showBytes,
+        0x17, 0x00, 0x02, 0x01,
+        0x76, 0x00
+    )
+}
 
 private val RECEIPT_SCANNER_V2_VISIBILITY_SELECTOR_PREFIX = byteArrayOf(
     0x89.toByte(),
@@ -61,12 +63,13 @@ private val RETURN_TRUE = byteArrayOf(
  * @throws PatchException if the sequence is absent or occurs more than once.
  */
 private fun HermesBundleEditor.findReceiptScannerV2VisibilitySelector(): Int {
+    val selector = buildReceiptScannerV2VisibilitySelector()
     val bundle = toByteArray()
     var selectorOffset = -1
     var selectorCount = 0
 
-    for (offset in 0..(bundle.size - RECEIPT_SCANNER_V2_VISIBILITY_SELECTOR.size)) {
-        if (matchesBytes(offset, RECEIPT_SCANNER_V2_VISIBILITY_SELECTOR)) {
+    for (offset in 0..(bundle.size - selector.size)) {
+        if (matchesBytes(offset, selector)) {
             selectorOffset = offset
             selectorCount++
         }

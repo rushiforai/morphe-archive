@@ -31,6 +31,7 @@ public final class NgEditGesture {
 
     public static boolean onGesture(View view, int gesture, android.graphics.PointF start) {
         if (gesture == 0 || !view.isShown()) return false;
+        if (assigned(view,gesture,DirectCopyGesture.GESTURE))return DirectCopyGesture.gesture(view);
         if (assigned(view,gesture,ResponseNotes.GESTURE))return ResponseNotes.gesture(view);
         if (assigned(view, gesture, OpenTabsRefresh.GESTURE)) return OpenTabsRefresh.gesture(view);
         if (assigned(view, gesture, DeleteReadThreads.KEY)) return DeleteReadThreads.gesture(view, start);
@@ -64,8 +65,9 @@ public final class NgEditGesture {
         boolean refresh = assigned(view, gesture, OpenTabsRefresh.GESTURE);
         boolean filters = assigned(view, gesture, FILTER_KEY);
         boolean notes=assigned(view,gesture,ResponseNotes.GESTURE);
-        if (!delete && !refresh && !filters && !notes && !assigned(view, gesture)) return original;
-        String label = notes ? "メモ" : delete ? "既読スレをすべて削除" : refresh ? "開いているスレ・板を一括更新" : filters ? "フィルター" : "NG編集";
+        boolean copy=assigned(view,gesture,DirectCopyGesture.GESTURE);
+        if (!delete && !refresh && !filters && !notes && !copy && !assigned(view, gesture)) return original;
+        String label = copy ? "長押しコピー ON／OFF" : notes ? "メモ" : delete ? "既読スレをすべて削除" : refresh ? "開いているスレ・板を一括更新" : filters ? "フィルター" : "NG編集";
         synchronized (NgEditGesture.class) {
             Class<?> owner = view.getClass();
             // Preference assignment can change without changing the gesture sequence.

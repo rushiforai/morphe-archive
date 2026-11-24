@@ -10,6 +10,9 @@ on:
       - main
     paths:
       - 'patches-list.json'
+      - 'tools/asset-prep/**'
+      - 'scripts/asset-prep.ts'
+      - '.github/workflows/sync-app-icons.yml'
   workflow_dispatch:
     inputs:
       force_sync_all:
@@ -33,31 +36,34 @@ jobs:
           ref: dev
           persist-credentials: false
 
-      - name: Setup Python
-        uses: actions/setup-python@v7
+      - name: Setup Rust
+        uses: dtolnay/rust-toolchain@1.97.1
+
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v2
         with:
-          python-version: '3.12'
+          bun-version: latest
+
+      - name: Rust cache
+        uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: tools/asset-prep -> tools/asset-prep/target
 
       # Fast gate check: on push events, exit immediately if all icons already exist
       - name: Check for missing icons
         id: gate
         if: github.event_name == 'push' && !inputs.force_sync_all
         run: |
-          python3 .github/scripts/sync_app_icons.py --check-only
-
-      - name: Install dependencies
-        if: github.event_name != 'push' || steps.gate.outputs.has_missing == 'true' || inputs.force_sync_all
-        run: |
-          pip install --no-cache-dir Pillow
+          bun scripts/asset-prep.ts icons --check-only
 
       - name: Run Icon Sync
         id: sync
         if: github.event_name != 'push' || steps.gate.outputs.has_missing == 'true' || inputs.force_sync_all
         run: |
           if [ "${{ github.event_name }}" = "push" ] && [ "${{ inputs.force_sync_all }}" != "true" ]; then
-            python3 .github/scripts/sync_app_icons.py --download-missing
+            bun scripts/asset-prep.ts icons --download-missing
           else
-            python3 .github/scripts/sync_app_icons.py --sync-all
+            bun scripts/asset-prep.ts icons --sync-all
           fi
 
       - name: Create or update Pull Request

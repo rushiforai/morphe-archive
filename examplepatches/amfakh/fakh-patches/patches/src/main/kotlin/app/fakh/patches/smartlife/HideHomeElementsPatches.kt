@@ -1,8 +1,22 @@
+/*
+ * Copyright 2026 amfakh
+ * SPDX-License-Identifier: GPL-3.0-only
+ */
+
 package app.fakh.patches.smartlife
 
 import app.fakh.patches.smartlife.shared.Constants.COMPATIBILITY_BARDI
+import app.fakh.patches.smartlife.shared.Constants.COMPATIBILITY_KRISBOW
 import app.fakh.patches.smartlife.shared.Constants.COMPATIBILITY_SMARTLIFE
 import app.fakh.patches.smartlife.shared.Constants.COMPATIBILITY_TUYA_SMART
+import app.fakh.patches.smartlife.shared.Constants.HIDE_ADS
+import app.fakh.patches.smartlife.shared.Constants.HIDE_AI_BAR
+import app.fakh.patches.smartlife.shared.Constants.HIDE_AI_WEB
+import app.fakh.patches.smartlife.shared.Constants.HIDE_EXPLORE
+import app.fakh.patches.smartlife.shared.Constants.HIDE_ORDERS
+import app.fakh.patches.smartlife.shared.Constants.HIDE_PLUS
+import app.fakh.patches.smartlife.shared.Constants.HIDE_RECOMMENDED
+import app.fakh.patches.smartlife.shared.Constants.HIDE_REWARDS
 import app.morphe.patcher.Fingerprint
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructionsWithLabels
@@ -49,7 +63,7 @@ val signatureSpoofPatch = patch(
         "integrity check rejects, so without this it closes a few seconds after it opens.",
     default = true,
 ) {
-    compatibleWith(COMPATIBILITY_SMARTLIFE, COMPATIBILITY_TUYA_SMART, COMPATIBILITY_BARDI)
+    compatibleWith(COMPATIBILITY_SMARTLIFE, COMPATIBILITY_TUYA_SMART, COMPATIBILITY_BARDI, COMPATIBILITY_KRISBOW)
     category("Feature")
     extendWith("extensions/extension.mpe")
 
@@ -128,7 +142,7 @@ val hideRewardsHubPatch = patch(
     compatibleWith(COMPATIBILITY_SMARTLIFE, COMPATIBILITY_TUYA_SMART)
     category("Layout")
     extendWith("extensions/extension.mpe")
-    dependsOn(switchRow("fakh_hide_rewards"), settingsSwitchesPatch)
+    dependsOn(switchRow(HIDE_REWARDS), settingsSwitchesPatch)
 
     execute {
         welfareEntryFingerprint.method.whenSwitchOn("fakh_hide_rewards", HIDE_CELL)
@@ -232,7 +246,7 @@ val hideMyOrdersPatch = patch(
     compatibleWith(COMPATIBILITY_SMARTLIFE, COMPATIBILITY_TUYA_SMART)
     category("Layout")
     extendWith("extensions/extension.mpe")
-    dependsOn(customRowFilterPatch, switchRow("fakh_hide_orders"), settingsSwitchesPatch)
+    dependsOn(customRowFilterPatch, switchRow(HIDE_ORDERS), settingsSwitchesPatch)
 
     execute { hiddenRowIds["tyko2ipbcpehi0hwtv"] = "fakh_hide_orders" }
 }
@@ -246,7 +260,7 @@ val hideTuyaAiWebPatch = patch(
     compatibleWith(COMPATIBILITY_SMARTLIFE, COMPATIBILITY_TUYA_SMART)
     category("Layout")
     extendWith("extensions/extension.mpe")
-    dependsOn(customRowFilterPatch, switchRow("fakh_hide_ai_web"), settingsSwitchesPatch)
+    dependsOn(customRowFilterPatch, switchRow(HIDE_AI_WEB), settingsSwitchesPatch)
 
     execute { hiddenRowIds["tyezgn3ay0hma8xah6"] = "fakh_hide_ai_web" }
 }
@@ -268,7 +282,7 @@ val hidePlusButtonPatch = patch(
     compatibleWith(COMPATIBILITY_SMARTLIFE, COMPATIBILITY_TUYA_SMART)
     category("Layout")
     extendWith("extensions/extension.mpe")
-    dependsOn(switchRow("fakh_hide_plus"), settingsSwitchesPatch)
+    dependsOn(switchRow(HIDE_PLUS), settingsSwitchesPatch)
 
     execute {
         PlusMenuViewFingerprint.method.apply {
@@ -291,7 +305,7 @@ val hideRecommendedForYouPatch = patch(
     compatibleWith(COMPATIBILITY_SMARTLIFE, COMPATIBILITY_TUYA_SMART)
     category("Layout")
     extendWith("extensions/extension.mpe")
-    dependsOn(switchRow("fakh_hide_recommended"), settingsSwitchesPatch)
+    dependsOn(switchRow(HIDE_RECOMMENDED), settingsSwitchesPatch)
 
     execute {
         AddUiCardFingerprint.method.apply {
@@ -321,7 +335,7 @@ val hideAiAskBarPatch = patch(
     compatibleWith(COMPATIBILITY_SMARTLIFE, COMPATIBILITY_TUYA_SMART)
     category("Layout")
     extendWith("extensions/extension.mpe")
-    dependsOn(switchRow("fakh_hide_ai_bar"), settingsSwitchesPatch)
+    dependsOn(switchRow(HIDE_AI_BAR), settingsSwitchesPatch)
 
     execute {
         listOf(AiBarFactoryFingerprint, PanelAiBarFactoryFingerprint).forEach {
@@ -364,7 +378,7 @@ val hideExploreTabPatch = patch(
 ) {
     compatibleWith(COMPATIBILITY_SMARTLIFE, COMPATIBILITY_TUYA_SMART)
     category("Layout")
-    dependsOn(tabFilterPatch, switchRow("fakh_hide_explore"), settingsSwitchesPatch)
+    dependsOn(tabFilterPatch, switchRow(HIDE_EXPLORE), settingsSwitchesPatch)
 }
 
 /** AdMobServiceImpl: the method that builds an ad slot view for a position, found by its Context and String parameters. */
@@ -394,7 +408,7 @@ val hideAdsPatch = patch(
     compatibleWith(COMPATIBILITY_SMARTLIFE, COMPATIBILITY_TUYA_SMART)
     category("Privacy")
     extendWith("extensions/extension.mpe")
-    dependsOn(switchRow("fakh_hide_ads"), settingsSwitchesPatch)
+    dependsOn(switchRow(HIDE_ADS), settingsSwitchesPatch)
 
     execute {
         // Both return null, which their callers already handle (a pad device gets no ad slot at all).

@@ -24,8 +24,10 @@ public final class HomeThreadDrag extends FrameLayout {
     private String draggedLabel;
     private Bitmap image;
     private List<?> snapshot;
+    private int[] headingForPosition;
     private final Paint paint=new Paint(Paint.ANTI_ALIAS_FLAG);
     private final Map<TextView,RowPin> rowPins=new IdentityHashMap<>();
+    private final Map<Object,String> rowKeys=new IdentityHashMap<>();
     private final Set<TextView> visibleTitles=Collections.newSetFromMap(new IdentityHashMap<>());
     private final ViewTreeObserver.OnPreDrawListener pinListener=()->{bindVisiblePins();return true;};
     private java.lang.reflect.Method childAdapterPosition;
@@ -43,7 +45,8 @@ public final class HomeThreadDrag extends FrameLayout {
         View existing=root.findViewWithTag("haiagaru.home.drag");
         if(existing instanceof HomeThreadDrag){((HomeThreadDrag)existing).finish();return;}
         View list=FilterPosition.findList(root);
-        if(list==null||!(list.getParent() instanceof ViewGroup)||HomeThreadOrder.displayed(mode)==null){
+        if(list==null||!(list.getParent() instanceof ViewGroup)||!HomeThreadOrder.canReorder(mode)
+                ||HomeThreadOrder.presented(list,mode)==null){
             Toast.makeText(activity,"HOMEのスレ一覧を表示してください",Toast.LENGTH_SHORT).show();return;}
         ViewGroup parent=(ViewGroup)list.getParent();int index=parent.indexOfChild(list);ViewGroup.LayoutParams params=list.getLayoutParams();
         HomeThreadDrag wrapper=new HomeThreadDrag(activity,fragment,root,list,mode);
@@ -86,19 +89,22 @@ public final class HomeThreadDrag extends FrameLayout {
         if(lx<0||lx>=list.getWidth()||ly<0||ly>=list.getHeight())return -1;
         if(list instanceof ListView)return ((ListView)list).pointToPosition((int)lx,(int)ly);
         try{ViewGroup group=(ViewGroup)list;for(int i=0;i<group.getChildCount();i++){View child=group.getChildAt(i);
-            if(ly>=child.getTop()&&ly<child.getBottom())return ((Number)list.getClass().getMethod("getChildAdapterPosition",View.class).invoke(list,child)).intValue();}
+            if(ly>=child.getTop()&&ly<child.getBottom())return childPosition(child,i);}
         }catch(Exception ignored){}return -1;
     }
     private View row(int position){
         if(list instanceof ListView)return ((ListView)list).getChildAt(position-((ListView)list).getFirstVisiblePosition());
-        try{ViewGroup group=(ViewGroup)list;for(int i=0;i<group.getChildCount();i++){View child=group.getChildAt(i);if(((Number)list.getClass().getMethod("getChildAdapterPosition",View.class).invoke(list,child)).intValue()==position)return child;}}catch(Exception ignored){}return null;
+        try{ViewGroup group=(ViewGroup)list;for(int i=0;i<group.getChildCount();i++){View child=group.getChildAt(i);if(childPosition(child,i)==position)return child;}}catch(Exception ignored){}return null;
     }
     private void begin(){
-        snapshot=HomeThreadOrder.displayed(mode);from=position(downX,downY);
+        List<?> visible=HomeThreadOrder.presented(list,mode);
+        snapshot=visible==null?null:new ArrayList<>(visible);from=position(downX,downY);
         if(snapshot==null||from<0||from>=snapshot.size())return;
         String sourceKey=HomeThreadOrder.key(snapshot.get(from));
-        draggedLabel=sourceKey==null?HomeThreadOrder.customLabel(snapshot.get(from),mode):null;
+        draggedLabel=sourceKey==null||HomeThreadOrder.boardSection(snapshot.get(from))?HomeThreadOrder.sectionKey(snapshot.get(from)):null;
         if(draggedLabel==null&&(sourceKey==null||HomeThreadOrder.pinned(sourceKey,mode)))return;
+        if(draggedLabel!=null){headingForPosition=new int[snapshot.size()];int heading=-1;
+            for(int i=0;i<snapshot.size();i++){if(HomeThreadOrder.sectionKey(snapshot.get(i))!=null)heading=i;headingForPosition[i]=heading;}}
         try{View view=row(from);if(view==null||view.getWidth()<=0||view.getHeight()<=0)return;
             int height=Math.min(view.getHeight(),getHeight());image=Bitmap.createBitmap(view.getWidth(),height,Bitmap.Config.ARGB_8888);view.draw(new Canvas(image));
         }catch(RuntimeException error){cancel();return;}
@@ -111,22 +117,11 @@ public final class HomeThreadDrag extends FrameLayout {
     }
     private void updateTarget(){int index=position(downX,y);if(snapshot!=null&&index>=0&&index<snapshot.size()){
             if(draggedLabel!=null){
-            for(int i=index;i>=0;i--){
-                Object row=snapshot.get(i);
-                if(HomeThreadOrder.sectionKey(row)==null)continue;
-                to=i;
-                break;
-            }
+            if(headingForPosition!=null&&headingForPosition[index]>=0)to=headingForPosition[index];
             postInvalidateOnAnimation();
             return;
         }
-        int candidate=from;
-            for(int i=from+Integer.signum(index-from);i!=from&&i>=Math.min(from,index)&&i<=Math.max(from,index);i+=Integer.signum(index-from)){
-                String key=HomeThreadOrder.key(snapshot.get(i));
-                if(key!=null&&HomeThreadOrder.pinned(key,mode))break;
-                candidate=i;
-            }
-            to=candidate;
+        to=index;
         }postInvalidateOnAnimation();}
     @Override public boolean dispatchTouchEvent(MotionEvent event){
         int action=event.getActionMasked();
@@ -134,11 +129,11 @@ public final class HomeThreadDrag extends FrameLayout {
         if(dragging){
             y=event.getY();updateTarget();
             if(action==MotionEvent.ACTION_UP){
-                List<?> current=HomeThreadOrder.displayed(mode);
+                List<?> current=HomeThreadOrder.presented(list,mode);
                 if(HomeThreadOrder.mode(fragment)==mode&&current!=null&&sameRows(snapshot,current)&&from>=0&&to>=0&&from!=to){
                     boolean saved;
                     if(draggedLabel!=null){
-                        saved=HomeThreadOrder.moveLabel(snapshot.get(from),snapshot.get(to),mode);
+                        saved=HomeThreadOrder.moveLabel(snapshot.get(from),snapshot.get(to),mode,snapshot);
                     }else{
                         saved=HomeThreadOrder.dropThread(snapshot.get(from),snapshot.get(to),mode,to>from);
                     }
@@ -152,7 +147,7 @@ public final class HomeThreadDrag extends FrameLayout {
         if(action==MotionEvent.ACTION_MOVE&&(Math.abs(event.getX()-downX)>ViewConfiguration.get(getContext()).getScaledTouchSlop()||Math.abs(event.getY()-downY)>ViewConfiguration.get(getContext()).getScaledTouchSlop()))handler.removeCallbacks(hold);
         if(action==MotionEvent.ACTION_UP&&Math.abs(event.getY()-downY)<=ViewConfiguration.get(getContext()).getScaledTouchSlop()
                 &&Math.abs(event.getX()-downX)<=ViewConfiguration.get(getContext()).getScaledTouchSlop()){
-            int index=position(event.getX(),event.getY());List<?> rows=HomeThreadOrder.displayed(mode);
+            int index=position(event.getX(),event.getY());List<?> rows=HomeThreadOrder.presented(list,mode);
             if(rows!=null&&index>=0&&index<rows.size()){
                 String key=HomeThreadOrder.key(rows.get(index));
                 if(key!=null&&!key.startsWith("board\n")){
@@ -167,7 +162,7 @@ public final class HomeThreadDrag extends FrameLayout {
         return super.dispatchTouchEvent(event);
     }
     static boolean sameRows(List<?> first,List<?> second){if(first==null||second==null||first.size()!=second.size())return false;for(int i=0;i<first.size();i++)if(first.get(i)!=second.get(i)&&!HomeThreadOrder.sameHeading(first.get(i),second.get(i)))return false;return true;}
-    private void cancel(){handler.removeCallbacks(hold);handler.removeCallbacks(scroll);dragging=false;draggedLabel=null;snapshot=null;from=to=-1;if(image!=null){image.recycle();image=null;}if(getParent()!=null)getParent().requestDisallowInterceptTouchEvent(false);invalidate();}
+    private void cancel(){handler.removeCallbacks(hold);handler.removeCallbacks(scroll);dragging=false;draggedLabel=null;snapshot=null;headingForPosition=null;from=to=-1;if(image!=null){image.recycle();image=null;}if(getParent()!=null)getParent().requestDisallowInterceptTouchEvent(false);invalidate();}
     private int childPosition(View child,int visibleIndex){
         if(list instanceof ListView)return ((ListView)list).getFirstVisiblePosition()+visibleIndex;
         try{
@@ -177,7 +172,7 @@ public final class HomeThreadDrag extends FrameLayout {
     }
 
     private void bindVisiblePins(){
-        List<?> rows=HomeThreadOrder.presented(mode);
+        List<?> rows=HomeThreadOrder.presented(list,mode);
         if(rows==null||!(list instanceof ViewGroup))return;
         ViewGroup children=(ViewGroup)list;
         Set<String> pinned=HomeThreadOrder.pins(mode);
@@ -188,7 +183,7 @@ public final class HomeThreadDrag extends FrameLayout {
             if(position<0)continue;
             Object item=list instanceof ListView?((ListView)list).getItemAtPosition(position)
                 :position<rows.size()?rows.get(position):null;
-            String key=HomeThreadOrder.key(item);
+            String key=rowKey(item);
             if(key==null||key.startsWith("board\n"))continue;
             TextView title=threadTitle(child);
             if(title==null)continue;
@@ -210,6 +205,13 @@ public final class HomeThreadDrag extends FrameLayout {
                 entries.remove();
             }
         }
+    }
+
+    private String rowKey(Object row){
+        if(row==null)return null;
+        if(rowKeys.containsKey(row))return rowKeys.get(row);
+        if(rowKeys.size()>=256)rowKeys.clear();
+        String key=HomeThreadOrder.key(row);rowKeys.put(row,key);return key;
     }
 
     private static TextView threadTitle(View row){

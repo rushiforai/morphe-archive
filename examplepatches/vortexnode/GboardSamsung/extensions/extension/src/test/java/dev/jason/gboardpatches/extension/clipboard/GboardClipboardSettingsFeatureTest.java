@@ -33,7 +33,15 @@ public final class GboardClipboardSettingsFeatureTest {
                 Arrays.asList("General", "Metadata", "Layout", "Retention"),
                 sectionTitles(sections));
         Assert.assertEquals("ToggleRow", sections.get(0).getItems().get(0).getClass().getSimpleName());
-        Assert.assertEquals(3, sections.get(0).getItems().size());
+        Assert.assertEquals(4, sections.get(0).getItems().size());
+        GboardPatchesSettingsContract.ToggleRow samsungRow =
+                (GboardPatchesSettingsContract.ToggleRow) sections.get(0).getItems().get(1);
+        Assert.assertEquals("Samsung Clipboard", samsungRow.getTitle());
+        Assert.assertFalse(samsungRow.isChecked());
+        Assert.assertTrue(preferences.contains(
+                GboardClipboardSettings.PREF_KEY_CLIPBOARD_SAMSUNG_MODE));
+        samsungRow.getToggleAction().accept(true);
+        Assert.assertTrue(GboardClipboardSettings.readClipboardSamsungMode(preferences));
         GboardPatchesSettingsContract.ToggleRow sensitiveRow =
                 (GboardPatchesSettingsContract.ToggleRow) findRow(
                         screen,

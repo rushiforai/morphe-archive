@@ -6,9 +6,9 @@
 | --------------------------- | ------------------------------------------------------------------ |
 | **Application Name**        | Blackjack                                                          |
 | **Package Name**            | `com.tripledot.blackjack`                                          |
-| **Supported Version**       | `2.22.09` (Morphe Compatibility: `2.22.09`, `minSdk` 25)           |
+| **Supported Version**       | `2.23.01` (Morphe Compatibility: `2.23.01`, `minSdk` 32)           |
 | **Analyzed Version Code**   | Null / Unconstrained in Constants                                  |
-| **Minimum SDK**             | `25` (Android 7.1)                                                 |
+| **Minimum SDK**             | `32` (Android 12L)                                                 |
 | **Distribution Format**     | APKM (`ApkFileType.APKM`)                                          |
 | **Package Signing SHA-256** | `32e1c2b4c9ab0189d3e4e1c67806e6f4fc454aa758a74ccaedda8a309aa6b205` |
 | **Target Architecture**     | `arm64-v8a` (Unity IL2CPP native runtime)                          |
@@ -23,7 +23,7 @@ Blackjack by Tripledot Studios is a mobile casino gaming application built with 
 ### 2.1 Unity IL2CPP Runtime
 
 - **Host Activity:** `com.unity3d.player.UnityPlayerActivity` manages the window surface, Android lifecycle, and input dispatching.
-- **Native Binary:** `lib/arm64-v8a/libil2cpp.so` contains all compiled Unity game classes, including `BlackjackApplication`, `PlayerProfile`, `PlayerData`, `LevelData`, `BlackjackAds`, and `AdManager`.
+- **Native Binary:** `lib/arm64-v8a/libil2cpp.so` contains all compiled Unity game classes, including `BlackjackApplication`, `PlayerProfile`, `PlayerData`, `LevelData`, `BlackjackAds`, and `AdManager`. It is built with IL2CPP metadata version 39 (Unity 6.3), which current Il2CppDumper releases do not parse; use a v39-capable extractor to resolve method names to RVAs when relocating offsets across updates. All patch offsets below are file offsets (`virtual address - 0x4000` in the `.text` segment).
 - **Unity-to-Java Messaging Bridge:**
   - Game logic dispatches native Android dialogs via `com.mnp.popups.NativePopupsManager.ShowDialog`.
   - Android extensions communicate back into the Unity engine via `com.unity3d.player.UnityPlayer.UnitySendMessage(String gameObject, String methodName, String value)`.

@@ -1,3 +1,95 @@
+## [1.4.0](https://github.com/southstar21dev/southstar21-patches/compare/v1.3.0...v1.4.0) (2026-11-24)
+
+### 🐛 Bug Fixes
+
+* **Instagram:** Header glass buttons no longer look dark in light mode ([4acf6eb](https://github.com/southstar21dev/southstar21-patches/commit/4acf6eb21d235b2269c0824ff31f4ba9ca79c6d0))
+* **Instagram:** Reels fill the page from the first frame, and while scrolling ([f0ff225](https://github.com/southstar21dev/southstar21-patches/commit/f0ff22577a40b8b8c89c41bdb611b1956f0588e4))
+* **Instagram:** Reels strip lines up with the video, clearer glass over Reels ([0e27be6](https://github.com/southstar21dev/southstar21-patches/commit/0e27be6230e1ad3f289088de79762435d0404cf6))
+* **Liquid Glass navigation bar:** Keep the DM inbox's Instants above the bar ([a495300](https://github.com/southstar21dev/southstar21-patches/commit/a4953001702b4a862ef6b8b2ed97c699895a37f7))
+* **Liquid Glass navigation bar:** No flash of Instagram's bar at launch ([e11342e](https://github.com/southstar21dev/southstar21-patches/commit/e11342eb15a18c815538fd01cd8bd117be203e53)), closes [#14](https://github.com/southstar21dev/southstar21-patches/issues/14)
+* **YouTube Music:** Full Liquid Glass button shadows no longer cut off ([4d7c603](https://github.com/southstar21dev/southstar21-patches/commit/4d7c603dd2f81404358935e5d54362b338c410f0))
+
+### ✨ New Features
+
+* **Instagram:** Clear glass on Reels setting, on by default ([1f5d0ae](https://github.com/southstar21dev/southstar21-patches/commit/1f5d0ae0edc432f23a225479c9cd2c4222e12757))
+* **Instagram:** Frosted strip at the bottom of each reel, like iOS ([e237494](https://github.com/southstar21dev/southstar21-patches/commit/e23749485559c7ddcf1155084483c9228767d14d))
+* **Instagram:** Previews for the Reels settings ([904d006](https://github.com/southstar21dev/southstar21-patches/commit/904d0064c2252b0deccf2c4a0d7750a7291f047f))
+* **Instagram:** White and custom color tints for the navigation bar ([6bc09d3](https://github.com/southstar21dev/southstar21-patches/commit/6bc09d3865786a839785e62c521bc4d7cebd0010)), closes [#16](https://github.com/southstar21dev/southstar21-patches/issues/16)
+* **Liquid Glass navigation bar:** Smoother tab switches ([12b0bc1](https://github.com/southstar21dev/southstar21-patches/commit/12b0bc1868b5c89bb6922b1ef58e5472981e4023))
+* **Liquid Glass navigation bar:** Solid bar style, a plain floating pill with no blur or glass that runs much smoother on older devices and is the default on fresh installs, plus a new settings layout with a demo for every setting ([00f7d8e](https://github.com/southstar21dev/southstar21-patches/commit/00f7d8e8e2849c6b0a89f937cd906139a69c7114))
+* Support Instagram 456.1.0.56.78 ([ba3d6c2](https://github.com/southstar21dev/southstar21-patches/commit/ba3d6c298512f24826741098f1de973b7b87bd23))
+* **YouTube Music:** Disable dynamic player color and Hide Ask Music button patches ([2a37986](https://github.com/southstar21dev/southstar21-patches/commit/2a37986d6e53821071cad249e8cb6ae22a274a78))
+* **YouTube Music:** Lightweight glass by default and a settings menu ([b27f1ef](https://github.com/southstar21dev/southstar21-patches/commit/b27f1efcd28156094e2a6745a8285cdf280e70a0))
+
+### 🔧 Improvements
+
+* **YouTube Music:** Much lighter glass on older devices ([f6f37ad](https://github.com/southstar21dev/southstar21-patches/commit/f6f37ade228ade352162ab99c389e3ab783e29d2))
+
+## [1.4.0-dev.8](https://github.com/southstar21dev/southstar21-patches/compare/v1.4.0-dev.7...v1.4.0-dev.8) (2026-11-24)
+
+### 🐛 Bug Fixes
+
+* **Instagram:** Header glass buttons no longer look dark in light mode ([4acf6eb](https://github.com/southstar21dev/southstar21-patches/commit/4acf6eb21d235b2269c0824ff31f4ba9ca79c6d0))
+* **Instagram:** Reels fill the page from the first frame, and while scrolling ([f0ff225](https://github.com/southstar21dev/southstar21-patches/commit/f0ff22577a40b8b8c89c41bdb611b1956f0588e4))
+* **Instagram:** Reels strip lines up with the video, clearer glass over Reels ([0e27be6](https://github.com/southstar21dev/southstar21-patches/commit/0e27be6230e1ad3f289088de79762435d0404cf6))
+
+### ✨ New Features
+
+* **Instagram:** Clear glass on Reels setting, on by default ([1f5d0ae](https://github.com/southstar21dev/southstar21-patches/commit/1f5d0ae0edc432f23a225479c9cd2c4222e12757))
+* **Instagram:** Frosted strip at the bottom of each reel, like iOS ([e237494](https://github.com/southstar21dev/southstar21-patches/commit/e23749485559c7ddcf1155084483c9228767d14d))
+* **Instagram:** Previews for the Reels settings ([904d006](https://github.com/southstar21dev/southstar21-patches/commit/904d0064c2252b0deccf2c4a0d7750a7291f047f))
+
+## [1.4.0-dev.7](https://github.com/southstar21dev/southstar21-patches/compare/v1.4.0-dev.6...v1.4.0-dev.7) (2026-11-24)
+
+### ✨ New Features
+
+* **Instagram:** White and custom color tints for the navigation bar ([6bc09d3](https://github.com/southstar21dev/southstar21-patches/commit/6bc09d3865786a839785e62c521bc4d7cebd0010)), closes [#16](https://github.com/southstar21dev/southstar21-patches/issues/16)
+
+## [1.4.0-dev.6](https://github.com/southstar21dev/southstar21-patches/compare/v1.4.0-dev.5...v1.4.0-dev.6) (2026-11-24)
+
+### 🐛 Bug Fixes
+
+* **YouTube Music:** Full Liquid Glass button shadows no longer cut off ([4d7c603](https://github.com/southstar21dev/southstar21-patches/commit/4d7c603dd2f81404358935e5d54362b338c410f0))
+
+### ✨ New Features
+
+* **YouTube Music:** Disable dynamic player color and Hide Ask Music button patches ([2a37986](https://github.com/southstar21dev/southstar21-patches/commit/2a37986d6e53821071cad249e8cb6ae22a274a78))
+* **YouTube Music:** Lightweight glass by default and a settings menu ([b27f1ef](https://github.com/southstar21dev/southstar21-patches/commit/b27f1efcd28156094e2a6745a8285cdf280e70a0))
+
+## [1.4.0-dev.5](https://github.com/southstar21dev/southstar21-patches/compare/v1.4.0-dev.4...v1.4.0-dev.5) (2026-11-23)
+
+### 🐛 Bug Fixes
+
+* **Liquid Glass navigation bar:** No flash of Instagram's bar at launch ([e11342e](https://github.com/southstar21dev/southstar21-patches/commit/e11342eb15a18c815538fd01cd8bd117be203e53)), closes [#14](https://github.com/southstar21dev/southstar21-patches/issues/14)
+
+## [1.4.0-dev.4](https://github.com/southstar21dev/southstar21-patches/compare/v1.4.0-dev.3...v1.4.0-dev.4) (2026-11-22)
+
+### ✨ New Features
+
+* Support Instagram 456.1.0.56.78 ([ba3d6c2](https://github.com/southstar21dev/southstar21-patches/commit/ba3d6c298512f24826741098f1de973b7b87bd23))
+
+## [1.4.0-dev.3](https://github.com/southstar21dev/southstar21-patches/compare/v1.4.0-dev.2...v1.4.0-dev.3) (2026-11-21)
+
+### 🔧 Improvements
+
+* **YouTube Music:** Much lighter glass on older devices ([f6f37ad](https://github.com/southstar21dev/southstar21-patches/commit/f6f37ade228ade352162ab99c389e3ab783e29d2))
+
+## [1.4.0-dev.2](https://github.com/southstar21dev/southstar21-patches/compare/v1.4.0-dev.1...v1.4.0-dev.2) (2026-11-21)
+
+### 🐛 Bug Fixes
+
+* **Liquid Glass navigation bar:** Keep the DM inbox's Instants above the bar ([a495300](https://github.com/southstar21dev/southstar21-patches/commit/a4953001702b4a862ef6b8b2ed97c699895a37f7))
+
+### ✨ New Features
+
+* **Liquid Glass navigation bar:** Solid bar style, a plain floating pill with no blur or glass that runs much smoother on older devices and is the default on fresh installs, plus a new settings layout with a demo for every setting ([00f7d8e](https://github.com/southstar21dev/southstar21-patches/commit/00f7d8e8e2849c6b0a89f937cd906139a69c7114))
+
+## [1.4.0-dev.1](https://github.com/southstar21dev/southstar21-patches/compare/v1.3.0...v1.4.0-dev.1) (2026-11-21)
+
+### ✨ New Features
+
+* **Liquid Glass navigation bar:** Smoother tab switches ([12b0bc1](https://github.com/southstar21dev/southstar21-patches/commit/12b0bc1868b5c89bb6922b1ef58e5472981e4023))
+
 ## [1.3.0](https://github.com/southstar21dev/southstar21-patches/compare/v1.2.1...v1.3.0) (2026-11-19)
 
 ### 🐛 Bug Fixes

@@ -23,13 +23,14 @@ internal val sharedExtensionPatch = bytecodePatch {
 }
 
 private fun homePatch(name: String, description: String, hook: String) = bytecodePatch(
-    name = name,
+    name = null,
     description = description,
     default = true
 ) {
     compatibleWith(myZongCompatibility)
     dependsOn(sharedExtensionPatch,initialHomeVisibility(hook))
     execute {
+        if (!CustomizationSettings.enabled(hook)) return@execute
         val method = Fingerprint(
             definingClass = HOME,
             name = "onViewCreated",

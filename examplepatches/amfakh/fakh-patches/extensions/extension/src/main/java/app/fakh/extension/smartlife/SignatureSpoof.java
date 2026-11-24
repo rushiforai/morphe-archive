@@ -1,3 +1,8 @@
+/*
+ * Copyright 2026 amfakh
+ * SPDX-License-Identifier: GPL-3.0-only
+ */
+
 package app.fakh.extension.smartlife;
 
 import android.app.ActivityManager;
@@ -35,10 +40,11 @@ import java.util.Map;
 public final class SignatureSpoof {
     private static final String TAG = "FakhSmartLife";
 
-    /** Smart Life, Tuya Smart and BARDI Smart Home ship the same code under different packages and signing certificates. */
+    /** Smart Life, Tuya Smart, BARDI Smart Home and SYNC by Krisbow ship the same code under different packages and signing certificates. */
     private static final String SMARTLIFE_PACKAGE = "com.tuya.smartlife";
     private static final String TUYA_SMART_PACKAGE = "com.tuya.smart";
     private static final String BARDI_PACKAGE = "com.bardi.smart.home";
+    private static final String KRISBOW_PACKAGE = "com.kawanlama.smartklic";
 
     /** Smart Life's original signing certificate (DER, Base64). SHA-1 94dbfb934543ca1477b440add47566d757fd25ef. */
     private static final String SMARTLIFE_CERT =
@@ -52,8 +58,13 @@ public final class SignatureSpoof {
     private static final String BARDI_CERT =
         "MIIDgTCCAmmgAwIBAgIEIZLRwDANBgkqhkiG9w0BAQsFADBwMQswCQYDVQQGEwJDTjERMA8GA1UECBMIWmhlSmlhbmcxETAPBgNVBAcTCEhhbmd6aG91MQ0wCwYDVQQKEwR0dXlhMRUwEwYDVQQLEwx3d3cudHV5YS5jb20xFTATBgNVBAMTDHd3dy50dXlhLmNvbTAgFw0xOTA1MTExNTUyMzlaGA8yMDc0MDIxMTE1NTIzOVowcDELMAkGA1UEBhMCQ04xETAPBgNVBAgTCFpoZUppYW5nMREwDwYDVQQHEwhIYW5nemhvdTENMAsGA1UEChMEdHV5YTEVMBMGA1UECxMMd3d3LnR1eWEuY29tMRUwEwYDVQQDEwx3d3cudHV5YS5jb20wggEiMA0GCSqGSIb3DQEBAQUAA4IBDwAwggEKAoIBAQCUojI1HH6F1IbLu/lcfLdijKvB2La5xnfDJMUnj85TEysvygfcSBQyPlU0L54UgSF72Z1XnnkjKRetLjiXJUiP+2LLzjD2IU+k1kbJljmoMg4+YND+ZtToo7rfUAwxg3CB0oeGeCudzXUQ2iidCweCnjDakkZDotkDgfhRXFvdWMieix8rYJTbYImGhbYhYWpB/94xaESoBkDMcenAJ1f+sbuUDNOOrw8wBn+h10pz7XEJT2HcGcxtDOyShCO/8Emat+keWHeA1z6wD0aETToqfsI3YmyPN7QCTBlWw9ffCVgP+WPlq+kC+HW05+7knj3MVqmafb0YAk4xusWaV8l3AgMBAAGjITAfMB0GA1UdDgQWBBRjZmQlvLS+f0xremfIbsixZmjXgDANBgkqhkiG9w0BAQsFAAOCAQEAQ24G5bofN/Aaz8VDg+51icFhpCAvQ4EECiJOE9JA48EY5INzEcA6GelPFv3ZVOjRAtxb3N1RBGhcOaRg5Y6yvzS+pZUYf8iETBuH/N++IuU6lptN5wcDaa698SV2g+vclOu0DveRpeaBdlv1//Vrp4WWggGJ0tkfkwbIj6wSPVVeg/mB/37esLoqpH55qUIjDIalf8XszFm/dMgWXKXUiopUA6vBMvcK6uZFQk+hxztHKx6788RUWCPxQf3M4Juc6AbpASTGSA8A2cZYgzYh5XRj3SUlr9rkbr0liUNK3gbb3xNRDAC7JE7tDoSg3WoOfXkjq5pKkQtGCuW2VqgD2A==";
 
+    /** SYNC by Krisbow's original signing certificate (DER, Base64). SHA-1 ab82b64a241c502a0893b740ae4781396d905bc3. */
+    private static final String KRISBOW_CERT =
+        "MIIFhzCCA2+gAwIBAgIVANVqbE2PDfWxy6CODsTEnEOJxhPkMA0GCSqGSIb3DQEBCwUAMHQxCzAJBgNVBAYTAlVTMRMwEQYDVQQIEwpDYWxpZm9ybmlhMRYwFAYDVQQHEw1Nb3VudGFpbiBWaWV3MRQwEgYDVQQKEwtHb29nbGUgSW5jLjEQMA4GA1UECxMHQW5kcm9pZDEQMA4GA1UEAxMHQW5kcm9pZDAeFw0xOTExMDgwODI1MjFaFw00OTExMDgwODI1MjFaMHQxCzAJBgNVBAYTAlVTMRMwEQYDVQQIEwpDYWxpZm9ybmlhMRYwFAYDVQQHEw1Nb3VudGFpbiBWaWV3MRQwEgYDVQQKEwtHb29nbGUgSW5jLjEQMA4GA1UECxMHQW5kcm9pZDEQMA4GA1UEAxMHQW5kcm9pZDCCAiIwDQYJKoZIhvcNAQEBBQADggIPADCCAgoCggIBAKPwO1DFJ+JOiPq50+ynX8cJSDH8Uu0PkA2EIc3q/q6Kl3/DuSRD0r9Om+jbwW2vKwhMwkxktrVUV89qaJofc/+x5vROtZQI/Q+pvT6eJYG6LFAU0o52HWnYE/RjwAnPGZJXvKd63eQSnImEIOhg6aaoLIpS9q0K4Ie2OZH2tapg/1G2hY9Ot2+zNbQGS4VBwAH+JPcnI0jBK5pPR/ZKx4dbwzgm2mUw1edVxbKB4Xa1Hth+IAwAiZk7uAC28ZlwntA+FTRBg/qJro6PmbKVqeK+1B+GCCdJ+5nJMm27LoGB+ezCKYv5UF0OWSvqLAhV6kU5akMsY2yCLuUxH9Sqd6O1DkgIH5gUW110XXelZYy7rfPq+bWEUTKzvsfCHNjGCYZVGLmR2bt5zewkaYA+Q7361WzkY+x/BLtFloS/TbDyLopVgRazKdWg8cXGdlhcVTXmWOoYEV44F8/e86aqcpDsJqMTPHbpmrECnzahHzv7w8hkI+V/G5HxFqrmTfmsKmUg2frt9Tf5/ByANsAin8V/6oktyWmJ6JnFqX+8QUPH3pjfHSnBkTkfT9NS+Y8QILTOvIszR45a7aTAtl696FHFxN4MbGSktY1Y1iISiWH0vBEvQn4xsFbAjzJdrbEKgXgjy27qw5wMSL5BsKK3S3msFMZyJdE1DfYoIoIZEv2fAgMBAAGjEDAOMAwGA1UdEwQFMAMBAf8wDQYJKoZIhvcNAQELBQADggIBAEg3xYyjnxeGMB3auRtX9OKjSjVlX2/wv/DhLxLh04v/26Hc5WvQwkxYSF3OFbKgS1l/P5teIUpNdjhKl1DFnbXOn4U0/PBiayShp862kbSmwMBwDqOBol/5GsYq6utGdVQyHtKpq6fXHKVoSRJQsgMw8eV+jY/failJuXmheUxJulYATF4NKpy/wNbB29XcyrYieGTneptehsEnMICpvdFYGdK6hHff4IFNL9TYXYiBKk/jDBlzG8DVYqrFtwF7yiLqJC/h5q4Ln0m3D4Gt9XBPQDrRQRdPHm8K0sGtyrKdLIuE2TPYEOwq02r3OhTCMOWfIXWjvff1XZbyZRGZmZOJk9JxuDmrow2HFiqCzmy/BkJORjaiPQNzcaDUjbOe9g3i9Znjimc7XG6h63hdlBzYY0xpj0wZH3LmdBzC6D7Qr/xCieM/5/97b9MyJnIgRehQXdNO6HgvUNAoQyQTUDg7MyXXk27XBtEqk877CO1dkhe70xkhtsAvwT9qHF3SJxYXifHbus00dQd5cdlrMKKFetPYYUMjcBUOZp7LkNgqvVQZBAuq8Rq/+FMe8JEgEfDlD51uel6kc0x9sQoTTT4k200cy7Cb0v0M6KlHjhCpxY0rW28aioA+21HZQE/pszlIV+cVUtUhTknzvLSB5qMsf8xXWiWOK5vOJAapvawa";
+
     private static Signature smartLifeSignature;
     private static Signature bardiSignature;
+    private static Signature krisbowSignature;
     private static Signature tuyaSmartSignature;
     private static boolean installed;
 
@@ -72,6 +83,7 @@ public final class SignatureSpoof {
             smartLifeSignature = new Signature(Base64.decode(SMARTLIFE_CERT, Base64.DEFAULT));
             tuyaSmartSignature = new Signature(Base64.decode(TUYA_SMART_CERT, Base64.DEFAULT));
             bardiSignature = new Signature(Base64.decode(BARDI_CERT, Base64.DEFAULT));
+            krisbowSignature = new Signature(Base64.decode(KRISBOW_CERT, Base64.DEFAULT));
 
             replaceCreator();
 
@@ -258,6 +270,7 @@ public final class SignatureSpoof {
         if (SMARTLIFE_PACKAGE.equals(packageName)) return smartLifeSignature;
         if (TUYA_SMART_PACKAGE.equals(packageName)) return tuyaSmartSignature;
         if (BARDI_PACKAGE.equals(packageName)) return bardiSignature;
+        if (KRISBOW_PACKAGE.equals(packageName)) return krisbowSignature;
         return null;
     }
 

@@ -13,8 +13,10 @@ import android.util.Log;
 
 import java.io.IOException;
 import java.lang.reflect.Constructor;
+import java.lang.reflect.Field;
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
+import java.lang.reflect.Modifier;
 import java.lang.reflect.Proxy;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -204,6 +206,7 @@ final class LocalAnalysisFlow {
             // 4.10.23 renamed the raw-move-to-string converter to a(history entry). Read the
             // parser's own history and let the app name each move exactly as it does, so a
             // castling move stays e1g1: the raw move accessor the old converter needed is gone.
+            boolean namedByApp = false;
             try {
                 Object finalPosition = gameObj.getClass().getField("c").get(gameObj);
                 Object history = finalPosition == null
@@ -215,6 +218,7 @@ final class LocalAnalysisFlow {
                     for (int i = 0; i < totalMoves; i++) {
                         playedLans[i] = (String) lanMethod.invoke(null, ((List<?>) history).get(i));
                     }
+                    namedByApp = true;
                 }
             } catch (Throwable ignored) {
                 // 4.10.18 keeps the old converter below.
@@ -244,6 +248,9 @@ final class LocalAnalysisFlow {
                     );
                 }
             }
+            Log.i(TAG, namedByApp
+                ? "Review moves named by the app's parser"
+                : "Review moves derived from the board positions");
 
             // Stockfish-safe move list (standard castling notation) + lightweight boards.
             char[][] boards = new char[totalMoves + 1][];
@@ -285,6 +292,13 @@ final class LocalAnalysisFlow {
                     throw new IOException("This game's moves could not be read");
                 }
             }
+            // The review screen replays every played move through the app's own converter and
+            // builds each move's line from the suggested move; a move either of them refuses
+            // stops its state machine with a bare NullPointerException. Run the same replay
+            // here first: a played move the app refuses is shown as the review's own error
+            // screen, and a suggested move it refuses is left out instead of crashing it.
+            AppMoves appMoves = AppMoves.create(startingPosition);
+            if (appMoves != null) appMoves.check(playedLans);
 
             // Opening book: which leading plies are theory, and the name of the opening.
             List<String> bookLine = new ArrayList<>(Math.min(totalMoves, 40));
@@ -475,6 +489,15 @@ final class LocalAnalysisFlow {
                     pmArgs[k] = coerce(pmTypes[k], pmArgs[k]);
                 }
                 Object playedMove = pmConstructor.newInstance(pmArgs);
+
+                // A best move the review screen cannot replay would crash it while it builds
+                // this move's line; leave such a move out instead.
+                if (ply.bestMove != null && appMoves != null && !appMoves.canPlay(i, ply.bestMove)) {
+                    Log.w(TAG, "The review cannot replay the best move " + ply.bestMove
+                        + " at ply " + (i + 1) + "; leaving it out");
+                    ply.bestMove = null;
+                    ply.bestLine = Collections.emptyList();
+                }
 
                 // The better move, when it is known (Lichess names it only for the moves it marks).
                 Object suggestedMove = null;
@@ -1106,6 +1129,151 @@ final class LocalAnalysisFlow {
             }
         }
         return args;
+    }
+
+    /**
+     * Plays the review's moves on the app's own board, with the app's own move converter, so a
+     * move (or a suggested move) its review screen would refuse is found before the screen is
+     * built. That screen hands an unconvertible move to {@code Intrinsics.checkNotNull}, which
+     * throws a bare NullPointerException from a coroutine the review cannot catch, so the only
+     * safe point to catch it is here.
+     *
+     * <p>Null when this build's converter cannot be found by shape: older releases keep the
+     * previous behaviour.
+     */
+    private static final class AppMoves {
+        /** {@code MoveConverterKt.b(position, lan, boolean)}: the LAN as a move, or null. */
+        private final Method convert;
+        /** {@code position.g(move, sideToMove)}: the position after the move. */
+        private final Method apply;
+        private final Method sideToMove;
+        /** The position type the converter takes ({@code variants.e}). */
+        private final Class<?> positionType;
+        /** The position the replay starts from. */
+        private final Object start;
+        /** The position before each move, in move order. */
+        private final List<Object> before = new ArrayList<>();
+
+        private AppMoves(Object start, Method convert, Method apply, Method sideToMove, Class<?> positionType) {
+            this.start = start;
+            this.convert = convert;
+            this.apply = apply;
+            this.sideToMove = sideToMove;
+            this.positionType = positionType;
+        }
+
+        static AppMoves create(Object startingPosition) {
+            if (startingPosition == null) return null;
+            try {
+                Class<?> moveClass = Class.forName("com.chess.chessboard.l");
+                Class<?> colorClass = Class.forName("com.chess.entities.Color");
+                Method convert = null;
+                for (Method method : Class.forName("com.chess.chessboard.compengine.MoveConverterKt").getMethods()) {
+                    Class<?>[] parameters = method.getParameterTypes();
+                    if (!Modifier.isStatic(method.getModifiers()) || !"b".equals(method.getName())
+                        || parameters.length != 3) continue;
+                    if (parameters[1] != String.class || parameters[2] != boolean.class) continue;
+                    if (parameters[0] == Object.class) continue; // a bridge, not the real converter
+                    if (!parameters[0].isInstance(startingPosition)) continue;
+                    convert = method;
+                    break;
+                }
+                if (convert == null) return null;
+                Method apply = null;
+                for (Method method : startingPosition.getClass().getMethods()) {
+                    Class<?>[] parameters = method.getParameterTypes();
+                    if (!"g".equals(method.getName()) || parameters.length != 2) continue;
+                    if (!parameters[0].isAssignableFrom(moveClass)) continue;
+                    if (!parameters[1].isAssignableFrom(colorClass)) continue;
+                    apply = method;
+                    break;
+                }
+                if (apply == null) return null;
+                Method sideToMove = startingPosition.getClass().getMethod("getSideToMove");
+                return new AppMoves(startingPosition, convert, apply, sideToMove, convert.getParameterTypes()[0]);
+            } catch (Throwable t) {
+                Log.w(TAG, "The app's move converter is not available; the moves are not checked", t);
+                return null;
+            }
+        }
+
+        /** Replays every played move, stopping the review when the app cannot replay one. */
+        void check(String[] playedLans) throws IOException {
+            Object position = start;
+            for (int i = 0; i < playedLans.length; i++) {
+                String lan = playedLans[i];
+                Object move = convert(position, lan);
+                if (move == null) {
+                    // chess.com writes a castle either as the king's square or as the rook's.
+                    String other = otherCastle(lan);
+                    if (other != null) {
+                        Object alternative = convert(position, other);
+                        if (alternative != null) {
+                            move = alternative;
+                            playedLans[i] = other;
+                            lan = other;
+                        }
+                    }
+                }
+                if (move == null) {
+                    Log.e(TAG, "The app cannot replay move " + (i + 1) + " (" + lan + ")");
+                    throw new IOException("This game's moves could not be read");
+                }
+                before.add(position);
+                Object next = next(position, move);
+                if (next == null) return; // Cannot follow the game further; keep what was checked.
+                position = next;
+            }
+        }
+
+        /** Whether the app's converter accepts this move at the position before move {@code index}. */
+        boolean canPlay(int index, String lan) {
+            if (index < 0 || index >= before.size()) return true;
+            return convert(before.get(index), lan) != null;
+        }
+
+        private Object convert(Object position, String lan) {
+            if (position == null || lan == null) return null;
+            try {
+                return convert.invoke(null, position, lan, Boolean.FALSE);
+            } catch (Throwable t) {
+                return null;
+            }
+        }
+
+        private Object next(Object position, Object move) {
+            try {
+                Object side = sideToMove.invoke(position);
+                Object result = apply.invoke(position, move, side);
+                for (Field field : result.getClass().getFields()) {
+                    Object value = field.get(result);
+                    if (value == null || !positionType.isInstance(value)) continue;
+                    // A position is the only field that can be played on: check its shape too.
+                    try {
+                        value.getClass().getMethod("getSideToMove");
+                    } catch (NoSuchMethodException ignored) {
+                        continue;
+                    }
+                    return value;
+                }
+            } catch (Throwable t) {
+                Log.w(TAG, "Could not replay a move on the app's board", t);
+            }
+            return null;
+        }
+    }
+
+    /** chess.com accepts a castling move as the king's destination or as the rook's square. */
+    private static String otherCastle(String lan) {
+        if ("e1g1".equals(lan)) return "e1h1";
+        if ("e1h1".equals(lan)) return "e1g1";
+        if ("e1c1".equals(lan)) return "e1a1";
+        if ("e1a1".equals(lan)) return "e1c1";
+        if ("e8g8".equals(lan)) return "e8h8";
+        if ("e8h8".equals(lan)) return "e8g8";
+        if ("e8c8".equals(lan)) return "e8a8";
+        if ("e8a8".equals(lan)) return "e8c8";
+        return null;
     }
 
     /** The position as a FEN with all six fields, or null (same shape Analysis.fen() expects). */

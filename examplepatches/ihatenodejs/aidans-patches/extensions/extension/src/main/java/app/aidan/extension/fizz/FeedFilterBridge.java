@@ -33,12 +33,14 @@ public final class FeedFilterBridge {
                 continue;
             }
             String className = item.getClass().getName();
-            // Marketplace listing card is sc.t1 (1.54.0) or rc.t1 (1.53.0)
-            if (removeMarketplace && ("sc.t1".equals(className) || "rc.t1".equals(className))) {
+            // Marketplace listing card: yc.z1 (1.72.0), sc.t1 (1.54.0), rc.t1 (1.53.0)
+            if (removeMarketplace &&
+                    ("yc.z1".equals(className) || "sc.t1".equals(className) || "rc.t1".equals(className))) {
                 continue;
             }
-            // Commercial announcement / ad item is sc.k (1.54.0) or rc.k (1.53.0)
-            if ("sc.k".equals(className) || "rc.k".equals(className)) {
+            // Commercial announcement / ad item: yc.n (1.72.0), sc.k (1.54.0), rc.k (1.53.0).
+            // The feed item type enum lives in field b; only the Advertisement constant is an ad.
+            if ("yc.n".equals(className) || "sc.k".equals(className) || "rc.k".equals(className)) {
                 try {
                     Field typeField = item.getClass().getDeclaredField("b");
                     Object typeVal = typeField.get(item);

@@ -792,6 +792,9 @@ Takes Reply off each comment in a post's or reel's comments. View more replies s
 # context: Comments: a Hide comments switch that takes the heart (the like button) and the like count under it off each comment in a comment sheet (#762).
 Hide likes on comments	Sembunyikan suka di komentar
 Takes the heart and the like count off each comment in a post's or reel's comments.	Menghapus hati dan jumlah suka dari setiap komentar di postingan atau reel.
+# context: Comments: a Hide comments switch that takes AI labels like AI-generated profile off the line with a commenter's name and time in a comment sheet (#787). AI-generated profile is a label Instagram shows there, use this language's Instagram words for it if you know them.
+Hide AI labels on comments	Sembunyikan label AI di komentar
+Takes AI-generated profile and similar AI labels off the line with a commenter's name. The name and the time stay.	Menghapus label AI seperti “Profil buatan AI” dari baris nama pengomentar. Nama dan waktunya tetap ada.
 # context: Comments: a Hide comments switch that takes the comment box off the bottom of a comment sheet (#762). Comment box is the field where you type a comment; Post is Instagram's own label on its send button, use this language's Instagram word for it.
 Hide the comment box	Sembunyikan kotak komentar
 Takes the comment box, with your picture and Post, off the bottom of a post's or reel's comments. Turn it off when you want to comment.	Menghapus kotak komentar, beserta foto Anda dan Kirim, dari bagian bawah komentar postingan atau reel. Matikan saat Anda ingin berkomentar.
@@ -916,6 +919,10 @@ The chip sits under the posts, followers and following counts.	Chip ada di bawah
 A smaller chip, centered under the profile picture. A profile with no room there gets the small chip under the counts.	Chip yang lebih kecil, di tengah bawah foto profil. Profil yang tidak punya ruang di sana menampilkan chip kecil di bawah jumlah.
 Turn on Show it as a chip to use this choice.	Aktifkan Tampilkan sebagai chip untuk menggunakan pilihan ini.
 Turn on Show if a profile follows you to use this choice.	Aktifkan Tampilkan apakah profil mengikuti kamu untuk menggunakan pilihan ini.
+# context: Profiles: switch under Show if a profile follows you. A green check or red cross by the menu in a profile's top bar (#842)
+Show it as an icon at the top	Tampilkan sebagai ikon di atas
+# context: Profiles: summary of Show it as an icon at the top. The chip is the Show it as a chip label
+Puts a green check by the menu at the top of the profile when they follow you and a red cross when they don't, instead of the words or the chip. Tap it to see the rest of what Instagram has said about you two.	Menaruh centang hijau di samping menu di bagian atas profil jika akun itu mengikuti kamu dan silang merah jika tidak, sebagai ganti tulisan atau chip. Ketuk untuk melihat hal lain yang dikatakan Instagram tentang kalian berdua.
 The Add comment bar under a reel you open from a profile's reposts. The comment button still opens the comments.	Bilah Tambahkan komentar di bawah reel yang Anda buka dari postingan ulang di profil. Tombol komentar tetap membuka komentar.
 Hide the comment bar on all reels	Sembunyikan bilah komentar di semua reel
 The Add a comment bar under every reel, including the ones in the Reels tab. The comment button still opens the comments.	Bilah Tambahkan komentar di bawah setiap reel, termasuk yang ada di tab Reels. Tombol komentar tetap membuka komentar.
@@ -969,6 +976,8 @@ Turns Instagram's blue, on Follow buttons, links and the like, into the color yo
 Badges in the accent color	Lencana dengan warna aksen
 The red dots and counts for new messages and notifications take the color you picked. Restart Instagram to see the change.	Titik dan angka merah untuk pesan dan notifikasi baru memakai warna yang kamu pilih. Mulai ulang Instagram untuk melihat perubahannya.
 Icons in the accent color	Ikon dengan warna aksen
+Reel buttons in the accent color	Tombol reel dengan warna aksen
+The buttons beside a reel and their counts take the color you picked instead of white. Restart Instagram to see the change.	Tombol di samping reel dan angkanya memakai warna yang kamu pilih, bukan putih. Mulai ulang Instagram untuk melihat perubahannya.
 Instagram's icons on the top bar, the tab bar and under posts take the color you picked. Text stays as it is. Restart Instagram to see the change.	Ikon Instagram di bilah atas, bilah tab, dan di bawah postingan memakai warna yang kamu pilih. Teks tetap seperti semula. Mulai ulang Instagram untuk melihat perubahannya.
 Story rings in the accent color	Lingkaran story dengan warna aksen
 Story rings take the color you picked instead of Instagram's gradient. A few other gradients share those colors and change with them. Restart Instagram to see the change.	Lingkaran story memakai warna yang kamu pilih, bukan gradien Instagram. Beberapa gradien lain memakai warna yang sama dan ikut berubah. Mulai ulang Instagram untuk melihat perubahannya.
@@ -1018,7 +1027,7 @@ Half a second	Setengah detik
 1.5 seconds	1,5 detik
 On this Instagram build it covers %1$d of %2$d routes. The diagnostic report lists the rest.	Pada build Instagram ini, fitur ini mencakup %1$d dari %2$d jalur. Laporan diagnostik mencantumkan sisanya.
 Hide suggested accounts in Messages	Sembunyikan akun yang disarankan di Pesan
-Takes the accounts Instagram suggests off the bottom of your messages. Your chats and follow requests stay. Restart Instagram to see the change.	Menghapus akun yang disarankan Instagram dari bagian bawah pesan kamu. Chat dan permintaan mengikuti tetap ada. Mulai ulang Instagram untuk melihat perubahannya.
+Takes the accounts Instagram suggests off the bottom of your messages and out of the search there. Your chats and follow requests stay. Restart Instagram to see the change.	Menghapus akun yang disarankan Instagram dari bagian bawah pesan kamu dan dari pencarian di sana. Chat dan permintaan mengikuti tetap ada. Mulai ulang Instagram untuk melihat perubahannya.
 # context: switch on the Messages page after Hide suggested accounts in Messages; New message is Instagram's own label for the pencil button in the inbox top bar and the screen it opens (#762)
 Hide the New message button	Sembunyikan tombol Pesan baru
 Takes the pencil button for a new message off the top of your messages.	Menghapus tombol pensil untuk pesan baru dari bagian atas pesanmu.
@@ -1453,6 +1462,7 @@ On a carousel, the download icon saves all of its pages at once instead of askin
 Hide reels by caption words	Sembunyikan reel berdasarkan kata di keterangan
 Also on Home	Juga di Beranda
 Leaves out posts on Home whose caption holds a word or phrase from the list too. Pull down on Home to refresh after changing it.	Juga menyembunyikan postingan di Beranda yang keterangannya memuat kata atau frasa dari daftar. Tarik Beranda ke bawah untuk menyegarkan setelah mengubahnya.
+Leaves out posts on Home that use a hidden sound too. Pull down on Home to refresh after changing it.	Juga menyembunyikan postingan di Beranda yang memakai suara tersembunyi. Tarik Beranda ke bawah untuk menyegarkan setelah mengubahnya.
 Leaves out reels in the Reels tab whose caption holds a word or phrase from the list below. A reel you open yourself still plays.	Menyisihkan reel di tab Reels yang keterangannya memuat kata atau frasa dari daftar di bawah. Reel yang kamu buka sendiri tetap diputar.
 Blocked words	Kata yang diblokir
 Words or phrases, with a comma or a new line between them. Capital letters don't matter, a hashtag works too, and an @name hides that account's posts.	Kata atau frasa, dipisahkan koma atau baris baru. Huruf besar tidak berpengaruh, tagar juga bisa, dan @nama menyembunyikan postingan akun tersebut.
@@ -1744,6 +1754,11 @@ Find a post, reel, story or profile you saw before.	Temukan lagi kiriman, reel, 
 Recently seen	Baru dilihat
 Open profile	Buka profil
 Remove from history	Hapus dari riwayat
+# context: the long press menu on a row of the viewing history page (#228). Open opens the post, reel, story's person or profile in Instagram. The account is whoever posted the row, or the profile itself. Removed %d from history is a short toast with how many rows went.
+Show all from this account	Tampilkan semua dari akun ini
+Open	Buka
+Remove all from this account	Hapus semua dari akun ini
+Removed %d from history	%d dihapus dari riwayat
 # context: the viewing history page's button that switches its rows to a grid of big pictures, then back
 Show as grid	Tampilkan sebagai kisi
 Show as list	Tampilkan sebagai daftar
@@ -2410,6 +2425,8 @@ Removed the folder %s	Folder %s dihapus
 Renamed the folder to %s	Folder diganti nama menjadi %s
 # context: row in the long press menu on an account on the Saved profiles page, and title of the folder checklist it opens; an account can be in several folders (#687)
 Choose folders	Pilih folder
+# context: a row in the menu on a saved account's profile (#629) naming the Saved profiles folders it's in, comma separated; tapping it opens the folder picker.
+Folders: %s	Folder: %s
 # context: toast after Choose folders with every folder unticked; %s is the account's username, which stays saved (#687)
 @%s is in no folder now	@%s kini tidak ada di folder mana pun
 # context: toast after Choose folders leaves the account in one folder; %1$s is its username, %2$s the folder's name (#687)
@@ -2538,10 +2555,18 @@ Shows the time played and the video's length over the seek bar on feed videos, l
 Show the time left	Tampilkan sisa waktu
 # context: Summary of Show the time left; -0:33 / 0:45 is an example time, keep the digits and the minus sign as they are (#711)
 The time on the seek bar counts down what's left of the video, like -0:33 / 0:45. A tap on the time switches back.	Waktu di bilah geser menghitung mundur sisa video, seperti -0:33 / 0:45. Ketuk waktunya untuk kembali.
+# context: Feed settings: a switch under Time on the seek bar that moves the time from the middle of the bar to the corner under Instagram's tags button (#711)
+Time under the tags button	Waktu di bawah tombol tag
+# context: Summary of Time under the tags button (#711)
+Puts the time in the corner under the tags button instead of the middle of the bar.	Menaruh waktu di sudut, di bawah tombol tag, bukan di tengah bilah.
 # context: Feed settings: a switch under Tap a feed video to pause it that keeps any tap on a feed video from opening Reels (#706)
 Taps on feed videos stay in the feed	Ketukan di video feed tetap di feed
 # context: Summary of Taps on feed videos stay in the feed; Tap a feed video to pause it is the switch above it, use its translation (#706)
 A tap on a feed video, or on the screen it shows when it ends, no longer opens it full screen in Reels. Tap a feed video to pause it still pauses it, and the buttons on that screen still work.	Ketukan di video feed, atau di layar yang muncul saat video selesai, tidak lagi membukanya layar penuh di Reels. Ketuk video feed untuk menjedanya tetap menjedanya, dan tombol di layar itu tetap berfungsi.
+# context: Feed settings: a switch under Tap a feed video to pause it that pauses only for a tap in the middle of the video (#706)
+Only the middle pauses it	Hanya bagian tengah yang menjedanya
+# context: Summary of Only the middle pauses it; Taps on feed videos stay in the feed is another switch, use its translation (#706)
+Only a tap in the middle of the video, where Instagram puts its play button, pauses or plays it. A tap anywhere else opens it in Reels, unless Taps on feed videos stay in the feed is on.	Hanya ketukan di tengah video, tempat Instagram menaruh tombol putarnya, yang menjeda atau memutarnya. Ketukan di tempat lain membukanya di Reels, kecuali Ketukan di video feed tetap di feed aktif.
 # context: Item in Items in the three-dot menus under Feed: Instagram's Report row in the menus behind the three dots (#697)
 Report	Laporkan
 # context: Item in Items in the three-dot menus under Feed: Instagram's Unfollow row (#697)
@@ -2576,6 +2601,10 @@ Keeps 2x only when you hold the video for about 3 seconds. Let go sooner and it 
 Keep the name while you hold	Tetap tampilkan nama saat menahan
 # context: Summary of Keep the name while you hold, a switch under Hold for 2x on feed videos (#552)
 The name over a feed video stays while you hold it for 2x. Instagram's 2x and time labels don't show then.	Nama di atas video feed tetap ada saat kamu menahannya untuk 2x. Label 2x dan waktu dari Instagram tidak muncul.
+# context: Title of a switch under Hold for 2x on feed videos (#639)
+Hold the middle to pause it	Tahan bagian tengah untuk menjeda
+# context: Summary of Hold the middle to pause it, a switch under Hold for 2x on feed videos (#639)
+Holding the middle of a feed video pauses it until you let go. Hold its left or right side for 2x.	Menahan bagian tengah video feed menjedanya sampai kamu melepaskannya. Tahan sisi kiri atau kanannya untuk 2x.
 # context: Stories settings: title and dialog title of the list under Story ring size that picks how thick story rings are drawn (#528)
 Ring thickness	Ketebalan lingkaran
 # context: Stories settings: the Ring thickness choice that keeps the thickness Instagram gives story rings (#528)
@@ -2787,6 +2816,7 @@ Record this call	Rekam panggilan ini
 Stop recording	Berhenti merekam
 # context: a toast when the Record button can't start a recording (#732)
 Couldn't start recording this call	Tidak dapat mulai merekam panggilan ini
+Record calls closed Instagram, so it's off now.	Rekam panggilan menutup Instagram, jadi kini mati.
 # context: a toast when a finished call recording can't be saved to the phone (#732)
 Couldn't save the call recording	Rekaman panggilan tidak dapat disimpan
 # context: a toast when a recording ends with no sound in it (#732)
@@ -2809,3 +2839,31 @@ Even on silent	Juga saat senyap
 Feed videos start with sound with the phone on silent or vibrate too. Only the media volume counts.	Video feed tetap mulai dengan suara saat ponsel dalam mode senyap atau getar. Hanya volume media yang dihitung.
 Also in search	Juga di pencarian
 Takes rows of the Explore grid and of search results out when a post in them holds a word or phrase from the list, or comes from an account the list names with @.	Menghapus baris dari kisi Jelajahi dan hasil pencarian jika ada postingan di dalamnya yang berisi kata atau frasa dari daftar, atau berasal dari akun yang disebut daftar dengan @.
+Holding a post's Share button shows a row of people to send it to. Instagram shows four, and this shows as many as fit across the screen.	Menahan tombol Bagikan pada postingan menampilkan barisan orang untuk dikirimi. Instagram menampilkan empat, dan ini menampilkan sebanyak yang muat selebar layar.
+More people when you hold Share	Lebih banyak orang saat menahan Bagikan
+Copy hashtags	Salin tagar
+Hashtags	Tagar
+Hashtags copied	Tagar disalin
+Couldn't copy the hashtags	Tidak dapat menyalin tagar
+Translate caption	Terjemahkan keterangan
+No app here can translate it	Tak ada app penerjemah
+# context: Reels switch Hide reels you've seen and its summary (#830)
+Hide reels you've seen	Sembunyikan reel yang sudah ditonton
+Leaves reels you've already watched out of the Reels tab when Instagram shows them again. Reels you open from a profile or a chat still play. The last 3000 are kept on this phone.	Menyingkirkan reel yang sudah kamu tonton dari tab Reels saat Instagram menampilkannya lagi. Reel yang kamu buka dari profil atau chat tetap diputar. 3000 terakhir disimpan di ponsel ini.
+# context: Messages switch Chat groups, its chat menu row, dialogs and toasts (discussion #838)
+Chat groups	Grup chat
+Long press a chat and tap Move to group to put it in a group you name. It leaves your main inbox. Long press the Messages button to show one group, or all chats. Groups stay on this phone.	Tekan lama chat lalu ketuk Pindahkan ke grup untuk memasukkannya ke grup yang kamu beri nama. Chat itu keluar dari kotak masuk utama. Tekan lama tombol Pesan untuk menampilkan satu grup atau semua chat. Grup disimpan di ponsel ini.
+Move to group	Pindahkan ke grup
+Group or hide chat	Kelompokkan atau sembunyikan chat
+No group	Tanpa grup
+New group	Grup baru
+Group name	Nama grup
+All chats	Semua chat
+Showing all chats	Menampilkan semua chat
+Showing %1$s	Menampilkan %1$s
+%1$s is in %2$s	%1$s ada di %2$s
+%1$s is back in your inbox	%1$s kembali ke kotak masuk
+Long press a chat to group it	Tekan lama chat untuk mengelompokkannya
+# context: Stories switch Story rings on saved posts and its summary, for posts on the Saved page (#790)
+Story rings on saved posts	Lingkaran cerita di postingan tersimpan
+Posts you saved show the story ring around the author's picture, like Home does, and a tap on it opens their story. It only uses stories Instagram has already loaded.	Postingan yang kamu simpan menampilkan lingkaran cerita di sekitar foto pembuatnya, seperti di Beranda, dan mengetuknya membuka ceritanya. Hanya memakai cerita yang sudah dimuat Instagram.

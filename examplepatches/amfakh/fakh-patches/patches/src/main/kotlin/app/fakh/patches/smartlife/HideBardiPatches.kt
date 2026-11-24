@@ -1,6 +1,14 @@
+/*
+ * Copyright 2026 amfakh
+ * SPDX-License-Identifier: GPL-3.0-only
+ */
+
 package app.fakh.patches.smartlife
 
 import app.fakh.patches.smartlife.shared.Constants.COMPATIBILITY_BARDI
+import app.fakh.patches.smartlife.shared.Constants.HIDE_APP_MALL
+import app.fakh.patches.smartlife.shared.Constants.HIDE_MALL_TAB
+import app.fakh.patches.smartlife.shared.Constants.HIDE_ME_BANNER
 import app.morphe.patcher.patch.patch
 
 // BARDI renames the visibility method (`d` instead of `f`), so the cells are matched by their signature alone.
@@ -16,7 +24,7 @@ val hideMallTabPatch = patch(
 ) {
     compatibleWith(COMPATIBILITY_BARDI)
     category("Layout")
-    dependsOn(tabFilterPatch, switchRow("fakh_hide_mall_tab"), settingsSwitchesPatch)
+    dependsOn(tabFilterPatch, switchRow(HIDE_MALL_TAB), settingsSwitchesPatch)
 }
 
 @Suppress("unused")
@@ -28,7 +36,7 @@ val hideMeBannerPatch = patch(
     compatibleWith(COMPATIBILITY_BARDI)
     category("Layout")
     extendWith("extensions/extension.mpe")
-    dependsOn(switchRow("fakh_hide_me_banner"), settingsSwitchesPatch)
+    dependsOn(switchRow(HIDE_ME_BANNER), settingsSwitchesPatch)
 
     execute {
         // The banner is a mini-app card the Tuya cloud configures; the advertising cell is the ad slot above it.
@@ -46,7 +54,7 @@ val hideAppMallPatch = patch(
     compatibleWith(COMPATIBILITY_BARDI)
     category("Layout")
     extendWith("extensions/extension.mpe")
-    dependsOn(switchRow("fakh_hide_app_mall"), settingsSwitchesPatch)
+    dependsOn(switchRow(HIDE_APP_MALL), settingsSwitchesPatch)
 
     execute { appMallFingerprint.method.whenSwitchOn("fakh_hide_app_mall", HIDE_CELL) }
 }

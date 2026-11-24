@@ -1,3 +1,8 @@
+/*
+ * Copyright 2026 amfakh
+ * SPDX-License-Identifier: GPL-3.0-only
+ */
+
 package app.fakhradio.patches.shared
 
 import org.w3c.dom.Document

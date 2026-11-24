@@ -6,13 +6,6 @@ import app.morphe.patcher.patch.PatchException
 import app.morphe.patcher.patch.booleanOption
 import app.morphe.patcher.patch.rawResourcePatch
 
-private val EXPECTED_IS_ENABLED_BYTES = byteArrayOf(
-    0x45.toByte(), 0x28.toByte(), 0x0b.toByte(), 0x31.toByte(), 0xd9.toByte(), 0x74.toByte()
-)
-private val FORCED_FALSE_IS_ENABLED_BYTES = byteArrayOf(
-    0x96.toByte(), 0x28.toByte(), 0x96.toByte(), 0x28.toByte(), 0x96.toByte(), 0x28.toByte()
-)
-
 private val EXPECTED_DISCOVER_TAB_GATE_BYTES = byteArrayOf(0x34, 0x01, 0x00, 0x3b)
 private val HIDDEN_DISCOVER_TAB_GATE_BYTES = byteArrayOf(0x96.toByte(), 0x01, 0x76.toByte(), 0x01)
 
@@ -22,8 +15,30 @@ private val HIDDEN_SEZZLE_AI_BANNER_BYTES = byteArrayOf(0x94.toByte(), 0x00, 0x7
 private val EXPECTED_SEZZLE_AI_PILL_BYTES = byteArrayOf(0x34, 0x05, 0x00, 0x89.toByte())
 private val HIDDEN_SEZZLE_AI_PILL_BYTES = byteArrayOf(0x94.toByte(), 0x00, 0x76.toByte(), 0x00)
 
-private val EXPECTED_RESOLVE_PRODUCTS_TAB_BYTES = byteArrayOf(0x89.toByte(), 0x02, 0x01, 0x45)
+private val EXPECTED_RESOLVE_PRODUCTS_TAB_BYTES = byteArrayOf(0x89.toByte(), 0x02, 0x01, 0x46)
 private val HIDDEN_RESOLVE_PRODUCTS_TAB_BYTES = byteArrayOf(0x96.toByte(), 0x01, 0x76.toByte(), 0x01)
+
+/**
+ * Checks whether an encoded `GetById`/`GetByIdLong` instruction at [offset] references
+ * [stringId]. [instructionLength] is the encoded length of the instruction.
+ */
+private fun referencesString(
+    bytes: ByteArray,
+    offset: Int,
+    instructionLength: Int,
+    stringId: Int
+): Boolean {
+    val actual = when (instructionLength) {
+        6 -> (bytes[offset + 4].toInt() and 0xFF) or
+            ((bytes[offset + 5].toInt() and 0xFF) shl 8)
+        8 -> (bytes[offset + 4].toInt() and 0xFF) or
+            ((bytes[offset + 5].toInt() and 0xFF) shl 8) or
+            ((bytes[offset + 6].toInt() and 0xFF) shl 16) or
+            ((bytes[offset + 7].toInt() and 0xFF) shl 24)
+        else -> return false
+    }
+    return actual == stringId
+}
 
 @Suppress("unused")
 val replaceAiDiscoverWithProductsPatch = rawResourcePatch(
@@ -59,46 +74,43 @@ val replaceAiDiscoverWithProductsPatch = rawResourcePatch(
             ?: throw PatchException("String 'isEnabled' not found")
 
         val bytes = editor.toByteArray()
-        val useDiscoverTabBytes = byteArrayOf(
-            (useDiscoverTabId and 0xFF).toByte(),
-            ((useDiscoverTabId ushr 8) and 0xFF).toByte()
-        )
-        val isEnabledBytes = byteArrayOf(
-            (isEnabledId and 0xFF).toByte(),
-            ((isEnabledId ushr 8) and 0xFF).toByte()
-        )
-
+        val scanLimit = minOf(protectedStackOffset + 20_000, bytes.size - 16)
         var isEnabledPatched = false
-        for (i in protectedStackOffset until minOf(protectedStackOffset + 15_000, bytes.size - 16)) {
-            // GetByIdShort r11, r11, cache, useDiscoverTab: 45 0b 0b ?? <useDiscoverTabBytes>
-            // Call1 r11, r11, r2: 6c 0b 0b 02
-            // GetByIdShort r40, r11, cache, isEnabled: 45 28 0b ?? <isEnabledBytes>
-            if (bytes[i] == 0x45.toByte() &&
-                bytes[i + 1] == 0x0B.toByte() &&
-                bytes[i + 2] == 0x0B.toByte() &&
-                bytes[i + 4] == useDiscoverTabBytes[0] &&
-                bytes[i + 5] == useDiscoverTabBytes[1] &&
-                bytes[i + 6] == 0x6C.toByte() &&
-                bytes[i + 7] == 0x0B.toByte() &&
-                bytes[i + 8] == 0x0B.toByte() &&
-                bytes[i + 9] == 0x02.toByte() &&
-                bytes[i + 10] == 0x45.toByte() &&
-                bytes[i + 11] == 0x28.toByte() &&
-                bytes[i + 12] == 0x0B.toByte() &&
-                bytes[i + 14] == isEnabledBytes[0] &&
-                bytes[i + 15] == isEnabledBytes[1]
-            ) {
-                val patchOffset = i + 10
-                if (!editor.matchesBytes(patchOffset, EXPECTED_IS_ENABLED_BYTES)) {
-                    throw PatchException("Unexpected instruction bytes for isEnabled in ProtectedStack")
-                }
-                editor.patchBytes(patchOffset, FORCED_FALSE_IS_ENABLED_BYTES)
-                isEnabledPatched = true
-                break
+        for (offset in protectedStackOffset until scanLimit) {
+            val useDiscoverOpcode = bytes[offset]
+            val useDiscoverLength = when (useDiscoverOpcode) {
+                0x45.toByte() -> 6
+                0x46.toByte() -> 8
+                else -> continue
             }
+            if (!referencesString(bytes, offset, useDiscoverLength, useDiscoverTabId)) continue
+
+            val callOffset = offset + useDiscoverLength
+            if (bytes[callOffset] != 0x6C.toByte()) continue
+
+            val isEnabledOffset = callOffset + 4
+            val isEnabledOpcode = bytes[isEnabledOffset]
+            val isEnabledLength = when (isEnabledOpcode) {
+                0x45.toByte() -> 6
+                0x46.toByte() -> 8
+                else -> continue
+            }
+            if (!referencesString(bytes, isEnabledOffset, isEnabledLength, isEnabledId)) continue
+
+            val destination = bytes[isEnabledOffset + 1]
+            editor.patchBytes(
+                isEnabledOffset,
+                byteArrayOf(
+                    0x96.toByte(), destination,
+                    0x96.toByte(), destination,
+                    0x96.toByte(), destination
+                ).copyOf(isEnabledLength)
+            )
+            isEnabledPatched = true
+            break
         }
         if (!isEnabledPatched) {
-            throw PatchException("Could not find isEnabled instruction in ProtectedStack")
+            throw PatchException("Could not find useDiscoverTab().isEnabled in ProtectedStack")
         }
 
         // 2. Disable useDiscoverTabEnabled gate function: returns false

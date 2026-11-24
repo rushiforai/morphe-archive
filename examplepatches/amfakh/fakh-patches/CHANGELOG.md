@@ -1,3 +1,88 @@
+## [2.12.0](https://github.com/amfakh/fakh-patches/compare/v2.11.3...v2.12.0) (2026-11-24)
+
+### New Features
+
+* **Genius:** add support for `8.2.3.5414` with Hide ads, Fix Spotify login, GmsCore support and Disable analytics ([ddf6ea4](https://github.com/amfakh/fakh-patches/commit/ddf6ea46cf14b3719d357e33990ec816b134536f))
+
+## [2.11.3](https://github.com/amfakh/fakh-patches/compare/v2.11.2...v2.11.3) (2026-11-24)
+
+### Bug Fixes
+
+* **Warung Life Simulator:** show the Legendary fish chance in percent and default it to 75% ([9909b55](https://github.com/amfakh/fakh-patches/commit/9909b559cd2786ea7b0e45eb00e8cc2c57bf6b56))
+
+## [2.11.2](https://github.com/amfakh/fakh-patches/compare/v2.11.1...v2.11.2) (2026-11-24)
+
+### Bug Fixes
+
+* **Warung Life Simulator:** group the patches under Mods and turn them all on except Clone ([dc206ab](https://github.com/amfakh/fakh-patches/commit/dc206abfb05cc79309122e245031c0893ad610d5))
+* **Warung Life Simulator:** show the Clone tag in Morphe Manager, with the package name as one option ([dc206ab](https://github.com/amfakh/fakh-patches/commit/dc206abfb05cc79309122e245031c0893ad610d5))
+
+## [2.11.1](https://github.com/amfakh/fakh-patches/compare/v2.11.0...v2.11.1) (2026-11-24)
+
+### Bug Fixes
+
+* fix Morphe Manager showing 0 patches for the bundle ([ec682a5](https://github.com/amfakh/fakh-patches/commit/ec682a584668a587af9456f503f3ae77eefeb623))
+
+## [2.11.0](https://github.com/amfakh/fakh-patches/compare/v2.10.0...v2.11.0) (2026-11-24)
+
+### New Features
+
+* **Warung Life Simulator:** add Unlimited ad rewards, Sales income multiplier, Daily bonus, Unlock tester outfit and Legendary fish chance ([ef042d3](https://github.com/amfakh/fakh-patches/commit/ef042d393d4720986016ebe493690f0b69ddf303))
+* **GitHub:** add Smaller navigation bar ([f27ffed](https://github.com/amfakh/fakh-patches/commit/f27ffedcdd278c605bd4a555cc4714eab398c943)), closes [#8](https://github.com/amfakh/fakh-patches/issues/8)
+* **GitHub:** add Download assets, which saves release assets with the download manager, private repositories included ([8272545](https://github.com/amfakh/fakh-patches/commit/827254512a29c1097e1554e4d936156be948eb49)), closes [#10](https://github.com/amfakh/fakh-patches/issues/10)
+
+### Bug Fixes
+
+* **Warung Life Simulator:** rename Hide ads to Instant ad rewards, select it again ([4ad4a61](https://github.com/amfakh/fakh-patches/commit/4ad4a61ae07cfe8b47dc67f57be41b5fe64c4382))
+* **GitHub:** hug the landscape Glass navigation bar tightly around its tabs ([d36e8bb](https://github.com/amfakh/fakh-patches/commit/d36e8bb062137dade9f40db85fdd1a4b5c3fa85b))
+
+## [2.10.0](https://github.com/amfakh/fakh-patches/compare/v2.9.0...v2.10.0) (2026-11-24)
+
+### New Features
+
+* **Mazii: Japanese Dictionary:** add support for `6.8.64` with Premium unlock, GmsCore support, Disable analytics and Disable Play license check ([f067492](https://github.com/amfakh/fakh-patches/commit/f0674928a1572760ebaaa29e82651cad10a0f345))
+* **Todaii: Learn Japanese N5-N1:** add support for `5.6.0` with Premium unlock, GmsCore support and Disable analytics ([926525a](https://github.com/amfakh/fakh-patches/commit/926525a39076aba5452ddcf2263070b79382e5f1))
+* **Todaii Super:** add support for `1.1.5` with Premium unlock, GmsCore support and Disable analytics ([f8979ee](https://github.com/amfakh/fakh-patches/commit/f8979eeb6f7608fe7df24658816b6a235624855a))
+* **Todaii: Learn German A1-C1:** add support for `2.8.2` with Premium unlock, GmsCore support and Disable analytics ([a54209c](https://github.com/amfakh/fakh-patches/commit/a54209c61c552871dcfb489b0363563d9fd44b04))
+
+## [2.9.0](https://github.com/amfakh/fakh-patches/compare/v2.8.0...v2.9.0) (2026-11-23)
+
+### New Features
+
+* **GitHub:** add Disable analytics ([1016b99](https://github.com/amfakh/fakh-patches/commit/1016b99d7c42023e02767e3283dcfc2beb756be6)), closes [#6](https://github.com/amfakh/fakh-patches/issues/6)
+* **GitHub:** add Repositories and Stars tabs, icons and drag to sort in the Navigation bar tabs sheet ([ea0c1d6](https://github.com/amfakh/fakh-patches/commit/ea0c1d62ecc3c234bc51c2ce1077296d1a1e9e75)), closes [#7](https://github.com/amfakh/fakh-patches/issues/7)
+
+### Bug Fixes
+
+* **LinkedIn:** move the drag handle of the Navigation bar tabs sheet to the left ([29b1d80](https://github.com/amfakh/fakh-patches/commit/29b1d8082836ac85c0814b232edaf12ffe376b1a))
+
+## [2.8.0](https://github.com/amfakh/fakh-patches/compare/v2.7.0...v2.8.0) (2026-11-23)
+
+### New Features
+
+* **Warung Life Simulator:** add support for `1.2` with Hide ads, Clone and GmsCore support ([5bdc23e](https://github.com/amfakh/fakh-patches/commit/5bdc23e2b097a461b5f16b246249105062fc25bf))
+
+## [2.7.0](https://github.com/amfakh/fakh-patches/compare/v2.6.0...v2.7.0) (2026-11-23)
+
+### New Features
+
+* **SYNC by Krisbow:** add support for `3.1.2` with Glass navigation bar, Glass cards, Swipe between tabs, Dark device panels, Spoof signature, Hide Discovery tab, Hide Discovery and Hide background image ([6ac1ce3](https://github.com/amfakh/fakh-patches/commit/6ac1ce36ffcdaf40967182dae2fd3dfdbd79ffdb))
+
+## [2.6.0](https://github.com/amfakh/fakh-patches/compare/v2.5.3...v2.6.0) (2026-11-23)
+
+### New Features
+
+* **FOMO Indonesia:** add support for `9.0.64` with Hide ads, Material You, Pitch black, Hide post divider and Themed icon ([6f6e5b1](https://github.com/amfakh/fakh-patches/commit/6f6e5b1d555c5142ae89d3542edff97f554c434e))
+* every app lists its original signer certificate for Morphe Manager to check ([e58a3f3](https://github.com/amfakh/fakh-patches/commit/e58a3f3281d9fbde699d257fcc3fb675c2bb3c37))
+
+### Bug Fixes
+
+* **LinkedIn:** `Sanitize share links` reports an error instead of silently doing nothing ([b6df614](https://github.com/amfakh/fakh-patches/commit/b6df6140bb26d8e1238f5bddc9cd75b5aeb0c2b4))
+
+### Updated App Support
+
+* **IDN:** add support for `6.70.0`, next to `6.69.1` ([48223a6](https://github.com/amfakh/fakh-patches/commit/48223a61c47707e704da7f463aee8cfe3bc73160))
+
 ## [2.5.3](https://github.com/amfakh/fakh-patches/compare/v2.5.2...v2.5.3) (2026-11-22)
 
 ### Updated App Support

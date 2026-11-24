@@ -16,7 +16,7 @@ public final class VersionBridge {
     public static final String WORKER_URL =
             "https://worker.patch.p0ntus.com/api/version/com.ashtoncofer.Buzz";
     public static final String DEFAULT_VERSION = "1.72.0";
-    public static final String DEFAULT_BUILD_NUMBER = "400032";
+    public static final String DEFAULT_BUILD_NUMBER = "465123";
 
     private static final String PREFS_FILE = "aidan_fizz_version_spoof";
     private static final String KEY_VERSION = "cached_version";

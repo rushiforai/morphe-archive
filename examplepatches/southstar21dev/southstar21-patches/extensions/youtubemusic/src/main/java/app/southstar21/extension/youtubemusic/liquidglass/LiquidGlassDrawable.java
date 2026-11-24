@@ -62,26 +62,31 @@ final class LiquidGlassDrawable extends Drawable {
             "  float coverage = clamp(0.5 - d, 0.0, 1.0);\n" +   // anti-aliased edge
             "  if (coverage <= 0.0) return half4(0.0);\n" +
 
-            // Surface normal from the SDF gradient.
-            "  float e = 0.75;\n" +
-            "  float2 n = float2(\n" +
-            "    sdRoundRect(p + float2(e, 0.0), half_size, radius) - sdRoundRect(p - float2(e, 0.0), half_size, radius),\n" +
-            "    sdRoundRect(p + float2(0.0, e), half_size, radius) - sdRoundRect(p - float2(0.0, e), half_size, radius));\n" +
-            "  n = n / max(length(n), 1e-4);\n" +
-
             // Circular lens profile: flat in the middle, bending hard at the rim,
             // so content from just outside the pill gets pulled in at the edges.
             "  float t = clamp(1.0 + d / bezel, 0.0, 1.0);\n" +  // 0 inside band, 1 at edge
-            "  float bend = 1.0 - sqrt(max(1.0 - t * t, 0.0));\n" +
-            "  float2 offset = n * bend * strength;\n" +
-
             "  half4 col;\n" +
-            "  col.r = content.eval(coord + offset * 1.06).r;\n" +
-            "  col.g = content.eval(coord + offset).g;\n" +
-            "  col.b = content.eval(coord + offset * 0.94).b;\n" +
+            "  float2 n = float2(0.0);\n" +
+            // The flat middle bends nothing: one sample instead of four.
+            "  if (t <= 0.0) {\n" +
+            "    col = content.eval(coord);\n" +
+            "  } else {\n" +
+            // Surface normal: the gradient of the rounded rect's distance, worked out directly
+            // (towards the nearest corner's center in the corners, straight out along the sides).
+            "    float2 q = abs(p) - half_size + radius;\n" +
+            "    float2 sgn = float2(p.x >= 0.0 ? 1.0 : -1.0, p.y >= 0.0 ? 1.0 : -1.0);\n" +
+            "    if (q.x > 0.0 && q.y > 0.0) n = normalize(q) * sgn;\n" +
+            "    else if (q.x > q.y) n = float2(sgn.x, 0.0);\n" +
+            "    else n = float2(0.0, sgn.y);\n" +
+            "    float bend = 1.0 - sqrt(max(1.0 - t * t, 0.0));\n" +
+            "    float2 offset = n * bend * strength;\n" +
+            "    col.r = content.eval(coord + offset * 1.06).r;\n" +
+            "    col.g = content.eval(coord + offset).g;\n" +
+            "    col.b = content.eval(coord + offset * 0.94).b;\n" +
             // Kept, not forced opaque: a video plays in a hole of the recording (its own layer,
             // under the window), and the glass must let it show through rather than go solid.
-            "  col.a = content.eval(coord + offset).a;\n" +
+            "    col.a = content.eval(coord + offset).a;\n" +
+            "  }\n" +
 
             // Vibrancy: glass slightly boosts saturation of what's behind it.
             "  half luma = dot(col.rgb, half3(0.2126, 0.7152, 0.0722));\n" +
@@ -109,6 +114,9 @@ final class LiquidGlassDrawable extends Drawable {
             "  col.rgb = min(col.rgb, half3(col.a));\n" +
             "  return col * coverage;\n" +
             "}\n";
+
+    /** The backdrop is recorded this many times smaller on each side (see recordBackdrop). */
+    private static final int DOWNSAMPLE = 2;
 
     private final View host;
     private final float density;
@@ -143,11 +151,11 @@ final class LiquidGlassDrawable extends Drawable {
     // Backdrop, lazily created on Android 12+.
     /** Views the glass looks past, such as YouTube Music's dark gradient behind the bar. */
     private final java.util.Set<View> excluded = java.util.Collections.newSetFromMap(new java.util.WeakHashMap<>());
-    private RenderNode backdrop;
     private RenderNode refracted;
+    /** Holds the finished glass in a layer (see Layers). */
+    private RenderNode glass;
     private RenderNode clipped;
     private RuntimeShader shader;
-    private RenderEffect blurEffect;
     private RenderEffect glassEffect;
     private String effectKey;
 
@@ -354,6 +362,13 @@ final class LiquidGlassDrawable extends Drawable {
         float radius = cornerRadius();
         stepTint();
 
+        if (style.lightweight()) {
+            drawLightweight(canvas, radius);
+            drawGlow(canvas, radius);
+            if (style.rim > 0f) drawRim(canvas, radius);
+            return;
+        }
+
         boolean glassDrawn = false;
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S && canvas.isHardwareAccelerated()) {
             glassDrawn = drawBackdrop(canvas, radius);
@@ -368,6 +383,147 @@ final class LiquidGlassDrawable extends Drawable {
         drawGlow(canvas, radius);
         drawRim(canvas, radius);
     }
+
+    // region Lightweight glass
+
+    /**
+     * The blurred backdrop's colors made more vivid and a little brighter, which reads as frosted
+     * glass; a blur alone leaves them dull and grey.
+     */
+    private static final android.graphics.ColorMatrix FROSTED = frosted();
+
+    private static android.graphics.ColorMatrix frosted() {
+        android.graphics.ColorMatrix colors = new android.graphics.ColorMatrix();
+        colors.setSaturation(1.5f);
+        float lift = 15f;
+        colors.postConcat(new android.graphics.ColorMatrix(new float[]{
+                1, 0, 0, 0, lift,
+                0, 1, 0, 0, lift,
+                0, 0, 1, 0, lift,
+                0, 0, 0, 1, 0}));
+        return colors;
+    }
+
+    /** The content behind the pill, blurred and frosted by its RenderEffect. */
+    private RenderNode lightNode;
+    private float lightBlur = -1f;
+    private final android.graphics.Path lightPath = new android.graphics.Path();
+    private final RectF lightArea = new RectF();
+    private final RectF shadowRect = new RectF();
+    private final Paint shadowPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
+    private final Paint sheenPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
+    /** The pill's top and bottom and the theme the sheen's gradient was made for. */
+    private float sheenTop = Float.NaN, sheenBottom = Float.NaN;
+    private boolean sheenDark;
+
+    /**
+     * The glass drawn simply: what's behind the pill through one blur (and a color matrix),
+     * re-recorded on each draw into a plain node, clipped to the pill, under a translucent fill,
+     * a sheen and a painted shadow. No refraction shader, no layers, no elevation shadow, no edge
+     * blur. Blurred only on Android 14+ (on 12 and 13 a blur redrawn while the player moves can
+     * crash the app); before that the backdrop's base color stands in for the page, or its text
+     * would show sharp through the glass.
+     */
+    private void drawLightweight(Canvas canvas, float radius) {
+        drawPaintedShadow(canvas, radius);
+
+        float blur = style.blurDp * density;
+        if (blur > 0f) {
+            lightPath.reset();
+            lightPath.addRoundRect(pill, radius, radius, android.graphics.Path.Direction.CW);
+            int save = canvas.save();
+            canvas.clipPath(lightPath);
+            boolean blurred = Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE
+                    && canvas.isHardwareAccelerated() && drawLightBackdrop(canvas, blur);
+            if (!blurred) canvas.drawColor(dark ? Color.BLACK : Color.WHITE);
+            canvas.restoreToCount(save);
+        }
+
+        tintPaint.setColor(materialColor(Math.round(255 * currentTint())));
+        canvas.drawRoundRect(pill, radius, radius, tintPaint);
+
+        if (pill.top != sheenTop || pill.bottom != sheenBottom || dark != sheenDark) {
+            sheenTop = pill.top;
+            sheenBottom = pill.bottom;
+            sheenDark = dark;
+            sheenPaint.setShader(new LinearGradient(0, pill.top, 0, pill.bottom,
+                    Color.argb(dark ? 0x1A : 0x59, 0xFF, 0xFF, 0xFF), Color.TRANSPARENT, Shader.TileMode.CLAMP));
+        }
+        canvas.drawRoundRect(pill, radius, radius, sheenPaint);
+    }
+
+    /** A soft shadow under the pill from three offset round rects, instead of an elevation shadow. */
+    private void drawPaintedShadow(Canvas canvas, float radius) {
+        // The Shadow setting is 0.5 by default.
+        int alpha = Math.round((dark ? 0.10f : 0.05f) * 255 * style.shadow / 0.5f);
+        if (alpha <= 0) return;
+        float step = density;
+        for (int i = 3; i >= 1; i--) {
+            shadowRect.set(pill);
+            shadowRect.inset(-i * 0.5f * step, -i * 0.5f * step);
+            shadowRect.offset(0, i * step);
+            shadowPaint.setColor(Color.argb(Math.min(255, alpha / i), 0, 0, 0));
+            float r = radius + i * 0.5f * step;
+            canvas.drawRoundRect(shadowRect, r, r, shadowPaint);
+        }
+    }
+
+    /**
+     * Records the siblings drawn below the glass around the pill (with room for the blur) over
+     * the base color, into {@link #lightNode}, and draws it. The node only refers to the views'
+     * display lists, so recording is cheap. False if there's nothing to record.
+     */
+    private boolean drawLightBackdrop(Canvas canvas, float blur) {
+        if (!(host.getParent() instanceof ViewGroup)) return false;
+        ViewGroup parent = (ViewGroup) host.getParent();
+        int hostIndex = parent.indexOfChild(host);
+        if (hostIndex <= 0) return false;
+
+        float hostX = host.getLeft() + host.getTranslationX();
+        float hostY = host.getTop() + host.getTranslationY();
+        float margin = (float) Math.ceil(blur);
+        lightArea.set((float) Math.floor(hostX + pill.left - margin), (float) Math.floor(hostY + pill.top - margin),
+                (float) Math.ceil(hostX + pill.right + margin), (float) Math.ceil(hostY + pill.bottom + margin));
+        int w = Math.round(lightArea.width()), h = Math.round(lightArea.height());
+        if (w <= 0 || h <= 0) return false;
+
+        if (lightNode == null) lightNode = new RenderNode("LiquidGlassLight");
+        if (blur != lightBlur) {
+            // Set only when it changes: a new effect makes the GPU redo it.
+            lightBlur = blur;
+            lightNode.setRenderEffect(RenderEffect.createChainEffect(
+                    RenderEffect.createColorFilterEffect(new android.graphics.ColorMatrixColorFilter(FROSTED)),
+                    RenderEffect.createBlurEffect(blur, blur, Shader.TileMode.CLAMP)));
+        }
+        lightNode.setPosition(0, 0, w, h);
+        RecordingCanvas rc = lightNode.beginRecording(w, h);
+        try {
+            // Under the content, which may have no background of its own: blurred text over
+            // nothing would come out mostly clear, with the sharp text showing.
+            rc.drawColor(dark ? Color.BLACK : Color.WHITE);
+            rc.translate(-lightArea.left, -lightArea.top);
+            for (int i = 0; i < hostIndex; i++) {
+                View child = parent.getChildAt(i);
+                if (child.getVisibility() != View.VISIBLE || child.getAlpha() == 0f) continue;
+                if (child instanceof EdgeBlurView || isExcluded(child)) continue;
+                if (!intersects(child, lightArea.left, lightArea.top, w, h)) continue;
+                int save = rc.save();
+                rc.translate(child.getLeft() + child.getTranslationX(), child.getTop() + child.getTranslationY());
+                child.draw(rc);
+                rc.restoreToCount(save);
+            }
+        } finally {
+            lightNode.endRecording();
+        }
+
+        int save = canvas.save();
+        canvas.translate(lightArea.left - hostX, lightArea.top - hostY);
+        canvas.drawRenderNode(lightNode);
+        canvas.restoreToCount(save);
+        return true;
+    }
+
+    // endregion
 
     /**
      * The glass "lit from within" where it's pressed (after Kyant's InteractiveHighlight): a faint
@@ -391,86 +547,76 @@ final class LiquidGlassDrawable extends Drawable {
     }
 
 
+    /** The pill's refraction in px: negative bends inward (see drawBackdrop). */
+    private float strength(boolean refract) {
+        return !refract ? 0f
+                : southstar21 ? -28f * density * style.refraction / 0.6f
+                : style.refraction * 0.15f * pill.height() * (1f + 0.9f * liquid);
+    }
+
     /**
-     * Records every sibling drawn below the tab bar into a RenderNode and draws it back
+     * The margin of backdrop recorded around the pill: enough for the blur, plus, for glass
+     * that bends content in from outside (the iOS style, strength > 0), the bend. The
+     * southstar21 style bends inward, from inside the pill, so it needs none: a 46dp margin
+     * for nothing made every glass render several times the area it shows.
+     */
+    private int pad(float strength) {
+        float bendMargin = strength > 0f ? strength * 1.1f : 0f;
+        return (int) Math.ceil(Math.max(bendMargin, Math.round(style.blurDp * density) * 2f)) + 2;
+    }
+
+    private boolean refracts() {
+        return Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU && style.refraction > 0f;
+    }
+
+    /**
+     * Records every sibling drawn below the glass into a RenderNode and draws it back
      * through the glass effect. Returns false if there was nothing to record.
      */
     private boolean drawBackdrop(Canvas canvas, float radius) {
         if (!(host.getParent() instanceof ViewGroup)) return false;
         ViewGroup parent = (ViewGroup) host.getParent();
-        int hostIndex = parent.indexOfChild(host);
-        if (hostIndex <= 0) return false;
 
-        float refraction = style.refraction;
         int blurRadiusPx = Math.round(style.blurDp * density);
-        boolean refract = Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU && refraction > 0f;
+        boolean refract = refracts();
         // iOS Instagram bends only a thin band at the rim, outward. The southstar21 style pulls
         // 28dp inward at the default strength (60%), the negative sign samples inside the pill.
-        float strength = !refract ? 0f
-                : southstar21 ? -28f * density * refraction / 0.6f
-                : refraction * 0.15f * pill.height() * (1f + 0.9f * liquid);
-        // The margin of backdrop recorded around the pill: enough for the blur, plus, for glass
-        // that bends content in from outside (the iOS style, strength > 0), the bend. The
-        // southstar21 style bends inward, from inside the pill, so it needs none: a 46dp margin
-        // for nothing made every glass render several times the area it shows.
-        float bendMargin = strength > 0f ? strength * 1.1f : 0f;
-        int pad = (int) Math.ceil(Math.max(bendMargin, blurRadiusPx * 2f)) + 2;
+        float strength = strength(refract);
+        // The glass itself only needs a margin where it bends in content from outside the pill
+        // (the iOS style); the southstar21 style samples inside it, so the refraction layer is the
+        // pill plus a little for its anti-aliased edge. (The blur's margin is the backdrop's.)
+        int pad = strength > 0f ? pad(strength) : 2;
 
         int w = Math.round(pill.width()) + 2 * pad;
         int h = Math.round(pill.height()) + 2 * pad;
 
-        if (backdrop == null) {
-            backdrop = new RenderNode("LiquidGlassBackdrop");
-            // Its own layer, so the base color can be filled in behind what's recorded.
-            backdrop.setUseCompositingLayer(true, null);
+        updateEffects(w, h, pad, radius, strength, refract);
+        RenderNode recorded = recordBackdrop(parent, pad(strength), blurRadiusPx / (float) DOWNSAMPLE);
+        if (recorded == null) return false;
+        if (refracted == null) {
             refracted = new RenderNode("LiquidGlassRefraction");
+            glass = new RenderNode("LiquidGlass");
+            glass.setUseCompositingLayer(true, null);
             clipped = new RenderNode("LiquidGlassClip");
-        }
-        backdrop.setPosition(0, 0, w, h);
-
-        // Pill origin in the parent's coordinate space.
-        float originX = host.getLeft() + host.getTranslationX() + pill.left;
-        float originY = host.getTop() + host.getTranslationY() + pill.top;
-
-        RecordingCanvas rc = backdrop.beginRecording(w, h);
-        try {
-            rc.translate(pad - originX, pad - originY);
-            for (int i = 0; i < hostIndex; i++) {
-                View child = parent.getChildAt(i);
-                if (child.getVisibility() != View.VISIBLE || child.getAlpha() == 0f) continue;
-                // The edge blur sits between content and bar; the glass blurs on its own.
-                if (child instanceof EdgeBlurView || isExcluded(child)) continue;
-                if (!intersects(child, originX - pad, originY - pad, w, h)) continue;
-                int save = rc.save();
-                rc.translate(child.getLeft() + child.getTranslationX(), child.getTop() + child.getTranslationY());
-                child.draw(rc);
-                rc.restoreToCount(save);
-            }
-            // Videos playing under the bar are holes in the recording: fill them with copies
-            // where those work, then the base color (for the window's background) everywhere
-            // else, leaving uncopied videos open so the live video shows through the glass.
-            if (snapshots != null) {
-                snapshots.draw(rc);
-                snapshots.drawBase(rc, dark ? Color.BLACK : Color.WHITE);
-            } else {
-                rc.drawColor(dark ? Color.BLACK : Color.WHITE, android.graphics.PorterDuff.Mode.DST_OVER);
-            }
-        } finally {
-            backdrop.endRecording();
+            // A layer of its own too, for the same reason as the glass's (see Layers).
+            clipped.setUseCompositingLayer(true, null);
         }
 
-        updateEffects(w, h, pad, radius, strength, refract, blurRadiusPx);
-        backdrop.setRenderEffect(blurEffect);
+        // The pill's margin in the parent's coordinates, and where it is in the recording.
+        float left = host.getLeft() + host.getTranslationX() + pill.left - pad;
+        float top = host.getTop() + host.getTranslationY() + pill.top - pad;
+        float dx = area.left - left, dy = area.top - top;
 
         // Refraction runs in its own node rather than chained after the blur: in a chain the
         // shader's coordinates no longer match the node, which drew the glass inset from the
         // pill with a transparent band around it.
-        RenderNode source = backdrop;
         if (glassEffect != null) {
             refracted.setPosition(0, 0, w, h);
             RecordingCanvas gc = refracted.beginRecording(w, h);
             try {
-                gc.drawRenderNode(backdrop);
+                gc.translate(dx, dy);
+                gc.scale(DOWNSAMPLE, DOWNSAMPLE);
+                gc.drawRenderNode(recorded);
             } finally {
                 refracted.endRecording();
             }
@@ -479,7 +625,7 @@ final class LiquidGlassDrawable extends Drawable {
             // no clipping node, one render pass less.
             int save = canvas.save();
             canvas.translate(pill.left - pad, pill.top - pad);
-            canvas.drawRenderNode(refracted);
+            canvas.drawRenderNode(Layers.hold(glass, refracted));
             canvas.restoreToCount(save);
             return true;
         }
@@ -492,8 +638,9 @@ final class LiquidGlassDrawable extends Drawable {
         clipped.setClipToOutline(true);
         RecordingCanvas cc = clipped.beginRecording();
         try {
-            cc.translate(-pad, -pad);
-            cc.drawRenderNode(source);
+            cc.translate(dx - pad, dy - pad);
+            cc.scale(DOWNSAMPLE, DOWNSAMPLE);
+            cc.drawRenderNode(recorded);
         } finally {
             clipped.endRecording();
         }
@@ -505,23 +652,85 @@ final class LiquidGlassDrawable extends Drawable {
         return true;
     }
 
+    /** The recorded backdrop's area, in the parent's coordinates (full size). */
+    private final RectF area = new RectF();
+    private RenderNode backdrop;
+    private float backdropBlur = -1f;
+
+    /**
+     * Records the siblings below the glass, around the pill with a margin of {@code margin},
+     * into {@link #area}, blurred by {@code blurRadius} (in its small pixels). Null if there's
+     * nothing to record.
+     * <p>
+     * It's only ever seen blurred, so it's recorded {@link #DOWNSAMPLE} times smaller on each
+     * side: a quarter of the pixels to draw the content into and to blur.
+     */
+    private RenderNode recordBackdrop(ViewGroup parent, int margin, float blurRadius) {
+        int down = DOWNSAMPLE;
+        int hostIndex = parent.indexOfChild(host);
+        if (hostIndex <= 0) return null;
+        float x = host.getLeft() + host.getTranslationX() + pill.left;
+        float y = host.getTop() + host.getTranslationY() + pill.top;
+        area.set((float) Math.floor(x - margin), (float) Math.floor(y - margin),
+                (float) Math.ceil(x + pill.width() + margin), (float) Math.ceil(y + pill.height() + margin));
+        int w = Math.round(area.width()), h = Math.round(area.height());
+        int sw = (w + down - 1) / down, sh = (h + down - 1) / down;
+
+        if (backdrop == null) {
+            backdrop = new RenderNode("LiquidGlassBackdrop");
+            // Its own layer, so the base color can be filled in behind what's recorded.
+            backdrop.setUseCompositingLayer(true, null);
+        }
+        backdrop.setPosition(0, 0, sw, sh);
+        RecordingCanvas rc = backdrop.beginRecording(sw, sh);
+        try {
+            rc.scale(1f / down, 1f / down);
+            rc.translate(-area.left, -area.top);
+            for (int i = 0; i < hostIndex; i++) {
+                View child = parent.getChildAt(i);
+                if (child.getVisibility() != View.VISIBLE || child.getAlpha() == 0f) continue;
+                // The edge blur sits between content and bar; the glass blurs on its own.
+                if (child instanceof EdgeBlurView || isExcluded(child)) continue;
+                if (!intersects(child, area.left, area.top, w, h)) continue;
+                int save = rc.save();
+                rc.translate(child.getLeft() + child.getTranslationX(), child.getTop() + child.getTranslationY());
+                child.draw(rc);
+                rc.restoreToCount(save);
+            }
+            // Videos playing under the bar are holes in the recording: fill them with copies
+            // where those work, then the base color (for the window's background) everywhere
+            // else, leaving uncopied videos open so the live video shows through the glass.
+            int base = dark ? Color.BLACK : Color.WHITE;
+            if (snapshots != null) {
+                snapshots.draw(rc);
+                snapshots.drawBase(rc, base);
+            } else {
+                rc.drawColor(base, android.graphics.PorterDuff.Mode.DST_OVER);
+            }
+        } finally {
+            backdrop.endRecording();
+        }
+        if (blurRadius != backdropBlur) {
+            // Set only when it changes: a new effect is a change the GPU redraws the layer for.
+            backdropBlur = blurRadius;
+            backdrop.setRenderEffect(blurRadius > 0f
+                    ? RenderEffect.createBlurEffect(blurRadius, blurRadius, Shader.TileMode.CLAMP) : null);
+        }
+        return backdrop;
+    }
+
     private static boolean intersects(View v, float x, float y, int w, int h) {
         float left = v.getLeft() + v.getTranslationX();
         float top = v.getTop() + v.getTranslationY();
         return left < x + w && left + v.getWidth() > x && top < y + h && top + v.getHeight() > y;
     }
 
-    private void updateEffects(int w, int h, int pad, float radius, float strength, boolean refract,
-                               int blurRadiusPx) {
+    private void updateEffects(int w, int h, int pad, float radius, float strength, boolean refract) {
         String key = w + "x" + h + ":" + pad + ":" + dark + ":" + refract + ":" + Math.round(tint * 100)
                 + ":" + southstar21 + ":" + Math.round(radius) + ":" + Math.round(strength) + ":" + style.version
                 + ":" + Math.round(liquid * 20);
         if (key.equals(effectKey)) return;
         effectKey = key;
-
-        blurEffect = blurRadiusPx > 0
-                ? RenderEffect.createBlurEffect(blurRadiusPx, blurRadiusPx, Shader.TileMode.CLAMP)
-                : null;
 
         if (!refract) {
             glassEffect = null;

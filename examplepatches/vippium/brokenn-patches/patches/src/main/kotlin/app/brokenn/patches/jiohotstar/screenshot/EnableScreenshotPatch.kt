@@ -1,6 +1,6 @@
 package app.brokenn.patches.jiohotstar.screenshot
 
-import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
+import app.morphe.patcher.util.returnEarly
 import app.morphe.patcher.extensions.InstructionExtensions.instructionsOrNull
 import app.morphe.patcher.extensions.InstructionExtensions.removeInstruction
 import app.morphe.patcher.patch.bytecodePatch
@@ -36,18 +36,12 @@ val enableScreenshotPatch = bytecodePatch(
     execute {
         // Layer 1: the Activity window FLAG_SECURE (0x2000).
         runCatching {
-            ComposeFlagSecureFingerprint.method.addInstructions(0, "return-void")
+            ComposeFlagSecureFingerprint.method.returnEarly()
         }
 
         // Layer 2: the app's own AB switch that gates the legacy secure surface.
         runCatching {
-            UseSecureViewFingerprint.method.addInstructions(
-                0,
-                """
-                    const/4 v0, 0x0
-                    return v0
-                """,
-            )
+            UseSecureViewFingerprint.method.returnEarly(false)
         }
 
         // Layer 3: every method that marks a SurfaceView as secure. Matched by behaviour, so

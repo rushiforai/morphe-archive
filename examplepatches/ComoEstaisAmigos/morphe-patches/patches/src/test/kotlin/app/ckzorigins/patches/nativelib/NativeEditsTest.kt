@@ -1,7 +1,7 @@
 package app.ckzorigins.patches.nativelib
 
-import app.ckzorigins.patches.shared.applyEdits
-import app.ckzorigins.patches.shared.toHex
+import app.adebisi.patches.shared.applyEdits
+import app.adebisi.patches.shared.toHex
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse

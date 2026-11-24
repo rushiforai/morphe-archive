@@ -248,7 +248,6 @@ internal object AppCompatibilities {
             "2efdbd738f3fdae901ecb96ead2d7b9b1ee6d2ceab911bdf7b1a3df812f3cfc4",
         ),
         targets = listOf(
-            AppTarget(version = "3.97.1", versionCode = 3599414, minSdk = 26),
             AppTarget(version = "3.98.0", versionCode = 3600852, minSdk = 26),
         ),
     )
@@ -426,6 +425,17 @@ internal object AppCompatibilities {
         targets = listOf(
             AppTarget(version = "1.61.0", versionCode = 281, minSdk = 24),
         ),
+    )
+
+    val CHESS_SCANNER = Compatibility(
+        name = "Chess Scanner",
+        packageName = "com.stervs.chessscanner",
+        apkFileType = ApkFileType.APKS_REQUIRED,
+        appIconColor = 0xA06E59,
+        signatures = setOf(
+            "ca685e41c4a9e9f3f9c8638aa5c032041fe42daf11f5abd59796f1c65cf666e6",
+        ),
+        targets = listOf(AppTarget(version = "1.8.36", versionCode = 84, minSdk = 26)),
     )
 
     val CLASSDOJO = Compatibility(
@@ -723,6 +733,17 @@ internal object AppCompatibilities {
             "b279c5ef7c476e8ac4f6c4acf5dca4ada9b0375da328dc98400745300080c536",
         ),
         targets = listOf(AppTarget(version = "7.18.2", versionCode = 9634, minSdk = 25)),
+    )
+
+    val FV_FILE_EXPLORER = Compatibility(
+        name = "FV File Explorer",
+        packageName = "com.folderv.file",
+        apkFileType = ApkFileType.APKS_REQUIRED,
+        appIconColor = 0xFFFFFF,
+        signatures = setOf(
+            "6b94f6ef0ad9b6854f38fd0b56a0b86e5b18d781bc10db96b83f5b0212b453de",
+        ),
+        targets = listOf(AppTarget(version = "1.28.6", versionCode = 1804, minSdk = 26)),
     )
 
     val GAMMA_SCAN = Compatibility(
@@ -1346,6 +1367,17 @@ internal object AppCompatibilities {
         ),
     )
 
+    val OUTLOOK = Compatibility(
+        name = "Outlook",
+        packageName = "com.microsoft.office.outlook",
+        apkFileType = ApkFileType.APKS_REQUIRED,
+        appIconColor = 0x0078D4,
+        signatures = setOf(
+            "cc66de496bc68a04cfcdc4db906b602a1a3ee916af6c4b3e772ac2755190f50f",
+        ),
+        targets = listOf(AppTarget(version = "5.2645.1", versionCode = 72645119, minSdk = 30)),
+    )
+
     val PATREON = Compatibility(
         name = "Patreon",
         packageName = "com.patreon.android",
@@ -1439,6 +1471,17 @@ internal object AppCompatibilities {
         targets = listOf(AppTarget(version = "2.3", versionCode = 20, minSdk = 26)),
     )
 
+    val PODCAST_REPUBLIC = Compatibility(
+        name = "Podcast Republic",
+        packageName = "com.itunestoppodcastplayer.app",
+        apkFileType = ApkFileType.APK,
+        appIconColor = 0x5183DE,
+        signatures = setOf(
+            "d60c533725fa7d24d82e34977e2b54a62255eee11975b7594c78a878bcca4f53",
+        ),
+        targets = listOf(AppTarget(version = "26.11.4R", versionCode = 25146920, minSdk = 31)),
+    )
+
     val POE = Compatibility(
         name = "Poe",
         packageName = "com.poe.android",
@@ -1448,6 +1491,17 @@ internal object AppCompatibilities {
             "099909df5cf774e2a55b3d35a352ac33931dd218969cfcc766e570ee74c5170f",
         ),
         targets = listOf(AppTarget(version = "a3.80.1", versionCode = 3080004, minSdk = 26)),
+    )
+
+    val POWERAMP_EQUALIZER = Compatibility(
+        name = "Poweramp Equalizer",
+        packageName = "com.maxmpz.equalizer",
+        apkFileType = ApkFileType.APKS_REQUIRED,
+        appIconColor = 0x1A1A1A,
+        signatures = setOf(
+            "f6355bdd54f8cedd64f9f6e9813bb0b55a2ac24b82b461e99f86db336ee64255",
+        ),
+        targets = listOf(AppTarget(version = "build-1035-bundle-play", versionCode = 1035009, minSdk = 28)),
     )
 
     val PRAYER_TIMES = Compatibility(
@@ -1484,19 +1538,6 @@ internal object AppCompatibilities {
         targets = listOf(AppTarget(version = "0.654.2", versionCode = 654002, minSdk = 24)),
     )
 
-    val PROJECTIVY = Compatibility(
-        name = "Projectivy Launcher",
-        packageName = "com.spocky.projengmenu",
-        apkFileType = ApkFileType.APK,
-        appIconColor = 0xF08029,
-        targets = listOf(
-            AppTarget(version = "4.73", versionCode = 98, minSdk = 23),
-            AppTarget(version = "4.72", versionCode = 97, minSdk = 23),
-            AppTarget(version = "4.71", versionCode = 95, minSdk = 23),
-            AppTarget(version = "4.70", versionCode = 92, minSdk = 23),
-        ),
-    )
-
     val PROTON_MAIL = Compatibility(
         name = "Proton Mail",
         packageName = "ch.protonmail.android",
@@ -1523,6 +1564,19 @@ internal object AppCompatibilities {
         ),
     )
 
+    val PROTON_PASS_FDROID = Compatibility(
+        name = "Proton Pass (F-Droid)",
+        packageName = "proton.android.pass.fdroid",
+        apkFileType = ApkFileType.APK,
+        appIconColor = 0x6D4AFF,
+        signatures = setOf(
+            "572c25048e6e6229bc0393619f7c640f8cbccf11d2ebf8b2fa7bc9a76363b812",
+        ),
+        targets = listOf(
+            AppTarget(version = "1.41.5", versionCode = 14105000, minSdk = 27),
+        ),
+    )
+
     val PROTON_PASS = Compatibility(
         name = "Proton Pass",
         packageName = "proton.android.pass",
@@ -1544,6 +1598,19 @@ internal object AppCompatibilities {
         name = "Proton VPN",
         packageName = "ch.protonvpn.android",
         apkFileType = ApkFileType.XAPK_REQUIRED,
+        appIconColor = 0x6D4AFF,
+        signatures = setOf(
+            "dcc9439ec1a6c6a8d0203f3423ee42bcc8b970628e53cb73a0393f398dd5b853",
+        ),
+        targets = listOf(
+            AppTarget(version = "5.21.57.0", versionCode = 605215700, minSdk = 26),
+        ),
+    )
+
+    val PROTON_VPN_FDROID = Compatibility(
+        name = "Proton VPN (F-Droid)",
+        packageName = "ch.protonvpn.android.reproducible",
+        apkFileType = ApkFileType.APK,
         appIconColor = 0x6D4AFF,
         signatures = setOf(
             "dcc9439ec1a6c6a8d0203f3423ee42bcc8b970628e53cb73a0393f398dd5b853",
@@ -2165,7 +2232,7 @@ internal object AppCompatibilities {
         apkFileType = ApkFileType.APKM,
         appIconColor = 0xB6D790,
         signatures = setOf("e7d5ad736aeecd2fe237679e4deaf2a40bb32fc07837fe48778a5b41c0418862"),
-        targets = listOf(AppTarget(version = "13.2.2.0", versionCode = 73031, minSdk = 23)),
+        targets = listOf(AppTarget(version = "13.2.2.2", versionCode = 73051, minSdk = 23)),
     )
 
     val NEXTDOOR = Compatibility(

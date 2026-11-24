@@ -319,11 +319,13 @@ val seekbarComponentsPatch = bytecodePatch(
             }
             val textViewRegister =
                 getInstruction<FiveRegisterInstruction>(textViewIndex).registerC
+            val appendTimestamp = "$PLAYER_CLASS_DESCRIPTOR->appendTimeStampInformation(" +
+                "Ljava/lang/String;Landroid/view/View;)Ljava/lang/String;"
 
             addInstructions(
                 textViewIndex, """
                     invoke-static {v$textViewRegister}, $PLAYER_CLASS_DESCRIPTOR->setContainerClickListener(Landroid/view/View;)V
-                    invoke-static {v$charSequenceRegister}, $PLAYER_CLASS_DESCRIPTOR->appendTimeStampInformation(Ljava/lang/String;)Ljava/lang/String;
+                    invoke-static {v$charSequenceRegister, v$textViewRegister}, $appendTimestamp
                     move-result-object v$charSequenceRegister
                     """
             )

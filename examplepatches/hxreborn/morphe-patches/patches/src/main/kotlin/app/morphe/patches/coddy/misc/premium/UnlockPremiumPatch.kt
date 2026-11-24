@@ -5,10 +5,12 @@
 package app.morphe.patches.coddy.misc.premium
 
 import app.morphe.patcher.patch.PatchException
-import app.morphe.patcher.patch.resourcePatch
+import app.morphe.patcher.patch.patch
+import app.morphe.patcher.patch.resourceFile
 import app.morphe.patches.coddy.misc.fix.signature.spoofSignaturePatch
 import app.morphe.patches.shared.compat.AppCompatibilities
 import app.morphe.patches.shared.indexOfMasked
+import app.morphe.patches.shared.misc.arm64.Arm64.NOP
 import app.morphe.patches.shared.misc.dart.DART_AOT_LIBRARY
 import app.morphe.patches.shared.misc.requireArm
 import app.morphe.patches.shared.readInt
@@ -98,8 +100,6 @@ private const val PREMIUM_FIELD_STORE = 0xb8013001.toInt()
 
 private const val LOAD_TRUE_INTO_X1 = 0x910082c1.toInt()
 
-private const val NOP = 0xd503201f.toInt()
-
 private const val BRANCH = 0x14000000
 
 private const val BRANCH_WITH_LINK = 0x94000000.toInt()
@@ -171,7 +171,7 @@ private fun ByteArray.unlockPremiumArm64() {
 }
 
 @Suppress("unused")
-val unlockPremiumPatch = resourcePatch(
+val unlockPremiumPatch = patch(
     name = "Unlock premium",
     description = "Unlocks Coddy Plus with unlimited energy and no ads, and removes the daily AI tutor " +
         "limit and the free project limit.",
@@ -185,7 +185,7 @@ val unlockPremiumPatch = resourcePatch(
             DART_AOT_LIBRARY to ByteArray::unlockPremiumArm64,
             ARMEABI_V7A_DART_AOT_LIBRARY to ByteArray::unlockPremiumArmeabiV7a,
         )
-        val libraries = unlocksByLibrary.mapKeys { (path) -> get(path) }.filterKeys(File::exists)
+        val libraries = unlocksByLibrary.mapKeys { (path) -> resourceFile(path) }.filterKeys(File::exists)
         if (libraries.isEmpty()) {
             throw PatchException("Could not find $DART_AOT_LIBRARY or $ARMEABI_V7A_DART_AOT_LIBRARY")
         }

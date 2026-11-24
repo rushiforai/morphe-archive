@@ -20,24 +20,36 @@ public final class DownloadNameHelper {
         if (guessed == null) {
             return null;
         }
-        // Drop any query or fragment so a name like "clip.mp4?token=x" keeps a clean ".mp4".
-        int cut = guessed.length();
-        int query = guessed.indexOf('?');
-        int fragment = guessed.indexOf('#');
+        if (!DownloadFolderHelper.isMedia(mime, guessed)) {
+            return guessed;
+        }
+        String extension = extensionOf(guessed);
+        String timestamp = new SimpleDateFormat("yyyyMMdd_HHmmss_SSS", Locale.US)
+                .format(new Date());
+        return "Grok_" + appendSequence(timestamp) + extension;
+    }
+
+    /**
+     * Extension including the dot. A trailing "?query" or "#fragment" is dropped only when the
+     * name before it ends in a recognised media extension ("clip.mp4?token=x" gives ".mp4"); a
+     * literal "?" or "#" inside the name ("a?b.mp4") is kept as part of the name.
+     */
+    private static String extensionOf(String name) {
+        int cut = name.length();
+        int query = name.indexOf('?');
+        int fragment = name.indexOf('#');
         if (query >= 0) {
             cut = Math.min(cut, query);
         }
         if (fragment >= 0) {
             cut = Math.min(cut, fragment);
         }
-        String name = guessed.substring(0, cut);
-        if (!DownloadFolderHelper.isMedia(mime, name)) {
-            return guessed;
-        }
-        int dot = name.lastIndexOf('.');
-        String extension = dot >= 0 ? name.substring(dot) : "";
-        String timestamp = new SimpleDateFormat("yyyyMMdd_HHmmss_SSS", Locale.US)
-                .format(new Date());
-        return "Grok_" + appendSequence(timestamp) + extension;
+        String trimmed = name.substring(0, cut);
+        String source = DownloadFolderHelper.isMedia(null, trimmed) ? trimmed : name;
+        int dot = source.lastIndexOf('.');
+        String extension = dot >= 0 ? source.substring(dot) : "";
+        return extension.indexOf('?') >= 0 || extension.indexOf('#') >= 0 || extension.indexOf('/') >= 0
+                ? ""
+                : extension;
     }
 }

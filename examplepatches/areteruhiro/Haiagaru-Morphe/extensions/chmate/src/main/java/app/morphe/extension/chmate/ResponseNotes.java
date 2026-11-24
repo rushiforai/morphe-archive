@@ -7,6 +7,7 @@ final class ResponseNotes {
     static final String GESTURE="haiagaruGestureResponseNotes";
     static void homeMenu(Object fragment,Menu menu){if(menu==null)return;Activity activity=Haiagaru.toolbarActivity(fragment);if(activity==null)return;
         MenuItem item=menu.findItem(MENU);if(item==null)item=menu.add(Menu.NONE,MENU,Menu.NONE,"メモ").setShowAsActionFlags(MenuItem.SHOW_AS_ACTION_NEVER);
+        item.setIcon(ToolbarIcons.noteIcon(activity,android.graphics.Color.GRAY));
         item.setVisible(SettingsProfiles.prefs(activity).getBoolean("homeResponseNotesMenu",true));item.setOnMenuItemClickListener(v->{open(activity,null);return true;});}
     private static Intent intent(Activity activity,ResponseArchiveEntry entry){
         Intent intent=new Intent(activity,ResponseNotesActivity.class);
@@ -14,7 +15,7 @@ final class ResponseNotes {
                 .putExtra("sourceText",source.substring(0,Math.min(4000,source.length())));}
         return intent;
     }
-    static void open(Activity activity,ResponseArchiveEntry entry){if(activity!=null)activity.startActivity(intent(activity,entry));}
+    static void open(Activity activity,ResponseArchiveEntry entry){if(activity!=null){Intent launch=intent(activity,entry);if(!NativeToolTabs.open(activity,"notes",launch))activity.startActivity(launch);}}
     static boolean handle(Object object){if(!(object instanceof MenuItem)||((MenuItem)object).getItemId()!=MENU)return false;
         Activity activity=Haiagaru.toolbarActivity(null);if(activity!=null){Intent launch=((MenuItem)object).getIntent();activity.startActivity(launch==null?intent(activity,null):launch);}return true;}
     static boolean gesture(View view){Activity activity=Haiagaru.toolbarActivity(null);if(activity==null)return false;open(activity,null);return true;}
@@ -23,7 +24,7 @@ final class ResponseNotes {
         Menu menu=(Menu)menuObject;if(menu.findItem(MENU)!=null)return;
         Activity activity=Haiagaru.toolbarActivity(null);if(activity==null)return;
         try{ResponseArchiveEntry entry=ResponseArchiveEntry.snapshot(response,board,String.valueOf(activity.getTitle()));
-            menu.add(Menu.NONE,MENU,ResponseMenuSettings.order(MENU,menu.size()),"メモ").setIcon(android.R.drawable.ic_menu_edit).setIntent(intent(activity,entry)).setOnMenuItemClickListener(ResponseNotes::handle);
+            menu.add(Menu.NONE,MENU,ResponseMenuSettings.order(MENU,menu.size()),"メモ").setIcon(ToolbarIcons.noteIcon(activity,android.graphics.Color.GRAY)).setIntent(intent(activity,entry)).setOnMenuItemClickListener(ResponseNotes::handle);
         }catch(ReflectiveOperationException|RuntimeException error){android.util.Log.w("Haiagaru","Response note target unavailable",error);}
     }
     private ResponseNotes(){}

@@ -1,7 +1,16 @@
+/*
+ * Copyright 2026 amfakh
+ * SPDX-License-Identifier: GPL-3.0-only
+ */
+
 package app.fakh.patches.jira
 
 import app.fakh.patches.jira.shared.Constants.COMPATIBILITY_JIRA
+import app.fakh.patches.jira.shared.Constants.MATERIAL_YOU
+import app.fakh.patches.jira.shared.Constants.PITCH_BLACK
 import app.fakh.patches.shared.atlassian.ATLASSIAN_RAMP_ACCENTS
+import app.fakh.patches.shared.featuresPatch
+import app.fakh.patches.shared.register
 import app.fakhradio.patches.shared.writeColors
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructionsWithLabels
@@ -190,18 +199,11 @@ val materialYouPatch = patch(
 ) {
     compatibleWith(COMPATIBILITY_JIRA)
     category("Theme")
-    dependsOn(materialYouResourcePatch)
+    dependsOn(materialYouResourcePatch, featuresPatch)
     extendWith("extensions/extension.mpe")
 
     execute {
-        // The extension's accent follows the wallpaper only where this patch is in.
-        mutableClassDefBy(EXTENSION).methods.first { it.name == "isMaterialYouIncluded" }.addInstructions(
-            0,
-            """
-                const/4 v0, 0x1
-                return v0
-            """,
-        )
+        register(MATERIAL_YOU, PITCH_BLACK)
         // Compose palettes: their blues become the accent and their neutral backgrounds surface roles, before the
         // tokens and components copy them.
         PALETTES.forEach { type ->

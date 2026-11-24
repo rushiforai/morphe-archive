@@ -23,9 +23,10 @@ misc.xml
 deploymentTargetDropDown.xml
 render.experimental.xml
 
-# Keystore files
+# Keystore & Morphe bundle signing private key
 *.jks
 *.keystore
+morphe-signing.key
 
 # Google Services (e.g. APIs or Firebase)
 google-services.json

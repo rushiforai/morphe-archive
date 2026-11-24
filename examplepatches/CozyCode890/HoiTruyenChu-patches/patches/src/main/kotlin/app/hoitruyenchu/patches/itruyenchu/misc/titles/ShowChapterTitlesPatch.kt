@@ -9,6 +9,7 @@ import app.hoitruyenchu.patches.itruyenchu.shared.Constants.COMPATIBILITY_ITRUYE
 import app.hoitruyenchu.patches.itruyenchu.shared.Constants.EXTENSION_CHAPTER_TITLES
 import app.hoitruyenchu.patches.itruyenchu.shared.CreateClientBuilderFingerprint
 import app.hoitruyenchu.patches.itruyenchu.shared.OKHTTP_CLIENT_BUILDER
+import app.hoitruyenchu.patches.itruyenchu.shared.ReactInstanceLoadJSBundleFingerprint
 import app.hoitruyenchu.patches.itruyenchu.shared.READABLE_ARRAY
 import app.morphe.patcher.extensions.InstructionExtensions.addInstruction
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
@@ -47,7 +48,7 @@ val showChapterTitlesPatch = patch(
                 }
         }
 
-        // 2. So does the copy the app keeps in AsyncStorage (refreshed only every hour).
+        // 2. So does the copy app 2.1.0 keeps in AsyncStorage (refreshed only every hour).
         AsyncStorageMultiGetFingerprint.method.addInstructions(
             0,
             """
@@ -55,5 +56,18 @@ val showChapterTitlesPatch = patch(
                 invoke-static { p1, v0 }, $EXTENSION_CHAPTER_TITLES->beforeStorageGet(${READABLE_ARRAY}Ljava/util/concurrent/Executor;)V
             """,
         )
+
+        // 3. App 3.0.0 keeps it in memory: a JS script makes it download the list again for new titles.
+        ReactInstanceLoadJSBundleFingerprint.method.apply {
+            val instructions = implementation!!.instructions.toList()
+            instructions.indices.reversed()
+                .filter { instructions[it].opcode == Opcode.RETURN_VOID }
+                .forEach { index ->
+                    addInstruction(
+                        index,
+                        "invoke-static { p0 }, $EXTENSION_CHAPTER_TITLES->afterMainBundle(Ljava/lang/Object;)V",
+                    )
+                }
+        }
     }
 }

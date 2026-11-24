@@ -1,14 +1,14 @@
 {
   "morphe": {
-    "version": "1.15.0",
-    "url": "https://github.com/MorpheApp/morphe-desktop/releases/download/v1.15.0/morphe-desktop-1.15.0-all.jar",
-    "sha256": "727e3744aa5c0006474590de6f4041bd55edc59f3d6cb9b596e95f7116384506",
+    "version": "2.3.0",
+    "url": "https://github.com/MorpheApp/morphe-desktop/releases/download/v2.3.0/morphe-desktop-2.3.0-all.jar",
+    "sha256": "e0e49525e1fbe1108d6cfd7398d39e0cd489c58a753e63653c1e8f11a0099757",
     "file": "morphe-desktop.jar"
   },
   "patches": {
-    "version": "1.41.0",
-    "url": "https://github.com/MorpheApp/morphe-patches/releases/download/v1.41.0/patches-1.41.0.mpp",
-    "sha256": "679a86aaaa50572e9c0852fd990e937edfd9b616ecf5d350048458598ec785df",
+    "version": "2.3.0",
+    "url": "https://github.com/MorpheApp/morphe-patches/releases/download/v2.3.0/patches-2.3.0.mpp",
+    "sha256": "1c37549274a2b6cf7f2e3e099d9b8cb641880b8a7dac323a95638a06bb4509a9",
     "file": "patches.mpp"
   },
   "kotlin": {

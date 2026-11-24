@@ -42,18 +42,21 @@ prepared for download, not completed downloads.
 
 ## Verification
 
-- Grok 1.2.59-release.00 has not been tested on a device. Names, registers and
+- The maintainer installed the `v1.2.0` bundle on Grok 1.2.59-release.00 and
+  reported it working. Which individual patches were exercised was not recorded,
+  so per-patch device coverage is unknown. Names, registers and
   branch targets were re-derived from the decoded 1.2.59 smali. The
   `v1.2.0-dev.2` bundle builds in CI and Morphe Desktop CLI v1.20.0
   (`--validate`, full bytecode mode) applied all 13 patches to the 1.2.59 APK.
   The patched APK decodes, and a smali comparison with the original shows only
   the 30 intended methods changed, with unchanged register counts. Android's
-  bytecode verifier and device behavior have not been exercised.
+  bytecode verifier behavior was not inspected separately.
 - The previous stable release `v1.1.0` supports Grok 1.2.57-release.01.
 
 ## Known limitations
 
-- All new patches and the 1.2.59 changes have not been tested on a device.
+- Per-patch device coverage of the new patches and the 1.2.59 changes is unknown; only the overall bundle was reported working.
+- Library Download all passes its mode to the selection handler through one process-wide flag (`DownloadAllState.all`). Two library download actions that overlap in time can read each other's mode; carrying the mode per operation would mean threading state through obfuscated callbacks.
 - Selecting Copy prompt or Download all (post) runs the unnamed
   `PostActionFlagsPatch.kt` dependency. It changes equality comparisons for the
   app's Download actions to include the two injected action flags, even when

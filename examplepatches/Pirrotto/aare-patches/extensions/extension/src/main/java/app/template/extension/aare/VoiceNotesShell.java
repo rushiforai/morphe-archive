@@ -13,8 +13,10 @@ import java.util.List;
 
 /**
  * The helper Shizuku runs with adb-level (shell) rights, in its own process, so AARE can read
- * WhatsApp's voice notes without "All files access". It only lists and opens received voice notes
- * (PTT-… files) of WhatsApp's voice note folders: no other path is accepted.
+ * WhatsApp's voice notes without "All files access". It answers one question only: "the voice
+ * message received at this time, lasting this long?", with at most that one file (PTT-… in
+ * WhatsApp's voice note folders), read-only. AARE never gets a list, a path or any other file:
+ * sent voice notes and other chats' stay out of its reach (VoiceNoteMatch decides).
  *
  * Plain Binder protocol, no AIDL: see {@link VoiceNotesAccess} for the client side.
  */
@@ -22,11 +24,12 @@ import java.util.List;
 public class VoiceNotesShell extends Binder {
     static final String DESCRIPTOR = "app.template.extension.aare.VoiceNotesShell";
 
-    /** Lists the recent voice notes: count, then path, last modified, size for each. */
-    static final int TRANSACTION_LIST = FIRST_CALL_TRANSACTION + 1;
-
-    /** Opens one voice note read-only: a ParcelFileDescriptor, or nothing if refused. */
-    static final int TRANSACTION_OPEN = FIRST_CALL_TRANSACTION + 2;
+    /**
+     * In: message time (ms), stated duration (ms, -1 if none), then the tokens of recordings already
+     * played for this text (count, then each). Out: 1, a token and a read-only ParcelFileDescriptor,
+     * or 0 if no file is that message. A token is a hash of the file, not its name.
+     */
+    static final int TRANSACTION_FIND = FIRST_CALL_TRANSACTION + 3;
 
     /** Shizuku's user-service teardown call ("void destroy() = 16777114" in AIDL terms). */
     static final int TRANSACTION_DESTROY = FIRST_CALL_TRANSACTION + 16777114;
@@ -51,27 +54,27 @@ public class VoiceNotesShell extends Binder {
     @Override
     protected boolean onTransact(int code, Parcel data, Parcel reply, int flags) throws RemoteException {
         switch (code) {
-            case TRANSACTION_LIST: {
+            case TRANSACTION_FIND: {
                 data.enforceInterface(DESCRIPTOR);
-                List<File> files = list();
-                reply.writeNoException();
-                reply.writeInt(files.size());
-                for (File f : files) {
-                    reply.writeString(f.getAbsolutePath());
-                    reply.writeLong(f.lastModified());
-                    reply.writeLong(f.length());
+                long messageTimeMs = data.readLong();
+                long statedMs = data.readLong();
+                int n = Math.min(data.readInt(), 32);
+                java.util.Set<String> used = new java.util.HashSet<>();
+                for (int i = 0; i < n; i++) used.add(data.readString());
+                File found = find(messageTimeMs, statedMs, used);
+                ParcelFileDescriptor pfd = null;
+                if (found != null) {
+                    try {
+                        pfd = ParcelFileDescriptor.open(found, ParcelFileDescriptor.MODE_READ_ONLY);
+                    } catch (IOException | SecurityException ignored) {
+                    }
                 }
-                return true;
-            }
-            case TRANSACTION_OPEN: {
-                data.enforceInterface(DESCRIPTOR);
-                String path = data.readString();
-                ParcelFileDescriptor pfd = open(path);
                 reply.writeNoException();
                 if (pfd == null) {
                     reply.writeInt(0);
                 } else {
                     reply.writeInt(1);
+                    reply.writeString(token(found));
                     pfd.writeToParcel(reply, android.os.Parcelable.PARCELABLE_WRITE_RETURN_VALUE);
                 }
                 return true;
@@ -98,18 +101,60 @@ public class VoiceNotesShell extends Binder {
         return files;
     }
 
-    /** Opens [path] only if it is a received voice note inside one of [FOLDERS]. */
-    private static ParcelFileDescriptor open(String path) {
-        if (path == null) return null;
-        try {
-            File file = new File(path).getCanonicalFile();
-            if (!file.getName().startsWith("PTT-") || !file.isFile()) return null;
-            File week = file.getParentFile();
-            File folder = week == null ? null : week.getParentFile();
-            if (folder == null || !isVoiceFolder(folder)) return null;
-            return ParcelFileDescriptor.open(file, ParcelFileDescriptor.MODE_READ_ONLY);
+    /** The voice note that is this message, or null: see VoiceNoteMatch. */
+    private static File find(long messageTimeMs, long statedMs, java.util.Set<String> used) {
+        List<File> files = new ArrayList<>();
+        for (File f : list()) {
+            try {
+                File c = f.getCanonicalFile();
+                File week = c.getParentFile();
+                File folder = week == null ? null : week.getParentFile();
+                // A link out of the voice note folders is never followed.
+                if (!c.isFile() || !c.getName().startsWith("PTT-") || folder == null || !isVoiceFolder(folder)) continue;
+                if (used.contains(token(c))) continue;
+                files.add(c);
+            } catch (IOException | SecurityException ignored) {
+            }
+        }
+        long[] modified = new long[files.size()];
+        long[] sizes = new long[files.size()];
+        for (int i = 0; i < files.size(); i++) {
+            modified[i] = files.get(i).lastModified();
+            sizes[i] = files.get(i).length();
+        }
+        for (int i : VoiceNoteMatch.candidates(modified, sizes, messageTimeMs)) {
+            File f = files.get(i);
+            if (VoiceNoteMatch.lengthMatches(durationMs(f), statedMs)) return f;
+        }
+        return null;
+    }
+
+    /** An Ogg Opus file's length, or -1. */
+    private static long durationMs(File f) {
+        try (java.io.RandomAccessFile raf = new java.io.RandomAccessFile(f, "r")) {
+            long len = raf.length();
+            byte[] head = new byte[(int) Math.min(len, 4096)];
+            raf.readFully(head);
+            int tailLen = (int) Math.min(len, 65536);
+            byte[] tail = new byte[tailLen];
+            raf.seek(len - tailLen);
+            raf.readFully(tail);
+            return VoiceNoteMatch.oggOpusDurationMs(head, tail);
         } catch (IOException | SecurityException e) {
-            return null;
+            return -1;
+        }
+    }
+
+    /** Stands for a file without naming it: lets AARE avoid playing one recording twice. */
+    private static String token(File f) {
+        try {
+            byte[] h = java.security.MessageDigest.getInstance("SHA-256")
+                    .digest(f.getPath().getBytes(java.nio.charset.StandardCharsets.UTF_8));
+            StringBuilder b = new StringBuilder();
+            for (int i = 0; i < 8; i++) b.append(String.format("%02x", h[i]));
+            return b.toString();
+        } catch (Exception e) {
+            return "";
         }
     }
 

@@ -39,9 +39,11 @@ public final class NuvioMergedProgressPatch {
                     String version = context.getPackageMetadata().getVersionName();
                 NuvioLayout.use(version);
                     NuvioLayout.modern(version);
+                    NuvioSettingsMenuPatch.validateDateColorApi(new MutableClass(context.classDefBy("Lna/f2;")), NuvioNative.REF_LIBRARY_CONTENT_Z);
                     MutableClass repository = context.mutableClassDefBy(NuvioNative.PROGRESS_REPOSITORY_TYPE);
                     hookRepository(repository);
                     hookLocalProgressWrites(repository);
+                    NuvioHomeTransitionPatch.install(context);
                     if (NuvioLayout.LATEST.equals(version)) {
                         hookLocalOverlay(context.mutableClassDefBy("Lcom/nuvio/tv/data/local/cc;"));
                         hookLocalOverlay(context.mutableClassDefBy("Lcom/nuvio/tv/data/local/sc;"));
@@ -150,6 +152,8 @@ public final class NuvioMergedProgressPatch {
 
     /** beta.8 loadContinueWatching: observe the assigned pipeline Job, preserving the native body. */
     static void hookHomePipeline(MutableClass owner) {
+        if (owner.getMethods().stream().anyMatch(m -> m.getName().equals(NuvioNative.REF_LOCAL_HOME_RESUME.substring(NuvioNative.REF_LOCAL_HOME_RESUME.indexOf("->") + 2, NuvioNative.REF_LOCAL_HOME_RESUME.indexOf('(')))))
+            throw unsupported("Home local-resume method already installed");
         MutableMethod target = unique(owner, "b", 1);
         if (!owner.getType().equals("Lya/v3;") ||
             !com.android.tools.smali.dexlib2.AccessFlags.STATIC.isSet(target.getAccessFlags()) ||
@@ -164,6 +168,13 @@ public final class NuvioMergedProgressPatch {
             throw unsupported("Home CW pipeline Job assignment changed");
         target.getImplementation().addInstruction(29, new BuilderInstruction3rc(Opcode.INVOKE_STATIC_RANGE, 13, 1,
             method(EXT, "homePipelineStarted", List.of("Ljava/lang/Object;"), "V")));
+        // Resume the existing observer without replaying an older disk snapshot over locally projected cards.
+        MutableMethod resume = new MutableMethod(new ImmutableMethod(owner.getType(), NuvioNative.REF_LOCAL_HOME_RESUME.substring(NuvioNative.REF_LOCAL_HOME_RESUME.indexOf("->") + 2, NuvioNative.REF_LOCAL_HOME_RESUME.indexOf('(')),
+            target.getParameters(), target.getReturnType(), target.getAccessFlags(), target.getAnnotations(),
+            target.getHiddenApiRestrictions(), target.getImplementation()));
+        for (int i = 10; i >= 0; i--) resume.getImplementation().removeInstruction(i);
+        resume.getImplementation().addInstruction(0, new BuilderInstruction11n(Opcode.CONST_4, 6, 0));
+        owner.getMethods().add(resume);
     }
 
     /** Both native progress-save routes persist locally; only the main tracker writes remotely. */

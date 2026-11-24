@@ -1,9 +1,13 @@
 package app.morphe.patches.youtube.player.buttons
 
 import app.morphe.patcher.Fingerprint
+import app.morphe.patcher.checkCast
 import app.morphe.patcher.literal
 import app.morphe.patcher.opcode
+import app.morphe.patcher.methodCall
 import app.morphe.patcher.string
+import app.morphe.patches.shared.mapping.ResourceType
+import app.morphe.patches.shared.mapping.resourceLiteral
 import app.morphe.patches.youtube.utils.resourceid.cfFullscreenButton
 import app.morphe.patches.youtube.utils.resourceid.fadeDurationFast
 import app.morphe.patches.youtube.utils.resourceid.fullScreenButton
@@ -33,26 +37,25 @@ internal object FullScreenButtonFingerprint : Fingerprint(
 
 internal const val LITHO_SUBTITLE_BUTTON_FEATURE_FLAG = 45421555L
 internal const val CAST_BUTTON_PLAYER_FEATURE_FLAG = 45690091L
-internal const val CAST_BUTTON_ACTION_FEATURE_FLAG = 45690090L
+private const val MEDIA_ROUTE_BUTTON = "Landroidx/mediarouter/app/MediaRouteButton;"
 
 internal object MediaRouteButtonFingerprint : Fingerprint(
-    definingClass = "/MediaRouteButton;",
+    definingClass = MEDIA_ROUTE_BUTTON,
     name = "setVisibility",
     parameters = listOf("I"),
 )
 
-internal object CastButtonPlayerFeatureFlagFingerprint : Fingerprint(
-    returnType = "Z",
+internal object PlayerCastRouteViewFingerprint : Fingerprint(
     filters = listOf(
-        literal(CAST_BUTTON_PLAYER_FEATURE_FLAG),
-    )
-)
-
-internal object CastButtonActionFeatureFlagFingerprint : Fingerprint(
-    returnType = "Z",
-    filters = listOf(
-        literal(CAST_BUTTON_ACTION_FEATURE_FLAG),
-    )
+        resourceLiteral(ResourceType.LAYOUT, "player_cast_media_route_button"),
+        methodCall(
+            definingClass = "Landroid/view/LayoutInflater;",
+            name = "inflate",
+            parameters = listOf("I", "Landroid/view/ViewGroup;"),
+            returnType = "Landroid/view/View;",
+        ),
+        checkCast(MEDIA_ROUTE_BUTTON),
+    ),
 )
 
 /**

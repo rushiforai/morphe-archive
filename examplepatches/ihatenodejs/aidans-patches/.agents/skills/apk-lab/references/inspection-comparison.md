@@ -9,6 +9,7 @@ Inspect single APKs and multi-split container bundles (APKM, XAPK, APKS), parse 
 Inspects container architecture, manifest badging, DEX metrics, and native components without creating persistent workspaces.
 
 ### Security Invariants & Container Classification
+
 - **Safe ZIP Validation**:
   - Rejects directory traversal (`..`), absolute paths, and POSIX symlinks.
   - Rejects archive bombs: max 100,000 entries, max 4 GiB total expanded size, max 100.0 compression ratio on entries > 1 MiB.
@@ -27,20 +28,22 @@ Inspects container architecture, manifest badging, DEX metrics, and native compo
 
 ```bash
 # Human-readable inspection summary
-uv run --project tools/apk-lab apk-lab inspect path/to/app.apkm
+cargo run --locked --quiet --manifest-path tools/apk-lab/Cargo.toml --bin apk-lab -- inspect path/to/app.apkm
 
 # JSON output printed to stdout
-uv run --project tools/apk-lab apk-lab inspect path/to/app.apkm --json -
+cargo run --locked --quiet --manifest-path tools/apk-lab/Cargo.toml --bin apk-lab -- inspect path/to/app.apkm --json -
 
 # Write JSON inspection report to file
-uv run --project tools/apk-lab apk-lab inspect path/to/app.apkm --json /tmp/inspection.json
+cargo run --locked --quiet --manifest-path tools/apk-lab/Cargo.toml --bin apk-lab -- inspect path/to/app.apkm --json /tmp/inspection.json
 ```
 
 ### CLI Arguments
+
 - `artifact` (required positional): Path to `.apk`, `.apkm`, `.xapk`, or `.apks` file.
 - `--json [PATH|-]`: Output structured JSON report. Omitting value or passing `-` writes to stdout; otherwise writes to given path.
 
 ### Output Fields (`ArtifactInspection`)
+
 - `filePath`: Canonical path to artifact.
 - `containerType`: `APK`, `APKM`, `XAPK`, `APKS`, or `UNKNOWN`.
 - `fileSize`, `sha256`: Container file size and SHA-256 digest.
@@ -53,6 +56,7 @@ uv run --project tools/apk-lab apk-lab inspect path/to/app.apkm --json /tmp/insp
 - `warnings`: Diagnostic warnings encountered during inspection.
 
 ### Exit Codes
+
 - `0`: Inspection succeeded.
 - `2`: Artifact file does not exist or build tools missing.
 - `3`: Invalid artifact (archive security violation, inconsistent splits, corrupt manifest).
@@ -65,6 +69,7 @@ uv run --project tools/apk-lab apk-lab inspect path/to/app.apkm --json /tmp/insp
 Compares two APK/APKM/XAPK/APKS artifacts across metadata, split architecture, native libraries, and decompiled class bytecode.
 
 ### Diff Capabilities
+
 - **Metadata**: Version name, version code delta, signing certificate changes.
 - **Splits**: Added, removed, or modified split APKs (based on content hash).
 - **DEX Metrics**: Net change in class count and method count.
@@ -76,24 +81,26 @@ Compares two APK/APKM/XAPK/APKS artifacts across metadata, split architecture, n
 
 ```bash
 # Compare two application versions
-uv run --project tools/apk-lab apk-lab compare old_app.apkm new_app.apkm
+cargo run --locked --quiet --manifest-path tools/apk-lab/Cargo.toml --bin apk-lab -- compare old_app.apkm new_app.apkm
 
 # Compare with targeted Java class diffing via JADX
-uv run --project tools/apk-lab apk-lab compare old_app.apkm new_app.apkm \
+cargo run --locked --quiet --manifest-path tools/apk-lab/Cargo.toml --bin apk-lab -- compare old_app.apkm new_app.apkm \
   --class com.example.app.MainActivity \
   --class com.example.app.data.SessionManager
 
 # Export comparison diff to JSON
-uv run --project tools/apk-lab apk-lab compare old_app.apkm new_app.apkm --json diff_report.json
+cargo run --locked --quiet --manifest-path tools/apk-lab/Cargo.toml --bin apk-lab -- compare old_app.apkm new_app.apkm --json diff_report.json
 ```
 
 ### CLI Arguments
+
 - `old_artifact` (required positional): Path to baseline artifact.
 - `new_artifact` (required positional): Path to target/updated artifact.
 - `--class CLASS`: Repeatable fully-qualified class name to decompile and diff with JADX.
 - `--json [PATH|-]`: Output structured JSON report.
 
 ### Exit Codes
+
 - `0`: Comparison succeeded.
 - `2`: Artifact not found, or JADX failed on requested class comparison.
 - `3`: Invalid artifact format or archive security error.
@@ -101,38 +108,8 @@ uv run --project tools/apk-lab apk-lab compare old_app.apkm new_app.apkm --json 
 
 ---
 
-## 3. Python API Reference
+## 3. Native Library and Test References
 
-```python
-from pathlib import Path
-from apk_lab.inspection import inspect_artifact
-from apk_lab.comparison import compare_artifacts, format_comparison_summary
-from apk_lab.tools import ToolManager
-
-# Inspect an artifact
-inspection = inspect_artifact("path/to/app.apkm")
-print(f"Package: {inspection.package_name} v{inspection.version_name} ({inspection.version_code})")
-print(f"DEX classes: {inspection.dex_classes_count}, methods: {inspection.dex_methods_count}")
-print(f"Signer: {inspection.signing_certificate_sha256}")
-
-# Export inspection to dictionary
-data = inspection.to_dict()
-
-# Compare two versions
-tool_mgr = ToolManager()
-comparison = compare_artifacts(
-    old_path="old.apkm",
-    new_path="new.apkm",
-    requested_classes=["com.example.app.MainActivity"],
-    tool_mgr=tool_mgr,
-)
-
-print(format_comparison_summary(comparison))
-
-# Inspect specific class diff
-if "com.example.app.MainActivity" in comparison.classes_diff:
-    diff_info = comparison.classes_diff["com.example.app.MainActivity"]
-    status = diff_info["status"]  # unchanged, modified, added, removed, missing, tool_unavailable, error
-    if status == "modified" and diff_info.get("diff"):
-        print(diff_info["diff"])
-```
+There is no supported Python API. The CLI is the stable contract; Rust modules
+(`inspection.rs`, `comparison.rs`, `tools.rs`) back the commands above and are covered
+by `cargo test --locked --manifest-path tools/apk-lab/Cargo.toml`.

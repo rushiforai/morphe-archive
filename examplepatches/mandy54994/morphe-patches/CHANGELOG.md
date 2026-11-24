@@ -1,3 +1,15 @@
+## [1.0.1](https://github.com/Mandy54994/morphe-patches/compare/v1.0.0...v1.0.1) (2026-11-23)
+
+### 🚀 Updated App Support
+
+* **twine:** support Twine RSS Reader 3.10.0 ([6c50f41](https://github.com/Mandy54994/morphe-patches/commit/6c50f417e4d1f55787f398773b5720ab7e7c2b64))
+
+## [1.0.1-dev.1](https://github.com/Mandy54994/morphe-patches/compare/v1.0.0...v1.0.1-dev.1) (2026-11-23)
+
+### 🚀 Updated App Support
+
+* **twine:** support Twine RSS Reader 3.10.0 ([6c50f41](https://github.com/Mandy54994/morphe-patches/commit/6c50f417e4d1f55787f398773b5720ab7e7c2b64))
+
 ## 1.0.0 (2026-11-15)
 
 ### ✨ New Features

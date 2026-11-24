@@ -1,6 +1,6 @@
 {
   "NOTE": "Do NOT manually edit this file. This file is automatically updated when semantic release (release.yml) runs. Manually editing this file can break your releases and break third party tools that use this file.",
-  "version": "0.3.1",
+  "version": "0.4.2",
   "patches": [
     {
       "name": "Allow screenshots and screen recording",
@@ -604,6 +604,40 @@
                 "ARMEABI_V7A": 7902,
                 "X86_64": 7902,
                 "X86": 7902
+              },
+              "isExperimental": false,
+              "minSdk": null,
+              "description": null
+            }
+          ]
+        }
+      ],
+      "options": []
+    },
+    {
+      "name": "Unlock VIP",
+      "description": "Reports an active VIP subscriber: isVip() returns true, isValidUser() returns 1, getVipType() returns 1 and VIP trial materials count as unlocked. Static fields E (isValidUser) and F (vipType) are initialized to 1. Server-side per-material rights and AIGC quotas are not affected.",
+      "default": true,
+      "category": "Premium",
+      "compatiblePackages": [
+        {
+          "packageName": "com.mt.mtxx.mtxx",
+          "name": "Meitu",
+          "description": null,
+          "apkFileType": "APKM",
+          "appIconColor": "#F01C48",
+          "signatures": [
+            "7b1a6d25e5e8711a6e79283df10c648b47a420c4e5413c2c51351a8ca508de25"
+          ],
+          "formFactor": "MOBILE",
+          "targets": [
+            {
+              "version": "12.23.3",
+              "versionCodes": {
+                "ARM64_V8A": 122303,
+                "ARMEABI_V7A": 122303,
+                "X86_64": 122303,
+                "X86": 122303
               },
               "isExperimental": false,
               "minSdk": null,

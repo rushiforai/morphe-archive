@@ -27,10 +27,14 @@ public final class GlobalSearchHome {
     private static final Map<Activity,String> DISPLAYED=new WeakHashMap<>();
     private static final List<WeakReference<Object>> HOMES=new ArrayList<>();
     private static final class Action{final String query,id;Action(String query,String id){this.query=query;this.id=id;}}
+    private static volatile Type cachedType;
+    private static final String MODERN_SEARCH_ROW =
+            "o.getAvailabilityStatus$r8lambdavCwjfXDiSGcirCy4I008VOiJ_lw";
+
     private static final class Type {
         final Class<?> row,kind;final String enumField,queryField;
         Type(ClassLoader loader,String version)throws Exception{
-            String name=version.contains("191")?"o.onAdDisplayed$setHasDecor":version.contains("226")?"o.Yy2$value":"o.getAvailabilityStatus$r8lambdavCwjfXDiSGcirCy4I008VOiJ_lw";
+            String name=version.contains("191")?"o.onAdDisplayed$setHasDecor":version.contains("226")?"o.Yy2$value":MODERN_SEARCH_ROW;
             row=loader.loadClass(name);Constructor<?> ctor=row.getConstructors()[0];kind=ctor.getParameterTypes()[1];
             enumField=version.contains("226")?"c":"a";queryField=version.contains("242")?"d":"e";
         }
@@ -52,7 +56,35 @@ public final class GlobalSearchHome {
         }
         TextView help=new TextView(a);help.setText("通知や保存済みの結果はChMate標準の全板検索結果一覧で開きます。保存済み結果の再表示では再検索しません。バックグラウンド検索をオフにすると従来の検索に戻ります。途中表示がオンの場合は取得済み結果を先に表示し、取得できた板から追加します。保存は最新50件までです。");root.addView(help);
     }
-    private static Type type(Context c)throws Exception{return new Type(c.getClassLoader(),c.getPackageManager().getPackageInfo(c.getPackageName(),0).versionName);}
+    private static Type type(Context context) throws Exception {
+        Type current = cachedType;
+        if (current != null) return current;
+        current = new Type(context.getClassLoader(),
+                context.getPackageManager().getPackageInfo(context.getPackageName(), 0).versionName);
+        cachedType = current;
+        return current;
+    }
+
+    /** Use the query attached to the native result, which is available off the UI thread. */
+    static boolean isModernSearchResult(List<?> rows) {
+        if (rows == null) return false;
+        ListIterator<?> iterator = rows.listIterator(rows.size());
+        while (iterator.hasPrevious()) {
+            Object row = iterator.previous();
+            if (row == null || !MODERN_SEARCH_ROW.equals(row.getClass().getName())) continue;
+            try {
+                Object kind = NativeFields.find(row.getClass(), "a").get(row);
+                if (!(kind instanceof Enum<?>)) continue;
+                String name = ((Enum<?>) kind).name();
+                if (!"LOCAL".equals(name) && !"FF2CH".equals(name)) continue;
+                Object query = NativeFields.find(row.getClass(), "d").get(row);
+                if (query instanceof String && !((String) query).trim().isEmpty()) return true;
+            } catch (ReflectiveOperationException ignored) {
+                // Keep ordinary HOME processing if the row structure is unavailable.
+            }
+        }
+        return false;
+    }
     public static List<?> rows(List<?> input){
         Context c=Haiagaru.applicationContextForExtension();
         input=withoutRegionalBoardDuplicates(c,input);
@@ -180,6 +212,7 @@ public final class GlobalSearchHome {
     public static void resumed(Object fragment){
         Activity a=Haiagaru.toolbarActivity(fragment);if(a==null)return;
         HOMES.removeIf(ref->ref.get()==null||ref.get()==fragment);HOMES.add(new WeakReference<>(fragment));
+        HomeBoardFoldLabels.attach(fragment);
         String id=a.getIntent().getStringExtra(EXTRA);if(id==null)return;
         a.getIntent().removeExtra(EXTRA);show(a,fragment,id);
     }
@@ -252,10 +285,51 @@ public final class GlobalSearchHome {
             }
         }finally{OVERRIDE.remove();BYPASS.remove();}
     }
-    private static String filterText(View root){
-        try{Object value=root.getClass().getMethod("haiagaruGlobalSearchQuery").invoke(root);return value instanceof String?(String)value:null;
-        }catch(Exception ignored){}
-        if(root instanceof ViewGroup){ViewGroup g=(ViewGroup)root;for(int i=0;i<g.getChildCount();i++){String found=filterText(g.getChildAt(i));if(found!=null)return found;}}
+    static List<Activity> activitiesForLabels(){
+        List<Activity> activities=new ArrayList<>();
+        for(WeakReference<Object> ref:new ArrayList<>(HOMES)){
+            Object home=ref.get();
+            Activity activity=home==null?null:Haiagaru.toolbarActivity(home);
+            if(activity!=null&&!activities.contains(activity))activities.add(activity);
+        }
+        return activities;
+    }
+
+    static boolean hasSearchText(View root){
+        String text=filterText(root);
+        return text!=null&&!text.trim().isEmpty();
+    }
+
+    // BackgroundGlobalSearchPatch adds the query accessor only to these toolbars.
+    private static boolean searchToolbar(View view) {
+        if (view == null) return false;
+        for (Class<?> type = view.getClass(); type != null; type = type.getSuperclass()) {
+            switch (type.getName()) {
+                case "o.r8lambdaBgNelb8wzuneQt5bGzKp1rt5TaY": // 191
+                case "o.PAGBannerAd": // 226
+                case "o.zzaK": // 242
+                    return true;
+            }
+        }
+        return false;
+    }
+
+    private static String filterText(View root) {
+        if (searchToolbar(root)) {
+            try {
+                Object value = root.getClass().getMethod("haiagaruGlobalSearchQuery").invoke(root);
+                return value instanceof String ? (String) value : null;
+            } catch (ReflectiveOperationException ignored) {
+                // Leave native input alone if the accessor is unavailable.
+            }
+        }
+        if (root instanceof ViewGroup) {
+            ViewGroup group = (ViewGroup) root;
+            for (int i = 0; i < group.getChildCount(); i++) {
+                String found = filterText(group.getChildAt(i));
+                if (found != null) return found;
+            }
+        }
         return null;
     }
     private static EditText input(View root){
@@ -264,7 +338,7 @@ public final class GlobalSearchHome {
         return null;
     }
     private static boolean filter(View root,String query){
-        try{Method method=root.getClass().getMethod("setFilter",CharSequence.class);
+        if (searchToolbar(root)) try{Method method=root.getClass().getMethod("setFilter",CharSequence.class);
             // Open the original search input and dispatch its TextWatcher. setFilter alone
             // only paints the toolbar and does not change the HOME model's search query.
             for(Method show:root.getClass().getDeclaredMethods())if(show.getReturnType()==void.class&&Arrays.equals(show.getParameterTypes(),new Class<?>[]{boolean.class,boolean.class})){show.setAccessible(true);show.invoke(root,true,false);break;}

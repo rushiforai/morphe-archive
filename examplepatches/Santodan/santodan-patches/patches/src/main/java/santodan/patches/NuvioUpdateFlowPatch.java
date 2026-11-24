@@ -32,7 +32,7 @@ public final class NuvioUpdateFlowPatch {
         MutableMethod plain = new MutableMethod(session);
         if (!NuvioUpdateInstaller.isZero(plain.getImplementation().getInstructions().get(0), 15)) throw new IllegalStateException("Metadata suppression missing");
         plain.getImplementation().removeInstruction(0);
-        hash(plain, "7d40ed67d709182b487a6422037abae563644563c9b53afc78cedc665e0d3e18");
+        hash(plain, "2f4ff52bae37577456a196bbf40e2e953c0484097d77387f24fa1788566b3df1");
         MutableMethod uri = NuvioUpdateInstaller.unique(bridge, "contentUri");
         if (!uri.toString().equals(INSTALL_UI + "->contentUri(Landroid/content/Context;Ljava/lang/String;Ljava/io/File;)Landroid/net/Uri;") ||
             (uri.getAccessFlags() & 8) == 0 || uri.getImplementation().getRegisterCount() != 3 ||

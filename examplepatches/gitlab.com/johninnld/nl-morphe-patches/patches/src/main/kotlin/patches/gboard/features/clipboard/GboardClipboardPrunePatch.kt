@@ -26,7 +26,7 @@ internal val gboardClipboardPrunePatch = bytecodePatch(
     execute {
         val mutableMethod = findMutableMethodOrThrow(
             classType = CLIPBOARD_PRUNE_CALLABLE_CLASS,
-            name = "g",
+            name = "h",
             returnType = "V",
             parameterTypes = emptyList()
         )
@@ -37,13 +37,13 @@ internal val gboardClipboardPrunePatch = bytecodePatch(
 internal fun MutableMethod.applyClipboardPruneDelegate() {
     requireExactClipboardTarget(
         CLIPBOARD_PRUNE_CALLABLE_CLASS,
-        "g",
+        "h",
         "V",
         emptyList(),
     )
     applyVerified(
         VerifiedTransformationPlan(
-            targetName = "$CLIPBOARD_PRUNE_CALLABLE_CLASS->g()V",
+            targetName = "$CLIPBOARD_PRUNE_CALLABLE_CLASS->h()V",
             classify = MutableMethod::classifyClipboardPrune,
             mutate = { method ->
                 method.addInstructions(0, PRUNE_DELEGATE)

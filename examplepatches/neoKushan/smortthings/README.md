@@ -37,8 +37,10 @@ app's own key store** — nothing is sent anywhere, and no root is required.
 
 ## Install & use (step by step)
 
-**You need:** an Android phone, the **Morphe Manager** app, and the **SmartThings `1.8.52.23`**
-APK. The patch is pinned to that exact version — a newer SmartThings will not patch.
+**You need:** an Android phone, the **Morphe Manager** app, and a **SmartThings** APK. The
+**recommended** (confirmed-working) builds are **`1.8.54.23`** (latest) and **`1.8.52.23`** —
+Manager suggests and can fetch these. Any other build can still be patched as **experimental**: the
+patch fails closed, so it is safe to try a brand-new release and report whether it works.
 
 ### 1. Install Morphe Manager
 
@@ -58,8 +60,10 @@ file in Morphe Manager instead.
 
 ### 3. Patch SmartThings
 
-1. In Manager, choose to patch an app and select **SmartThings** (`com.samsung.android.oneconnect`)
-   at version **`1.8.52.23`**. Manager can download this version for you, or you can supply the APK.
+1. In Manager, choose to patch an app and select **SmartThings** (`com.samsung.android.oneconnect`).
+   Pick a **recommended** version (**`1.8.54.23`** or `1.8.52.23`) — Manager can download it — or, to
+   try a newer release, allow the **experimental**/any-version target and patch the SmartThings you
+   already have installed. Worst case on an unconfirmed build: the patch applies but shows no key.
 2. Make sure the **"LocalThings Owner PSK…"** patch is ticked, then **Patch** and **Install**.
    - If a different-signed SmartThings is already installed, Manager will offer to reinstall it;
      your SmartThings login and paired devices are preserved across a same-source update.
@@ -115,11 +119,11 @@ A few things reported by other users:
 ## Patches
 
 <!-- PATCHES_START -->
-> **[v1.3.1](https://github.com/neoKushan/smortthings/releases/tag/v1.3.1)**&nbsp;&nbsp;&middot;&nbsp;&nbsp;`main`&nbsp;&nbsp;&middot;&nbsp;&nbsp;**3 patches** across **1 apps**&nbsp;&nbsp;&middot;&nbsp;&nbsp;[Full details](PATCHES.md)
+> **[v1.4.0](https://github.com/neoKushan/smortthings/releases/tag/v1.4.0)**&nbsp;&nbsp;&middot;&nbsp;&nbsp;`main`&nbsp;&nbsp;&middot;&nbsp;&nbsp;**3 patches** across **1 apps**&nbsp;&nbsp;&middot;&nbsp;&nbsp;[Full details](PATCHES.md)
 
 | # | App | Patches | Version | Package |
 |---|---|---|---|---|
-| 1 | [**SmartThings**](PATCHES.md#smartthings-comsamsungandroidoneconnect) | 3 | `1.8.52.23` | [`com.samsung.android.oneconnect`](https://play.google.com/store/apps/details?id=com.samsung.android.oneconnect) |
+| 1 | [**SmartThings**](PATCHES.md#smartthings-comsamsungandroidoneconnect) | 3 | `1.8.54.23`, `1.8.52.23` | [`com.samsung.android.oneconnect`](https://play.google.com/store/apps/details?id=com.samsung.android.oneconnect) |
 <!-- PATCHES_END -->
 
 ## How it works
@@ -184,8 +188,8 @@ build:
 1. Create a repo from that template and drop these `patches/` and `extensions/` sources in
    (adjust the group in `patches/build.gradle.kts`).
 2. `./gradlew buildAndroid` → `patches/build/libs/patches-*.mpp`.
-3. Apply to a SmartThings 1.8.52.23 APK with **Morphe Desktop** / Morphe Manager, install, open a
-   paired device's **Edit** screen.
+3. Apply to a SmartThings 1.8.54.23 (or 1.8.52.23) APK with **Morphe Desktop** / Morphe Manager,
+   install, open a paired device's **Edit** screen.
 
 ## Safety / design
 
@@ -194,7 +198,8 @@ build:
 - **Only shows a key matched to the exact device** (cloud `deviceId` == OCF `di`) from an
   HMAC-verified store, well-formed CBOR, 16/32-byte PSK, non-zero identity. Prefers showing
   nothing over showing a wrong value.
-- **Version-pinned** to 1.8.52.23; fingerprints fail-closed on other builds.
+- **Confirmed on 1.8.54.23 / 1.8.52.23** (recommended); other builds are patchable as experimental
+  and fail closed — fingerprints that don't match skip their patch rather than mis-patch.
 - Tested on one device only — the guards exist because other device classes are unvalidated.
 
 ## Thanks

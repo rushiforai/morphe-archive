@@ -68,6 +68,7 @@ val speedLimitsPatch = bytecodePatch(
         }
         if (report == true) recordBoolean("slm", true, "CONFIG_VALUE_MAP_SPEEDOMETER_SPEED_LIMIT_OVERRIDE_ENABLED")
         val chosen = style ?: "stock"
+        requireChoice("speedLimitsPatch", "style", chosen, setOf("stock", "us", "world"))
         if (chosen != "stock") recordString("slm", "CONFIG_VALUE_MAP_SPEEDOMETER_STYLE" to chosen)
         println("speedLimitsPatch: alwaysOn = ${alwaysOn == true}, decrease = ${decrease == true}, report = ${report == true}, style = $chosen")
     }

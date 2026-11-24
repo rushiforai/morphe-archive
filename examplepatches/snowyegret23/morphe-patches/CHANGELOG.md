@@ -1,3 +1,9 @@
+## [1.5.0](https://github.com/snowyegret23/morphe-patches/compare/v1.4.10...v1.5.0) (2026-11-23)
+
+### ✨ New Features
+
+* **minor:** skip mobile-only patches on CHZZK for Android TV ([1e812de](https://github.com/snowyegret23/morphe-patches/commit/1e812de8ceba4a1add63cabadd60f7caec44fde4)), references [#20](https://github.com/snowyegret23/morphe-patches/issues/20)
+
 ## [1.4.10](https://github.com/snowyegret23/morphe-patches/compare/v1.4.9...v1.4.10) (2026-11-13)
 
 ### ✨ New Features

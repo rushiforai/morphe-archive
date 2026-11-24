@@ -26,7 +26,7 @@ import kotlin.Unit;
 public final class RedditContentFilterPatch {
     public static final String NAME = "Reddit - Content filters (Experimental)";
     static final String PACKAGE = "com.reddit.frontpage";
-    static final String VERSION = "2026.37.0";
+    static final String VERSION = "2026.47.0";
     static final String LINK = "Lcom/reddit/domain/model/Link;";
     static final String SUBREDDIT = "Lcom/reddit/domain/model/Subreddit;";
     static final String FLAIR_SOURCE = "Lcom/reddit/flair/impl/data/source/remote/a;";
@@ -36,20 +36,29 @@ public final class RedditContentFilterPatch {
     static final String LINK_REPOSITORY = "Lcom/reddit/link/impl/data/repository/d;";
     static final String CHANNEL_COMPOSABLE = "Lcom/reddit/screens/channels/composables/f;";
     static final String SUBREDDIT_HEADER_VIEW = "Lcom/reddit/screens/header/SubredditHeaderView;";
-    static final String FLAIR_ROW = "Lca1;";
+    static final String FLAIR_ROW = "Lf71;";
     static final String SUBREDDIT_FEED_LAMBDA = "Lcom/reddit/screens/listing/compose/d;";
-    static final String FLAIR_CHIP = "Lsm7;";
-    static final String FILTER_CHIP_LAMBDA = "La71;";
+    static final String FLAIR_CHIP = "Loe5;";
+    static final String FILTER_CHIP_LAMBDA = "Ldm1;";
     static final String LISTING = "Lcom/reddit/domain/model/listing/Listing;";
-    static final String FEED_POST_SECTION = "Llsi;";
-    static final String FEED_SECTION_MAPPER = "Lcex;";
-    static final String FEED_POST_CELL = "Loc20;";
-    static final String HOME_POST_MAPPER = "Llki;";
+    static final String FEED_POST_SECTION = "Lw1k;";
+    static final String FEED_SECTION_MAPPER = "Lakp;";
+    static final String FEED_SECTION = "Lulc;";
+    static final String FEED_POST_CELL = "Lqs40;";
+    static final String HOME_POST_MAPPER = "Lxtj;";
     static final String FEED_LINK_MAPPER = "Lcom/reddit/feeds/impl/data/mapper/link/a;";
-    static final String FEED_LINK_ALTERNATE_MAPPER = "Lxdh;";
-    static final String CLASSIC_POST_MAPPER = "Let8;";
-    static final String CLASSIC_POST_COMPOSABLE = "Lyt8;";
-    static final String FEED_ELEMENT_PROCESSOR = "Lqf80;";
+    static final String FEED_LINK_ALTERNATE_MAPPER = "Lqkr;";
+    static final String FEED_LINK_ALTERNATE_MAPPER_METHOD = "M";
+    static final String CLASSIC_POST_MAPPER = "Lk39;";
+    static final String CLASSIC_POST = "Ly39;";
+    static final String CLASSIC_POST_COMPOSABLE = "Ll49;";
+    static final String FEED_ELEMENT_PROCESSOR = "Lwkb0;";
+    static final String MODIFIER = "Lgwy;";
+    static final String COMPOSER = "Lgmc;";
+    static final String CLICKABLE = "Lm89;";
+    static final String CHIP_PALETTE = "Lrjk;";
+    static final String CHIP_DEFAULT_PALETTE = "Lojk;->l:Lojk;";
+    static final String CHIP_CLICK = "Ljw7;";
     static final String SETTINGS = "Lapp/morphe/extension/reddit/settings/preference/RedditPreferenceFragment;";
     static final String EXTENSION = "Lsoftware/santodan/extension/redditfilter/RedditContentFilter;";
     private static final Logger LOG = Logger.getLogger("app.morphe.patches.santodan");
@@ -103,7 +112,7 @@ public final class RedditContentFilterPatch {
 
     static IllegalStateException unsupported(String reason) {
         return new IllegalStateException("Unsupported Reddit bytecode: " + reason
-            + ". No fallback patch was applied. Use Reddit 2026.37.0 with Morphe's Reddit settings patch.");
+            + ". No fallback patch was applied. Use Reddit " + VERSION + " with Morphe's Reddit settings patch.");
     }
 
     static List<Instruction> instructions(Method method) {
@@ -282,7 +291,7 @@ public final class RedditContentFilterPatch {
         List<MutableMethod> matches = new ArrayList<>();
         for (MutableMethod method : source.getMethods())
             if ("<init>".equals(method.getName()) && method.getImplementation() != null
-                && method.getParameterTypes().equals(Arrays.asList("Lcom/squareup/moshi/j;", "Llx90;", "Lpon;")))
+                && method.getParameterTypes().equals(Arrays.asList("Lcom/squareup/moshi/j;", "Ly3d0;", "Lj8p;")))
                 matches.add(method);
         if (matches.size() != 1) throw unsupported("Expected one flair network source constructor; found " + matches.size());
         return matches.get(0);
@@ -309,7 +318,7 @@ public final class RedditContentFilterPatch {
                 if (reference instanceof FieldReference
                     && SUBREDDIT_SOURCE.equals(((FieldReference) reference).getDefiningClass())
                     && "j".equals(((FieldReference) reference).getName())
-                    && "Lzw6;".equals(((FieldReference) reference).getType())) {
+                    && "Lh87;".equals(((FieldReference) reference).getType())) {
                     matches.add(method); break;
                 }
             }
@@ -343,7 +352,8 @@ public final class RedditContentFilterPatch {
     static MutableMethod findSubredditHeader(MutableClass owner) {
         List<MutableMethod> matches = new ArrayList<>();
         for (MutableMethod method : owner.getMethods())
-            if ("l".equals(method.getName()) && "V".equals(method.getReturnType())
+            // 2026.45.0 renamed the update from l to o; select by its unique signature.
+            if ("V".equals(method.getReturnType())
                 && method.getParameterTypes().equals(Collections.singletonList(
                     "Lcom/reddit/frontpage/presentation/subreddit/header/SubredditHeaderPresentationModel;"))
                 && method.getImplementation() != null) matches.add(method);
@@ -371,10 +381,10 @@ public final class RedditContentFilterPatch {
         List<MutableMethod> constructors = new ArrayList<>();
         for (MutableMethod method : source.getMethods())
             if ("<init>".equals(method.getName()) && method.getImplementation() != null
-                && method.getParameterTypes().size() == 7) constructors.add(method);
+                && method.getParameterTypes().size() == 10) constructors.add(method);
         if (constructors.size() != 1) throw unsupported("Expected one posts-by-ID source constructor");
         MutableMethod method = constructors.get(0);
-        int thisRegister = method.getImplementation().getRegisterCount() - 8;
+        int thisRegister = method.getImplementation().getRegisterCount() - 11;
         if (thisRegister < 0) throw unsupported("Posts-by-ID source instance register was not found");
         List<Instruction> all = instructions(method);
         int index = -1;
@@ -390,10 +400,10 @@ public final class RedditContentFilterPatch {
         List<MutableMethod> constructors = new ArrayList<>();
         for (MutableMethod method : source.getMethods())
             if ("<init>".equals(method.getName()) && method.getImplementation() != null
-                && method.getParameterTypes().size() == 14) constructors.add(method);
+                && method.getParameterTypes().size() == 15) constructors.add(method);
         if (constructors.size() != 1) throw unsupported("Expected one Link data-source constructor");
         MutableMethod method = constructors.get(0);
-        int thisRegister = method.getImplementation().getRegisterCount() - 15;
+        int thisRegister = method.getImplementation().getRegisterCount() - 16;
         if (thisRegister < 0) throw unsupported("Link data-source instance register was not found");
         List<Instruction> all = instructions(method);
         int index = -1;
@@ -409,10 +419,10 @@ public final class RedditContentFilterPatch {
         List<MutableMethod> constructors = new ArrayList<>();
         for (MutableMethod method : repository.getMethods())
             if ("<init>".equals(method.getName()) && method.getImplementation() != null
-                && method.getParameterTypes().size() == 19) constructors.add(method);
+                && method.getParameterTypes().size() == 20) constructors.add(method);
         if (constructors.size() != 1) throw unsupported("Expected one Link repository constructor");
         MutableMethod method = constructors.get(0);
-        int thisRegister = method.getImplementation().getRegisterCount() - 20;
+        int thisRegister = method.getImplementation().getRegisterCount() - 21;
         if (thisRegister < 0) throw unsupported("Link repository instance register was not found");
         List<Instruction> all = instructions(method);
         int index = -1;
@@ -437,34 +447,37 @@ public final class RedditContentFilterPatch {
 
     static void hookFlairRow(MutableMethod method) {
         List<Instruction> all = instructions(method);
-        int insertion = -1;
+        int insertion = -1, listRegister = -1, feedOptions = 0;
         for (int i = 0; i < all.size(); i++)
             if (all.get(i).getOpcode() == Opcode.CONST_STRING && all.get(i) instanceof ReferenceInstruction
                 && "feed_options".equals(((ReferenceInstruction) all.get(i)).getReference().toString())) {
+                if (feedOptions++ > 0) continue;
+                // The nearest preceding List cast is the native flair navigation list.
                 for (int j = i - 1; j >= Math.max(0, i - 40); j--)
                     if (all.get(j).getOpcode() == Opcode.CHECK_CAST
                         && all.get(j) instanceof ReferenceInstruction
-                        && "Ljava/util/List;".equals(((ReferenceInstruction) all.get(j)).getReference().toString())
-                        && ((OneRegisterInstruction) all.get(j)).getRegisterA() == 6) {
-                        insertion = j + 1; break;
+                        && "Ljava/util/List;".equals(((ReferenceInstruction) all.get(j)).getReference().toString())) {
+                        insertion = j + 1;
+                        listRegister = ((OneRegisterInstruction) all.get(j)).getRegisterA();
+                        break;
                     }
-                break;
             }
-        if (insertion < 0) throw unsupported("Subreddit flair navigation list was not found");
+        if (feedOptions != 1 || insertion < 0 || listRegister > 15)
+            throw unsupported("Subreddit flair navigation list was not found");
         method.getImplementation().addInstruction(insertion,
-            new BuilderInstruction35c(Opcode.INVOKE_STATIC, 1, 6, 0, 0, 0, 0,
+            new BuilderInstruction35c(Opcode.INVOKE_STATIC, 1, listRegister, 0, 0, 0, 0,
                 new ImmutableMethodReference(EXTENSION, "augmentFlairChannels",
                     Collections.singletonList("Ljava/util/List;"), "Ljava/util/List;")));
         method.getImplementation().addInstruction(insertion + 1,
-            new BuilderInstruction11x(Opcode.MOVE_RESULT_OBJECT, 6));
+            new BuilderInstruction11x(Opcode.MOVE_RESULT_OBJECT, listRegister));
     }
 
     static MutableMethod findFlairChip(MutableClass owner) {
         List<MutableMethod> matches = new ArrayList<>();
         for (MutableMethod method : owner.getMethods())
-            if ("x".equals(method.getName()) && "V".equals(method.getReturnType())
+            if ("w".equals(method.getName()) && "V".equals(method.getReturnType())
                 && method.getParameterTypes().equals(Arrays.asList(
-                    "Lbog0;", "I", "Z", "Lx4k;", "Ln9a0;", "Ltvw;", "Ly5c;", "I"))
+                    "Lizj0;", "I", "Z", "Lhil;", "Lvhd0;", MODIFIER, COMPOSER, "I"))
                 && method.getImplementation() != null) matches.add(method);
         if (matches.size() != 1) throw unsupported("Expected one subreddit flair chip; found " + matches.size());
         return matches.get(0);
@@ -472,47 +485,58 @@ public final class RedditContentFilterPatch {
 
     static void hookFlairChip(MutableMethod method) {
         List<Instruction> all = instructions(method);
+        // The chip model parameter is copied to a low register by the first instruction.
+        int modelParameter = method.getImplementation().getRegisterCount() - method.getParameterTypes().size();
+        if (all.isEmpty() || all.get(0).getOpcode() != Opcode.MOVE_OBJECT_FROM16
+            || ((TwoRegisterInstruction) all.get(0)).getRegisterB() != modelParameter)
+            throw unsupported("Subreddit flair chip model copy changed");
+        int modelRegister = ((OneRegisterInstruction) all.get(0)).getRegisterA();
         int insertion = -1;
-        int palette = -1;
+        int palette = -1, paletteRegister = -1;
         for (int i = 0; i < all.size(); i++)
             if (all.get(i).getOpcode() == Opcode.SGET_OBJECT && all.get(i) instanceof ReferenceInstruction
-                && "La8j;->l:La8j;".equals(((ReferenceInstruction) all.get(i)).getReference().toString())) {
-                palette = i + 1; break;
+                && CHIP_DEFAULT_PALETTE.equals(((ReferenceInstruction) all.get(i)).getReference().toString())) {
+                if (palette >= 0) throw unsupported("Subreddit flair chip palette is ambiguous");
+                palette = i + 1;
+                paletteRegister = ((OneRegisterInstruction) all.get(i)).getRegisterA();
             }
-        if (palette < 0) throw unsupported("Subreddit flair chip palette was not found");
-        method.getImplementation().addInstruction(palette,
-            new BuilderInstruction35c(Opcode.INVOKE_STATIC, 2, 1, 6, 0, 0, 0,
-                new ImmutableMethodReference(EXTENSION, "styleFlairChip",
-                    Arrays.asList("Ljava/lang/Object;", "Ljava/lang/Object;"), "Ljava/lang/Object;")));
-        method.getImplementation().addInstruction(palette + 1,
-            new BuilderInstruction11x(Opcode.MOVE_RESULT_OBJECT, 6));
-        method.getImplementation().addInstruction(palette + 2,
-            new com.android.tools.smali.dexlib2.builder.instruction.BuilderInstruction21c(Opcode.CHECK_CAST, 6,
-                new ImmutableTypeReference("Ld8j;")));
-        all = instructions(method);
-        insertion = -1;
+        if (palette < 0 || modelRegister > 15 || paletteRegister > 15)
+            throw unsupported("Subreddit flair chip palette was not found");
+        int clickNew = -1, clickRegister = -1;
         for (int i = 0; i < all.size(); i++)
             if (all.get(i).getOpcode() == Opcode.NEW_INSTANCE && all.get(i) instanceof ReferenceInstruction
-                && "Lqm7;".equals(((ReferenceInstruction) all.get(i)).getReference().toString())) {
+                && CHIP_CLICK.equals(((ReferenceInstruction) all.get(i)).getReference().toString())) {
+                int created = ((OneRegisterInstruction) all.get(i)).getRegisterA();
                 for (int j = i + 1; j < Math.min(all.size(), i + 8); j++)
                     if (all.get(j).getOpcode() == Opcode.CHECK_CAST && all.get(j) instanceof ReferenceInstruction
                         && "Lkotlin/jvm/functions/Function0;".equals(
                             ((ReferenceInstruction) all.get(j)).getReference().toString())
-                        && ((OneRegisterInstruction) all.get(j)).getRegisterA() == 8) {
-                        insertion = j + 1; break;
+                        && ((OneRegisterInstruction) all.get(j)).getRegisterA() == created) {
+                        clickNew = j + 1; clickRegister = created; break;
                     }
                 break;
             }
-        if (insertion < 0) throw unsupported("Subreddit flair click callback was not found");
+        if (clickNew < 0 || clickRegister > 15 || clickNew < palette)
+            throw unsupported("Subreddit flair click callback was not found");
+        method.getImplementation().addInstruction(palette,
+            new BuilderInstruction35c(Opcode.INVOKE_STATIC, 2, modelRegister, paletteRegister, 0, 0, 0,
+                new ImmutableMethodReference(EXTENSION, "styleFlairChip",
+                    Arrays.asList("Ljava/lang/Object;", "Ljava/lang/Object;"), "Ljava/lang/Object;")));
+        method.getImplementation().addInstruction(palette + 1,
+            new BuilderInstruction11x(Opcode.MOVE_RESULT_OBJECT, paletteRegister));
+        method.getImplementation().addInstruction(palette + 2,
+            new com.android.tools.smali.dexlib2.builder.instruction.BuilderInstruction21c(Opcode.CHECK_CAST,
+                paletteRegister, new ImmutableTypeReference(CHIP_PALETTE)));
+        insertion = clickNew + 3;
         method.getImplementation().addInstruction(insertion,
-            new BuilderInstruction35c(Opcode.INVOKE_STATIC, 2, 8, 1, 0, 0, 0,
+            new BuilderInstruction35c(Opcode.INVOKE_STATIC, 2, clickRegister, modelRegister, 0, 0, 0,
                 new ImmutableMethodReference(EXTENSION, "wrapFlairClick",
                     Arrays.asList("Ljava/lang/Object;", "Ljava/lang/Object;"), "Ljava/lang/Object;")));
         method.getImplementation().addInstruction(insertion + 1,
-            new BuilderInstruction11x(Opcode.MOVE_RESULT_OBJECT, 8));
+            new BuilderInstruction11x(Opcode.MOVE_RESULT_OBJECT, clickRegister));
         method.getImplementation().addInstruction(insertion + 2,
-            new com.android.tools.smali.dexlib2.builder.instruction.BuilderInstruction21c(Opcode.CHECK_CAST, 8,
-                new ImmutableTypeReference("Lkotlin/jvm/functions/Function0;")));
+            new com.android.tools.smali.dexlib2.builder.instruction.BuilderInstruction21c(Opcode.CHECK_CAST,
+                clickRegister, new ImmutableTypeReference("Lkotlin/jvm/functions/Function0;")));
     }
 
     static MutableMethod findFilterChipLambda(MutableClass owner) {
@@ -534,8 +558,9 @@ public final class RedditContentFilterPatch {
         int clickable = -1;
         for (int i = 0; i + 1 < all.size(); i++)
             if (all.get(i).getOpcode() == Opcode.INVOKE_STATIC_RANGE && all.get(i) instanceof ReferenceInstruction
-                && ((ReferenceInstruction) all.get(i)).getReference().toString().startsWith("Lcy8;->a(")) {
-                clickable = i; break;
+                && ((ReferenceInstruction) all.get(i)).getReference().toString().startsWith(CLICKABLE + "->a(")) {
+                if (clickable >= 0) throw unsupported("Subreddit flair click modifier is ambiguous");
+                clickable = i;
             }
         if (clickable < 0 || !(all.get(clickable) instanceof RegisterRangeInstruction)
             || all.get(clickable + 1).getOpcode() != Opcode.MOVE_RESULT_OBJECT)
@@ -551,7 +576,7 @@ public final class RedditContentFilterPatch {
                         "Ljava/lang/String;", "Ljava/lang/Object;", "Ljava/lang/Object;"), "Ljava/lang/Object;")));
         method.getImplementation().addInstruction(clickable + 2,
             new com.android.tools.smali.dexlib2.builder.instruction.BuilderInstruction21c(Opcode.CHECK_CAST, result,
-                new ImmutableTypeReference("Ltvw;")));
+                new ImmutableTypeReference(MODIFIER)));
     }
 
     static void hookChannelComposable(MutableMethod method) {
@@ -642,7 +667,7 @@ public final class RedditContentFilterPatch {
     static MutableMethod findFeedSectionMapper(MutableClass owner) {
         List<MutableMethod> matches = new ArrayList<>();
         for (MutableMethod method : owner.getMethods()) {
-            if (method.getImplementation() == null || !"Lm5c;".equals(method.getReturnType())) continue;
+            if (method.getImplementation() == null || !FEED_SECTION.equals(method.getReturnType())) continue;
             boolean createsSection = false;
             for (Instruction instruction : method.getImplementation().getInstructions())
                 if (instruction.getOpcode() == Opcode.NEW_INSTANCE && instruction instanceof ReferenceInstruction
@@ -710,15 +735,15 @@ public final class RedditContentFilterPatch {
         List<MutableMethod> matches = new ArrayList<>();
         for (MutableMethod method : owner.getMethods())
             if ("<init>".equals(method.getName()) && method.getImplementation() != null
-                && method.getParameterTypes().size() == 10
-                && "Lv4p;".contentEquals(method.getParameterTypes().get(1))) matches.add(method);
+                && method.getParameterTypes().size() == 11
+                && "Lkpq;".contentEquals(method.getParameterTypes().get(1))) matches.add(method);
         if (matches.size() != 1)
             throw unsupported("Expected one full feed post cell constructor; found " + matches.size());
         return matches.get(0);
     }
 
     static void hookFeedPostCell(MutableMethod method) {
-        int thisRegister = method.getImplementation().getRegisterCount() - 11;
+        int thisRegister = method.getImplementation().getRegisterCount() - method.getParameterTypes().size() - 1;
         if (thisRegister < 0) throw unsupported("Feed post cell instance register was not found");
         List<Instruction> all = instructions(method);
         int calls = 0;
@@ -735,8 +760,8 @@ public final class RedditContentFilterPatch {
     static MutableMethod findHomePostMapper(MutableClass owner) {
         List<MutableMethod> matches = new ArrayList<>();
         for (MutableMethod method : owner.getMethods())
-            if ("c".equals(method.getName()) && "Lcki;".equals(method.getReturnType())
-                && method.getParameterTypes().equals(Arrays.asList("Li8z;", "Lnd7;", "Ly0h;"))
+            if ("b".equals(method.getName()) && "Lmtj;".equals(method.getReturnType())
+                && method.getParameterTypes().equals(Arrays.asList("Lud10;", "Lnn7;", "Lg0i;"))
                 && method.getImplementation() != null) matches.add(method);
         if (matches.size() != 1)
             throw unsupported("Expected one home post mapper; found " + matches.size());
@@ -791,8 +816,8 @@ public final class RedditContentFilterPatch {
     static MutableMethod findClassicPostMapper(MutableClass owner) {
         List<MutableMethod> matches = new ArrayList<>();
         for (MutableMethod method : owner.getMethods())
-            if ("b".equals(method.getName()) && "Lpt8;".equals(method.getReturnType())
-                && method.getParameterTypes().equals(Arrays.asList("Limn;", "Lws8;"))
+            if ("b".equals(method.getName()) && CLASSIC_POST.equals(method.getReturnType())
+                && method.getParameterTypes().equals(Arrays.asList("Lp5p;", "Lb39;"))
                 && method.getImplementation() != null) matches.add(method);
         if (matches.size() != 1)
             throw unsupported("Expected one GraphQL ClassicPostElement mapper; found " + matches.size());
@@ -818,10 +843,12 @@ public final class RedditContentFilterPatch {
     static List<MutableMethod> findClassicPostComposables(MutableClass owner) {
         List<MutableMethod> matches = new ArrayList<>();
         for (MutableMethod method : owner.getMethods())
-            if (("a".equals(method.getName()) || "b".equals(method.getName()) || "c".equals(method.getName()))
+            // Card, overflow-row and title renderers. The 2026.45.0 "a" composable is nested
+            // inside the card renderer and is covered by it.
+            if (("d".equals(method.getName()) || "e".equals(method.getName()) || "f".equals(method.getName()))
                 && "V".equals(method.getReturnType()) && method.getImplementation() != null
                 && !method.getParameterTypes().isEmpty()
-                && "Lpt8;".contentEquals(method.getParameterTypes().get(0))) matches.add(method);
+                && CLASSIC_POST.contentEquals(method.getParameterTypes().get(0))) matches.add(method);
         if (matches.size() != 3)
             throw unsupported("Expected three classic post composables; found " + matches.size());
         return matches;

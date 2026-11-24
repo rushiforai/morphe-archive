@@ -1,3 +1,34 @@
+## 2.1.9 (2026-11-24)
+
+### ✨ New Features
+
+* **nicoid:** Add a dedicated option to clear temporary app caches, including thumbnail files and in-memory thumbnail and tab previews, without deleting cached videos, saved MP4 and MP3 files, settings, sign-in information, or viewing history
+* **nicoid:** Expand playlist sorting options to include upload date, registration date, title, view count, comment count, Mylist count, and video duration in both ascending and descending order, while retaining custom ordering where supported
+
+### 🐛 Bug Fixes
+
+* **nicoid:** Fix the destination tab preview appearing prematurely when swiping to the tab on the left
+* **nicoid:** Fix inconsistent tab transition animations and improve the handling of interrupted swipe gestures
+* **nicoid:** Prevent cache deletion from targeting an unintended storage location when the cache destination changes after confirmation
+* **nicoid:** Prevent interrupted cache downloads from deleting partial files in an unrelated storage location
+* **nicoid:** Prevent potential errors when the cache file inventory cannot be retrieved
+* **nicoid:** Fix untranslated cache management settings and confirmation dialogs
+* **nicoid:** Fix cache management labels not updating correctly after changing the app language
+
+### 🔧 Improvements
+
+* **nicoid:** Clearly distinguish temporary app cache deletion, cached video deletion, and deletion of cached videos from the old storage location
+* **nicoid:** Standardize cache deletion confirmation dialog titles, file size information, descriptions, and layout
+* **nicoid:** Improve Japanese, English, and Traditional Chinese translations for cache management and playlist sorting
+* **nicoid:** Improve playlist sorting accuracy for video statistics, upload dates, and video duration while preserving existing custom ordering
+* **nicoid:** Improve tab transition responsiveness and reduce unnecessary processing when generating tab previews
+* **nicoid:** Improve tab state management and release temporary animation resources when leaving a screen
+* **nicoid:** Reduce unnecessary object allocations during scrolling-comment rendering
+* **nicoid:** Reduce comment rendering overhead and improve recovery diagnostics for drawing failures
+* **nicoid:** Optimize thumbnail disk-cache loading to reduce unnecessary memory allocations and data copying
+* **nicoid:** Optimize cached video deletion by eliminating redundant video ID extraction
+* **nicoid:** Update bundled libraries to improve stability, security, and compatibility
+
 ## 2.1.8 (2026-11-22)
 
 ### 🐛 Bug Fixes

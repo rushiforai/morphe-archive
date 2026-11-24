@@ -14,7 +14,7 @@ Click here to add these patches to Morphe: https://morphe.software/add-source?gi
 ## 🩹 Patches list
 
 <!-- PATCHES_START EXPANDED -->
-> **[v1.19.2](https://github.com/callMeBeyonder/morphe-patches/releases/tag/v1.19.2)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;29 patches total
+> **[v1.20.0](https://github.com/callMeBeyonder/morphe-patches/releases/tag/v1.20.0)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;31 patches total
 <details open>
 <summary>📦 Alpha Progression&nbsp;&nbsp;•&nbsp;&nbsp;2 patches</summary>
 <br>
@@ -98,6 +98,22 @@ Click here to add these patches to Morphe: https://morphe.software/add-source?gi
 |----------|----------------|-----------|
 | [Disable Expo OTA updates](#disable-expo-ota-updates) | Stops the app from downloading a production JavaScript bundle over the embedded one. Required by bundle patches so a later Expo update cannot replace the patched JavaScript. |  |
 | [Unlock Premium](#unlock-premium) | Unlocks all premium programs by initialising the app's own `SUBSCRIPTION_ENABLED` config flag to false at module init. That is the flag the paywall, the Subscription screen guard, the IAPHUB sync and the walkthrough check all read, so the app runs in its "subscriptions not live" mode: no paywall, premium programs selectable. Expo OTA updates are disabled so a downloaded JS bundle cannot overwrite the patched one. Store and server-side data are not affected. |  |
+
+</details>
+
+<details open>
+<summary>📦 Gym Day&nbsp;&nbsp;•&nbsp;&nbsp;2 patches</summary>
+<br>
+
+**🎯 Supported versions:**
+
+| 1.62.0 |
+| :---: |
+
+| 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
+|----------|----------------|-----------|
+| [Force Premium Writes](#force-premium-writes) | Stores true on every write of the PREMIUM_ENABLED preference, so RevenueCat entitlement callbacks and the purchase coroutine can never clear the local premium flag. |  |
+| [Unlock Premium](#unlock-premium) | Unlocks the premium surfaces gated by the app's local PREMIUM_ENABLED flag: premium schedules and workouts, unlimited custom schedules/workouts, statistics ranges, notes, AI exercise tips, coach weeks, export, sign-in, photo upload and the plate calculator. |  |
 
 </details>
 

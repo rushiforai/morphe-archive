@@ -26,7 +26,7 @@ public final class ChipStyling {
         ColorStateList incoming=view.getBackgroundTintList();
         if(incoming!=null) {
             int color=incoming.getDefaultColor();
-            view.setSelected(color==CharcoalTheme.ACCENT || color==appearance.accent || color==0xff8ac22a || color==0xffe40077 || color==0xffed0181);
+            view.setSelected(color==0xffacd58e || color==CharcoalTheme.ACCENT || color==appearance.accent || color==0xff8ac22a || color==0xffe40077 || color==0xffed0181);
             view.setBackgroundTintList(null);
         }
         if(view.getBackground()!=appearance.background)view.setBackground(appearance.background);

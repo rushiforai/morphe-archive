@@ -37,7 +37,7 @@ public final class DeveloperMenuBridge {
     public static Object getClickListener() {
         try {
             Class<?> function0Class = null;
-            for (String clsName : new String[] {"yl.a", "wl.a"}) {
+            for (String clsName : new String[] {"hn.a", "yl.a", "wl.a"}) {
                 try {
                     function0Class = Class.forName(clsName);
                     break;
@@ -58,7 +58,7 @@ public final class DeveloperMenuBridge {
                             openMenu();
                             try {
                                 Class<?> unitClass = null;
-                                for (String uName : new String[] {"kl.z", "il.z"}) {
+                                for (String uName : new String[] {"tm.z", "kl.z", "il.z"}) {
                                     try {
                                         unitClass = Class.forName(uName);
                                         break;
@@ -110,74 +110,83 @@ public final class DeveloperMenuBridge {
             }
         });
     }
-    /**
-     * Triggers Mobile Studio drawer without physical hardware volume button combos.
-     */
+    /** Locates a single-argument boolean emit method on a Kotlin flow implementation. */
+    private static Method findEmitter(Method[] methods, String name) {
+        for (Method m : methods) {
+            if (name.equals(m.getName()) && m.getParameterTypes().length == 1) {
+                return m;
+            }
+        }
+        return null;
+    }
+
+    /** Triggers Mobile Studio drawer without physical hardware volume button combos. */
     public static void openMobileStudio(Activity activity) {
         if (activity == null || activity.isFinishing()) {
             return;
         }
 
-        // Strategy 1: Direct reflection on MainActivity.m0.f4616a.r(Unit)
+        // Strategy 1: Direct reflection on the activity's Mobile Studio request holder
+        // (1.72.0: o0.a, 1.54.0: m0.a) and its Unit emit.
         try {
-            Field m0Field = activity.getClass().getDeclaredField("m0");
-            m0Field.setAccessible(true);
-            Object j1Instance = m0Field.get(activity);
-            if (j1Instance != null) {
-                Field sharedFlowField = null;
+            Object holder = null;
+            for (String hName : new String[] {"o0", "m0"}) {
+                try {
+                    Field holderField = activity.getClass().getDeclaredField(hName);
+                    holderField.setAccessible(true);
+                    holder = holderField.get(activity);
+                    if (holder != null) {
+                        break;
+                    }
+                } catch (Throwable ignored) {
+                }
+            }
+            Object sharedFlow = null;
+            if (holder != null) {
                 for (String fName : new String[] {"a", "f4616a"}) {
                     try {
-                        sharedFlowField = j1Instance.getClass().getDeclaredField(fName);
-                        break;
+                        Field sharedFlowField = holder.getClass().getDeclaredField(fName);
+                        sharedFlowField.setAccessible(true);
+                        sharedFlow = sharedFlowField.get(holder);
+                        if (sharedFlow != null) {
+                            break;
+                        }
                     } catch (Throwable ignored) {
                     }
                 }
-                if (sharedFlowField != null) {
-                    sharedFlowField.setAccessible(true);
-                    Object sharedFlow = sharedFlowField.get(j1Instance);
-                    if (sharedFlow != null) {
-                        Class<?> unitClass = null;
-                        for (String uName : new String[] {"kl.z", "il.z"}) {
-                            try {
-                                unitClass = Class.forName(uName);
-                                break;
-                            } catch (Throwable ignored) {
-                            }
-                        }
-                        Object unit = null;
-                        if (unitClass != null) {
-                            Field aField = unitClass.getField("a");
-                            unit = aField.get(null);
-                        }
+            }
+            Object unit = null;
+            for (String uName : new String[] {"tm.z", "kl.z", "il.z"}) {
+                try {
+                    Field aField = Class.forName(uName).getField("a");
+                    unit = aField.get(null);
+                    if (unit != null) {
+                        break;
+                    }
+                } catch (Throwable ignored) {
+                }
+            }
 
-                    Method emitMethod = null;
-                    for (Method m : sharedFlow.getClass().getMethods()) {
-                        if (("r".equals(m.getName()) || "tryEmit".equals(m.getName())) &&
-                                m.getParameterTypes().length == 1) {
-                            emitMethod = m;
-                            break;
-                        }
+            if (sharedFlow != null && unit != null) {
+                // The app emits through q(Object) (tryEmit + resume waiting collectors); r(Object)
+                // is the bare tryEmit and leaves the drawer closed when nobody is resuming.
+                for (String emitName : new String[] {"q", "r", "tryEmit"}) {
+                    Method emitMethod = findEmitter(sharedFlow.getClass().getMethods(), emitName);
+                    if (emitMethod == null) {
+                        emitMethod = findEmitter(sharedFlow.getClass().getDeclaredMethods(), emitName);
                     }
                     if (emitMethod == null) {
-                        for (Method m : sharedFlow.getClass().getDeclaredMethods()) {
-                            if (("r".equals(m.getName()) || "tryEmit".equals(m.getName())) &&
-                                    m.getParameterTypes().length == 1) {
-                                m.setAccessible(true);
-                                emitMethod = m;
-                                break;
-                            }
-                        }
+                        continue;
                     }
-
-                    if (emitMethod != null) {
-                        emitMethod.invoke(sharedFlow, unit);
-                        Log.i(TAG, "Mobile Studio opened via reflection on m0.f4616a");
+                    emitMethod.setAccessible(true);
+                    Object emitted = emitMethod.invoke(sharedFlow, unit);
+                    if (!(emitted instanceof Boolean) || (Boolean) emitted) {
+                        Log.i(TAG, "Mobile Studio request emitted via " + emitName + "(Unit)");
                         return;
                     }
                 }
             }
-        }
-    } catch (Throwable t) {
+        } catch (Throwable t) {
         }
 
         // Strategy 2: Alternating hardware key simulation (UP -> DOWN within 1200ms)

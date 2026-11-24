@@ -14,8 +14,13 @@ on:
       - 'settings.gradle.kts'
       - 'gradle.properties'
       - '.releaserc'
-      - '.github/scripts/prepare_emoji_font.py'
-      - '.github/scripts/generate_patches_readme.py'
+      - 'tools/asset-prep/**'
+      - 'scripts/asset-prep.ts'
+      - 'scripts/generate-patches-readme.ts'
+      - 'scripts/generate-patches-readme.test.ts'
+      - 'scripts/test-fixtures/generate-patches-readme/**'
+      - 'package.json'
+      - 'bun.lock'
       - '.github/workflows/release.yml'
 
 concurrency:
@@ -37,7 +42,7 @@ jobs:
           fetch-depth: 0
 
       - name: Setup Java
-        uses: actions/setup-java@v6.1.0
+        uses: actions/setup-java@v6.3.0
         with:
           distribution: 'temurin'
           java-version: '21'
@@ -51,7 +56,7 @@ jobs:
         uses: actions/cache@v6
         with:
           path: ~/.gradle/caches/aidans-patches/fonts
-          key: emoji-font-${{ hashFiles('.github/scripts/prepare_emoji_font.py') }}
+          key: emoji-font-e37c7af6-${{ hashFiles('tools/asset-prep/Cargo.toml', 'tools/asset-prep/Cargo.lock', 'tools/asset-prep/src/**', 'tools/asset-prep/vendor/**') }}
           restore-keys: |
             emoji-font-
 
@@ -119,8 +124,29 @@ jobs:
         with:
           fetch-depth: 0
 
+      # Release commits are created locally, so they can never carry the
+      # `Test & Build Gate` check before being pushed. Authenticate git with the
+      # deploy key registered as a bypass actor on the verification ruleset.
+      - name: Configure release push key
+        env:
+          RELEASE_DEPLOY_KEY: ${{ secrets.RELEASE_DEPLOY_KEY }}
+        run: |
+          install -d -m 700 "$HOME/.ssh"
+          printf '%s\n' "$RELEASE_DEPLOY_KEY" > "$HOME/.ssh/release_deploy_key"
+          chmod 600 "$HOME/.ssh/release_deploy_key"
+          ssh-keyscan -t ed25519 github.com >> "$HOME/.ssh/known_hosts"
+          test -s "$HOME/.ssh/known_hosts"
+          chmod 600 "$HOME/.ssh/known_hosts"
+          {
+            echo 'Host github.com'
+            echo '  IdentityFile ~/.ssh/release_deploy_key'
+            echo '  IdentitiesOnly yes'
+          } >> "$HOME/.ssh/config"
+          chmod 600 "$HOME/.ssh/config"
+          git remote set-url origin "git@github.com:${GITHUB_REPOSITORY}.git"
+
       - name: Setup Java
-        uses: actions/setup-java@v6.1.0
+        uses: actions/setup-java@v6.3.0
         with:
           distribution: 'temurin'
           java-version: '21'
@@ -129,10 +155,9 @@ jobs:
         uses: actions/cache@v6
         with:
           path: ~/.gradle/caches/aidans-patches/fonts
-          key: emoji-font-${{ hashFiles('.github/scripts/prepare_emoji_font.py') }}
+          key: emoji-font-e37c7af6-${{ hashFiles('tools/asset-prep/Cargo.toml', 'tools/asset-prep/Cargo.lock', 'tools/asset-prep/src/**', 'tools/asset-prep/vendor/**') }}
           restore-keys: |
             emoji-font-
-
 
       - name: Setup Rust toolchain
         uses: dtolnay/rust-toolchain@1.97.1
@@ -158,6 +183,11 @@ jobs:
           node-version: 'lts/*'
           cache: 'npm'
 
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+
       - name: Install dependencies
         run: npm install
 
@@ -169,7 +199,15 @@ jobs:
             npm install
           fi
 
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+
       # Semantic release runs its own Gradle build command on main.
+      - name: Reconcile release channel notes
+        run: bun scripts/reconcile-release-notes.ts --ref "${{ github.ref_name }}" --remote origin
+
       - name: Release
         uses: cycjimmy/semantic-release-action@v8
         id: release

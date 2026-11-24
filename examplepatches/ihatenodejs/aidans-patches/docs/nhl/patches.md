@@ -17,7 +17,7 @@ This document describes the Morphe bytecode patches available for **NHL** (`com.
 
 - **Name:** Enable Notifications and Live Activities
 - **Target Package:** `com.nhl.gc1112.free`
-- **Supported Versions:** `17.0.0`
+- **Supported Versions:** `17.2.0`
 - **Default State:** `true` (Enabled by default)
 - **Type:** Dalvik Bytecode Patch (`bytecodePatch`)
 - **Category:** `Notifications`
@@ -27,9 +27,9 @@ This document describes the Morphe bytecode patches available for **NHL** (`com.
 In unmodified and standard patched builds, push notifications and Live Activities (real-time game score updates in the notification drawer and lockscreen) fail completely due to four compounding root causes:
 
 1. **Firebase Installations (FIS) Certificate SHA-1 Mismatch:** Google Cloud API keys configured for Firebase Installations enforce Android package name and signing certificate SHA-1 digest restrictions. When the APK is modified and re-signed with a non-NHL keystore, `FirebaseMessaging.getToken()` queries `AndroidUtilsLight.getPackageCertificateHashBytes(Context, String)` to send the package SHA-1 in the `X-Android-Cert` HTTP header. Google's API gateway rejects non-NHL signatures with HTTP 403 `PERMISSION_DENIED` (`FIS_AUTH_ERROR`), completely preventing FCM token generation.
-2. **OneTrust CMP Over-Suppression in Privacy Patches:** Consent Management Platform (CMP) tracking suppression previously stubbed all consent queries to `Denied` (`0`). However, the `Lqoj;` enum gates both ad tracking and essential push infrastructure (`UrbanAirshipCore`, `UrbanAirshipFcm`, `BlazePushSdk`). When consent is denied, `Lgce;->d()` invokes `tjf.a([Lqjf.j])` to clear all UrbanAirship feature permissions, disabling `Feature.PUSH` (`qjf.d`). Without `Feature.PUSH`, UrbanAirship refuses to register an FCM token, and `LiveActivityNotificationManager.start()` (`cla.smali`) aborts immediately.
+2. **OneTrust CMP Over-Suppression in Privacy Patches:** Consent Management Platform (CMP) tracking suppression previously stubbed all consent queries to `Denied` (`0`). However, the `Lhlk;` enum gates both ad tracking and essential push infrastructure (`UrbanAirshipCore`, `UrbanAirshipFcm`, `BlazePushSdk`). When consent is denied, `Lc2f;->d()` clears all UrbanAirship feature permissions, disabling `Feature.PUSH` (`cbg.d`). Without `Feature.PUSH`, UrbanAirship refuses to register an FCM token, and `LiveActivityNotificationManager.start()` (`cla.smali`) aborts immediately.
 3. **MicroG & Play Services Verification Failures:** On de-Googled devices running MicroG without OS-level signature spoofing, `GoogleSignatureVerifier` detects non-Google signatures on `com.google.android.gms` and rejects Play Services with `SERVICE_INVALID` (code 9).
-4. **Live Activities Remote Gate Override:** The shipped game actions response model conditionally gates the live activity toggle (`showLiveActivityToggle` in `GameCenterViewModel` / `ip7.smali`) through `ActionsResponse.liveActivityEnabled` (`rd.j: Boolean`), preventing users from enabling live lockscreen scores unless enabled by the NHL backend.
+4. **Live Activities Remote Gate Override:** The shipped game actions response model conditionally gates the live activity toggle (`showLiveActivityToggle` in `GameCenterViewModel` / `ip7.smali`) through `ActionsResponse.liveActivityEnabled` (`Led.j: Boolean`), preventing users from enabling live lockscreen scores unless enabled by the NHL backend.
 
 The **Enable Notifications and Live Activities** patch resolves these issues natively within Dalvik bytecode and the Java extension bridge.
 
@@ -64,28 +64,28 @@ The **Enable Notifications and Live Activities** patch resolves these issues nat
      - `isGooglePlayServicesAvailable(Landroid/content/Context;I)I`: injects `const/4 v0, 0x0` / `return v0` (`ConnectionResult.SUCCESS`).
      - `isGooglePlayServicesAvailable(Landroid/content/Context;)I`: injects `const/4 v0, 0x0` / `return v0` (`ConnectionResult.SUCCESS`).
 3. **Smart Consent Routing (in `RemoveTrackingPatch`):**
-   - Replaces blanket OneTrust denial with `PushBridge.isPushConsented(Object qojEnum)` in:
-     - `Lgce;->c(Lqoj;)Z`: returns `true` for `UrbanAirshipCore`, `UrbanAirshipFcm`, and `BlazePushSdk`; `false` for `GoogleAds` and telemetry.
-     - `Lqc8;->M(Lqoj;Lcom/onetrust/otpublishers/headless/Public/OTPublishersHeadlessSDK;)Lvu3;`: returns `Granted` for push SDKs, `Denied` for ad/tracking SDKs.
-   - Ensures `gce.d()` preserves `Feature.PUSH` in `UrbanAirship.PrivacyManager`.
+   - Replaces blanket OneTrust denial with `PushBridge.isPushConsented(Object consentEnum)` in:
+     - `Lc2f;->c(Lhlk;)Z`: returns `true` for `UrbanAirshipCore`, `UrbanAirshipFcm`, and `BlazePushSdk`; `false` for `GoogleAds` and telemetry.
+     - `Lkp9;->z(Lhlk;Lcom/onetrust/otpublishers/headless/Public/OTPublishersHeadlessSDK;)Lk14;`: returns `Granted` for push SDKs, `Denied` for ad/tracking SDKs.
+   - Ensures `c2f.d()` preserves `Feature.PUSH` in `UrbanAirship.PrivacyManager`.
 4. **Live Activities Gate Activation (`forceLiveActivitiesEnabled`):**
-   - Targets `Lrd;-><init>(ILjava/lang/String;Ljava/lang/String;Lfva;Lfva;Lfva;Ljava/lang/String;Lfva;Lfva;Lfva;Ljava/lang/Boolean;)V` (`ActionsResponse` constructor):
+   - Targets `Led;-><init>(ILjava/lang/String;Ljava/lang/String;Lshb;Lshb;Lshb;Ljava/lang/String;Lshb;Lshb;Lshb;Ljava/lang/Boolean;)V` (`ActionsResponse` constructor):
      - Injects before `return-void`:
 
        ```smali
        sget-object v0, Ljava/lang/Boolean;->TRUE:Ljava/lang/Boolean;
-       iput-object v0, p0, Lrd;->j:Ljava/lang/Boolean;
+       iput-object v0, p0, Led;->j:Ljava/lang/Boolean;
        ```
 
-   - Targets `Lrb;-><init>(Ljava/lang/String;Ljava/lang/String;Lafe;Lafe;Lafe;Leva;Lafe;Lafe;Z)V` (`Action` constructor):
+   - Targets `Lcb;-><init>(Ljava/lang/String;Ljava/lang/String;La5f;La5f;La5f;Lrhb;La5f;La5f;Z)V` (`Action` constructor):
      - Injects before `return-void`:
 
        ```smali
        const/4 p9, 0x1
-       iput-boolean p9, p0, Lrb;->i:Z
+       iput-boolean p9, p0, Lcb;->i:Z
        ```
 
-   - Guarantees `GameCenterViewModel` (`ip7.smali`) computes `showLiveActivityToggle = true` for live and upcoming games.
+   - Guarantees `GameCenterViewModel` computes `showLiveActivityToggle = true` for live and upcoming games.
 
 ---
 
@@ -93,7 +93,7 @@ The **Enable Notifications and Live Activities** patch resolves these issues nat
 
 - **Name:** Remove Ads
 - **Target Package:** `com.nhl.gc1112.free`
-- **Supported Versions:** `17.0.0`
+- **Supported Versions:** `17.2.0`
 - **Default State:** `true` (Enabled by default)
 - **Type:** Dalvik Bytecode Patch (`bytecodePatch`)
 - **Category:** `Ads`
@@ -119,7 +119,7 @@ The **Remove Ads** patch eliminates advertising across all formats without disru
 1. **Google Mobile Ads SDK Initialization:**
    - Neutralizes `com.google.android.gms.ads.MobileAds.a(Context)` and `MobileAdsInitProvider.attachInfo`.
 2. **Google Ad Manager View Neutralization:**
-   - Neutralizes `loadAd` on `BaseAdView` (`kh1.b(Lsg;)V`).
+   - Neutralizes `loadAd` on `BaseAdView` (`ll1.b(Lhg;)V`).
 3. **Blaze GAM Handlers:**
    - Neutralizes `enableBannerAds`, `enableCustomNativeAds`, `initializeMobileAdsSdk`, and `setBlazeAdBannerHandler` in `com.blaze.gam.BlazeGAM`.
    - Replaces banner view creation in `DefaultBlazeGAMBannerAdsHandler.createAndLoadAdBannerView` with a collapsed `View.GONE` placeholder.
@@ -128,14 +128,20 @@ The **Remove Ads** patch eliminates advertising across all formats without disru
 4. **Blaze IMA Video Ads:**
    - Neutralizes `com.blaze.ima.BlazeIMA.enableAds`.
 5. **Brightcove Video IMA Ad Engine:**
-   - Stubs `GoogleIMAComponent` ad request preparation (`internalInitializeAdsRequests`, `reloadAdsRequest`, `initializeAdsRequests`).
+   - Stubs `GoogleIMAComponent` ad request preparation (`reloadAdsRequest`, `initializeAdsRequests`).
    - Neutralizes `GoogleIMAComponent$OnPlayListener.processEvent` and `GoogleIMAComponent$OnCuePointListener.processEvent`, preventing the player from halting content playback to insert pre-roll or mid-roll ad pods.
    - Forces `BaseIMAComponent.shouldSkipAdBreak` to return `true` and `BaseIMAComponent.isPlayingAd` to return `false`.
 
 6. **Promotions Carousel Removal (`removePromotionsCarousel`):**
-   - Targets content component mapper methods `Lawi;->b(Ldf3;Z)Lpj4;` and `Lawi;->e(Ldf3;Z)Ltj4;`.
-   - Inspects deserialized `ComponentsResponse` fields (title in `df3.b->fva.a`, `id` in `df3.a`, `analyticSlug` in `df3.f`, and `analyticsSectionTitle` in `df3.e`).
-   - If any identifier contains `"promotion"` (case-insensitive via `Locale.ROOT`), the mapper returns `null`, causing the parent flow parser `Lawi;->d(Lzvi;)Lmui;` to omit the component from the active UI hierarchy and completely suppress the Home screen carousel card.
+   - Targets content component mapper methods `Lxrj;->b(Lpl3;Z)Lkq4;` and `Lxrj;->e(Lpl3;Z)Lpq4;`.
+   - Inspects deserialized `ComponentsResponse` fields (title in `pl3.b->shb.a`, `id` in `pl3.a`, `analyticSlug` in `pl3.f`, and `analyticsSectionTitle` in `pl3.e`).
+   - If any identifier contains `"promotion"` (case-insensitive via `Locale.ROOT`), the mapper returns `null`, causing the parent flow parser to omit the component from the active UI hierarchy and completely suppress the Home screen carousel card.
+7. **Native Compose Ad Containers:**
+   - Stubs the shared ad renderer `Lbme;->a(Ljava/lang/String;Ljava/lang/String;ILlg;Ljava/lang/String;ZLbu3;II)V` with `return-void`, collapsing every native ad placement.
+   - Stubs the medium-rectangle/banner wrapper `Lh05;->m(Lvg0;Lyqj;Lc2f;Lbu3;I)V` and standings banner wrapper `Lr6j;->c(Luwj;ILbu3;I)V`.
+   - Replaces `Lbme;->a` calls in play-by-play (`Lm38;`), game summary (`Ltsa;`), and pregame/boxscore (`Lps8;`) merged lambdas with `nop`.
+   - Nullifies the `Lixf;->b:Lwi;` ad-item gate in the play-by-play list builder `Lxwf;->invoke`.
+   - Neutralizes `List.add` insertion of `Lv5g;` (pregame, `Lbb8;`) and `Lv32;` (boxscore, `Laa8;`) ad items.
 
 ---
 
@@ -143,7 +149,7 @@ The **Remove Ads** patch eliminates advertising across all formats without disru
 
 - **Name:** Remove Tracking
 - **Target Package:** `com.nhl.gc1112.free`
-- **Supported Versions:** `17.0.0`
+- **Supported Versions:** `17.2.0`
 - **Default State:** `true` (Enabled by default)
 - **Type:** Dalvik Bytecode Patch (`bytecodePatch`)
 - **Category:** `Privacy`
@@ -184,34 +190,34 @@ The **Remove Tracking** patch neutralizes these tracking systems while preservin
 ### 3. Technical Implementation & Bytecode Hooks
 
 1. **Broken Privacy Settings Removal (`removeBrokenPrivacySettings`):**
-   - Targets Preferences section builder `Lbg8;->d(ZLjava/lang/String;Lkotlin/jvm/functions/Function1;Lpn3;I)V`.
+   - Targets Preferences section builder `Lse9;->k(ZLjava/lang/String;Lkotlin/jvm/functions/Function1;Lbu3;I)V`.
    - Locates the `invoke-interface {v0, v1}, Ljava/util/List;->add(Ljava/lang/Object;)Z` call following the Privacy Settings composable key (`-0x3635e702`) and removes it from bytecode, preventing the defunct setting row from being added to the Preferences list.
 2. **OneTrust CMP Neutralization & Banner Suppression (`disableOneTrustCmp`):**
    - Neutralizes UI display methods in `Lcom/onetrust/otpublishers/headless/Public/OTPublishersHeadlessSDK;` (`setupUI`, `showBannerUI`, `callSetupUI`, `callShowConsentPreferencesUI`, `callShowPreferenceCenterUI`, `showPreferenceCenterUI`, `showConsentPurposesUI`, `showConsentUI`), preventing the consent banner dialog from appearing.
    - Forces `shouldShowBanner` to return `false` and `isBannerShown` to return `0`.
    - Neutralizes OneTrust network calls (`startOtSdkNetworkCall`, `startSDK`, `saveConsent`, `saveAllowAll`, `saveRejectAll`).
    - Forces consent query methods (`getConsentStatusForGroupId`, `getConsentStatusForSDKId`, `getPurposeConsentLocal`, `getPurposeLegitInterestLocal`, `getUCPurposeConsent`) to return `0` (`Denied`).
-   - Routes host application consent checks through `PushBridge.isPushConsented` (`Lgce;->c(Lqoj;)Z` and `Lqc8;->M(...)Lvu3;`), preserving consent for `UrbanAirshipCore`, `UrbanAirshipFcm`, and `BlazePushSdk` while treating advertising and telemetry SDKs as unconsented.
+   - Routes host application consent checks through `PushBridge.isPushConsented` (`Lc2f;->c(Lhlk;)Z` and `Lkp9;->z(...)Lk14;`), preserving consent for `UrbanAirshipCore`, `UrbanAirshipFcm`, and `BlazePushSdk` while treating advertising and telemetry SDKs as unconsented.
 3. **Advertising ID Zeroing (`zeroAdvertisingId`):**
-   - Spoofs minified `AdvertisingIdClient` (`Ljj;->a` and `Ljj;->f`) to return an Info object (`Lij;`) with a zeroed UUID (`00000000-0000-0000-0000-000000000000`) and `limitAdTrackingEnabled = true`.
+   - Spoofs minified `AdvertisingIdClient` (`Lyi;->a` and `Lyi;->f`) to return an Info object (`Lxi;`) with a zeroed UUID (`00000000-0000-0000-0000-000000000000`) and `limitAdTrackingEnabled = true`.
    - Stubs unminified `AdvertisingIdClient$Info` (`getId` and `isLimitAdTrackingEnabled`) if present.
 4. **Host Application Analytics (`disableHostAnalytics`):**
-   - Neutralizes screen tracking (`a(Ljava/lang/String;)V`) and event logging (`b(Lbv;)V`) in `Lnv;` (internal analytics implementation).
+   - Neutralizes screen tracking (`a(Ljava/lang/String;)V`) and event logging (`b(Lmw;)V`) in `Lyw;` (internal analytics implementation).
 5. **Firebase Analytics & AppMeasurement (`disableFirebaseAnalytics`):**
    - Neutralizes `AppMeasurement.logEventInternal`, `AppMeasurementSdk.logEvent`, and `FirebaseAnalytics` methods (`b`, `c`, `setCurrentScreen`).
-   - Neutralizes Google Play Services AppMeasurement background task queue execution in `Lg3q;->c(Loxp;)V`.
-   - Neutralizes WebView JavaScript analytics bridge in `Lhhd;` (`logEvent`, `setUserProperty`).
+   - Neutralizes Google Play Services AppMeasurement background task queue execution in `Luuq;->c(Lzoq;)V`.
+   - Neutralizes WebView JavaScript analytics bridge in `Li5e;` (`logEvent`, `setUserProperty`).
    - Neutralizes component registration in `Lcom/google/firebase/analytics/connector/internal/AnalyticsConnectorRegistrar;` (`getComponents` returns empty list).
 6. **Firebase Performance Monitoring (`disableFirebasePerformance`):**
    - Stubs component registrars `FirebasePerfRegistrar` and `FirebasePerfKtxRegistrar` (`getComponents` returns empty list).
-   - Neutralizes metric dispatch in `Lmak;` (`b`, `c`, `d`).
+   - Neutralizes metric dispatch in `Lm8l;` (`b`, `c`, `d`).
    - Neutralizes `AppStartTrace` lifecycle tracking (`onActivityCreated`, `onActivityResumed`, `onActivityStarted`) and `SessionManager` gauge collection.
 7. **UrbanAirship Telemetry & Analytics (`disableUrbanAirshipTelemetry`):**
    - Neutralizes `com.urbanairship.analytics.InstallReceiver.onReceive`.
-   - Neutralizes event recording queue in `Lpo;->a(Loo;)V`.
-   - Neutralizes analytics event dispatch, session start, and screen tracking in `Lrt;` (`e`, `g`, `h`).
-   - Forces `Lrt;->f()Z` (analytics enabled check) to return `false`.
-   - Neutralizes metered usage telemetry scheduling in `Lqp;` (`g`, `h`).
+   - Neutralizes event recording queue in `Lxo;->a(Lwo;)V`.
+   - Neutralizes analytics event dispatch, session start, and screen tracking in `Lav;` (`e`, `g`, `h`).
+   - Forces `Lav;->f()Z` (analytics enabled check) to return `false`.
+   - Neutralizes metered usage telemetry scheduling in `Lzp;` (`g`, `h`).
 8. **Blaze SDK Event Dispatcher, User Activity & Logging (`disableBlazeTracking`):**
    - Forces `BlazeSDK` configuration gates `getDisableAnalytics` and `getDisableUserActivity` to return `true`, and `getDoNotTrack` to return `true`.
    - Stubs `com.blaze.blazesdk.analytics.AnalyticsApi` methods `sendTrackEvents` and `sendDoNotTrackEvents` to return null.
@@ -226,10 +232,10 @@ The **Remove Tracking** patch neutralizes these tracking systems while preservin
     - Neutralizes presence analytics broadcasting in `com.ticketmaster.presence.AnalyticsHelper.sendAnalyticEvent`.
 
 11. **Firebase Crashlytics, Sessions & Datatransport (`disableCrashlyticsAndSessions`):**
-    - Neutralizes Crashlytics logging and exception capture in `Lbn6;` (`b`, `c`).
+    - Neutralizes Crashlytics logging and exception capture in `Luy6;` (`b`, `c`).
     - Stubs `FirebaseSessionsRegistrar.getComponents` to return an empty list.
     - Neutralizes `SessionLifecycleService` lifecycle methods (`onCreate`, `onBind` returning null, `onStartCommand` returning `START_NOT_STICKY`).
-    - Neutralizes Google DataTransport Firelog uploader in `Lomk;->a`.
+    - Neutralizes Google DataTransport Firelog uploader in `Lpkl;->a(Ld8l;I)V`.
 
 ---
 
@@ -237,14 +243,14 @@ The **Remove Tracking** patch neutralizes these tracking systems while preservin
 
 - **Name:** Unlock Hidden Features
 - **Target Package:** `com.nhl.gc1112.free`
-- **Supported Versions:** `17.0.0`
+- **Supported Versions:** `17.2.0`
 - **Default State:** `false` (Disabled by default)
 - **Type:** Dalvik Bytecode Patch (`bytecodePatch`)
 - **Category:** `Features`
 
 ### 1. Motivation & Purpose
 
-The NHL 17.0.0 release bundle contains several dormant and remotely gated host-app capabilities:
+The NHL 17.2.0 release bundle contains several dormant and remotely gated host-app capabilities:
 
 - An internal **Developer Settings** suite with network environment switching (Prod, Staging, Mock), country overrides, String Key Overlay, Analytics Debugger, cache invalidation, and developer deep links.
 - A **Draft Mini Tracker** UI component gated by remote configuration.
@@ -263,14 +269,14 @@ The **Unlock Hidden Features** patch unlocks these surfaces with independent opt
 ### 3. Technical Implementation & Bytecode Hooks
 
 1. **Developer Mode Master Gate (`enableDeveloperSettings`):**
-   - Targets static method `Llpk;->a()Z`.
+   - Targets static method `Lpnl;->a()Z`.
    - Injects `const/4 v0, 0x0` / `return v0` at offset 0, forcing the production/release gate `isProd` off so developer mode activates across Compose UI hierarchy, NavHost route registration, and diagnostic actions.
 2. **Draft Mini Tracker Visibility Gate (`enableDraftMiniTracker`):**
-   - Targets deserialization constructor `Loi5;-><init>(IZLfva;Lfva;Lfva;)V` (`DraftConfigResponse`).
-   - Injects `const/4 v0, 0x1` / `iput-boolean v0, p0, Loi5;->a:Z` immediately before `return-void`, overriding the deserialized `isMiniTrackerActive` field.
+   - Targets deserialization constructor `Lsq5;-><init>(IZLshb;Lshb;Lshb;)V` (`DraftConfigResponse`).
+   - Injects `const/4 v0, 0x1` / `iput-boolean v0, p0, Lsq5;->a:Z` immediately before `return-void`, overriding the deserialized `isMiniTrackerActive` field.
 3. **GameZone Home Surface Visibility Gate (`showGameZoneOnHome`):**
-   - Targets deserialization constructor `Lhv7;-><init>(ILjava/lang/Boolean;Ljava/lang/String;)V` (`GameZoneConfigResponse`).
-   - Injects `sget-object v0, Ljava/lang/Boolean;->TRUE:Ljava/lang/Boolean;` / `iput-object v0, p0, Lhv7;->a:Ljava/lang/Boolean;` immediately before `return-void`, overriding the deserialized `showOnHome` field while leaving field `b` (URL) intact.
+   - Targets deserialization constructor `Lc78;-><init>(ILjava/lang/Boolean;Ljava/lang/String;)V` (`GameZoneConfigResponse`).
+   - Injects `sget-object v0, Ljava/lang/Boolean;->TRUE:Ljava/lang/Boolean;` / `iput-object v0, p0, Lc78;->a:Ljava/lang/Boolean;` immediately before `return-void`, overriding the deserialized `showOnHome` field while leaving field `b` (URL) intact.
 
 ### 4. Observable UI Behavior
 

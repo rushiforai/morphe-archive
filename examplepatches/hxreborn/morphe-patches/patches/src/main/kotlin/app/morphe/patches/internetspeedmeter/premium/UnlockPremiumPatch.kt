@@ -9,8 +9,9 @@ import app.morphe.patcher.extensions.InstructionExtensions.addInstructionsWithLa
 import app.morphe.patcher.extensions.InstructionExtensions.getInstruction
 import app.morphe.patcher.extensions.InstructionExtensions.instructions
 import app.morphe.patcher.extensions.InstructionExtensions.replaceInstruction
-import app.morphe.patcher.patch.bytecodePatch
-import app.morphe.patcher.patch.resourcePatch
+import app.morphe.patcher.patch.document
+import app.morphe.patcher.patch.mutableClassDefBy
+import app.morphe.patcher.patch.patch
 import app.morphe.patcher.resource.ResourceType
 import app.morphe.patcher.resource.resourceId
 import app.morphe.patcher.util.getFreeRegisterProvider
@@ -20,6 +21,12 @@ import app.morphe.patches.internetspeedmeter.ads.removeAdsPatch
 import app.morphe.patches.internetspeedmeter.misc.protection.removeAppProtectionPatch
 import app.morphe.patches.internetspeedmeter.misc.settings.removeSettingsRow
 import app.morphe.patches.shared.compat.AppCompatibilities
+import app.morphe.patches.shared.misc.hostedcomponents.CORE_COMPONENT_FACTORY
+import app.morphe.patches.shared.misc.hostedcomponents.HostedComponents
+import app.morphe.patches.shared.misc.hostedcomponents.addStyle
+import app.morphe.patches.shared.misc.hostedcomponents.replaceThemeStub
+import app.morphe.patches.shared.misc.hostedcomponents.googleSignInActivityHost
+import app.morphe.patches.shared.misc.hostedcomponents.workManagerReceiverHost
 import app.morphe.patches.shared.misc.smali.replaceResourceIdStubs
 import app.morphe.patches.shared.misc.smali.replaceStub
 import app.morphe.util.adoptChild
@@ -41,10 +48,23 @@ private const val SMART_NOTIFICATION_CLASS_DESCRIPTOR = "$EXTENSION_PACKAGE/Smar
 private const val OVERVIEW_ACTIVITY = "app.hxreborn.extension.internetspeedmeter.QuickOverviewActivity"
 private const val NETWORK_RECEIVER = "app.hxreborn.extension.internetspeedmeter.NetworkAvailableReceiver"
 private const val USAGE_STATS_PERMISSION = "android.permission.PACKAGE_USAGE_STATS"
+private const val OVERVIEW_STYLE = "hx_internetspeedmeter_overview"
+private const val OVERVIEW_THEME = "@android:style/Theme.Material.Light.Dialog.NoActionBar"
 
-private val addPremiumComponentsPatch = resourcePatch {
-    dependsOn(internetspeedmeterAdPreferenceExtensionPatch, internetspeedmeterUnlockPremiumExtensionPatch, sharedDimensionsExtensionPatch)
+private val hostedComponents = HostedComponents(CORE_COMPONENT_FACTORY)
+
+private val addPremiumComponentsPatch = patch {
+    dependsOn(
+        internetspeedmeterAdPreferenceExtensionPatch,
+        internetspeedmeterUnlockPremiumExtensionPatch,
+        sharedDimensionsExtensionPatch,
+        hostedComponents.patch,
+    )
     execute {
+        hostedComponents.host(OVERVIEW_ACTIVITY, googleSignInActivityHost)
+        hostedComponents.host(NETWORK_RECEIVER, workManagerReceiverHost)
+        mutableClassDefBy("$EXTENSION_PACKAGE/QuickOverviewActivity;")
+            .replaceThemeStub("overviewTheme", addStyle(OVERVIEW_STYLE, OVERVIEW_THEME))
         document("AndroidManifest.xml").use { document ->
             val manifest = document.documentElement
             manifest.insertFirst(
@@ -67,7 +87,7 @@ private val addPremiumComponentsPatch = resourcePatch {
                     setAttribute("android:excludeFromRecents", "true")
                     setAttribute("android:launchMode", "singleInstance")
                     setAttribute("android:noHistory", "true")
-                    setAttribute("android:theme", "@android:style/Theme.Material.Light.Dialog.NoActionBar")
+                    setAttribute("android:theme", "@style/$OVERVIEW_STYLE")
                 }
                 adoptChild("receiver") {
                     setAttribute("android:name", NETWORK_RECEIVER)
@@ -79,10 +99,10 @@ private val addPremiumComponentsPatch = resourcePatch {
 }
 
 @Suppress("unused")
-val unlockPremiumPatch = bytecodePatch(
+val unlockPremiumPatch = patch(
     name = "Unlock premium",
     description = "Unlocks the notification dialog, smart notifications, themes, notification accent and " +
-        "the starting hour of the day.",
+        "the starting hour of the day. On a mount install, the quick overview has no per-app usage.",
 ) {
     dependsOn(internetspeedmeterUnlockPremiumExtensionPatch)
     compatibleWith(AppCompatibilities.INTERNET_SPEED_METER_LITE)
@@ -171,7 +191,8 @@ val unlockPremiumPatch = bytecodePatch(
         }
 
         PremiumRowClickFingerprint.method.apply {
-            val buyDialogIndex = PremiumRowClickFingerprint.instructionMatches.first().index
+            val (buyDialogLayout) = PremiumRowClickFingerprint.instructionMatches
+            val buyDialogIndex = buyDialogLayout.index
             val rowViewRegister = getInstruction<OneRegisterInstruction>(buyDialogIndex).registerA
             addInstructionsWithLabels(
                 buyDialogIndex,

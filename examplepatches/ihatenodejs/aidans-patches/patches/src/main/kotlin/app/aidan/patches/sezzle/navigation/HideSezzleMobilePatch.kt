@@ -7,7 +7,7 @@ import app.morphe.patcher.patch.rawResourcePatch
 
 private val EXPECTED_MOBILE_PLAN_GATE_BYTES = byteArrayOf(0x34, 0x03, 0x00, 0x3b)
 private val HIDDEN_MOBILE_PLAN_GATE_BYTES = byteArrayOf(0x96.toByte(), 0x01, 0x76.toByte(), 0x01)
-private val EXPECTED_MOBILE_PLAN_SECTION_BYTES = byteArrayOf(0x34, 0x07, 0x00, 0x40)
+private val EXPECTED_MOBILE_PLAN_SECTION_BYTES = byteArrayOf(0x34, 0x06, 0x00, 0x40)
 private val HIDDEN_MOBILE_PLAN_SECTION_BYTES = byteArrayOf(0x93.toByte(), 0x01, 0x76, 0x01)
 
 @Suppress("unused")

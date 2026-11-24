@@ -4,4 +4,7 @@ package app.jofslash.extension.quora;
 final class SettingsPage {
     static void open(android.app.Activity activity, android.content.SharedPreferences prefs) {
     }
+
+    static void reader(android.content.Context context, String title, String author, String body, String images, boolean preview) {
+    }
 }

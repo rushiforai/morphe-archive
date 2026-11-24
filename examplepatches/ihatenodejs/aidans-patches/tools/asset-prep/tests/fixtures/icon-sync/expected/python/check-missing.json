@@ -1,0 +1,28 @@
+{
+  "mode": "--check-only",
+  "exit": 0,
+  "stdout": "Missing icons for 7 package(s): com.example.beta, com.example.delta, com.example.epsilon, com.example.eta, com.example.gamma, com.example.theta, com.example.zeta\n",
+  "stderr": "",
+  "githubOutput": "has_missing=true\nmissing_packages=com.example.beta,com.example.delta,com.example.epsilon,com.example.eta,com.example.gamma,com.example.theta,com.example.zeta\n",
+  "githubValues": {
+    "has_missing": "true",
+    "missing_packages": "com.example.beta,com.example.delta,com.example.epsilon,com.example.eta,com.example.gamma,com.example.theta,com.example.zeta"
+  },
+  "files": {
+    "com.example.alpha.png": {
+      "sha256": "8ed3f6ad685b959ead7022518e1af76cd816f8e8ec7ccdda1ed4018e8f2223f8",
+      "size": 5
+    },
+    "com.example.beta.png": {
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "size": 0
+    }
+  },
+  "icons": [
+    "com.example.alpha",
+    "com.example.beta"
+  ],
+  "exception": null,
+  "expectedGithubOutput": "has_missing=true\nmissing_packages=com.example.delta,com.example.epsilon,com.example.eta,com.example.gamma,com.example.theta,com.example.zeta\n",
+  "expectedStdout": "Missing icons for 6 package(s): com.example.delta, com.example.epsilon, com.example.eta, com.example.gamma, com.example.theta, com.example.zeta\n"
+}

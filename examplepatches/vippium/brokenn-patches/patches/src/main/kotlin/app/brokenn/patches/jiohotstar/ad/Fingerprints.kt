@@ -28,6 +28,13 @@ internal object DisplayAdComposableFingerprint : Fingerprint(
     )
 )
 
+internal object AdCuePointsConverterFingerprint : Fingerprint(
+    parameters = listOf("Lcom/hotstar/ui/model/feature/intervention/InterventionSource;"),
+    filters = listOf(
+        string("getCuePointsList(...)")
+    )
+)
+
 internal object SgaiPrefetcherGetAdFingerprint : Fingerprint(
     returnType = "Ljava/lang/Object;",
     filters = listOf(

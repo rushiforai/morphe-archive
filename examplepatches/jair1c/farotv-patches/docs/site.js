@@ -5,7 +5,7 @@
   var releases = [], filter = 'stable', releaseStatus = 'loading', refreshed = null;
   var select = document.getElementById('site-language');
   var storageKey = 'farotv.site.language';
-  var REPO = 'jair1c/farotv-patches';
+  var REPO = 'KyVexo/farotv-patches';
   function $(id) { return document.getElementById(id); }
 
   function normalize(value) {

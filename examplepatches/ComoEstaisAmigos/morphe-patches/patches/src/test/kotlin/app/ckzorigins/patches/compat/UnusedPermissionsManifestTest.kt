@@ -1,8 +1,7 @@
 package app.ckzorigins.patches.compat
 
-import org.w3c.dom.Document
-import org.w3c.dom.Element
-import javax.xml.parsers.DocumentBuilderFactory
+import app.adebisi.patches.shared.namedElements
+import app.adebisi.patches.shared.parseManifestXml
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
@@ -10,39 +9,27 @@ import kotlin.test.assertFailsWith
 class UnusedPermissionsManifestTest {
     @Test
     fun `stock unused entries are removed including duplicate permissions`() {
-        val document = parse(STOCK)
+        val document = parseManifestXml(STOCK)
         removeUnusedEntries(document)
         for ((tag, name) in REMOVED_COMPONENTS) {
-            assertEquals(0, named(document, tag, name).size, name)
+            assertEquals(0, namedElements(document, tag, listOf(name)).size, name)
         }
         for (name in REMOVED_PERMISSIONS) {
-            assertEquals(0, named(document, "uses-permission", name).size, name)
+            assertEquals(0, namedElements(document, "uses-permission", listOf(name)).size, name)
         }
-        assertEquals(2, named(document, "uses-permission", "android.permission.INTERNET").size)
-        assertEquals(1, named(document, "uses-permission", "android.permission.WRITE_EXTERNAL_STORAGE").size)
-        assertEquals(1, named(document, "uses-permission", "android.permission.WAKE_LOCK").size)
-        assertEquals(1, named(document, "uses-permission", "android.permission.VIBRATE").size)
-        assertEquals(1, named(document, "uses-permission", "com.android.vending.BILLING").size)
-        assertEquals(1, named(document, "service", "com.glu.plugins.google.BillingService").size)
+        assertEquals(2, namedElements(document, "uses-permission", listOf("android.permission.INTERNET")).size)
+        assertEquals(1, namedElements(document, "uses-permission", listOf("android.permission.WRITE_EXTERNAL_STORAGE")).size)
+        assertEquals(1, namedElements(document, "uses-permission", listOf("android.permission.WAKE_LOCK")).size)
+        assertEquals(1, namedElements(document, "uses-permission", listOf("android.permission.VIBRATE")).size)
+        assertEquals(1, namedElements(document, "uses-permission", listOf("com.android.vending.BILLING")).size)
+        assertEquals(1, namedElements(document, "service", listOf("com.glu.plugins.google.BillingService")).size)
     }
 
     @Test
     fun `a missing permission is refused`() {
         assertFailsWith<app.morphe.patcher.patch.PatchException> {
-            removeUnusedEntries(parse(NO_LOCATION))
+            removeUnusedEntries(parseManifestXml(NO_LOCATION))
         }
-    }
-
-    private fun named(document: Document, tag: String, name: String): List<Element> {
-        val list = document.getElementsByTagName(tag)
-        return (0 until list.length).map { list.item(it) as Element }
-            .filter { it.getAttribute("android:name") == name }
-    }
-
-    private fun parse(xml: String): Document {
-        val factory = DocumentBuilderFactory.newInstance()
-        factory.isNamespaceAware = false
-        return factory.newDocumentBuilder().parse(xml.byteInputStream())
     }
 
     private companion object {

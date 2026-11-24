@@ -23,7 +23,6 @@ const sym = {
   moving: `${c.gray}↻${c.reset}`,
   ahead: `${c.magenta}★${c.reset}`,
   unused: `${c.gray}∅${c.reset}`,
-  blocked: `${c.red}⛔${c.reset}`,
   warn: `${c.yellow}⚠${c.reset}`,
   err: `${c.red}✖${c.reset}`,
 };
@@ -59,7 +58,6 @@ export function buildSummary(
     ahead: 0,
     unused: 0,
     notChecked: 0,
-    blocked: 0,
     unsupported: 0,
     error: 0,
     durationMs: totalDurationMs,
@@ -73,7 +71,6 @@ export function buildSummary(
     else if (item.status === 'ahead') summary.ahead++;
     else if (item.status === 'unused') summary.unused++;
     else if (item.status === 'not-checked') summary.notChecked++;
-    else if (item.status === 'blocked') summary.blocked++;
     else if (item.status === 'unsupported') summary.unsupported++;
     else if (item.status === 'error') summary.error++;
   }
@@ -103,11 +100,10 @@ export function formatTextReport(
 
   const ecosystemGroups: Record<string, DependencyItem[]> = {
     'JavaScript (NPM / Bun)': [],
-    'Python (PyPI / uv)': [],
     'Rust (crates.io / Cargo)': [],
     'Gradle Plugins & Libraries': [],
     'External APK Tools': [],
-    'GitHub Actions & Hooks': [],
+    'GitHub Actions': [],
     'Toolchains & Runtimes': [],
     'Embedded Assets': [],
   };
@@ -115,16 +111,14 @@ export function formatTextReport(
   for (const item of report.items) {
     if (item.ecosystem === 'npm')
       ecosystemGroups['JavaScript (NPM / Bun)'].push(item);
-    else if (item.ecosystem === 'pypi')
-      ecosystemGroups['Python (PyPI / uv)'].push(item);
     else if (item.ecosystem === 'crates')
       ecosystemGroups['Rust (crates.io / Cargo)'].push(item);
     else if (item.ecosystem === 'gradle')
       ecosystemGroups['Gradle Plugins & Libraries'].push(item);
     else if (item.id.startsWith('tool:apk-lab/'))
       ecosystemGroups['External APK Tools'].push(item);
-    else if (item.ecosystem === 'action' || item.ecosystem === 'hook')
-      ecosystemGroups['GitHub Actions & Hooks'].push(item);
+    else if (item.ecosystem === 'action')
+      ecosystemGroups['GitHub Actions'].push(item);
     else if (item.ecosystem === 'embedded')
       ecosystemGroups['Embedded Assets'].push(item);
     else ecosystemGroups['Toolchains & Runtimes'].push(item);
@@ -162,9 +156,6 @@ export function formatTextReport(
       } else if (item.status === 'unused') {
         icon = sym.unused;
         statusStr = style('unused', c.gray);
-      } else if (item.status === 'blocked') {
-        icon = sym.blocked;
-        statusStr = style('blocked', c.red);
       } else if (item.status === 'unsupported') {
         icon = sym.warn;
         statusStr = style('unsupported', c.yellow);
@@ -214,9 +205,6 @@ export function formatTextReport(
       `${style('CURRENT:', c.bold)} ${s.current}` +
       (s.notChecked > 0
         ? `  |  ${style('OMITTED:', c.bold)} ${s.notChecked}`
-        : '') +
-      (s.blocked > 0
-        ? `  |  ${style('BLOCKED:', c.bold)} ${style(`${s.blocked}`, c.red)}`
         : '') +
       (s.unsupported > 0
         ? `  |  ${style('UNSUPPORTED:', c.bold)} ${style(`${s.unsupported}`, c.yellow)}`

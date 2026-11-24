@@ -42,14 +42,11 @@ if (propertyValue(properties, 'originalSha256') !== originalSha256)
 
 require('./prepare-source.cjs')(source)
 
-// Home draws the uploaded pictures this bundle carries; a tree that still paints initials is stale.
-const rowView = fs.readFileSync(path.join(mobile, 'src/home/bots/MobileHomeBotRow.tsx'), 'utf8')
-if (rowView.includes('mobileBotAvatarSource(row.bot, undefined)'))
-  throw Error('Home bot rows still draw the initial for an uploaded picture')
-
-// The rows' tests prove an upload draws once Home has its bytes, and its initial before that.
+// Home draws the uploaded pictures itself since 0.0.70; the patch adds the device copy behind
+// that read, so a launch paints the picture instead of the initial.
+// Home's bot tests moved out of src/home/bots in 0.0.70; the avatar reads live under src/bots.
 execFileSync(process.execPath,
-  [path.join(mobile, 'node_modules', 'vitest', 'vitest.mjs'), 'run', 'src/home/bots', '--reporter=dot'],
+  [path.join(mobile, 'node_modules', 'vitest', 'vitest.mjs'), 'run', 'src/bots', '--reporter=dot'],
   { cwd: mobile, stdio: 'inherit', env: { ...process.env, CI: '1' } })
 
 const output = path.resolve(__dirname, 'build', 'bundle')
@@ -75,8 +72,8 @@ if (!patched.subarray(0, 8).equals(hermesMagic) || patched.readUInt32LE(8) !== o
 // The content authority string only exists inside the injected font screen and bridge.
 if (!patched.includes(Buffer.from('dev.orca.app.morphe.fonts')) || !patched.includes(Buffer.from('morphe-font')))
   throw Error('Generated bundle is missing the font picker screen')
-// Home's rows read every uploaded picture and keep it; the bytecode keeps the new module's names.
-for (const name of ['readHomeBotAvatarUploads', 'keptHomeBotAvatars', 'createHomeBotAvatarFiles']) {
+// Home's drawn picture is backed by the device copy the patch adds; the bytecode keeps both.
+for (const name of ['keptAvatarUri', 'keepAvatar', 'morphe-bot-avatars']) {
   if (!patched.includes(Buffer.from(name))) throw Error(`Generated bundle is missing ${name}`)
 }
 

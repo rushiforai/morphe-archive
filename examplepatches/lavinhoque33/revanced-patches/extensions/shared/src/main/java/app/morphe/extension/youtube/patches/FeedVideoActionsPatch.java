@@ -3,7 +3,7 @@
  * https://github.com/MorpheApp/morphe-patches/pull/3758
  *
  * See the included NOTICE file for GPLv3 Section 7 terms that apply to this code.
- * Modified by lavinhoque33, 2026-10-29
+ * Modified by lavinhoque33, 2026-11-23
  */
 
 package app.morphe.extension.youtube.patches;
@@ -53,6 +53,7 @@ import app.morphe.extension.shared.utils.Utils;
 import app.morphe.extension.youtube.innertube.queue.PlaylistQueueRenderer;
 import app.morphe.extension.shared.utils.ResourceUtils;
 import app.morphe.extension.youtube.utils.ExtendedUtils;
+import app.morphe.extension.youtube.patches.queue.ThumbnailQueuePatch;
 import app.morphe.extension.youtube.patches.utils.FeedVideoCardsPatch;
 import app.morphe.extension.youtube.patches.utils.FlyoutUtils;
 import app.morphe.extension.youtube.settings.Settings;
@@ -201,7 +202,15 @@ public final class FeedVideoActionsPatch {
         void placeBadge(ComponentHost host) {
             final int size = dp(host, BADGE_SIZE_DP);
             final int top = thumbnailTop + dp(host, BADGE_MARGIN_DP);
-            final int right = host.getWidth() - dp(host, BADGE_RIGHT_MARGIN_DP);
+            int right = host.getWidth() - dp(host, BADGE_RIGHT_MARGIN_DP);
+            String queueLabel = Settings.QUEUE_THUMBNAIL_BUTTON.get() ? ThumbnailQueuePatch.visibleButtonLabel() : null;
+            final int touchSlop = dp(host, BADGE_TOUCH_SLOP_DP);
+            if (queueLabel != null && hasOverlappingThumbnailButton(host, host, queueLabel,
+                    new Rect(right - size - touchSlop, top - touchSlop, right + touchSlop, top + size + touchSlop),
+                    new Rect())) {
+                // Keep the existing action separate from a native button mounted in the same corner.
+                right = dp(host, BADGE_RIGHT_MARGIN_DP) + size;
+            }
             badge.setBounds(right - size, top, right, top + size);
             badge.hostRef = new WeakReference<>(host);
             if (!badgeAdded) {
@@ -403,6 +412,25 @@ public final class FeedVideoActionsPatch {
         if (view != root) {
             root.offsetDescendantRectToMyCoords(view, rect);
         }
+    }
+
+    private static boolean hasOverlappingThumbnailButton(ComponentHost root, ViewGroup parent, String label,
+                                                         Rect touchBounds, Rect buttonBounds) {
+        for (int i = 0, count = parent.getChildCount(); i < count; i++) {
+            View child = parent.getChildAt(i);
+            if (child.getVisibility() != View.VISIBLE) {
+                continue;
+            }
+
+            setRectInRoot(root, child, buttonBounds);
+            if (Rect.intersects(touchBounds, buttonBounds)
+                    && ((child.isClickable() && TextUtils.equals(label, child.getContentDescription()))
+                    || (child instanceof ViewGroup group
+                    && hasOverlappingThumbnailButton(root, group, label, touchBounds, buttonBounds)))) {
+                return true;
+            }
+        }
+        return false;
     }
 
     /**

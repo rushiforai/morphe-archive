@@ -7,9 +7,10 @@ package app.morphe.patches.shared.misc.signature
 import app.morphe.patcher.PackageMetadata
 import app.morphe.patcher.extensions.InstructionExtensions.getInstruction
 import app.morphe.patcher.extensions.InstructionExtensions.replaceInstruction
-import app.morphe.patcher.patch.BytecodePatchContext
 import app.morphe.patcher.patch.Compatibility
 import app.morphe.patcher.patch.PatchException
+import app.morphe.patcher.patch.mutableClassDefBy
+import app.morphe.patcher.patch.packageMetadata
 import app.morphe.patcher.util.proxy.mutableTypes.MutableClass
 import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod
 import app.morphe.patches.all.misc.fix.spoofsignature.isCertMaybeInauthentic
@@ -28,7 +29,7 @@ private const val ANDROID_APPLICATION_CLASS = "Landroid/app/Application;"
 private const val PACKAGE_NAME_PLACEHOLDER = "<package-name>"
 private const val CERTIFICATE_PLACEHOLDER = "<certificate>"
 
-internal fun BytecodePatchContext.spoofSignature(
+internal fun spoofSignature(
     applicationClass: String,
     hostClass: String = SPOOF_SIGNATURE_CLASS,
 ) {
@@ -48,7 +49,8 @@ internal fun BytecodePatchContext.spoofSignature(
 }
 
 internal fun PackageMetadata.stockSigningCertificate(): X509Certificate {
-    val certificate = try {
+    val v3Signer = if (signingCertificates.values.all(List<X509Certificate>::isEmpty)) readV3Signer() else null
+    val certificate = v3Signer?.let { it.lineage.firstOrNull() ?: it.certificate } ?: try {
         getEndEntityCertificate(signingCertificates)
     } catch (ex: NoCertificateException) {
         throw PatchException("The app being patched is not signed", ex)
@@ -63,9 +65,12 @@ internal fun PackageMetadata.stockSigningCertificate(): X509Certificate {
 
     val declaredSha256 = declaredSignatures(packageName)
     if (declaredSha256.isNotEmpty()) {
-        val certificateSha256 = MessageDigest.getInstance("SHA-256").digest(certificate.encoded)
-            .joinToString("") { "%02x".format(it) }
-        if (certificateSha256 !in declaredSha256) {
+        val signerCertificates = listOf(certificate) + v3Signer?.let { listOf(it.certificate) + it.lineage }.orEmpty()
+        val signerSha256 = signerCertificates.map { signer ->
+            MessageDigest.getInstance("SHA-256").digest(signer.encoded).joinToString("") { "%02x".format(it) }
+        }
+        val certificateSha256 = signerSha256.first()
+        if (signerSha256.none { it in declaredSha256 }) {
             throw PatchException(
                 "The app being patched is not signed with the $packageName developer certificate " +
                     "($certificateSha256). Patch a stock APK instead.",
@@ -91,7 +96,7 @@ internal fun MutableMethod.replaceString(placeholder: String, value: String) {
     replaceInstruction(index, "const-string v$register, \"$value\"")
 }
 
-private fun BytecodePatchContext.applicationRoot(applicationClass: String): MutableClass {
+private fun applicationRoot(applicationClass: String): MutableClass {
     var classDef = mutableClassDefBy(applicationClass)
     val walked = mutableSetOf(classDef.type)
 

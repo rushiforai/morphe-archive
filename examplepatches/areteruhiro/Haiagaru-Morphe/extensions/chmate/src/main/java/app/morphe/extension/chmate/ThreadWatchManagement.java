@@ -72,10 +72,12 @@ final class ThreadWatchManagement {
                 if(w==0){ThreadWatch.show(a,ThreadWatchRules.target(url));return;}
                 synchronized(ThreadWatch.LOCK){try{
                     if(!ThreadWatch.prefs(a).contains(url))return;
+                    ThreadWatch.setManuallyStopped(a,url,true);
                     if(w==2)ThreadWatch.prefs(a).edit().remove(url).commit();
                     else {JSONObject item=new JSONObject(ThreadWatch.prefs(a).getString(url,"{}"));
                         item.put("paused",true).put("pauseReason","manual").put("token",UUID.randomUUID().toString());
                         ThreadWatch.prefs(a).edit().putString(url,item.toString()).commit();}
+                    if(w==1){android.app.NotificationManager manager=(android.app.NotificationManager)a.getSystemService(Context.NOTIFICATION_SERVICE);if(manager!=null)manager.cancel(url,ThreadWatch.JOB);}
                 }catch(Exception ignored){}}
                 ThreadWatch.schedule(a);show(a);
             }).setNegativeButton("戻る",(d,w)->show(a)).show();

@@ -346,6 +346,10 @@ public final class BoardUtil {
             for (int from = 0; from < 64; from++) {
                 char piece = before[from];
                 if (piece == '.' || after[from] != '.') continue;
+                // An en passant capture removes the opponent's pawn from another square as
+                // well; it must not be taken for the mover's own square (that would name the
+                // move from the captured pawn's square, which the app cannot replay).
+                if (Character.isUpperCase(piece) != Character.isUpperCase(mover)) continue;
                 char lowerPiece = Character.toLowerCase(piece);
                 boolean samePiece = lowerPiece == lower;
                 boolean promotion = lowerPiece == 'p' && lower != 'p' && (to / 8 == 0 || to / 8 == 7);

@@ -1,11 +1,13 @@
 /*
  * Copyright (C) 2026 lavinhoque33
  * Licensed under the GNU General Public License v3.0.
+ * Modified by lavinhoque33, 2026-11-23.
  * Written by lavinhoque33, 2026-11-22.
  */
 
 package app.morphe.patches.youtube.player.seekbar
 
+import app.morphe.patcher.extensions.InstructionExtensions.addInstruction
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
 import app.morphe.patcher.extensions.InstructionExtensions.replaceInstruction
 import app.morphe.patcher.patch.BytecodePatchContext
@@ -23,6 +25,7 @@ import com.android.tools.smali.dexlib2.iface.instruction.Instruction
 import com.android.tools.smali.dexlib2.iface.instruction.NarrowLiteralInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.OffsetInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.SwitchPayload
+import com.android.tools.smali.dexlib2.iface.instruction.TwoRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.reference.FieldReference
 import com.android.tools.smali.dexlib2.iface.reference.MethodReference
 import com.android.tools.smali.dexlib2.immutable.ImmutableMethod
@@ -30,11 +33,16 @@ import com.android.tools.smali.dexlib2.immutable.ImmutableMethodParameter
 
 private const val CANVAS = "Landroid/graphics/Canvas;"
 private const val PAINT = "Landroid/graphics/Paint;"
+private const val RECT = "Landroid/graphics/Rect;"
+private const val VIEW = "Landroid/view/View;"
 private const val ANIMATOR = "Landroid/animation/ValueAnimator;"
 private const val RECT_SET = "Landroid/graphics/Rect;->set(IIII)V"
 private const val EXTENSION = "$PLAYER_PATH/BufferedSeekbarPatch;"
+private const val COLOR_EXTENSION = "$PLAYER_PATH/SeekbarColorPatch;"
 private const val FADE_BRIDGE = "patch_hiddenPortraitBufferFade"
 private const val CHAPTER_ZERO = "patch_hiddenPortraitChapterBufferZero"
+private const val HIDDEN_PORTRAIT_VIEW = "patch_hiddenPortraitSeekbar"
+private const val PLAYED_PAINT = "patch_hiddenPortraitPlayedPaint"
 
 // Obfuscated callback/field roles differ even within the supported versions. The draw sites are checked
 // against these shapes before installing anything; do not apply them to forced, untraced versions.
@@ -49,6 +57,9 @@ private data class BufferedPainterLayout(
     val modelField: String,
     val model: String,
     val liveWindow: String,
+    val playedChapter: String,
+    val flatPlayedReads: Int = 2,
+    val flatDrawStateRegister: Int = 13,
     val oldFlat: Boolean = false,
     val sharedFadeRead: Boolean = false,
 )
@@ -56,16 +67,18 @@ private data class BufferedPainterLayout(
 internal fun BytecodePatchContext.installBufferedSeekbar() {
     val layout = when (packageMetadata.versionName) {
         "20.05.46" -> BufferedPainterLayout(
-            "hcw", "hdc", "hdc", "hcx", "hdz", "hcs", "ft", "L", "ahwk", "p", oldFlat = true,
+            "hcw", "hdc", "hdc", "hcx", "hdz", "hcs", "ft", "L", "ahwk", "p", "hdd",
+            flatPlayedReads = 1, oldFlat = true,
         )
         "21.13.164" -> BufferedPainterLayout(
-            "ion", "iot", "iov", "ioo", "ips", "ioj", "fP", "L", "anqf", "p",
+            "ion", "iot", "iov", "ioo", "ips", "ioj", "fP", "L", "anqf", "p", "iou",
+            flatPlayedReads = 3, flatDrawStateRegister = 0,
         )
         "21.39.525" -> BufferedPainterLayout(
-            "jol", "jor", "jot", "jom", "jpp", "joh", "gY", "P", "arco", "q", sharedFadeRead = true,
+            "jol", "jor", "jot", "jom", "jpp", "joh", "gY", "P", "arco", "q", "jos", sharedFadeRead = true,
         )
         "21.45.90" -> BufferedPainterLayout(
-            "jta", "jtg", "jti", "jtb", "jue", "jsw", "hY", "Q", "asdt", "r", sharedFadeRead = true,
+            "jta", "jtg", "jti", "jtb", "jue", "jsw", "hY", "Q", "asdt", "r", "jth", sharedFadeRead = true,
         )
         else -> null
     }
@@ -73,8 +86,15 @@ internal fun BytecodePatchContext.installBufferedSeekbar() {
     val install = layout?.let { runCatching { prepareBufferedSeekbar(it) }.getOrNull() }
     if (install == null) {
         printWarn("Persistent portrait seekbar buffer is not supported: native buffered painter not found.")
+        printWarn("Hidden portrait seekbar gradient is not supported: native played painter not found.")
     } else {
         install()
+        val installGradient = runCatching { prepareHiddenPlayedGradient(checkNotNull(layout)) }.getOrNull()
+        if (installGradient == null) {
+            printWarn("Hidden portrait seekbar gradient is not supported: native played painter not found.")
+        } else {
+            installGradient()
+        }
     }
 }
 
@@ -145,9 +165,39 @@ private fun BytecodePatchContext.prepareBufferedSeekbar(layout: BufferedPainterL
 
     val bridge = "$fade->$FADE_BRIDGE($fade)F"
     val bufferedZero = zero.cloneMutable(name = CHAPTER_ZERO).apply { replaceInvoke(zeroRead, bridge) }
+    val resolveView = "$fade->$HIDDEN_PORTRAIT_VIEW($fade)$VIEW"
+    val hiddenPortraitView = ImmutableMethod(
+        fade, HIDDEN_PORTRAIT_VIEW, listOf(ImmutableMethodParameter(fade, null, null)), VIEW,
+        AccessFlags.PUBLIC.value or AccessFlags.STATIC.value, null, null, MutableMethodImplementation(4),
+    ).toMutable().apply {
+        addInstructions(0, """
+            instance-of v0, p0, $fadeOwner
+            if-eqz v0, :unavailable
+            iget-object v0, p0, $animator
+            invoke-virtual {v0}, $ANIMATOR->isRunning()Z
+            move-result v0
+            if-nez v0, :unavailable
+            check-cast p0, $fadeOwner
+            iget-object v1, p0, $ownerView
+            iget-object v0, v1, $modelField
+            instance-of v2, v0, $nativeModel
+            if-eqz v2, :unavailable
+            check-cast v0, $nativeModel
+            invoke-virtual {v0}, $liveWindow
+            move-result v0
+            if-nez v0, :unavailable
+            invoke-virtual {v1}, $scrub
+            move-result v0
+            if-nez v0, :unavailable
+            return-object v1
+            :unavailable
+            const/4 v0, 0x0
+            return-object v0
+        """)
+    }
     val fadeBridge = ImmutableMethod(
         fade, FADE_BRIDGE, listOf(ImmutableMethodParameter(fade, null, null)), "F",
-        AccessFlags.PUBLIC.value or AccessFlags.STATIC.value, null, null, MutableMethodImplementation(5),
+        AccessFlags.PUBLIC.value or AccessFlags.STATIC.value, null, null, MutableMethodImplementation(4),
     ).toMutable().apply {
         addInstructions(0, """
             invoke-virtual {p0}, $readFade
@@ -155,24 +205,11 @@ private fun BytecodePatchContext.prepareBufferedSeekbar(layout: BufferedPainterL
             const/4 v1, 0x0
             cmpl-float v1, v0, v1
             if-nez v1, :done
-            instance-of v1, p0, $fadeOwner
-            if-eqz v1, :done
-            iget-object v1, p0, $animator
-            invoke-virtual {v1}, $ANIMATOR->isRunning()Z
-            move-result v1
-            if-nez v1, :done
-            check-cast p0, $fadeOwner
-            iget-object v2, p0, $ownerView
-            iget-object v1, v2, $modelField
-            instance-of v3, v1, $nativeModel
-            if-eqz v3, :done
-            check-cast v1, $nativeModel
-            invoke-virtual {v1}, $liveWindow
-            move-result v1
-            if-nez v1, :done
-            invoke-virtual {v2}, $scrub
-            move-result v1
-            invoke-static {v2, v0, v1}, $EXTENSION->restoreBufferedFade(Landroid/view/View;FZ)F
+            invoke-static {p0}, $resolveView
+            move-result-object v2
+            if-eqz v2, :done
+            const/4 v1, 0x0
+            invoke-static {v2, v0, v1}, $EXTENSION->restoreBufferedFade(${VIEW}FZ)F
             move-result v0
             :done
             return v0
@@ -180,6 +217,7 @@ private fun BytecodePatchContext.prepareBufferedSeekbar(layout: BufferedPainterL
     }
 
     return {
+        animatorClass.methods.add(hiddenPortraitView)
         animatorClass.methods.add(fadeBridge)
         chapterClass.methods.add(bufferedZero)
         chapter.replaceInvoke(chapterFade.first(), bridge)
@@ -189,6 +227,125 @@ private fun BytecodePatchContext.prepareBufferedSeekbar(layout: BufferedPainterL
         flatBufferReads.forEach { flat.replaceInvoke(it, bridge) }
     }
 }
+
+private fun BytecodePatchContext.prepareHiddenPlayedGradient(layout: BufferedPainterLayout): (() -> Unit)? {
+    val paints = "L${layout.paints};"
+    val fade = "L${layout.fade};"
+    val flat = mutableClassDefBy("L${layout.flat};").methods.single {
+        it.parameterTypes == listOf(CANVAS) && it.returnType == "V"
+    }
+    val chapterClass = mutableClassDefBy("L${layout.playedChapter};")
+    val chapterPaint = chapterClass.methods.single {
+        it.parameterTypes == listOf("Z") && it.returnType == PAINT
+    }
+    val flatInstructions = flat.implementation!!.instructions
+    val chapterInstructions = chapterPaint.implementation!!.instructions
+    val paintField = "$paints->i:$PAINT"
+    val flatRange = if (layout.oldFlat) flatInstructions.packedCase(4) ?: return null else flatInstructions.indices
+    val flatPaintReads = flatRange.filter { index ->
+        flatInstructions[index].loadsField(paintField) && flatInstructions[index + 1].drawsWithPaint(
+            (flatInstructions[index] as TwoRegisterInstruction).registerA
+        )
+    }
+    if (flatPaintReads.size != layout.flatPlayedReads) return null
+
+    val chapterRead = chapterInstructions.indices.single { chapterInstructions[it].loadsField(paintField) }
+    val chapterPaintOwnerRead = chapterInstructions[chapterRead - 1]
+    val paintOwner = chapterPaintOwnerRead.getReference<FieldReference>() ?: return null
+    if (paintOwner.name != "c" || paintOwner.type != paints || chapterPaintOwnerRead.opcode != Opcode.IGET_OBJECT) {
+        return null
+    }
+    val drawState = paintOwner.definingClass
+    val drawStateClass = mutableClassDefBy(drawState)
+    val playedBounds = drawStateClass.fields.single { it.name == (if (layout.oldFlat) "h" else "f") && it.type == RECT }
+    val timeline = drawStateClass.fields.single { it.name == "b" }
+    val fadeField = chapterInstructions.asSequence()
+        .mapNotNull { it.getReference<FieldReference>() }
+        .first { it.definingClass == timeline.type && it.type == fade }
+
+    // These are the stock solid-played fallbacks. In particular, do not change the chapter
+    // buffer's separate use of paint i or the native gradient, which already has custom colors.
+    val target = "$drawState->$PLAYED_PAINT($drawState)$PAINT"
+    val patchChapter = chapterPaint.preparePlayedPaintRead(chapterRead, paintOwner, target) ?: return null
+    val patchFlat = if (layout.oldFlat) {
+        flat.preparePlayedPaintRead(flatPaintReads.single(), paintOwner, target) ?: return null
+    } else {
+        val stateRegister = layout.flatDrawStateRegister
+        if (flatInstructions.none {
+                it.loadsField(playedBounds.toString()) && (it as TwoRegisterInstruction).registerB == stateRegister
+            }
+        ) return null
+
+        val reads = flatPaintReads.map { it to (flatInstructions[it] as TwoRegisterInstruction).registerA }
+        val patch: () -> Unit = {
+            reads.asReversed().forEach { (index, paintRegister) ->
+                flat.replaceInstruction(index, "invoke-static { v$stateRegister }, $target")
+                flat.addInstruction(index + 1, "move-result-object v$paintRegister")
+            }
+        }
+        patch
+    }
+
+    val playedPaint = ImmutableMethod(
+        drawState, PLAYED_PAINT, listOf(ImmutableMethodParameter(drawState, null, null)), PAINT,
+        AccessFlags.PUBLIC.value or AccessFlags.STATIC.value, null, null, MutableMethodImplementation(5),
+    ).toMutable().apply {
+        addInstructions(0, """
+            iget-object v0, p0, $paintOwner
+            iget-object v0, v0, $paintField
+            iget-object v1, p0, $timeline
+            iget-object v1, v1, $fadeField
+            if-eqz v1, :stock
+            invoke-virtual {v1}, $fade->c()F
+            move-result v2
+            const/4 v3, 0x0
+            cmpl-float v2, v2, v3
+            if-nez v2, :stock
+            invoke-static {v1}, $fade->$HIDDEN_PORTRAIT_VIEW($fade)$VIEW
+            move-result-object v2
+            if-eqz v2, :stock
+            iget-object v1, p0, $playedBounds
+            invoke-static {v0, v1, v2}, $COLOR_EXTENSION->getHiddenPlayedPaint($PAINT$RECT$VIEW)$PAINT
+            move-result-object v0
+            :stock
+            return-object v0
+        """)
+    }
+
+    return {
+        drawStateClass.methods.add(playedPaint)
+        patchChapter()
+        patchFlat()
+    }
+}
+
+private fun MutableMethod.preparePlayedPaintRead(
+    index: Int,
+    paintOwner: FieldReference,
+    target: String,
+): (() -> Unit)? {
+    val instructions = implementation!!.instructions
+    val paint = instructions[index] as TwoRegisterInstruction
+    val owner = instructions[index - 1] as? TwoRegisterInstruction ?: return null
+    if (!owner.loadsField(paintOwner.toString()) || owner.registerA != paint.registerB ||
+        owner.registerA != paint.registerA
+    ) return null
+
+    return {
+        replaceInstruction(index - 1, "invoke-static { v${owner.registerB} }, $target")
+        replaceInstruction(index, "move-result-object v${paint.registerA}")
+    }
+}
+
+private fun Instruction.loadsField(field: String): Boolean =
+    opcode == Opcode.IGET_OBJECT && getReference<FieldReference>()?.toString() == field
+
+private fun Instruction.drawsWithPaint(paintRegister: Int): Boolean = this is FiveRegisterInstruction &&
+    when (getReference<MethodReference>()?.toString()) {
+        "$CANVAS->drawRect($RECT$PAINT)V" -> registerE == paintRegister
+        "$CANVAS->drawRoundRect(Landroid/graphics/RectF;FF$PAINT)V" -> registerG == paintRegister
+        else -> false
+    }
 
 private fun Instruction.calls(reference: String): Boolean = getReference<MethodReference>()?.toString() == reference
 

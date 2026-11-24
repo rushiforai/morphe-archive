@@ -76,6 +76,10 @@ val showAllCamerasPatch = bytecodePatch(
                     "CONFIG_VALUE_MAP_SHOW_RAISED_CROSSWALK_PERMANENT_HAZARD",
                     "CONFIG_VALUE_ALERTS_PERMANENT_HAZARD_HIGHWAY_CROSSWALK_SETTING_ENABLED",
                     "CONFIG_VALUE_ALERTS_PERMANENT_HAZARD_RAISED_CROSSWALK_SETTING_ENABLED",
+                    // the "announced" half of this option: without these two the crosswalks are
+                    // drawn but never warned about, which is what the row promised all along
+                    "CONFIG_VALUE_NOTIFICATIONS_ON_ROUTE_PERMANENT_HAZARD_HIGHWAY_CROSSWALK",
+                    "CONFIG_VALUE_NOTIFICATIONS_ON_ROUTE_PERMANENT_HAZARD_RAISED_CROSSWALK",
                 )
         }
         println(

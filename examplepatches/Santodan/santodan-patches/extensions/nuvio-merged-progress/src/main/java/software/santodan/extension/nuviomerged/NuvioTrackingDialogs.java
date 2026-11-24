@@ -33,7 +33,7 @@ public final class NuvioTrackingDialogs {
     public static void dialog(Object composer, String title, String subtitle, Runnable dismiss,
             Consumer<Object> render) throws Exception {
         ClassLoader loader = composer.getClass().getClassLoader();
-        method(loader.loadClass(NuvioNative.LIBRARY_CONTENT_NAME), "z", 19).invoke(null,
+        method(loader.loadClass(NuvioNative.LIBRARY_CONTENT_NAME), NuvioNative.LIBRARY_DIALOG_METHOD, 19).invoke(null,
             click(loader, dismiss), title, subtitle, 560f, 0, false, false, null, null,
             0f, 0f, 0f, 0f, null, content(loader, 0x534d4744, render), composer, 0, 24576, 16336);
     }

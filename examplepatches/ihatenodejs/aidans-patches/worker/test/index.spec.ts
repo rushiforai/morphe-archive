@@ -1,6 +1,6 @@
 import { env } from 'cloudflare:test';
 import { describe, expect, it, vi } from 'vitest';
-import { parseMonitoredApps, compareUtf16 } from '../src/apps';
+import { MONITORED_APPS, parseMonitoredApps, compareUtf16 } from '../src/apps';
 import { compareAppVersions } from '../src/comparator';
 import { renderBadgeSvg } from '../src/badges';
 import fixtureHtml from './fixtures/google-play-details.html?raw';
@@ -1563,6 +1563,13 @@ describe('Version check and self-healing dispatches', () => {
 
   it('scheduled performVersionCheck updates Google Play freshness only without making any GitHub dispatch calls', async () => {
     const pkg = 'com.ashtoncofer.Buzz';
+    const supportedTarget = MONITORED_APPS.find(
+      (app) => app.packageName === pkg,
+    )!.latestSupportedVersion;
+    const [supportedMajor, supportedMinor] = supportedTarget
+      .split('.')
+      .map(Number);
+    const NEWER_PLAY_VERSION = `${supportedMajor}.${supportedMinor + 1}.0`;
     const workerEnv: WorkerEnv = {
       ...env,
       PATCHES_KV: env.PATCHES_KV,
@@ -1573,12 +1580,12 @@ describe('Version check and self-healing dispatches', () => {
       playVersion: '1.53.0',
       checkedAt: '2026-10-06T00:00:00Z',
       status: 'up-to-date',
-      supportedVersions: ['1.54.0'],
-      latestSupportedVersion: '1.54.0',
+      supportedVersions: ['1.54.0', supportedTarget],
+      latestSupportedVersion: supportedTarget,
       targetCompatibility: {
         requestId: 'req-prior',
         role: 'target',
-        versionName: '1.54.0',
+        versionName: supportedTarget,
         versionCode: 100,
         patchBundleVersion: '1.4.0',
         gitRevision: 'rev1',
@@ -1605,7 +1612,10 @@ describe('Version check and self-healing dispatches', () => {
         );
       }
       if (url.includes('play.google.com')) {
-        return new Response(MOCK_PLAY_HTML('1.55.0'), { status: 200 });
+        // One minor above the currently supported target, so Play is unambiguously newer.
+        return new Response(MOCK_PLAY_HTML(NEWER_PLAY_VERSION), {
+          status: 200,
+        });
       }
       return new Response('Not found', { status: 404 });
     });
@@ -1617,7 +1627,7 @@ describe('Version check and self-healing dispatches', () => {
 
       const savedRaw = await env.PATCHES_KV.get(`app_version:${pkg}`);
       const saved = JSON.parse(savedRaw!) as AppVersionRecord;
-      expect(saved.playVersion).toBe('1.55.0');
+      expect(saved.playVersion).toBe(NEWER_PLAY_VERSION);
       expect(saved.status).toBe('newer-available');
       // Target compatibility result preserved from prior check
       expect(saved.targetCompatibility?.status).toBe('compatible');

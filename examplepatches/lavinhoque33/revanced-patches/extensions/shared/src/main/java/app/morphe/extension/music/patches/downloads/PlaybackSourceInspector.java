@@ -1,10 +1,13 @@
 /*
  * Copyright (C) 2026 lavinhoque33
  * Licensed under the GNU General Public License v3.0.
- * Modified by lavinhoque33, 2026-11-22.
+ * Modified by lavinhoque33, 2026-11-23.
  * Written by lavinhoque33, 2026-11-22.
  */
 package app.morphe.extension.music.patches.downloads;
+
+import app.morphe.extension.music.patches.MusicDrcSelection;
+import app.morphe.extension.shared.settings.BaseSettings;
 
 /** Observed media input for the selected native playback, not a claim about the audio output device. */
 @SuppressWarnings("unused") // Native hooks.
@@ -194,6 +197,18 @@ public final class PlaybackSourceInspector {
 
             active.publishedFormats = true;
             updateFormats(audio, video, audioItag, videoItag);
+        }
+    }
+
+    /** Report native selected metadata only for the active clip and never for a synthetic local format. */
+    public static void traceAudioVariant(Object owner, Object audio, LocalFormat local) {
+        if (local != null || !BaseSettings.DEBUG.get() || !(audio instanceof MusicDrcSelection.Format format)) return;
+
+        synchronized (LOCK) {
+            if (active == null || (active.events != owner
+                    && (active.publishedFormats || active.playback != owner))) return;
+
+            MusicDrcSelection.traceActiveFormat(format);
         }
     }
 

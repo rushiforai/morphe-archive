@@ -2,7 +2,7 @@ group = "dev.rikunode.pupil"
 
 patches {
     about {
-        name = "rikunode Pupil patches"
+        name = "Pupil Patches"
         description = "Minimal patches for the Pupil Android gallery reader"
         source = "https://github.com/rikunode/pupil-morphe-patches"
         author = "rikunode"

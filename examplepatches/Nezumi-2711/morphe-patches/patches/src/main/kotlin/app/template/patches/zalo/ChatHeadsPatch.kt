@@ -80,7 +80,7 @@ private object CurrentChatPostureFingerprint : Fingerprint(
 val chatHeadsPatch = bytecodePatch(
     name = "Chat heads instead of Android bubbles",
     description = "Use Zalo's overlay chat heads rather than native Android bubbles on Android 11 and newer.",
-    default = false,
+    default = true,
 ) {
     compatibleWith(Compatibility(
         name = "Zalo",
@@ -123,7 +123,7 @@ val chatHeadsPatch = bytecodePatch(
             val addAll = commit.implementation!!.instructions.elementAt(commitIndex) as FiveRegisterInstruction
             check(addAll.registerCount == 2)
             commit.addInstructionsWithLabels(commitIndex,
-                "invoke-static {v${addAll.registerD}}, Lapp/template/extension/extension/ChatHeadAction;->addOption(Ljava/util/ArrayList;)V")
+                "invoke-static {v${addAll.registerD}}, $CHAT_HEAD_ACTION->addOption(Ljava/util/ArrayList;)V")
 
             check(CurrentChatInfoClickFingerprint.matchAll(1..1).size == 1)
             val click = CurrentChatInfoClickFingerprint.method
@@ -139,7 +139,7 @@ val chatHeadsPatch = bytecodePatch(
             val clickReturn = click.implementation!!.instructions.elementAt(dispatchIndex + 1)
             check(clickReturn.opcode == Opcode.RETURN_VOID)
             click.replaceInstruction(dispatchIndex,
-                "invoke-static {v$dispatchReceiver, v$dispatchOption}, Lapp/template/extension/extension/ChatHeadAction;->handleOption(Ljava/lang/Object;Ljava/lang/Object;)Z")
+                "invoke-static {v$dispatchReceiver, v$dispatchOption}, $CHAT_HEAD_ACTION->handleOption(Ljava/lang/Object;Ljava/lang/Object;)Z")
             click.addInstructionsWithLabels(dispatchIndex + 1, """
                 move-result v$dispatchScratch
                 if-nez v$dispatchScratch, :zalo_chat_info_handled
@@ -155,7 +155,7 @@ val chatHeadsPatch = bytecodePatch(
             }
             check(receiverIndex >= 0)
             service.addInstructionsWithLabels(receiverIndex,
-                "invoke-static {p0, v1, v0}, Lapp/template/extension/extension/ChatHeadAction;->registerMiniChatReceiver(Landroid/content/Context;Landroid/content/BroadcastReceiver;Landroid/content/IntentFilter;)V")
+                "invoke-static {p0, v1, v0}, $CHAT_HEAD_ACTION->registerMiniChatReceiver(Landroid/content/Context;Landroid/content/BroadcastReceiver;Landroid/content/IntentFilter;)V")
             service.removeInstruction(receiverIndex + 1)
 
             check(CurrentChatPostureFingerprint.matchAll(1..1).size == 1)
@@ -173,7 +173,7 @@ val chatHeadsPatch = bytecodePatch(
             val flowIndex = flowIndices.single()
             check((postureInstructions[flowIndex] as FiveRegisterInstruction).registerC == 1)
             posture.addInstructionsWithLabels(flowIndex, """
-                invoke-static {v1}, Lapp/template/extension/extension/ChatHeadAction;->canObservePosture(Landroid/content/Context;)Z
+                invoke-static {v1}, $CHAT_HEAD_ACTION->canObservePosture(Landroid/content/Context;)Z
                 move-result v0
                 if-nez v0, :zalo_observe_posture
                 return-void

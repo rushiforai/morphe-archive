@@ -4,6 +4,8 @@ import app.morphe.patches.google.common.versions.google177011
 import app.morphe.patches.google.common.versions.gemini10995038376
 import app.morphe.patches.google.common.versions.google177217
 import app.morphe.patcher.PackageMetadata
+import app.morphe.patcher.patch.AppTarget
+import app.morphe.patcher.patch.Compatibility
 import app.morphe.patches.google.common.versions.google175418
 import app.morphe.patches.google.common.versions.gemini10958859967
 import com.android.tools.smali.dexlib2.iface.reference.MethodReference
@@ -24,6 +26,7 @@ enum class HookId(val displayName: String) {
     PROCESS_NAME_REDIRECT("プロセス名正規化"),
     MAIN_PROCESS_CHECK("アカウントストアのプロセス判定"),
     PACKAGE_CLONE_REDIRECT("クローンパッケージ参照"),
+    CONVERSATION_UPDATE_WARNING("会話の更新要求警告"),
     ACCOUNT_SWITCH_LOCK_BYPASS("無効: アカウントロック省略"),
     ACCOUNT_SYNC_LOOP_FIX("無効: Binder 成功偽装"),
     ACCOUNT_CONVERT_FALLBACK("無効: 固定 AccountId")
@@ -69,6 +72,26 @@ object VersionHookRegistry {
     init {
         check(profiles.map { it.packageName to it.versionName }.distinct().size == profiles.size)
     }
+
+    /**
+     * Morphe's displayed compatibility uses the same exact versions as the execution guard.
+     * Unregistered versions are still refused by [requireProfile] at patch time.
+     */
+    fun compatibility(vararg packageNames: String): Array<Compatibility> =
+        packageNames.map { packageName ->
+            val versions = profiles.filter { it.packageName == packageName }.map { it.versionName }
+            check(versions.isNotEmpty()) { "No verified versions for $packageName" }
+            Compatibility(
+                packageName = packageName,
+                name = APP_NAMES.getValue(packageName),
+                targets = versions.distinct().map { AppTarget(version = it) },
+            )
+        }.toTypedArray()
+
+    private val APP_NAMES = mapOf(
+        "com.google.android.googlequicksearchbox" to "Google",
+        "com.google.android.apps.bard" to "Gemini",
+    )
 
     fun findProfile(packageName: String, versionName: String): AppVersionProfile? =
         profiles.singleOrNull { it.packageName == packageName && it.versionName == versionName }

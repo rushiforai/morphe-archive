@@ -21,6 +21,15 @@ final class GboardClipboardPruneHookAdapter {
         this.maxCountFeature = maxCountFeature;
     }
 
+    boolean shouldKeepWholeClipboardBlock(Object receiver) {
+        return support.runSafely("check Samsung single-block clipboard mode", () -> {
+            if (receiver != null) {
+                support.registerContextFromReceiver(receiver);
+            }
+            return Boolean.valueOf(support.shouldKeepWholeClipboardBlock());
+        }, Boolean.FALSE).booleanValue();
+    }
+
     boolean handleCustomPrune(Object receiver) {
         return support.runSafely("run custom clipboard prune", () -> {
             if (receiver == null) {

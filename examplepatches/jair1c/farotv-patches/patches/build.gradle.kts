@@ -4,10 +4,10 @@ patches {
     about {
         name = "FaroTV Patches"
         description = "FaroTV: unofficial patches for YouTube on Android TV, compatible with Morphe. MicroG-RE support, ad blocking, settings inside the app, player customization."
-        source = "git@github.com:jair1c/farotv-patches.git"
-        author = "jair1c"
-        contact = "https://github.com/jair1c/farotv-patches/issues"
-        website = "https://github.com/jair1c/farotv-patches"
+        source = "git@github.com:KyVexo/farotv-patches.git"
+        author = "KyVexo"
+        contact = "https://github.com/KyVexo/farotv-patches/issues"
+        website = "https://github.com/KyVexo/farotv-patches"
         license = "GPLv3"
     }
 }

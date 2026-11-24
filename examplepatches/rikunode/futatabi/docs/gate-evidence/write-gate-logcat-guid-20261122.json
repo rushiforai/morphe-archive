@@ -1,0 +1,55 @@
+{
+  "date": "2026-11-22",
+  "app": "com.Nanasaki.ftutter 3.1.1 original",
+  "device": "emulator-5554",
+  "offline_board": "http://127.0.0.1:18766/aimoge/",
+  "adb_reverse": "tcp:18766 tcp:18766",
+  "post_attempts": [
+    "reply with local test text",
+    "new thread with previously saved title/body"
+  ],
+  "post_requests_received": 0,
+  "guid_on": {
+    "route": "GET /aimoge/futaba.php?guid=on",
+    "test_fixture": "200 with local test Set-Cookie",
+    "logged_guid_requests_total": 1,
+    "manual_windows_get": 1,
+    "app_guid_get": 0,
+    "missing_cookie_cause_proven": false
+  },
+  "logcat": {
+    "reply": {
+      "bytes": 24066,
+      "sha256": "408d32be7da3168e877f3ca9c85591ad870292482e5f68736239671b8ad1fedd",
+      "lines": 86,
+      "dart_or_http_error_matches": 0,
+      "raw_log_local_ignored": "apk-inspection/post-gate/submit-reply-logcat-full.txt"
+    },
+    "new_thread_guid": {
+      "bytes": 21564,
+      "sha256": "9d6902a5d0200555b972fb1fe90c8d1df317a4111076d035c04a8585efa13279",
+      "lines": 78,
+      "dart_or_http_error_matches": 0,
+      "raw_log_local_ignored": "apk-inspection/post-gate/submit-thread-guid-logcat-full.txt"
+    }
+  },
+  "ui": {
+    "reply": {
+      "ui_nodes": 33,
+      "edit_text_nodes": 0,
+      "explicit_error_text_detected": false,
+      "raw_ui_local_ignored": "apk-inspection/post-gate/after-post.xml"
+    },
+    "new_thread_guid": {
+      "ui_nodes": 29,
+      "edit_text_nodes": 0,
+      "explicit_error_text_detected": false,
+      "raw_ui_local_ignored": "apk-inspection/post-gate/thread-after-guid.xml"
+    }
+  },
+  "success_failure_response_probe": "not possible because POST count is zero",
+  "domain_condition": "not isolated, no real-site posting permitted",
+  "AOT_full_analysis": "not attempted, MUSE decision required",
+  "remote_posts_sent": 0,
+  "real_auth": 0
+}

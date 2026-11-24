@@ -2,11 +2,10 @@ package app.ckzorigins.patches.compat
 
 import app.ckzorigins.patches.mono.gluBackupPatch
 import app.ckzorigins.patches.shared.Constants.COMPATIBILITY
-import app.morphe.patcher.patch.PatchException
+import app.adebisi.patches.shared.removeUnusedNamedEntries
 import app.morphe.patcher.patch.document
 import app.morphe.patcher.patch.patch
 import org.w3c.dom.Document
-import org.w3c.dom.Element
 
 /**
  * Referrer receivers and the boot receiver that pinged S3. Flurry and Tune are already
@@ -44,14 +43,7 @@ internal val REMOVED_PERMISSIONS = listOf(
  */
 internal fun removeUnusedEntries(document: Document) {
     val wanted = REMOVED_COMPONENTS + REMOVED_PERMISSIONS.map { "uses-permission" to it }
-    val found = wanted.map { (tag, name) ->
-        val list = document.getElementsByTagName(tag)
-        val matches = (0 until list.length).map { list.item(it) as Element }
-            .filter { it.getAttribute("android:name") == name }
-        if (matches.isEmpty()) throw PatchException("AndroidManifest.xml has no <$tag> named $name")
-        matches
-    }
-    found.flatten().forEach { it.parentNode.removeChild(it) }
+    removeUnusedNamedEntries(document, wanted)
 }
 
 @Suppress("unused")

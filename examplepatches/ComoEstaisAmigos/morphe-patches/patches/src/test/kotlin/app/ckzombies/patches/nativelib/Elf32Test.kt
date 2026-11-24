@@ -191,7 +191,7 @@ class Elf32Test {
     fun `generated tables are well formed`() {
         val tables = listOf(
             "TEXT_RELOCATION" to NativeEdits.TEXT_RELOCATION,
-            "IS_AVAILABLE" to NativeEdits.IS_AVAILABLE,
+            "NETWORK_AVAILABILITY" to NativeEdits.NETWORK_AVAILABILITY,
             "UNLIMITED_AMMO" to NativeEdits.UNLIMITED_AMMO,
             "HUD_RELOAD" to NativeEdits.HUD_RELOAD.mapValues { (_, plan) -> plan.edits },
             "DEAD_SERVERS" to NativeEdits.DEAD_SERVERS,
@@ -259,7 +259,7 @@ class Elf32Test {
     @Test
     fun `the network check is stubbed to return false instead of the caller's r0`() {
         for (abi in ABIS) {
-            val edits = NativeEdits.IS_AVAILABLE.getValue(abi).sortedBy { it.vaddr }
+            val edits = NativeEdits.NETWORK_AVAILABILITY.getValue(abi).sortedBy { it.vaddr }
             assertEquals(2, edits.size, "$abi: two words")
             assertEquals(4L, edits[1].vaddr - edits[0].vaddr, "$abi: the prologue is two words")
             val (setResult, returnNow) = edits

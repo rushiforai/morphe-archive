@@ -8,7 +8,6 @@ import {
   extractKtlintVersion,
   parseBunLock,
   parseBunLockPackages,
-  parsePythonRequirement,
 } from './inventory';
 import {
   type DependencyItem,
@@ -19,13 +18,7 @@ import {
   loadAndValidatePolicy,
 } from './model';
 import { buildSummary, formatTextReport, isMajorUpdate } from './report';
-import {
-  SourceManager,
-  comparePep440,
-  compareSemver,
-  parsePep440,
-  resolveDependencyItem,
-} from './sources';
+import { SourceManager, compareSemver, resolveDependencyItem } from './sources';
 
 describe('Model & Policy', () => {
   test('canonicalJson produces deterministic sorted key string', () => {
@@ -111,36 +104,19 @@ describe('Sources & Version Logic', () => {
     expect(compareSemver('v2.5.0', '2.5.0')).toBe(0);
   });
 
-  test('PEP 440 parsing and comparison', () => {
-    expect(parsePep440('>=1.35.0')).toEqual([1, 35, 0]);
-    expect(comparePep440('1.35.1', '1.35.0')).toBe(1);
-    expect(comparePep440('1.35.0', '1.35.0')).toBe(0);
-    expect(comparePep440('1.34.9', '1.35.0')).toBe(-1);
-  });
-
   test('isMajorUpdate detects major version changes', () => {
     expect(isMajorUpdate('^9.3.1', '10.0.0')).toBe(true);
     expect(isMajorUpdate('1.5.0', '1.6.0')).toBe(false);
     expect(isMajorUpdate('0.13.3', '0.14.0')).toBe(false);
   });
 
-  test('SourceManager resolves npm, pypi, and crates with mocked fetch', async () => {
+  test('SourceManager resolves npm and crates with mocked fetch', async () => {
     const mockFetch = async (url: string) => {
       if (url.includes('registry.npmjs.org/wrangler')) {
         return new Response(
           JSON.stringify({
             'dist-tags': { latest: '3.120.0' },
             versions: { '3.119.0': {}, '3.120.0': {} },
-          }),
-        );
-      }
-      if (url.includes('pypi.org/pypi/boto3/json')) {
-        return new Response(
-          JSON.stringify({
-            releases: {
-              '1.36.0': [{ yanked: false, requires_python: '>=3.8' }],
-              '1.37.0a1': [{ yanked: false }],
-            },
           }),
         );
       }
@@ -161,30 +137,8 @@ describe('Sources & Version Logic', () => {
     const npmRes = await sources.resolveNpm('wrangler');
     expect(npmRes.latest).toBe('3.120.0');
 
-    const pypiRes = await sources.resolvePypi('boto3');
-    expect(pypiRes.latest).toBe('1.36.0');
-
     const cratesRes = await sources.resolveCrates('serde');
     expect(cratesRes.latest).toBe('1.0.219');
-  });
-
-  test('SourceManager detects python requirement incompatibility', async () => {
-    const mockFetch = async () => {
-      return new Response(
-        JSON.stringify({
-          releases: {
-            '2.0.0': [{ yanked: false, requires_python: '>=3.14' }],
-            '1.5.0': [{ yanked: false, requires_python: '>=3.10' }],
-          },
-        }),
-      );
-    };
-
-    const sources = new SourceManager({ fetch: mockFetch });
-    const pypiRes = await sources.resolvePypi('test-pkg');
-    expect(pypiRes.blocked).toBe(true);
-    expect(pypiRes.latest).toBe('2.0.0');
-    expect(pypiRes.reason).toContain('requires newer Python');
   });
 
   test('SourceManager compares full semver strings for GitHub Actions', async () => {
@@ -237,21 +191,6 @@ describe('Sources & Version Logic', () => {
 });
 
 describe('Inventory Collection', () => {
-  test('parsePythonRequirement parses names and constraints', () => {
-    expect(parsePythonRequirement('boto3>=1.35.0')).toEqual({
-      name: 'boto3',
-      constraint: '>=1.35.0',
-    });
-    expect(parsePythonRequirement('goopdl==1.2.1')).toEqual({
-      name: 'goopdl',
-      constraint: '==1.2.1',
-    });
-    expect(parsePythonRequirement('hatchling')).toEqual({
-      name: 'hatchling',
-      constraint: '',
-    });
-  });
-
   test('collectInventory extracts items and marks holds accurately', () => {
     const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'inv-test-'));
     try {
@@ -622,63 +561,6 @@ describe('Transactional Apply', () => {
     }
   });
 
-  test('applyApprovedProposal correctly rewrites PyPI constraint without duplicate quotes', async () => {
-    const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'apply-pypi-'));
-    try {
-      const pyprojectDir = path.join(tmpDir, 'tools', 'apk-lab');
-      fs.mkdirSync(pyprojectDir, { recursive: true });
-      const pyprojectRel = 'tools/apk-lab/pyproject.toml';
-      const pyprojectPath = path.join(tmpDir, pyprojectRel);
-      const initialContent =
-        '[project]\nname = "apk-lab"\ndependencies = [\n    "boto3>=1.35.0",\n]\n';
-      fs.writeFileSync(pyprojectPath, initialContent);
-      const sha256 = Bun.SHA256.hash(fs.readFileSync(pyprojectPath), 'hex');
-
-      const proposal: Proposal = {
-        schemaVersion: 1,
-        inputs: [{ path: pyprojectRel, sha256 }],
-        updates: [
-          {
-            id: `pypi:${pyprojectRel}#project.dependencies/boto3`,
-            from: '1.35.0',
-            to: '1.36.0',
-          },
-        ],
-        digest: '',
-      };
-      proposal.digest = computeProposalDigest(
-        proposal.inputs,
-        proposal.updates,
-      );
-
-      const policy: DependencyPolicy = { schemaVersion: 1, holds: [] };
-
-      let executedCmd = '';
-      let executedArgs: string[] = [];
-      const mockRunner = async (cmd: string, args: string[], cwd: string) => {
-        executedCmd = cmd;
-        executedArgs = args;
-        fs.writeFileSync(path.join(cwd, 'uv.lock'), 'mock uv lock');
-        return { code: 0, stdout: 'ok', stderr: '' };
-      };
-
-      const res = await applyApprovedProposal(tmpDir, proposal, policy, {
-        runner: mockRunner,
-      });
-      expect(res.success).toBe(true);
-      expect(res.changedFiles).toContain(pyprojectRel);
-
-      const updatedContent = fs.readFileSync(pyprojectPath, 'utf8');
-      expect(updatedContent).toContain('"boto3>=1.36.0"');
-      expect(updatedContent).not.toContain('""boto3');
-      expect(executedCmd).toBe('uv');
-      expect(executedArgs).toContain('boto3');
-      expect(executedArgs).not.toContain('apk-lab');
-    } finally {
-      fs.rmSync(tmpDir, { recursive: true, force: true });
-    }
-  });
-
   test('applyApprovedProposal correctly updates version catalog entry in gradle/libs.versions.toml', async () => {
     const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'apply-gradle-'));
     try {
@@ -877,288 +759,6 @@ describe('Transactional Apply', () => {
       expect(updatedJson.devDependencies['@semantic-release/github']).toBe(
         '^10.1.0',
       );
-    } finally {
-      fs.rmSync(tmpDir, { recursive: true, force: true });
-    }
-  });
-
-  test('applyApprovedProposal updates PyPI package while preserving prefix-sharing packages', async () => {
-    const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'apply-pypi-prefix-'));
-    try {
-      const pyprojectDir = path.join(tmpDir, 'tools', 'apk-lab');
-      fs.mkdirSync(pyprojectDir, { recursive: true });
-      const pyprojectRel = 'tools/apk-lab/pyproject.toml';
-      const pyprojectPath = path.join(tmpDir, pyprojectRel);
-      const initialContent =
-        '[project]\nname = "apk-lab"\ndependencies = [\n    "pytest>=8.0.0",\n    "pytest-cov>=4.0.0",\n]\n';
-      fs.writeFileSync(pyprojectPath, initialContent);
-      const sha256 = Bun.SHA256.hash(fs.readFileSync(pyprojectPath), 'hex');
-
-      const proposal: Proposal = {
-        schemaVersion: 1,
-        inputs: [{ path: pyprojectRel, sha256 }],
-        updates: [
-          {
-            id: `pypi:${pyprojectRel}#project.dependencies/pytest`,
-            from: '8.0.0',
-            to: '8.1.0',
-          },
-        ],
-        digest: '',
-      };
-      proposal.digest = computeProposalDigest(
-        proposal.inputs,
-        proposal.updates,
-      );
-
-      const policy: DependencyPolicy = { schemaVersion: 1, holds: [] };
-      const mockRunner = async (_cmd: string, _args: string[], cwd: string) => {
-        fs.writeFileSync(path.join(cwd, 'uv.lock'), 'mock uv lock');
-        return { code: 0, stdout: 'ok', stderr: '' };
-      };
-
-      const res = await applyApprovedProposal(tmpDir, proposal, policy, {
-        runner: mockRunner,
-      });
-      expect(res.success).toBe(true);
-      expect(res.changedFiles).toContain(pyprojectRel);
-
-      const updatedContent = fs.readFileSync(pyprojectPath, 'utf8');
-      expect(updatedContent).toContain('"pytest>=8.1.0"');
-      expect(updatedContent).toContain('"pytest-cov>=4.0.0"');
-    } finally {
-      fs.rmSync(tmpDir, { recursive: true, force: true });
-    }
-  });
-
-  test('applyApprovedProposal updates PyPI package with dot without corrupting prefix-sharing packages', async () => {
-    const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'apply-pypi-dot-'));
-    try {
-      const pyprojectDir = path.join(tmpDir, 'tools', 'apk-lab');
-      fs.mkdirSync(pyprojectDir, { recursive: true });
-      const pyprojectRel = 'tools/apk-lab/pyproject.toml';
-      const pyprojectPath = path.join(tmpDir, pyprojectRel);
-      const initialContent =
-        '[project]\nname = "apk-lab"\ndependencies = [\n    "backports.zoneinfo>=0.2.1",\n    "backports.zoneinfo-extra>=1.0.0",\n]\n';
-      fs.writeFileSync(pyprojectPath, initialContent);
-      const sha256 = Bun.SHA256.hash(fs.readFileSync(pyprojectPath), 'hex');
-
-      const proposal: Proposal = {
-        schemaVersion: 1,
-        inputs: [{ path: pyprojectRel, sha256 }],
-        updates: [
-          {
-            id: `pypi:${pyprojectRel}#project.dependencies/backports.zoneinfo`,
-            from: '0.2.1',
-            to: '0.2.2',
-          },
-        ],
-        digest: '',
-      };
-      proposal.digest = computeProposalDigest(
-        proposal.inputs,
-        proposal.updates,
-      );
-
-      const policy: DependencyPolicy = { schemaVersion: 1, holds: [] };
-      const mockRunner = async (_cmd: string, _args: string[], cwd: string) => {
-        fs.writeFileSync(path.join(cwd, 'uv.lock'), 'mock uv lock');
-        return { code: 0, stdout: 'ok', stderr: '' };
-      };
-
-      const res = await applyApprovedProposal(tmpDir, proposal, policy, {
-        runner: mockRunner,
-      });
-      expect(res.success).toBe(true);
-      const updatedContent = fs.readFileSync(pyprojectPath, 'utf8');
-      expect(updatedContent).toContain('"backports.zoneinfo>=0.2.2"');
-      expect(updatedContent).toContain('"backports.zoneinfo-extra>=1.0.0"');
-    } finally {
-      fs.rmSync(tmpDir, { recursive: true, force: true });
-    }
-  });
-
-  test('applyApprovedProposal updates PyPI package with spaces around operator', async () => {
-    const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'apply-pypi-spaces-'));
-    try {
-      const pyprojectDir = path.join(tmpDir, 'tools', 'apk-lab');
-      fs.mkdirSync(pyprojectDir, { recursive: true });
-      const pyprojectRel = 'tools/apk-lab/pyproject.toml';
-      const pyprojectPath = path.join(tmpDir, pyprojectRel);
-      const initialContent =
-        '[project]\nname = "apk-lab"\ndependencies = [\n    "pytest >= 8.0.0",\n]\n';
-      fs.writeFileSync(pyprojectPath, initialContent);
-      const sha256 = Bun.SHA256.hash(fs.readFileSync(pyprojectPath), 'hex');
-
-      const proposal: Proposal = {
-        schemaVersion: 1,
-        inputs: [{ path: pyprojectRel, sha256 }],
-        updates: [
-          {
-            id: `pypi:${pyprojectRel}#project.dependencies/pytest`,
-            from: '8.0.0',
-            to: '8.1.0',
-          },
-        ],
-        digest: '',
-      };
-      proposal.digest = computeProposalDigest(
-        proposal.inputs,
-        proposal.updates,
-      );
-
-      const policy: DependencyPolicy = { schemaVersion: 1, holds: [] };
-      const mockRunner = async (_cmd: string, _args: string[], cwd: string) => {
-        fs.writeFileSync(path.join(cwd, 'uv.lock'), 'mock uv lock');
-        return { code: 0, stdout: 'ok', stderr: '' };
-      };
-
-      const res = await applyApprovedProposal(tmpDir, proposal, policy, {
-        runner: mockRunner,
-      });
-      expect(res.success).toBe(true);
-      const updatedContent = fs.readFileSync(pyprojectPath, 'utf8');
-      expect(updatedContent).toContain('"pytest >=8.1.0"');
-    } finally {
-      fs.rmSync(tmpDir, { recursive: true, force: true });
-    }
-  });
-
-  test('applyApprovedProposal updates PyPI package with extras', async () => {
-    const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'apply-pypi-extras-'));
-    try {
-      const pyprojectDir = path.join(tmpDir, 'tools', 'apk-lab');
-      fs.mkdirSync(pyprojectDir, { recursive: true });
-      const pyprojectRel = 'tools/apk-lab/pyproject.toml';
-      const pyprojectPath = path.join(tmpDir, pyprojectRel);
-      const initialContent =
-        '[project]\nname = "apk-lab"\ndependencies = [\n    "pytest[dev]>=8.0.0",\n]\n';
-      fs.writeFileSync(pyprojectPath, initialContent);
-      const sha256 = Bun.SHA256.hash(fs.readFileSync(pyprojectPath), 'hex');
-
-      const proposal: Proposal = {
-        schemaVersion: 1,
-        inputs: [{ path: pyprojectRel, sha256 }],
-        updates: [
-          {
-            id: `pypi:${pyprojectRel}#project.dependencies/pytest`,
-            from: '8.0.0',
-            to: '8.1.0',
-          },
-        ],
-        digest: '',
-      };
-      proposal.digest = computeProposalDigest(
-        proposal.inputs,
-        proposal.updates,
-      );
-
-      const policy: DependencyPolicy = { schemaVersion: 1, holds: [] };
-      const mockRunner = async (_cmd: string, _args: string[], cwd: string) => {
-        fs.writeFileSync(path.join(cwd, 'uv.lock'), 'mock uv lock');
-        return { code: 0, stdout: 'ok', stderr: '' };
-      };
-
-      const res = await applyApprovedProposal(tmpDir, proposal, policy, {
-        runner: mockRunner,
-      });
-      expect(res.success).toBe(true);
-      const updatedContent = fs.readFileSync(pyprojectPath, 'utf8');
-      expect(updatedContent).toContain('"pytest[dev]>=8.1.0"');
-    } finally {
-      fs.rmSync(tmpDir, { recursive: true, force: true });
-    }
-  });
-
-  test('applyApprovedProposal updates PyPI package compound constraint preserving upper bound', async () => {
-    const tmpDir = fs.mkdtempSync(
-      path.join(os.tmpdir(), 'apply-pypi-compound-'),
-    );
-    try {
-      const pyprojectDir = path.join(tmpDir, 'tools', 'apk-lab');
-      fs.mkdirSync(pyprojectDir, { recursive: true });
-      const pyprojectRel = 'tools/apk-lab/pyproject.toml';
-      const pyprojectPath = path.join(tmpDir, pyprojectRel);
-      const initialContent =
-        '[project]\nname = "apk-lab"\ndependencies = [\n    "pytest>=8.0.0,<9.0.0",\n]\n';
-      fs.writeFileSync(pyprojectPath, initialContent);
-      const sha256 = Bun.SHA256.hash(fs.readFileSync(pyprojectPath), 'hex');
-
-      const proposal: Proposal = {
-        schemaVersion: 1,
-        inputs: [{ path: pyprojectRel, sha256 }],
-        updates: [
-          {
-            id: `pypi:${pyprojectRel}#project.dependencies/pytest`,
-            from: '8.0.0',
-            to: '8.1.0',
-          },
-        ],
-        digest: '',
-      };
-      proposal.digest = computeProposalDigest(
-        proposal.inputs,
-        proposal.updates,
-      );
-
-      const policy: DependencyPolicy = { schemaVersion: 1, holds: [] };
-      const mockRunner = async (_cmd: string, _args: string[], cwd: string) => {
-        fs.writeFileSync(path.join(cwd, 'uv.lock'), 'mock uv lock');
-        return { code: 0, stdout: 'ok', stderr: '' };
-      };
-
-      const res = await applyApprovedProposal(tmpDir, proposal, policy, {
-        runner: mockRunner,
-      });
-      expect(res.success).toBe(true);
-      const updatedContent = fs.readFileSync(pyprojectPath, 'utf8');
-      expect(updatedContent).toContain('"pytest>=8.1.0,<9.0.0"');
-    } finally {
-      fs.rmSync(tmpDir, { recursive: true, force: true });
-    }
-  });
-
-  test('applyApprovedProposal preserves exact == pin in PyPI package', async () => {
-    const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'apply-pypi-exact-'));
-    try {
-      const pyprojectDir = path.join(tmpDir, 'tools', 'apk-lab');
-      fs.mkdirSync(pyprojectDir, { recursive: true });
-      const pyprojectRel = 'tools/apk-lab/pyproject.toml';
-      const pyprojectPath = path.join(tmpDir, pyprojectRel);
-      const initialContent =
-        '[project]\nname = "apk-lab"\ndependencies = [\n    "goopdl==1.2.1",\n]\n';
-      fs.writeFileSync(pyprojectPath, initialContent);
-      const sha256 = Bun.SHA256.hash(fs.readFileSync(pyprojectPath), 'hex');
-
-      const proposal: Proposal = {
-        schemaVersion: 1,
-        inputs: [{ path: pyprojectRel, sha256 }],
-        updates: [
-          {
-            id: `pypi:${pyprojectRel}#project.dependencies/goopdl`,
-            from: '1.2.1',
-            to: '1.2.2',
-          },
-        ],
-        digest: '',
-      };
-      proposal.digest = computeProposalDigest(
-        proposal.inputs,
-        proposal.updates,
-      );
-
-      const policy: DependencyPolicy = { schemaVersion: 1, holds: [] };
-      const mockRunner = async (_cmd: string, _args: string[], cwd: string) => {
-        fs.writeFileSync(path.join(cwd, 'uv.lock'), 'mock uv lock');
-        return { code: 0, stdout: 'ok', stderr: '' };
-      };
-
-      const res = await applyApprovedProposal(tmpDir, proposal, policy, {
-        runner: mockRunner,
-      });
-      expect(res.success).toBe(true);
-      const updatedContent = fs.readFileSync(pyprojectPath, 'utf8');
-      expect(updatedContent).toContain('"goopdl==1.2.2"');
     } finally {
       fs.rmSync(tmpDir, { recursive: true, force: true });
     }

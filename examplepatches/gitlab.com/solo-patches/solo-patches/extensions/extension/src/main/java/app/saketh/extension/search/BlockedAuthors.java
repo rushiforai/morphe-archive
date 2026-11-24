@@ -31,6 +31,9 @@ public final class BlockedAuthors {
     private static Map<Long, Set<Long>> booksByAuthor = new HashMap<>();
     private static volatile Set<Long> blockedBooks = Collections.emptySet();
     private static long refreshedAt = -REFRESH_MILLIS;
+    // ponytail: remembers only the latest emptied page. If two list screens load at once, the other
+    // one falls back to the app's "No results" view; keep a set if that ever matters.
+    private static volatile Object emptiedPage;
 
     private BlockedAuthors() {}
 
@@ -45,9 +48,21 @@ public final class BlockedAuthors {
             for (Iterator<?> book = books.iterator(); book.hasNext(); ) {
                 if (blocked.contains(call(book.next(), "getBookId"))) book.remove();
             }
+            if (books.isEmpty() && !Boolean.TRUE.equals(call(data, "getLast"))) emptiedPage = data;
         } catch (ReflectiveOperationException | RuntimeException failed) {
             Log.w(TAG, "Search results left unfiltered", failed);
         }
+    }
+
+    /**
+     * Called by the native book list screen when a page arrives with no books. Returns true when
+     * this filter removed every book and more pages follow, so the screen loads the next page
+     * instead of showing "No results" and stopping.
+     */
+    public static boolean skipsEmptiedPage(Object page) {
+        if (page == null || page != emptiedPage) return false;
+        emptiedPage = null;
+        return true;
     }
 
     /** Called when the user blocks or unblocks someone in the app, so the next results use the new list. */

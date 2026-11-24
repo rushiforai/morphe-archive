@@ -8,6 +8,7 @@ from pathlib import Path
 
 
 APP_NAMES = {
+    'ultimateusb': 'Ultimate USB',
     'ticktick': 'TickTick',
     'emby': 'Emby',
     'peptalk': 'Pep Talk',

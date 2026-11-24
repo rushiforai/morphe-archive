@@ -11,9 +11,9 @@ internal const val NOTESNOOK_PACKAGE_NAME = "com.streetwriters.notesnook"
  * .github/workflows/compat-check.yml appends new versions through a pull request.
  */
 internal val NOTESNOOK_VERSIONS = listOf(
-    "3.4.14",
     "3.4.15",
     "3.4.16",
+    "3.4.17",
 )
 
 internal val NOTESNOOK_COMPATIBILITY = Compatibility(

@@ -18,7 +18,6 @@ import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
 import com.android.tools.smali.dexlib2.iface.reference.MethodReference
 
-private const val RECALL_SETTINGS = "Lapp/template/extension/extension/NezumiSettings;"
 
 // 26.11.01: the "msgActionUndo" log string is gone; the undo handler is now
 // SpecialMessageProcessor.e(vv3), identified by the UNDO enum read plus its logger tag.
@@ -45,7 +44,7 @@ private object IncomingDeleteControlFingerprint : Fingerprint(
 val keepRecalledMessagesPatch = bytecodePatch(
     name = "Keep recalled messages",
     description = "Keep received messages and locally available photos after another user recalls them, when enabled in Nezumi Settings.",
-    default = false,
+    default = true,
 ) {
     compatibleWith(Compatibility(
         name = "Zalo",
@@ -87,11 +86,11 @@ val keepRecalledMessagesPatch = bytecodePatch(
             method.addInstructionsWithLabels(0, """
                 iget-object v0, p1, $message->c:Ljava/lang/String;
                 const/4 v1, $eventType
-                invoke-static {v0, v1}, $RECALL_SETTINGS->shouldKeepIncomingRecall(Ljava/lang/String;I)Z
+                invoke-static {v0, v1}, $RECALLED_MESSAGES->shouldKeepIncomingRecall(Ljava/lang/String;I)Z
                 move-result v0
                 if-eqz v0, :nezumi_original_recall
                 $targetId
-                invoke-static {v0}, $RECALL_SETTINGS->markIncomingRecall(Ljava/lang/Object;)V
+                invoke-static {v0}, $RECALLED_MESSAGES->markIncomingRecall(Ljava/lang/Object;)V
                 :nezumi_skip_marker
                 return-void
             """.trimIndent(), ExternalLabel("nezumi_original_recall", originalStart))
@@ -117,7 +116,7 @@ val keepRecalledMessagesPatch = bytecodePatch(
                 val resultRegister = (result as OneRegisterInstruction).registerA
                 check(invoke.registerCount == 1 && invoke.registerC != resultRegister)
                 caller.addInstructions(index + 2, """
-                    invoke-static {v${invoke.registerC}, v$resultRegister}, $RECALL_SETTINGS->formatRecallTime(Landroid/view/View;Ljava/lang/String;)Ljava/lang/String;
+                    invoke-static {v${invoke.registerC}, v$resultRegister}, $RECALLED_MESSAGES->formatRecallTime(Landroid/view/View;Ljava/lang/String;)Ljava/lang/String;
                     move-result-object v$resultRegister
                 """.trimIndent())
                 wrapped++
@@ -136,7 +135,7 @@ val keepRecalledMessagesPatch = bytecodePatch(
         check(list[0].opcode == Opcode.IGET_BOOLEAN && (list[0] as OneRegisterInstruction).registerA == 1)
         check(list[1].opcode == Opcode.IF_NEZ && (list[1] as OneRegisterInstruction).registerA == 1)
         timeVisible.addInstructionsWithLabels(2, """
-            invoke-static {p0}, $RECALL_SETTINGS->hasRecallLabel(Ljava/lang/Object;)Z
+            invoke-static {p0}, $RECALLED_MESSAGES->hasRecallLabel(Ljava/lang/Object;)Z
             move-result v1
             if-eqz v1, :nezumi_original_time_visibility
             return v1
@@ -145,7 +144,7 @@ val keepRecalledMessagesPatch = bytecodePatch(
         val bind = row.methods.single {
             it.name == "p2" && it.parameterTypes == listOf(message, rowStyle) && it.returnType == "V"
         }
-        bind.addInstructions(0, "invoke-static {p0}, $RECALL_SETTINGS->trackRecallRow(Landroid/view/View;)V")
+        bind.addInstructions(0, "invoke-static {p0}, $RECALLED_MESSAGES->trackRecallRow(Landroid/view/View;)V")
 
         attachNezumiSettings("attachRecalledMessages")
     }

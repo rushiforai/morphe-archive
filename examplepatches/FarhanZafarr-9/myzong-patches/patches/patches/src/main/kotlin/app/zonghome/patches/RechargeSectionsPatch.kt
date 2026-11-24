@@ -53,11 +53,12 @@ private val rechargePagerFramework=bytecodePatch {
     }
 }
 private fun rechargeSection(title:String,detail:String,configuration:String)=bytecodePatch(
-    name=title,description=detail,default=true
+    name=null,description=detail,default=true
 ) {
     compatibleWith(rechargeTarget)
     dependsOn(rechargePagerFramework)
     execute {
+        if (!CustomizationSettings.enabled(configuration)) return@execute
         Fingerprint(definingClass=RECHARGE,name=configuration,returnType="Z",parameters=emptyList())
             .method.addInstructions(0,"const/4 v0, 0x1\nreturn v0")
     }

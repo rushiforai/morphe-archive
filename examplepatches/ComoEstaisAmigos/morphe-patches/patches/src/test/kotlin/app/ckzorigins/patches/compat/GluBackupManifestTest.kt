@@ -1,8 +1,8 @@
 package app.ckzorigins.patches.compat
 
-import org.w3c.dom.Document
+import app.adebisi.patches.shared.namedElements
+import app.adebisi.patches.shared.parseManifestXml
 import org.w3c.dom.Element
-import javax.xml.parsers.DocumentBuilderFactory
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
@@ -12,42 +12,30 @@ import kotlin.test.assertTrue
 class GluBackupManifestTest {
     @Test
     fun `stock glu backup nodes are removed and nothing is added`() {
-        val document = parse(STOCK)
+        val document = parseManifestXml(STOCK)
         GluBackupManifest.strip(document)
         val app = document.getElementsByTagName("application").item(0) as Element
         assertFalse(app.hasAttribute("android:backupAgent"))
         assertFalse(app.hasAttribute("android:restoreAnyVersion"))
         assertFalse(app.hasAttribute("android:fullBackupOnly"))
-        assertEquals(0, named(document, "uses-permission", GluBackupManifest.BACKUP_PERMISSION).size)
-        assertEquals(0, named(document, "meta-data", GluBackupManifest.BACKUP_API_KEY).size)
-        assertEquals(1, named(document, "uses-permission", "android.permission.INTERNET").size)
+        assertEquals(0, namedElements(document, "uses-permission", listOf(GluBackupManifest.BACKUP_PERMISSION)).size)
+        assertEquals(0, namedElements(document, "meta-data", listOf(GluBackupManifest.BACKUP_API_KEY)).size)
+        assertEquals(1, namedElements(document, "uses-permission", listOf("android.permission.INTERNET")).size)
         assertTrue(app.hasAttribute("android:label"))
     }
 
     @Test
     fun `a manifest without the glu agent is refused`() {
         assertFailsWith<app.morphe.patcher.patch.PatchException> {
-            GluBackupManifest.strip(parse(NO_AGENT))
+            GluBackupManifest.strip(parseManifestXml(NO_AGENT))
         }
     }
 
     @Test
     fun `a missing backup permission is refused`() {
         assertFailsWith<app.morphe.patcher.patch.PatchException> {
-            GluBackupManifest.strip(parse(NO_PERMISSION))
+            GluBackupManifest.strip(parseManifestXml(NO_PERMISSION))
         }
-    }
-
-    private fun named(document: Document, tag: String, name: String): List<Element> {
-        val list = document.getElementsByTagName(tag)
-        return (0 until list.length).map { list.item(it) as Element }
-            .filter { it.getAttribute("android:name") == name }
-    }
-
-    private fun parse(xml: String): Document {
-        val factory = DocumentBuilderFactory.newInstance()
-        factory.isNamespaceAware = false
-        return factory.newDocumentBuilder().parse(xml.byteInputStream())
     }
 
     private companion object {

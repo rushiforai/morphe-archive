@@ -1,3 +1,27 @@
+## [1.6.0-dev.10](https://github.com/Plyrs1/morphe-patches/compare/v1.6.0-dev.9...v1.6.0-dev.10) (2026-11-24)
+
+### ✨ New Features
+
+* **com_gajihub_app:** polish Live Tracking Controls notification and add Persistent Live Tracking patch ([565dc14](https://github.com/Plyrs1/morphe-patches/commit/565dc148e84af6c4a9260e4c1c2dd716cdf7cb21))
+
+## [1.6.0-dev.9](https://github.com/Plyrs1/morphe-patches/compare/v1.6.0-dev.8...v1.6.0-dev.9) (2026-11-23)
+
+### 🐛 Bug Fixes
+
+* **com_gajihub_app:** bundle extension DEX and hook sendRequestInternalReal in Live Tracking Controls ([a262aa3](https://github.com/Plyrs1/morphe-patches/commit/a262aa33bcaa088db88c0d6c9207462e725feeb1))
+
+## [1.6.0-dev.8](https://github.com/Plyrs1/morphe-patches/compare/v1.6.0-dev.7...v1.6.0-dev.8) (2026-11-23)
+
+### 🐛 Bug Fixes
+
+* **com_gajihub_app:** avoid clobbered p0 in RNBackgroundActionsTask.p ([6f4c2ff](https://github.com/Plyrs1/morphe-patches/commit/6f4c2ffcedfe5a21035f9e9d93fecc09b627bda2))
+
+## [1.6.0-dev.7](https://github.com/Plyrs1/morphe-patches/compare/v1.6.0-dev.6...v1.6.0-dev.7) (2026-11-23)
+
+### ✨ New Features
+
+* **com_gajihub_app:** add Live Tracking Controls patch ([99cd7de](https://github.com/Plyrs1/morphe-patches/commit/99cd7dec4c319ebe054c0d51b38a4528fd7b3680))
+
 ## [1.6.0-dev.6](https://github.com/Plyrs1/morphe-patches/compare/v1.6.0-dev.5...v1.6.0-dev.6) (2026-11-23)
 
 ### ✨ New Features

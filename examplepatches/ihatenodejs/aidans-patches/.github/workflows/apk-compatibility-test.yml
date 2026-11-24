@@ -1,0 +1,71 @@
+name: APK Compatibility Test Resources
+
+on:
+  workflow_dispatch:
+    inputs:
+      package_name:
+        description: 'Package identity recorded in the smoke payload'
+        required: false
+        default: 'com.aftership.AfterShip'
+        type: string
+
+permissions:
+  contents: read
+
+jobs:
+  smoke:
+    name: Isolated R2 and callback smoke
+    runs-on: ubuntu-latest
+    env:
+      R2_ACCOUNT_ID: ${{ secrets.R2_ACCOUNT_ID }}
+      R2_ACCESS_KEY_ID: ${{ secrets.R2_ACCESS_KEY_ID }}
+      R2_SECRET_ACCESS_KEY: ${{ secrets.R2_SECRET_ACCESS_KEY }}
+      R2_BUCKET_NAME: ${{ vars.R2_BUCKET_NAME }}
+      WORKER_STATUS_URL: ${{ vars.WORKER_STATUS_URL }}
+      COMPATIBILITY_STATUS_SECRET: ${{ secrets.COMPATIBILITY_STATUS_SECRET }}
+      PACKAGE_NAME: ${{ inputs.package_name }}
+    steps:
+      - name: Check isolated bindings are present
+        run: |
+          test -n "$R2_ACCOUNT_ID"
+          test -n "$R2_ACCESS_KEY_ID"
+          test -n "$R2_SECRET_ACCESS_KEY"
+          test -n "$R2_BUCKET_NAME"
+          test -n "$WORKER_STATUS_URL"
+          test -n "$COMPATIBILITY_STATUS_SECRET"
+          echo "url_len=${#WORKER_STATUS_URL} secret_len=${#COMPATIBILITY_STATUS_SECRET} bucket_len=${#R2_BUCKET_NAME}"
+
+      - name: S3 read/write in the isolated prefix
+        run: |
+          url="https://${R2_ACCOUNT_ID}.r2.cloudflarestorage.com/${R2_BUCKET_NAME}/migration/ci-smoke.txt"
+          payload_file="$(mktemp)"
+          read_file="$(mktemp)"
+          printf 'isolated-ci-smoke\n' > "$payload_file"
+
+          curl --fail-with-body --silent --show-error \
+            --aws-sigv4 "aws:amz:auto:s3" \
+            --user "${R2_ACCESS_KEY_ID}:${R2_SECRET_ACCESS_KEY}" \
+            -X PUT --data-binary @"$payload_file" "$url"
+
+          curl --fail-with-body --silent --show-error \
+            --aws-sigv4 "aws:amz:auto:s3" \
+            --user "${R2_ACCESS_KEY_ID}:${R2_SECRET_ACCESS_KEY}" \
+            -o "$read_file" "$url"
+
+          cmp "$payload_file" "$read_file"
+          echo "r2 ${R2_BUCKET_NAME} migration/ci-smoke.txt $(sha256sum "$read_file" | cut -d' ' -f1)"
+          rm -f "$payload_file" "$read_file"
+
+      - name: Callback accepts the test secret and rejects a wrong one
+        run: |
+          url="${WORKER_STATUS_URL%/}/api/compatibility-results"
+          payload="{\"requestId\":\"ci-smoke\",\"packageName\":\"$PACKAGE_NAME\",\"status\":\"smoke\"}"
+          accepted=$(curl -sS -o /dev/null -w '%{http_code}' -X POST "$url" \
+            -H "Authorization: Bearer $COMPATIBILITY_STATUS_SECRET" \
+            -H 'Content-Type: application/json' --data "$payload")
+          rejected=$(curl -sS -o /dev/null -w '%{http_code}' -X POST "$url" \
+            -H 'Authorization: Bearer wrong' \
+            -H 'Content-Type: application/json' --data "$payload")
+          test "$accepted" = "200"
+          test "$rejected" = "403"
+          echo "callback ok"

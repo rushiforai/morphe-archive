@@ -1,3 +1,9 @@
+## [1.20.0](https://github.com/callMeBeyonder/morphe-patches/compare/v1.19.2...v1.20.0) (2026-11-24)
+
+### ✨ New Features
+
+* **gymday:** add premium unlock patches for Gym Day 1.62.0 ([0fee04a](https://github.com/callMeBeyonder/morphe-patches/commit/0fee04a0c2496165f35756a5bcf85336c1d617a8))
+
 ## [1.19.2](https://github.com/callMeBeyonder/morphe-patches/compare/v1.19.1...v1.19.2) (2026-11-23)
 
 ### 🐛 Bug Fixes

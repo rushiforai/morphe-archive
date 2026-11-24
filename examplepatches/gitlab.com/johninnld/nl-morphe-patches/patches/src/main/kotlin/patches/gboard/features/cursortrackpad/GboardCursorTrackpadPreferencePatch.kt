@@ -32,7 +32,7 @@ internal val gboardCursorTrackpadPreferencePatch = bytecodePatch(
             val helper = "morpheCursorStock${original.name}"
             check(owner.methods.none { it.name == helper }) { "Duplicate cursor preference bridge" }
             if (index == 1 && original.implementation!!.instructions.any {
-                    it.isMethodReference("Legd;->morpheWritingToolsStockRead(IZ)Z") }) {
+                    it.isMethodReference("${original.definingClass}->morpheWritingToolsStockRead(IZ)Z") }) {
                 val returns = original.implementation!!.instructions.indices.filter { original.implementation!!.instructions[it].isOpcode("RETURN") }
                 check(returns.size == 1 && original.implementation!!.registerCount == 4)
                 original.addInstructions(returns.single(), """

@@ -6,13 +6,17 @@ package app.morphe.patches.netanalyzer.shared
 
 import app.morphe.patcher.Fingerprint
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
-import app.morphe.patcher.extensions.InstructionExtensions.getInstruction
 import app.morphe.patcher.methodCall
 import app.morphe.patcher.patch.PatchException
-import app.morphe.patcher.patch.bytecodePatch
-import app.morphe.patcher.patch.resourcePatch
+import app.morphe.patcher.patch.document
+import app.morphe.patcher.patch.mutableClassDefBy
+import app.morphe.patcher.patch.patch
 import app.morphe.patcher.resource.ResourceType
-import app.morphe.patcher.util.matchSingle
+import app.morphe.patches.shared.misc.hostedcomponents.CORE_COMPONENT_FACTORY
+import app.morphe.patches.shared.misc.hostedcomponents.HostedComponents
+import app.morphe.patches.shared.misc.hostedcomponents.ComponentHost
+import app.morphe.patches.shared.misc.hostedcomponents.addStyle
+import app.morphe.patches.shared.misc.hostedcomponents.replaceThemeStub
 import app.morphe.patches.shared.misc.smali.addMethod
 import app.morphe.patches.shared.misc.smali.descriptor
 import app.morphe.patches.shared.misc.smali.replaceResourceIdStubs
@@ -29,6 +33,13 @@ internal const val FEATURES_CLASS = "Lapp/hxreborn/extension/netanalyzer/Feature
 internal const val EXTENSION_PACKAGE = "app.hxreborn.extension.netanalyzer"
 private const val SERVICE_NAMES_CLASS = "Lapp/hxreborn/extension/netanalyzer/ServiceNames;"
 private const val ACTIVITY_THEME = "@android:style/Theme.DeviceDefault.DayNight"
+private const val ACTIVITY_STYLE = "hx_netanalyzer_screen"
+private const val HOST_SCREEN_ACTIVITY = "Lapp/hxreborn/extension/netanalyzer/HostScreenActivity;"
+private val screenHostActivity = ComponentHost(
+    "activity",
+    "com.google.android.gms.ads.OutOfContextTestingActivity",
+    mapOf("configChanges" to "keyboard|keyboardHidden|orientation|screenLayout|screenSize|smallestScreenSize|uiMode"),
+)
 private const val PATCHES_SECTION_METHOD = "hxPatchesSection"
 private const val PATCHES_SECTION_HEADER = "Patches"
 private const val PATCHES_MENU_TITLE = "hxreborn patches"
@@ -70,16 +81,20 @@ internal fun addFeatureActivity(activity: String) {
 private const val EXPORT_FILE_PROVIDER = "ExportFileProvider"
 private const val EXPORT_PROVIDER_AUTHORITY_SUFFIX = ".netanalyzer-an.provider"
 
-private val featureActivitiesPatch = resourcePatch {
-    dependsOn(netanalyzerFeaturesExtensionPatch)
+private val hostedComponents = HostedComponents(CORE_COMPONENT_FACTORY)
+
+private val featureActivitiesPatch = patch {
+    dependsOn(netanalyzerFeaturesExtensionPatch, hostedComponents.patch)
     finalize {
+        featureActivities.distinct().forEach { hostedComponents.host(it, screenHostActivity) }
+        mutableClassDefBy(HOST_SCREEN_ACTIVITY).replaceThemeStub("screenTheme", addStyle(ACTIVITY_STYLE, ACTIVITY_THEME))
         document("AndroidManifest.xml").use { document ->
             val application = document.getElementsByTagName("application").item(0) as Element
             featureActivities.distinct().forEach { name ->
                 val activity = document.createElement("activity")
                 activity.setAttribute("android:name", name)
                 activity.setAttribute("android:exported", "false")
-                activity.setAttribute("android:theme", ACTIVITY_THEME)
+                activity.setAttribute("android:theme", "@style/$ACTIVITY_STYLE")
                 application.appendChild(activity)
             }
             val provider = document.createElement("provider")
@@ -92,7 +107,7 @@ private val featureActivitiesPatch = resourcePatch {
     }
 }
 
-internal val patchesMenuPatch = bytecodePatch {
+internal val patchesMenuPatch = patch {
     dependsOn(netanalyzerFeaturesExtensionPatch, sharedActivityCallbacksAdapterExtensionPatch, sharedDimensionsExtensionPatch, sharedProxyHandlerExtensionPatch)
     dependsOn(
         disableTamperDetectionPatch,
@@ -108,7 +123,7 @@ internal val patchesMenuPatch = bytecodePatch {
             mapOf("portDatabase" to "port_database"),
         )
         addFeatureActivity(PATCHES_MENU_ACTIVITY)
-        MainActivityOnCreateFingerprint.matchSingle().method.addInstructions(
+        MainActivityOnCreateFingerprint.method.addInstructions(
             0,
             "invoke-static { p0 }, $FEATURES_CLASS->attach(Landroid/app/Activity;)V",
         )
@@ -117,8 +132,8 @@ internal val patchesMenuPatch = bytecodePatch {
     finalize {
         if (menuEntries.isEmpty()) return@finalize
 
-        val headerMatch = HeaderRowFingerprint.matchSingle()
-        val rowMatch = ClickableRowFingerprint.matchSingle()
+        val headerMatch = HeaderRowFingerprint.match()
+        val rowMatch = ClickableRowFingerprint.match()
         val header = headerMatch.originalMethod
         val row = rowMatch.originalMethod
         val headerParameters = headerMatch.composableParameters()
@@ -128,11 +143,10 @@ internal val patchesMenuPatch = bytecodePatch {
 
         val aboutSection = Fingerprint(
             filters = listOf(decryptedString(ABOUT_SECTION_BELOW), methodCall(reference = header)),
-        ).matchSingle()
-        val sectionLabelIndex = aboutSection.instructionMatches.first().index
-        val composerRegister = aboutSection.method.getInstruction<FiveRegisterInstruction>(
-            aboutSection.instructionMatches.last().index,
-        ).registerD
+        ).match()
+        val (sectionLabel, headerCall) = aboutSection.instructionMatches
+        val sectionLabelIndex = sectionLabel.index
+        val composerRegister = headerCall.getInstruction<FiveRegisterInstruction>().registerD
         val composerType = row.parameterTypes[rowParameters.size].toString()
         val onClickType = row.parameterTypes[rowParameters.indexOf(ROW_ON_CLICK)].toString()
 

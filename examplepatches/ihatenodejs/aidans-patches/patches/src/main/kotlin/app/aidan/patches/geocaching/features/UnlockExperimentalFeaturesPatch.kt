@@ -1,7 +1,7 @@
 package app.aidan.patches.geocaching.features
 
 import app.aidan.patches.geocaching.shared.COMPATIBILITY_GEOCACHING
-import app.aidan.patches.geocaching.shared.patchAllL3cChecksToValue
+import app.aidan.patches.geocaching.shared.patchAllPremiumChecksToValue
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
 import app.morphe.patcher.extensions.InstructionExtensions.replaceInstruction
 import app.morphe.patcher.patch.BytecodePatchContext
@@ -12,6 +12,9 @@ import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.iface.instruction.NarrowLiteralInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
+import com.android.tools.smali.dexlib2.iface.instruction.RegisterRangeInstruction
+import com.android.tools.smali.dexlib2.iface.reference.MethodReference
+
 val unlockExperimentalFeaturesPatch = bytecodePatch(
     name = "Unlock Experimental Features",
     description = "Unlocks beta and experimental features in Settings without Geocaching Premium.",
@@ -76,7 +79,7 @@ private fun BytecodePatchContext.neutralizeExperimentalServerSync() {
     } ?: throw PatchException("ExperimentalRepo.b (syncFeatures) not found")
 
     val smali = """
-        sget-object v0, Lszb;->a:Lszb;
+        sget-object v0, Lkec;->a:Lkec;
         return-object v0
     """.trimIndent()
 
@@ -85,57 +88,80 @@ private fun BytecodePatchContext.neutralizeExperimentalServerSync() {
 }
 
 /**
- * Bypasses the Premium upsell check in SettingsFragment.y when clicking Experimental Features,
+ * Bypasses the Premium upsell check in SettingsFragment.z when clicking Experimental Features,
  * opening toExperimentalFeaturesFrag directly.
  */
 private fun BytecodePatchContext.patchExperimentalSettingsGate() {
     val settingsClass = mutableClassDefBy("Lcom/groundspeak/geocaching/intro/fragments/settings/SettingsFragment;")
-    val yMethod = settingsClass.methods.firstOrNull {
-        it.name == "y" && it.returnType == "V" && it.implementation != null
-    } ?: throw PatchException("SettingsFragment.y not found")
+    val zMethod = settingsClass.methods.firstOrNull {
+        it.name == "z" && it.returnType == "V" && it.parameterTypes.isEmpty() && it.implementation != null
+    } ?: throw PatchException("SettingsFragment.z not found")
 
-    patchAllL3cChecksToValue(yMethod, "SettingsFragment.y", true)
+    patchAllPremiumChecksToValue(zMethod, "SettingsFragment.z", true)
 }
 
 /**
  * Removes the "Premium" badge next to "Experimental features" in Settings by setting
- * the isPremium boolean in p.<init> to false.
+ * the isPremium boolean in q.<init> to false. The badge flag is already absent on
+ * some builds, in which case this is a no-op.
  */
 private fun BytecodePatchContext.removeExperimentalPremiumBadge() {
-    val pClass = mutableClassDefBy("Lcom/groundspeak/geocaching/intro/fragments/settings/p;")
-    val initMethod = pClass.methods.firstOrNull {
+    val rowClass = mutableClassDefBy("Lcom/groundspeak/geocaching/intro/fragments/settings/q;")
+    val initMethod = rowClass.methods.firstOrNull {
         it.name == "<init>" && it.implementation != null
-    } ?: throw PatchException("p.<init> not found")
+    } ?: throw PatchException("q.<init> not found")
 
-    val impl = initMethod.implementation ?: throw PatchException("Missing implementation in p.<init>")
+    val impl = initMethod.implementation ?: throw PatchException("Missing implementation in q.<init>")
     val instructions = impl.instructions.toList()
 
-    val constIdx = instructions.indexOfFirst {
-        it.opcode == Opcode.CONST_4 && (it as? NarrowLiteralInstruction)?.narrowLiteral == 1
+    val invokeIdx = instructions.indexOfFirst { inst ->
+        inst.opcode == Opcode.INVOKE_DIRECT_RANGE &&
+            (inst as? ReferenceInstruction)?.reference?.let { ref ->
+                ref is MethodReference &&
+                    ref.definingClass == "Lujc;" &&
+                    ref.name == "<init>" &&
+                    ref.parameterTypes.joinToString("") == "IILjava/lang/Integer;IZI"
+            } == true
     }
-    if (constIdx < 0) {
-        throw PatchException("Could not find isPremium literal in p.<init>")
+    if (invokeIdx < 0) {
+        throw PatchException("ujc.<init>(IILjava/lang/Integer;IZI)V call not found in q.<init>")
     }
-    val reg = (instructions[constIdx] as OneRegisterInstruction).registerA
-    initMethod.replaceInstruction(constIdx, "const/4 v$reg, 0x0")
+
+    val range = instructions[invokeIdx] as? RegisterRangeInstruction
+        ?: throw PatchException("ujc.<init> call in q.<init> is not a range invoke")
+    val premiumReg = range.startRegister + 5
+
+    val constIdx = (invokeIdx - 1 downTo 0).firstOrNull { i ->
+        val inst = instructions[i]
+        inst.opcode == Opcode.CONST_4 && (inst as? OneRegisterInstruction)?.registerA == premiumReg
+    } ?: throw PatchException("Could not find isPremium literal v$premiumReg in q.<init>")
+
+    when ((instructions[constIdx] as NarrowLiteralInstruction).narrowLiteral) {
+        0 -> return
+        1 -> initMethod.replaceInstruction(constIdx, "const/4 v$premiumReg, 0x0")
+        else -> throw PatchException("Unexpected isPremium literal in q.<init>")
+    }
 }
 
 /**
- * Enables LaunchDarkly feature flags (10% projects menu K, recent log icons T, and dark web descriptions b0)
- * in LaunchDarkly b.i, making all experimental feature projects accessible and savable.
+ * Enables LaunchDarkly feature flags (10% projects menu I, recent log icons O, and dark web descriptions X)
+ * in the LaunchDarkly evaluation wrapper u36.z, making all experimental feature projects accessible and savable.
  */
 private fun BytecodePatchContext.unlockBetaFeatureFlags() {
-    val ldClass = mutableClassDefBy("Ll75;")
-    val iMethod = ldClass.methods.firstOrNull {
-        it.name == "E" && it.returnType == "Z" && it.implementation != null
-    } ?: throw PatchException("LaunchDarkly l75.E not found")
+    val ldClass = mutableClassDefBy("Lu36;")
+    val zMethod = ldClass.methods.firstOrNull {
+        it.name == "z" &&
+            it.returnType == "Z" &&
+            it.parameterTypes.joinToString("") == "Lcom/groundspeak/geocaching/intro/analytics/launchdarkly/LaunchDarklyFlag;" &&
+            it.implementation != null
+    } ?: throw PatchException("LaunchDarkly u36.z not found")
 
     val smali = """
-        sget-object v0, Lcom/groundspeak/geocaching/intro/analytics/launchdarkly/LaunchDarklyFlag;->K:Lcom/groundspeak/geocaching/intro/analytics/launchdarkly/LaunchDarklyFlag;
+        sget-object v0, Lcom/groundspeak/geocaching/intro/analytics/launchdarkly/LaunchDarklyFlag;->I:Lcom/groundspeak/geocaching/intro/analytics/launchdarkly/LaunchDarklyFlag;
         if-eq p0, v0, :cond_is_true
-        sget-object v0, Lcom/groundspeak/geocaching/intro/analytics/launchdarkly/LaunchDarklyFlag;->T:Lcom/groundspeak/geocaching/intro/analytics/launchdarkly/LaunchDarklyFlag;
+        sget-object v0, Lcom/groundspeak/geocaching/intro/analytics/launchdarkly/LaunchDarklyFlag;->O:Lcom/groundspeak/geocaching/intro/analytics/launchdarkly/LaunchDarklyFlag;
         if-eq p0, v0, :cond_is_true
-        sget-object v0, Lcom/groundspeak/geocaching/intro/analytics/launchdarkly/LaunchDarklyFlag;->b0:Lcom/groundspeak/geocaching/intro/analytics/launchdarkly/LaunchDarklyFlag;
+        sget-object v0, Lcom/groundspeak/geocaching/intro/analytics/launchdarkly/LaunchDarklyFlag;->X:Lcom/groundspeak/geocaching/intro/analytics/launchdarkly/LaunchDarklyFlag;
         if-eq p0, v0, :cond_is_true
         goto :cond_not_beta
         :cond_is_true
@@ -144,16 +170,16 @@ private fun BytecodePatchContext.unlockBetaFeatureFlags() {
         :cond_not_beta
     """.trimIndent()
 
-    iMethod.addInstructions(0, smali)
+    zMethod.addInstructions(0, smali)
 }
 
 /**
  * Injects the hidden experimental features (Collaborative Lists, Has Parking, Trackables Only)
- * into the ExperimentalFragment menu, overrides Lyc3.a to read their values from SharedPreferences,
+ * into the ExperimentalFragment menu, overrides qh3.a to read their values from SharedPreferences,
  * and adds persistent storage in ExpFeaturesViewModel.saveFeaturePreference.
  */
 private fun BytecodePatchContext.patchUnpersistedExperimentalFeatures() {
-    // 1. Add f$f, f$h, f$q to ExperimentalFragment.onResume()V
+    // 1. Add g$g, g$j, g$y to ExperimentalFragment.onResume()V
     val fragmentClass = mutableClassDefBy("Lcom/groundspeak/geocaching/intro/experimentalfeatures/ExperimentalFragment;")
     val onResumeMethod = fragmentClass.methods.firstOrNull {
         it.name == "onResume" && it.returnType == "V" && it.implementation != null
@@ -165,64 +191,69 @@ private fun BytecodePatchContext.patchUnpersistedExperimentalFeatures() {
     val targetIdx = onResumeInstructions.indexOfFirst {
         it.opcode == Opcode.SGET_OBJECT &&
             (it as? ReferenceInstruction)?.reference?.toString() ==
-            "Lcom/groundspeak/geocaching/intro/experimentalfeatures/f\$a;->a:Lcom/groundspeak/geocaching/intro/experimentalfeatures/f\$a;"
+            "Lcom/groundspeak/geocaching/intro/experimentalfeatures/g\$t;->a:Lcom/groundspeak/geocaching/intro/experimentalfeatures/g\$t;"
     }
     if (targetIdx < 0) {
-        throw PatchException("Could not find f\$a reference in ExperimentalFragment.onResume")
+        throw PatchException("Could not find g\$t reference in ExperimentalFragment.onResume")
     }
 
     val addIdx = onResumeInstructions.subList(targetIdx, onResumeInstructions.size).indexOfFirst {
-        it.opcode == Opcode.INVOKE_VIRTUAL
+        it.opcode == Opcode.INVOKE_VIRTUAL &&
+            (it as? ReferenceInstruction)?.reference?.toString() ==
+            "Lkotlin/collections/builders/ListBuilder;->add(Ljava/lang/Object;)Z"
     }
     if (addIdx < 0) {
-        throw PatchException("Could not find invoke-virtual after f\$a in ExperimentalFragment.onResume")
+        throw PatchException("Could not find ListBuilder.add after g\$t in ExperimentalFragment.onResume")
     }
     val insertIdx = targetIdx + addIdx + 1
 
     val addFeaturesSmali = """
-        sget-object v3, Lcom/groundspeak/geocaching/intro/experimentalfeatures/f${'$'}f;->a:Lcom/groundspeak/geocaching/intro/experimentalfeatures/f${'$'}f;
+        sget-object v3, Lcom/groundspeak/geocaching/intro/experimentalfeatures/g${'$'}g;->a:Lcom/groundspeak/geocaching/intro/experimentalfeatures/g${'$'}g;
         invoke-virtual {v2, v3}, Lkotlin/collections/builders/ListBuilder;->add(Ljava/lang/Object;)Z
-        sget-object v3, Lcom/groundspeak/geocaching/intro/experimentalfeatures/f${'$'}h;->a:Lcom/groundspeak/geocaching/intro/experimentalfeatures/f${'$'}h;
+        sget-object v3, Lcom/groundspeak/geocaching/intro/experimentalfeatures/g${'$'}j;->a:Lcom/groundspeak/geocaching/intro/experimentalfeatures/g${'$'}j;
         invoke-virtual {v2, v3}, Lkotlin/collections/builders/ListBuilder;->add(Ljava/lang/Object;)Z
-        sget-object v3, Lcom/groundspeak/geocaching/intro/experimentalfeatures/f${'$'}q;->a:Lcom/groundspeak/geocaching/intro/experimentalfeatures/f${'$'}q;
+        sget-object v3, Lcom/groundspeak/geocaching/intro/experimentalfeatures/g${'$'}y;->a:Lcom/groundspeak/geocaching/intro/experimentalfeatures/g${'$'}y;
         invoke-virtual {v2, v3}, Lkotlin/collections/builders/ListBuilder;->add(Ljava/lang/Object;)Z
     """.trimIndent()
     onResumeMethod.addInstructions(insertIdx, addFeaturesSmali)
 
-    // 2. Prepend preference checks in Lyc3;->a(Lcom/groundspeak/geocaching/intro/experimentalfeatures/f;)Z
-    val prefsClass = mutableClassDefBy("Lyc3;")
+    // 2. Prepend preference checks in qh3;->a(Lcom/groundspeak/geocaching/intro/experimentalfeatures/g;)Z
+    val prefsClass = mutableClassDefBy("Lqh3;")
     val aMethod = prefsClass.methods.firstOrNull {
-        it.name == "a" && it.returnType == "Z" && it.implementation != null
-    } ?: throw PatchException("yc3.a not found")
+        it.name == "a" &&
+            it.returnType == "Z" &&
+            it.parameterTypes.joinToString("") == "Lcom/groundspeak/geocaching/intro/experimentalfeatures/g;" &&
+            it.implementation != null
+    } ?: throw PatchException("qh3.a not found")
 
     val prefsSmali = """
-        sget-object v0, Lcom/groundspeak/geocaching/intro/experimentalfeatures/f${'$'}h;->a:Lcom/groundspeak/geocaching/intro/experimentalfeatures/f${'$'}h;
+        sget-object v0, Lcom/groundspeak/geocaching/intro/experimentalfeatures/g${'$'}j;->a:Lcom/groundspeak/geocaching/intro/experimentalfeatures/g${'$'}j;
         invoke-virtual {p1, v0}, Ljava/lang/Object;->equals(Ljava/lang/Object;)Z
         move-result v0
-        if-eqz v0, :cond_exp_check_f
-        iget-object v0, p0, Lyc3;->a:Landroid/content/SharedPreferences;
+        if-eqz v0, :cond_exp_check_g
+        iget-object v0, p0, Lqh3;->a:Landroid/content/SharedPreferences;
         const-string v1, "ExperimentalSharedPrefs.HAS_PARKING"
         const/4 v2, 0x0
         invoke-interface {v0, v1, v2}, Landroid/content/SharedPreferences;->getBoolean(Ljava/lang/String;Z)Z
         move-result v0
         return v0
-        :cond_exp_check_f
-        sget-object v0, Lcom/groundspeak/geocaching/intro/experimentalfeatures/f${'$'}f;->a:Lcom/groundspeak/geocaching/intro/experimentalfeatures/f${'$'}f;
+        :cond_exp_check_g
+        sget-object v0, Lcom/groundspeak/geocaching/intro/experimentalfeatures/g${'$'}g;->a:Lcom/groundspeak/geocaching/intro/experimentalfeatures/g${'$'}g;
         invoke-virtual {p1, v0}, Ljava/lang/Object;->equals(Ljava/lang/Object;)Z
         move-result v0
-        if-eqz v0, :cond_exp_check_q
-        iget-object v0, p0, Lyc3;->a:Landroid/content/SharedPreferences;
+        if-eqz v0, :cond_exp_check_y
+        iget-object v0, p0, Lqh3;->a:Landroid/content/SharedPreferences;
         const-string v1, "ExperimentalSharedPrefs.COLLABORATIVE_LISTS"
         const/4 v2, 0x0
         invoke-interface {v0, v1, v2}, Landroid/content/SharedPreferences;->getBoolean(Ljava/lang/String;Z)Z
         move-result v0
         return v0
-        :cond_exp_check_q
-        sget-object v0, Lcom/groundspeak/geocaching/intro/experimentalfeatures/f${'$'}q;->a:Lcom/groundspeak/geocaching/intro/experimentalfeatures/f${'$'}q;
+        :cond_exp_check_y
+        sget-object v0, Lcom/groundspeak/geocaching/intro/experimentalfeatures/g${'$'}y;->a:Lcom/groundspeak/geocaching/intro/experimentalfeatures/g${'$'}y;
         invoke-virtual {p1, v0}, Ljava/lang/Object;->equals(Ljava/lang/Object;)Z
         move-result v0
         if-eqz v0, :cond_exp_orig
-        iget-object v0, p0, Lyc3;->a:Landroid/content/SharedPreferences;
+        iget-object v0, p0, Lqh3;->a:Landroid/content/SharedPreferences;
         const-string v1, "ExperimentalSharedPrefs.SHOW_TRACKABLES_ONLY"
         const/4 v2, 0x0
         invoke-interface {v0, v1, v2}, Landroid/content/SharedPreferences;->getBoolean(Ljava/lang/String;Z)Z
@@ -242,9 +273,9 @@ private fun BytecodePatchContext.patchUnpersistedExperimentalFeatures() {
     val saveInstructions = saveImpl.instructions.toList()
 
     val targets = listOf(
-        Pair("Lcom/groundspeak/geocaching/intro/experimentalfeatures/f\$q;", "ExperimentalSharedPrefs.SHOW_TRACKABLES_ONLY"),
-        Pair("Lcom/groundspeak/geocaching/intro/experimentalfeatures/f\$h;", "ExperimentalSharedPrefs.HAS_PARKING"),
-        Pair("Lcom/groundspeak/geocaching/intro/experimentalfeatures/f\$f;", "ExperimentalSharedPrefs.COLLABORATIVE_LISTS")
+        Pair("Lcom/groundspeak/geocaching/intro/experimentalfeatures/g\$y;", "ExperimentalSharedPrefs.SHOW_TRACKABLES_ONLY"),
+        Pair("Lcom/groundspeak/geocaching/intro/experimentalfeatures/g\$j;", "ExperimentalSharedPrefs.HAS_PARKING"),
+        Pair("Lcom/groundspeak/geocaching/intro/experimentalfeatures/g\$g;", "ExperimentalSharedPrefs.COLLABORATIVE_LISTS")
     )
 
     val insertions = targets.map { (typeDesc, prefKey) ->

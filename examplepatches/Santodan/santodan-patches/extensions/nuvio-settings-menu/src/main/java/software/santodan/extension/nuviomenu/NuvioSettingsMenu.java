@@ -68,27 +68,30 @@ public final class NuvioSettingsMenu {
         ClassLoader loader = composer.getClass().getClassLoader();
         renderGroup(composer, loader, "Continue Watching", 0, 3);
         renderGroup(composer, loader, "UI", 3, 5);
-        for (int index = 2; index < 5; index++) {
-            try {
-                Class.forName(BRIDGES[index], false, loader);
-                NuvioDateLabelStyle.renderSettings(composer, "", "Date label appearance");
-                break;
-            } catch (ClassNotFoundException absent) {
-                // Show appearance controls only when at least one date-label patch is installed.
-            } catch (Throwable error) { Log.e(TAG, "Date label settings failed", error); break; }
-        }
         try {
-            Class.forName("software.santodan.extension.nuviometadata.NuvioMetadataSettings", false, loader)
-                .getMethod("renderSettings", Object.class).invoke(null, composer);
+            Method render = Class.forName("software.santodan.extension.nuviometadata.NuvioMetadataSettings", false, loader).getMethod("renderSettings", Object.class);
+            method(composer.getClass(), "d0", 1).invoke(composer, 0x53430001);
+            try { render.invoke(null, composer); }
+            finally { method(composer.getClass(), "p", 1).invoke(composer, false); }
         } catch (ClassNotFoundException absent) {
             // Independently selectable metadata patch.
         } catch (Throwable error) { Log.e(TAG, "Metadata settings failed", error); }
+        try {
+            Method render = Class.forName("software.santodan.extension.nuviomenu.NuvioLabelsEditor", false, loader).getMethod("renderSettings", Object.class);
+            method(composer.getClass(), "d0", 1).invoke(composer, 0x53430002);
+            try { render.invoke(null, composer); }
+            finally { method(composer.getClass(), "p", 1).invoke(composer, false); }
+        } catch(ClassNotFoundException absent) {
+            // Host fixtures and older packaged settings modules can omit the optional editor.
+        } catch(Throwable error) { Log.e(TAG,"Label customization settings failed",error); }
         renderGroup(composer, loader, "Streams", 5, 10);
         renderGroup(composer, loader, "Android TV launcher", 10, 11);
         renderGroup(composer, loader, "Playback", 11, BRIDGES.length);
         try {
-            Class.forName("software.santodan.extension.nuviomenu.SettingsTransferActivity", false, loader)
-                .getMethod("renderSettings", Object.class).invoke(null, composer);
+            Method render = Class.forName("software.santodan.extension.nuviomenu.SettingsTransferActivity", false, loader).getMethod("renderSettings", Object.class);
+            method(composer.getClass(), "d0", 1).invoke(composer, 0x53430003);
+            try { render.invoke(null, composer); }
+            finally { method(composer.getClass(), "p", 1).invoke(composer, false); }
         } catch (ClassNotFoundException absent) {
             // Optional in host fixtures; the side-by-side patch registers the activity.
         } catch (Throwable error) { Log.e(TAG, "Settings transfer rendering failed", error); }
@@ -108,7 +111,9 @@ public final class NuvioSettingsMenu {
                         .invoke(null, 0, 4, composer, label, null, modifier.get(null));
                     labelled = true;
                 }
-                render.invoke(null, composer);
+                method(composer.getClass(), "d0", 1).invoke(composer, 0x53420000 + index);
+                try { render.invoke(null, composer); }
+                finally { method(composer.getClass(), "p", 1).invoke(composer, false); }
             } catch (ClassNotFoundException absent) {
                 // A patch can be selected independently; absent patches have no settings.
             } catch (Throwable error) { Log.e(TAG, "Patch settings failed: " + bridge, error); }

@@ -10,16 +10,16 @@ import java.util.WeakHashMap;
 
 public final class GboardSpacebarLogoAdapter {
     private static final String TAG = "GboardPatches";
-    private static final String ACTION_TYPE_CLASS = "qlk";
+    private static final String ACTION_TYPE_CLASS = "agkl";
     private static final String ACTION_DEF_CLASS =
             "com.google.android.libraries.inputmethod.metadata.ActionDef";
-    private static final String ACTION_ENTRY_CLASS = "qmg";
+    private static final String ACTION_ENTRY_CLASS = "agmb";
     private static final int KEYCODE_SPACE = 62;
-    public static final int SPACEBAR_VIEW_ID = 0x7f0b05b5;
-    public static final int PRIMARY_LABEL_VIEW_ID = 0x7f0b05f5;
-    public static final int GOOGLE_G_DRAWABLE_ID = 0x7f080467;
-    public static final int HEART_DRAWABLE_ID = 0x7f080452;
-    public static final int EMOJI_DRAWABLE_ID = 0x7f0804a0;
+    public static final int SPACEBAR_VIEW_ID = 0x7f0b05ab; // key_pos_space
+    public static final int PRIMARY_LABEL_VIEW_ID = 0x7f0b05e9; // SoftKeyView default label
+    public static final int GOOGLE_G_DRAWABLE_ID = 0x7f0803f6; // four-colour Google G
+    public static final int HEART_DRAWABLE_ID = 0x7f080458; // filled heart
+    public static final int EMOJI_DRAWABLE_ID = 0x7f0804a6; // filled smiley
     private static final GboardSpacebarLogoRuntime.ViewBindings VIEW_BINDINGS =
             new GboardSpacebarLogoRuntime.ViewBindings(
                     SPACEBAR_VIEW_ID, PRIMARY_LABEL_VIEW_ID, GOOGLE_G_DRAWABLE_ID,
@@ -148,9 +148,9 @@ public final class GboardSpacebarLogoAdapter {
                     "com.google.android.libraries.inputmethod.widgets.SoftKeyView", false, classLoader)
                     .getDeclaredField("e");
             boundMetadataField.setAccessible(true);
-            pressActionMethod = metadataClass.getDeclaredMethod("g", actionTypeClass);
+            pressActionMethod = metadataClass.getDeclaredMethod("a", actionTypeClass);
             primaryEntryMethod = actionDefClass.getDeclaredMethod("b");
-            keycodeField = actionEntryClass.getDeclaredField("c");
+            keycodeField = actionEntryClass.getDeclaredField("d");
             pressActionType = enumValue(actionTypeClass, "PRESS");
             pressActionMethod.setAccessible(true);
             primaryEntryMethod.setAccessible(true);

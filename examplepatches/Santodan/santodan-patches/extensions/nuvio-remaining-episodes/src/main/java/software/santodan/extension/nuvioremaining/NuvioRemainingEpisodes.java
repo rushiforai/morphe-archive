@@ -258,8 +258,13 @@ public final class NuvioRemainingEpisodes {
             Class<?> text = Class.forName(NuvioNative.TEXT_RENDERER_NAME, false, loader);
             Method method = findStatic(text, "b", 19);
             Object[] style = badgeStyle(loader, composer);
-            method.invoke(null, Integer.toString(count), style[0], style[1], 0L, null, null, 0L, null, 0L,
-                0, false, 0, 0, null, style[2], composer, 0, 0, 65528);
+            Object[] arguments=new Object[]{Integer.toString(count), style[0], style[1], 0L, null, null, 0L, null, 0L,
+                0, false, 0, 0, null, style[2], composer, 0, 0, 65528};
+            try {
+                Class<?> labels=Class.forName("software.santodan.extension.nuviomenu.NuvioLabelStyles",false,loader);
+                arguments=(Object[])labels.getMethod("applyAdded",String.class,Object.class,Object[].class).invoke(null,"remaining_count",composer,arguments);
+            } catch(ClassNotFoundException absent) { /* Preserve native defaults when the shared runtime is absent. */ }
+            method.invoke(null,arguments);
         } catch (Throwable error) {
             Log.e(TAG, "badge compose failed", error);
             // A rendering failure must never break the Continue Watching row.

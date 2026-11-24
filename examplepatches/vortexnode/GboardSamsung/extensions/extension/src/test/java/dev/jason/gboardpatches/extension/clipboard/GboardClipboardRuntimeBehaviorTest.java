@@ -51,6 +51,31 @@ public final class GboardClipboardRuntimeBehaviorTest {
     }
 
     @Test
+    public void samsungModeToggleControlsWholeClipboardBlockGuard() throws Throwable {
+        Class<?> dataHandlerClass = targetLoader.loadClass("fqx");
+        Constructor<?> dataHandlerCtor = dataHandlerClass.getDeclaredConstructor(
+                Context.class, boolean.class, int.class);
+        dataHandlerCtor.setAccessible(true);
+        Object dataHandler = dataHandlerCtor.newInstance(context, Boolean.FALSE, Integer.valueOf(0));
+
+        Assert.assertFalse(GboardClipboardRuntime.shouldKeepWholeClipboardBlock(dataHandler));
+
+        context.getSharedPreferences(GboardClipboardSettings.PREF_FILE, Context.MODE_PRIVATE)
+                .edit()
+                .putBoolean(GboardClipboardSettings.PREF_KEY_CLIPBOARD_ENABLED, true)
+                .putBoolean(GboardClipboardSettings.PREF_KEY_CLIPBOARD_SAMSUNG_MODE, true)
+                .commit();
+        Assert.assertTrue(GboardClipboardRuntime.shouldKeepWholeClipboardBlock(dataHandler));
+
+        context.getSharedPreferences(GboardClipboardSettings.PREF_FILE, Context.MODE_PRIVATE)
+                .edit()
+                .putBoolean(GboardClipboardSettings.PREF_KEY_CLIPBOARD_ENABLED, false)
+                .putBoolean(GboardClipboardSettings.PREF_KEY_CLIPBOARD_SAMSUNG_MODE, true)
+                .commit();
+        Assert.assertFalse(GboardClipboardRuntime.shouldKeepWholeClipboardBlock(dataHandler));
+    }
+
+    @Test
     public void resolvesExact1853HandlesAndInstantTimestamp() throws Throwable {
         GboardClipboardRuntimeSupport support = new GboardClipboardRuntimeSupport();
         GboardClipboardRuntimeSupport.ReflectionHandles handles =

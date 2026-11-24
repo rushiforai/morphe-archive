@@ -65,12 +65,16 @@ public final class GboardEditingAccessPointsContribution {
         }
     }
 
+    // Gboard 18.8.0.1022711984-beta drawables, all theme-tinted like stock Access Point icons.
+    // Copy/Cut/Paste are the stock editing-panel icons (layouts 0x7f0e0147/0x7f0e0148/0x7f0e014c,
+    // labels "Copy"/"Cut"/"Paste"); Select All uses the panel's "Select" icon (layout 0x7f0e014f),
+    // since 18.8 ships no tinted select-all drawable. The previous ids came from an older build.
     static int icon(EditorAction action) {
         return switch (action) {
-            case SELECT_ALL -> 0x7f0804c1;
-            case COPY -> 0x7f08042b;
-            case CUT -> 0x7f08042c;
-            case PASTE -> 0x7f08042e;
+            case SELECT_ALL -> 0x7f0804d1;
+            case COPY -> 0x7f080435;
+            case CUT -> 0x7f080436;
+            case PASTE -> 0x7f080438;
         };
     }
 
@@ -102,7 +106,10 @@ public final class GboardEditingAccessPointsContribution {
             token = method(builder, "q", void.class, false, String.class);
             icon = method(builder, "l", void.class, false, int.class);
             runnable = method(builderBase, "v", void.class, false, Runnable.class);
-            build = method(builder, "a", descriptor, false);
+            // aadm.b() copies the action set (including the v(Runnable) PRESS action) into the
+            // descriptor before calling a(); calling aaej.a() directly builds a button that
+            // ignores taps. Stock 18.8 access points (e.g. kej) build through b().
+            build = method(builderBase, "b", descriptor, false);
             register = method(controller, "g", void.class, false, descriptor, boolean.class);
             title = field(builder, "d");
         }

@@ -357,7 +357,7 @@ public final class ReadingPosition {
         /** Keep ChMate's native unread boundary at the top when it opens below it. */
         boolean alignVisibleReadMarker(long now) throws Exception {
             if(readMarkerHandled||now-opened>30000||XPostPreviewPosition.hasUserInteraction(list)
-                    ||XPostPreviewPosition.pending(list)||!(list instanceof ViewGroup))return false;
+                    ||!(list instanceof ViewGroup))return false;
             if(now<nextReadMarkerInspection)return false;
             // Defer tree inspection while the user is actively scrolling. During the
             // first two seconds, retry quickly as native rows bind; after that, once
@@ -388,6 +388,7 @@ public final class ReadingPosition {
                 if(position<0||position>=count)continue;
                 Object row=itemAccessor.invoke(adapter,position);
                 if(response(row)!=null||!readMarkerText(child))continue;
+                XPostPreviewPosition.cancel(list);
                 readMarkerHandled=true;
                 readMarkerBaselinePending=true;
                 openingAnchor=null;openingRebuild=false;coldPreview=null;
@@ -534,6 +535,7 @@ public final class ReadingPosition {
                 }
                 boolean previews=cardPreviewsEnabled();
                 if(saved!=null&&previews&&!current.explicit&&saved.optInt("number")>1
+                        &&list.canScrollVertically(1)
                         &&current.key.equals(saved.optString("thread"))
                         &&!PROCESS.equals(saved.optString("process"))
                         &&!XPostPreviewPosition.hasUserInteraction(list)){

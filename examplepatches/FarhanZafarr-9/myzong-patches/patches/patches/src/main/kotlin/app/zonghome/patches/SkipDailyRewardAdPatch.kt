@@ -33,6 +33,7 @@ val skipDailyRewardAdPatch = bytecodePatch(
     description = "Use My Zong's existing direct-claim branch when tapping the daily reward bubble.",
     default = false,
 ) {
+    category("Startup & rewards")
     compatibleWith(myZongCompatibility)
 
     execute {

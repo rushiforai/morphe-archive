@@ -1,3 +1,75 @@
+## [1.5.0](https://github.com/vippium/brokenn-patches/compare/v1.4.1...v1.5.0) (2026-11-23)
+
+### ✨ New Features
+* **jiohotstar:** add `Disable notification permission prompt` patch ([5181f38](https://github.com/vippium/brokenn-patches/commit/5181f3880e889a28e92216086706e3332b8beaef))
+* **jiohotstar/hide player buttons:** hide the top bar buttons ([08da74c](https://github.com/vippium/brokenn-patches/commit/08da74c352f0d0fce55ecb1da49cee3d50690e0c))
+* **jiohotstar/feed filter:** add `Feed filter` patch that removes home feed trays by title ([e3fd704](https://github.com/vippium/brokenn-patches/commit/e3fd704dff9e018b861a4d623029ceeee852bd17))
+* **jiohotstar/brokenn settings:** add a hidden settings page with runtime toggles ([e4b25c7](https://github.com/vippium/brokenn-patches/commit/e4b25c794fa595bd04da8b36bc94bff7425a18da))
+
+### 🔧 Improvements
+* **dependencies:** update morphe-gradle-plugin to 2.1.1 ([e2780e8](https://github.com/vippium/brokenn-patches/commit/e2780e86f30c469ed225ba8b668a5511de20506d))
+* **dependencies:** update morphe-patcher to 2.5.0 ([87def26](https://github.com/vippium/brokenn-patches/commit/87def26b574591e75b305b046f36460f6fff46d7))
+
+### ♻️ Refactored
+* **jiohotstar/Remove ChatGPT AI assistant:** refactored to cover remaining entry points ([3281a7c](https://github.com/vippium/brokenn-patches/commit/3281a7c417390e7931dff0e3d27ec5cfda3fbcf3))
+* **jiohotstar/brokenn settings:** move settings access from the Home tab to the My Space tab ([670ad2a](https://github.com/vippium/brokenn-patches/commit/670ad2a02acbcf2a4b0d078f9f1ee9f59e89ab23))
+
+### 🐛 Bug Fixes
+* **jiohotstar/Remove ads:** removed ad markers on the seekbar ([d1437d1](https://github.com/vippium/brokenn-patches/commit/d1437d170afc5b6471a717da8b2e69d37501f011))
+* **jiohotstar:** cancel the pending profile tap when another tab is tapped ([dd6c194](https://github.com/vippium/brokenn-patches/commit/dd6c19438d8f15779e6b5f2164b11629fa24d349))
+* **octogram/unlock premium:** stop showing the premium badge on non-premium users ([4d1518f](https://github.com/vippium/brokenn-patches/commit/4d1518fc6d5e91a2b0304384c4adb9e81e30cb43))
+* **jiohotstar/brokenn settings:** declare vibrate and handle predictive back ([68ee113](https://github.com/vippium/brokenn-patches/commit/68ee113c163e5211c67289e18560bcfe49cb0a38))
+
+## [1.5.0-dev.4](https://github.com/vippium/brokenn-patches/compare/v1.5.0-dev.3...v1.5.0-dev.4) (2026-11-23)
+
+### 📦 New app support
+
+* **picasso:** add Picasso patches
+
+### 🔧 Improvements
+* **jiohotstar/Remove voice assistant:** refactored to cover remaining entry points ([3281a7c](https://github.com/vippium/brokenn-patches/commit/3281a7c417390e7931dff0e3d27ec5cfda3fbcf3))
+
+### 🐛 Bug Fixes
+* **jiohotstar/Remove ads:** removed ad markers on the seekbar ([d1437d1](https://github.com/vippium/brokenn-patches/commit/d1437d170afc5b6471a717da8b2e69d37501f011))
+
+## [1.5.0-dev.3](https://github.com/vippium/brokenn-patches/compare/v1.5.0-dev.2...v1.5.0-dev.3) (2026-11-22)
+
+### ✨ New Features
+* **jiohotstar:** add `Disable notification permission prompt` patch ([5181f38](https://github.com/vippium/brokenn-patches/commit/5181f3880e889a28e92216086706e3332b8beaef))
+
+### 🔧 Improvements
+* **dependencies:** update morphe-gradle-plugin to 2.1.1 ([e2780e8](https://github.com/vippium/brokenn-patches/commit/e2780e86f30c469ed225ba8b668a5511de20506d))
+* **dependencies:** update morphe-patcher to 2.5.0 ([87def26](https://github.com/vippium/brokenn-patches/commit/87def26b574591e75b305b046f36460f6fff46d7))
+
+### ♻️ Refactored
+* **jiohotstar/brokenn settings:** move settings access from the Home tab to the My Space tab ([670ad2a](https://github.com/vippium/brokenn-patches/commit/670ad2a02acbcf2a4b0d078f9f1ee9f59e89ab23))
+
+### 🐛 Bug Fixes
+* **jiohotstar:** cancel the pending profile tap when another tab is tapped ([dd6c194](https://github.com/vippium/brokenn-patches/commit/dd6c19438d8f15779e6b5f2164b11629fa24d349))
+* **octogram:** stop showing the premium badge on non-premium users ([4d1518f](https://github.com/vippium/brokenn-patches/commit/4d1518fc6d5e91a2b0304384c4adb9e81e30cb43))
+
+## [1.5.0-dev.2](https://github.com/vippium/brokenn-patches/compare/v1.5.0-dev.1...v1.5.0-dev.2) (2026-11-20)
+
+### ✨ New Features
+* **jiohotstar:** hide player top bar buttons ([08da74c](https://github.com/vippium/brokenn-patches/commit/08da74c352f0d0fce55ecb1da49cee3d50690e0c))
+
+## [1.5.0-dev.1](https://github.com/vippium/brokenn-patches/compare/v1.4.1-dev.1...v1.5.0-dev.1) (2026-11-20)
+
+### ✨ New Features
+* **jiohotstar/feed filter:** add `Feed filter` patch that removes home feed trays by title ([e3fd704](https://github.com/vippium/brokenn-patches/commit/e3fd704dff9e018b861a4d623029ceeee852bd17))
+* **jiohotstar/brokenn settings:** add a hidden settings page, opened by double-tapping the Home tab ([e4b25c7](https://github.com/vippium/brokenn-patches/commit/e4b25c794fa595bd04da8b36bc94bff7425a18da))
+
+### 🐛 Bug Fixes
+* **jiohotstar:** declare vibrate and handle predictive back in brokenn settings ([68ee113](https://github.com/vippium/brokenn-patches/commit/68ee113c163e5211c67289e18560bcfe49cb0a38))
+
+## [1.4.1-dev.1](https://github.com/vippium/brokenn-patches/compare/v1.4.0...v1.4.1-dev.1) (2026-11-19)
+
+### 🐛 Bug Fixes
+* **shared:** encode zeroed tween duration register by width and match range invokes ([2cce056](https://github.com/vippium/brokenn-patches/commit/2cce056a40285f82578084b55493deb962fcca70))
+* **jiohotstar/remove-topbar-switcher:** compute target-branch index after the 25f insert ([9b5b9ec](https://github.com/vippium/brokenn-patches/commit/9b5b9ec5c390cb91d0fc5378b9f737f7dcd6e218))
+* **shared:** guard nextInstructionIndex against int overflow ([01eb604](https://github.com/vippium/brokenn-patches/commit/01eb6048f43ae74c15eb2e9521e466c0a9f17924))
+* **jiohotstar/remove-topbar-switcher:** snap header expand/collapse to stop tab-switch jump [skip ci] ([d0fc69b](https://github.com/vippium/brokenn-patches/commit/d0fc69b0cf101206af64ef12fdc3ef79710a45ce))
+
 ## [1.4.1](https://github.com/vippium/brokenn-patches/compare/v1.4.0...v1.4.1) (2026-11-19)
 
 ### 🐛 Bug Fixes

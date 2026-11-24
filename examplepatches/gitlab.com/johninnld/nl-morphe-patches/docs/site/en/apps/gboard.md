@@ -12,6 +12,8 @@ Select Google's armeabi-v7a APK (build 176124765) or arm64-v8a APK (build 176124
 
 | Patch | Default | What it does |
 | --- | --- | --- |
+| **Enable Inline Autofill Suggestions** | On | Enables Gboard's Android inline autofill receiver so a password manager such as Bitwarden can offer login chips in the keyboard. Requires Android 11+, an enabled autofill provider and its inline display setting. Works through the Bitwarden client when using Vaultwarden. |
+| **Smart Compose** | On | Exposes **Text correction → Smart Compose** and enables the client-side text completion gate. Google's language, model and app eligibility still apply. Separate from password autofill. |
 | **Parakeet voice typing** | On | Adds **Parakeet voice typing** to Gboard settings → Voice typing. Once you download a model there and switch it on, the microphone key transcribes on the phone with NVIDIA Parakeet instead of Google's speech recognition. Each sentence is recognised in the language you speak it in, so Dutch and English work in the same dictation without switching. Until a model is ready, Gboard keeps using Google's voice typing. The patched Gboard gets the Parakeet launcher icon. |
 | **Rambler voice typing** | On | Adds Google's **Rambler** to Gboard settings → Voice typing, as a choice next to Parakeet (Gboard's Standard voice typing). With Rambler picked, the microphone key sends your speech to Google's servers, which return finished text and carry out spoken edits such as "delete the last sentence". Parakeet stays the default. |
 | **Rambler personal dictionary** | On | Adds **Voice dictionary** to Gboard settings → Voice typing, with Gboard's own **Voice correction list**: names and words you add, import or export, which Rambler receives with every dictation so it spells them right. Requires Rambler voice typing. |
@@ -45,7 +47,7 @@ Select Google's armeabi-v7a APK (build 176124765) or arm64-v8a APK (build 176124
 | **Hidden flags (18.8)** | On | Three internal 18.8 flags written through Gboard's own override store: app-specific word biasing, the app-specific suggestion bar and the square normalised search radius. See [Hidden flags](#hidden-flags-188). |
 | **Beta features (18.8)** | On | Enables five features for clipboard, floating keyboard, Emoji2 and suggestion removal. Change each under **Patches → More settings → Beta features**. See [Beta features](#beta-features-188). |
 
-Clipboard Enhancements, Web Clipboard, Toolbar Editing Buttons, Cursor trackpad mode, Incognito Mode Toggle, Simple Calculator, Rounded Keyboard Panel, Frosted Glass, Custom Theme, G Logo on Spacebar and Key Shape Selection are ported from the GPLv3 [Gboard Patches](https://github.com/jasonwu1994/Gboard-patches) project and updated for Gboard 18.8.0.
+Enable Inline Autofill Suggestions, Smart Compose, Clipboard Enhancements, Web Clipboard, Toolbar Editing Buttons, Cursor trackpad mode, Incognito Mode Toggle, Simple Calculator, Rounded Keyboard Panel, Frosted Glass, Custom Theme, G Logo on Spacebar and Key Shape Selection are ported from the GPLv3 [Gboard Patches](https://github.com/jasonwu1994/Gboard-patches) project and updated for Gboard 18.8.0.
 
 
 ### Advanced voice typing (NGA)

@@ -44,6 +44,7 @@ val resumeDrivePromptPatch = bytecodePatch(
 
     execute {
         val chosen = mode ?: "hide"
+        requireChoice("resumeDrivePromptPatch", "mode", chosen, setOf("hide", "stock"))
         if (chosen == "stock") {
             println("resumeDrivePromptPatch: stock selected, nothing to do")
             return@execute

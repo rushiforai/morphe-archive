@@ -46,12 +46,34 @@ public final class HtcSettings {
     public static final String TTS_APPLY_SPEED = "tts.applySpeed";
     public static final String TTS_ENGINE = "tts.engine";
     public static final String TTS_VOICE = "tts.voice";
+    // Resume from the exact word (TTS reliability)
+    public static final String WORD_ENABLED = "word.enabled";
+    /** Where a stopped line goes on: "word", "back" (2 words back), "phrase" (after , . ; ...), "seconds" (~2 s back). */
+    public static final String WORD_FROM = "word.from";
+    /** Word highlight inside the line being read: "off", "bold", "dim", "underline". */
+    public static final String WORD_KARAOKE = "word.karaoke";
+    /** Tapping a word of a line: "line" (from the line start), "word" (from the word), "hold" (tap = line, hold = word). */
+    public static final String WORD_TAP = "word.tap";
     // Background reading
     public static final String BG_ENABLED = "bg.enabled";
     public static final String BG_SLEEP_BUTTON = "bg.sleepButton";
     // Remember listening speed
     public static final String SPEED_ENABLED = "speed.enabled";
     public static final String SPEED_EXTRA_LEVELS = "speed.extraLevels";
+    /** Speed range and steps, in hundredths (50 = 0.50x). */
+    public static final String SPEED_MIN = "speed.min";
+    public static final String SPEED_MAX = "speed.max";
+    public static final String SPEED_STEP = "speed.step";
+    /** Quick choice buttons: "auto" (every speed.chipStep from min to max), "custom" (speed.chips), "recent". */
+    public static final String SPEED_CHIPS_MODE = "speed.chipsMode";
+    public static final String SPEED_CHIP_STEP = "speed.chipStep";
+    /** Custom quick choices, e.g. "0.8, 1, 1.2, 1.5". */
+    public static final String SPEED_CHIPS = "speed.chips";
+    /** Speed menu: "youtube" (replaces the app's list) or "list" (app's list + YouTube controls above). */
+    public static final String SPEED_MENU = "speed.menu";
+    public static final String SPEED_SNAP = "speed.snap";
+    public static final String SPEED_REMAINING = "speed.remaining";
+    public static final String SPEED_RESET_BUTTON = "speed.resetButton";
     // TTS media controls
     public static final String MEDIA_ENABLED = "media.enabled";
     public static final String MEDIA_SKIP = "media.skip";
@@ -64,6 +86,20 @@ public final class HtcSettings {
     public static final String TAP_RETURN_BUTTON = "tap.returnButton";
     public static final String TAP_AUTO_RETURN = "tap.autoReturn";
     public static final String TAP_CLOSED_BAR = "tap.closedBar";
+    /** Tapping the line being read while reading: "nothing", "pause" or "restart". */
+    public static final String TAP_CURRENT_LINE = "tap.currentLine";
+    /** Tapping another line while reading: "jump", "mark" or "nothing". */
+    public static final String TAP_OTHER_LINE = "tap.otherLine";
+    /** Where the line being read stays when the reader follows the voice: "top", "middle", "bottom", "page". */
+    public static final String TAP_FOLLOW_POSITION = "tap.followPosition";
+    // Mini player
+    public static final String PLAYER_ENABLED = "player.enabled";
+    /** Leaving the reader while listening: "continue", "pause" (bar stays), "ask", "stop". */
+    public static final String PLAYER_ON_LEAVE = "player.onLeave";
+    // Floating settings button
+    public static final String GEAR_ENABLED = "gear.enabled";
+    /** Screens showing it: "reader", "tabs", "home", "all". */
+    public static final String GEAR_SCREENS = "gear.screens";
     // Show chapter titles
     public static final String TITLES_ENABLED = "titles.enabled";
     public static final String TITLES_WIFI_ONLY = "titles.wifiOnly";
@@ -90,10 +126,24 @@ public final class HtcSettings {
         DEFAULTS.put(TTS_APPLY_SPEED, true);
         DEFAULTS.put(TTS_ENGINE, "");
         DEFAULTS.put(TTS_VOICE, "");
+        DEFAULTS.put(WORD_ENABLED, true);
+        DEFAULTS.put(WORD_FROM, "word");
+        DEFAULTS.put(WORD_KARAOKE, "off");
+        DEFAULTS.put(WORD_TAP, "line");
         DEFAULTS.put(BG_ENABLED, true);
         DEFAULTS.put(BG_SLEEP_BUTTON, true);
         DEFAULTS.put(SPEED_ENABLED, true);
         DEFAULTS.put(SPEED_EXTRA_LEVELS, true);
+        DEFAULTS.put(SPEED_MIN, 50);
+        DEFAULTS.put(SPEED_MAX, 250);
+        DEFAULTS.put(SPEED_STEP, 5);
+        DEFAULTS.put(SPEED_CHIPS_MODE, "auto");
+        DEFAULTS.put(SPEED_CHIP_STEP, 25);
+        DEFAULTS.put(SPEED_CHIPS, "0.8, 1, 1.2, 1.5, 2");
+        DEFAULTS.put(SPEED_MENU, "youtube");
+        DEFAULTS.put(SPEED_SNAP, true);
+        DEFAULTS.put(SPEED_REMAINING, false);
+        DEFAULTS.put(SPEED_RESET_BUTTON, false);
         DEFAULTS.put(MEDIA_ENABLED, true);
         DEFAULTS.put(MEDIA_SKIP, "chapter");
         DEFAULTS.put(RESUME_ENABLED, true);
@@ -103,6 +153,13 @@ public final class HtcSettings {
         DEFAULTS.put(TAP_RETURN_BUTTON, true);
         DEFAULTS.put(TAP_AUTO_RETURN, 0);
         DEFAULTS.put(TAP_CLOSED_BAR, "mark");
+        DEFAULTS.put(TAP_CURRENT_LINE, "nothing");
+        DEFAULTS.put(TAP_OTHER_LINE, "jump");
+        DEFAULTS.put(TAP_FOLLOW_POSITION, "bottom");
+        DEFAULTS.put(PLAYER_ENABLED, true);
+        DEFAULTS.put(PLAYER_ON_LEAVE, "continue");
+        DEFAULTS.put(GEAR_ENABLED, true);
+        DEFAULTS.put(GEAR_SCREENS, "reader");
         DEFAULTS.put(TITLES_ENABLED, true);
         DEFAULTS.put(TITLES_WIFI_ONLY, false);
         DEFAULTS.put(TITLES_SKIP_HEADER, false);
@@ -232,6 +289,8 @@ public final class HtcSettings {
             json.put("applied.tap", HtcPatches.tapToSeek());
             json.put("applied.titles", HtcPatches.chapterTitles());
             json.put("applied.sync", HtcPatches.autoSync());
+            json.put("applied.player", HtcPatches.miniPlayer());
+            json.put("patches.version", HtcPatches.version());
         } catch (Throwable ignored) {
         }
         return json;
@@ -342,6 +401,15 @@ public final class HtcSettings {
                 if (pair == null || pair.size() < 2 || pair.isNull(0) || pair.isNull(1)) continue;
                 if (!KEY_COMMAND.equals(pair.getString(0))) continue;
                 final JSONObject command = new JSONObject(pair.getString(1));
+                if ("wordAt".equals(command.optString("cmd"))) {
+                    // Right away (not on the main thread): the line is spoken a moment later.
+                    JSONObject data = command.optJSONObject("data");
+                    if (data != null) {
+                        app.hoitruyenchu.extension.itruyenchu.patches.tts.TtsController.hint(
+                                data.optString("text"), data.optInt("pos", 0), data.optBoolean("keep"));
+                    }
+                    continue;
+                }
                 main.post(() -> runCommand(command));
             }
         } catch (Throwable t) {

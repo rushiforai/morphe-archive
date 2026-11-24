@@ -42,7 +42,7 @@ Cross-layer rule: DEX, XML, and raw assets use different Morphe contexts. A feat
 | ------------------- | ------------------------------------------------------- | --------------------------------------------------------- |
 | `patches/`          | Kotlin patch bundle and metadata generator              | `patches/AGENTS.md`                                       |
 | `extensions/`       | Java runtime bridges packaged as `.mpe`                 | `extensions/AGENTS.md`                                    |
-| `tools/apk-lab/`    | Python APK lifecycle CLI and pytest suite               | `tools/apk-lab/AGENTS.md`                                 |
+| `tools/apk-lab/`    | Native APK lifecycle CLI and Rust test suite            | `tools/apk-lab/AGENTS.md`                                 |
 | `worker/`           | Cloudflare Worker and Vitest suite                      | `worker/AGENTS.md`                                        |
 | `site/`             | Astro site and data-layer tests                         | `site/AGENTS.md`                                          |
 | `docs/`             | APK Lab reference and per-app reverse-engineering specs | `docs/AGENTS.md`                                          |
@@ -61,7 +61,7 @@ Per-app docs live at `docs/<app>/architecture.md` and `docs/<app>/patches.md`. I
 bun install --frozen-lockfile
 bun install --frozen-lockfile --cwd worker
 bun install --frozen-lockfile --cwd site
-uv sync --locked --project tools/apk-lab
+cargo build --locked --manifest-path tools/apk-lab/Cargo.toml --bin apk-lab
 ```
 
 Gradle requires GitHub Packages credentials through `GITHUB_TOKEN`/`GITHUB_ACTOR` or `gpr.key`/`gpr.user` in Gradle properties.
@@ -103,7 +103,7 @@ Use targeted checks while iterating, then run `bun run audit` after code changes
 ```bash
 bun run --cwd worker dev
 bun run --cwd site dev
-uv run --project tools/apk-lab apk-lab doctor
+cargo run --locked --quiet --manifest-path tools/apk-lab/Cargo.toml --bin apk-lab -- doctor
 ```
 
 Use the documented `apk-lab` commands for all APK lifecycle work; do not invent ad hoc extraction/decompilation directories. Detailed commands are in `tools/apk-lab/AGENTS.md` and `docs/apk-lab.md`.
@@ -126,21 +126,21 @@ npx semantic-release --dry-run
 - Optional/version-variable behavior must be explicitly optional; never convert a required mismatch into a silent skip.
 - Keep generated outputs generated. Do not hand-edit `.mpp`, `.mpe`, build output, `site/.astro/`, `site/dist/`, or managed `.apk-lab/` workspaces.
 - Update the matching docs when commands, user-visible patch behavior, compatibility, or safety invariants change.
-- Kotlin/Java use 4-space indentation. Patch Kotlin uses IntelliJ ktlint style from `.editorconfig`; TypeScript/Astro and configured JSON use Prettier/Oxlint; Python uses Ruff. Rust uses 2021 edition with standard 4-space cargo fmt and clippy with warnings denied. C++ uses C++20 with standard 4-space clang-format (LLVM style) and compiles with `-Wall -Wextra` (warnings treated as errors). Match neighboring style for files outside the configured formatter scopes.
+- Kotlin/Java use 4-space indentation. Patch Kotlin uses IntelliJ ktlint style from `.editorconfig`; TypeScript/Astro and configured JSON use Prettier/Oxlint. Rust uses 2021 edition with standard 4-space cargo fmt and clippy with warnings denied. C++ uses C++20 with standard 4-space clang-format (LLVM style) and compiles with `-Wall -Wextra` (warnings treated as errors). Match neighboring style for files outside the configured formatter scopes.
 
 ### State, Async, and Dependency Boundaries
 
 - Worker handlers receive `env: WorkerEnv`; keep bindings explicit rather than importing hidden service state. Await KV/fetch operations and preserve validation at request boundaries. The module-level memory cache is bounded fallback state, not durable truth.
 - Site data modules should remain deterministic build-time transformations over root metadata and fetched release/status inputs. Keep rendering concerns in Astro components/pages.
 - Android extension bridges are static entry points called from injected Smali. Public Java descriptors are an ABI: change the Java method and its Kotlin/Smali caller together.
-- Python APK tooling passes paths/configuration explicitly and uses managed workspaces. Preserve deterministic output and archive/path-safety checks.
+- Native APK tooling passes paths/configuration explicitly and uses managed workspaces. Preserve deterministic output and archive/path-safety checks.
 - Monorepo dependency management uses `scripts/deps.ts` (`bun run deps:check`, `bun run deps:update`). Intentional holds require a mandatory reason in `dependency-policy.json`. Normal audit is offline and deterministic; dependency freshness is opt-in via `bun run audit --deps` or `bun scripts/audit.ts deps`. Updates require explicit confirmation (interactive TTY prompt for humans, or `--plan <report> --approve <digest>` for automated agents).
 
 ### Generated Metadata
 
 - Patch names, descriptions, options, categories, and compatibility declarations in Kotlin generate `patches-list.json`.
-- The README section between `PATCHES_START` and `PATCHES_END` is generated by `.github/scripts/generate_patches_readme.py`; never edit that block manually.
-- `site/public/icons/<package>.png` is synchronized by `.github/scripts/sync_app_icons.py`.
+- The README section between `PATCHES_START` and `PATCHES_END` is generated by `scripts/generate-patches-readme.ts`; never edit that block manually.
+- `site/public/icons/<package>.png` is synchronized by the native `asset-prep icons` command through `bun scripts/asset-prep.ts`; equal decoded pixels preserve existing bytes and mtime.
 - Release automation owns `CHANGELOG.md`, `patches-bundle.json`, release-version updates in `patches-list.json`, and the generated README patch block.
 
 ### Commit Message Convention
@@ -201,7 +201,7 @@ Repository tooling, infrastructure, and shared modules must use only these fixed
 
 | Scope           | Allowed boundary                                                    | Forbidden variants                    |
 | --------------- | ------------------------------------------------------------------- | ------------------------------------- |
-| `apk-lab`       | APK Lab Python CLI, toolchain, analysis, deployment, decompilation  | `tools/apk-lab`, `skills/apk-lab`     |
+| `apk-lab`       | APK Lab Rust CLI, toolchain, analysis, deployment, decompilation    | `tools/apk-lab`, `skills/apk-lab`     |
 | `site`          | Astro static website, UI components, site data loaders, site tests  | `web`, `frontend`                     |
 | `worker`        | Cloudflare Worker control plane, scraping, KV compatibility state   | `cf`, `backend`                       |
 | `audit`         | Unified audit orchestrator (`scripts/audit.ts`), lint/format setups | `scripts`                             |
@@ -209,7 +209,7 @@ Repository tooling, infrastructure, and shared modules must use only these fixed
 | `release`       | Semantic release configuration, packaging plugins, release scripts  | `build(release)`                      |
 | `docs`          | General repository documentation, root README, architecture specs   | `docs(docs)`, `specs`                 |
 | `icons`         | Application icon synchronization pipeline and icons data            | `chore(app-icons)`                    |
-| `deps`          | Dependency upgrades across Bun, Gradle, or Python                   | `dependencies`                        |
+| `deps`          | Dependency upgrades across Bun, Gradle, or Rust                     | `dependencies`                        |
 | `play-metadata` | Google Play metadata resolution CLI and gpapi client                | `tools/play-metadata`                 |
 
 #### Summary Description Rules
@@ -231,7 +231,7 @@ The summary text after `<type>(<scope>):` must follow these rules:
 | `patches/build.gradle.kts`                           | Patch metadata, generated font resource, build, and metadata tasks. |
 | `extensions/extension/build.gradle.kts`              | `.mpe` output and Android namespace.                                |
 | `patches/src/main/kotlin/util/PatchListGenerator.kt` | `patches-list.json` generator.                                      |
-| `tools/apk-lab/apk_lab/cli.py`                       | APK Lab CLI parser and handlers.                                    |
+| `tools/apk-lab/src/cli.rs`                           | APK Lab CLI parser and command dispatch.                            |
 | `tools/apk-lab/tools.lock.json`                      | Pinned external APK tools and hashes.                               |
 | `scripts/audit.ts`                                   | Unified format/lint/typecheck/test runner.                          |
 | `worker/src/index.ts`                                | Worker request, cron, dispatch, and compatibility control plane.    |
@@ -247,7 +247,7 @@ The summary text after `<type>(<scope>):` must follow these rules:
 - **Bun**: primary JavaScript package manager and task runner for root, Worker, and site. Respect each `bun.lock`.
 - **Node/npm**: only for semantic-release workflows.
 - **Java**: Temurin JDK 21 is the CI-supported baseline. Use `./gradlew`, never a system Gradle.
-- **Python**: 3.12+ through `uv`; run commands with `uv run --project tools/apk-lab ...`.
+- **Rust (host tools)**: Stable toolchain for `tools/apk-lab`, `tools/asset-prep`, `tools/play-metadata`, and native extension helpers. Run APK Lab through `cargo run --locked --quiet --manifest-path tools/apk-lab/Cargo.toml --bin apk-lab -- ...`.
 - **Android SDK**: Build Tools 36.0.0 for APK verification/signing/alignment. Resolution uses `ANDROID_HOME`, `ANDROID_SDK_ROOT`, or `local.properties`.
 - **External APK tools**: install only through `apk-lab setup`; versions and SHA-256 values live in `tools/apk-lab/tools.lock.json`.
 - **Cloudflare**: Worker development/deployment uses Wrangler through the Worker package scripts. Never deploy, mutate bindings, or rotate secrets during routine verification.
@@ -262,7 +262,7 @@ Tests are layered; unit tests do not prove that a proprietary target APK still p
 | Change                      | Minimum targeted proof                                                                                                                                 |
 | --------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------ |
 | Kotlin patch or Java bridge | Gradle compile/build, real-artifact `apk-lab check ... --all`, then device smoke for changed runtime behavior.                                         |
-| APK Lab Python              | Targeted pytest plus `uv run --project tools/apk-lab pytest -q`; smoke the changed CLI path.                                                           |
+| APK Lab Rust                | Targeted `cargo test --locked --manifest-path tools/apk-lab/Cargo.toml`; smoke the changed CLI path through the canonical `cargo run` command.         |
 | Worker                      | `bun run --cwd worker check` and `bun run --cwd worker test`; exercise changed route/cron behavior locally when applicable.                            |
 | Site                        | `bun run --cwd site test`, `check`, `check:icons`, and `build`; inspect the changed page/surface.                                                      |
 | CI/generator/release script | Targeted non-mutating/check-only mode, affected tests, and review generated boundaries. Do not perform a release/deploy as verification.               |

@@ -38,7 +38,7 @@ hide:
 <button type="button" data-category="other" aria-pressed="false">Overige</button>
 </div>
 </div>
-<p class="dap-catalogue__status"><span data-app-count aria-live="polite" aria-atomic="true">82 apps</span> · Patchbundel: 1.101.0</p>
+<p class="dap-catalogue__status"><span data-app-count aria-live="polite" aria-atomic="true">90 apps</span> · Patchbundel: 1.106.0</p>
 <div class="dap-app-grid" markdown>
 <article class="dap-app-card" data-category="other" data-search="2dehands be.tweedehands.m 16.19.0 disable threatmetrix disable tracking hide ads skip consent screens" markdown>
 <p class="dap-app-card__category">Overige</p>
@@ -148,6 +148,48 @@ hide:
 </details>
 
 [Uitleg en downloads](apps/aliexpress.md){ .dap-app-card__link }
+
+</article>
+
+<article class="dap-app-card" data-category="entertainment" data-search="angry birds 2 com.rovio.baba 26.7.3 disable tracking hide ads hide paid shop tab parked app for android auto" markdown>
+<p class="dap-app-card__category">Amusement</p>
+
+### [Angry Birds 2](apps/angry-birds-2.md)
+
+<p class="dap-app-card__version">App-versies: <span class="dap-data">26.7.3</span></p>
+<p class="dap-app-card__package">com.rovio.baba</p>
+<details class="dap-app-card__patches">
+<summary>4 patches</summary>
+<ul>
+<li>Disable tracking <span class="dap-app-card__target">26.7.3</span></li>
+<li>Hide ads <span class="dap-app-card__target">26.7.3</span></li>
+<li>Hide paid shop tab <span class="dap-app-card__target">26.7.3</span></li>
+<li>Parked app for Android Auto <span class="dap-app-card__target">26.7.3</span></li>
+</ul>
+</details>
+
+[Uitleg en downloads](apps/angry-birds-2.md){ .dap-app-card__link }
+
+</article>
+
+<article class="dap-app-card" data-category="entertainment" data-search="angry birds friends com.rovio.angrybirdsfriends 14.9.0 disable tracking hide ads hide paid shop tab parked app for android auto" markdown>
+<p class="dap-app-card__category">Amusement</p>
+
+### [Angry Birds Friends](apps/angry-birds-friends.md)
+
+<p class="dap-app-card__version">App-versies: <span class="dap-data">14.9.0</span></p>
+<p class="dap-app-card__package">com.rovio.angrybirdsfriends</p>
+<details class="dap-app-card__patches">
+<summary>4 patches</summary>
+<ul>
+<li>Disable tracking <span class="dap-app-card__target">14.9.0</span></li>
+<li>Hide ads <span class="dap-app-card__target">14.9.0</span></li>
+<li>Hide paid shop tab <span class="dap-app-card__target">14.9.0</span></li>
+<li>Parked app for Android Auto <span class="dap-app-card__target">14.9.0</span></li>
+</ul>
+</details>
+
+[Uitleg en downloads](apps/angry-birds-friends.md){ .dap-app-card__link }
 
 </article>
 
@@ -315,6 +357,30 @@ hide:
 
 </article>
 
+<article class="dap-app-card" data-category="other" data-search="cronometer com.cronometer.android.gold 4.57.2 disable adjust tracking disable amplitude tracking disable braze tracking disable datadog telemetry disable firebase analytics disable ads disable ads, tracking and gold upsells" markdown>
+<p class="dap-app-card__category">Overige</p>
+
+### [Cronometer](apps/cronometer.md)
+
+<p class="dap-app-card__version">App-versies: <span class="dap-data">4.57.2</span></p>
+<p class="dap-app-card__package">com.cronometer.android.gold</p>
+<details class="dap-app-card__patches">
+<summary>7 patches</summary>
+<ul>
+<li>Disable Adjust tracking <span class="dap-app-card__target">4.57.2</span></li>
+<li>Disable Amplitude tracking <span class="dap-app-card__target">4.57.2</span></li>
+<li>Disable Braze tracking <span class="dap-app-card__target">4.57.2</span></li>
+<li>Disable Datadog telemetry <span class="dap-app-card__target">4.57.2</span></li>
+<li>Disable Firebase Analytics <span class="dap-app-card__target">4.57.2</span></li>
+<li>Disable ads <span class="dap-app-card__target">4.57.2</span></li>
+<li>Disable ads, tracking and Gold upsells <span class="dap-app-card__target">4.57.2</span></li>
+</ul>
+</details>
+
+[Uitleg en downloads](apps/cronometer.md){ .dap-app-card__link }
+
+</article>
+
 <article class="dap-app-card" data-category="news" data-search="de morgen be.persgroep.android.news.mobiledm 7.53.1 7.55.0 android auto nieuws disable tracking hide premium banner hide ads read full articles skip consent screens" markdown>
 <p class="dap-app-card__category">Nieuws en lezen</p>
 
@@ -393,6 +459,25 @@ hide:
 
 </article>
 
+<article class="dap-app-card" data-category="entertainment" data-search="draw a stickman: epic 3 com.hitcents.drawastickmanepic3 1.13.19873 disable tracking hide ads" markdown>
+<p class="dap-app-card__category">Amusement</p>
+
+### [Draw a Stickman: EPIC 3](apps/draw-a-stickman-epic-3.md)
+
+<p class="dap-app-card__version">App-versies: <span class="dap-data">1.13.19873</span></p>
+<p class="dap-app-card__package">com.hitcents.drawastickmanepic3</p>
+<details class="dap-app-card__patches">
+<summary>2 patches</summary>
+<ul>
+<li>Disable tracking <span class="dap-app-card__target">1.13.19873</span></li>
+<li>Hide ads <span class="dap-app-card__target">1.13.19873</span></li>
+</ul>
+</details>
+
+[Uitleg en downloads](apps/draw-a-stickman-epic-3.md){ .dap-app-card__link }
+
+</article>
+
 <article class="dap-app-card" data-category="news" data-search="ds nieuws com.twipemobile.dsmobile 22.0.0 disable tracking hide premium banner hide ads skip consent screens" markdown>
 <p class="dap-app-card__category">Nieuws en lezen</p>
 
@@ -431,6 +516,28 @@ hide:
 </details>
 
 [Uitleg en downloads](apps/dumpert.md){ .dap-app-card__link }
+
+</article>
+
+<article class="dap-app-card" data-category="other" data-search="dynamicspot com.jamworks.dynamicspot 3.02 amoled theme fix pairip startup remove promotions stop automatic app selection unlock pro" markdown>
+<p class="dap-app-card__category">Overige</p>
+
+### [dynamicSpot](apps/dynamicspot.md)
+
+<p class="dap-app-card__version">App-versies: <span class="dap-data">3.02</span></p>
+<p class="dap-app-card__package">com.jamworks.dynamicspot</p>
+<details class="dap-app-card__patches">
+<summary>5 patches</summary>
+<ul>
+<li>AMOLED theme <span class="dap-app-card__target">3.02</span></li>
+<li>Fix PairIP startup <span class="dap-app-card__target">3.02</span></li>
+<li>Remove promotions <span class="dap-app-card__target">3.02</span></li>
+<li>Stop automatic app selection <span class="dap-app-card__target">3.02</span></li>
+<li>Unlock Pro <span class="dap-app-card__target">3.02</span></li>
+</ul>
+</details>
+
+[Uitleg en downloads](apps/dynamicspot.md){ .dap-app-card__link }
 
 </article>
 
@@ -580,7 +687,25 @@ hide:
 
 </article>
 
-<article class="dap-app-card" data-category="other" data-search="gboard com.google.android.inputmethod.latin 18.8.0.1022711984-beta-arm64-v8a 18.8.0.1022711984-beta-armeabi-v7a ai writing tools amoled dark keyboard add gboard signature bypass advanced voice typing (nga) beta features (18.8) change package name clipboard enhancements cursor trackpad mode custom theme custom branding enable ocr / scan text frosted glass g logo on spacebar hidden flags (18.8) incognito mode toggle key shape selection parakeet personal dictionary parakeet voice typing rambler app context rambler automatic retry (18.8) rambler contact names rambler cursor-aware editing rambler custom instructions rambler personal dictionary rambler stop after silence rambler toolbar &amp; revert extras (18.8) rambler voice typing rounded keyboard panel simple calculator toolbar editing buttons use bluetooth microphone web clipboard" markdown>
+<article class="dap-app-card" data-category="entertainment" data-search="gamesnacks com.google.android.apps.automotive.gamesnacks 1.40.827663177 parked app for android auto" markdown>
+<p class="dap-app-card__category">Amusement</p>
+
+### [GameSnacks](apps/gamesnacks.md)
+
+<p class="dap-app-card__version">App-versies: <span class="dap-data">1.40.827663177</span></p>
+<p class="dap-app-card__package">com.google.android.apps.automotive.gamesnacks</p>
+<details class="dap-app-card__patches">
+<summary>1 patch</summary>
+<ul>
+<li>Parked app for Android Auto <span class="dap-app-card__target">1.40.827663177</span></li>
+</ul>
+</details>
+
+[Uitleg en downloads](apps/gamesnacks.md){ .dap-app-card__link }
+
+</article>
+
+<article class="dap-app-card" data-category="other" data-search="gboard com.google.android.inputmethod.latin 18.8.0.1022711984-beta-arm64-v8a 18.8.0.1022711984-beta-armeabi-v7a ai writing tools amoled dark keyboard add gboard signature bypass advanced voice typing (nga) beta features (18.8) change package name clipboard enhancements cursor trackpad mode custom theme custom branding enable inline autofill suggestions enable ocr / scan text frosted glass g logo on spacebar hidden flags (18.8) incognito mode toggle key shape selection parakeet personal dictionary parakeet voice typing rambler app context rambler automatic retry (18.8) rambler contact names rambler cursor-aware editing rambler custom instructions rambler personal dictionary rambler stop after silence rambler toolbar &amp; revert extras (18.8) rambler voice typing rounded keyboard panel simple calculator smart compose toolbar editing buttons use bluetooth microphone web clipboard" markdown>
 <p class="dap-app-card__category">Overige</p>
 
 ### [Gboard](apps/gboard.md)
@@ -588,7 +713,7 @@ hide:
 <p class="dap-app-card__version">App-versies: <span class="dap-data">18.8.0.1022711984-beta-arm64-v8a, 18.8.0.1022711984-beta-armeabi-v7a</span></p>
 <p class="dap-app-card__package">com.google.android.inputmethod.latin</p>
 <details class="dap-app-card__patches">
-<summary>32 patches</summary>
+<summary>34 patches</summary>
 <ul>
 <li>AI Writing Tools <span class="dap-app-card__target">18.8.0.1022711984-beta-arm64-v8a, 18.8.0.1022711984-beta-armeabi-v7a</span></li>
 <li>AMOLED dark keyboard <span class="dap-app-card__target">18.8.0.1022711984-beta-arm64-v8a, 18.8.0.1022711984-beta-armeabi-v7a</span></li>
@@ -600,6 +725,7 @@ hide:
 <li>Cursor trackpad mode <span class="dap-app-card__target">18.8.0.1022711984-beta-arm64-v8a, 18.8.0.1022711984-beta-armeabi-v7a</span></li>
 <li>Custom Theme <span class="dap-app-card__target">18.8.0.1022711984-beta-arm64-v8a, 18.8.0.1022711984-beta-armeabi-v7a</span></li>
 <li>Custom branding <span class="dap-app-card__target">18.8.0.1022711984-beta-arm64-v8a, 18.8.0.1022711984-beta-armeabi-v7a</span></li>
+<li>Enable Inline Autofill Suggestions <span class="dap-app-card__target">18.8.0.1022711984-beta-arm64-v8a, 18.8.0.1022711984-beta-armeabi-v7a</span></li>
 <li>Enable OCR / Scan Text <span class="dap-app-card__target">18.8.0.1022711984-beta-arm64-v8a, 18.8.0.1022711984-beta-armeabi-v7a</span></li>
 <li>Frosted Glass <span class="dap-app-card__target">18.8.0.1022711984-beta-arm64-v8a, 18.8.0.1022711984-beta-armeabi-v7a</span></li>
 <li>G Logo on Spacebar <span class="dap-app-card__target">18.8.0.1022711984-beta-arm64-v8a, 18.8.0.1022711984-beta-armeabi-v7a</span></li>
@@ -619,6 +745,7 @@ hide:
 <li>Rambler voice typing <span class="dap-app-card__target">18.8.0.1022711984-beta-arm64-v8a, 18.8.0.1022711984-beta-armeabi-v7a</span></li>
 <li>Rounded Keyboard Panel <span class="dap-app-card__target">18.8.0.1022711984-beta-arm64-v8a, 18.8.0.1022711984-beta-armeabi-v7a</span></li>
 <li>Simple Calculator <span class="dap-app-card__target">18.8.0.1022711984-beta-arm64-v8a, 18.8.0.1022711984-beta-armeabi-v7a</span></li>
+<li>Smart Compose <span class="dap-app-card__target">18.8.0.1022711984-beta-arm64-v8a, 18.8.0.1022711984-beta-armeabi-v7a</span></li>
 <li>Toolbar Editing Buttons <span class="dap-app-card__target">18.8.0.1022711984-beta-arm64-v8a, 18.8.0.1022711984-beta-armeabi-v7a</span></li>
 <li>Use Bluetooth microphone <span class="dap-app-card__target">18.8.0.1022711984-beta-arm64-v8a, 18.8.0.1022711984-beta-armeabi-v7a</span></li>
 <li>Web Clipboard <span class="dap-app-card__target">18.8.0.1022711984-beta-arm64-v8a, 18.8.0.1022711984-beta-armeabi-v7a</span></li>
@@ -800,6 +927,25 @@ hide:
 </details>
 
 [Uitleg en downloads](apps/homeassistant.md){ .dap-app-card__link }
+
+</article>
+
+<article class="dap-app-card" data-category="other" data-search="home assistant (automotive) io.homeassistant.companion.android 2026.11.2-full allow any android auto host android auto" markdown>
+<p class="dap-app-card__category">Overige</p>
+
+### [Home Assistant (Automotive)](apps/homeassistant-automotive.md)
+
+<p class="dap-app-card__version">App-versies: <span class="dap-data">2026.11.2-full</span></p>
+<p class="dap-app-card__package">io.homeassistant.companion.android</p>
+<details class="dap-app-card__patches">
+<summary>2 patches</summary>
+<ul>
+<li>Allow any Android Auto host <span class="dap-app-card__target">2026.11.2-full</span></li>
+<li>Android Auto <span class="dap-app-card__target">2026.11.2-full</span></li>
+</ul>
+</details>
+
+[Uitleg en downloads](apps/homeassistant-automotive.md){ .dap-app-card__link }
 
 </article>
 
@@ -1210,6 +1356,24 @@ hide:
 </details>
 
 [Uitleg en downloads](apps/pdfcraft.md){ .dap-app-card__link }
+
+</article>
+
+<article class="dap-app-card" data-category="other" data-search="plugshare (automotive) com.xatori.plugshare aaos v1.8.2 android auto" markdown>
+<p class="dap-app-card__category">Overige</p>
+
+### [PlugShare (Automotive)](apps/plugshare.md)
+
+<p class="dap-app-card__version">App-versies: <span class="dap-data">AAOS v1.8.2</span></p>
+<p class="dap-app-card__package">com.xatori.Plugshare</p>
+<details class="dap-app-card__patches">
+<summary>1 patch</summary>
+<ul>
+<li>Android Auto <span class="dap-app-card__target">AAOS v1.8.2</span></li>
+</ul>
+</details>
+
+[Uitleg en downloads](apps/plugshare.md){ .dap-app-card__link }
 
 </article>
 

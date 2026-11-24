@@ -29,15 +29,15 @@ final class ReleaseFeatureOptions {
         WACCHOI_COPY_PARENS("1.47.0"), THREAD_REPORTER_COPY("1.47.0"), HIDDEN_NG_NEW_ARRIVAL_COUNT("1.47.0"),
         READING_POSITION_CARD_DEFAULT("1.47.0"), EXTRA_QUICK_FILTERS("1.47.0"), KYODEMO_TOOLBAR_PALETTE("1.49.0"),
         ANIMANCH_HEART("1.49.0"), CRASH_REPORTING("1.49.0"), GIGAFILE_BUTTON("1.49.0"), GIGAFILE_LINK_MODE("1.49.0"),
-        FUTABA_DIRECT_POSTING("1.49.0"), FUTABA_OFFICIAL_POSTING("1.49.0"), EXPERT_PERFORMANCE("1.49.2"), BACKGROUND_POSTING_OPT_IN("1.51.0"), HOME_INLINE_ORDER("1.51.0"),
-        SHORT_BOARD_THREADS("1.50.0");
+        FUTABA_DIRECT_POSTING("1.49.0"), FUTABA_OFFICIAL_POSTING("1.49.0"), EXPERT_PERFORMANCE("1.49.2"), BACKGROUND_POSTING_OPT_IN("1.50.4"),
+        SHORT_BOARD_THREADS("1.50.0"), THREAD_TAB_GROUPS("1.52.0"), HIDE_IMAGE_BOTTOM_ACTIONS("1.52.0"), DIRECT_COPY_GESTURE("1.52.0");
 
         final String version;
         Option(String version) { this.version = version; }
         String category() {
             switch(this){
                 case BACKGROUND_POSTING_OPT_IN:case EXPERT_PERFORMANCE:return "エキスパート設定";
-                case HOME_INLINE_ORDER:case SHORT_BOARD_THREADS:return "表示・検索";
+                case DIRECT_COPY_GESTURE:case THREAD_TAB_GROUPS:case SHORT_BOARD_THREADS:return "表示・検索";
                 case FUTABA_DIRECT_POSTING:case FUTABA_OFFICIAL_POSTING:return "履歴・投稿";
                 case ANIMANCH_HEART:case CRASH_REPORTING:case SETTINGS_LINKS:case SITE_GROUPS:case EDGE:case ORG:case BAKUSAI:case FUTABA:case ANIMAN:return "アプリ・通信";
                 case WACCHOI_COPY_UPPER:case WACCHOI_COPY_LOWER:case WACCHOI_COPY_PARENS:
@@ -55,7 +55,7 @@ final class ReleaseFeatureOptions {
                 case VIEWER_DOUBLE_BACK:case ALWAYS_MOSAIC_GRAY:case ALWAYS_MOSAIC_STRENGTH:
                 case GIGAFILE_BUTTON:case GIGAFILE_LINK_MODE:case MODERATION_ADULT:case MODERATION_GORE:case MODERATION_LIST:case UPLOAD_DESTINATION:
                 case LOCAL_IMAGES:case THREAD_THUMBNAILS:case VIDEO_THUMBNAILS:case VIDEO_IMMERSIVE:
-                case ROTATION_MENU:case EXTERNAL_VIDEO_CACHE:case NOTE_INDICATOR:case ARCHIVE_VIEWER_MODE:
+                case HIDE_IMAGE_BOTTOM_ACTIONS:case ROTATION_MENU:case EXTERNAL_VIDEO_CACHE:case NOTE_INDICATOR:case ARCHIVE_VIEWER_MODE:
                 case IMAGE_PAGING_GESTURES:case GIF_DEDICATED_VIEWER:return "画像・動画";
                 case IMAGE_NG:case COPY_PASTE_NG:case REPLACE_TXT:case IMAGE_NG_SETTINGS:case THREAD_SCOPED_NG:return "NG・文字列置換";
                 default:return "履歴・投稿";
@@ -63,8 +63,9 @@ final class ReleaseFeatureOptions {
         }
         String description() {
             switch(this){
-                case HOME_INLINE_ORDER:return "HOMEの★とラベルの見出しをタップして開閉します。初期値はオンです。";
+                case DIRECT_COPY_GESTURE:return "ChMateのジェスチャー設定に「長押しコピー ON／OFF」を追加します。ツールバーと同じ本文範囲選択の設定を切り替えます。初期OFF・ジェスチャー未割り当てです。";
                 case BACKGROUND_POSTING_OPT_IN:return "今回の更新後は、以前オンにした場合も一度オフになります。再びオンにできます。";
+                case THREAD_TAB_GROUPS:return "タブレット表示時のスレタブメニューにグループ化ボタンを表示します。初期オン。グループ管理自体は初期オフです。";
                 case FUTABA_DIRECT_POSTING:return "ふたば img／may の鉛筆ボタンから公式投稿フォームだけを開きます。初期値はオンです。";
                 case FUTABA_OFFICIAL_POSTING:return "ふたば img／may の投稿に、広告を除いた公式フォームを使います。初期値はオンです。";
                 case ANIMANCH_HEART:return "あにまんのレスにハートボタンを表示します。";
@@ -118,6 +119,7 @@ final class ReleaseFeatureOptions {
                 case HOME_THREAD_ORDER:return "HOMEのお気に入りスレを並び替え・固定できます。OFFにしても保存した並び順は保持します。";
                 case KEYWORD_MENU:return "HOMEの3点メニューにキーワード表示名の設定入口を表示します。";
                 case RESPONSE_NOTES_MENU:return "レス長押しメニューに「メモ」を表示します。OFFにしても保存済みのメモは保持します。";
+                case HIDE_IMAGE_BOTTOM_ACTIONS:return "242の画像ビューア下部にある共有・保存・回転ボタンを隠します。画像を開き直すと反映されます。初期値はオフです。";
                 case ROTATION_MENU:return "画像ビューアの回転操作を画面上のボタンと︙メニューのどちらへ置くか切り替えます。";
                 case EXTERNAL_VIDEO_CACHE:return "専用ビューアを使わないとき、imgpile動画を一時取得して外部プレイヤーへ渡します。";
                 case POST_LIMIT_DISPLAY:return "投稿欄に板ごとのスレタイ・本文・行数・1行あたりの上限と超過位置を表示します。";
@@ -153,6 +155,10 @@ final class ReleaseFeatureOptions {
         if (owner != release) return result;
         for (Option option : Option.values()) if (option.version.equals(base)) result.add(option);
         // Existing options also belong beside the releases that changed their behavior.
+        if (base.equals("1.52.0")) {
+            result.add(Option.HOME_THREAD_ORDER); result.add(Option.RESPONSE_NOTES_MENU);
+            result.add(Option.BACKGROUND_POSTING_OPT_IN); result.add(Option.WATCH_AFTER_POSTING);
+        }
         if (base.equals("1.27.1") || base.equals("1.27.2") || base.equals("1.27.3")) {
             result.add(Option.EDGE); result.add(Option.ORG);
         }

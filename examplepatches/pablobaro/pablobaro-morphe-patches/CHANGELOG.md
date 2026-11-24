@@ -1,3 +1,15 @@
+## [1.2.0](https://github.com/pablobaro/pablobaro-morphe-patches/compare/v1.1.3...v1.2.0) (2026-11-23)
+
+### ✨ New Features
+
+* **spotify:** add "Custom theme" patch with AMOLED default ([0c5d826](https://github.com/pablobaro/pablobaro-morphe-patches/commit/0c5d82678e4a5b6e16ebb7ee586b169b9729041d))
+
+## [1.2.0-dev.1](https://github.com/pablobaro/pablobaro-morphe-patches/compare/v1.1.3...v1.2.0-dev.1) (2026-11-23)
+
+### ✨ New Features
+
+* **spotify:** add "Custom theme" patch with AMOLED default ([0c5d826](https://github.com/pablobaro/pablobaro-morphe-patches/commit/0c5d82678e4a5b6e16ebb7ee586b169b9729041d))
+
 ## [1.1.3](https://github.com/pablobaro/pablobaro-morphe-patches/compare/v1.1.2...v1.1.3) (2026-11-11)
 
 ### 🐛 Bug Fixes

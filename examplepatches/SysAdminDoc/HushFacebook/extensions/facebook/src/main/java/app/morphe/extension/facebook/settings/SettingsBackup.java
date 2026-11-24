@@ -196,6 +196,7 @@ public final class SettingsBackup {
             Settings.REACTIONS_ON_LIKE_BUTTON,
             Settings.HIDE_REACTION_BUBBLES,
             Settings.HIDE_REACTOR_NAMES,
+            Settings.SHOW_POST_COMMENT_BUTTON,
             Settings.HIDE_FEED_PROFILE_PICTURES,
             Settings.HIDE_COMMENT_PROFILE_PICTURES,
             Settings.HIDE_SEEN_POSTS,
@@ -248,6 +249,7 @@ public final class SettingsBackup {
             Settings.HIDE_STORY_CREATE_CARDS,
             Settings.STORY_PROGRESS_BAR,
             Settings.STORY_FLAT_SLIDE,
+            Settings.SHOW_STORY_TIME,
             Settings.HIDE_FEED_STORY_RINGS,
             Settings.HIDE_COMMENT_STORY_RINGS,
             Settings.HIDE_PROFILE_STORY_RINGS,
@@ -268,6 +270,7 @@ public final class SettingsBackup {
             Settings.HIDE_POST_REPOST_BUTTON,
             Settings.HIDE_POST_SHARE_BUTTON,
             Settings.HIDE_POST_SEND_BUTTON,
+            Settings.HIDE_POST_SAVE_BUTTON,
             Settings.IGNORE_POST_ROW_TAPS,
             Settings.HIDE_SPONSORED_MARKETPLACE_LISTINGS,
             Settings.MARKETPLACE_ADVANCED_SEARCH,
@@ -288,6 +291,7 @@ public final class SettingsBackup {
             Settings.FOLLOWED_REELS_ONLY,
             Settings.REEL_CLEAN_MODE,
             Settings.REEL_CLEAN_BUTTON,
+            Settings.REEL_CLEAN_EXIT_FAINT,
             Settings.PLAY_REELS_ONCE,
             Settings.ORIGINAL_AUDIO,
             Settings.HIDE_REEL_SEARCH_PILL,
@@ -295,6 +299,7 @@ public final class SettingsBackup {
             Settings.HIDE_REELS_TAB_TITLE,
             Settings.HIDE_VIEWER_BACK_BUTTON,
             Settings.BURN_IN_STAY_DIM,
+            Settings.BURN_IN_TAP_BACK,
             Settings.BURN_IN_FADE,
             Settings.GRAY_REELS,
             Settings.REELS_MINUTES,
@@ -306,6 +311,7 @@ public final class SettingsBackup {
             Settings.HIDE_REEL_REPOST_BUTTON,
             Settings.HIDE_REEL_SHARE_BUTTON,
             Settings.SHOW_REEL_COMMENT_BUTTON,
+            Settings.LONG_VIDEO_BUTTONS,
             Settings.SHOW_REEL_POST_DATE,
             Settings.HIDE_REEL_NEW_FOR_YOU,
             Settings.HIDE_REEL_SOUND_BUTTON,
@@ -322,6 +328,7 @@ public final class SettingsBackup {
             Settings.SAVED_VIDEOS_IN_PLAYER,
             Settings.SAVED_VIDEOS_IN_ORDER,
             Settings.SAVED_VIDEOS_STAY_ON_END,
+            Settings.SAVED_POSTS_IN_ROW,
             Settings.SKIP_STILL_WATCHING,
             Settings.FILL_REELS,
             Settings.PLAY_FEED_REELS_WHOLE,
@@ -540,6 +547,7 @@ public final class SettingsBackup {
             Settings.FORCE_DARK_MODE,
             Settings.AMOLED_FLAT_CARDS,
             Settings.AMOLED_FEED_GAPS,
+            Settings.MATERIAL_YOU,
             Settings.HIDE_REEL_PROMPTS,
             Settings.HIDE_GET_MESSENGER_CARD,
             Settings.HIDE_CHAT_NOTES_TRAY,
@@ -828,6 +836,7 @@ public final class SettingsBackup {
      */
     static final EnumSetting<FoldLines> FOLD_POSTS = Settings.FOLD_POST_TEXT;
     static final EnumSetting<FoldLines> FOLD_COMMENTS = Settings.FOLD_COMMENTS;
+    static final EnumSetting<FoldLines> FOLD_REEL_CAPTIONS = Settings.FOLD_REEL_CAPTIONS;
 
     /**
      * Video buffer's size (#526), held in a file as its {@link BufferSize#fileValue}. Anything else
@@ -905,7 +914,7 @@ public final class SettingsBackup {
 
     /** The settings a file carries that aren't switches, in the order Settings declares them. */
     static final List<Setting<?>> VALUES = Collections.unmodifiableList(
-            Arrays.<Setting<?>>asList(HIDDEN, KEPT, SOURCES, FEED_TYPES, CEILING, CLEAN_RETURN, BURN_IN, BURN_IN_WAIT, GRAY_OVER, DATE_STYLE, REELS_ORDER, HOLD_REACTION, COMMENTS_HEIGHT, WATCHED_KEEP, SHARE_ITEMS, POST_MENU_ITEMS, MENU_TILES, HOME_FEED, TAB_ORDER, BACKGROUND, LIGHT_BACKGROUND, HEADER_TEXT, HEADER_FONT, SEEN_KEEP, FOLD_POSTS, FOLD_COMMENTS, TO, FOLDER, VIDEO_SUBFOLDER, PHOTO_SUBFOLDER, QUALITY,
+            Arrays.<Setting<?>>asList(HIDDEN, KEPT, SOURCES, FEED_TYPES, CEILING, CLEAN_RETURN, BURN_IN, BURN_IN_WAIT, GRAY_OVER, DATE_STYLE, REELS_ORDER, HOLD_REACTION, COMMENTS_HEIGHT, WATCHED_KEEP, SHARE_ITEMS, POST_MENU_ITEMS, MENU_TILES, HOME_FEED, TAB_ORDER, BACKGROUND, LIGHT_BACKGROUND, HEADER_TEXT, HEADER_FONT, SEEN_KEEP, FOLD_POSTS, FOLD_COMMENTS, FOLD_REEL_CAPTIONS, TO, FOLDER, VIDEO_SUBFOLDER, PHOTO_SUBFOLDER, QUALITY,
                     FILE_NAME, PHOTO_NAME, ACTION, APP, START, SUBTAB, ORDER, PLAYBACK, REELS_QUALITY, STORIES_QUALITY, VIDEO_BUFFER,
                     QUIET_FROM, QUIET_UNTIL, LOCK_AFTER, PAUSE_LENGTH, BREAK_AFTER, BREAK_LENGTH, TEXT_SIZE, REFRESH_RATE, NEW_ROW_MARK, ACCENT, ACCENT_CUSTOM, LOGO_EMOJI,
                     BADGE, LOGO, TAB));
@@ -1039,6 +1048,7 @@ public final class SettingsBackup {
         private static final String HOLD_REACTION_NAME = "hold_reaction";
         private static final String FOLD_POSTS_NAME = "fold_post_text";
         private static final String FOLD_COMMENTS_NAME = "fold_comments";
+        private static final String FOLD_REEL_CAPTIONS_NAME = "fold_reel_captions";
         private static final String VIDEO_BUFFER_NAME = "video_buffer";
         private static final String GRAY_OVER_NAME = "gray_reels_over";
         private static final String NEW_ROW_MARK_NAME = "new_row_mark";
@@ -1201,6 +1211,9 @@ public final class SettingsBackup {
         /** The Fold long comments choice the file holds, the same way. */
         @Nullable
         FoldLines foldComments;
+        /** The Fold reel captions choice the file holds, the same way. */
+        @Nullable
+        FoldLines foldReelCaptions;
         /** The Video buffer choice the file holds, the same way. */
         @Nullable
         BufferSize videoBuffer;
@@ -1477,6 +1490,8 @@ public final class SettingsBackup {
             if (foldPostsChange != null) changes.put(FOLD_POSTS, foldPostsChange);
             FoldLines foldCommentsChange = foldCommentsChange();
             if (foldCommentsChange != null) changes.put(FOLD_COMMENTS, foldCommentsChange);
+            FoldLines foldReelCaptionsChange = foldReelCaptionsChange();
+            if (foldReelCaptionsChange != null) changes.put(FOLD_REEL_CAPTIONS, foldReelCaptionsChange);
             BufferSize videoBufferChange = videoBufferChange();
             if (videoBufferChange != null) changes.put(VIDEO_BUFFER, videoBufferChange);
             GrayOver grayOverChange = grayOverChange();
@@ -1820,6 +1835,12 @@ public final class SettingsBackup {
             return foldComments == null || foldComments == FOLD_COMMENTS.savedValue() ? null : foldComments;
         }
 
+        /** The Fold reel captions choice after this file, the same way. */
+        @Nullable
+        FoldLines foldReelCaptionsChange() {
+            return foldReelCaptions == null || foldReelCaptions == FOLD_REEL_CAPTIONS.savedValue() ? null : foldReelCaptions;
+        }
+
         /** The Video buffer choice after this file, the same way. */
         @Nullable
         BufferSize videoBufferChange() {
@@ -1921,6 +1942,7 @@ public final class SettingsBackup {
             if (holdReaction != null) state.putString(HOLD_REACTION_NAME, holdReaction.fileValue);
             if (foldPosts != null) state.putString(FOLD_POSTS_NAME, foldPosts.fileValue);
             if (foldComments != null) state.putString(FOLD_COMMENTS_NAME, foldComments.fileValue);
+            if (foldReelCaptions != null) state.putString(FOLD_REEL_CAPTIONS_NAME, foldReelCaptions.fileValue);
             if (videoBuffer != null) state.putString(VIDEO_BUFFER_NAME, videoBuffer.fileValue);
             if (grayOver != null) state.putString(GRAY_OVER_NAME, grayOver.fileValue);
             if (newRowMark != null) state.putString(NEW_ROW_MARK_NAME, newRowMark.fileValue);
@@ -2007,6 +2029,7 @@ public final class SettingsBackup {
             read.holdReaction = HoldReaction.fromFile(state.get(HOLD_REACTION_NAME));
             read.foldPosts = FoldLines.fromFile(state.get(FOLD_POSTS_NAME));
             read.foldComments = FoldLines.fromFile(state.get(FOLD_COMMENTS_NAME));
+            read.foldReelCaptions = FoldLines.fromFile(state.get(FOLD_REEL_CAPTIONS_NAME));
             read.videoBuffer = BufferSize.fromFile(state.get(VIDEO_BUFFER_NAME));
             read.grayOver = GrayOver.fromFile(state.get(GRAY_OVER_NAME));
             read.newRowMark = NewRowMark.fromFile(state.get(NEW_ROW_MARK_NAME));
@@ -2093,6 +2116,7 @@ public final class SettingsBackup {
             switches.put(HOLD_REACTION.key, of(HOLD_REACTION).fileValue);
             switches.put(FOLD_POSTS.key, of(FOLD_POSTS).fileValue);
             switches.put(FOLD_COMMENTS.key, of(FOLD_COMMENTS).fileValue);
+            switches.put(FOLD_REEL_CAPTIONS.key, of(FOLD_REEL_CAPTIONS).fileValue);
             switches.put(VIDEO_BUFFER.key, of(VIDEO_BUFFER).fileValue);
             switches.put(GRAY_OVER.key, of(GRAY_OVER).fileValue);
             switches.put(DATE_STYLE.key, of(DATE_STYLE).fileValue);
@@ -2293,6 +2317,7 @@ public final class SettingsBackup {
         HoldReaction holdReaction = null;
         FoldLines foldPosts = null;
         FoldLines foldComments = null;
+        FoldLines foldReelCaptions = null;
         BufferSize videoBuffer = null;
         GrayOver grayOver = null;
         NewRowMark newRowMark = null;
@@ -2482,6 +2507,11 @@ public final class SettingsBackup {
             if (FOLD_COMMENTS.key.equals(name)) {
                 foldComments = FoldLines.fromFile(values.opt(name));
                 if (foldComments == null) throw new Rejected(Reason.VALUE, "Not a comment fold: " + name);
+                continue;
+            }
+            if (FOLD_REEL_CAPTIONS.key.equals(name)) {
+                foldReelCaptions = FoldLines.fromFile(values.opt(name));
+                if (foldReelCaptions == null) throw new Rejected(Reason.VALUE, "Not a reel caption fold: " + name);
                 continue;
             }
             if (VIDEO_BUFFER.key.equals(name)) {
@@ -2721,6 +2751,7 @@ public final class SettingsBackup {
         read.holdReaction = holdReaction;
         read.foldPosts = foldPosts;
         read.foldComments = foldComments;
+        read.foldReelCaptions = foldReelCaptions;
         read.videoBuffer = videoBuffer;
         read.grayOver = grayOver;
         read.newRowMark = newRowMark;

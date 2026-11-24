@@ -5,12 +5,14 @@
  * https://github.com/anddea/revanced-patches
  *
  * Licensed under the GNU General Public License v3.0.
+ * Modified by lavinhoque33, 2026-11-24.
  * Written by lavinhoque33, 2026-10-20.
  * Modified by lavinhoque33, 2026-10-24.
  */
 
 package app.morphe.extension.youtube.patches.general.offline;
 
+import android.app.Activity;
 import android.content.ContentResolver;
 import android.content.Context;
 import android.content.Intent;
@@ -56,8 +58,8 @@ import app.morphe.extension.youtube.settings.Settings;
  * that video is given one progressive stream that points there. YouTube plays such a stream with
  * the platform {@code MediaPlayer}, which needs nothing more than the url and a mime type.
  * <p>
- * The watch page itself still needs the internet, so {@link #open} does nothing offline and the
- * caller falls back to the built-in player.
+ * The watch page itself still needs the internet. The caller probes reachability and falls back to the
+ * built-in player if the probe fails or the watch player cannot use the file.
  * <p>
  * The hooks called from the patched app ({@link #streamingData}, {@link #isServing},
  * {@link #isActive}, {@link #onVideoTime}) must stay cheap and must not touch settings or the
@@ -95,23 +97,23 @@ public final class OfflineStreamSource {
 
     // region opening
 
-    /**
-     * Opens a download on the video page of YouTube's player.
-     *
-     * @return False if the video cannot be played that way, and the built-in player must be used:
-     * the setting is off, the patch is missing, there is no internet, the file is unreadable, the
-     * device cannot decode it, or it is an audio-only download (the video page needs a picture).
-     */
-    public static boolean open(@Nullable Context context, OfflineVideo video) {
+    static boolean canTryWatchPlayer(OfflineVideo video) {
+        if (video.audioOnly || !Settings.OFFLINE_USE_YOUTUBE_PLAYER.get()
+                || !SpoofVideoStreamsPatch.isPatchIncluded()) {
+            return false;
+        }
+        if (!Utils.isInternetReachable()) {
+            Logger.printDebug(() -> "No validated internet, using the built-in player for " + video.videoId);
+            return false;
+        }
+        return true;
+    }
+
+    /** Launch the stock watch page only after the app has reached YouTube. */
+    static boolean openWatchPlayer(Activity activity, OfflineVideo video) {
         try {
-            if (video.audioOnly) return false;
-            if (!Settings.OFFLINE_USE_YOUTUBE_PLAYER.get() || !SpoofVideoStreamsPatch.isPatchIncluded()) return false;
-            if (!Utils.isNetworkConnected()) {
-                Logger.printDebug(() -> "No network, using the built-in player for " + video.videoId);
-                return false;
-            }
-            if (context == null) context = Utils.getContext();
-            StreamInfo info = infoFor(context, video);
+            if (!canTryWatchPlayer(video)) return false;
+            StreamInfo info = infoFor(activity, video);
             if (info == null) return false;
 
             Uri.Builder uri = Uri.parse("https://www.youtube.com/watch").buildUpon()
@@ -123,9 +125,8 @@ public final class OfflineStreamSource {
 
             armedId = video.videoId;
             armedAt = SystemClock.elapsedRealtime();
-            Intent intent = new Intent(Intent.ACTION_VIEW, uri.build()).setPackage(context.getPackageName());
-            if (!(context instanceof android.app.Activity)) intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-            context.startActivity(intent);
+            Intent intent = new Intent(Intent.ACTION_VIEW, uri.build()).setPackage(activity.getPackageName());
+            activity.startActivity(intent);
             Logger.printInfo(() -> "Opening " + video.videoId + " in the YouTube player (" + info.mimeType + ")");
             return true;
         } catch (Exception ex) {

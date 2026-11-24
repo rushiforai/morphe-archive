@@ -12,7 +12,10 @@ from pathlib import Path
 CATALOG = "patches/src/main/resources/gboard/gboard-port-product-catalog.json"
 CATALOG_SHA = "patches/src/main/resources/gboard/gboard-port-product-catalog.sha256"
 SETTINGS_XML = "extensions/extension/src/main/settings-text/gboard_settings_text.xml"
-ALLOWED_CONFLICTS = {"CHANGELOG.md", "gradle.properties", "patches-bundle.json", "patches-list.json", CATALOG_SHA}
+SEARCH_INDEX = "extensions/extension/src/main/java/dev/jason/gboardpatches/extension/settings/search/GboardSettingsSearchIndexData.java"
+# SEARCH_INDEX is generated; upstream's copy is taken and the workflow regenerates it with the fork's settings.
+ALLOWED_CONFLICTS = {"CHANGELOG.md", "gradle.properties", "patches-bundle.json", "patches-list.json", CATALOG_SHA,
+                     SEARCH_INDEX, SETTINGS_XML}
 EN_FEATURES = "### ✨ New Features"
 ZH_FEATURES = "### ✨ 新功能"
 ZH_FIXES = "### 🐛 修復"
@@ -21,6 +24,8 @@ EN_PLACEHOLDER_BULLET = "* **Gboard:** fill missing Japanese settings strings wi
 ZH_PLACEHOLDER_BULLET = "* **Gboard:** 缺少日文的設定文字暫以英文填入（待翻譯）。"
 JP_HEADING = re.compile(r"^## \[(?P<base>[^\]]+?)-jp\.\d+\]")
 ENTRY = re.compile(r'<plurals name="(?P<plural>[^"]+)"|<(?P<tag>string|item)\b(?P<attrs>[^>]*)>(?P<body>.*?)</(?P=tag)>', re.S)
+BLOCK = re.compile(r'(?ms)^[ \t]*<(?P<tag>string|plurals) name="(?P<name>[^"]+)"[^>]*>.*?</(?P=tag)>[ \t]*\n')
+JA_TRANSLATION = re.compile(r'\n[ \t]*<translation locale="ja">.*?</translation>', re.S)
 EN_TRANSLATION = re.compile(r'\n(?P<indent>[ \t]*)<translation locale="en">(?P<text>.*?)</translation>', re.S)
 
 
@@ -177,6 +182,97 @@ def fill_ja_placeholders(xml):
     return "".join(out) + xml[pos:], keys
 
 
+def split_blocks(xml):
+    """Return (head, {name: block}, [name, ...], tail) for the top-level string/plurals entries."""
+    blocks, order, pos, head = {}, [], 0, None
+    for match in BLOCK.finditer(xml):
+        gap = xml[pos:match.start()]
+        if head is None:
+            head, gap = gap, ""
+        elif gap.strip():
+            raise SystemExit(f"{SETTINGS_XML}: unexpected text between entries: {gap.strip()[:80]!r}")
+        if match.group("name") in blocks:
+            raise SystemExit(f"{SETTINGS_XML}: duplicate entry {match.group('name')}")
+        blocks[match.group("name")] = gap + match.group(0)  # blank lines stay with the entry below them
+        order.append(match.group("name"))
+        pos = match.end()
+    return head if head is not None else xml[:pos], blocks, order, xml[pos:]
+
+
+def ja_translations(xml):
+    """{key: (en text, ja translation line)} for every entry that has both."""
+    found, plural = {}, None
+    for match in ENTRY.finditer(xml):
+        if match.group("plural"):
+            plural = match.group("plural")
+            continue
+        body = match.group("body")
+        en, ja = EN_TRANSLATION.search(body), JA_TRANSLATION.search(body)
+        if en and ja:
+            name = re.search(r'(?:name|quantity)="([^"]+)"', match.group("attrs")).group(1)
+            found[name if match.group("tag") == "string" else f"{plural}[{name}]"] = (en.group("text"), ja.group(0))
+    return found
+
+
+def restore_ja(xml, translations):
+    """Re-insert the fork's ja line into entries lacking one whose en text is unchanged."""
+    out, plural, pos = [], None, 0
+    for match in ENTRY.finditer(xml):
+        if match.group("plural"):
+            plural = match.group("plural")
+            continue
+        body = match.group("body")
+        en = EN_TRANSLATION.search(body)
+        if 'locale="ja"' in body or not en:
+            continue
+        name = re.search(r'(?:name|quantity)="([^"]+)"', match.group("attrs")).group(1)
+        known = translations.get(name if match.group("tag") == "string" else f"{plural}[{name}]")
+        if not known or known[0] != en.group("text"):
+            continue
+        insert_at = match.start("body") + body.rfind("</translation>") + len("</translation>")
+        out += [xml[pos:insert_at], known[1]]
+        pos = insert_at
+    return "".join(out) + xml[pos:]
+
+
+def merge_settings_xml(base, ours, theirs):
+    """Three-way merge of the settings text per entry; returns None when an entry changed on both sides.
+
+    The fork's own edits to upstream entries are expected to be ja translations only, so entries are
+    compared without ja lines; ja is then restored wherever the en text it translates is unchanged.
+    """
+    _, base_blocks, _, _ = split_blocks(base)
+    _, our_blocks, our_order, _ = split_blocks(ours)
+    head, their_blocks, their_order, tail = split_blocks(theirs)
+    strip = lambda block: JA_TRANSLATION.sub("", block) if block is not None else None
+    merged, conflicts = {}, []
+    for name in dict.fromkeys(their_order + our_order):
+        b, o, t = (strip(blocks.get(name)) for blocks in (base_blocks, our_blocks, their_blocks))
+        if o == t or o == b:
+            pick = t
+        elif t == b:
+            pick = o
+        else:
+            conflicts.append(name)
+            continue
+        if pick is not None:
+            merged[name] = pick
+    if conflicts:
+        print(f"{SETTINGS_XML}: entries changed on both sides: {', '.join(conflicts)}", file=sys.stderr)
+        return None
+    order = [name for name in their_order if name in merged]
+    anchor = -1
+    for name in our_order:
+        if name in order:
+            anchor = order.index(name)
+        elif name in merged:
+            anchor += 1
+            order.insert(anchor, name)
+    head = re.sub(r'(<settings-text locales=")([^"]*)"',
+                  lambda m: m.group(0) if "ja" in m.group(2).split() else f'{m.group(1)}{m.group(2)} ja"', head)
+    return restore_ja(head + "".join(merged[name] for name in order) + tail, ja_translations(ours))
+
+
 # PR body and release notes are posted to GitHub, so they carry no upstream-derived prose
 # (links, mentions or references there could notify upstream); details live in CHANGELOG.md.
 def pr_body(tag, version, resolved, placeholders):
@@ -224,7 +320,14 @@ def resolve(repo, tag, slug, out):
     now = datetime.now(timezone.utc)
     root = Path(repo)
 
-    for path in ("gradle.properties", "patches-list.json"):
+    if SETTINGS_XML in conflicted:
+        xml = merge_settings_xml(*(git(repo, "show", f"{stage}:{SETTINGS_XML}") for stage in (":1", ":2", ":3")))
+        if xml is None:
+            write_text(out / "conflicts.txt", SETTINGS_XML + "\n")
+            return 2
+        write_text(root / SETTINGS_XML, xml)
+
+    for path in ("gradle.properties", "patches-list.json", SEARCH_INDEX):
         if path in conflicted:
             git(repo, "checkout", "--theirs", "--", path)
     write_text(root / "gradle.properties", set_gradle_version((root / "gradle.properties").read_text("utf-8"), version))
@@ -251,7 +354,8 @@ def resolve(repo, tag, slug, out):
     write_text(root / CATALOG_SHA, hashlib.sha256(catalog).hexdigest())
 
     resolved = ["CHANGELOG.md", "gradle.properties", "patches-bundle.json", CATALOG_SHA]
-    resolved += [p for p in ("patches-list.json",) if p in conflicted] + ([SETTINGS_XML] if placeholders else [])
+    resolved += [p for p in ("patches-list.json", SEARCH_INDEX) if p in conflicted]
+    resolved += [SETTINGS_XML] if placeholders or SETTINGS_XML in conflicted else []
     git(repo, "add", "--", *resolved)
     write_text(out / "pr-body.md", pr_body(tag, version, resolved, placeholders))
     write_text(out / "release-notes.md", release_notes(tag, version))

@@ -1,3 +1,27 @@
+## [1.0.0-dev.55](https://github.com/Mlkem/Morphe/compare/v1.0.0-dev.54...v1.0.0-dev.55) (2026-11-23)
+
+### ✨ New Features
+
+* **Niagara Launcher:** restore owned Pro memberships on 1.16.38 ([19b79f4](https://github.com/Mlkem/Morphe/commit/19b79f489002eecdd0b8c4ec46f1a7888fdbcf50))
+
+## [1.0.0-dev.54](https://github.com/Mlkem/Morphe/compare/v1.0.0-dev.53...v1.0.0-dev.54) (2026-11-23)
+
+### ✨ New Features
+
+* **Amazon Shopping:** activate native shopping and review cart timing ([204f658](https://github.com/Mlkem/Morphe/commit/204f6584185c6e1689927b8656c87be2a89782f9))
+
+## [1.0.0-dev.53](https://github.com/Mlkem/Morphe/compare/v1.0.0-dev.52...v1.0.0-dev.53) (2026-11-23)
+
+### 🐛 Bug Fixes
+
+* **Walmart Canada:** open native shopping after Aeroplan activation ([375af6b](https://github.com/Mlkem/Morphe/commit/375af6b4434c56dca21da1f095d079f1026c8c67))
+
+## [1.0.0-dev.52](https://github.com/Mlkem/Morphe/compare/v1.0.0-dev.51...v1.0.0-dev.52) (2026-11-23)
+
+### 🐛 Bug Fixes
+
+* **Walmart Canada:** recover stalled Aeroplan referrals and verify the retailer publisher ([e1f8120](https://github.com/Mlkem/Morphe/commit/e1f8120772fdcd298381ba370f646e56cd151745))
+
 ## [1.0.0-dev.51](https://github.com/Mlkem/Morphe/compare/v1.0.0-dev.50...v1.0.0-dev.51) (2026-11-21)
 
 ### 🐛 Bug Fixes

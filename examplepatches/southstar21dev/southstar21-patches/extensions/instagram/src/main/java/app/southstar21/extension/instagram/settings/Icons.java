@@ -21,6 +21,8 @@ public final class Icons {
         PATCH,
         /** A floating tab bar pill with a selected capsule. */
         GLASS,
+        /** A round drop of glass with a highlight, for glass effects. */
+        DROP,
         /** Circular arrow. */
         RESTART,
         /** Counter-clockwise arrow with a dot, for resetting. */
@@ -110,6 +112,14 @@ public final class Icons {
                     canvas.drawRoundRect(rect, rect.height() / 2f, rect.height() / 2f, stroke);
                     rect.set(s * 0.25f, s * 0.42f, s * 0.47f, s * 0.58f);
                     canvas.drawRoundRect(rect, rect.height() / 2f, rect.height() / 2f, solid);
+                    break;
+                }
+                case DROP: {
+                    canvas.drawCircle(s * 0.5f, s * 0.5f, s * 0.26f, stroke);
+                    // The lit edge at the top left, and a small glint.
+                    rect.set(s * 0.33f, s * 0.33f, s * 0.67f, s * 0.67f);
+                    canvas.drawArc(rect, 200, 70, false, stroke);
+                    canvas.drawCircle(s * 0.6f, s * 0.38f, s * 0.035f, solid);
                     break;
                 }
                 case RESTART: {

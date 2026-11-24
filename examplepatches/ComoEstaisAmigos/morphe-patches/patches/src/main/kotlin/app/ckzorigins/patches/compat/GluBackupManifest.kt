@@ -1,5 +1,6 @@
 package app.ckzorigins.patches.compat
 
+import app.adebisi.patches.shared.removeUnusedNamedEntries
 import app.morphe.patcher.patch.PatchException
 import org.w3c.dom.Document
 import org.w3c.dom.Element
@@ -30,17 +31,12 @@ internal object GluBackupManifest {
         }
         app.removeAttribute("android:backupAgent")
         app.removeAttribute("android:restoreAnyVersion")
-        removeNamed(document, "uses-permission", BACKUP_PERMISSION)
-        removeNamed(document, "meta-data", BACKUP_API_KEY)
-    }
-
-    private fun removeNamed(document: Document, tag: String, name: String) {
-        val list = document.getElementsByTagName(tag)
-        val matches = (0 until list.length).map { list.item(it) as Element }
-            .filter { it.getAttribute("android:name") == name }
-        if (matches.isEmpty()) {
-            throw PatchException("AndroidManifest.xml has no <$tag> named $name")
-        }
-        matches.forEach { it.parentNode.removeChild(it) }
+        removeUnusedNamedEntries(
+            document,
+            listOf(
+                "uses-permission" to BACKUP_PERMISSION,
+                "meta-data" to BACKUP_API_KEY,
+            ),
+        )
     }
 }

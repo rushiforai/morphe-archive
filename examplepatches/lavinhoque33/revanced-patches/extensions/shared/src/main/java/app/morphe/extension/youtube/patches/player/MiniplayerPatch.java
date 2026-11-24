@@ -5,7 +5,7 @@
  *
  * See the included NOTICE file for GPLv3 §7(b) and §7(c) terms that apply to this code.
  *
- * Modified by lavinhoque33, 2026-11-18
+ * Modified by lavinhoque33, 2026-11-23
  */
 
 package app.morphe.extension.youtube.patches.player;
@@ -26,6 +26,7 @@ import static app.morphe.extension.youtube.utils.ExtendedUtils.IS_19_26_OR_GREAT
 import static app.morphe.extension.youtube.utils.ExtendedUtils.IS_19_29_OR_GREATER;
 import static app.morphe.extension.youtube.utils.ExtendedUtils.IS_19_34_OR_GREATER;
 import static app.morphe.extension.youtube.utils.ExtendedUtils.IS_21_17_OR_GREATER;
+import static app.morphe.extension.youtube.utils.ExtendedUtils.IS_21_29_OR_GREATER;
 
 import android.content.Context;
 import android.content.res.ColorStateList;
@@ -36,6 +37,7 @@ import android.util.DisplayMetrics;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.accessibility.AccessibilityManager;
 import android.widget.ImageView;
 import android.widget.TextView;
 
@@ -361,10 +363,24 @@ public final class MiniplayerPatch {
         }
     }
 
+    private static boolean supportsDefaultOverlayButtons() {
+        // Patched to true once every stock layout for the target has a button hook.
+        return false;
+    }
+
+    private static boolean isDefaultMiniplayerType(MiniplayerType type) {
+        // The newer type picker stores MODERN_4 for its Default entry.
+        return type == DEFAULT || (IS_21_29_OR_GREATER && type == MODERN_4);
+    }
+
     public static final class MiniplayerHideOverlayButtonsAvailability implements Setting.Availability {
         @Override
         public boolean isAvailable() {
             MiniplayerType type = Settings.MINIPLAYER_TYPE.get();
+            if (isDefaultMiniplayerType(type)) {
+                return supportsDefaultOverlayButtons();
+            }
+
             return type == MODERN_4
                     || (!IS_19_20_OR_GREATER && (type == MODERN_1 || type == MODERN_3))
                     || (!IS_19_26_OR_GREATER && type == MODERN_1
@@ -681,18 +697,54 @@ public final class MiniplayerPatch {
     /**
      * Injection point.
      */
-    public static void hideMiniplayerExpandClose(View view) {
-        MinimalMiniplayerPatch.setModernOverlayButton(view);
-        Utils.hideViewByRemovingFromParentUnderCondition(HIDE_OVERLAY_BUTTONS_ENABLED, view);
+    public static void hideMiniplayerExpandButton(View view) {
+        hideModernOverlayButton(view, true, false);
+    }
+
+    /**
+     * Injection point.
+     */
+    public static void hideMiniplayerCloseButton(View view) {
+        hideModernOverlayButton(view, true, true);
     }
 
     /**
      * Injection point.
      */
     public static void hideMiniplayerActionButton(View view) {
+        hideModernOverlayButton(view, CURRENT_TYPE == MODERN_4, false);
+    }
+
+    private static void hideModernOverlayButton(View view, boolean hideInExplicitMode, boolean closeButton) {
         MinimalMiniplayerPatch.setModernOverlayButton(view);
-        if (CURRENT_TYPE == MODERN_4) {
-            Utils.hideViewByRemovingFromParentUnderCondition(HIDE_OVERLAY_BUTTONS_ENABLED, view);
+
+        boolean defaultType = isDefaultMiniplayerType(CURRENT_TYPE);
+        boolean hide = defaultType
+                ? view != null && shouldHideDefaultOverlayButton(view.getContext())
+                : hideInExplicitMode && HIDE_OVERLAY_BUTTONS_ENABLED;
+        if (defaultType && hide && closeButton) {
+            DefaultMiniplayerDismissGesture.setModernClose(view);
+        }
+
+        Utils.hideViewByRemovingFromParentUnderCondition(hide, view);
+    }
+
+    static boolean shouldHideDefaultOverlayButton(Context context) {
+        if (!HIDE_OVERLAY_BUTTONS_ENABLED || !isDefaultMiniplayerType(CURRENT_TYPE)) {
+            return false;
+        }
+
+        // Screen readers need a reachable button; background automation services do not.
+        AccessibilityManager accessibility = context.getSystemService(AccessibilityManager.class);
+        return accessibility == null || !accessibility.isTouchExplorationEnabled();
+    }
+
+    /**
+     * Observes the native watch layout's touch dispatch without intercepting it.
+     */
+    public static void onDefaultMiniplayerTouch(View watchLayout, MotionEvent event) {
+        if (HIDE_OVERLAY_BUTTONS_ENABLED && isDefaultMiniplayerType(CURRENT_TYPE)) {
+            DefaultMiniplayerDismissGesture.observe(watchLayout, event);
         }
     }
 

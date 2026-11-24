@@ -1,319 +1,301 @@
 # MyZong
 
-Morphe patches for customizing My Zong **5.19.19.112** (`com.zong.customercare`). Choose which sections remain visible, simplify navigation, apply a charcoal theme, and restyle cards, buttons, icons, and bundle controls.
+Customization patches for **My Zong 5.19.19.112** (`com.zong.customercare`), compatible with Morphe.
 
-**Current release:** [MyZong v1.2.23](https://github.com/FarhanZafarr-9/myzong-patches/releases/tag/v1.2.23) · **Download:** `MyZong-1.2.23.mpp`
+**Latest release:** [v1.3.3](https://github.com/FarhanZafarr-9/myzong-patches/releases/tag/v1.3.3) · stock **5.19.19.112**.
 
-[**Add to Morphe**](https://morphe.software/add-source?github=FarhanZafarr-9%2Fmyzong-patches&name=MyZong)
+[**Add MyZong to Morphe**](https://morphe.software/add-source?github=FarhanZafarr-9%2Fmyzong-patches&name=MyZong)
 
-Open this link on your Android phone to add the patch source directly. You can also import the MPP manually using the steps below.
+Add the source in Morphe, then refresh it to download the latest bundle. Release assets include the MPP and SHA256 checksums; source archives are available from the release tag.
 
-## Contents
+## Changes in 1.3.3
 
-- [Installation](#installation)
-- [How customization works](#how-customization-works)
-- [Theme, colors, and shapes](#theme-colors-and-shapes)
-- [Home screen](#home-screen)
-- [Header and navigation](#header-and-navigation)
-- [Bundles and Usage](#bundles-and-usage)
-- [Recharge, dialogs, and startup](#recharge-dialogs-and-startup)
-- [Daily reward ad option](#daily-reward-ad-option)
-- [Example configurations](#example-configurations)
-- [Compatibility and troubleshooting](#compatibility-and-troubleshooting)
-- [Build and source layout](#build-and-source-layout)
+- Organized settings into 15 patches and six categories.
+- Added Material You colors with charcoal fallback.
+- Added rounded Light/Dark icons and matching static splash.
+- Refined onboarding and Rewards styling.
+- Fixed OTP paste across digit boxes.
+- Added optional personal-details skip after OTP.
+- Fixed neutral Usage values and navigation feedback.
+- Reduced bundle blinking and Home button flashes.
+- Made the loading rings loop smoothly.
 
-## Installation
+Related controls are grouped into 15 patches across six categories. Visibility switches use positive **Show…** labels. Material You uses dark wallpaper-based system colors on Android 12+, with a charcoal fallback on older or unsupported devices.
 
-1. Download `MyZong-1.2.23.mpp` from the release above. `SHA256SUMS.txt` provides its SHA-256 checksum.
-2. Import the MPP as a patch source in Morphe Manager.
-3. Choose a **stock My Zong 5.19.19.112 APK** as input.
-4. Review the selected patches. Open **Customize home shortcuts**, **Customize header**, and **Charcoal dark mode** to adjust their options.
-5. Patch, sign, and install through Morphe Manager.
+## Install or update
 
-Keep the same Morphe signing key for future updates. This release contains the MPP and checksum; GitHub provides source archives for its tag. No newly signed installable APK is included.
+1. Add or refresh the MyZong source in Morphe, or manually import `MyZong-1.3.3.mpp` from the release.
+2. Choose a **stock 5.19.19.112 APK**. Use fresh stock input whenever repatching.
+3. Review the categorized patch list and open each selected group's options.
+4. Patch, sign and install using Morphe. Keep the same signing key for future updates.
 
-## How customization works
+### Migrating from 1.2.x
 
-There are **51 selectable patches**. The tables use their names as shown in the patch selector.
+Review your settings once when updating: old individual patch selections cannot automatically describe the new grouped options. The default *effective behavior* is preserved, but previous custom selections need to be entered in their new groups.
 
-| Control | How to change it |
+Most options now use positive **Show…** labels. On means visible; Off means hidden. The patch's own checkbox enables/disables the whole group. Saved options have no effect if their group is deselected. Some internal option keys retain their old hook names; use the displayed title to interpret their value.
+
+The Bundles controls button remains an in-app toggle. Other changes are applied at patch time and require repatching to change later. This bundle does not add a general in-app settings screen.
+
+## Category overview
+
+| Category | Top-level patches |
 | --- | --- |
-| Separate patch | Select/deselect before patching. Most section-hiding controls are independent. |
-| Patch option | Edit the value or list inside a selected patch before patching. |
-| In-app button | The Bundles controls button immediately hides/restores its controls and remembers your choice. |
+| **Appearance** | Material You theme; Material shapes; Material allowance icons; Material usage favorite star; Launcher icon |
+| **Home** | Home sections; Home account cards; Home shortcuts |
+| **Header & navigation** | Header; Bottom navigation |
+| **Bundles & Usage** | Bundles and Usage |
+| **Recharge & dialogs** | Recharge; Dialogs and drawer |
+| **Startup & rewards** | Startup; Skip daily reward ad |
 
-**On/Off below means selected/unselected in a fresh patch selection.** A default-On *Hide* patch hides that item. Deselect it when creating a fresh patched APK to retain the item. Manager may remember a different selection from a previous session.
+All top-level patches are selected by default **except Launcher icon and Skip daily reward ad**. Manager may retain a different saved selection, so check yours.
 
-Most choices are applied when generating the APK. To change them later, repatch the stock APK with your revised selection. There is no general in-app customization settings screen.
+## Appearance
 
-## Theme, colors, and shapes
+### Material You theme
 
-| Patch | Default | What changes |
-| --- | --- | --- |
-| **Charcoal dark mode** | On | Dark grey backgrounds, lighter charcoal surfaces, pale text, subdued progress tracks, and recolored headers, search surfaces, drawer, dialogs, and supported screens. |
-| **Material shapes** | On | Rounded supported Home/Usage cards, pill primary buttons, softer secondary buttons, allowance-cell spacing, revised favorite-button geometry, and rounded New badges. |
-| **Material allowance icons** | On | Gives data, minutes, and SMS icons distinct theme colors instead of using green for all three. |
-| **Material usage favorite star** | On | Restyles selected favorite stars in Usage and Bundles. With Material shapes, the star has a fixed icon size, a borderless button surface, and a dark selected star. |
+This is a dark theme. With **Use wallpaper colors** On (default), Android 12+ supplies the system palette for:
 
-### System Material accent
+- Dark background, surface and raised-card roles.
+- Primary and secondary text.
+- Progress tracks and selected-control surfaces.
+- Accents and text/icons displayed on accent-filled controls.
 
-The **Use system Material accent** option (`systemMaterialAccent`) inside Charcoal dark mode is **On** by default. On Android 12+, supported highlights use the system wallpaper accent. The fallback is muted green; turning this option off uses that fallback.
+The palette is read when the app starts. Reopen the app after changing your wallpaper/system palette. Below Android 12, or if required system colors are missing, the entire palette falls back to the established charcoal implementation. Turn **Use wallpaper colors** Off to force charcoal on a supported device too.
 
-The underlying surfaces remain charcoal. This is not a full dynamic-color replacement of every background. Colors and shapes are separate patches, so dark mode can be used without changing card geometry.
+This adapts the app's existing views; it does not replace the app with a new Material 3 component library or enable a light app theme. Launcher icon Light/Dark selection is independent of the app theme.
 
-### Shape presets
+### Material shapes
 
-Material shapes uses fixed presets:
+Preset geometry for recognized components:
 
 | Component | Treatment |
 | --- | --- |
 | Supported main cards | Approximately 20dp corners. |
-| Supported primary buttons | 24dp corners and a minimum 48dp height that respects larger font settings. |
-| Secondary unsubscribe buttons | 12dp corners and a quieter surface. |
-| Bundle allowance boxes | 8dp corners with gaps between cells. |
-| Validity chips | Fully rounded when inactive; 6dp corners and inverted colors when selected. |
-| New badge | Fully rounded pill. |
-| Favorite button | Compact corners, no outline, and a fixed-size star. |
+| Primary buttons | 24dp corners and minimum 48dp height, respecting larger font settings. |
+| Secondary unsubscribe buttons | Softer 12dp corners and a quieter surface. |
+| Bundle allowance cells | 8dp corners and gaps between cells. |
+| Validity chips | Pill-shaped inactive; 6dp corners and inverted selected colors when active. |
+| New badge | Fully rounded. |
+| Favorite button | Compact corners, fixed-size star and no outline. |
 
-These changes target recognized components. There are no arbitrary radius sliders, per-card color pickers, font selectors, or complete replacement layouts.
+There are no per-component radius sliders or arbitrary color pickers. Deselect Material shapes to retain native geometry while keeping the selected theme and visibility groups.
 
-## Home screen
+### Icons and favorites
 
-### Promotional and auxiliary sections
+**Material allowance icons** gives data, minutes and SMS icons distinct theme colors rather than using green for all three.
 
-Each row is a separate patch and is **On by default**.
+**Material usage favorite star** styles Usage/Bundles favorites. Together with Material shapes, selected stars use a dark glyph on the themed button surface; icon size remains fixed.
 
-| Patch | Hidden content |
+### Launcher icon
+
+This patch is **unselected by default**. When selected, choose **Icon variant**:
+
+| Variant | Background | Ring |
+| --- | --- | --- |
+| **Light** (default option) | Off-white `#EEECE6` | Charcoal `#242424` |
+| **Dark** | Charcoal `#242424` | Off-white `#EEECE6` |
+
+Both use vector artwork with the recognizable bottom opening in the ring. Regular and round launcher references are updated together. The static startup logo and startup cover follow the chosen preset; notification icons remain unchanged. No custom-image upload or custom-color options are included.
+
+Launchers can cache icons; if the icon appears stale after updating, reopen the launcher or remove/re-add its shortcut.
+
+## Home
+
+### Home sections
+
+| Option | Default |
 | --- | --- |
-| **Hide home match card** | Sports/match information card. |
-| **Hide home prayer card** | Prayer/Ramadan timing card. |
-| **Hide home family sharing** | Complete family-sharing group and MY5 banner. |
-| **Hide home streak cards** | Start-your-streak and seven-day streak sections. |
-| **Hide home promotions** | Promotional banners, flash sales, hot offers, inline ads, and the horizontal entertainment/options row below the banners. |
-| **Hide home 5G shortcuts** | 5G map/settings/bundles shortcut group. |
-| **Hide home Z Wallet** | Z Wallet section. |
-| **Hide home step counter** | Step shortcut and step-counter panel. |
-| **Hide home weather strip** | Location/weather strip and expand arrow. |
-| **Hide home regional and city offers** | Regional/city offer search section. |
+| Show match information | Off |
+| Show prayer times | Off |
+| Show family sharing | Off |
+| Show streak cards | Off |
+| Show banners and entertainment row | Off |
+| Show 5G shortcuts | Off |
+| Show Z Wallet | Off |
+| Show step counter | Off |
+| Show location and weather | Off |
+| Show regional and city offers | Off |
+| Increase section spacing | On |
 
-### Account and allowance cards
+Each section remains independently selectable. Family sharing covers its complete button group/MY5 banner. Banners also cover flash sales, hot offers, inline ads and the entertainment row beneath them. Increased spacing keeps at least 24dp above the options tray and regional/city offers.
 
-| Patch | Default | Behavior |
+### Home account cards
+
+| Option | Default | Effect |
 | --- | --- | --- |
-| **Hide home active-offer counts** | On | Removes “X offers active” labels below Home allowances, retaining values and progress displays. |
-| **Hide Home SMS card** | On | Removes the Home SMS card; data/minutes share the remaining space. Usage SMS remains available. |
-| **Hide Home tariff line** | Off | Removes the package name, such as Economy Package, below the balance expiry line. |
-| **Hide Home recharge button** | On | Hides the recharge button in the Home account header. Recharge sections have separate controls. |
-| **Hide Home loan button** | Off | Hides the Home loan button; can be paired with the header loan shortcut. |
-| **Space home sections** | On | Ensures at least 24dp above the options tray and regional/city offers section. |
+| Show active-offer counts | Off | Controls “X offers active” labels without removing values/progress. |
+| Show SMS allowance card | Off | When hidden, data/minutes share the row. Usage SMS remains available. |
+| Show package name below expiry | On | Controls the tariff/package line such as Economy Package. |
+| Show recharge button | Off | Controls only the Home account-header button. |
+| Show loan button | On | Can be turned off when using the header loan shortcut. |
 
-### Make Your Own Bundle / Bachat Bazaar / Zong4U row
+### Home shortcuts
 
-| Patch | Default | Behavior |
-| --- | --- | --- |
-| **Hide Make Your Own Bundle shortcut** | On | Hides only Make Your Own Bundle. |
-| **Hide Bachat Bazaar shortcut** | On | Hides only Bachat Bazaar. |
-| **Hide Zong4U shortcut** | On | Hides only Zong4U. |
+| Option | Default |
+| --- | --- |
+| Show shortcuts tray | On |
+| Show Make Your Own Bundle | Off |
+| Show Bachat Bazaar | Off |
+| Show Zong4U | Off |
 
-Remaining buttons reflow when some are hidden. If all three are hidden, their shared section collapses. This row is separate from the configurable shortcuts tray below it.
+The three large shortcuts remain independent. Remaining buttons reflow, and their shared section collapses when all three are hidden.
 
-### Choose which shortcuts to keep
-
-**Customize home shortcuts** is **On** by default. Its **Home shortcuts to keep** option (`shortcutsToKeep`) is an allowlist: only listed entries remain visible.
-
-Default list:
+**Home shortcuts to keep** remains an editable allowlist for the separate options tray. Defaults:
 
 ```text
 Rewards
 Rs 100 Shop
 ```
 
-Example names you can enter:
+Examples: Rewards, Free MBs, Daraz Hot Deals, Brief History, Rs 100 Shop, 20% Off, IR, Tax Certificate, Balance Save, Yaari Load, Call Blocks, Book Your Number, Value Added Services, Business Sales Leads.
 
-| | |
+**Free MBs and Rewards are aliases.** Matching normalizes case, spaces and punctuation. Other server-provided displayed names can also be entered. Unlisted/future shortcuts stay hidden; an empty list hides all entries. Manager may render this as an editable list rather than checkboxes: enter one name per list entry.
+
+Turning **Show shortcuts tray** Off hides the whole tray regardless of the allowlist. To retain daily-rewards access, optionally enable **Header → Show Home Free MBs shortcut**.
+
+## Header & navigation
+
+### Header
+
+| Option | Default | Notes |
+| --- | --- | --- |
+| Show notification bell | Off | |
+| Show side-menu button | Off | Controls the drawer launcher. |
+| Show refresh button | Off | |
+| Show search outside Bundles | Off | Bundles retains search regardless. |
+| Show greeting | Off | |
+| Left-align titles | Off | |
+| Show Home title when greeting is hidden | On | Does not replace a greeting you kept. |
+| Show Home Bundles shortcut | On | Appears on Home only when the Bundles tab or whole bottom bar is hidden. |
+| Show Home Free MBs shortcut | Off | Opens daily rewards from a small gift icon. |
+| Show Home take/pay loan shortcut | On | Invokes the existing available loan action. |
+
+Header shortcuts are separate choices from section hiding. Hiding the tray does not automatically enable the Free MBs shortcut.
+
+### Bottom navigation
+
+| Option | Default |
 | --- | --- |
-| Rewards / Free MBs | Daraz Hot Deals |
-| Brief History | Rs 100 Shop |
-| 20% Off | IR |
-| Tax Certificate | Balance Save |
-| Yaari Load | Call Blocks |
-| Book Your Number | Value Added Services |
-| Business Sales Leads | |
+| Show bottom navigation | On |
+| Show tab labels | Off |
+| Show More tab | Off |
+| Show Z Play tab | Off |
+| Show Usage tab | On |
+| Show Bundles tab | On |
 
-**Free MBs is an alias for Rewards.** Matching normalizes case, spaces, and punctuation. Other displayed server-provided names can also be entered. Unlisted or future shortcuts stay hidden. An empty list hides every shortcut.
+Turning the whole bar Off overrides the visibility of its items while retaining their option values. Hidden items keep their underlying destinations, but not every tab has an alternative header shortcut. Plan the access you want before hiding the whole bar.
 
-Manager may render this option as an editable list rather than checkboxes. Enter one shortcut name per list entry.
+## Bundles & Usage
 
-**Hide home shortcuts card** is a separate patch, **Off** by default. It hides the entire tray, including entries kept in the allowlist. The Free MBs header shortcut can remain as an alternative route to daily rewards.
+The **Bundles and Usage** patch contains:
 
-## Header and navigation
-
-### Choose header items to hide
-
-**Customize header** is **On** by default. Its **Header items to hide** option (`headerItemsToHide`) accepts:
-
-| Entry | Effect |
+| Option | Default |
 | --- | --- |
-| `Notifications` | Hides the notification bell. |
-| `Menu` | Hides the side-menu launcher. |
-| `Refresh` | Hides the header refresh button. |
-| `Search` | Hides header search outside Bundles; Bundles keeps its search access. |
-| `Greeting` | Hides the greeting. |
+| Show Bundles controls button | On |
+| Show bundle browsing promotions | Off |
+| Show Usage top banner | Off |
+| Show Usage promotions | Off |
 
-All five are in the default hide list. Remove an entry to keep that item. An empty list keeps all five.
+On Bundles, tap the controls icon beside Search to hide/restore categories, validity chips and Filter by controls together. Controls start visible on a fresh installation, and the choice is remembered locally. Hiding them preserves current filters and keeps Search/offers accessible. Scrolling no longer changes control visibility.
 
-### Titles and replacement shortcuts
+Search surfaces/results icons, category indicators, validity chips, allowance-cell spacing and favorite styling are provided by the theme/shape patches rather than separate per-element color switches.
 
-| Patch | Default | Behavior |
+## Recharge & dialogs
+
+### Recharge
+
+**Show Online Recharge**, **Show Scratch Card**, and **Show Online Recharge promotions** are all Off by default. Promotional visibility matters when Online Recharge is kept visible. The Home recharge button is configured separately under Home account cards.
+
+### Dialogs and drawer
+
+| Option | Default | Effect |
 | --- | --- | --- |
-| **Left align header titles** | Off | Aligns supported titles to the start edge. |
-| **Show Home header title** | On | Shows “Home” when the Home greeting is hidden. It does not replace a greeting you kept. |
-| **Home header Bundles shortcut** | On | Appears on Home when the Bundles tab or entire bottom bar is hidden. |
-| **Home header Free MBs shortcut** | Off | Adds a small gift icon opening daily rewards. |
-| **Home header loan shortcut** | On | Invokes the existing take/pay loan action from the header. |
+| Show chatbot launcher and dialog | Off | Controls the launcher/overlay and opening method. |
+| Show WhatsApp channel notice | Off | Controls the Zong 5G notice with “AISA HAI FUTURE” / “Follow!”. |
+| Show support and promotional drawer links | Off | Controls Press Release, Find Us, Contact Us, Video Tutorials, FAQs and Feedback together. |
 
-Section hiding does not automatically enable replacement shortcuts. For example, select the Free MBs header shortcut explicitly if you want it after hiding the shortcuts card.
+Drawer links are one group, not six independent switches. The drawer's launcher is separately controlled by Header. Supported success dialogs and Rewards notices receive their surface/text styling from Material You theme.
 
-### Bottom navigation and initial screen
-
-| Patch | Default | Behavior |
-| --- | --- | --- |
-| **Hide bottom navigation labels** | On | Shows tab icons without labels. |
-| **Hide More bottom tab** | On | Hides More. |
-| **Hide Z Play bottom tab** | On | Hides Z Play. |
-| **Hide Usage bottom tab** | Off | Hides Usage. |
-| **Hide Bundles bottom tab** | Off | Hides Bundles. |
-| **Hide bottom navigation** | Off | Hides the entire bar, overriding individual item visibility. |
-| **Start on Usage** | Off | Opens Usage on a fresh launch after sign-in. Home remains in the navigation history; restored state and deep links are respected. |
-
-Hiding an item changes its visibility rather than deleting its destination. The Bundles header icon provides an alternative route to Bundles, but not every hidden tab has a corresponding header shortcut. Choose the access you want before hiding the whole bar.
-
-## Bundles and Usage
-
-| Patch | Default | Behavior |
-| --- | --- | --- |
-| **Bundle controls toggle** | On | Adds an icon beside Search to hide/restore categories, validity chips, and filter controls together. |
-| **Hide bundle browsing promotions** | On | Hides the advertising banner in supported bundle browsing/details areas. |
-| **Hide usage top banner** | On | Hides the large banner above the Usage summary. |
-| **Hide usage promotions** | On | Hides the external-promotion label and ad container on Usage. |
-
-### Manual Bundles controls
-
-Open Bundles and tap the controls icon beside Search. The category/options row, validity chips, and Filter by controls disappear; tap again to restore them.
-
-Controls begin visible on a fresh installation, and the show/hide choice is remembered locally. Hiding preserves the current category and filters. Search and the offers list remain available. Scrolling no longer changes control visibility, avoiding the previous automatic-collapse interaction.
-
-Related appearance changes come from the theme and shape patches: recolored search surfaces/results icons, accent-colored category indicators, stateful validity chips, allowance-cell spacing, and favorite-star styling. These are bundled treatments rather than separate color switches for each element.
-
-## Recharge, dialogs, and startup
-
-### Recharge sections
-
-| Patch | Default | Behavior |
-| --- | --- | --- |
-| **Hide Online Recharge section** | On | Hides Online Recharge. |
-| **Hide Scratch Card section** | On | Hides Scratch Card. |
-| **Hide online recharge promotions** | On | Hides supported banners and inline promotions if Online Recharge remains visible. |
-
-The Home recharge button has its own patch. Keeping that button and keeping either recharge section are separate decisions.
-
-### Dialogs and side menu
-
-| Patch | Default | Behavior |
-| --- | --- | --- |
-| **Hide floating chatbot and dialog** | On | Hides the launcher/overlay and blocks its supported opening method. |
-| **Hide WhatsApp channel dialog** | On | Hides the Zong 5G WhatsApp promotion, including the “AISA HAI FUTURE” / “Follow!” notice. |
-| **Hide drawer support and promotional links** | On | Hides Press Release, Find Us, Contact Us, Video Tutorials, FAQs, and Feedback as a group. |
-
-Drawer links use one grouped patch, not six separate toggles. **Customize header → Menu** independently hides the drawer launcher. Success dialogs and supported Rewards notices receive dark styling through **Charcoal dark mode**.
+## Startup & rewards
 
 ### Startup
 
-| Patch | Default | Behavior |
-| --- | --- | --- |
-| **Skip animated startup intro** | On | Uses a static logo and the existing intro-completion route; startup/session checks remain. |
-| **Hold startup until Home settles** | On | Briefly keeps a matching dark brand cover while loading/initial visibility changes settle, reducing flashes of hidden Home sections. |
+| Option | Default |
+| --- | --- |
+| Use static logo instead of animated intro | On |
+| Hold cover until Home settles | On |
+| Start on Usage | Off |
+| Split pasted PIN/OTP digits across boxes | On |
+| Skip personal details after OTP | Off |
 
-The hold lasts at least about 450ms and at most 1.8 seconds, finishing once loading and three clean frames settle. It does not wait indefinitely for network requests. Android can still provide its system launch splash.
+The static logo uses the app's existing completion route and retains startup/session checks. The cover lasts at least about 450ms and at most 1.8 seconds, ending once loading and three clean frames settle. It reduces initial flashes, not indefinite network waits. Android can still show its system launch splash.
 
-## Daily reward ad option
+OTP paste distributes full codes across the current row; partial pastes start at the focused box and clear stale trailing digits. Old/new/confirmation PIN rows stay separate. Overlong codes are rejected.
 
-**Skip daily reward ad** is **Off** by default. Selecting it routes the daily reward bubble through My Zong's existing direct-claim branch.
+Skip personal details applies only after OTP sign-in. Profile remains accessible from navigation; wallet identity forms are unaffected.
 
-This is independent of promotional UI hiding: removing Home/Usage banners does not change the reward claim flow. It targets one client-side branch, not every ad in the app. Reward availability and entitlement still depend on the service.
+Start on Usage applies to fresh launches after sign-in. Restored state and deep links are respected, and Home remains in the navigation history.
+
+### Skip daily reward ad
+
+This separate patch remains **unselected by default**. It routes the reward bubble through My Zong's existing direct-claim branch. Hiding banners/promotional UI does not enable it. It targets that specific client-side branch; reward availability and entitlement remain service-controlled.
 
 ## Example configurations
 
-These are combinations of existing options, not named presets in Manager.
-
-| Goal | Selection |
+| Goal | Configure |
 | --- | --- |
-| Clean Home with normal navigation | Keep Home cleanup patches; leave **Hide bottom navigation**, **Hide Usage bottom tab**, and **Hide Bundles bottom tab** off. |
-| Minimal Home with header shortcuts | Enable **Hide home shortcuts card**, **Home header Free MBs shortcut**, and **Home header loan shortcut**. Optionally enable **Hide Home loan button**. |
-| More space for bundle browsing | Keep **Bundle controls toggle** on and collapse controls using its in-app button. |
-| Data/minutes-focused Home | Keep **Hide Home SMS card** and **Hide home active-offer counts** on; optionally enable **Hide Home tariff line**. |
-| Open directly to Usage | Enable **Start on Usage**. Keep the Usage tab visible unless intentionally hiding it. |
-| Selected utility shortcuts | Edit the shortcut keep list and leave **Hide home shortcuts card** off. |
-| Dark colors with native card geometry | Enable **Charcoal dark mode** and deselect **Material shapes**. Other icon/visibility patches remain independent. |
+| Minimal Home | Leave optional Home sections Off; turn the shortcuts tray/loan button Off if using their header replacements. |
+| Keep useful tray entries | Leave the tray On and enter exactly the names you want in its allowlist. |
+| Keep normal navigation | Leave the bar, Usage and Bundles On. Choose whether labels/More/Z Play are useful. |
+| Maximum bundle-list space | Keep the controls button On and hide controls using that in-app button. |
+| Open to Usage | Enable Startup → Start on Usage. |
+| Charcoal on a newer phone | Turn Material You theme → Use wallpaper colors Off. |
+| Off-white launcher icon | Select Launcher icon and choose Light. |
 
-## Compatibility and troubleshooting
+## Troubleshooting and compatibility
 
-### Supported input and patch sources
-
-The target is **5.19.19.112**, not `.117`. Use a fresh stock APK when changing the selection. This is a patch source, not an XAPK installer or a standalone replacement for My Zong's service. Morphe manages shared internal patch dependencies automatically.
-
-v1.2.23 resolves mapped raw-resource filenames when another source triggers resource decoding, retains bulk extraction, and still fails if a required file is actually missing. All 51 selected patches applied locally to stock `.112`, and the user confirmed v1.2.22 works on their phone. v1.2.23 changes bundle branding and metadata only. The exact combination with Morphe's **Disable Play Store** patch has not been independently reproduced locally.
-
-For combined-source failures, capture the failing patch, full exception, source versions, Manager/Patcher versions, and input version. Another source may require a separate fix.
-
-### Common questions
-
-| Symptom | Check |
-| --- | --- |
-| Selected shortcut is absent | Leave **Hide home shortcuts card** off and use the displayed name in the keep list. Free MBs and Rewards are aliases. |
-| No Home title | The patch must be selected, Home active, and Greeting included in the header hide list. |
-| No Bundles header shortcut | It appears on Home only when selected and the Bundles tab or entire bar is hidden. |
-| Bundle categories/filters disappeared | Tap the controls icon beside Search; hidden state persists between launches. |
-| Daily reward still shows an ad | **Skip daily reward ad** is separate from banner hiding and starts unselected. |
-| `INSTALL_FAILED_UPDATE_INCOMPATIBLE` | Existing/new APK signatures differ. Keep the same signing key, or uninstall before switching; uninstalling removes local app data. Check other Android users/profiles if the package remains installed. |
-| Need different radius/colors | Shapes and colors are presets. Per-component sliders/pickers are not available. |
+- **Input version:** use stock `.112`, not `.117`. This is a patch source, not a standalone replacement app or an XAPK installer.
+- **Missing shortcut:** check the tray is On and its keep list contains the displayed name. Free MBs/Rewards are aliases.
+- **Missing Home title:** it appears when Home is active and the greeting is Off.
+- **Missing Bundles header icon:** it appears on Home only when selected and the Bundles tab or whole bar is hidden.
+- **Missing bundle filters:** tap the controls button; its hidden state persists between launches.
+- **Different theme on older Android:** charcoal is the intentional pre-Android-12 fallback. Required OEM system colors must be available for Material You.
+- **Signature mismatch:** `INSTALL_FAILED_UPDATE_INCOMPATIBLE` means the installed/new APK keys differ. Keep the same key, or uninstall before switching; uninstalling removes local data. Check other Android users/profiles if the package remains installed there.
+- **Mixed patch sources:** raw-resource aliases are supported, including decoded manifest handling for the launcher. Compatibility with another source still depends on its patches. Capture the full exception, source versions and Manager/Patcher versions when reporting failures.
 
 ## Build and source layout
 
-### Build requirements
-
-Use Windows PowerShell, JDK 23, Android SDK build-tools 36.0.0, and GitHub CLI. Configure `patches/local.properties` and adapt machine paths in `scripts/Build-Bundle.ps1`.
+Use Windows PowerShell, JDK 23, Android SDK platform/build-tools 36, and GitHub CLI. Configure `patches/local.properties` and adapt machine paths in the build scripts.
 
 ```powershell
 .\scripts\Build-Bundle.ps1
 ```
 
-Output: `patches/patches/build/libs/patches-1.2.23.mpp`.
+The build compiles the two vector launcher assets using `scripts/Build-LauncherIcons.ps1` and saves the ready-to-import bundle as `outputs/MyZong-1.3.3.mpp` with `outputs/SHA256SUMS.txt`.
 
-The script uses your `gh` login for GitHub Packages and cached Gradle dependencies. For initial dependency downloads, configure `GITHUB_ACTOR` and `GITHUB_TOKEN` and run the Gradle wrapper without `--offline`.
-
-### Repository layout
+The script uses your `gh` login for GitHub Packages and cached Gradle dependencies. For initial downloads, configure `GITHUB_ACTOR`/`GITHUB_TOKEN` and run Gradle without `--offline`.
 
 | Path | Purpose |
 | --- | --- |
-| `patches/patches/src/main/kotlin/app/zonghome/patches/` | Patch definitions, options, fingerprints, resource edits, and bytecode hooks. |
-| `patches/extensions/extension/src/main/java/app/zonghome/extension/` | Runtime visibility, theme, shape, navigation, and control helpers. |
-| `tests/` | Test stubs and regression fixtures. |
-| `tests/resource-checks/` | Binary-XML, initial Home layout, and adapter/startup hook checks. |
-| `scripts/` | Build, packaging, and validation helpers; local paths may need adapting. |
-| `CHANGELOG.md` | Version changes. |
+| `patches/patches/src/main/kotlin/app/zonghome/patches/` | Categories, options, fingerprints, resource edits and hooks. |
+| `patches/extensions/extension/src/main/java/app/zonghome/extension/` | Runtime visibility, palettes, shapes and navigation. |
+| `patches/patches/src/main/resources/branding/` | Compiled launcher assets and readable vector sources. |
+| `tests/resource-checks/` | Catalog, APK visibility, icon/manifest and bytecode regression checks. |
+| `tests/app/zonghome/extension/MaterialPaletteTest.java` | Dynamic dark roles, contrast, alpha and fallback checks. |
+| `scripts/` | Build, packaging and validation helpers. |
+| `CHANGELOG.md` | Release history. |
 
-Local `inputs/`, `private/`, `tools/`, `work/`, `builds/`, and `docs/` are ignored by Git. Signing keys and proprietary input APKs are excluded. Older local builds are preserved under `builds/archive/`.
-
-### Remote source metadata
-
-Morphe resolves the Add to Morphe link through the root "patches-bundle.json" on "main". This manifest points to the published MPP and records its version and UTC release time. Update it whenever a new release is published; uploading an MPP to GitHub Releases alone does not update the remote source.
+Local `inputs/`, `private/`, `tools/`, `work/`, `builds/`, `outputs/` and `docs/` are ignored. Signing keys and proprietary input APKs are excluded. Older local builds are retained under `builds/archive/`.
 
 ### Validation
 
-v1.2.23 is a branding/metadata update. Its MPP built successfully, and every payload entry is byte-identical to v1.2.22; only the bundle manifest changed. Refresh the remote source in Morphe to receive the corrected MyZong identity.
+The MPP catalog is checked for 15 public patches, six categories, friendly option labels, 51 reversible switches, preserved effective defaults and exactly two icon variants. Stock `.112` validation covers default settings with Light icon, restored-visible settings with Dark icon/charcoal, hidden settings with Material You enabled, and an icon-only build.
 
+Regression checks inspect compiled Home visibility and runtime flags, conditional chatbot handling, launcher/manifest isolation, fixed startup-logo binding, safe adapter/startup hooks and binary-XML edits. Palette tests cover dark roles, text contrast, transparency and Android/OEM fallback behavior. The Material You appearance still needs a phone check on the target device.
 
-v1.2.22 passed its MPP build and a stock `.112` run with all 51 selectable patches enabled. Checks covered 362 binary-XML assertions, 13 adapter entry hooks, startup/indicator hook placement, absence of automatic scrolling hooks, first-frame Home hiding, and remaining allowance-card widths. A user phone test also passed; this does not cover every server-delivered screen or every optional configuration.
+### Remote source metadata
+
+Morphe reads the root `patches-bundle.json` on `main`. Update its version, UTC release time and download URL when publishing; uploading an MPP alone does not update the remote source.
 
 License and upstream attribution: [LICENSE](patches/LICENSE), [NOTICE](patches/NOTICE).

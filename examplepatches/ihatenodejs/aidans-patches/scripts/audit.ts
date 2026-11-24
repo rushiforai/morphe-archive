@@ -3,6 +3,7 @@ import { spawn } from 'node:child_process';
 import * as crypto from 'node:crypto';
 import * as fs from 'node:fs';
 import * as path from 'node:path';
+import { RUST_PROJECTS, cargoArgs } from './rust-projects';
 
 const KTLINT_VERSION = '1.5.0';
 const KTLINT_SHA256 =
@@ -31,12 +32,10 @@ const sym = {
   arrow: `${c.gray}→${c.reset}`,
 };
 
-export type AuditDomain =
-  'web' | 'python' | 'android' | 'rust' | 'native' | 'all';
+export type AuditDomain = 'web' | 'android' | 'rust' | 'native' | 'all';
 
 export const VALID_DOMAINS: readonly AuditDomain[] = [
   'web',
-  'python',
   'android',
   'rust',
   'native',
@@ -180,33 +179,6 @@ function findFilesRecursive(dir: string, extensions: string[]): string[] {
   }
   return results;
 }
-function resolveRuffCommand(): { cmd: string; baseArgs: string[] } {
-  const systemRuff = Bun.which('ruff');
-  if (systemRuff) {
-    return { cmd: systemRuff, baseArgs: [] };
-  }
-  const venvRuff = path.join(
-    process.cwd(),
-    'tools',
-    'apk-lab',
-    '.venv',
-    process.platform === 'win32' ? 'Scripts' : 'bin',
-    process.platform === 'win32' ? 'ruff.exe' : 'ruff',
-  );
-  if (fs.existsSync(venvRuff)) {
-    return { cmd: venvRuff, baseArgs: [] };
-  }
-  const systemUvx = Bun.which('uvx');
-  if (systemUvx) {
-    return { cmd: systemUvx, baseArgs: ['ruff'] };
-  }
-  const systemUv = Bun.which('uv');
-  if (systemUv) {
-    return { cmd: systemUv, baseArgs: ['tool', 'run', 'ruff'] };
-  }
-  return { cmd: 'ruff', baseArgs: [] };
-}
-
 function printSectionHeader(title: string, subtitle?: string): void {
   console.log();
   console.log(
@@ -402,35 +374,7 @@ async function runFormat(
     });
   }
 
-  // 2. Ruff (Python)
-  if (shouldRunDomain(domain, 'python')) {
-    process.stdout.write(`  ${sym.arrow} Formatting Python sources (Ruff)... `);
-    const ruff = resolveRuffCommand();
-    const ruffArgs = checkOnly
-      ? ['format', '--check', 'tools/apk-lab', '.github/scripts', 'extensions']
-      : ['format', 'tools/apk-lab', '.github/scripts', 'extensions'];
-    const rRes = await execCommand(ruff.cmd, [...ruff.baseArgs, ...ruffArgs]);
-    const rPassed = rRes.code === 0;
-    const rSummary = checkOnly
-      ? rPassed
-        ? 'All Python files formatted'
-        : 'Python files need formatting'
-      : 'Formatted Python sources';
-    console.log(rPassed ? sym.ok : sym.err);
-    if (!rPassed) {
-      printRawCommandOutput(rRes.stdout, rRes.stderr);
-    }
-    results.push({
-      title: 'Python (Ruff format)',
-      tool: 'ruff',
-      domain: 'python',
-      success: rPassed,
-      durationMs: rRes.durationMs,
-      summary: rSummary,
-    });
-  }
-
-  // 3. ktlint (Kotlin)
+  // 2. ktlint (Kotlin)
   if (shouldRunDomain(domain, 'android')) {
     process.stdout.write(
       `  ${sym.arrow} Formatting Kotlin sources (ktlint)... `,
@@ -467,79 +411,35 @@ async function runFormat(
     });
   }
 
-  // 4. Rust (play-metadata cargo fmt)
+  // 3. Rust host crates (cargo fmt)
   if (shouldRunDomain(domain, 'rust')) {
-    process.stdout.write(
-      `  ${sym.arrow} Formatting Rust play-metadata sources (cargo fmt)... `,
-    );
-    const rustFmtArgs = [
-      'fmt',
-      '--manifest-path',
-      'tools/play-metadata/Cargo.toml',
-    ];
-    if (checkOnly) rustFmtArgs.push('--check');
-    const rustFmtRes = await execCommand('cargo', rustFmtArgs);
-    const rustFmtPassed = rustFmtRes.code === 0;
-    const rustFmtMissing =
-      rustFmtRes.code !== 0 && rustFmtRes.stderr.includes('ENOENT');
-    const rustFmtSummary = rustFmtMissing
-      ? 'cargo not found in PATH; install Rust toolchain (rustup.rs)'
-      : checkOnly
-        ? rustFmtPassed
-          ? 'All Rust files formatted'
-          : 'Rust files need formatting'
-        : 'Formatted Rust sources';
-    console.log(rustFmtPassed ? sym.ok : sym.err);
-    if (!rustFmtPassed) {
-      printRawCommandOutput(rustFmtRes.stdout, rustFmtRes.stderr);
+    for (const project of RUST_PROJECTS) {
+      process.stdout.write(
+        `  ${sym.arrow} Formatting Rust ${project.label} sources (cargo fmt)... `,
+      );
+      const args = cargoArgs(project, ['fmt'], checkOnly ? ['--check'] : []);
+      const result = await execCommand('cargo', args);
+      const passed = result.code === 0;
+      console.log(passed ? sym.ok : sym.err);
+      if (!passed) printRawCommandOutput(result.stdout, result.stderr);
+      results.push({
+        title: `Rust ${project.label} (cargo fmt)`,
+        tool: 'cargo fmt',
+        domain: 'rust',
+        success: passed,
+        durationMs: result.durationMs,
+        summary: result.stderr.includes('ENOENT')
+          ? 'cargo not found in PATH; install Rust toolchain (rustup.rs)'
+          : checkOnly
+            ? passed
+              ? 'All Rust files formatted'
+              : 'Rust files need formatting'
+            : 'Formatted Rust sources',
+      });
     }
-    results.push({
-      title: 'Rust Play Metadata (cargo fmt)',
-      tool: 'cargo fmt',
-      domain: 'rust',
-      success: rustFmtPassed,
-      durationMs: rustFmtRes.durationMs,
-      summary: rustFmtSummary,
-    });
   }
 
-  // 5. Rust (nhl-adblock-native cargo fmt)
-  if (shouldRunDomain(domain, 'rust')) {
-    process.stdout.write(
-      `  ${sym.arrow} Formatting Rust nhl-adblock-native sources (cargo fmt)... `,
-    );
-    const nhlFmtArgs = [
-      'fmt',
-      '--manifest-path',
-      'extensions/nhl-adblock-native/Cargo.toml',
-    ];
-    if (checkOnly) nhlFmtArgs.push('--check');
-    const nhlFmtRes = await execCommand('cargo', nhlFmtArgs);
-    const nhlFmtPassed = nhlFmtRes.code === 0;
-    const nhlFmtMissing =
-      nhlFmtRes.code !== 0 && nhlFmtRes.stderr.includes('ENOENT');
-    const nhlFmtSummary = nhlFmtMissing
-      ? 'cargo not found in PATH; install Rust toolchain (rustup.rs)'
-      : checkOnly
-        ? nhlFmtPassed
-          ? 'All Rust files formatted'
-          : 'Rust files need formatting'
-        : 'Formatted Rust sources';
-    console.log(nhlFmtPassed ? sym.ok : sym.err);
-    if (!nhlFmtPassed) {
-      printRawCommandOutput(nhlFmtRes.stdout, nhlFmtRes.stderr);
-    }
-    results.push({
-      title: 'Rust NHL AdBlock Native (cargo fmt)',
-      tool: 'cargo fmt',
-      domain: 'rust',
-      success: nhlFmtPassed,
-      durationMs: nhlFmtRes.durationMs,
-      summary: nhlFmtSummary,
-    });
-  }
-
-  // 6. C++ (clang-format)
+  // 4. C++ (clang-format)
   if (shouldRunDomain(domain, 'native')) {
     process.stdout.write(
       `  ${sym.arrow} Formatting C++ Adobe Scan Native sources (clang-format)... `,
@@ -653,50 +553,7 @@ async function runLint(
     });
   }
 
-  // 2. Ruff (Python)
-  if (shouldRunDomain(domain, 'python')) {
-    process.stdout.write(`  ${sym.arrow} Linting Python sources (Ruff)... `);
-    const ruff = resolveRuffCommand();
-    const ruffArgs = ['check', '--output-format', 'json'];
-    if (autoFix) ruffArgs.push('--fix');
-    ruffArgs.push('tools/apk-lab', '.github/scripts', 'extensions');
-
-    const rRes = await execCommand(ruff.cmd, [...ruff.baseArgs, ...ruffArgs]);
-    const rDiags: Diagnostic[] = [];
-    try {
-      const items = JSON.parse(rRes.stdout);
-      if (Array.isArray(items)) {
-        for (const item of items) {
-          rDiags.push({
-            tool: 'ruff',
-            file: item.filename,
-            line: item.location?.row,
-            col: item.location?.column,
-            message: item.message,
-            rule: item.code,
-            severity: 'error',
-          });
-        }
-      }
-    } catch {
-      printRawCommandOutput(rRes.stdout, rRes.stderr);
-    }
-    const rPassed = rRes.code === 0 && rDiags.length === 0;
-    allDiagnostics.push(...rDiags);
-
-    console.log(rPassed ? sym.ok : sym.err);
-    results.push({
-      title: 'Python (Ruff check)',
-      tool: 'ruff',
-      domain: 'python',
-      success: rPassed,
-      durationMs: rRes.durationMs,
-      summary: `${rDiags.length === 0 ? 'No issues' : `${rDiags.length} issues found`}`,
-      diagnostics: rDiags,
-    });
-  }
-
-  // 3. ktlint (Kotlin)
+  // 2. ktlint (Kotlin)
   if (shouldRunDomain(domain, 'android')) {
     process.stdout.write(`  ${sym.arrow} Linting Kotlin sources (ktlint)... `);
     const ktArgs = autoFix
@@ -740,7 +597,7 @@ async function runLint(
     });
   }
 
-  // 4. Markdown Documentation (markdownlint-cli2)
+  // 3. Markdown Documentation (markdownlint-cli2)
   if (shouldRunDomain(domain, 'web')) {
     process.stdout.write(
       `  ${sym.arrow} Linting Markdown documentation (markdownlint-cli2)... `,
@@ -785,83 +642,45 @@ async function runLint(
     });
   }
 
-  // 5. Rust (play-metadata clippy)
+  // 4. Rust host crates (cargo clippy)
   if (shouldRunDomain(domain, 'rust')) {
-    process.stdout.write(
-      `  ${sym.arrow} Linting Rust play-metadata sources (clippy)... `,
-    );
-    const clippyArgs = [
-      'clippy',
-      '--locked',
-      '--manifest-path',
-      'tools/play-metadata/Cargo.toml',
-      '--all-targets',
-      ...(autoFix ? ['--fix', '--allow-dirty', '--allow-staged'] : []),
-      '--',
-      '-D',
-      'warnings',
-    ];
-    const clippyRes = await execCommand('cargo', clippyArgs);
-    const clippyPassed = clippyRes.code === 0;
-    const clippyMissing =
-      clippyRes.code !== 0 && clippyRes.stderr.includes('ENOENT');
-    console.log(clippyPassed ? sym.ok : sym.err);
-    if (!clippyPassed) {
-      printRawCommandOutput(clippyRes.stdout, clippyRes.stderr);
+    for (const project of RUST_PROJECTS) {
+      process.stdout.write(
+        `  ${sym.arrow} Linting Rust ${project.label} sources (clippy)... `,
+      );
+      const result = await execCommand(
+        'cargo',
+        cargoArgs(
+          project,
+          ['clippy', '--locked'],
+          [
+            '--all-targets',
+            ...(autoFix ? ['--fix', '--allow-dirty', '--allow-staged'] : []),
+            '--',
+            '-D',
+            'warnings',
+          ],
+        ),
+      );
+      const passed = result.code === 0;
+      console.log(passed ? sym.ok : sym.err);
+      if (!passed) printRawCommandOutput(result.stdout, result.stderr);
+      results.push({
+        title: `Rust ${project.label} (clippy)`,
+        tool: 'clippy',
+        domain: 'rust',
+        success: passed,
+        durationMs: result.durationMs,
+        summary: result.stderr.includes('ENOENT')
+          ? 'cargo not found in PATH; install Rust toolchain (rustup.rs)'
+          : passed
+            ? 'No issues'
+            : 'Clippy warnings/errors detected',
+      });
     }
-    results.push({
-      title: 'Rust Play Metadata (clippy)',
-      tool: 'clippy',
-      domain: 'rust',
-      success: clippyPassed,
-      durationMs: clippyRes.durationMs,
-      summary: clippyMissing
-        ? 'cargo not found in PATH; install Rust toolchain (rustup.rs)'
-        : clippyPassed
-          ? 'No issues'
-          : 'Clippy warnings/errors detected',
-    });
   }
 
-  // 5. Rust (nhl-adblock-native clippy)
-  if (shouldRunDomain(domain, 'rust')) {
-    process.stdout.write(
-      `  ${sym.arrow} Linting Rust nhl-adblock-native sources (clippy)... `,
-    );
-    const nhlClippyArgs = [
-      'clippy',
-      '--locked',
-      '--manifest-path',
-      'extensions/nhl-adblock-native/Cargo.toml',
-      '--all-targets',
-      ...(autoFix ? ['--fix', '--allow-dirty', '--allow-staged'] : []),
-      '--',
-      '-D',
-      'warnings',
-    ];
-    const nhlClippyRes = await execCommand('cargo', nhlClippyArgs);
-    const nhlClippyPassed = nhlClippyRes.code === 0;
-    const nhlClippyMissing =
-      nhlClippyRes.code !== 0 && nhlClippyRes.stderr.includes('ENOENT');
-    console.log(nhlClippyPassed ? sym.ok : sym.err);
-    if (!nhlClippyPassed) {
-      printRawCommandOutput(nhlClippyRes.stdout, nhlClippyRes.stderr);
-    }
-    results.push({
-      title: 'Rust NHL AdBlock Native (clippy)',
-      tool: 'clippy',
-      domain: 'rust',
-      success: nhlClippyPassed,
-      durationMs: nhlClippyRes.durationMs,
-      summary: nhlClippyMissing
-        ? 'cargo not found in PATH; install Rust toolchain (rustup.rs)'
-        : nhlClippyPassed
-          ? 'No issues'
-          : 'Clippy warnings/errors detected',
-    });
-  }
-
-  // 6. C++ (CMake host build with -Wall -Wextra -Werror)
+  // 5. C++ (CMake host build with -Wall -Wextra -Werror)
   if (shouldRunDomain(domain, 'native')) {
     process.stdout.write(
       `  ${sym.arrow} Linting C++ Adobe Scan Native engine (-Wall -Wextra)... `,
@@ -931,7 +750,7 @@ async function runLint(
 // TYPECHECK COMMAND
 // ============================================================================
 async function runTypecheck(domain: AuditDomain = 'all'): Promise<PhaseResult> {
-  const subtitle = `TypeScript, Astro, Python, Rust, C++, and Kotlin/Java${domain !== 'all' ? ` [domain: ${domain}]` : ''}`;
+  const subtitle = `TypeScript, Astro, Rust, C++, and Kotlin/Java${domain !== 'all' ? ` [domain: ${domain}]` : ''}`;
   printSectionHeader('Typecheck', subtitle);
   const results: StepResult[] = [];
 
@@ -981,37 +800,7 @@ async function runTypecheck(domain: AuditDomain = 'all'): Promise<PhaseResult> {
     });
   }
 
-  // 3. Python (mypy on tools/apk-lab)
-  if (shouldRunDomain(domain, 'python')) {
-    process.stdout.write(
-      `  ${sym.arrow} Checking Python types (mypy on apk-lab)... `,
-    );
-    const pyRes = await execCommand('uv', [
-      'run',
-      '--project',
-      'tools/apk-lab',
-      '--with',
-      'mypy',
-      'mypy',
-      'tools/apk-lab/apk_lab',
-      '--ignore-missing-imports',
-    ]);
-    const pyPassed = pyRes.code === 0;
-    console.log(pyPassed ? sym.ok : sym.err);
-    if (!pyPassed) {
-      printRawCommandOutput(pyRes.stdout, pyRes.stderr);
-    }
-    results.push({
-      title: 'APK Lab Python (mypy)',
-      tool: 'mypy',
-      domain: 'python',
-      success: pyPassed,
-      durationMs: pyRes.durationMs,
-      summary: pyPassed ? '15 source files verified' : 'Mypy type errors found',
-    });
-  }
-
-  // 4. Morphe Patches & Extensions (Gradle compileKotlin + compileReleaseJavaWithJavac)
+  // 3. Morphe Patches & Extensions (Gradle compileKotlin + compileReleaseJavaWithJavac)
   if (shouldRunDomain(domain, 'android')) {
     process.stdout.write(
       `  ${sym.arrow} Compiling Morphe Patches & Extension (Gradle)... `,
@@ -1038,75 +827,35 @@ async function runTypecheck(domain: AuditDomain = 'all'): Promise<PhaseResult> {
     });
   }
 
-  // 5. Rust (play-metadata cargo check)
+  // 4. Rust host crates (cargo check)
   if (shouldRunDomain(domain, 'rust')) {
-    process.stdout.write(
-      `  ${sym.arrow} Checking Rust play-metadata types (cargo check)... `,
-    );
-    const rustCheckArgs = [
-      'check',
-      '--locked',
-      '--manifest-path',
-      'tools/play-metadata/Cargo.toml',
-      '--all-targets',
-    ];
-    const rustCheckRes = await execCommand('cargo', rustCheckArgs);
-    const rustCheckPassed = rustCheckRes.code === 0;
-    const rustCheckMissing =
-      rustCheckRes.code !== 0 && rustCheckRes.stderr.includes('ENOENT');
-    console.log(rustCheckPassed ? sym.ok : sym.err);
-    if (!rustCheckPassed) {
-      printRawCommandOutput(rustCheckRes.stdout, rustCheckRes.stderr);
+    for (const project of RUST_PROJECTS) {
+      process.stdout.write(
+        `  ${sym.arrow} Checking Rust ${project.label} types (cargo check)... `,
+      );
+      const result = await execCommand(
+        'cargo',
+        cargoArgs(project, ['check', '--locked'], ['--all-targets']),
+      );
+      const passed = result.code === 0;
+      console.log(passed ? sym.ok : sym.err);
+      if (!passed) printRawCommandOutput(result.stdout, result.stderr);
+      results.push({
+        title: `Rust ${project.label} (cargo check)`,
+        tool: 'cargo check',
+        domain: 'rust',
+        success: passed,
+        durationMs: result.durationMs,
+        summary: result.stderr.includes('ENOENT')
+          ? 'cargo not found in PATH; install Rust toolchain (rustup.rs)'
+          : passed
+            ? 'All targets checked clean'
+            : 'Cargo check errors detected',
+      });
     }
-    results.push({
-      title: 'Rust Play Metadata (cargo check)',
-      tool: 'cargo check',
-      domain: 'rust',
-      success: rustCheckPassed,
-      durationMs: rustCheckRes.durationMs,
-      summary: rustCheckMissing
-        ? 'cargo not found in PATH; install Rust toolchain (rustup.rs)'
-        : rustCheckPassed
-          ? 'All targets checked clean'
-          : 'Cargo check errors detected',
-    });
   }
 
-  // 6. Rust (nhl-adblock-native cargo check)
-  if (shouldRunDomain(domain, 'rust')) {
-    process.stdout.write(
-      `  ${sym.arrow} Checking Rust nhl-adblock-native types (cargo check)... `,
-    );
-    const nhlCheckArgs = [
-      'check',
-      '--locked',
-      '--manifest-path',
-      'extensions/nhl-adblock-native/Cargo.toml',
-      '--all-targets',
-    ];
-    const nhlCheckRes = await execCommand('cargo', nhlCheckArgs);
-    const nhlCheckPassed = nhlCheckRes.code === 0;
-    const nhlCheckMissing =
-      nhlCheckRes.code !== 0 && nhlCheckRes.stderr.includes('ENOENT');
-    console.log(nhlCheckPassed ? sym.ok : sym.err);
-    if (!nhlCheckPassed) {
-      printRawCommandOutput(nhlCheckRes.stdout, nhlCheckRes.stderr);
-    }
-    results.push({
-      title: 'Rust NHL AdBlock Native (cargo check)',
-      tool: 'cargo check',
-      domain: 'rust',
-      success: nhlCheckPassed,
-      durationMs: nhlCheckRes.durationMs,
-      summary: nhlCheckMissing
-        ? 'cargo not found in PATH; install Rust toolchain (rustup.rs)'
-        : nhlCheckPassed
-          ? 'All targets checked clean'
-          : 'Cargo check errors detected',
-    });
-  }
-
-  // 7. C++ (CMake host target compilation)
+  // 5. C++ (CMake host target compilation)
   if (shouldRunDomain(domain, 'native')) {
     process.stdout.write(
       `  ${sym.arrow} Compiling C++ Adobe Scan Native host targets (CMake)... `,
@@ -1177,38 +926,7 @@ async function runTest(domain: AuditDomain = 'all'): Promise<PhaseResult> {
   printSectionHeader('Test', subtitle);
   const results: StepResult[] = [];
 
-  // 1. APK Lab Python test suite (pytest)
-  if (shouldRunDomain(domain, 'python')) {
-    process.stdout.write(`  ${sym.arrow} Running APK Lab tests (pytest)... `);
-    const pyRes = await execCommand('uv', [
-      'run',
-      '--project',
-      'tools/apk-lab',
-      'pytest',
-      '-q',
-    ]);
-    const pyPassed = pyRes.code === 0;
-    const pySummaryMatch = pyRes.stdout.match(/([0-9]+ passed[^\n]*)/);
-    const pySummary = pySummaryMatch
-      ? pySummaryMatch[1].trim()
-      : pyPassed
-        ? 'All tests passed'
-        : 'Tests failed';
-    console.log(pyPassed ? sym.ok : sym.err);
-    if (!pyPassed) {
-      printRawCommandOutput(pyRes.stdout, pyRes.stderr);
-    }
-    results.push({
-      title: 'APK Lab Suite (pytest)',
-      tool: 'pytest',
-      domain: 'python',
-      success: pyPassed,
-      durationMs: pyRes.durationMs,
-      summary: pySummary,
-    });
-  }
-
-  // 2. Cloudflare Worker test suite (Vitest)
+  // 1. Cloudflare Worker test suite (Vitest)
   if (shouldRunDomain(domain, 'web')) {
     process.stdout.write(`  ${sym.arrow} Running Worker tests (Vitest)... `);
     const wRes = await execCommand('bun', ['run', '--cwd', 'worker', 'test']);
@@ -1233,7 +951,7 @@ async function runTest(domain: AuditDomain = 'all'): Promise<PhaseResult> {
     });
   }
 
-  // 3. Astro Site test suite (Bun test)
+  // 2. Astro Site test suite (Bun test)
   if (shouldRunDomain(domain, 'web')) {
     process.stdout.write(`  ${sym.arrow} Running Site tests (Bun test)... `);
     const sRes = await execCommand('bun', ['run', '--cwd', 'site', 'test']);
@@ -1258,83 +976,39 @@ async function runTest(domain: AuditDomain = 'all'): Promise<PhaseResult> {
     });
   }
 
-  // 4. Rust Play Metadata test suite (cargo test)
+  // 3. Rust host crates (cargo test)
   if (shouldRunDomain(domain, 'rust')) {
-    process.stdout.write(
-      `  ${sym.arrow} Running Rust Play Metadata tests (cargo test)... `,
-    );
-    const cargoTestRes = await execCommand('cargo', [
-      'test',
-      '--locked',
-      '--manifest-path',
-      'tools/play-metadata/Cargo.toml',
-    ]);
-    const cargoTestPassed = cargoTestRes.code === 0;
-    const cargoTestMissing =
-      cargoTestRes.code !== 0 && cargoTestRes.stderr.includes('ENOENT');
-    const cargoSummaryMatch = cargoTestRes.stdout.match(
-      /test result: ok\.\s+([0-9]+ passed[^\n]*)/,
-    );
-    const cargoSummary = cargoTestMissing
-      ? 'cargo not found in PATH; install Rust toolchain (rustup.rs)'
-      : cargoSummaryMatch
-        ? cargoSummaryMatch[1].trim()
-        : cargoTestPassed
-          ? 'All tests passed'
-          : 'Tests failed';
-    console.log(cargoTestPassed ? sym.ok : sym.err);
-    if (!cargoTestPassed) {
-      printRawCommandOutput(cargoTestRes.stdout, cargoTestRes.stderr);
+    for (const project of RUST_PROJECTS) {
+      process.stdout.write(
+        `  ${sym.arrow} Running Rust ${project.label} tests (cargo test)... `,
+      );
+      const result = await execCommand(
+        'cargo',
+        cargoArgs(project, ['test', '--locked']),
+      );
+      const passed = result.code === 0;
+      const counts = [
+        ...result.stdout.matchAll(/test result: ok\.\s+([0-9]+) passed/g),
+      ];
+      const count = counts.reduce((sum, match) => sum + Number(match[1]), 0);
+      console.log(passed ? sym.ok : sym.err);
+      if (!passed) printRawCommandOutput(result.stdout, result.stderr);
+      results.push({
+        title: `Rust ${project.label} (cargo test)`,
+        tool: 'cargo test',
+        domain: 'rust',
+        success: passed,
+        durationMs: result.durationMs,
+        summary: result.stderr.includes('ENOENT')
+          ? 'cargo not found in PATH; install Rust toolchain (rustup.rs)'
+          : passed
+            ? `${count} passed`
+            : 'Tests failed',
+      });
     }
-    results.push({
-      title: 'Rust Play Metadata (cargo test)',
-      tool: 'cargo test',
-      domain: 'rust',
-      success: cargoTestPassed,
-      durationMs: cargoTestRes.durationMs,
-      summary: cargoSummary,
-    });
   }
 
-  // 5. Rust NHL AdBlock Native test suite (cargo test)
-  if (shouldRunDomain(domain, 'rust')) {
-    process.stdout.write(
-      `  ${sym.arrow} Running Rust NHL AdBlock Native tests (cargo test)... `,
-    );
-    const nhlTestRes = await execCommand('cargo', [
-      'test',
-      '--locked',
-      '--manifest-path',
-      'extensions/nhl-adblock-native/Cargo.toml',
-    ]);
-    const nhlTestPassed = nhlTestRes.code === 0;
-    const nhlTestMissing =
-      nhlTestRes.code !== 0 && nhlTestRes.stderr.includes('ENOENT');
-    const nhlSummaryMatch = nhlTestRes.stdout.match(
-      /test result: ok\.\s+([0-9]+ passed[^\n]*)/,
-    );
-    const nhlSummary = nhlTestMissing
-      ? 'cargo not found in PATH; install Rust toolchain (rustup.rs)'
-      : nhlSummaryMatch
-        ? nhlSummaryMatch[1].trim()
-        : nhlTestPassed
-          ? 'All tests passed'
-          : 'Tests failed';
-    console.log(nhlTestPassed ? sym.ok : sym.err);
-    if (!nhlTestPassed) {
-      printRawCommandOutput(nhlTestRes.stdout, nhlTestRes.stderr);
-    }
-    results.push({
-      title: 'Rust NHL AdBlock Native (cargo test)',
-      tool: 'cargo test',
-      domain: 'rust',
-      success: nhlTestPassed,
-      durationMs: nhlTestRes.durationMs,
-      summary: nhlSummary,
-    });
-  }
-
-  // 6. Adobe Scan Native PDF Engine test suite (ctest)
+  // 4. Adobe Scan Native PDF Engine test suite (ctest)
   if (shouldRunDomain(domain, 'native')) {
     process.stdout.write(
       `  ${sym.arrow} Running Adobe Scan Native PDF Engine tests (ctest)... `,
@@ -1411,12 +1085,13 @@ async function runTest(domain: AuditDomain = 'all'): Promise<PhaseResult> {
     });
   }
 
-  // 7. Adobe Scan Extension Java Unit Tests (Gradle)
+  // 5. Morphe Patch & Extension Unit Tests (Gradle)
   if (shouldRunDomain(domain, 'android')) {
     process.stdout.write(
-      `  ${sym.arrow} Running Extension unit tests (Gradle)... `,
+      `  ${sym.arrow} Running patch and extension unit tests (Gradle)... `,
     );
     const extTestRes = await execCommand('./gradlew', [
+      ':patches:test',
       ':extensions:extension:testReleaseUnitTest',
       '--console=plain',
     ]);
@@ -1426,7 +1101,7 @@ async function runTest(domain: AuditDomain = 'all'): Promise<PhaseResult> {
       printRawCommandOutput(extTestRes.stdout, extTestRes.stderr);
     }
     results.push({
-      title: 'Extension Unit Tests (Gradle)',
+      title: 'Morphe Patch & Extension Unit Tests (Gradle)',
       tool: 'gradle test',
       domain: 'android',
       success: extTestPassed,
@@ -1435,13 +1110,14 @@ async function runTest(domain: AuditDomain = 'all'): Promise<PhaseResult> {
     });
   }
 
-  // 8. Target Application Icons Check
-  if (shouldRunDomain(domain, 'python')) {
+  // 6. Target Application Icons Check
+  if (shouldRunDomain(domain, 'web')) {
     process.stdout.write(
       `  ${sym.arrow} Verifying application icon assets... `,
     );
-    const iconRes = await execCommand('python3', [
-      '.github/scripts/sync_app_icons.py',
+    const iconRes = await execCommand('bun', [
+      'scripts/asset-prep.ts',
+      'icons',
       '--check-only',
     ]);
     const iconPassed = iconRes.code === 0;
@@ -1451,15 +1127,15 @@ async function runTest(domain: AuditDomain = 'all'): Promise<PhaseResult> {
     }
     results.push({
       title: 'App Icons Verification',
-      tool: 'python3',
-      domain: 'python',
+      tool: 'asset-prep',
+      domain: 'web',
       success: iconPassed,
       durationMs: iconRes.durationMs,
       summary: iconPassed ? iconRes.stdout.trim() : 'Missing application icons',
     });
   }
 
-  // 9. Scripts & Dependencies test suite (bun test)
+  // 7. Scripts & Dependencies test suite (bun test)
   if (shouldRunDomain(domain, 'web')) {
     process.stdout.write(
       `  ${sym.arrow} Running Scripts & Dependencies tests (bun test)... `,
@@ -1467,7 +1143,13 @@ async function runTest(domain: AuditDomain = 'all'): Promise<PhaseResult> {
     const dtRes = await execCommand('bun', [
       'test',
       '--timeout=30000',
+      'scripts/release-retry.test.ts',
       'scripts/dependencies',
+      'scripts/rust-projects.test.ts',
+      'scripts/generate-patches-readme.test.ts',
+      'scripts/hooks.test.ts',
+      'scripts/install-hooks.test.ts',
+      'scripts/reconcile-release-notes.test.ts',
     ]);
     const dtPassed = dtRes.code === 0;
     const dtSummaryMatch = dtRes.stdout.match(/([0-9]+ pass[^\n]*)/);
@@ -1490,7 +1172,7 @@ async function runTest(domain: AuditDomain = 'all'): Promise<PhaseResult> {
     });
   }
 
-  // 10. Documentation & Link Integrity (bun test)
+  // 8. Documentation & Link Integrity (bun test)
   if (shouldRunDomain(domain, 'web')) {
     process.stdout.write(
       `  ${sym.arrow} Running Documentation & Link Integrity tests (bun test)... `,
@@ -1585,11 +1267,10 @@ async function runDeps(): Promise<PhaseResult> {
     }>
   > = {
     'JavaScript (NPM / Bun)': [],
-    'Python (PyPI / uv)': [],
     'Rust (crates.io / Cargo)': [],
     'Gradle Plugins & Libraries': [],
     'External APK Tools': [],
-    'GitHub Actions & Hooks': [],
+    'GitHub Actions': [],
     'Toolchains & Runtimes': [],
     'Embedded Assets': [],
   };
@@ -1597,16 +1278,14 @@ async function runDeps(): Promise<PhaseResult> {
   for (const item of report.items) {
     if (item.ecosystem === 'npm')
       ecosystemGroups['JavaScript (NPM / Bun)'].push(item);
-    else if (item.ecosystem === 'pypi')
-      ecosystemGroups['Python (PyPI / uv)'].push(item);
     else if (item.ecosystem === 'crates')
       ecosystemGroups['Rust (crates.io / Cargo)'].push(item);
     else if (item.ecosystem === 'gradle')
       ecosystemGroups['Gradle Plugins & Libraries'].push(item);
     else if (item.id.startsWith('tool:apk-lab/'))
       ecosystemGroups['External APK Tools'].push(item);
-    else if (item.ecosystem === 'action' || item.ecosystem === 'hook')
-      ecosystemGroups['GitHub Actions & Hooks'].push(item);
+    else if (item.ecosystem === 'action')
+      ecosystemGroups['GitHub Actions'].push(item);
     else if (item.ecosystem === 'embedded')
       ecosystemGroups['Embedded Assets'].push(item);
     else ecosystemGroups['Toolchains & Runtimes'].push(item);
@@ -1620,17 +1299,11 @@ async function runDeps(): Promise<PhaseResult> {
     );
     const groupUpdates = groupItems.filter((i) => i.status === 'update').length;
     const groupErrors = groupItems.filter((i) => i.status === 'error').length;
-    const groupBlocked = groupItems.filter(
-      (i) => i.status === 'blocked',
-    ).length;
     const groupUnsupported = groupItems.filter(
       (i) => i.status === 'unsupported',
     ).length;
     const groupSuccess =
-      groupUpdates === 0 &&
-      groupErrors === 0 &&
-      groupBlocked === 0 &&
-      groupUnsupported === 0;
+      groupUpdates === 0 && groupErrors === 0 && groupUnsupported === 0;
 
     let summaryStr = `All ${groupItems.length} items up to date or held`;
     if (groupErrors > 0) {
@@ -1639,12 +1312,6 @@ async function runDeps(): Promise<PhaseResult> {
         .map((i) => i.reason)
         .filter(Boolean);
       summaryStr = `${groupErrors} errors (${errReasons[0] || 'lookup failed'})`;
-    } else if (groupBlocked > 0) {
-      const blockedReasons = groupItems
-        .filter((i) => i.status === 'blocked')
-        .map((i) => i.reason)
-        .filter(Boolean);
-      summaryStr = `${groupBlocked} blocked (${blockedReasons[0] || 'policy/compatibility conflict'})`;
     } else if (groupUnsupported > 0) {
       const unsupportedReasons = groupItems
         .filter((i) => i.status === 'unsupported')
@@ -1679,7 +1346,7 @@ ${c.bold}Commands:${c.reset}
   format:check  Audit formatting without mutating files
   lint          Audit code quality and static analysis
   lint:fix      Audit and auto-fix supported lint rules
-  typecheck     Audit types across TypeScript, Python, Kotlin/Java, Rust, and C++
+  typecheck     Audit types across TypeScript, Kotlin/Java, Rust, and C++
   test          Run automated test suites
   deps          Audit dependency freshness
   all           Run format:check, lint, typecheck, and test (default)

@@ -19,3 +19,6 @@ patches/local.properties
 *.keystore
 .env
 .env.*
+
+# Ready-to-import release artifacts
+/outputs/

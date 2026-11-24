@@ -296,6 +296,7 @@ val biggerAlertPinsPatch: Patch = bytecodePatch(
     execute {
         // The manager hands back the visible label ("2x"), the CLI can hand back either, so accept both.
         val value = size!!.trim().lowercase().removeSuffix("x")
+        requireChoice("biggerAlertPinsPatch", "size", value, setOf("stock", "1.25", "1.5", "2", "3"))
         if (value !in setOf("stock", "1.25", "1.5", "2", "3")) {
             throw PatchException("the pin size must be one of: Stock, 1.25x, 1.5x, 2x, 3x")
         }

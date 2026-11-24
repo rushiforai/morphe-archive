@@ -1,0 +1,44 @@
+name: Feature request
+description: Suggest a new patch, a new app, or a change to an existing patch
+title: "feat: "
+labels: [enhancement]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        > [!IMPORTANT]
+        > **Before you request**
+        > - [Search existing issues](https://github.com/amfakh/fakh-patches/issues?q=is%3Aissue) to see if it was already requested.
+        > - Something that is broken belongs in a bug report, not here.
+  - type: input
+    id: app
+    attributes:
+      label: App
+      placeholder: GitHub
+    validations:
+      required: true
+  - type: input
+    id: app-version
+    attributes:
+      label: App version
+      description: Leave this empty if the request is not tied to one version.
+      placeholder: 1.285.0
+  - type: textarea
+    id: request
+    attributes:
+      label: What do you want
+      description: What the patched app should do or show, and where in the app.
+      placeholder: A Repositories tab in the bottom navigation bar that opens the list of my repositories directly.
+    validations:
+      required: true
+  - type: textarea
+    id: reason
+    attributes:
+      label: Why
+      description: What is annoying or missing today.
+      placeholder: To see my repositories I have to open my profile and then tap Repositories.
+  - type: textarea
+    id: proof
+    attributes:
+      label: Screenshots or examples
+      description: Drag images or videos here, or link another mod or app that already does this.

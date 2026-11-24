@@ -1,5 +1,13 @@
+/*
+ * Copyright 2026 amfakh
+ * SPDX-License-Identifier: GPL-3.0-only
+ */
+
 package app.fakh.patches.smartlife
 
+import app.fakh.patches.shared.Feature
+import app.fakh.patches.shared.featuresPatch
+import app.fakh.patches.shared.register
 import app.morphe.patcher.Fingerprint
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructionsWithLabels
@@ -27,55 +35,8 @@ private const val ROW = "fakh_patches"
 /** The page with the switches, from the extension. */
 private const val PAGE = "app.fakh.extension.smartlife.FakhPatchesActivity"
 
-/** The asset that lists the switches of the patches in the app, in the order the page shows them. */
-private const val SWITCHES = "assets/fakh_switches.txt"
-
-/** The switches in the order the page shows them, which groups them by where they act. */
-private val ORDER = listOf(
-    // Home
-    "fakh_hide_plus", "fakh_hide_recommended", "fakh_hide_ai_bar",
-    // Navigation bar
-    "fakh_hide_explore", "fakh_hide_mall_tab", "fakh_hide_tab_labels", "fakh_swipe_tabs",
-    // Me tab
-    "fakh_hide_rewards", "fakh_hide_orders", "fakh_hide_ai_web", "fakh_hide_me_banner", "fakh_hide_app_mall",
-    // Appearance
-    "fakh_liquid_glass", "fakh_dark_panels",
-    // Ads
-    "fakh_hide_ads",
-)
-
 private const val ABOUT_ENTRY =
     """{"name":"personal_setting_about","type":1,"clazz":"com.thingclips.smart.personal.setting.plug.cell.AboutCell"}"""
-
-/**
- * Lists the switch [key] on the Fakh Patches page, and the first time adds that page: a Fakh Patches row in its own
- * group above About, made from the About row's cell, and the page's activity in the manifest.
- */
-internal fun addSettingsSwitch(key: String) {
-    val switches = resourceFile(SWITCHES)
-    val listed = if (switches.exists()) switches.readLines().filter(String::isNotBlank) else emptyList()
-    switches.writeText((listed + key).distinct().sortedBy(ORDER::indexOf).joinToString("\n"))
-    if (listed.isNotEmpty()) return
-
-    val cells = resourceFile("assets/thingarchercell_config.json")
-    val cellsText = cells.readText()
-    if (ABOUT_ENTRY !in cellsText) throw PatchException("Smart Life: the About cell was not found in thingarchercell_config.json")
-    cells.writeText(cellsText.replace(ABOUT_ENTRY, "$ABOUT_ENTRY,${ABOUT_ENTRY.replace("personal_setting_about", ROW)}"))
-
-    val settings = resourceFile("assets/personal_setting_config_list.json")
-    val text = settings.readText()
-    val about = Regex("""\{\s*"name"\s*:\s*"personal_setting_private_group"""").find(text)
-        ?: throw PatchException("Smart Life: the About group was not found in personal_setting_config_list.json")
-    settings.writeText(text.replaceRange(about.range, """{"name":"$GROUP","items":[{"cellType":"$ROW"}]}, ${about.value}"""))
-
-    document("AndroidManifest.xml").use { manifest ->
-        val activity = manifest.createElement("activity")
-        activity.setAttribute("android:name", PAGE)
-        activity.setAttribute("android:exported", "false")
-        activity.setAttribute("android:theme", "@style/Default_Public_Theme")
-        manifest.getElementsByTagName("application").item(0).appendChild(activity)
-    }
-}
 
 private const val ABOUT_CELL = "Lcom/thingclips/smart/personal/setting/plug/cell/AboutCell;"
 
@@ -89,11 +50,34 @@ private object AboutCellBindFingerprint : Fingerprint(
     custom = { method, _ -> method.parameterTypes.size == 1 && method.name != "<init>" },
 )
 
-/** Turns the extra About row in Settings into the Fakh Patches row. */
+/**
+ * The Fakh Patches row in Settings, which opens the page of the switches: a row in its own group above About, made
+ * from the About row's cell, and the page's activity in the manifest.
+ */
 internal val settingsSwitchesPatch = patch {
     extendWith("extensions/extension.mpe")
+    dependsOn(featuresPatch)
 
     execute {
+        val cells = resourceFile("assets/thingarchercell_config.json")
+        val cellsText = cells.readText()
+        if (ABOUT_ENTRY !in cellsText) throw PatchException("Smart Life: the About cell was not found in thingarchercell_config.json")
+        cells.writeText(cellsText.replace(ABOUT_ENTRY, "$ABOUT_ENTRY,${ABOUT_ENTRY.replace("personal_setting_about", ROW)}"))
+
+        val settings = resourceFile("assets/personal_setting_config_list.json")
+        val text = settings.readText()
+        val about = Regex("""\{\s*"name"\s*:\s*"personal_setting_private_group"""").find(text)
+            ?: throw PatchException("Smart Life: the About group was not found in personal_setting_config_list.json")
+        settings.writeText(text.replaceRange(about.range, """{"name":"$GROUP","items":[{"cellType":"$ROW"}]}, ${about.value}"""))
+
+        document("AndroidManifest.xml").use { manifest ->
+            val activity = manifest.createElement("activity")
+            activity.setAttribute("android:name", PAGE)
+            activity.setAttribute("android:exported", "false")
+            activity.setAttribute("android:theme", "@style/Default_Public_Theme")
+            manifest.getElementsByTagName("application").item(0).appendChild(activity)
+        }
+
         AboutCellBindFingerprint.method.apply {
             val returns = implementation!!.instructions.withIndex().filter { it.value.opcode == Opcode.RETURN_VOID }
             if (returns.isEmpty()) throw PatchException("Smart Life: AboutCell.$name has no return")
@@ -105,10 +89,12 @@ internal val settingsSwitchesPatch = patch {
     }
 }
 
-/** A patch that lists the switch [key] on the Fakh Patches page in Settings. */
-internal fun switchRow(key: String) = patch {
+/** A patch that lists the switch [feature] on the Fakh Patches page in Settings. */
+internal fun switchRow(feature: Feature) = patch {
+    dependsOn(settingsSwitchesPatch)
+
     execute {
-        addSettingsSwitch(key)
+        register(feature)
     }
 }
 

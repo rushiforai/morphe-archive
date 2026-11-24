@@ -1,11 +1,14 @@
 package app.linenotifications.extension;
 
+import android.app.AlertDialog;
 import android.app.Dialog;
 import android.content.Context;
 import android.graphics.Color;
 import android.graphics.Insets;
 import android.graphics.drawable.ColorDrawable;
+import android.text.InputType;
 import android.util.Base64;
+import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -15,6 +18,7 @@ import android.view.WindowInsetsController;
 import android.view.WindowManager;
 import android.view.accessibility.AccessibilityNodeInfo;
 import android.widget.CheckedTextView;
+import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.ScrollView;
 import android.widget.TextView;
@@ -22,9 +26,29 @@ import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.Map;
+import app.linenotifications.extension.core.NotificationPolicy;
 
 /** Full-page settings using LINE's own header, rows, typography and switch drawables. */
 final class SettingsPage extends Dialog {
+    private static final int[] MESSAGE_COUNT_OPTIONS = {1, 3, 5, 8, 10, 15, 20, 25};
+    private static final String[] ALL_ACTION_LAYOUTS = {
+        NotificationPolicy.ACTION_LAYOUT_DEFAULT,
+        NotificationPolicy.ACTION_LAYOUT_READ_SNOOZE_REPLY,
+        NotificationPolicy.ACTION_LAYOUT_READ_MUTE_REPLY,
+        NotificationPolicy.ACTION_LAYOUT_READ_REPLY,
+        NotificationPolicy.ACTION_LAYOUT_SNOOZE_REPLY,
+        NotificationPolicy.ACTION_LAYOUT_READ_SNOOZE,
+        NotificationPolicy.ACTION_LAYOUT_READ_ONLY,
+        NotificationPolicy.ACTION_LAYOUT_REPLY_ONLY,
+        NotificationPolicy.ACTION_LAYOUT_NONE,
+    };
+    private static final String[] NO_READ_ACTION_LAYOUTS = {
+        NotificationPolicy.ACTION_LAYOUT_DEFAULT,
+        NotificationPolicy.ACTION_LAYOUT_SNOOZE_REPLY,
+        NotificationPolicy.ACTION_LAYOUT_REPLY_ONLY,
+        NotificationPolicy.ACTION_LAYOUT_NONE,
+    };
+    private final Context activityContext;
     private LinearLayout rows;
     private TextView heading;
     private ScrollView scroll;
@@ -33,6 +57,7 @@ final class SettingsPage extends Dialog {
 
     SettingsPage(Context context) throws ReflectiveOperationException {
         super(context, windowTheme(context));
+        this.activityContext = context;
         requestWindowFeature(Window.FEATURE_NO_TITLE);
         setCanceledOnTouchOutside(false);
         background = context.getColor(id("color", "primaryBackground"));
@@ -192,6 +217,19 @@ final class SettingsPage extends Dialog {
         feature("Not Too Much Silent",
                 str("line_notify_desc_silent", "Turns a chat’s “Mute” toggle into quiet local delivery."),
                 Settings.SILENT, Settings.silentIncluded());
+        feature(str("line_notify_mention_bypass_title", "Alert on @mentions"),
+                str("line_notify_mention_bypass_desc",
+                        "Uses normal sound and vibration in quiet chats when someone mentions you or @All."),
+                Settings.MENTION_BYPASS, Settings.silentIncluded());
+        feature(str("line_notify_keyword_bypass_title", "Alert on keywords"),
+                str("line_notify_keyword_bypass_desc",
+                        "Uses normal sound and vibration in quiet chats when a message matches your keywords."),
+                Settings.KEYWORD_BYPASS, Settings.silentIncluded());
+        String summary = NotificationPolicy.formatKeywordsSummary(Settings.keywords(), 80);
+        option(str("line_notify_keywords_title", "Alert keywords"),
+                summary != null ? summary
+                        : str("line_notify_keywords_empty", "No keywords set. Tap to add words or phrases."),
+                Settings.silentIncluded(), this::showKeywordDialog);
         View hidden = inflate("line_user_settings_text_item_view");
         text(hidden, "setting_title", str("line_notify_hidden_chats_title", "Completely hidden chats"));
         text(hidden, "setting_description",
@@ -200,6 +238,16 @@ final class SettingsPage extends Dialog {
         feature("More Chat Info",
                 str("line_notify_desc_info", "Expands recent unread messages in conversation style and shows the total unread count."),
                 Settings.INFO, Settings.infoIncluded());
+        int count = Settings.maxMessages();
+        String countDetail = count == 1
+                ? str("line_notify_info_count_one", "Latest 1 message only")
+                : Strings.format(getContext(), "line_notify_info_count_value", "Up to %d recent messages", count);
+        option(str("line_notify_info_count_title", "Displayed messages"),
+                countDetail, Settings.infoIncluded(), this::showMessageCountDialog);
+        feature(str("line_notify_info_media_preview_title", "Show photo & sticker previews"),
+                str("line_notify_info_media_preview_desc",
+                        "Shows photo, video, and sticker thumbnails inside expanded notifications using LINE’s built-in image loader. No extra requests when off."),
+                Settings.INFO_MEDIA_PREVIEW, Settings.infoIncluded());
         group(str("line_notify_group_actions", "Notification actions"));
         feature("No reply",
                 str("line_notify_desc_no_reply", "Hides suggested replies while keeping manual inline reply."),
@@ -207,6 +255,9 @@ final class SettingsPage extends Dialog {
         feature("Mark as read",
                 str("line_notify_desc_read", "Marks the entire chat as read and clears its notification."),
                 Settings.READ, Settings.readIncluded());
+        option(str("line_notify_action_layout_title", "Notification buttons"),
+                actionLayoutLabel(Settings.actionLayout()),
+                true, this::showActionLayoutDialog);
         group(str("line_notify_group_scope", "Scope"));
         description(str("line_notify_scope_desc", "Applies to regular chats. OpenChat notifications follow LINE’s original settings."));
     }
@@ -243,7 +294,7 @@ final class SettingsPage extends Dialog {
                         if (!account.equals(NativeLine.account())) return false;
                         ChatNotifications.change(getContext(), chat,
                                 Settings.quiet(account, chat) ? ChatNotifications.QUIET : ChatNotifications.NORMAL,
-                                null, () -> { if (isShowing()) showMuted(); });
+                                null, success -> { if (isShowing()) showMuted(); });
                         return false;
                     } catch (ReflectiveOperationException | RuntimeException ignored) { return false; }
                 });
@@ -251,5 +302,125 @@ final class SettingsPage extends Dialog {
         } catch (ReflectiveOperationException | RuntimeException ignored) {
             description(str("line_notify_account_unavailable", "Could not read chat information for the current account."));
         }
+    }
+
+    private void showKeywordDialog() {
+        EditText input = new EditText(activityContext);
+        input.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_FLAG_MULTI_LINE);
+        input.setMinLines(3);
+        input.setMaxLines(8);
+        input.setGravity(Gravity.TOP | Gravity.START);
+        input.setHint(str("line_notify_keywords_hint", "e.g. urgent, meeting, @project"));
+        input.setText(NotificationPolicy.serializeKeywords(Settings.keywords()));
+        if (input.getText() != null) input.setSelection(input.getText().length());
+
+        LinearLayout container = new LinearLayout(activityContext);
+        container.setOrientation(LinearLayout.VERTICAL);
+        int side = dp(20);
+        container.setPadding(side, dp(8), side, dp(4));
+        container.addView(input, new LinearLayout.LayoutParams(-1, -2));
+
+        new AlertDialog.Builder(activityContext)
+                .setTitle(str("line_notify_keywords_title", "Alert keywords"))
+                .setMessage(str("line_notify_keywords_dialog_msg",
+                        "Separate keywords by comma or new line (case-insensitive, up to 50). Completely hidden chats stay suppressed."))
+                .setView(container)
+                .setPositiveButton(str("line_notify_btn_save", "Save"), (d, w) -> {
+                    Settings.setKeywords(input.getText() == null ? "" : input.getText().toString());
+                    if (isShowing() && !mutedPage) showMain();
+                })
+                .setNeutralButton(str("line_notify_btn_clear", "Clear"), (d, w) -> {
+                    Settings.setKeywords("");
+                    if (isShowing() && !mutedPage) showMain();
+                })
+                .setNegativeButton(str("line_notify_btn_cancel", "Cancel"), null)
+                .show();
+    }
+
+    private void option(String title, String detail, boolean available, Runnable onClick) {
+        View row = inflate("line_user_settings_text_item_view");
+        String text = available ? detail : detail + " · " + str("line_notify_patch_not_included", "Patch not included");
+        text(row, "setting_title", title);
+        text(row, "setting_description", text);
+        View container = row.findViewById(id("id", "setting_item_container"));
+        container.setEnabled(available);
+        container.setFocusable(available);
+        row.setAlpha(available ? 1f : 0.45f);
+        if (available) {
+            container.setOnClickListener(v -> onClick.run());
+        }
+    }
+
+    private String messageCountOptionLabel(int count) {
+        return count == 1 ? str("line_notify_info_count_one", "Latest 1 message only")
+                : Strings.format(getContext(), "line_notify_info_count_option", "%d messages", count);
+    }
+
+    private void showMessageCountDialog() {
+        int current = Settings.maxMessages();
+        int checkedItem = MESSAGE_COUNT_OPTIONS.length - 1;
+        CharSequence[] items = new CharSequence[MESSAGE_COUNT_OPTIONS.length];
+        for (int i = 0; i < MESSAGE_COUNT_OPTIONS.length; i++) {
+            int n = MESSAGE_COUNT_OPTIONS[i];
+            items[i] = messageCountOptionLabel(n);
+            if (n == current) checkedItem = i;
+        }
+        new AlertDialog.Builder(activityContext)
+                .setTitle(str("line_notify_info_count_title", "Displayed messages"))
+                .setSingleChoiceItems(items, checkedItem, (dialog, which) -> {
+                    Settings.setMaxMessages(MESSAGE_COUNT_OPTIONS[which]);
+                    dialog.dismiss();
+                    if (isShowing() && !mutedPage) showMain();
+                })
+                .setNegativeButton(str("line_notify_btn_cancel", "Cancel"), null)
+                .show();
+    }
+
+    private String actionLayoutLabel(String layoutId) {
+        if (NotificationPolicy.ACTION_LAYOUT_READ_SNOOZE_REPLY.equals(layoutId)) {
+            return str("line_notify_action_layout_read_snooze_reply", "Read · Quiet 1h · Reply");
+        }
+        if (NotificationPolicy.ACTION_LAYOUT_READ_MUTE_REPLY.equals(layoutId)) {
+            return str("line_notify_action_layout_read_mute_reply", "Read · Mute · Reply");
+        }
+        if (NotificationPolicy.ACTION_LAYOUT_READ_REPLY.equals(layoutId)) {
+            return str("line_notify_action_layout_read_reply", "Read · Reply");
+        }
+        if (NotificationPolicy.ACTION_LAYOUT_SNOOZE_REPLY.equals(layoutId)) {
+            return str("line_notify_action_layout_snooze_reply", "Quiet 1h · Reply");
+        }
+        if (NotificationPolicy.ACTION_LAYOUT_READ_SNOOZE.equals(layoutId)) {
+            return str("line_notify_action_layout_read_snooze", "Read · Quiet 1h");
+        }
+        if (NotificationPolicy.ACTION_LAYOUT_READ_ONLY.equals(layoutId)) {
+            return str("line_notify_action_layout_read_only", "Read only");
+        }
+        if (NotificationPolicy.ACTION_LAYOUT_REPLY_ONLY.equals(layoutId)) {
+            return str("line_notify_action_layout_reply_only", "Reply only");
+        }
+        if (NotificationPolicy.ACTION_LAYOUT_NONE.equals(layoutId)) {
+            return str("line_notify_action_layout_none", "No buttons");
+        }
+        return str("line_notify_action_layout_default", "Follow toggles above");
+    }
+
+    private void showActionLayoutDialog() {
+        String[] options = Settings.readIncluded() ? ALL_ACTION_LAYOUTS : NO_READ_ACTION_LAYOUTS;
+        String current = Settings.actionLayout();
+        int checkedItem = 0;
+        CharSequence[] items = new CharSequence[options.length];
+        for (int i = 0; i < options.length; i++) {
+            items[i] = actionLayoutLabel(options[i]);
+            if (options[i].equals(current)) checkedItem = i;
+        }
+        new AlertDialog.Builder(activityContext)
+                .setTitle(str("line_notify_action_layout_title", "Notification buttons"))
+                .setSingleChoiceItems(items, checkedItem, (dialog, which) -> {
+                    Settings.setActionLayout(options[which]);
+                    dialog.dismiss();
+                    if (isShowing() && !mutedPage) showMain();
+                })
+                .setNegativeButton(str("line_notify_btn_cancel", "Cancel"), null)
+                .show();
     }
 }

@@ -94,6 +94,7 @@ public final class SettingsUi {
 
             PreferenceCategory auto = category(ctx, feed, "cat_auto");
             toggle(ctx, auto, XSettings.AUTO_DISLIKE_FILTERED, "auto_dislike", "auto_dislike_summary");
+            toggle(ctx, auto, XSettings.AUTO_REASON, "auto_reason", "auto_reason_summary");
             ListPreference watched = new ListPreference(ctx);
             watched.setKey(XSettings.AUTO_WATCHED.key);
             watched.setTitle(Strings.get("auto_watched"));

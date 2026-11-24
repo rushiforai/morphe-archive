@@ -4,10 +4,10 @@ patches {
     about {
         name = "TikTok Lite Patches"
         description = "Unofficial patches for TikTok Lite, compatible with Morphe."
-        source = "git@github.com:jair1c/tiktok-lite-patches.git"
-        author = "jair1c"
-        contact = "https://github.com/jair1c/tiktok-lite-patches/issues"
-        website = "https://github.com/jair1c/tiktok-lite-patches"
+        source = "git@github.com:KyVexo/tiktok-lite-patches.git"
+        author = "KyVexo"
+        contact = "https://github.com/KyVexo/tiktok-lite-patches/issues"
+        website = "https://github.com/KyVexo/tiktok-lite-patches"
         license = "GPLv3"
     }
 }

@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/voidhack_sing_slot"
+    android:layout_width="48dp"
+    android:layout_height="48dp"
+    android:layout_marginEnd="@dimen/player_seekbar_padding_horizontal"
+    android:layout_marginBottom="@dimen/lyrics_vocal_attenuation_margin_bottom"
+    app:layout_constraintTop_toTopOf="parent"
+    app:layout_constraintBottom_toTopOf="@id/controls"
+    app:layout_constraintEnd_toEndOf="parent"
+    app:layout_constraintVertical_bias="1" />

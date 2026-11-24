@@ -17,6 +17,7 @@ import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.builder.MutableMethodImplementation
 import com.android.tools.smali.dexlib2.iface.Method
 import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
+import com.android.tools.smali.dexlib2.iface.instruction.TwoRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
 import com.android.tools.smali.dexlib2.iface.reference.MethodReference
 import io.github.forsigh.waze.WazeConstants.COMPATIBILITY_WAZE
@@ -72,6 +73,13 @@ internal val audioAppNameOption = stringOption(
 /** Android 11+ package visibility: Waze cannot find a browser service in an app it cannot see. */
 private val audioAppVisibilityPatch = resourcePatch {
     execute {
+        // The partner list is gated on the audio-extension SDK flags server-side. Without them a
+        // build whose server config says off renders an empty list even with the entry inserted.
+        recordBoolean(
+            "caa", true,
+            "CONFIG_VALUE_AUDIO_EXTENSION_SDK_FEATURE_ENABLED",
+            "CONFIG_VALUE_AUDIO_EXTENSION_SDK_ON",
+        )
         val packageName = audioAppPackageOption.value!!
         document("AndroidManifest.xml").use { document ->
             val manifest = document.documentElement
@@ -201,6 +209,7 @@ val customAudioAppPatch = bytecodePatch(
     default = false,
 ) {
     compatibleWith(COMPATIBILITY_WAZE)
+    category("Audio & Partners")
     dependsOn(audioAppVisibilityPatch)
     dependsOn(configOverridesPatch)
 
@@ -311,6 +320,31 @@ val customAudioAppPatch = bytecodePatch(
             }.trimIndent(),
         )
         println("customAudioAppPatch: appended $packageName to Waze's partner arrays inside ${host.name}")
+
+        if (partnersMethod != null) {
+            // getPartners() reads PackageNames.length BEFORE the appends and uses that stale count to
+            // size the au[] roster, so the appended entries were dropped from the partner list. Reload
+            // the length in the register new-array reads its size from.
+            val mutated = host.implementation
+                ?: throw PatchException("customAudioAppPatch: getPartners() lost its body")
+            val newArrayIndex = mutated.instructions.indexOfFirst { instruction ->
+                instruction.opcode == Opcode.NEW_ARRAY &&
+                    (instruction as? ReferenceInstruction)?.reference?.toString()
+                        ?.contains("/au;") == true
+            }
+            if (newArrayIndex < 0) throw PatchException(
+                "customAudioAppPatch: getPartners() no longer builds its au[] roster"
+            )
+            val sizeRegister = host.getInstruction<TwoRegisterInstruction>(newArrayIndex).registerB
+            host.addInstructions(
+                newArrayIndex,
+                """
+                    iget-object v$sizeRegister, $instance, $SDK_CONFIGURATION->PackageNames:[Ljava/lang/String;
+                    array-length v$sizeRegister, v$sizeRegister
+                """.trimIndent(),
+            )
+            println("customAudioAppPatch: roster size reloaded into v$sizeRegister before new-array")
+        }
 
         // endregion
 

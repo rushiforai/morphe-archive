@@ -1,0 +1,58 @@
+{
+  "mode": "--check-only",
+  "exit": 0,
+  "stdout": "All 8 application icons are present.\n",
+  "stderr": "",
+  "githubOutput": "has_missing=false\nmissing_packages=\n",
+  "githubValues": {
+    "has_missing": "false",
+    "missing_packages": ""
+  },
+  "files": {
+    "com.example.alpha.png": {
+      "sha256": "2d711642b726b04401627ca9fbac32f5c8530fb1903cc4db02258717921a4881",
+      "size": 1
+    },
+    "com.example.beta.png": {
+      "sha256": "2d711642b726b04401627ca9fbac32f5c8530fb1903cc4db02258717921a4881",
+      "size": 1
+    },
+    "com.example.delta.png": {
+      "sha256": "2d711642b726b04401627ca9fbac32f5c8530fb1903cc4db02258717921a4881",
+      "size": 1
+    },
+    "com.example.epsilon.png": {
+      "sha256": "2d711642b726b04401627ca9fbac32f5c8530fb1903cc4db02258717921a4881",
+      "size": 1
+    },
+    "com.example.eta.png": {
+      "sha256": "2d711642b726b04401627ca9fbac32f5c8530fb1903cc4db02258717921a4881",
+      "size": 1
+    },
+    "com.example.gamma.png": {
+      "sha256": "2d711642b726b04401627ca9fbac32f5c8530fb1903cc4db02258717921a4881",
+      "size": 1
+    },
+    "com.example.theta.png": {
+      "sha256": "2d711642b726b04401627ca9fbac32f5c8530fb1903cc4db02258717921a4881",
+      "size": 1
+    },
+    "com.example.zeta.png": {
+      "sha256": "2d711642b726b04401627ca9fbac32f5c8530fb1903cc4db02258717921a4881",
+      "size": 1
+    }
+  },
+  "icons": [
+    "com.example.alpha",
+    "com.example.beta",
+    "com.example.delta",
+    "com.example.epsilon",
+    "com.example.eta",
+    "com.example.gamma",
+    "com.example.theta",
+    "com.example.zeta"
+  ],
+  "exception": null,
+  "expectedGithubOutput": "has_missing=false\nmissing_packages=\n",
+  "expectedStdout": "All 8 application icons are present.\n"
+}

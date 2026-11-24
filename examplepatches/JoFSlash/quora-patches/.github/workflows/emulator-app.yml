@@ -1,0 +1,238 @@
+name: App emulator test
+
+# Patches one app with every patch, installs it on emulators and checks that it starts without a
+# crash or errors from the patches and shows its own screen. When a check fails, the original app
+# is tried the same way, to tell a broken patch from an Android version the app itself doesn't work
+# on. What each app needs (its APK in JoFSlash/morphe-apks, the Android versions, the check script)
+# is in .github/apps/<app>.json, so adding an app adds files and changes none of the shared ones.
+#
+# Each app's emulator-<app>.yml runs this for its own pull requests; the release runs it for every
+# app in .github/apps.
+#
+# The patches are built once per run, not on every emulator: the release builds them once for all
+# apps and passes the artifact in "bundle"; otherwise the build job below does it for this app.
+#
+# The APKs can't be in this public repository. They come from the private repository
+# JoFSlash/morphe-apks, read with the APKS_TOKEN secret (a fine-grained token with access to that
+# repository's contents only). Without the secret the test is skipped, except when the release runs
+# it: there a skipped test would let an untested bundle through, so it fails.
+
+on:
+  workflow_dispatch:
+    inputs:
+      app:
+        description: 'App to test: the name of its file in .github/apps (without .json)'
+        type: string
+        required: true
+  workflow_call:
+    inputs:
+      app:
+        description: 'App to test: the name of its file in .github/apps (without .json)'
+        type: string
+        required: true
+      required:
+        description: 'Fail instead of skipping when APKS_TOKEN is missing'
+        type: boolean
+        default: true
+      cli-version:
+        description: 'Morphe CLI release to use (empty: the one in .github/morphe-cli-version)'
+        type: string
+        default: ''
+      bundle:
+        description: 'Artifact of this run with the built patch bundle (empty: build it here)'
+        type: string
+        default: ''
+      record:
+        description: 'Record a pass (refs/tested/<app>/<fingerprint>, see tested.py); the caller grants contents: write'
+        type: boolean
+        default: false
+
+permissions:
+  contents: read
+  packages: read
+
+jobs:
+  config:
+    name: Read ${{ inputs.app }}'s settings
+    runs-on: ubuntu-latest
+    outputs:
+      name: ${{ steps.read.outputs.name }}
+      android: ${{ steps.read.outputs.android }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+        with:
+          sparse-checkout: .github/apps
+
+      # A pull request is tried on the app's oldest and newest stable Android version; the release
+      # and a run by hand try all of them.
+      - name: Read the settings
+        id: read
+        env:
+          APP: ${{ inputs.app }}
+          SET: ${{ github.event_name == 'pull_request' && 'pull_request' || 'full' }}
+        run: |
+          file=".github/apps/$APP.json"
+          if [ ! -f "$file" ]; then echo "::error::There is no $file."; exit 1; fi
+          echo "name=$(jq -r .name "$file")" >> "$GITHUB_OUTPUT"
+          echo "android=$(jq -c ".android.$SET" "$file")" >> "$GITHUB_OUTPUT"
+
+  build:
+    name: Build the patches
+    if: inputs.bundle == ''
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Setup Java
+        uses: actions/setup-java@v6
+        with:
+          distribution: 'temurin'
+          java-version: '21'
+          cache: 'gradle'
+
+      - name: Build
+        env:
+          GITHUB_ACTOR: ${{ github.actor }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GRADLE_ATTEMPTS: 5
+        run: bash .github/scripts/gradle-retry.sh :patches:buildAndroid --no-daemon
+
+      - name: Keep the bundle for the emulators
+        uses: actions/upload-artifact@v4
+        with:
+          name: bundle-${{ inputs.app }}
+          path: patches/build/libs/*.mpp
+          if-no-files-found: error
+          retention-days: 1
+
+  emulator:
+    name: ${{ needs.config.outputs.name }} on Android ${{ matrix.android }}
+    needs: [config, build]
+    if: ${{ !cancelled() && needs.config.result == 'success' && (needs.build.result == 'success' || needs.build.result == 'skipped') }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    strategy:
+      fail-fast: false
+      matrix:
+        include: ${{ fromJSON(needs.config.outputs.android) }}
+    env:
+      APP: ${{ inputs.app }}
+    steps:
+      - name: Check for the APK token
+        id: token
+        env:
+          TOKEN: ${{ secrets.APKS_TOKEN || secrets.QUORA_APKS_TOKEN }}
+          REQUIRED: ${{ inputs.required }}
+        run: |
+          if [ -z "$TOKEN" ] && [ "$REQUIRED" = "true" ]; then
+            echo "::error::APKS_TOKEN isn't set, and this run needs the emulator test."
+            exit 1
+          fi
+          if [ -z "$TOKEN" ]; then
+            echo "::notice::APKS_TOKEN isn't set (or this is a pull request from a fork), so the emulator test is skipped."
+            echo "skip=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Checkout
+        if: steps.token.outputs.skip != 'true'
+        uses: actions/checkout@v7
+
+      - name: Setup Java
+        if: steps.token.outputs.skip != 'true'
+        uses: actions/setup-java@v6
+        with:
+          distribution: 'temurin'
+          java-version: '21'
+          cache: 'gradle'
+
+      - name: Get the patch bundle
+        if: steps.token.outputs.skip != 'true'
+        uses: actions/download-artifact@v4
+        with:
+          name: ${{ inputs.bundle || format('bundle-{0}', inputs.app) }}
+          path: patches/build/libs
+
+      - name: Download the app and the Morphe CLI
+        if: steps.token.outputs.skip != 'true'
+        env:
+          APKS_TOKEN: ${{ secrets.APKS_TOKEN || secrets.QUORA_APKS_TOKEN }}
+          GH_TOKEN: ${{ github.token }}
+          CLI_VERSION: ${{ inputs.cli-version }}
+        run: |
+          file=".github/apps/$APP.json"
+          MORPHE_CLI_VERSION="${CLI_VERSION:-$(cat .github/morphe-cli-version)}"
+          echo "Morphe CLI $MORPHE_CLI_VERSION"
+          # A version listed as supported in Constants.kt: the first one listed ("first"), or the
+          # highest one ("newest").
+          versions=$(grep -oE 'AppTarget\(version = "[^"]+"' "$(jq -r .patches "$file")/shared/Constants.kt" \
+            | sed -E 's/.*"([^"]+)"/\1/')
+          if [ "$(jq -r .apk.version "$file")" = "newest" ]; then
+            APP_VERSION=$(echo "$versions" | sort -V | tail -1)
+          else
+            APP_VERSION=$(echo "$versions" | head -1)
+          fi
+          echo "$(jq -r .name "$file") $APP_VERSION"
+          asset=$(jq -r .apk.asset "$file" | sed "s/{version}/$APP_VERSION/g")
+          apk="$RUNNER_TEMP/$(jq -r .apk.file "$file")"
+          GH_TOKEN="$APKS_TOKEN" gh release download "$(jq -r .apk.release "$file")-$APP_VERSION" \
+            -R JoFSlash/morphe-apks -p "$asset" -O "$apk"
+          gh release download "$MORPHE_CLI_VERSION" -R MorpheApp/morphe-cli -p 'morphe-desktop-*-all.jar' \
+            -O "$RUNNER_TEMP/morphe-cli.jar"
+          echo "APK=$apk" >> "$GITHUB_ENV"
+          echo "CLI=$RUNNER_TEMP/morphe-cli.jar" >> "$GITHUB_ENV"
+          ls -l "$RUNNER_TEMP"
+
+      # Matrix entries with "verify" also check the patched dex files with dexdump.
+      - name: Find dexdump
+        if: steps.token.outputs.skip != 'true' && matrix.verify
+        run: |
+          tools="$ANDROID_HOME/build-tools/$(ls "$ANDROID_HOME/build-tools" | sort -V | tail -1)"
+          echo "DEXDUMP=$tools/dexdump" >> "$GITHUB_ENV"
+
+      - name: Enable KVM
+        if: steps.token.outputs.skip != 'true'
+        run: |
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+          sudo udevadm control --reload-rules
+          sudo udevadm trigger --name-match=kvm
+
+      - name: Install the emulator
+        if: steps.token.outputs.skip != 'true'
+        uses: ./.github/actions/install-emulator
+        with:
+          api-level: ${{ matrix.api }}
+          channel: ${{ matrix.channel }}
+
+      - name: Patch, install and start
+        if: steps.token.outputs.skip != 'true'
+        uses: reactivecircus/android-emulator-runner@v2
+        with:
+          api-level: ${{ matrix.api }}
+          channel: ${{ matrix.channel }}
+          target: google_apis
+          arch: x86_64
+          disable-animations: true
+          # Waits until Android has started, runs the app's check commands, and runs one again when
+          # the emulator (not the app) fails.
+          script: python3 .github/scripts/emulator_run.py "$APP"
+
+  # Remembers that this app passed with exactly this code, so the release and the next test runs
+  # skip it until its code changes (see .github/scripts/tested.py).
+  record:
+    name: Record the pass
+    needs: emulator
+    # Only when the test couldn't be skipped for a missing APKS_TOKEN. "!cancelled()" because the
+    # build job is skipped when the caller passes a bundle, and a skipped job further up would
+    # otherwise skip this one too.
+    if: ${{ !cancelled() && inputs.record && inputs.required && needs.emulator.result == 'success' }}
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Record
+        run: python3 .github/scripts/tested.py record "${{ inputs.app }}"

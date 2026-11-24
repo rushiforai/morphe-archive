@@ -8,7 +8,7 @@
  * - anddea (https://github.com/anddea)
  *
  * Licensed under the GNU General Public License v3.0.
- * Modified by lavinhoque33, 2026-11-20.
+ * Modified by lavinhoque33, 2026-11-23.
  *
  * ------------------------------------------------------------------------
  * GPLv3 Section 7 – Additional Terms & Attribution Requirements
@@ -1871,6 +1871,11 @@ private val rvxPreferenceKey = mapOf(
         "321.69 0 -24.61 -14.77 40.77 -71.08 h -81.85 v -28.84 h 81.85 l -40.77 -70.31 24.61 -13.54 L 801.69 " +
         "366 842 296.69 l 25.38 13.54 -41.53 70.31 h 81.84 v 28.84 h -81.84 l 41.53 71.08 L 842 495.23 l " +
         "-40.31 -70.85 -40.31 70.85 Z",
+
+    "morphe_music_fifo_add_to_queue" to "revanced_hide_flyout_menu_add_to_queue",
+    "morphe_music_playback_source_inspector" to "revanced_hide_flyout_menu_stats_for_nerds",
+    "morphe_music_ab_repeat" to "revanced_remember_repeat_state",
+    "morphe_music_prefer_original_audio_stream" to "revanced_disable_drc_audio",
 
     // Preferences present only on older versions or added during settings finalization.
     "revanced_change_action_bar_position" to "morphe_music_lyrics_swap_trans_roma",

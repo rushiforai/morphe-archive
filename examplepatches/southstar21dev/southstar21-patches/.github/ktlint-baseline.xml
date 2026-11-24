@@ -68,9 +68,6 @@
     <file name="patches/src/main/kotlin/app/southstar21/patches/instagram/misc/extension/ReturnHook.kt">
         <error line="35" column="16" source="standard:trailing-comma-on-call-site" />
     </file>
-    <file name="patches/src/main/kotlin/app/southstar21/patches/instagram/misc/extension/SharedExtensionPatch.kt">
-        <error line="20" column="118" source="standard:trailing-comma-on-call-site" />
-    </file>
     <file name="patches/src/main/kotlin/app/southstar21/patches/instagram/misc/signature/BypassSignatureCheckPatch.kt">
         <error line="41" column="19" source="standard:trailing-comma-on-call-site" />
         <error line="61" column="116" source="standard:trailing-comma-on-call-site" />

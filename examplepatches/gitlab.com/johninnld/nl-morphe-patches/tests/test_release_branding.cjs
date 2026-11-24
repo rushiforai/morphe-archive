@@ -231,6 +231,48 @@ test("multi-app notes use one explicit Morphe scope per app", () => {
   ]);
 });
 
+test("app names containing a colon retain their exact Morphe release scope", () => releaseRepository(({dir, git, commit}) => {
+  const name = "Draw a Stickman: EPIC 3";
+  const file = path.join(dir, "patches/src/main/kotlin/patches/stickman/Compatibility.kt");
+  fs.mkdirSync(path.dirname(file), {recursive: true});
+  fs.writeFileSync(file, `val app = Compatibility(name = "${name}")\n`);
+  git("add", "."); const base = commit("feat: baseline"); git("tag", "v1.0.0");
+  fs.appendFileSync(file, "// changed patch output\n"); git("add", ".");
+  const message = `fix: close tracking paths\n\nRelease-Apps: ${name}`;
+  const head = commit(message);
+  const ctx = {...context("1.0.1"), cwd: dir,
+    lastRelease: {version: "1.0.0", gitTag: "v1.0.0", gitHead: base},
+    nextRelease: {version: "1.0.1", gitTag: "v1.0.1", gitHead: head,
+      notes: `## [1.0.1](https://example.test/compare/v1.0.0...v1.0.1)\n\n* **${name}:** close tracking paths ([${head.slice(0, 7)}](https://example.test/commit/${head}))\n`}};
+  assert.deepEqual(plugin().scopeCommits([{hash: head, message}], ctx).map(c => c.message.split("\n")[0]),
+    [`fix(${name}): close tracking paths`]);
+  assert.doesNotThrow(() => require("../.github/scripts/verify_release_notes.cjs").verifyNotes(ctx));
+}));
+
+test("scope punctuation cannot inject Markdown or terminate a conventional scope", () => {
+  for (const name of ["App): forged", "App **forged**", "App [forged](https://example.test)"]) {
+    assert.throws(() => plugin().scopeCommits([{hash: source,
+      message: `fix: retain scoped notes\n\nRelease-Apps: ${name}`}]), /Invalid Release-Apps scope/);
+  }
+});
+
+test("Automotive edition names retain their title through safe conventional scopes", () => {
+  const wrapper = plugin();
+  const commits = wrapper.scopeCommits([{hash: source,
+    message: "feat: add projected ports\n\nRelease-Apps: Home Assistant (Automotive), PlugShare (Automotive)"}]);
+  assert.deepEqual(commits.map(c => c.message.split("\n")[0]), [
+    "feat(Home Assistant Automotive): add projected ports", "feat(PlugShare Automotive): add projected ports"
+  ]);
+  const notes = "* **Home Assistant Automotive:** add projected ports\n* **PlugShare Automotive:** add projected ports\n";
+  assert.equal(wrapper.restoreAppScopeTitles(notes, commits),
+    "* **Home Assistant (Automotive):** add projected ports\n* **PlugShare (Automotive):** add projected ports\n");
+  assert.equal(wrapper.restoreAppScopeTitles(notes, [{hash: source, message: "fix(General): unrelated"}]), notes);
+  for (const name of ["App): forged (Automotive)", "App **forged** (Automotive)", "App (Other)"]) {
+    assert.throws(() => wrapper.scopeCommits([{hash: source,
+      message: `fix: retain scoped notes\n\nRelease-Apps: ${name}`}]), /Invalid Release-Apps scope/);
+  }
+});
+
 function partialPromotion(run) {
   return releaseRepository(({dir, git, commit}) => {
     const files = Object.fromEntries(['A', 'B'].map(name => [name, `patches/src/main/kotlin/patches/${name.toLowerCase()}/Compatibility.kt`]));

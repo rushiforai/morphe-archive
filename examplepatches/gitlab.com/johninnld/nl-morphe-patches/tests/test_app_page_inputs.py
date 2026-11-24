@@ -43,6 +43,33 @@ def metadata(path, input_type="APKS"):
 
 
 class AppPageTests(unittest.TestCase):
+    def test_spaced_publisher_version_matches_exact_target_and_download_in_both_languages(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            directory = Path(temporary)
+            source = directory / 'metadata.json'
+            source.write_text(json.dumps({'patches': [{
+                'name': 'Hide ads', 'default': True, 'compatiblePackages': [{
+                    'packageName': 'com.xatori.Plugshare', 'apkFileType': 'APK',
+                    'formFactor': 'MOBILE', 'targets': [{
+                        'version': 'AAOS v1.8.2', 'versionCodes': {'ARM64_V8A': 100400}}]}]}]}))
+            apps = pages.load_apps([source])
+            for language in ('en', 'nl'):
+                with self.subTest(language=language):
+                    guide = directory / language / 'guides/downloads.md'
+                    guide.parent.mkdir(parents=True)
+                    guide.write_text('| [PlugShare](../apps/plugshare.md) | AAOS v1.8.2 / 100400 | Use your own file |\n')
+                    with patch.object(pages, 'SITE', directory):
+                        rows = pages.downloads(language)
+                    target = directory / 'plugshare.md'
+                    target.write_text(fixture(language, version='AAOS v1.8.2', build='100400', input_type='APK'))
+                    self.assertEqual(pages.check_page(target, language, apps, rows), [])
+                    target.write_text(fixture(language, version='AAOS v1.8.3', build='100400', input_type='APK'))
+                    self.assertTrue(any('not a metadata target' in error for error in
+                                        pages.check_page(target, language, apps, rows)))
+                    target.write_text(fixture(language, version='AAOS v1.8.2', build='100401', input_type='APK'))
+                    self.assertTrue(any('not a metadata target' in error for error in
+                                        pages.check_page(target, language, apps, rows)))
+
     def test_waze_any_version_addon_requires_its_app_guide(self):
         with tempfile.TemporaryDirectory() as temporary:
             path = Path(temporary) / 'metadata.json'

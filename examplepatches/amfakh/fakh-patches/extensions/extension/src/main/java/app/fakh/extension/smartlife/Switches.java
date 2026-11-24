@@ -1,110 +1,59 @@
+/*
+ * Copyright 2026 amfakh
+ * SPDX-License-Identifier: GPL-3.0-only
+ */
+
 package app.fakh.extension.smartlife;
 
 import android.content.Context;
 import android.content.Intent;
-import android.content.SharedPreferences;
 import android.util.Log;
 import android.view.View;
 import android.widget.TabHost;
 import android.widget.TabWidget;
 import android.widget.TextView;
 
-import java.io.ByteArrayOutputStream;
-import java.io.InputStream;
-import java.util.ArrayList;
 import java.util.Iterator;
-import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.WeakHashMap;
 
-import app.fakh.extension.shared.AppRuntime;
+import app.fakh.extension.shared.Features;
 import app.fakh.extension.shared.SwipeTabs;
 
 /**
- * The switches of these patches: their state, the Fakh Patches row in Settings that opens their page, and the hooks
- * of the patches that ask whether their switch is on. A switch only counts when its patch is in the app: each patch
- * lists its switch in {@code assets/fakh_switches.txt}.
+ * The hooks of the patches that have a switch, and the Fakh Patches row in Settings that opens their page. Which
+ * switches exist, their titles and defaults come from {@link Features}, which the patches fill in at patch time.
  */
 public final class Switches {
     /** Glass navigation bar and glass cards. */
     static final String LIQUID_GLASS = "fakh_liquid_glass";
     /** Dark device panels. */
     static final String DARK_PANELS = "fakh_dark_panels";
-    /** The text under the icons of the navigation bar, which is shown until this switch is turned on. */
+    /** The text under the icons of the navigation bar. */
     static final String HIDE_TAB_LABELS = "fakh_hide_tab_labels";
     /** Swipe between tabs. */
     private static final String SWIPE_TABS = "fakh_swipe_tabs";
     private static final String PLUS = "fakh_hide_plus";
     private static final String EXPLORE = "fakh_hide_explore";
     private static final String MALL_TAB = "fakh_hide_mall_tab";
-    private static final String PREFS = "fakh_patches";
+    private static final String DISCOVERY_TAB = "fakh_hide_discovery_tab";
 
-    /** What a switch does, for the switches whose title does not say. */
-    static final Map<String, String> DESCRIPTIONS = new LinkedHashMap<>();
-
-    /** The title of each switch, the name of its patch, by section in the order the page shows them. */
-    static final Map<String, Map<String, String>> SECTIONS = new LinkedHashMap<>();
-
-    static {
-        Map<String, String> home = section("Home");
-        home.put(PLUS, "Hide Plus button");
-        home.put("fakh_hide_recommended", "Hide Recommended for you");
-        home.put("fakh_hide_ai_bar", "Hide AI ask bar");
-        Map<String, String> bar = section("Navigation bar");
-        bar.put(EXPLORE, "Hide Explore tab");
-        bar.put(MALL_TAB, "Hide Mall tab");
-        bar.put(HIDE_TAB_LABELS, "Hide tab labels");
-        bar.put(SWIPE_TABS, "Swipe between tabs");
-        DESCRIPTIONS.put(SWIPE_TABS, "Swipe sideways to go to the next or previous tab of the navigation bar.");
-        Map<String, String> me = section("Me");
-        me.put("fakh_hide_rewards", "Hide Rewards Hub");
-        me.put("fakh_hide_orders", "Hide My Orders");
-        me.put("fakh_hide_ai_web", "Hide Tuya AI Web Version");
-        me.put("fakh_hide_me_banner", "Hide Me banner");
-        me.put("fakh_hide_app_mall", "Hide App Mall");
-        Map<String, String> look = section("Appearance");
-        look.put(LIQUID_GLASS, "Liquid Glass");
-        look.put(DARK_PANELS, "Dark Device Panels");
-        DESCRIPTIONS.put(DARK_PANELS, "Force dark on device control panels that have no dark mode. Applies when you open a panel, and only in dark mode.");
-        section("Ads").put("fakh_hide_ads", "Hide ads");
-    }
-
-    /** The switches of the patches in the app. */
-    private static List<String> present;
     /** The About cell that is the Fakh Patches row, for each Settings page. */
     private static final Map<Context, Object> rows = new WeakHashMap<>();
 
     private Switches() {
     }
 
-    private static Map<String, String> section(String title) {
-        Map<String, String> switches = new LinkedHashMap<>();
-        SECTIONS.put(title, switches);
-        return switches;
-    }
-
     /**
-     * Whether the switch {@code key} is on: on until turned off (off until turned on for the tab labels and the dark
-     * panels), and off when its patch is not in the app. Asked by the patches' code before it hides or changes
-     * anything.
+     * Whether the switch {@code key} is on, and off when its patch is not in the app. Asked by the patches' code
+     * before it hides or changes anything.
      *
      * @param key the switch's key
      * @return the switch's state
      */
     public static boolean on(String key) {
-        return present(key) && prefs().getBoolean(key, !HIDE_TAB_LABELS.equals(key) && !DARK_PANELS.equals(key));
-    }
-
-    /** Whether the patch of the switch {@code key} is in the app. */
-    static boolean present(String key) {
-        if (present == null) present = lines(asset("fakh_switches.txt"));
-        return present.contains(key);
-    }
-
-    /** Turns the switch {@code key} on or off. */
-    static void set(String key, boolean on) {
-        prefs().edit().putBoolean(key, on).apply();
+        return Features.on(key);
     }
 
     /** Whether the glass navigation bar and glass cards are on. */
@@ -137,11 +86,23 @@ public final class Switches {
             for (Iterator<Object> it = tabs.iterator(); it.hasNext(); ) {
                 Object name = it.next();
                 name = name.getClass().getField("name").get(name);
-                if ("thing_smart_tab".equals(name) && on(EXPLORE) || "mall".equals(name) && on(MALL_TAB)) it.remove();
+                if ("thing_smart_tab".equals(name) && on(EXPLORE) || "mall".equals(name) && on(MALL_TAB)
+                    || "miniappa".equals(name) && on(DISCOVERY_TAB)) it.remove();
             }
         } catch (ReflectiveOperationException | RuntimeException failure) {
             // The tabs stay as the app loaded them.
         }
+    }
+
+    /**
+     * Injected before each return of the home theme's background transformer.
+     *
+     * @param themed   the drawable with the theme's picture
+     * @param original the plain drawable the theme started from
+     * @return the plain drawable while the hide background switch is on, else {@code themed}
+     */
+    public static Object background(Object themed, Object original) {
+        return on("fakh_hide_background") && original != null ? original : themed;
     }
 
     /**
@@ -197,10 +158,6 @@ public final class Switches {
         if (pill != null) pill.setVisibility(View.GONE);
     }
 
-    private static SharedPreferences prefs() {
-        return AppRuntime.application().getSharedPreferences(PREFS, Context.MODE_PRIVATE);
-    }
-
     /**
      * Injected at the end of the About cell's bind: the Fakh Patches row gets its title and opens the switches' page.
      * The row is in Settings only when a patch with a switch is in the app.
@@ -224,26 +181,5 @@ public final class Switches {
         TextView title = row.findViewById(context.getResources().getIdentifier("menu_list_title", "id", context.getPackageName()));
         if (title != null) title.setText("Fakh Patches");
         row.setOnClickListener(view -> context.startActivity(new Intent(context, FakhPatchesActivity.class)));
-    }
-
-    /** The text of the app's asset {@code name}, or an empty text when it has none. */
-    private static String asset(String name) {
-        try (InputStream in = AppRuntime.application().getAssets().open(name)) {
-            ByteArrayOutputStream bytes = new ByteArrayOutputStream();
-            byte[] buffer = new byte[4096];
-            for (int read; (read = in.read(buffer)) > 0; ) bytes.write(buffer, 0, read);
-            return bytes.toString("UTF-8");
-        } catch (Exception failure) {
-            return "";
-        }
-    }
-
-    /** The non-empty lines of {@code text}. */
-    private static List<String> lines(String text) {
-        List<String> lines = new ArrayList<>();
-        for (String line : text.split("\n")) {
-            if (!line.trim().isEmpty()) lines.add(line.trim());
-        }
-        return lines;
     }
 }

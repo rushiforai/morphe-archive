@@ -3,6 +3,7 @@
  * https://github.com/MorpheApp/morphe-patches/pull/3851
  *
  * See the included NOTICE file for GPLv3 Section 7 terms that apply to this code.
+ * Modified by lavinhoque33, 2026-11-23.
  */
 
 package app.morphe.extension.music.patches.lyrics.ui;
@@ -193,16 +194,6 @@ final class LyricsViewSupport {
     /** Eases the highlight between lines the way the built-in panel does, shrinking the dimmed ones. */
     static void fadeTo(TextView lineView, float alpha) {
         if (!(lineView instanceof LyricsLineView view)) {
-            return;
-        }
-        if (view.isSecondary()) {
-            // A background vocal shows and hides with its own expansion instead.
-            if (view.fadeAnimator != null) {
-                view.fadeAnimator.cancel();
-                view.fadeAnimator = null;
-            }
-            view.lineAlpha = 1f;
-            view.fadeTargetAlpha = 1f;
             return;
         }
         // Called on every highlight tick, so a fade already heading here is left to finish.

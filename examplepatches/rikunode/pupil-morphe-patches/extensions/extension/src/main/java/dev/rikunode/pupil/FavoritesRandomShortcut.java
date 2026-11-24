@@ -242,14 +242,14 @@ public final class FavoritesRandomShortcut {
         }
     }
 
-    // Registers a separate LazyColumn item between the thumbnails header and pager.
-    // The original three-column thumbnail grid is left untouched.
-    public static void addThumbnailShortcutItem(Object lazyListScope) {
+    // Register a standalone LazyColumn item after all tag groups, immediately
+    // before the thumbnails heading. Neither heading nor thumbnail grid is modified.
+    public static void addTypeShortcutItem(Object lazyListScope) {
         Activity activity = currentActivity.get();
         if (activity == null || !showOnDetail(activity)) return;
         try {
             Function3 content = (scope, composer, flags) -> {
-                renderThumbnailShortcut((Context) activity, composer);
+                renderTypeShortcut((Context) activity, composer);
                 return Unit.INSTANCE;
             };
             Class<?> impl = Class.forName("androidx.compose.runtime.internal.ComposableLambdaImpl");
@@ -264,8 +264,8 @@ public final class FavoritesRandomShortcut {
         }
     }
 
-    private static void renderThumbnailShortcut(Context context, Object composer) {
-        Function1 factory = value -> createThumbnailShortcutRow((Context) value);
+    private static void renderTypeShortcut(Context context, Object composer) {
+        Function1 factory = value -> createTypeShortcutRow((Context) value);
         Function1 update = value -> Unit.INSTANCE;
         try {
             Class<?> modifierClass = Class.forName("androidx.compose.ui.Modifier");
@@ -284,20 +284,20 @@ public final class FavoritesRandomShortcut {
         }
     }
 
-    private static View createThumbnailShortcutRow(Context context) {
+    private static View createTypeShortcutRow(Context context) {
         FrameLayout row = new FrameLayout(context) {
             @Override
             protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
                 int width = View.MeasureSpec.getSize(widthMeasureSpec);
-                // ThumbnailPager: 3 columns, 8dp between columns, aspect ratio 0.7.
-                int itemWidth = Math.max(1, Math.round((width - 2f * dp(context, 8)) / 3f));
-                int itemHeight = Math.max(1, Math.round(itemWidth / 0.7f));
-                int buttonHeight = Math.max(1, (itemHeight + 1) / 2);
+                // Two equal-width buttons with an 8dp gap, both 48dp tall.
+                int buttonHeight = dp(context, 48);
+                int gap = dp(context, 8);
+                int buttonWidth = Math.max(1, (width - gap) / 2);
                 getChildAt(0).measure(
-                        View.MeasureSpec.makeMeasureSpec(itemWidth, View.MeasureSpec.EXACTLY),
+                        View.MeasureSpec.makeMeasureSpec(buttonWidth, View.MeasureSpec.EXACTLY),
                         View.MeasureSpec.makeMeasureSpec(buttonHeight, View.MeasureSpec.EXACTLY));
                 getChildAt(1).measure(
-                        View.MeasureSpec.makeMeasureSpec(itemWidth, View.MeasureSpec.EXACTLY),
+                        View.MeasureSpec.makeMeasureSpec(buttonWidth, View.MeasureSpec.EXACTLY),
                         View.MeasureSpec.makeMeasureSpec(buttonHeight, View.MeasureSpec.EXACTLY));
                 setMeasuredDimension(width, View.resolveSize(buttonHeight, heightMeasureSpec));
             }
@@ -325,7 +325,7 @@ public final class FavoritesRandomShortcut {
         button.setImageResource(iconId);
         button.setColorFilter(Color.WHITE);
         button.setScaleType(ImageButton.ScaleType.CENTER_INSIDE);
-        button.setPadding(dp(context, 16), dp(context, 16), dp(context, 16), dp(context, 16));
+        button.setPadding(dp(context, 6), dp(context, 6), dp(context, 6), dp(context, 6));
         button.setContentDescription("お気に入りからランダムに作品を開く");
         button.setOnClickListener(ignored -> openRandom(button));
         row.addView(button);

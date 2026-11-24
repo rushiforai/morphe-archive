@@ -40,24 +40,29 @@ private const val GMS_CORE_VENDOR = "app.revanced"
 
 /**
  * Points the app at GmsCore and declares the package [packageName] and the signing certificate SHA-1 [signature]
- * that GmsCore presents to Google in place of the patched app's.
+ * that GmsCore presents to Google in place of the patched app's. The package is the one given, not the manifest's, so
+ * an app whose package another patch renames still signs in as the original.
  */
 fun gmsCoreSupportResourcePatch(packageName: String, signature: String) =
-    gmsCoreSupportResourcePatch(mapOf(packageName to signature))
+    gmsCoreSupportResourcePatch { packageName to signature }
 
 /**
  * Same as above for a patch that targets several apps: the package and certificate are picked by the package the
  * manifest declares.
  */
-fun gmsCoreSupportResourcePatch(signatures: Map<String, String>) = patch {
+fun gmsCoreSupportResourcePatch(signatures: Map<String, String>) = gmsCoreSupportResourcePatch { packageName ->
+    packageName to (signatures[packageName] ?: throw PatchException("No certificate known for $packageName"))
+}
+
+/** [spoof] maps the package the manifest declares to the package and certificate GmsCore presents. */
+private fun gmsCoreSupportResourcePatch(spoof: (String) -> Pair<String, String>) = patch {
     execute {
         val manifest = resourceFile("AndroidManifest.xml")
         manifest.writeText(manifest.readText().replace("com.google.android.c2dm", "$GMS_CORE_VENDOR.android.c2dm"))
 
         document("AndroidManifest.xml").use { document ->
             val root = document.documentElement
-            val packageName = root.getAttribute("package")
-            val signature = signatures[packageName] ?: throw PatchException("No certificate known for $packageName")
+            val (packageName, signature) = spoof(root.getAttribute("package"))
             val application = document.getElementsByTagName("application").item(0) as Element
             fun Element.add(tag: String, vararg attributes: Pair<String, String>) {
                 appendChild(document.createElement(tag).also { child ->
@@ -100,7 +105,7 @@ private const val PLAY_SERVICES_UTIL = "Lcom/google/android/gms/common/GooglePla
  * Sends every Google Play services call of the app to GmsCore and makes GmsCore pass the availability checks.
  * [signature] is the SHA-1 of the app's own signing certificate, which Firebase gets in place of the patched app's.
  */
-fun redirectToGmsCore(signature: String) {
+fun redirectToGmsCore(signature: String, patchPlayServicesUtil: Boolean = true) {
     val replacements = buildMap {
         put("com.google", GMS_CORE_VENDOR)
         put("com.google.android.gms", "$GMS_CORE_VENDOR.android.gms")
@@ -118,25 +123,27 @@ fun redirectToGmsCore(signature: String) {
         ).distinctBy { it.type }
     if (replaceStrings(classes, ::replacement) == 0) throw PatchException("No Google Play services strings found")
 
-    // GmsCore is signed with its own key, so the signature checks of the availability calls would fail. It
-    // reports as too old for the APIs that need Play services 25.24 or newer (Credential Manager's Identity
-    // Credentials API, which GmsCore lacks), so the Google sign-in falls back to the one GmsCore implements.
-    // Only the (Context, int) overloads: the (Context) one delegates to them and has no version parameter.
-    playServicesUtil().methods.filter { it.parameterTypes.size == 2 }.forEach { method ->
-        when (method.name) {
-            "isGooglePlayServicesAvailable" -> method.addInstructions(
-                0,
-                """
-                    const v0, $GMS_CORE_MAX_APK_VERSION
-                    if-ge p1, v0, :too_old
-                    const/4 v0, 0x0
-                    return v0
-                    :too_old
-                    const/4 v0, 0x2
-                    return v0
-                """
-            )
-            "ensurePlayServicesAvailable" -> method.addInstructions(0, "return-void")
+    if (patchPlayServicesUtil) {
+        // GmsCore is signed with its own key, so the signature checks of the availability calls would fail. It
+        // reports as too old for the APIs that need Play services 25.24 or newer (Credential Manager's Identity
+        // Credentials API, which GmsCore lacks), so the Google sign-in falls back to the one GmsCore implements.
+        // Only the (Context, int) overloads: the (Context) one delegates to them and has no version parameter.
+        playServicesUtil().methods.filter { it.parameterTypes.size == 2 }.forEach { method ->
+            when (method.name) {
+                "isGooglePlayServicesAvailable" -> method.addInstructions(
+                    0,
+                    """
+                        const v0, $GMS_CORE_MAX_APK_VERSION
+                        if-ge p1, v0, :too_old
+                        const/4 v0, 0x0
+                        return v0
+                        :too_old
+                        const/4 v0, 0x2
+                        return v0
+                    """
+                )
+                "ensurePlayServicesAvailable" -> method.addInstructions(0, "return-void")
+            }
         }
     }
 
@@ -169,8 +176,8 @@ private fun spoofFirebaseCertificate(sha1: String) {
                     val target = (instruction as? ReferenceInstruction)?.reference as? MethodReference
                     instruction is FiveRegisterInstruction && instruction.registerCount == 3 &&
                         instruction.registerD == name &&
-                        target?.definingClass == "Ljava/net/URLConnection;" &&
-                        target.name.endsWith("RequestProperty")
+                        target?.definingClass in setOf("Ljava/net/URLConnection;", "Ljava/net/HttpURLConnection;") &&
+                        target?.name?.endsWith("RequestProperty") == true
                 } ?: return@forEach
                 val value = (code[call] as FiveRegisterInstruction).registerE
                 method.addInstructions(call, "const-string v$value, \"$sha1\"")
@@ -178,7 +185,8 @@ private fun spoofFirebaseCertificate(sha1: String) {
             }
         }
     }
-    if (spoofed == 0) throw PatchException("Firebase certificate header not found")
+    // An app without Firebase has no header to spoof; one that has it must get every call site.
+    if (holders.isNotEmpty() && spoofed == 0) throw PatchException("Firebase certificate header not found")
 }
 
 /**

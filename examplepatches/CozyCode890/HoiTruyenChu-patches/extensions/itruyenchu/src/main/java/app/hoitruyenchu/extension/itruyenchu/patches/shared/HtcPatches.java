@@ -42,6 +42,10 @@ public final class HtcPatches {
         return false;
     }
 
+    public static boolean miniPlayer() {
+        return false;
+    }
+
     public static boolean googleLogin() {
         return false;
     }

@@ -2,14 +2,18 @@ package app.aidan.patches.geocaching.tracking
 
 import app.aidan.patches.geocaching.shared.COMPATIBILITY_GEOCACHING
 import app.aidan.patches.shared.disableOptionalVoidMethods
+import app.aidan.patches.shared.disableRequiredVoidMethods
+import app.aidan.patches.shared.disableRequiredVoidMethodsByName
+import app.aidan.patches.shared.returnOptionalNullObject
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
 import app.morphe.patcher.patch.BytecodePatchContext
 import app.morphe.patcher.patch.booleanOption
 import app.morphe.patcher.patch.bytecodePatch
+import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
 
 val removeTrackingAndAnalyticsPatch = bytecodePatch(
     name = "Remove Tracking and Analytics",
-    description = "Neutralizes first-party analytics (AnalyticsRepo), Google Analytics / Firebase (Analytics, Crashlytics, Performance, In-App Messaging), Facebook App Events, Iterable marketing telemetry, Usercentrics consent collection, and zeros the Google Play Advertising ID (AAID).",
+    description = "Neutralizes first-party analytics (AnalyticsRepo), Google Analytics / Firebase (Analytics, Crashlytics, Performance, In-App Messaging), Facebook App Events dispatch, Iterable marketing telemetry, Usercentrics consent collection, and zeros the Google Play Advertising ID (AAID).",
     default = true
 ) {
     category("Privacy")
@@ -44,30 +48,24 @@ val removeTrackingAndAnalyticsPatch = bytecodePatch(
         // Layer 1: Google Play Advertising ID (AAID) Spoofing
         spoofAdvertisingId()
 
-        // Layer 2: Centralized First-Party Analytics (AnalyticsRepo & Helpers)
-        disableOptionalVoidMethods(
+        // Layer 2: Centralized First-Party Analytics (AnalyticsRepo & web bridge)
+        disableRequiredVoidMethodsByName(
             "Lcom/groundspeak/geocaching/intro/analytics/firebase/AnalyticsRepo;",
-            "m", "a", "b", "c", "f", "g", "h", "i", "j", "k", "l", "n", "o", "p", "q"
+            "a", "b", "e", "f", "g", "h", "i", "j", "k", "l", "m"
         )
-        disableOptionalVoidMethods(
+        disableRequiredVoidMethods(
             "Lcom/groundspeak/geocaching/intro/analytics/firebase/AnalyticsRepo\$a;",
             "a"
         )
-        disableOptionalVoidMethods(
-            "Lvm3;",
-            "a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k", "l", "m", "n", "o", "p", "q", "r", "s", "t", "u", "v"
-        )
-        disableOptionalVoidMethods(
-            "Lgo3;",
-            "b", "f"
-        )
-        disableOptionalVoidMethods(
+        disableRequiredVoidMethods(
             "Lcom/groundspeak/geocaching/intro/analytics/firebase/AnalyticsWebInterface;",
             "logEvent"
         )
 
         // Layer 3: Firebase Analytics & Measurement Neutralization
-        disableOptionalVoidMethods(
+        // All app call sites (analytic repo, billing, login, map, filter, details) funnel through
+        // FirebaseAnalytics, including the 65 direct logEvent calls that bypass AnalyticsRepo.
+        disableRequiredVoidMethodsByName(
             "Lcom/google/firebase/analytics/FirebaseAnalytics;",
             "logEvent",
             "setAnalyticsCollectionEnabled",
@@ -76,11 +74,15 @@ val removeTrackingAndAnalyticsPatch = bytecodePatch(
             "setSessionTimeoutDuration",
             "setUserId"
         )
-        disableOptionalVoidMethods(
+        returnOptionalNullObject(
+            "Lcom/google/firebase/analytics/FirebaseAnalytics;",
+            "getAppInstanceId"
+        )
+        disableRequiredVoidMethods(
             "Lcom/google/firebase/perf/FirebasePerformance;",
             "setPerformanceCollectionEnabled"
         )
-        disableOptionalVoidMethods(
+        disableRequiredVoidMethodsByName(
             "Lcom/google/firebase/inappmessaging/FirebaseInAppMessaging;",
             "setAutomaticDataCollectionEnabled",
             "setMessagesSuppressed"
@@ -88,7 +90,7 @@ val removeTrackingAndAnalyticsPatch = bytecodePatch(
 
         // Layer 4: Firebase Crashlytics Neutralization
         if (stripCrashlytics.value != false) {
-            disableOptionalVoidMethods(
+            disableRequiredVoidMethodsByName(
                 "Lcom/google/firebase/crashlytics/FirebaseCrashlytics;",
                 "log",
                 "recordException",
@@ -96,42 +98,38 @@ val removeTrackingAndAnalyticsPatch = bytecodePatch(
                 "setCustomKey",
                 "setCrashlyticsCollectionEnabled"
             )
-            disableOptionalVoidMethods(
+            disableRequiredVoidMethodsByName(
                 "Lcom/groundspeak/geocaching/intro/analytics/crashlytics/a;",
                 "a", "b", "c", "d", "e"
             )
         }
 
-        // Layer 5: Facebook App Events Neutralization
+        // Layer 5: Facebook App Events Neutralization.
+        // 10.24.0 no longer exposes AppEventsLogger to app code (R8 removed the public API; only
+        // login/share remains reachable), so the remaining event dispatch and flush funnels in
+        // com.facebook.appevents are neutralized instead.
         if (stripFacebook.value != false) {
             disableOptionalVoidMethods(
-                "Lcom/facebook/appevents/AppEventsLogger;",
-                "activateApp",
-                "logEvent",
-                "logPurchase",
-                "flush",
-                "setFlushBehavior"
+                "Lcom/facebook/appevents/b;",
+                "d", "e"
             )
             disableOptionalVoidMethods(
                 "Lcom/facebook/internal/FetchedAppSettingsManager;",
                 "loadAppSettingsAsync"
             )
-            disableOptionalVoidMethods(
-                "Ldefpackage/wv;",
-                "l"
-            )
         }
 
-        // Layer 6: Iterable Telemetry Neutralization
+        // Layer 6: Iterable Telemetry Neutralization.
+        // p = events/track; r/u/q/s/t/h = in-app + push-open tracking; m/n/b/o/l = profile and
+        // device registration updates (users/update, users/disableDevice).
         if (stripIterable.value != false) {
+            disableRequiredVoidMethods(
+                "Lcom/iterable/iterableapi/d;",
+                "p"
+            )
             disableOptionalVoidMethods(
                 "Lcom/iterable/iterableapi/d;",
-                "p",
-                "trackPushOpen",
-                "updateEmail",
-                "updateUser",
-                "registerDeviceToken",
-                "disableDeviceForCurrentUser"
+                "b", "h", "l", "m", "n", "o", "q", "r", "s", "t", "u"
             )
         }
 
@@ -145,6 +143,8 @@ val removeTrackingAndAnalyticsPatch = bytecodePatch(
     }
 }
 
+private const val SPOOFED_ADVERTISING_ID = "00000000-0000-0000-0000-000000000000"
+
 private fun BytecodePatchContext.spoofAdvertisingId(
     classDescriptor: String = "Lcom/google/android/gms/ads/identifier/AdvertisingIdClient;"
 ) {
@@ -156,13 +156,15 @@ private fun BytecodePatchContext.spoofAdvertisingId(
             method.returnType == "Lcom/google/android/gms/ads/identifier/AdvertisingIdClient\$Info;" &&
             method.implementation != null
         ) {
-            val firstInst = method.implementation?.instructions?.firstOrNull()
-            if (firstInst?.opcode != com.android.tools.smali.dexlib2.Opcode.NEW_INSTANCE) {
+            val alreadySpoofed = method.implementation?.instructions?.any { inst ->
+                (inst as? ReferenceInstruction)?.reference?.toString() == SPOOFED_ADVERTISING_ID
+            } == true
+            if (!alreadySpoofed) {
                 method.addInstructions(
                     0,
                     """
                     new-instance v0, Lcom/google/android/gms/ads/identifier/AdvertisingIdClient${'$'}Info;
-                    const-string v1, "00000000-0000-0000-0000-000000000000"
+                    const-string v1, "$SPOOFED_ADVERTISING_ID"
                     const/4 v2, 0x1
                     invoke-direct {v0, v1, v2}, Lcom/google/android/gms/ads/identifier/AdvertisingIdClient${'$'}Info;-><init>(Ljava/lang/String;Z)V
                     return-object v0
@@ -171,4 +173,34 @@ private fun BytecodePatchContext.spoofAdvertisingId(
             }
         }
     }
+
+    val infoClass = mutableClassDefByOrNull(
+        "Lcom/google/android/gms/ads/identifier/AdvertisingIdClient\$Info;"
+    ) ?: return
+    val getId = infoClass.methods.firstOrNull {
+        it.name == "getId" && it.returnType == "Ljava/lang/String;" && it.implementation != null
+    }
+    if (getId != null &&
+        getId.implementation?.instructions?.none { inst ->
+            (inst as? ReferenceInstruction)?.reference?.toString() == SPOOFED_ADVERTISING_ID
+        } != false
+    ) {
+        getId.addInstructions(
+            0,
+            """
+            const-string v0, "$SPOOFED_ADVERTISING_ID"
+            return-object v0
+            """.trimIndent()
+        )
+    }
+    val limitAdTracking = infoClass.methods.firstOrNull {
+        it.name == "isLimitAdTrackingEnabled" && it.returnType == "Z" && it.implementation != null
+    }
+    limitAdTracking?.addInstructions(
+        0,
+        """
+        const/4 v0, 0x1
+        return v0
+        """.trimIndent()
+    )
 }

@@ -1,3 +1,77 @@
+## [0.30.66](https://github.com/Forsigh/waze-patches/releases/tag/v0.30.66) (2026-11-23)
+
+Stable build for Waze **5.28.4.900**. Result of a row-by-row audit that treated every patch as
+broken until its change could be shown reaching the code that consumes it.
+
+### Fixed
+* **Cameras & hazards**: crosswalks were only switched on in the settings screen. The announcement
+  keys (`NOTIFICATIONS_ON_ROUTE_PERMANENT_HAZARD_*CROSSWALK`) are now set too, so a mapped crosswalk
+  warns instead of only drawing.
+* **Lane guidance**: the consumer ANDs three flags; `LANE_GUIDANCE_USER_ENABLED` was never forced, so
+  the row could do nothing.
+* **Live drive sharing**: the map entry point also requires `SHARE_DRIVE_BUTTON_BACK_ENTRY_POINT_ENABLED`;
+  forcing only the feature flag left the button hidden.
+* **Remove ads**: search results carry their own gates (`SEARCH_ADS_FEATURE_ENABLED`,
+  `SEARCH_ADS_IN_CAR_FEATURE_ENABLED`), now forced.
+* **YouTube Music / Any audio app**: both appended their entries after the roster had already been
+  measured, so the partners never entered the list. The length is now reloaded before the roster is
+  sized.
+* **Hide recent destinations**: the empty protobuf was written into the wrong register and callers
+  received `null`; it now returns a well-formed empty array.
+* **Picture-in-picture**: touches were routed to a hard-coded view id that is a different view on this
+  build; the map is now resolved by name.
+* **Car map zoom**: the native write hung off an unrelated Java setter, unguarded. It goes through the
+  shared guarded helper now, so it lands on every config sync.
+* **Allow high refresh rate**: `const-wide/high16` truncates the double (90 Hz became 88, 165 became
+  160); such rates are refused instead of silently changed.
+* **Instrument cluster**: the "large layout" option was actually Waze's light-commercial-vehicle
+  support and was on by default. Off by default, renamed and described honestly.
+* **Smoother Android Auto map**: dropped `AAP_USE_NORMAL_CAR_GPS_UPDATE_RATE`, which Waze removed in
+  this version.
+
+### Added
+* Every recorded config key is mirrored into Waze's native config store, including strings, and
+  `tools/check-native-coverage.py` fails a build when a forced key is missing from it.
+* Choice options now reject unknown values. A label passed where a value token belongs used to apply
+  cleanly and change nothing; it now aborts with the list of accepted values.
+
+## [0.30.66-dev.6](https://github.com/Forsigh/waze-patches/releases/tag/v0.30.66-dev.6) (2026-11-22)
+
+Development build for Waze **5.28.4.900**. Fixes the "Alert distances does nothing" report (issue #24).
+
+### Fixed
+* **Alert distances** now writes the chosen distances into Waze's native config store, not just the Java config getter. The alert engine reads its policy natively, so the previous build could apply cleanly and change nothing - exactly what the report described. Both sync callbacks re-apply the values after a server config sync.
+* The row is **off by default** and its level defaults to **Moderate**. It used to be on by default with level Standard, which writes Waze's own numbers back - a row that looked enabled and did nothing. Standard now writes nothing at all rather than a guessed set of defaults.
+
+### Added
+* **Speed cameras - all types** option (`CONFIG_VALUE_ALERTS_ALERTER_ALERT_DISTANCE`). In most countries Waze uses this single distance for every camera type, so the three enforcement-zone distances alone did not move normal camera alerts.
+
+### Changed
+* `CONFIG_VALUE_ALERTS_MAX_TRIGGER_TIME_ENABLED` is forced **off** for Moderate and Heavier. Waze's server turns it on, and with it on an alert is only announced as far ahead as the car drives in 22 seconds (30 for police, 200 m minimum) - which is why wider distances never showed. Same conclusion as bearinmindcat/morphe-patches, issue #157 there.
+
+## [0.30.66-dev.5](https://github.com/Forsigh/waze-patches/releases/tag/v0.30.66-dev.5) (2026-11-22)
+
+Development build for Waze **5.28.4.900**. Adds UI chrome themes and five map palettes.
+
+### Added
+* **UI Themes** replaces the "AMOLED Dark Mode For UI" row. One row, two pickers: Light theme (Stock, Pure White, Paper, Porcelain, Linen) and Dark theme (Stock, AMOLED Pure Black, AMOLED Ink, AMOLED Slate, Dark Graphite, Dark Navy). AMOLED Pure Black reproduces the old row exactly. Dark themes repaint the night surface family and the five Compose palette literals; light themes retarget the Material 3 light colour roles (`m3_sys_color_light_*`) plus `background_default`. Body text stays at 15:1 or better and muted text at 5:1 or better on every palette.
+* **AMOLED Rose, AMOLED Copper, AMOLED Lime, AMOLED Sand, AMOLED Steel** map themes for the Theme row, day and night slots. Each keeps the three-slot road ramp on a true-black canvas with street contrast at 6.5:1 or better.
+
+### Changed
+* The old row name is gone; anyone who had it ticked needs to pick **AMOLED Pure Black** in the new row's Dark theme picker to keep the same look.
+
+## [0.30.66-dev.4](https://github.com/Forsigh/waze-patches/releases/tag/v0.30.66-dev.4) (2026-11-21)
+
+Development build on top of 0.30.65, for Waze **5.28.4.900**. Nothing changes for anyone on 0.30.65.
+
+### Added
+* **Remove telemetry** (Privacy & Updates, off by default) - Crashlytics disabled through its own manifest flag *and* through Waze's runtime re-enable in `com.waze.crash.g.d()`, plus Firebase Performance deactivated. Waze 5.28.4.900 ships no Firebase Analytics SDK, so no Analytics flag is written.
+* **No usage stats** (Privacy & Updates, off by default) - Waze's own stats module switched off, its stats dispatcher returned at entry, the two thread-responsiveness monitors disabled, and the Android Auto screen-push latency report folded in.
+
+### Changed
+* `No Android Auto telemetry` is no longer a row of its own; its key now lives inside **No usage stats**, so the privacy category has two toggles instead of three.
+* The patch-list generator now takes the newest `.mpp` in `build/libs/`; a stale artefact used to win, which silently published a list one release behind the bundle.
+
 ## [0.30.65](https://github.com/Forsigh/waze-patches/releases/tag/v0.30.65) (2026-11-21)
 
 Support for Waze **5.28.4.900** (versionCode 1030753), and a rule change in how bundles declare what they fit.

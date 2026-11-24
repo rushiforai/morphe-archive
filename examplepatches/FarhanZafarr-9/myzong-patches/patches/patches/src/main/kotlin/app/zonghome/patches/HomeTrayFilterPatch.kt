@@ -22,15 +22,20 @@ private fun shortcutKey(label: String): String {
 
 @Suppress("unused")
 val customizeHomeShortcutsPatch = bytecodePatch(
-    name = "Customize home shortcuts",
+    name = "Home shortcuts",
     description = "Keep only the selected home options. Defaults to Rewards and Rs 100 Shop; no other items are kept automatically.",
     default = true
 ) {
+    category("Home")
     compatibleWith(Compatibility(
         name = "My Zong", packageName = "com.zong.customercare", apkFileType = ApkFileType.APK,
         appIconColor = 0x80c342, targets = listOf(AppTarget(version = "5.19.19.112"))
     ))
-    dependsOn(sharedExtensionPatch)
+    dependsOn(sharedExtensionPatch, hideHomeShortcutsCardPatch, hideMakeYourOwnBundlePatch, hideBachatBazaarPatch, hideZong4uPatch)
+    setting("hideShortcutCard", "Show shortcuts tray", true, true, "When off, the entire tray is hidden regardless of the keep list.")
+    setting("hideMyob", "Show Make Your Own Bundle", false, true)
+    setting("hideBachat", "Show Bachat Bazaar", false, true)
+    setting("hideZong4u", "Show Zong4U", false, true)
 
     // Morphe Manager currently renders List<String> as a list editor, not native checkboxes.
     val kept by stringsOption(

@@ -1,6 +1,6 @@
 {
   "NOTE": "Do NOT manually edit this file. This file is automatically updated when semantic release (release.yml) runs. Manually editing this file can break your releases and break third party tools that use this file.",
-  "version": "1.13.0",
+  "version": "1.18.2",
   "patches": [
     {
       "name": "Daemon gate bypass",
@@ -65,6 +65,39 @@
           "targets": [
             {
               "version": "1.10.1",
+              "versionCodes": null,
+              "isExperimental": false,
+              "minSdk": null,
+              "description": null
+            }
+          ]
+        }
+      ],
+      "options": []
+    },
+    {
+      "name": "Random device ID",
+      "description": "Replaces the fixed salt in the native device fingerprint with a random salt baked in when the patch is applied, so each patched APK reports its own stable device id to the licensing server. Re-patch for a new id. The local license check does not use the salt and keeps working.",
+      "default": true,
+      "dependencies": [],
+      "compatiblePackages": [
+        {
+          "packageName": "com.tribalfs.gmh",
+          "name": "Galaxy MaxHz",
+          "description": null,
+          "apkFileType": "APK",
+          "appIconColor": "#26C6DA",
+          "signatures": null,
+          "targets": [
+            {
+              "version": "9.2.0x",
+              "versionCodes": null,
+              "isExperimental": false,
+              "minSdk": null,
+              "description": null
+            },
+            {
+              "version": "9.2.1x",
               "versionCodes": null,
               "isExperimental": false,
               "minSdk": null,
@@ -190,6 +223,39 @@
           "targets": [
             {
               "version": "v1.0.8.8",
+              "versionCodes": null,
+              "isExperimental": false,
+              "minSdk": null,
+              "description": null
+            }
+          ]
+        }
+      ],
+      "options": []
+    },
+    {
+      "name": "Unlock Premium",
+      "description": "Unlocks premium locally and fully offline. Every signed licence and config request is answered with a valid premium response, the startup APK self-check that would keep the app loading forever is bypassed, and refresh-rate profiles come from the app's own bundled device table. The licence server never validates a re-signed install, so no server connection is needed or attempted.",
+      "default": true,
+      "dependencies": [],
+      "compatiblePackages": [
+        {
+          "packageName": "com.tribalfs.gmh",
+          "name": "Galaxy MaxHz",
+          "description": null,
+          "apkFileType": "APK",
+          "appIconColor": "#26C6DA",
+          "signatures": null,
+          "targets": [
+            {
+              "version": "9.2.0x",
+              "versionCodes": null,
+              "isExperimental": false,
+              "minSdk": null,
+              "description": null
+            },
+            {
+              "version": "9.2.1x",
               "versionCodes": null,
               "isExperimental": false,
               "minSdk": null,

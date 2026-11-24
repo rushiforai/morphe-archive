@@ -11,8 +11,10 @@ import kotlin.test.assertTrue
  *
  * After [disableTelemetryPatch] the wrappers return before they touch these
  * packages, and [emptyTelemetrySdks] drops the method/field string constants.
- * A later scan that still lists these hosts is a class the empty set missed,
- * or Amazon IAP (`gp/mas`), which is kept on purpose.
+ * [rewriteOriginalDexThroughDexPool] drops the original DEX so emptied hosts
+ * are not left in its string pool. A later scan that still lists these hosts
+ * is a class the empty set missed, or Amazon IAP (`gp/mas`), which is kept
+ * on purpose.
  */
 class EmptyTelemetrySdksEval {
     @Test

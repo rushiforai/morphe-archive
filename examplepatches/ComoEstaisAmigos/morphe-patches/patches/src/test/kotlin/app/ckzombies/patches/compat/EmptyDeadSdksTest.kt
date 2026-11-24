@@ -1,5 +1,7 @@
 package app.ckzombies.patches.compat
 
+import app.adebisi.patches.shared.emptySdkPrefixes
+import app.adebisi.patches.shared.rewriteOriginalDexThroughDexPool
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
@@ -21,6 +23,8 @@ class EmptyDeadSdksTest {
         assertEquals("Lcom/tapjoy/TapjoyConnect;", TAPJOY_CONNECT)
         assertEquals(319, OPENFEINT_CLASSES)
         assertEquals(612, DEAD_SDK_PREFIXES.sumOf { it.second })
+        assertEquals("emptySdkPrefixes", ::emptySdkPrefixes.name)
+        assertEquals("rewriteOriginalDexThroughDexPool", ::rewriteOriginalDexThroughDexPool.name)
     }
 
     @Test

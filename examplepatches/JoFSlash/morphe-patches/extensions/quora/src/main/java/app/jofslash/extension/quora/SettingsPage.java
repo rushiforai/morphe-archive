@@ -93,8 +93,17 @@ final class SettingsPage {
 
         String status = PageCheck.status(prefs);
         String updates = FilterUpdates.status(activity);
-        if (status != null || updates != null) {
+        String version = UpdateCheck.status(activity);
+        String hidden = HiddenStats.status(prefs);
+        String newer = UpdateCheck.newer(prefs);
+        if (status != null || updates != null || version != null || hidden != null) {
             LinearLayout box = section(null);
+            if (version != null) box.addView(note(version));
+            if (newer != null) {
+                add(box, linkRow("Get the new version", "What's new, and how to patch again.",
+                        () -> UpdateCheck.openRelease(activity, newer)));
+            }
+            if (hidden != null) box.addView(note(hidden));
             if (status != null) box.addView(note(status));
             if (updates != null) box.addView(note(updates));
             content.addView(box);
@@ -116,8 +125,15 @@ final class SettingsPage {
         }
 
         LinearLayout more = section("More");
-        if (!texts.isEmpty()) {
+        boolean picker = switches.containsKey(Picker.KEY);
+        if (!texts.isEmpty() || picker) {
             add(more, linkRow("Filters", "Keywords, authors and Spaces to hide.", () -> filters(prefs, texts)));
+        }
+        if (picker) {
+            add(more, linkRow("Pick something to hide", "Tap a box on the page to hide it and every box like it.", () -> {
+                if (mainPage != null) mainPage.dismiss();
+                Picker.start(activity);
+            }));
         }
         if (switches.containsKey("readingHistory")) {
             add(more, linkRow("History", "Answers, posts and questions you opened.", this::history));
@@ -129,7 +145,7 @@ final class SettingsPage {
             add(more, linkRow("Dismissed questions", "Questions whose answers the feed hides.", this::dismissedQuestions));
         }
         if (GmsCoreCheck.applied) add(more, notificationsRow());
-        add(more, linkRow("Presets", "Switch many patches at once: everything, a clean feed, or ads only.", () -> {
+        add(more, linkRow("Presets", "Switch many patches at once: everything, a clean feed, for reading, or ads only.", () -> {
             if (mainPage != null) mainPage.dismiss();
             Presets.ask(activity, prefs, false);
         }));
@@ -169,10 +185,36 @@ final class SettingsPage {
             content.addView(box);
             fields.put(entry.getKey(), field);
         }
+        EditText lists = null;
+        if (texts.containsKey("authors")) {
+            LinearLayout box = section("Author lists to follow");
+            lists = field(AuthorLists.saved(prefs));
+            lists.setHint("https://");
+            lists.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_VARIATION_URI
+                    | InputType.TYPE_TEXT_FLAG_MULTI_LINE | InputType.TYPE_TEXT_FLAG_NO_SUGGESTIONS);
+            box.addView(lists);
+            box.addView(note(AuthorLists.status(prefs)));
+            content.addView(box);
+        }
+        EditText picked = null;
+        if (PatchSettings.isRegistered(Picker.KEY)) {
+            LinearLayout box = section("Picked to hide");
+            StringBuilder value = new StringBuilder();
+            for (String selector : Picker.list(prefs)) value.append(selector).append('\n');
+            picked = field(value.toString().trim());
+            picked.setHint(Texts.t("Nothing picked yet"));
+            picked.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_FLAG_MULTI_LINE
+                    | InputType.TYPE_TEXT_FLAG_NO_SUGGESTIONS);
+            box.addView(picked);
+            box.addView(note("One per line. Delete a line to show those boxes again."));
+            content.addView(box);
+        }
         LinearLayout help = section(null);
-        help.addView(note("Matching ignores case. Saved when you go back."));
+        help.addView(note("Matching ignores case and finds whole words; end a word with * to also find longer ones (art* finds artist). Saved when you go back."));
         content.addView(help);
 
+        EditText listsField = lists;
+        EditText pickedField = picked;
         show("Filters", content, () -> {
             SharedPreferences.Editor editor = prefs.edit();
             boolean edited = false;
@@ -182,6 +224,11 @@ final class SettingsPage {
                 editor.putString(f.getKey(), value);
             }
             editor.apply();
+            if (listsField != null) AuthorLists.setUrls(activity, listsField.getText().toString());
+            if (pickedField != null) {
+                List<String> list = Picker.parse(pickedField.getText().toString());
+                if (!list.equals(Picker.list(prefs))) Picker.save(activity, list);
+            }
             if (edited) PatchSettings.reload();
         });
     }
@@ -277,6 +324,8 @@ final class SettingsPage {
             if (store == ReadingHistory.BOOKMARKS) {
                 add(actions, linkRow("Save to Downloads", "All bookmarks with their saved text, as a Markdown file.",
                         this::saveBookmarksFile));
+                add(actions, linkRow("Share", "All bookmarks with their saved text, to a notes app, Pocket or mail.",
+                        this::shareBookmarks));
             }
             content.addView(actions);
 
@@ -302,6 +351,31 @@ final class SettingsPage {
         saveToDownloads("Quora bookmarks " + fileDate() + ".md", "text/markdown",
                 OfflineCopies.markdown(activity, ReadingHistory.BOOKMARKS.load(activity))
                         .getBytes(java.nio.charset.StandardCharsets.UTF_8));
+    }
+
+    /**
+     * Sends the bookmarks as Markdown to another app. A share can't carry much text, so when the
+     * saved texts make it too long, only the titles and links go, and Save to Downloads keeps all.
+     */
+    private void shareBookmarks() {
+        List<ReadingHistory.Item> items = ReadingHistory.BOOKMARKS.load(activity);
+        String all = OfflineCopies.markdown(activity, items);
+        if (all.length() > 200_000) {
+            StringBuilder list = new StringBuilder("# Quora bookmarks\n\n");
+            for (ReadingHistory.Item item : items) list.append("- [").append(item.title).append("](").append(item.url).append(")\n");
+            all = list.toString();
+            Toast.makeText(activity, Texts.t("Too long to share with the saved texts: sharing the titles and links. Save to Downloads keeps all of it."),
+                    Toast.LENGTH_LONG).show();
+        }
+        try {
+            android.content.Intent send = new android.content.Intent(android.content.Intent.ACTION_SEND);
+            send.setType("text/plain");
+            send.putExtra(android.content.Intent.EXTRA_SUBJECT, "Quora bookmarks");
+            send.putExtra(android.content.Intent.EXTRA_TEXT, all);
+            activity.startActivity(android.content.Intent.createChooser(send, Texts.t("Share")));
+        } catch (Exception ex) {
+            Log.e(TAG, "Failed to share the bookmarks", ex);
+        }
     }
 
     private static String fileDate() {
@@ -394,19 +468,130 @@ final class SettingsPage {
         meta.setTextColor(secondary);
         meta.setPadding(dp(16), 0, dp(16), dp(12));
         box.addView(meta);
-        TextView body = new TextView(activity);
-        body.setText(copy.text);
-        body.setTextSize(17);
-        body.setTextColor(text);
-        body.setLineSpacing(0, 1.35f);
-        body.setTextIsSelectable(true);
-        body.setPadding(dp(16), dp(4), dp(16), dp(20));
+        LinearLayout body = new LinearLayout(activity);
+        body.setOrientation(LinearLayout.VERTICAL);
+        addBody(body, copy.text, copy.images);
         box.addView(body);
         content.addView(box);
-        content.addView(note("Saved as text: pictures, links and formatting aren't kept."));
+        content.addView(note(copy.images.isEmpty() ? "Saved as text: pictures, links and formatting aren't kept."
+                : "Saved as text with its pictures: links and formatting aren't kept."));
         Dialog[] reader = new Dialog[1];
         reader[0] = show("Saved copy", content, () -> ReadAloud.stopFor(content), "Open",
                 () -> openInApp(item, reader[0], listPage));
+    }
+
+    /** The text in pieces, with each picture after the text it came after on the page. */
+    private void addBody(LinearLayout box, String body, List<OfflineCopies.Image> images) {
+        box.removeAllViews();
+        int from = 0;
+        for (OfflineCopies.Image image : images) {
+            int at = OfflineCopies.after(body, image.after, from);
+            if (at > from) box.addView(bodyText(body.substring(from, at).trim(), text));
+            from = Math.max(from, at);
+            View picture = picture(image.file);
+            if (picture != null) box.addView(picture);
+        }
+        if (from < body.length()) box.addView(bodyText(body.substring(from).trim(), text));
+    }
+
+    /**
+     * Reader view: an answer or post from the page as plain text in the app's own page, with its
+     * pictures, without Quora's page around it. The pictures load after the text, unless Data saver
+     * holds them back.
+     *
+     * @param images  JSON [{s: address, a: the text before it}], from the page.
+     * @param preview Whether the text is only the start of a shortened answer in the feed.
+     */
+    static void reader(Context context, String title, String author, String body, String images, boolean preview) {
+        Activity activity = PatchSettings.activity(context);
+        if (activity == null) return;
+        try {
+            new SettingsPage(activity).showReader(title == null ? "" : title.trim(), author == null ? "" : author.trim(),
+                    body.trim(), images, preview);
+        } catch (Exception ex) {
+            Log.e(TAG, "Failed to open the reader", ex);
+        }
+    }
+
+    private void showReader(String title, String author, String body, String images, boolean preview) {
+        LinearLayout content = column();
+        if (PatchSettings.isRegistered("readAloud") && PatchSettings.isOn("readAloud")) {
+            LinearLayout actions = section(null);
+            add(actions, linkRow("Read aloud", "Reads this text out loud. Tap again to stop.",
+                    () -> ReadAloud.toggle(content, body, null, true)));
+            content.addView(actions);
+        }
+        LinearLayout box = section(null);
+        if (!title.isEmpty()) {
+            TextView head = new TextView(activity);
+            head.setText(title);
+            head.setTextSize(20);
+            head.setTypeface(Typeface.DEFAULT_BOLD);
+            head.setTextColor(text);
+            head.setTextIsSelectable(true);
+            head.setPadding(dp(16), dp(16), dp(16), dp(4));
+            box.addView(head);
+        }
+        if (!author.isEmpty()) {
+            TextView meta = new TextView(activity);
+            meta.setText(byline(author));
+            meta.setTextSize(13);
+            meta.setTextColor(secondary);
+            meta.setPadding(dp(16), title.isEmpty() ? dp(16) : 0, dp(16), dp(12));
+            box.addView(meta);
+        }
+        LinearLayout bodyBox = new LinearLayout(activity);
+        bodyBox.setOrientation(LinearLayout.VERTICAL);
+        addBody(bodyBox, body, new ArrayList<>());
+        box.addView(bodyBox);
+        content.addView(box);
+        if (preview) content.addView(note("This is the start the feed shows. Open the answer to read all of it here."));
+        Dialog page = show("Reader view", content, () -> ReadAloud.stopFor(content));
+        ReaderImages.load(activity, images, (loaded) -> {
+            if (page.isShowing() && !loaded.isEmpty()) addBody(bodyBox, body, loaded);
+        });
+    }
+
+    private TextView bodyText(String value, int color) {
+        TextView body = new TextView(activity);
+        body.setText(value);
+        body.setTextSize(17);
+        body.setTextColor(color);
+        body.setLineSpacing(0, 1.35f);
+        body.setTextIsSelectable(true);
+        body.setPadding(dp(16), dp(4), dp(16), dp(12));
+        return body;
+    }
+
+    /** A saved picture as wide as the page, made smaller when it is larger than the screen. */
+    private View picture(java.io.File file) {
+        try {
+            android.graphics.BitmapFactory.Options bounds = new android.graphics.BitmapFactory.Options();
+            bounds.inJustDecodeBounds = true;
+            android.graphics.BitmapFactory.decodeFile(file.getPath(), bounds);
+            if (bounds.outWidth <= 0) return null;
+            int width = activity.getResources().getDisplayMetrics().widthPixels;
+            android.graphics.BitmapFactory.Options options = new android.graphics.BitmapFactory.Options();
+            options.inSampleSize = 1;
+            while (bounds.outWidth / (options.inSampleSize * 2) >= width) options.inSampleSize *= 2;
+            // A long screenshot is narrow but very tall: keep it to 4 million pixels (16 MB) and
+            // 4096 pixels high, the most a phone can draw as one picture.
+            while ((long) (bounds.outWidth / options.inSampleSize) * (bounds.outHeight / options.inSampleSize) > 4_000_000L
+                    || bounds.outHeight / options.inSampleSize > 4096) options.inSampleSize *= 2;
+            android.graphics.Bitmap bitmap = android.graphics.BitmapFactory.decodeFile(file.getPath(), options);
+            if (bitmap == null) return null;
+            android.widget.ImageView view = new android.widget.ImageView(activity);
+            view.setImageBitmap(bitmap);
+            view.setAdjustViewBounds(true);
+            view.setScaleType(android.widget.ImageView.ScaleType.FIT_CENTER);
+            view.setPadding(dp(16), dp(4), dp(16), dp(12));
+            view.setLayoutParams(new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT,
+                    LinearLayout.LayoutParams.WRAP_CONTENT));
+            return view;
+        } catch (Throwable ex) {
+            Log.e(TAG, "Failed to show a saved picture", ex);
+            return null;
+        }
     }
 
     /**
@@ -422,6 +607,7 @@ final class SettingsPage {
             // Leave it as "?".
         }
         text.append("Quora: ").append(quora).append('\n');
+        if (UpdateCheck.version() != null) text.append("Patches: ").append(UpdateCheck.version()).append('\n');
         text.append("Android: ").append(android.os.Build.VERSION.RELEASE)
                 .append(" (API ").append(android.os.Build.VERSION.SDK_INT).append(")\n");
         List<String> on = new ArrayList<>();

@@ -1,15 +1,10 @@
 package app.ckzombies.patches.compat
 
 import app.ckzombies.patches.nativelib.textRelocationPatch
+import app.adebisi.patches.shared.setTargetSdk
 import app.morphe.patcher.patch.document
 import app.morphe.patcher.patch.patch
 import org.w3c.dom.Element
-
-/**
- * 25 is the lowest target Android 14 (floor 23) and 15 (floor 24) install normally, and the
- * highest that stays clear of non-SDK interface restrictions (28) and scoped storage (29).
- */
-internal const val TARGET_SDK = 25
 
 private const val APACHE_HTTP_LEGACY = "org.apache.http.legacy"
 
@@ -22,10 +17,7 @@ internal val targetSdkPatch = patch {
 
     execute {
         document("AndroidManifest.xml").use { document ->
-            val manifest = document.documentElement
-            val usesSdk = document.getElementsByTagName("uses-sdk").item(0) as Element?
-                ?: document.createElement("uses-sdk").also { manifest.insertBefore(it, manifest.firstChild) }
-            usesSdk.setAttribute("android:targetSdkVersion", TARGET_SDK.toString())
+            setTargetSdk(document)
 
             // Apache HTTP was removed from the SDK in API 23 and many classes here still use it.
             val application = document.getElementsByTagName("application").item(0) as Element

@@ -1,5 +1,7 @@
 package app.brokenn.patches.jiohotstar.watchpage
 
+import app.brokenn.patches.jiohotstar.settings.openBrokennSettingsPatch
+import app.brokenn.patches.jiohotstar.shared.Constants
 import app.brokenn.patches.jiohotstar.shared.Constants.BFF_PILL_SUB_MENU_ITEM
 import app.brokenn.patches.jiohotstar.shared.Constants.BFF_PILL_WIDGET
 import app.brokenn.patches.jiohotstar.shared.Constants.COMPATIBILITY_JIOHOTSTAR
@@ -9,12 +11,12 @@ import app.brokenn.patches.jiohotstar.shared.Constants.LOTTIE
 import app.brokenn.patches.jiohotstar.shared.Constants.TAB_WIDGET
 import app.brokenn.patches.jiohotstar.shared.Constants.TAB_WIDGET_DATA
 import app.brokenn.patches.jiohotstar.shared.Constants.TAB_WIDGET_URL
+import app.brokenn.patches.jiohotstar.shared.enableStatus
 import app.brokenn.patches.shared.instrs
 import app.brokenn.patches.shared.prevInstructionIndex
 import app.brokenn.patches.shared.referenceText
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructionsWithLabels
 import app.morphe.patcher.extensions.InstructionExtensions.getInstruction
-import app.morphe.patcher.patch.booleanOption
 import app.morphe.patcher.patch.bytecodePatch
 import app.morphe.patcher.util.smali.ExternalLabel
 import com.android.tools.smali.dexlib2.Opcode
@@ -24,46 +26,17 @@ import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
 @Suppress("unused")
 val hideWatchPageElementsPatch = bytecodePatch(
     name = "Hide watch page elements",
-    description = "Hides watch page tabs (except Episodes) and the floating sponsored pill."
+    description = "Hides selected tabs and sponsored elements from the watch page."
 ) {
     compatibleWith(COMPATIBILITY_JIOHOTSTAR)
 
-    val hideForYou by booleanOption(
-        key = "hide_for_you", title = "Hide For You tab",
-        description = "Removes the For You tab from the watch-page tab strip.", default = false
-    )
-    val hideJeeto by booleanOption(
-        key = "hide_jeeto", title = "Hide Jeeto tab",
-        description = "Removes the Jeeto tab from the watch-page tab strip.", default = false
-    )
-    val hideMemes by booleanOption(
-        key = "hide_memes", title = "Hide Memes tab",
-        description = "Removes the Memes tab from the watch-page tab strip.", default = false
-    )
-    val hideLiveChat by booleanOption(
-        key = "hide_live_chat", title = "Hide Live Chat tab",
-        description = "Removes the Live Chat tab from the watch-page tab strip.", default = false
-    )
-    val hideBrandTabs by booleanOption(
-        key = "hide_brand_tabs", title = "Hide brand tabs",
-        description = "Removes sponsored brand tabs (Shop, Order Food, etc.) from the watch-page tab strip.", default = false
-    )
-    val hideSponsoredPills by booleanOption(
-        key = "hide_sponsored_pills", title = "Hide sponsored pills",
-        description = "Removes the floatingsponsored pill from the watch-page.", default = false
-    )
+    dependsOn(openBrokennSettingsPatch)
 
     execute {
-        // Tabs: branded ad tabs ride the ad_identifier=*BrandTab url marker; content
-        // tabs go by their title, one comparison per enabled option.
-        val hiddenTitles = buildList {
-            if (hideForYou == true) add("For You")
-            if (hideJeeto == true) add("Jeeto")
-            if (hideMemes == true) add("Memes")
-            if (hideLiveChat == true) add("Live Chat")
-        }
-        val brandCut = hideBrandTabs == true
+        enableStatus("hideWatchPageElements")
 
+        // Tab visibility is controlled at runtime by BrokennPrefs, without re-patching.
+        // Brand tabs use the ad_identifier=*BrandTab marker; content tabs use title-based filtering.
         val tabContainer = AdaptiveTabConverterFingerprint.method
         val tabImpl = tabContainer.instrs()
         val castIdx = tabImpl.indexOfFirst { ins ->
@@ -80,34 +53,30 @@ val hideWatchPageElementsPatch = bytecodePatch(
         require(tabHead >= 0) { "TabConverter: loop head not found" }
 
         val block = buildString {
-            if (brandCut) {
-                // v4 = tab data url, v5 = needle/result; v4 is reused for the title below.
-                append("invoke-virtual {v1}, ${TAB_WIDGET}->getData()${TAB_WIDGET_DATA}\n")
-                append("move-result-object v4\n")
-                append("invoke-virtual {v4}, ${TAB_WIDGET_DATA}->getUrl()${TAB_WIDGET_URL}\n")
-                append("move-result-object v4\n")
-                append("if-eqz v4, :tab_titles\n")
-                append("invoke-virtual {v4}, Lcom/hotstar/ui/model/widget/TabWidget${'$'}Url;->getSpaceUrl()Ljava/lang/String;\n")
-                append("move-result-object v4\n")
-                append("const-string v5, \"BrandTab\"\n")
-                append("invoke-virtual {v4, v5}, Ljava/lang/String;->contains(Ljava/lang/CharSequence;)Z\n")
-                append("move-result v5\n")
-                append("if-eqz v5, :tab_titles\n")
-                append("goto/16 :tab_skip\n")
-            }
+            // v4/v5 are the loop's scratch registers, reused for the title below.
+            append("invoke-static {}, ${Constants.BROKENN_PREFS_CLASS}->hideBrandTabs()Z\n")
+            append("move-result v5\n")
+            append("if-eqz v5, :tab_titles\n")
+            append("invoke-virtual {v1}, ${TAB_WIDGET}->getData()${TAB_WIDGET_DATA}\n")
+            append("move-result-object v4\n")
+            append("invoke-virtual {v4}, ${TAB_WIDGET_DATA}->getUrl()${TAB_WIDGET_URL}\n")
+            append("move-result-object v4\n")
+            append("if-eqz v4, :tab_titles\n")
+            append("invoke-virtual {v4}, ${TAB_WIDGET_URL}->getSpaceUrl()Ljava/lang/String;\n")
+            append("move-result-object v4\n")
+            append("const-string v5, \"BrandTab\"\n")
+            append("invoke-virtual {v4, v5}, Ljava/lang/String;->contains(Ljava/lang/CharSequence;)Z\n")
+            append("move-result v5\n")
+            append("if-eqz v5, :tab_titles\n")
+            append("goto/16 :tab_skip\n")
             append(":tab_titles\n")
             append("invoke-virtual {v1}, ${TAB_WIDGET}->getData()${TAB_WIDGET_DATA}\n")
             append("move-result-object v4\n")
-            append("invoke-virtual {v4}, Lcom/hotstar/ui/model/widget/TabWidget${'$'}Data;->getTitle()Ljava/lang/String;\n")
+            append("invoke-virtual {v4}, ${TAB_WIDGET_DATA}->getTitle()Ljava/lang/String;\n")
             append("move-result-object v4\n")
-            hiddenTitles.forEachIndexed { i, title ->
-                append("const-string v5, \"$title\"\n")
-                append("invoke-virtual {v4, v5}, Ljava/lang/String;->equals(Ljava/lang/Object;)Z\n")
-                append("move-result v5\n")
-                append("if-eqz v5, :tab_next$i\n")
-                append("goto/16 :tab_skip\n")
-                append(":tab_next$i\n")
-            }
+            append(Constants.prefsStringCall("isTabHidden", "4", "5"))
+            append("if-eqz v5, :tab_keep\n")
+            append("goto/16 :tab_skip\n")
             // nop anchors the trailing label; a block-final label would resolve to the external target.
             append(":tab_keep\n")
             append("nop\n")
@@ -120,7 +89,7 @@ val hideWatchPageElementsPatch = bytecodePatch(
 
         // Pills: converter drops swiggy/instamart segments at the source; the parser skips empty pills.
         // Uses the loop's own scratch registers — addFreeRegisters + labeled insertion loses the block.
-        if (hideSponsoredPills == true) {
+        run {
             val conv = PillConverterFingerprint.method
 
             val convImpl = conv.instrs()
@@ -138,6 +107,9 @@ val hideWatchPageElementsPatch = bytecodePatch(
             require(head >= 0) { "PillConverter: loop head not found" }
 
             val pillBlock = buildString {
+                append("invoke-static {}, ${Constants.BROKENN_PREFS_CLASS}->hideSponsoredPills()Z\n")
+                append("move-result v6\n")
+                append("if-eqz v6, :sw_ok\n")
                 append("invoke-virtual {v3}, ${ILLUSTRATION_PILL_SEGMENT}->getIllustration()${ILLUSTRATION}\n")
                 append("move-result-object v5\n")
                 append("invoke-virtual {v5}, ${ILLUSTRATION}->getLottie()${LOTTIE}\n")

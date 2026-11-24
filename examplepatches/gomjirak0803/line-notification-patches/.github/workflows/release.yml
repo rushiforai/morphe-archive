@@ -29,6 +29,11 @@ jobs:
           if ($LASTEXITCODE) { exit $LASTEXITCODE }
           python scripts/prepare_release.py
           if ($LASTEXITCODE) { exit $LASTEXITCODE }
+      - name: Run full Python test suite
+        shell: pwsh
+        run: |
+          python -m unittest discover -s tests -p "test_*.py" -v
+          if ($LASTEXITCODE) { exit $LASTEXITCODE }
       - name: Publish experimental release
         shell: pwsh
         env:

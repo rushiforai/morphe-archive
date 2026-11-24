@@ -13,7 +13,7 @@ public final class SettingsBridge {
     private SettingsBridge() {}
 
     /**
-     * Renders the Aidan's Patches section immediately before Preferences in Ldq8.k.
+     * Renders the Aidan's Patches section immediately before Preferences in Ltc9.k.
      */
     public static void renderSection(Context context, Object composer, int changed) {
         AdBlockSettingsSection.render(context, composer, changed);

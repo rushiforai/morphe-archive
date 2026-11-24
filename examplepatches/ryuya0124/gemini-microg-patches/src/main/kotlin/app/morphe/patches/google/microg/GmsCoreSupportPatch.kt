@@ -3,8 +3,12 @@ package app.morphe.patches.google.microg
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
 import app.morphe.patcher.extensions.InstructionExtensions.instructions
 import app.morphe.patcher.extensions.InstructionExtensions.replaceInstruction
-import app.morphe.patcher.patch.resourcePatch
+import app.morphe.patcher.patch.rawResourcePatch
+import app.morphe.patches.google.common.editManifest
 import app.morphe.patcher.patch.bytecodePatch
+import app.morphe.patcher.patch.classDefByStrings
+import app.morphe.patcher.patch.replaceStrings
+import app.morphe.patcher.string
 import app.morphe.patches.google.common.HookId
 import app.morphe.patches.google.common.VersionHookRegistry
 import com.android.tools.smali.dexlib2.Opcode
@@ -16,125 +20,77 @@ import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
 import com.android.tools.smali.dexlib2.iface.reference.StringReference
 import com.android.tools.smali.dexlib2.immutable.reference.ImmutableStringReference
 import app.morphe.patcher.StringComparisonType
-import org.w3c.dom.Element
 
 /**
  * Google アプリ（AGSA）のマニフェスト調整パッチ（表示名、Split制約解除、MicroG可視性、クラッシュレシーバー無効化）
  */
-val googleAppManifestPatch = resourcePatch(
+val googleAppManifestPatch = rawResourcePatch(
     name = "Google App Manifest Tweaks",
     description = "アプリ表示名を 'Google (Morphe)' に変更し、MicroG可視性を付与し、Split制約解除とクラッシュレシーバー無効化を行います。",
     default = true
 ) {
-    compatibleWith("com.google.android.googlequicksearchbox")
+    compatibleWith(*VersionHookRegistry.compatibility("com.google.android.googlequicksearchbox"))
 
     execute {
         VersionHookRegistry.requireProfile(packageMetadata)
-        document("AndroidManifest.xml").use { document ->
-            val appNode = document.getElementsByTagName("application").item(0) as? Element
+        val originalSha1 = VersionHookRegistry.target(HookId.GMS_CORE_REDIRECT, packageMetadata).value("originalGoogleSha1")
+        editManifest { document ->
+            val appNode = document.elements("application").firstOrNull()
             if (appNode != null) {
                 // MicroG-RE (7.0.0) 向けの署名偽装用メタデータ
-                val metaName = document.createElement("meta-data")
-                metaName.setAttribute("android:name", "app.revanced.android.gms.SPOOFED_PACKAGE_NAME")
-                metaName.setAttribute("android:value", "com.google.android.googlequicksearchbox")
-                appNode.appendChild(metaName)
-
-                val metaSig = document.createElement("meta-data")
-                metaSig.setAttribute("android:name", "app.revanced.android.gms.SPOOFED_PACKAGE_SIGNATURE")
-                metaSig.setAttribute("android:value", VersionHookRegistry.target(HookId.GMS_CORE_REDIRECT, packageMetadata).value("originalGoogleSha1"))
-                appNode.appendChild(metaSig)
-
-                val metaPkg = document.createElement("meta-data")
-                metaPkg.setAttribute("android:name", "app.revanced.MICROG_PACKAGE_NAME")
-                metaPkg.setAttribute("android:value", "app.revanced.android.gms")
-                appNode.appendChild(metaPkg)
+                for ((name, value) in listOf(
+                    "app.revanced.android.gms.SPOOFED_PACKAGE_NAME" to "com.google.android.googlequicksearchbox",
+                    "app.revanced.android.gms.SPOOFED_PACKAGE_SIGNATURE" to originalSha1,
+                    "app.revanced.MICROG_PACKAGE_NAME" to "app.revanced.android.gms",
+                )) {
+                    appNode.addChild("meta-data").apply { setAndroid("name", name); setAndroid("value", value) }
+                }
             }
 
             // Android 11+ Package Visibility 対策: queries に MicroG-RE パッケージを追加
-            val queriesNodes = document.getElementsByTagName("queries")
-            val queriesNode = if (queriesNodes.length > 0) {
-                queriesNodes.item(0) as Element
-            } else {
-                val q = document.createElement("queries")
-                document.documentElement.appendChild(q)
-                q
-            }
-            val pkgElem = document.createElement("package")
-            pkgElem.setAttribute("android:name", "app.revanced.android.gms")
-            queriesNode.appendChild(pkgElem)
+            val queriesNode = document.elements("queries").firstOrNull() ?: document.root.addChild("queries")
+            queriesNode.addChild("package").setAndroid("name", "app.revanced.android.gms")
             println("[GoogleAppManifestPatch] Added app.revanced.android.gms to <queries>")
 
             // Exact Alarm パーミッション追加（SecurityException によるクラッシュ防止）
-            val alarmPermissions = listOf(
+            for (perm in listOf(
                 "android.permission.GET_ACCOUNTS",
                 "app.revanced.gms.EXTENDED_ACCESS",
                 "android.permission.SCHEDULE_EXACT_ALARM",
                 "android.permission.USE_EXACT_ALARM"
-            )
-            for (perm in alarmPermissions) {
-                val pElem = document.createElement("uses-permission")
-                pElem.setAttribute("android:name", perm)
-                document.documentElement.appendChild(pElem)
+            )) {
+                document.root.addChild("uses-permission").setAndroid("name", perm)
             }
 
             // Split APK のスタンドアロン化（単体インストール時の INSTALL_FAILED_MISSING_SPLIT エラー防止）
-            val manifestElement = document.documentElement
-            val androidNs = "http://schemas.android.com/apk/res/android"
-            manifestElement.removeAttributeNS(androidNs, "requiredSplitTypes")
-            manifestElement.removeAttributeNS(androidNs, "splitTypes")
-            manifestElement.removeAttribute("android:requiredSplitTypes")
-            manifestElement.removeAttribute("android:splitTypes")
-            manifestElement.removeAttribute("requiredSplitTypes")
-            manifestElement.removeAttribute("splitTypes")
+            document.root.removeAttribute("requiredSplitTypes")
+            document.root.removeAttribute("splitTypes")
 
             // splits 関連のメタデータを削除
-            val metaDataNodes = document.getElementsByTagName("meta-data")
-            val toRemove = mutableListOf<Element>()
-            for (i in 0 until metaDataNodes.length) {
-                val node = metaDataNodes.item(i) as Element
-                val name = node.getAttributeNS(androidNs, "name").ifEmpty { node.getAttribute("android:name") }
-                if (name == "com.android.vending.splits.required" || name == "com.android.vending.splits") {
-                    toRemove.add(node)
-                }
-            }
-            for (node in toRemove) {
-                node.parentNode?.removeChild(node)
-            }
+            document.elements("meta-data").filter {
+                it.android("name") == "com.android.vending.splits.required" || it.android("name") == "com.android.vending.splits"
+            }.forEach { it.remove() }
             VersionHookRegistry.logHook(HookId.SPLIT_RESTRICTION_REMOVAL, "Manifest", "SUCCESS", "Removed split restrictions")
 
             // アプリ表示名を "Google (Morphe)" に変更
-            appNode?.setAttribute("android:label", "Google (Morphe)")
-
-            val activityNodes = document.getElementsByTagName("activity")
-            for (i in 0 until activityNodes.length) {
-                val act = activityNodes.item(i) as Element
-                val name = act.getAttribute("android:name")
-                if (name.contains("RobinEntryPointActivity")) {
-                    act.setAttribute("android:label", "Gemini (Morphe)")
-                }
+            appNode?.setAndroid("label", "Google (Morphe)")
+            for (act in document.elements("activity")) {
+                if (act.android("name").contains("RobinEntryPointActivity")) act.setAndroid("label", "Gemini (Morphe)")
             }
 
             // activity-alias のラベル更新（特に SearchActivity 等のメインランチャーアイコン）
-            val aliasNodes = document.getElementsByTagName("activity-alias")
-            for (i in 0 until aliasNodes.length) {
-                val alias = aliasNodes.item(i) as Element
-                val name = alias.getAttribute("android:name")
-                if (name.contains("Robin") || name.contains("bard")) {
-                    alias.setAttribute("android:label", "Gemini (Morphe)")
-                } else {
-                    alias.setAttribute("android:label", "Google (Morphe)")
-                }
+            for (alias in document.elements("activity-alias")) {
+                val name = alias.android("name")
+                alias.setAndroid("label", if (name.contains("Robin") || name.contains("bard")) "Gemini (Morphe)" else "Google (Morphe)")
             }
             VersionHookRegistry.logHook(HookId.APP_LABEL_UPDATE, "Manifest", "SUCCESS", "Updated app and alias labels to 'Google (Morphe)'")
 
             // クラッシュを引き起こすブート時・更新時のレシーバーを無効化
-            val receiverNodes = document.getElementsByTagName("receiver")
             var disabledReceivers = 0
-            for (i in 0 until receiverNodes.length) {
-                val recv = receiverNodes.item(i) as Element
-                val name = recv.getAttribute("android:name")
+            for (recv in document.elements("receiver")) {
+                val name = recv.android("name")
                 if (name.contains("BootOrUpdateReceiver") || name.contains("GoogleAppProcessBootOrUpdateReceiver")) {
-                    recv.setAttribute("android:enabled", "false")
+                    recv.setAndroidBoolean("enabled", false)
                     println("[GoogleAppManifestPatch] Disabled crash-prone receiver: $name")
                     disabledReceivers++
                 }
@@ -152,7 +108,7 @@ val gmsCoreBytecodePatch = bytecodePatch(
     description = "Redirects GMS package/permissions/provider references to app.revanced.android.gms. Tested with microG RE 7.3.0; the previous 7.0.0 title was not a version requirement.",
     default = true
 ) {
-    compatibleWith("com.google.android.googlequicksearchbox")
+    compatibleWith(*VersionHookRegistry.compatibility("com.google.android.googlequicksearchbox"))
 
     execute {
         VersionHookRegistry.requireProfile(packageMetadata)
@@ -212,63 +168,30 @@ val gmsCoreBytecodePatch = bytecodePatch(
         }
         println("[GmsCoreBytecodePatch] Loaded ${exactReplaceMap.size} safe package/permission mappings")
 
-        // 2. 対象となる全クラスの収集 (完全一致検索)
-        val targetClasses = LinkedHashSet<ClassDef>()
-        for ((orig, _) in exactReplaceMap) {
-            targetClasses.addAll(classDefByStrings(orig, StringComparisonType.EQUALS))
-        }
-        for (auth in GmsConstants.AUTHORITIES) {
-            targetClasses.addAll(classDefByStrings("content://$auth", StringComparisonType.STARTS_WITH))
-        }
-        targetClasses.addAll(classDefByStrings("content://subscribedfeeds", StringComparisonType.STARTS_WITH))
-        println("[GmsCoreBytecodePatch] Collected ${targetClasses.size} classes referencing targeted GMS strings")
-
-        var totalReplacements = 0
-        for (classDef in targetClasses) {
-            val mutableClass = mutableClassDefBy(classDef)
-            for (method in mutableClass.methods) {
-                if (method.implementation == null) continue
-                val insList = method.instructions
-                for (idx in insList.indices) {
-                    val ins = insList[idx]
-                    if (ins.opcode == Opcode.CONST_STRING || ins.opcode == Opcode.CONST_STRING_JUMBO) {
-                        val ref = (ins as ReferenceInstruction).reference
-                        if (ref is StringReference) {
-                            val original = ref.string
-                            var replaced: String? = exactReplaceMap[original]
-                            if (replaced == null && original.startsWith("content://")) {
-                                for (auth in GmsConstants.AUTHORITIES) {
-                                    val prefix = "content://$auth"
-                                    if (original.startsWith(prefix)) {
-                                        val repAuth = auth.replace(vendorTarget, vendorReplacement)
-                                        replaced = original.replace(prefix, "content://$repAuth")
-                                        break
-                                    }
-                                }
-                                if (replaced == null && original.startsWith("content://subscribedfeeds")) {
-                                    replaced = "content://app.revanced.subscribedfeeds"
-                                }
-                            }
-                            if (replaced != null && original != replaced) {
-                                val reg = (ins as OneRegisterInstruction).registerA
-                                val newIns = if (ins.opcode == Opcode.CONST_STRING_JUMBO) {
-                                    BuilderInstruction31c(Opcode.CONST_STRING_JUMBO, reg, ImmutableStringReference(replaced))
-                                } else {
-                                    BuilderInstruction21c(Opcode.CONST_STRING, reg, ImmutableStringReference(replaced))
-                                }
-                                method.replaceInstruction(idx, newIns)
-                                totalReplacements++
-                            }
-                        }
-                    }
+        fun replacementFor(original: String): String? {
+            exactReplaceMap[original]?.let { return it }
+            if (!original.startsWith("content://")) return null
+            for (auth in GmsConstants.AUTHORITIES) {
+                val prefix = "content://$auth"
+                if (original.startsWith(prefix)) {
+                    val repAuth = auth.replace(vendorTarget, vendorReplacement)
+                    return original.replace(prefix, "content://$repAuth")
                 }
             }
+            return if (original.startsWith("content://subscribedfeeds")) "content://app.revanced.subscribedfeeds" else null
         }
+
+        // 2. One indexed pass over the same strings as before. Classes become mutable
+        // only when one of their const-string instructions is actually replaced.
+        val filters = exactReplaceMap.keys.map { string(it) } +
+            GmsConstants.AUTHORITIES.map { string("content://$it", StringComparisonType.STARTS_WITH) } +
+            string("content://subscribedfeeds", StringComparisonType.STARTS_WITH)
+        val totalReplacements = replaceStrings(filters) { _, _, original -> replacementFor(original) }
         VersionHookRegistry.logHook(
             HookId.GMS_CORE_REDIRECT,
             "DEX-Wide",
             "SUCCESS",
-            "Replaced $totalReplacements occurrences of GMS strings across ${targetClasses.size} classes"
+            "Replaced $totalReplacements occurrences of GMS strings"
         )
     }
 }
@@ -285,7 +208,7 @@ val gmsSignatureBypassPatch = bytecodePatch(
     description = "Google Play Services の署名不一致 (SERVICE_INVALID) や可用性チェックを常時成功 (SUCCESS / true) にバイパスします。",
     default = true
 ) {
-    compatibleWith("com.google.android.googlequicksearchbox")
+    compatibleWith(*VersionHookRegistry.compatibility("com.google.android.googlequicksearchbox"))
 
     execute {
         VersionHookRegistry.requireProfile(packageMetadata)
@@ -299,11 +222,16 @@ val gmsSignatureBypassPatch = bytecodePatch(
         val playUtilCandidateStrings = availabilitySpec.anchorStrings
         val playUtilClasses = mutableSetOf<com.android.tools.smali.dexlib2.iface.ClassDef>()
         for (cand in playUtilCandidateStrings) {
-            playUtilClasses.addAll(getAllClassesWithString(cand))
+            playUtilClasses.addAll(classDefByStrings(cand))
         }
         println("[GmsSignatureBypassPatch] Found ${playUtilClasses.size} classes matching GooglePlayServicesUtil candidates")
         var patchedPlayUtilCount = 0
-        for (classDef in playUtilClasses) {
+        fun isAvailabilityMethod(method: com.android.tools.smali.dexlib2.iface.Method): Boolean {
+            val params = method.parameterTypes
+            return availabilitySpec.matches(method) && params.size == 2 &&
+                params[0] == "Landroid/content/Context;" && params[1] == "I" && method.returnType == "I"
+        }
+        for (classDef in playUtilClasses.filter { c -> c.methods.any { it.implementation != null && isAvailabilityMethod(it) } }) {
             val mutableClass = mutableClassDefBy(classDef)
             for (method in mutableClass.methods) {
                 if (method.implementation == null) continue
@@ -329,10 +257,10 @@ val gmsSignatureBypassPatch = bytecodePatch(
         }
 
         // 2. GoogleSignatureVerifier のバイパス (c(...) -> true, b(...) -> true)
-        val sigVerifierClasses = getAllClassesWithString(certificateSpec.anchorStrings.single())
+        val sigVerifierClasses = classDefByStrings(certificateSpec.anchorStrings.single())
         println("[GmsSignatureBypassPatch] Found ${sigVerifierClasses.size} classes matching GoogleSignatureVerifier")
         var patchedSigVerifierCount = 0
-        for (classDef in sigVerifierClasses) {
+        for (classDef in sigVerifierClasses.filter { c -> c.methods.any { it.implementation != null && it.returnType == "Z" } }) {
             val mutableClass = mutableClassDefBy(classDef)
             for (method in mutableClass.methods) {
                 if (method.implementation == null) continue

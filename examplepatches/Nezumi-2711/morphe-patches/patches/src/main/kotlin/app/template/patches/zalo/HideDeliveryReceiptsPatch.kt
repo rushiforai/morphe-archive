@@ -13,7 +13,6 @@ import com.android.tools.smali.dexlib2.AccessFlags
 import com.android.tools.smali.dexlib2.Opcode
 
 private const val DELIVERY_REQUEST_PACKET = "Lcom/zing/zalocore/connection/socket/RequestPacket;"
-private const val DELIVERY_SETTINGS = "Lapp/template/extension/extension/NezumiSettings;"
 
 private object DeliveryAckFingerprint : Fingerprint(
     returnType = "V",
@@ -30,7 +29,7 @@ private object DeliveryAckFingerprint : Fingerprint(
 val hideDeliveryReceiptsPatch = bytecodePatch(
     name = "Hide delivery receipts",
     description = "Suppress outgoing message delivery ACKs when enabled in Nezumi Settings.",
-    default = false,
+    default = true,
 ) {
     compatibleWith(Compatibility(
         name = "Zalo",
@@ -68,7 +67,7 @@ val hideDeliveryReceiptsPatch = bytecodePatch(
             :nezumi_check_delivery_setting
             invoke-static {}, Lcom/zing/zalo/MainApplication;->getAppContext()Landroid/content/Context;
             move-result-object v0
-            invoke-static {v0}, $DELIVERY_SETTINGS->isDeliveryReceiptsHidden(Landroid/content/Context;)Z
+            invoke-static {v0}, $CHAT_OPTIONS->isDeliveryReceiptsHidden(Landroid/content/Context;)Z
             move-result v0
             if-eqz v0, :nezumi_original_delivery
             return-void

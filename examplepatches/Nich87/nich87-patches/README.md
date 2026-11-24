@@ -42,9 +42,9 @@ Enable pre-releases for development builds from `dev`.
 ## Patches
 
 <!-- PATCHES_START EXPANDED -->
-> **[v1.5.0](https://github.com/Nich87/nich87-patches/releases/tag/v1.5.0)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;6 patches total
+> **[v1.6.0](https://github.com/Nich87/nich87-patches/releases/tag/v1.6.0)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;7 patches total
 <details open>
-<summary>📦 Apple Music&nbsp;&nbsp;•&nbsp;&nbsp;5 patches</summary>
+<summary>📦 Apple Music&nbsp;&nbsp;•&nbsp;&nbsp;6 patches</summary>
 <br>
 
 **Package name:** `com.apple.android.music`
@@ -60,6 +60,7 @@ Enable pre-releases for development builds from `dev`.
 | [LRCLIB lyrics](#lrclib-lyrics) | Fetches lyrics from LRCLIB for songs missing official or synced lyrics, allows per-song LRCLIB overrides and timing offsets, shows an Official / LRCLIB source indicator, and adds LRCLIB settings. |  |
 | [Library import, export and downloads](#library-import-export-and-downloads) | Adds JSON library and playlist backups, additive import, and a native download action for the entire library. |  |
 | [Liquid Glass bottom bar](#liquid-glass-bottom-bar) | Adds live refractive glass to Apple Music's mini-player and bottom tabs, an animated selection lens, and a glass transition between the mini-player and Now Playing. Refraction requires Android 13 or newer. |  |
+| [On-device vocal separation](#on-device-vocal-separation) | Adds a vocal and accompaniment mix slider to the lyrics screen. Requires a one-time model download and compatible stereo playback. |  |
 | [Repair Japanese library metadata](#repair-japanese-library-metadata) | Finds romanized library metadata and repairs selected songs using Japanese catalog data, preserving library entries and syncing changes to the account. |  |
 
 </details>

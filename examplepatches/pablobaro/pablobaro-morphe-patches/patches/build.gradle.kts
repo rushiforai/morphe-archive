@@ -22,6 +22,8 @@ dependencies {
 
     compileOnly(libs.gson)
     patchListGeneratorClasspath(libs.gson)
+
+    testImplementation(kotlin("test"))
 }
 
 tasks {

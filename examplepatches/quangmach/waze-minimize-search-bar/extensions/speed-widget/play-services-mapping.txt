@@ -1,0 +1,3 @@
+# R8 keeps this class in its original package for package-private access.
+# Give it a stable distinct name so it can't collide with Waze's own client.
+com.google.android.gms.common.internal.GmsClient -> com.google.android.gms.common.internal.QmSpeedWidgetClient:

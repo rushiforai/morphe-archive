@@ -17,7 +17,7 @@ internal object BaridimobConstants {
         appIconColor = 0x007A33,
         signatures = null,
         targets = listOf(
-            AppTarget(version = "1.29.1"),
+            AppTarget(version = "1.29.1", versionCode = 2026093016),
         ),
     )
 }

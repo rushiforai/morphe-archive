@@ -149,6 +149,7 @@ public final class ThreadWatchNative {
         try{if("reply".equals(channel)&&frame!=null&&frame.target!=null)replies=replies(frame,c);}
         catch(Exception error){android.util.Log.w("Haiagaru","Reply NG check unavailable",error);}
         synchronized(ThreadWatch.LOCK){
+            if(frame!=null&&frame.target!=null&&"reply".equals(channel)&&ThreadWatch.manuallyStopped(c,frame.target.url))return;
             try{if(duplicate(frame,c,replies))return;}
             catch(Exception error){android.util.Log.w("Haiagaru","Reply duplicate check unavailable",error);}
             nativeLegacy(c,icon,title,frame!=null&&frame.preview!=null?title:ticker,frame!=null&&frame.preview!=null?frame.preview:text,id,tap,sound,time,channel);
@@ -160,6 +161,7 @@ public final class ThreadWatchNative {
         try{if("reply".equals(channel)&&frame!=null&&frame.target!=null)replies=replies(frame,c);}
         catch(Exception error){android.util.Log.w("Haiagaru","Reply NG check unavailable",error);}
         synchronized(ThreadWatch.LOCK){
+            if(frame!=null&&frame.target!=null&&"reply".equals(channel)&&ThreadWatch.manuallyStopped(c,frame.target.url))return;
             try{if(duplicate(frame,c,replies))return;}
             catch(Exception error){android.util.Log.w("Haiagaru","Reply duplicate check unavailable",error);}
             nativeModern(c,icon,title,frame!=null&&frame.preview!=null?title:ticker,frame!=null&&frame.preview!=null?frame.preview:text,tap,sound,channel);

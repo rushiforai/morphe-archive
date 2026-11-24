@@ -5,6 +5,8 @@ import app.morphe.patcher.extensions.InstructionExtensions.addInstructionsWithLa
 import app.morphe.patcher.extensions.InstructionExtensions.getInstruction
 import app.morphe.patcher.extensions.InstructionExtensions.replaceInstruction
 import app.morphe.patcher.patch.bytecodePatch
+import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod
+import app.morphe.patcher.util.returnEarly
 import app.morphe.patcher.util.smali.ExternalLabel
 import app.morphe.patcher.util.findFreeRegister
 import com.android.tools.smali.dexlib2.Opcode
@@ -24,8 +26,8 @@ import app.brokenn.patches.shared.referenceText
 
 @Suppress("unused")
 val removeVoiceAssistantPatch = bytecodePatch(
-    name = "Remove ChatGPT Voice Assistant",
-    description = "Strips out the integrated ChatGPT voice assistant module entirely."
+    name = "Remove ChatGPT AI assistant",
+    description = "Strips out the integrated ChatGPT AI module entirely."
 ) {
     compatibleWith(COMPATIBILITY_JIOHOTSTAR)
 
@@ -49,25 +51,26 @@ val removeVoiceAssistantPatch = bytecodePatch(
             """)
         }
 
-        // Fallback mic branch: collapse both equaliser-config readers to disabled (suspension-safe insert).
-        val equaliserMethods = listOf(
+        // Fallback mic branch and core-search entry: collapse the config readers to disabled.
+        for (method in listOf(
             CvdEqualiserEventFingerprint.method,
-            CvdEqualiserFlowFingerprint.method
-        )
-        for (method in equaliserMethods) {
-            val unboxIndex = method.instrs().indexOfFirst {
-                it.opcode == Opcode.INVOKE_VIRTUAL &&
-                    it.referenceText()?.contains("booleanValue") == true
-            }
-            val reg = method.getInstruction<OneRegisterInstruction>(unboxIndex + 1).registerA
-            val zero = if (reg <= 15) "const/4 v$reg, 0x0" else "const/16 v$reg, 0x0"
-            method.addInstructions(unboxIndex + 2, zero)
+            CvdEqualiserFlowFingerprint.method,
+            CvdCoreSearchGateFingerprint.method
+        )) {
+            method.zeroBooleanResult()
         }
 
         // Unknown-widget cut: rename the CVD wire names so the parser skips them.
+        // The chat surfaces ride the same enum as the orb, so they go with it.
         val typeMethod = CvdWidgetTypeFingerprint.method
         val typeImpl = typeMethod.instrs()
-        val wires = setOf("CVDHeroWidget", "CVDControlUnitWidget", "CVDOrbWidget")
+        val wires = setOf(
+            "CVDHeroWidget",
+            "CVDControlUnitWidget",
+            "CVDOrbWidget",
+            "ChatBubbleWidget",
+            "ChatInputWidget"
+        )
         // replaceInstruction is 1:1, so snapshot indices stay valid across the loop.
         typeMethod.instructionIndices { instruction ->
             instruction.opcode == Opcode.CONST_STRING &&
@@ -76,6 +79,36 @@ val removeVoiceAssistantPatch = bytecodePatch(
             val wire = (typeImpl[index] as ReferenceInstruction).reference as StringReference
             val reg = typeMethod.getInstruction<OneRegisterInstruction>(index).registerA
             typeMethod.replaceInstruction(index, "const-string v$reg, \"${wire.string}Removed\"")
+        }
+
+        // Routes and page-type wire names: renamed so no entry point resolves to a CVD page.
+        for (fingerprint in listOf(
+            CvdPageTypeParserFingerprint,
+            CvdPageScreenFingerprint,
+            CvdActionSheetScreenFingerprint
+        )) {
+            val routeMethod = fingerprint.method
+            val routeImpl = routeMethod.instrs()
+            // replaceInstruction is 1:1, so snapshot indices stay valid across the loop.
+            routeMethod.instructionIndices { instruction ->
+                instruction.opcode == Opcode.CONST_STRING &&
+                    (instruction as? ReferenceInstruction)?.reference.let {
+                        it is StringReference && it.string in CVD_ROUTES
+                    }
+            }.forEach { index ->
+                val route = (routeImpl[index] as ReferenceInstruction).reference as StringReference
+                val reg = routeMethod.getInstruction<OneRegisterInstruction>(index).registerA
+                routeMethod.replaceInstruction(index, "const-string v$reg, \"${route.string}Removed\"")
+            }
+        }
+
+        // Renderers: nothing paints even if CVD data reaches them by a path the wire rename misses.
+        for (fingerprint in listOf(
+            CvdOrbComposableFingerprint,
+            CvdChatBubbleComposableFingerprint,
+            CvdActionSheetComposableFingerprint
+        )) {
+            fingerprint.method.returnEarly()
         }
 
         // Watch Ask pill: skip illustration pills whose lottie is the CVD ask; parser null-guards the result.
@@ -165,4 +198,20 @@ val removeVoiceAssistantPatch = bytecodePatch(
         )
 
     }
+}
+
+private val CVD_ROUTES = setOf(
+    "ConversationalDiscoveryPage",
+    "ConversationalDiscoveryActionsheetPage"
+)
+
+// Replaces a config getter's unboxed boolean with false, leaving the coroutine resume path intact.
+private fun MutableMethod.zeroBooleanResult() {
+    val unboxIndex = instrs().indexOfFirst {
+        it.opcode == Opcode.INVOKE_VIRTUAL &&
+            it.referenceText()?.contains("Boolean;->booleanValue") == true
+    }
+    require(unboxIndex >= 0) { "Voice assistant gate: boolean reader not found in $definingClass" }
+    val reg = getInstruction<OneRegisterInstruction>(unboxIndex + 1).registerA
+    addInstructions(unboxIndex + 2, if (reg <= 15) "const/4 v$reg, 0x0" else "const/16 v$reg, 0x0")
 }

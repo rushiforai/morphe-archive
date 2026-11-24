@@ -1,0 +1,8 @@
+nicoid Re v2.1.9-dev.7 runtime components
+AndroidX Media3 1.11.1 (unchanged), Concurrent Futures 1.3.0, ExifInterface 1.4.2, Annotation Experimental 1.3.1 (unchanged)
+Copyright The Android Open Source Project
+https://android.googlesource.com/platform/frameworks/support/
+Guava 33.8.0-android and failureaccess 1.0.3
+Copyright The Guava Authors
+https://github.com/google/guava
+Apache License, Version 2.0. Other existing components retain their respective licenses.

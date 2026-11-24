@@ -35,7 +35,7 @@ val removeWebTrackingAndTelemetryPatch = rawResourcePatch(
             |        Sentry.init({
             |          dsn: 'https://5a282e1f1a464673aa8fef5b0d51a633@sentry.devops.eab.com/51',
             |          environment: 'PROD',
-            |          release: '26.19.22'
+            |          release: '26.23.8'
             |        });
             |
             |        document.addEventListener('deviceready', () => {
@@ -43,40 +43,6 @@ val removeWebTrackingAndTelemetryPatch = rawResourcePatch(
             |          Sentry.setTag('device.ver_os', device.version);
             |          Sentry.setTag('device.platform', device.platform);
             |          Sentry.setTag('device.ver_cordova', device.cordova);
-            |          Sentry.addBreadcrumb({
-            |            category: 'system',
-            |            message: 'Loading',
-            |            level: 'info'
-            |          });
-            |        });
-            |
-            |        document.addEventListener('pause', () => {
-            |          Sentry.addBreadcrumb({
-            |            category: 'system',
-            |            message: 'Paused',
-            |            level: 'info'
-            |          });
-            |        });
-            |        document.addEventListener('resume', () => {
-            |          Sentry.addBreadcrumb({
-            |            category: 'system',
-            |            message: 'Resumed',
-            |            level: 'info'
-            |          });
-            |        });
-            |        window.addEventListener('offline', () => {
-            |          Sentry.addBreadcrumb({
-            |            category: 'network',
-            |            message: 'Offline',
-            |            level: 'info'
-            |          });
-            |        });
-            |        window.addEventListener('online', () => {
-            |          Sentry.addBreadcrumb({
-            |            category: 'network',
-            |            message: 'Online',
-            |            level: 'info'
-            |          });
             |        });
             |      }
             |    </script>

@@ -10,6 +10,7 @@ import app.s.chzzk.common.utils.getReference
 import app.s.chzzk.common.utils.parameterTypeNames
 import app.s.chzzk.common.utils.returnEarly
 import app.s.chzzk.common.utils.smaliReference
+import app.s.chzzk.shared.Constants.CHZZK_TV_VERSIONS
 import app.s.chzzk.shared.Constants.COMPATIBILITY_CHZZK_MOBILE
 import com.android.tools.smali.dexlib2.iface.instruction.FiveRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.reference.MethodReference
@@ -28,6 +29,8 @@ val autoClaimTongPowPatch = bytecodePatch(
     dependsOn(chatCustomizationPatch)
 
     execute {
+        if (packageMetadata.versionName in CHZZK_TV_VERSIONS) return@execute
+
         val collector = mutableClassDefBy("${POPUP}StreamingPopupScreenKt\$StreamingLiveEndAcquiredTongPowView\$1\$3\$1\$1;")
         val original = collector.methods.single {
             it.parameterTypeNames == listOf("Ljava/lang/Object;", "Lkotlin/coroutines/Continuation;")

@@ -5,6 +5,7 @@ import android.animation.ValueAnimator;
 import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.content.res.ColorStateList;
 import android.content.res.Configuration;
 import android.graphics.Canvas;
@@ -15,8 +16,11 @@ import android.graphics.drawable.ColorDrawable;
 import android.graphics.drawable.Drawable;
 import android.graphics.drawable.GradientDrawable;
 import android.graphics.drawable.RippleDrawable;
+import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
+import android.text.Layout;
+import android.text.TextUtils;
 import android.util.TypedValue;
 import android.view.Gravity;
 import android.view.MotionEvent;
@@ -39,6 +43,10 @@ import java.util.Locale;
  * the extension cannot add layout resources. Settings are grouped into cards, each row has an icon.
  */
 public final class SettingsActivity extends Activity {
+    private static final String REPO_URL = "https://github.com/BlazeFTL/FaceBook-Lite-Morphe";
+    private static final String REPO_SHORT = "github.com/BlazeFTL/FaceBook-Lite-Morphe";
+    private static final String AUTHOR = "BlazeFTL";
+
     private boolean vi;
     private boolean night;
 
@@ -61,6 +69,18 @@ public final class SettingsActivity extends Activity {
     private int percent;
     private View qualityRow;
     private View debugOptions;
+
+    private TextView updateSummary;
+    private TextView updateButtonLabel;
+    private View updateButton;
+    private LinearLayout changelogPanel;
+    private TextView changelogTitle;
+    private TextView changelogText;
+    private TextView changelogMore;
+    private String updateUrl = REPO_URL + "/releases";
+    private boolean checking;
+    private boolean changelogExpanded;
+    private boolean changelogCheckPending;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -170,6 +190,7 @@ public final class SettingsActivity extends Activity {
         scroll.requestApplyInsets();
         applySystemBars();
         update();
+        startUpdateFlow();
     }
 
     private String t(String en, String vietnamese) {
@@ -225,6 +246,10 @@ public final class SettingsActivity extends Activity {
         LinearLayout header = new LinearLayout(this);
         header.setOrientation(LinearLayout.VERTICAL);
 
+        LinearLayout bar = new LinearLayout(this);
+        bar.setOrientation(LinearLayout.HORIZONTAL);
+        bar.setGravity(Gravity.CENTER_VERTICAL);
+
         FrameLayout back = new FrameLayout(this);
         GradientDrawable circle = rounded(surface, dp(20));
         circle.setStroke(dp(1), stroke);
@@ -236,11 +261,16 @@ public final class SettingsActivity extends Activity {
         ImageView arrow = new ImageView(this);
         arrow.setImageDrawable(SettingsIcons.get(SettingsIcons.ARROW_BACK, textPrimary));
         back.addView(arrow, new FrameLayout.LayoutParams(dp(20), dp(20), Gravity.CENTER));
-        header.addView(back, new LinearLayout.LayoutParams(dp(40), dp(40)));
+        bar.addView(back, new LinearLayout.LayoutParams(dp(40), dp(40)));
 
-        TextView title = text(getTitle(), 28, textPrimary, true);
-        title.setPadding(dp(4), dp(20), 0, 0);
-        header.addView(title);
+        TextView title = text(getTitle(), 22, textPrimary, true);
+        title.setPadding(dp(14), 0, 0, 0);
+        bar.addView(title, new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f));
+        header.addView(bar, new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT));
+
+        LinearLayout.LayoutParams aboutParams = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+        aboutParams.setMargins(0, dp(16), 0, 0);
+        header.addView(aboutCard(), aboutParams);
 
         LinearLayout note = new LinearLayout(this);
         note.setOrientation(LinearLayout.HORIZONTAL);
@@ -258,6 +288,229 @@ public final class SettingsActivity extends Activity {
         noteParams.setMargins(0, dp(12), 0, 0);
         header.addView(note, noteParams);
         return header;
+    }
+
+    /** Version of the patches (set by the patch when the app was built), the author, and a link to the repository. */
+    private LinearLayout aboutCard() {
+        LinearLayout card = card();
+
+        LinearLayout versionRow = new LinearLayout(this);
+        versionRow.setOrientation(LinearLayout.HORIZONTAL);
+        versionRow.setGravity(Gravity.CENTER_VERTICAL);
+        versionRow.setPadding(dp(16), dp(14), dp(16), dp(14));
+        versionRow.addView(iconTile(SettingsIcons.EXTENSION));
+        versionRow.addView(textColumn(t("Morphe patches", "Bản vá Morphe"), t("By ", "Bởi ") + AUTHOR));
+        String version = MorpheSettings.patchVersionLabel();
+        if (!version.isEmpty()) {
+            TextView pill = text(version, 13, accent, true);
+            pill.setGravity(Gravity.CENTER);
+            pill.setPadding(dp(12), dp(5), dp(12), dp(5));
+            pill.setBackground(rounded(accentTint, dp(14)));
+            versionRow.addView(pill);
+        }
+        card.addView(versionRow);
+        card.addView(divider());
+
+        // Without a known version there is nothing to compare, so the update rows are left out.
+        if (!version.isEmpty()) {
+            card.addView(updateRow());
+            LinearLayout.LayoutParams panelParams = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+            panelParams.setMargins(dp(16), 0, dp(16), dp(14));
+            card.addView(changelogPanel(), panelParams);
+            card.addView(divider());
+        }
+
+        LinearLayout repoRow = new LinearLayout(this);
+        repoRow.setOrientation(LinearLayout.HORIZONTAL);
+        repoRow.setGravity(Gravity.CENTER_VERTICAL);
+        repoRow.setPadding(dp(16), dp(14), dp(16), dp(14));
+        repoRow.setBackground(ripple(0, 0));
+        repoRow.setClickable(true);
+        repoRow.setFocusable(true);
+        repoRow.addView(iconTile(SettingsIcons.CODE));
+        repoRow.addView(textColumn(t("Source code", "Mã nguồn"), REPO_SHORT));
+        ImageView open = new ImageView(this);
+        open.setImageDrawable(SettingsIcons.get(SettingsIcons.OPEN_IN_NEW, textSecondary));
+        repoRow.addView(open, new LinearLayout.LayoutParams(dp(20), dp(20)));
+        repoRow.setContentDescription(t("Open the repository on GitHub", "Mở kho mã nguồn trên GitHub"));
+        repoRow.setOnClickListener(v -> openRepo());
+        card.addView(repoRow);
+        return card;
+    }
+
+    private void openRepo() {
+        openLink(REPO_URL);
+    }
+
+    private void openLink(String url) {
+        try {
+            startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse(url)));
+        } catch (RuntimeException e) {
+            Toast.makeText(this, t("No app found to open the link", "Không có ứng dụng để mở liên kết"), Toast.LENGTH_SHORT).show();
+        }
+    }
+
+    // ---- Updates ----
+
+    private static final int CHANGELOG_LINES = 7;
+
+    private LinearLayout updateRow() {
+        LinearLayout row = new LinearLayout(this);
+        row.setOrientation(LinearLayout.HORIZONTAL);
+        row.setGravity(Gravity.CENTER_VERTICAL);
+        row.setPadding(dp(16), dp(14), dp(16), dp(14));
+        row.addView(iconTile(SettingsIcons.SYSTEM_UPDATE));
+
+        LinearLayout column = new LinearLayout(this);
+        column.setOrientation(LinearLayout.VERTICAL);
+        column.addView(text(t("Updates", "Cập nhật"), 16, textPrimary, true));
+        updateSummary = text("", 13, textSecondary, false);
+        updateSummary.setLineSpacing(0, 1.12f);
+        updateSummary.setPadding(0, dp(2), 0, 0);
+        column.addView(updateSummary);
+        LinearLayout.LayoutParams columnParams = new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f);
+        columnParams.setMargins(0, 0, dp(12), 0);
+        row.addView(column, columnParams);
+
+        updateButton = button(t("Check", "Kiểm tra"), SettingsIcons.REFRESH, false);
+        LinearLayout buttonBox = (LinearLayout) updateButton;
+        updateButtonLabel = (TextView) buttonBox.getChildAt(buttonBox.getChildCount() - 1);
+        updateButton.setOnClickListener(v -> checkForUpdates(true));
+        row.addView(updateButton, buttonParams(0));
+        return row;
+    }
+
+    /** The notes of the newer releases, with a button to the release page. Shown only while an update is available. */
+    private LinearLayout changelogPanel() {
+        changelogPanel = new LinearLayout(this);
+        changelogPanel.setOrientation(LinearLayout.VERTICAL);
+        changelogPanel.setPadding(dp(14), dp(12), dp(14), dp(12));
+        changelogPanel.setBackground(rounded(bg, dp(14)));
+        changelogPanel.setVisibility(View.GONE);
+
+        changelogTitle = text(t("What's new", "Có gì mới"), 12, textSecondary, true);
+        changelogTitle.setPadding(0, 0, 0, dp(6));
+        changelogPanel.addView(changelogTitle);
+
+        changelogText = text("", 13, textPrimary, false);
+        changelogText.setLineSpacing(0, 1.15f);
+        changelogPanel.addView(changelogText);
+        // The layout is only known after a draw, so the "Show more" link is decided there.
+        changelogText.getViewTreeObserver().addOnPreDrawListener(() -> {
+            Layout layout = changelogText.getLayout();
+            if (changelogCheckPending && layout != null) {
+                changelogCheckPending = false;
+                int last = layout.getLineCount() - 1;
+                boolean cut = last >= 0 && layout.getEllipsisCount(last) > 0;
+                changelogMore.setVisibility(cut ? View.VISIBLE : View.INVISIBLE);
+            }
+            return true;
+        });
+
+        LinearLayout actions = new LinearLayout(this);
+        actions.setOrientation(LinearLayout.HORIZONTAL);
+        actions.setGravity(Gravity.CENTER_VERTICAL);
+        actions.setPadding(0, dp(10), 0, 0);
+        changelogMore = text("", 13, accent, true);
+        changelogMore.setPadding(0, dp(8), dp(12), dp(8));
+        changelogMore.setClickable(true);
+        changelogMore.setVisibility(View.INVISIBLE);
+        changelogMore.setOnClickListener(v -> {
+            changelogExpanded = !changelogExpanded;
+            applyChangelogLines();
+        });
+        actions.addView(changelogMore, new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f));
+        View get = button(t("Get update", "Tải bản mới"), SettingsIcons.DOWNLOAD, true);
+        get.setOnClickListener(v -> openLink(updateUrl));
+        actions.addView(get, buttonParams(0));
+        changelogPanel.addView(actions);
+        return changelogPanel;
+    }
+
+    private void applyChangelogLines() {
+        changelogText.setMaxLines(changelogExpanded ? Integer.MAX_VALUE : CHANGELOG_LINES);
+        changelogText.setEllipsize(changelogExpanded ? null : TextUtils.TruncateAt.END);
+        changelogMore.setText(changelogExpanded ? t("Show less", "Thu gọn") : t("Show more", "Xem thêm"));
+    }
+
+    /** Shows the cached result at once, then asks GitHub when the cache is older than a few hours. */
+    private void startUpdateFlow() {
+        if (updateSummary == null) return;
+        String current = MorpheSettings.patchVersionLabel();
+        UpdateChecker.Result cached = UpdateChecker.load(MorpheSettings.preferences(this), current);
+        renderUpdate(cached);
+        long now = System.currentTimeMillis();
+        if (cached == null || cached.checkedAt > now || now - cached.checkedAt > UpdateChecker.AUTO_INTERVAL_MS) {
+            checkForUpdates(false);
+        }
+    }
+
+    private void checkForUpdates(final boolean manual) {
+        final String current = MorpheSettings.patchVersionLabel();
+        if (checking || current.isEmpty() || updateSummary == null) return;
+        checking = true;
+        setUpdateBusy(true);
+        final SharedPreferences preferences = MorpheSettings.preferences(this);
+        new Thread(() -> {
+            UpdateChecker.Result found = null;
+            try {
+                found = UpdateChecker.check(current);
+                UpdateChecker.save(preferences, current, found);
+            } catch (Exception e) {
+                found = null;
+            }
+            final UpdateChecker.Result result = found;
+            runOnUiThread(() -> {
+                checking = false;
+                if (isFinishing() || isDestroyed()) return;
+                setUpdateBusy(false);
+                if (result != null) {
+                    renderUpdate(result);
+                } else {
+                    renderUpdate(UpdateChecker.load(preferences, current));
+                    if (manual) {
+                        Toast.makeText(this, t("Could not check for updates. Try again later.",
+                                "Không kiểm tra được bản cập nhật. Thử lại sau."), Toast.LENGTH_SHORT).show();
+                    }
+                }
+            });
+        }, "morphe-update-check").start();
+    }
+
+    private void setUpdateBusy(boolean busy) {
+        updateButton.setEnabled(!busy);
+        updateButton.setAlpha(busy ? 0.5f : 1f);
+        updateButtonLabel.setText(busy ? t("Checking...", "Đang kiểm tra...") : t("Check", "Kiểm tra"));
+        if (busy) setUpdateSummary(t("Checking for updates...", "Đang kiểm tra bản cập nhật..."), false);
+    }
+
+    private void setUpdateSummary(String summary, boolean highlight) {
+        updateSummary.setText(summary);
+        updateSummary.setTextColor(highlight ? accent : textSecondary);
+        updateSummary.setTypeface(highlight ? Typeface.create("sans-serif-medium", Typeface.NORMAL) : Typeface.DEFAULT);
+    }
+
+    private void renderUpdate(UpdateChecker.Result result) {
+        if (result == null) {
+            setUpdateSummary(t("Not checked yet.", "Chưa kiểm tra."), false);
+            changelogPanel.setVisibility(View.GONE);
+            return;
+        }
+        if (result.latest.isEmpty()) {
+            setUpdateSummary(t("You have the latest version.", "Bạn đang dùng bản mới nhất."), false);
+            changelogPanel.setVisibility(View.GONE);
+            return;
+        }
+        updateUrl = result.url.isEmpty() ? REPO_URL + "/releases" : result.url;
+        setUpdateSummary(t("Update available: v", "Có bản cập nhật: v") + result.latest, true);
+        String notes = result.notes.trim();
+        changelogText.setText(UpdateChecker.render(notes.isEmpty() ? t("No changelog.", "Không có nhật ký thay đổi.") : notes, accent));
+        changelogExpanded = false;
+        applyChangelogLines();
+        changelogMore.setVisibility(View.INVISIBLE);
+        changelogCheckPending = true;
+        changelogPanel.setVisibility(View.VISIBLE);
+        changelogText.invalidate();
     }
 
     private TextView sectionLabel(String label) {

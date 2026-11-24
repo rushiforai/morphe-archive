@@ -1,3 +1,9 @@
+## [1.6.0](https://github.com/lopikss/lopikss-patches/compare/v1.5.0...v1.6.0) (2026-11-24)
+
+### ✨ New Features
+
+* **xphero:** add experimental free party skill enhancements ([27eba16](https://github.com/lopikss/lopikss-patches/commit/27eba16c47a7037f78468f909ae3ed58c61a8ff4))
+
 ## [1.5.0](https://github.com/lopikss/lopikss-patches/compare/v1.4.0...v1.5.0) (2026-11-03)
 
 ### ✨ New Features

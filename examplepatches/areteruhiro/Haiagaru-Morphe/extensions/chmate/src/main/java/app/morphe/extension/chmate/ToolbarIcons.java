@@ -14,9 +14,9 @@ public final class ToolbarIcons {
     static final int AUTO_NG_EXCLUSIONS = 0x7e00000a;
     static final int FLOATING_FILTER = 0x7e000008;
     // Append only: existing files are addressed by their numeric index.
-    static final String[] NAMES = {"エッヂ過去ログ", "フィルタ", "すべて既読", "長押しコピー", "ﾜｯﾁｮｲ下4桁で検索", "ﾜｯﾁｮｲ上4桁で検索", "★スレのみ巡回", "フローティングのフィルター", "必死チェッカーDroid＋で開く", "自動NG除外ID", "対象スレ", "開いているスレ・板を一括更新", "標準アプリで書き込むを開く", "選択（レス複数選択）"};
-    static final String[] RESOURCES = {"haiagaru_edge_archive", "haiagaru_quick_filter", "haiagaru_mark_all_read", "haiagaru_direct_copy", "haiagaru_wacchoi_lower", "haiagaru_wacchoi_upper", "haiagaru_favorite_threads", "haiagaru_quick_filter", "haiagaru_hissi_droid_plus", "haiagaru_auto_ng_exclusions", "haiagaru_refresh_target_threads", "haiagaru_refresh_open_tabs", "haiagaru_stock_posting", "haiagaru_response_select"};
-    private static final int[] ACTION_IDS = {0x7e000001, 0x7e000002, 0x7e000003, 0x7e000004, 0x7e000005, 0x7e000006, FavoriteThreads.TAB, FLOATING_FILTER, 0x7e000009, AUTO_NG_EXCLUSIONS, HomeRefreshTargets.TAB, OpenTabsRefresh.ACTION, StockChmatePosting.ACTION, MultiResponseNg.TOOLBAR};
+    static final String[] NAMES = {"エッヂ過去ログ", "フィルタ", "すべて既読", "長押しコピー", "ﾜｯﾁｮｲ下4桁で検索", "ﾜｯﾁｮｲ上4桁で検索", "★スレのみ巡回", "フローティングのフィルター", "必死チェッカーDroid＋で開く", "自動NG除外ID", "対象スレ", "開いているスレ・板を一括更新", "標準アプリで書き込むを開く", "選択（レス複数選択）", "メモ"};
+    static final String[] RESOURCES = {"haiagaru_edge_archive", "haiagaru_quick_filter", "haiagaru_mark_all_read", "haiagaru_direct_copy", "haiagaru_wacchoi_lower", "haiagaru_wacchoi_upper", "haiagaru_favorite_threads", "haiagaru_quick_filter", "haiagaru_hissi_droid_plus", "haiagaru_auto_ng_exclusions", "haiagaru_refresh_target_threads", "haiagaru_refresh_open_tabs", "haiagaru_stock_posting", "haiagaru_response_select", "haiagaru_response_notes"};
+    private static final int[] ACTION_IDS = {0x7e000001, 0x7e000002, 0x7e000003, 0x7e000004, 0x7e000005, 0x7e000006, FavoriteThreads.TAB, FLOATING_FILTER, 0x7e000009, AUTO_NG_EXCLUSIONS, HomeRefreshTargets.TAB, OpenTabsRefresh.ACTION, StockChmatePosting.ACTION, MultiResponseNg.TOOLBAR, ResponseNotes.MENU};
     private static final Bitmap[] CACHE = new Bitmap[NAMES.length];
     private static final Bitmap[] DISPLAY_CACHE = new Bitmap[NAMES.length];
     private static final int[] DISPLAY_DENSITY = new int[NAMES.length];
@@ -45,6 +45,15 @@ public final class ToolbarIcons {
         Drawable base = context.getResources().getDrawable(id, context.getTheme()).mutate();
         base.setTint(tint);
         return replace(context, new PreviewItem(i), tint, base);
+    }
+    static int noteResource(Context context) {
+        int id=context.getResources().getIdentifier("haiagaru_response_notes","drawable",context.getPackageName());
+        return id==0?android.R.drawable.ic_menu_edit:id;
+    }
+    static Drawable noteIcon(Context context, int tint) {
+        Drawable base=context.getDrawable(noteResource(context)).mutate();
+        base.setTint(tint);
+        return replace(context,new PreviewItem(index(ResponseNotes.MENU)),tint,base);
     }
     /** Called only by the toolbar renderer, never by constructors, editors or serialization. */
     public static boolean visibleForToolbar(Object item, boolean selected) {

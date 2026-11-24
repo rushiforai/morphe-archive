@@ -128,7 +128,7 @@ public final class NuvioIntroDb {
                 Submission target;
                 try { target = new Submission(video, (Integer)NuvioAccess.currentSeason(state), (Integer)NuvioAccess.currentEpisode(state)); }
                 catch (IllegalArgumentException unavailable) { return; }
-                Object timeline = IntroUi.method(loader.loadClass("kotlinx.coroutines.flow.StateFlow"), "getValue", 0).invoke(IntroUi.field(controller, "H0"));
+                Object timeline = IntroUi.method(loader.loadClass("kotlinx.coroutines.flow.StateFlow"), "getValue", 0).invoke(IntroUi.field(controller, NuvioNative.CONTROLLER_SESSION_FIELD));
                 if ((Boolean)IntroUi.field(timeline, "d")) { if (draft != null) reset(); return; }
                 Draft current = draft;
                 String label = current == null ? "Submit segment: mark start" : current.review ? "Submit segment: review" :

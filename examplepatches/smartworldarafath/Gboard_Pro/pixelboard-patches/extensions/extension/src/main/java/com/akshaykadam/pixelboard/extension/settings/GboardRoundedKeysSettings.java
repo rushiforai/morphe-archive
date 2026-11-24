@@ -144,14 +144,18 @@ public final class GboardRoundedKeysSettings {
             SharedPreferences gboardPrefs = context.getSharedPreferences(
                     context.getPackageName() + "_preferences",
                     Context.MODE_PRIVATE);
-            if (enabled) {
-                gboardPrefs.edit()
-                        .putBoolean(GBOARD_PREF_KEY_ENABLE_ROUNDED_KEYS, true)
-                        .apply();
-            } else {
-                gboardPrefs.edit()
-                        .remove(GBOARD_PREF_KEY_ENABLE_ROUNDED_KEYS)
-                        .apply();
+            gboardPrefs.edit()
+                    .putBoolean(GBOARD_PREF_KEY_ENABLE_ROUNDED_KEYS, enabled)
+                    .commit();
+            try {
+                if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.N) {
+                    Context dps = context.createDeviceProtectedStorageContext();
+                    dps.getSharedPreferences(context.getPackageName() + "_preferences", Context.MODE_PRIVATE)
+                            .edit()
+                            .putBoolean(GBOARD_PREF_KEY_ENABLE_ROUNDED_KEYS, enabled)
+                            .commit();
+                }
+            } catch (Throwable ignored) {
             }
             Log.w(TAG, "[rounded-keys] gboard-pref=" + enabled);
         } catch (Throwable throwable) {

@@ -91,10 +91,7 @@ import app.morphe.extension.youtube.patches.shortsicons.ShortsIcons;
 import app.morphe.extension.youtube.patches.shorts.AnimationFeedbackPatch.AnimationType;
 import app.morphe.extension.youtube.patches.shorts.ShortsPatch.ShortsPlayerType;
 import app.morphe.extension.youtube.patches.spoof.SpoofVideoStreamsPatch;
-import app.morphe.extension.youtube.patches.swipe.SwipeControlsPatch.SwipeOverlayBrightnessColorAvailability;
-import app.morphe.extension.youtube.patches.swipe.SwipeControlsPatch.SwipeOverlaySeekColorAvailability;
-import app.morphe.extension.youtube.patches.swipe.SwipeControlsPatch.SwipeOverlaySpeedColorAvailability;
-import app.morphe.extension.youtube.patches.swipe.SwipeControlsPatch.SwipeOverlayVolumeColorAvailability;
+import app.morphe.extension.youtube.patches.swipe.SwipeControlsPatch.SwipeOverlayProgressColorAvailability;
 import app.morphe.extension.youtube.patches.theme.ThemePatch;
 import app.morphe.extension.youtube.patches.theme.ThemePatch.StatusBarTranslucency;
 import app.morphe.extension.shared.settings.preference.SeekBarPreference;
@@ -318,6 +315,8 @@ public class Settings extends SharedYouTubeSettings {
             new BooleanSetting("morphe_hide_feed_subtitle_views", FALSE, true);
     public static final BooleanSetting HIDE_FEED_SUBTITLE_AGE =
             new BooleanSetting("morphe_hide_feed_subtitle_age", FALSE, true);
+    public static final BooleanSetting HOME_FEED_CHANNEL_NAMES =
+            new BooleanSetting("morphe_home_feed_channel_names", FALSE, true);
     public static final IntegerSetting CUSTOM_DPI = new IntegerSetting("morphe_custom_dpi", 0,
             true, new SliderConfig(0, 1_000, 1, "dpi"));
     public static final BooleanSetting OPEN_CHANNEL_OF_LIVE_AVATAR = new BooleanSetting("morphe_open_channel_of_live_avatar", FALSE);
@@ -329,6 +328,8 @@ public class Settings extends SharedYouTubeSettings {
                     () -> !LocalQueuePatch.isEnabled() && !QueuePatch.isEnabled());
     public static final BooleanSetting QUEUE_ADD_FLYOUT_MENU =
             new BooleanSetting("morphe_queue_add_flyout_menu", TRUE, parentInverted(LOCAL_QUEUE));
+    public static final BooleanSetting QUEUE_THUMBNAIL_BUTTON =
+            new BooleanSetting("morphe_queue_thumbnail_button", FALSE, true);
 
     // PreferenceScreen: Feed - Carousel shelf
     public static final BooleanSetting HIDE_CAROUSEL_SHELF_HOME = new BooleanSetting("revanced_hide_carousel_shelf_home", FALSE);
@@ -632,6 +633,8 @@ public class Settings extends SharedYouTubeSettings {
     public static final BooleanSetting ENABLE_WIDE_SEARCH_BAR_IN_YOU_TAB = new BooleanSetting("revanced_enable_wide_search_bar_in_you_tab", FALSE, true,
             "revanced_enable_wide_search_bar_in_you_tab_user_dialog_message", parent(ENABLE_WIDE_SEARCH_BAR));
     public static final BooleanSetting HIDE_TOOLBAR_CAST_BUTTON = new BooleanSetting("revanced_hide_toolbar_cast_button", TRUE, true);
+    public static final BooleanSetting HIDE_TOOLBAR_COMPANION_BUTTON =
+            new BooleanSetting("morphe_hide_toolbar_companion_button", FALSE, true);
     public static final BooleanSetting HIDE_TOOLBAR_CREATE_BUTTON = new BooleanSetting("revanced_hide_toolbar_create_button", FALSE, true);
     public static final BooleanSetting HIDE_TOOLBAR_NOTIFICATION_BUTTON = new BooleanSetting("revanced_hide_toolbar_notification_button", FALSE, true);
     public static final BooleanSetting HIDE_TOOLBAR_MESSAGES_BUTTON =
@@ -953,6 +956,8 @@ public class Settings extends SharedYouTubeSettings {
     public static final EnumSetting<PlaybackSpeedMenuType> OVERLAY_BUTTON_SPEED_DIALOG_TYPE = new EnumSetting<>("revanced_overlay_button_speed_dialog_type", PlaybackSpeedMenuType.CUSTOM_MODERN, parent(OVERLAY_BUTTON_SPEED_DIALOG));
     public static final BooleanSetting OVERLAY_BUTTON_VIDEO_QUALITY =
             new BooleanSetting("revanced_overlay_button_video_quality", FALSE);
+    public static final BooleanSetting OVERLAY_BUTTON_VIDEO_QUALITY_RESOLUTION = new BooleanSetting(
+            "revanced_overlay_button_video_quality_resolution", FALSE, parent(OVERLAY_BUTTON_VIDEO_QUALITY));
     public static final BooleanSetting OVERLAY_BUTTON_PLAY_ALL = new BooleanSetting("revanced_overlay_button_play_all", FALSE);
     public static final EnumSetting<PlaylistIdPrefix> OVERLAY_BUTTON_PLAY_ALL_TYPE = new EnumSetting<>("revanced_overlay_button_play_all_type", PlaylistIdPrefix.ALL_CONTENTS_WITH_TIME_DESCENDING, parent(OVERLAY_BUTTON_PLAY_ALL));
     public static final BooleanSetting OVERLAY_BUTTON_WHITELIST = new BooleanSetting("revanced_overlay_button_whitelist", FALSE);
@@ -1021,6 +1026,8 @@ public class Settings extends SharedYouTubeSettings {
     public static final BooleanSetting FULLSCREEN_LARGE_SEEKBAR = new BooleanSetting("morphe_fullscreen_large_seekbar", FALSE);
     public static final BooleanSetting HIDE_TIME_STAMP = new BooleanSetting("revanced_hide_time_stamp", FALSE, true);
     public static final BooleanSetting THUMBNAIL_PREVIEW = new BooleanSetting("morphe_seekbar_thumbnail_preview", TRUE);
+    public static final BooleanSetting HIDE_THUMBNAIL_PREVIEW_BORDER =
+            new BooleanSetting("morphe_hide_seekbar_thumbnail_preview_border", FALSE, parent(THUMBNAIL_PREVIEW));
 
     // PreferenceScreen: Player - Video description
     public static final BooleanSetting DISABLE_ROLLING_NUMBER_ANIMATIONS = new BooleanSetting("revanced_disable_rolling_number_animations", FALSE);
@@ -1195,6 +1202,9 @@ public class Settings extends SharedYouTubeSettings {
     public static final EnumSetting<SwipeZoneAction> SWIPE_BOTTOM_ZONE = new EnumSetting<>(
             "revanced_swipe_bottom_zone", SwipeZoneAction.SPEED, true);
 
+    public static final BooleanSetting SWIPE_PORTRAIT = new BooleanSetting("revanced_swipe_portrait", FALSE, true,
+            new AnySwipeZoneAvailability());
+
     public static final LongSetting SWIPE_DELAY = new LongSetting("revanced_swipe_delay", 50L,
             true, new SliderConfig(0, 1_000, 10, "ms"), new AnySwipeZoneAvailability());
 
@@ -1211,16 +1221,28 @@ public class Settings extends SharedYouTubeSettings {
     public static final IntegerSetting SWIPE_MAGNITUDE_THRESHOLD = new IntegerSetting("revanced_swipe_threshold", 30,
             true, new SliderConfig(0, 100, 1, "px"),
             new AnySwipeZoneAvailability());
-    public static final EnumSetting<SwipeOverlayStyle> SWIPE_OVERLAY_STYLE = new EnumSetting<>("revanced_swipe_overlay_style", SwipeOverlayStyle.HORIZONTAL, true,
-            new AnySwipeZoneAvailability());
-    public static final StringSetting SWIPE_OVERLAY_BRIGHTNESS_COLOR = new StringSetting("revanced_swipe_overlay_progress_brightness_color", "#BFFFFFFF", true,
-            new SwipeOverlayBrightnessColorAvailability());
-    public static final StringSetting SWIPE_OVERLAY_VOLUME_COLOR = new StringSetting("revanced_swipe_overlay_progress_volume_color", "#BFFFFFFF", true,
-            new SwipeOverlayVolumeColorAvailability());
-    public static final StringSetting SWIPE_OVERLAY_SPEED_COLOR = new StringSetting("revanced_swipe_overlay_progress_speed_color", "#FFFFFF", true,
-            new SwipeOverlaySpeedColorAvailability());
-    public static final StringSetting SWIPE_OVERLAY_SEEK_COLOR = new StringSetting("revanced_swipe_overlay_progress_seek_color", "#FFFFFF", true,
-            new SwipeOverlaySeekColorAvailability());
+    public static final EnumSetting<SwipeOverlayStyle> SWIPE_OVERLAY_STYLE = new EnumSetting<>(
+            "revanced_swipe_overlay_style", SwipeOverlayStyle.HORIZONTAL, true, new AnySwipeZoneAvailability());
+    public static final EnumSetting<SwipeOverlayStyle> SWIPE_SIDE_OVERLAY_STYLE = new EnumSetting<>(
+            "revanced_swipe_side_overlay_style", SwipeOverlayStyle.FOLLOW_DEFAULT, true,
+            new SideSwipeZonesAvailability());
+    public static final EnumSetting<SwipeOverlayStyle> SWIPE_TOP_BOTTOM_OVERLAY_STYLE = new EnumSetting<>(
+            "revanced_swipe_top_bottom_overlay_style", SwipeOverlayStyle.FOLLOW_DEFAULT, true,
+            new HorizontalSwipeZonesAvailability());
+    public static final StringSetting SWIPE_OVERLAY_BACKGROUND_COLOR = new StringSetting(
+            "revanced_swipe_overlay_background_color", "#000000", true, new AnySwipeZoneAvailability());
+    public static final StringSetting SWIPE_OVERLAY_BRIGHTNESS_COLOR = new StringSetting(
+            "revanced_swipe_overlay_progress_brightness_color", "#BFFFFFFF", true,
+            new SwipeOverlayProgressColorAvailability(SwipeZoneAction.BRIGHTNESS));
+    public static final StringSetting SWIPE_OVERLAY_VOLUME_COLOR = new StringSetting(
+            "revanced_swipe_overlay_progress_volume_color", "#BFFFFFFF", true,
+            new SwipeOverlayProgressColorAvailability(SwipeZoneAction.VOLUME));
+    public static final StringSetting SWIPE_OVERLAY_SPEED_COLOR = new StringSetting(
+            "revanced_swipe_overlay_progress_speed_color", "#FFFFFF", true,
+            new SwipeOverlayProgressColorAvailability(SwipeZoneAction.SPEED));
+    public static final StringSetting SWIPE_OVERLAY_SEEK_COLOR = new StringSetting(
+            "revanced_swipe_overlay_progress_seek_color", "#FFFFFF", true,
+            new SwipeOverlayProgressColorAvailability(SwipeZoneAction.SEEK));
     public static final IntegerSetting SWIPE_OVERLAY_OPACITY = new IntegerSetting("revanced_swipe_overlay_background_opacity", 60,
             true, new SliderConfig(0, 100, 1, "%"),
             new AnySwipeZoneAvailability());

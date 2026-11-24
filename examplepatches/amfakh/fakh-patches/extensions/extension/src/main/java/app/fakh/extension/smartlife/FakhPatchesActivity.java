@@ -1,3 +1,8 @@
+/*
+ * Copyright 2026 amfakh
+ * SPDX-License-Identifier: GPL-3.0-only
+ */
+
 package app.fakh.extension.smartlife;
 
 import android.app.Activity;
@@ -15,8 +20,7 @@ import android.widget.LinearLayout;
 import android.widget.ScrollView;
 import android.widget.TextView;
 
-import java.util.Map;
-
+import app.fakh.extension.shared.Features;
 import app.fakh.extension.shared.I18n;
 import app.fakh.extension.shared.RestartBar;
 
@@ -62,17 +66,16 @@ public final class FakhPatchesActivity extends Activity {
         sections.setOrientation(LinearLayout.VERTICAL);
         int side = Math.round(16 * density);
         sections.setPadding(side, 0, side, side);
-        for (Map.Entry<String, Map<String, String>> section : Switches.SECTIONS.entrySet()) {
-            LinearLayout card = null;
-            for (Map.Entry<String, String> entry : section.getValue().entrySet()) {
-                if (!Switches.present(entry.getKey())) continue;
-                if (card == null) {
-                    sections.addView(header(I18n.tr(section.getKey()), density));
-                    card = card(density);
-                    sections.addView(card);
-                }
-                card.addView(row(inflater, card, entry.getKey(), I18n.tr(entry.getValue())));
+        LinearLayout card = null;
+        String section = null;
+        for (Features.Feature feature : Features.all()) {
+            if (!feature.section.equals(section)) {
+                section = feature.section;
+                sections.addView(header(I18n.tr(section), density));
+                card = card(density);
+                sections.addView(card);
             }
+            card.addView(row(inflater, card, feature));
         }
         ScrollView scroll = new ScrollView(this);
         scroll.addView(sections);
@@ -105,21 +108,21 @@ public final class FakhPatchesActivity extends Activity {
     }
 
     /**
-     * A switch row from the app's Touch Tone row layout. A change is saved at once; everything but dark device panels
-     * is set up when the app builds its screens, so a restart is offered for those.
+     * A switch row from the app's Touch Tone row layout. A change is saved at once, and a restart is offered for the
+     * switches that are read when the app builds its screens.
      */
-    private View row(LayoutInflater inflater, ViewGroup card, String key, String label) {
+    private View row(LayoutInflater inflater, ViewGroup card, Features.Feature feature) {
+        String label = I18n.tr(feature.title);
         View row = inflater.inflate(id("baselist_delegate_text_switch2", "layout"), card, false);
         row.setBackground(null);
         TextView title = row.findViewById(id("menu_list_title", "id"));
         CompoundButton toggle = row.findViewById(id("sb_subtitle", "id"));
         title.setText(label);
         toggle.setContentDescription(label);
-        String description = Switches.DESCRIPTIONS.get(key);
-        if (description != null) {
+        if (!feature.description.isEmpty()) {
             // The row has no line for a description: it goes under the title, in the app's secondary text color.
             TextView about = new TextView(this);
-            about.setText(I18n.tr(description));
+            about.setText(I18n.tr(feature.description));
             about.setTextSize(TypedValue.COMPLEX_UNIT_SP, 12);
             about.setTextColor(color("thing_theme_color_b6_n3"));
             about.setPadding(0, Math.round(2 * getResources().getDisplayMetrics().density), 0, 0);
@@ -139,13 +142,13 @@ public final class FakhPatchesActivity extends Activity {
         }
         // The app's SwitchButton animates setChecked and shows the state at once only through setCheckedImmediately.
         try {
-            toggle.getClass().getMethod("setCheckedImmediately", boolean.class).invoke(toggle, Switches.on(key));
+            toggle.getClass().getMethod("setCheckedImmediately", boolean.class).invoke(toggle, Features.saved(feature.id));
         } catch (ReflectiveOperationException failure) {
-            toggle.setChecked(Switches.on(key));
+            toggle.setChecked(Features.saved(feature.id));
         }
         toggle.setOnCheckedChangeListener((button, checked) -> {
-            Switches.set(key, checked);
-            if (!Switches.DARK_PANELS.equals(key)) RestartBar.show(this, 0);
+            Features.set(feature.id, checked);
+            if (feature.restart) RestartBar.show(this, 0);
         });
         return row;
     }

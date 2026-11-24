@@ -54,7 +54,7 @@ final class ReadActions {
     /** Consumes only our private action, including stale or invalid requests. */
     static boolean handle(Context context, Intent intent) {
         if (intent == null || !ACTION.equals(intent.getAction())) return false;
-        if (!Settings.enabled(Settings.READ)) return true;
+        if (!Settings.readActionActive()) return true;
         try {
             String account = intent.getStringExtra(ACCOUNT);
             String chat = intent.getStringExtra(CHAT);
@@ -109,7 +109,7 @@ final class ReadActions {
                                 default: throw new UnsupportedOperationException("Unexpected read observer method");
                             }
                         });
-                if (!Settings.enabled(Settings.READ) || !account.equals(NativeLine.account())) {
+                if (!Settings.readActionActive() || !account.equals(NativeLine.account())) {
                     BUSY.remove(key);
                     return true;
                 }
@@ -128,7 +128,7 @@ final class ReadActions {
         return true;
     }
 
-    private static String identity(String account, String chat) {
+    static String identity(String account, String chat) {
         try {
             byte[] digest = MessageDigest.getInstance("SHA-256")
                     .digest((account + "\n" + chat).getBytes(StandardCharsets.UTF_8));

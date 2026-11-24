@@ -26,7 +26,9 @@ import android.annotation.SuppressLint;
 import android.annotation.TargetApi;
 import android.app.Activity;
 import android.app.AlertDialog;
+import android.content.Intent;
 import android.content.res.ColorStateList;
+import android.content.res.Configuration;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Insets;
@@ -53,6 +55,9 @@ import android.widget.ScrollView;
 import android.widget.TextView;
 
 import app.hxreborn.extension.shared.Dimensions;
+import app.hxreborn.extension.shared.HostedComponents;
+import app.hxreborn.extension.shared.patchesmenu.MenuLayout;
+import app.hxreborn.extension.shared.patchesmenu.SwitchChangeListener;
 
 @TargetApi(Build.VERSION_CODES.Q)
 @SuppressLint("UseRequiresApi")
@@ -141,25 +146,42 @@ abstract class HostScreenActivity extends Activity {
 
     private LinearLayout topBar;
 
+    private int nightMode;
+
+    static int screenTheme() {
+        return 0;
+    }
+
+    @Override
+    public void startActivityForResult(Intent intent, int requestCode, Bundle options) {
+        Intent routed = HostedComponents.routeOrShowUnreachableMessage(this, intent);
+        if (routed != null) {
+            super.startActivityForResult(routed, requestCode, options);
+        }
+    }
+
     @Override
     @SuppressWarnings("deprecation")
     protected void onCreate(Bundle savedInstanceState) {
+        int theme = screenTheme();
+        if (theme != 0) {
+            setTheme(theme);
+        }
         requestWindowFeature(Window.FEATURE_NO_TITLE);
         super.onCreate(savedInstanceState);
+        this.nightMode = nightMode(getResources().getConfiguration());
         this.palette = HostPalette.of(this);
 
-        final LinearLayout root = new LinearLayout(this);
-        root.setOrientation(LinearLayout.VERTICAL);
+        final LinearLayout root = MenuLayout.createColumn(this);
         root.setBackgroundColor(this.palette.bar);
         root.addView(topBar(), new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, dp(TOP_BAR_DP)));
 
         this.scroll = new ScrollView(this);
         this.scroll.setBackgroundColor(this.palette.header);
-        this.list = new LinearLayout(this);
-        this.list.setOrientation(LinearLayout.VERTICAL);
+        this.list = MenuLayout.createColumn(this);
         this.scroll.addView(this.list,
                 new FrameLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT));
-        root.addView(this.scroll, new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, 0, 1f));
+        MenuLayout.addWeightedContent(root, this.scroll);
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
             root.setOnApplyWindowInsetsListener((view, insets) -> {
@@ -175,6 +197,18 @@ abstract class HostScreenActivity extends Activity {
         getWindow().getDecorView().setSystemUiVisibility(lightBars);
         setContentView(root);
         buildContent();
+    }
+
+    @Override
+    public void onConfigurationChanged(Configuration newConfig) {
+        super.onConfigurationChanged(newConfig);
+        if (nightMode(newConfig) != this.nightMode) {
+            recreate();
+        }
+    }
+
+    private static int nightMode(Configuration configuration) {
+        return configuration.uiMode & Configuration.UI_MODE_NIGHT_MASK;
     }
 
     abstract String screenTitle();

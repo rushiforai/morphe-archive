@@ -1,0 +1,5 @@
+file(READ "${SRC_DIR}/CMakeLists.txt" CONTENT)
+string(REPLACE "message(FATAL_ERROR \"The libjpeg-turbo build system cannot be integrated into another build system using add_subdirectory().  Use ExternalProject_Add() instead.\")" "message(STATUS \"libjpeg-turbo integrated via FetchContent\")" NEW_CONTENT "${CONTENT}")
+if(NOT "${CONTENT}" STREQUAL "${NEW_CONTENT}")
+  file(WRITE "${SRC_DIR}/CMakeLists.txt" "${NEW_CONTENT}")
+endif()

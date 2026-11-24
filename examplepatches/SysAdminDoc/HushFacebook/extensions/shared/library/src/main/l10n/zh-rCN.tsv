@@ -67,7 +67,7 @@ Export settings	导出设置
 Facebook crashed or froze within a minute of starting three times in a row, so Hushfacebook paused itself.	Facebook 连续三次在启动后一分钟内崩溃或卡死，因此 Hushfacebook 已自行暂停。
 Facebook no longer downloads ads, or the data it uses to pick them, in the background.	Facebook 不再在后台下载广告或用于挑选广告的数据。
 Facebook doesn't show its ads inside other apps on this phone.	Facebook 不会在这部手机上的其他应用内展示它的广告。
-Dark mode and this screen use colors from your wallpaper (blue on Android 11). Turn on dark mode in Facebook to see it.	深色模式和此页面使用壁纸中的颜色（Android 11 上为蓝色）。请在 Facebook 中开启深色模式后查看。
+Dark mode and this screen use colors from your wallpaper (blue on Android 11). Turn it off to go back to the old colors without patching again. Restart Facebook to see the change.	深色模式和此页面使用壁纸中的颜色（Android 11 上为蓝色）。关闭后无需重新修补即可恢复原来的颜色。重启 Facebook 后可看到更改。
 Hide Stories between posts	隐藏帖子之间的快拍
 Joining the picture and sound	正在合并画面和声音
 # context: summary of the Pause Hushfacebook switch; Debug logging and Lock Facebook are the two switches a pause leaves working
@@ -310,7 +310,7 @@ The Follow button next to the reel's author. You can still follow them from thei
 Hide comment and reaction previews	隐藏评论和回应预览
 The comment Facebook previews under a reel and the bubbles of friends who reacted. Open the comments to see them all.	Facebook 在 Reels 下方预览的评论，以及回应过的好友的气泡。打开评论可查看全部。
 Hide Threads cards between reels	隐藏 Reels 之间的 Threads 卡片
-Hides the "Threads you might like" card between reels. Off by default, since it hasn't been tried on a real account yet.	隐藏 Reels 之间的“你可能喜欢的 Threads”卡片。默认关闭，因为尚未在真实账号上试过。
+Hides the "Threads you might like" card and other Meta promotions between reels. Off by default, since it hasn't been tried on a real account yet.	隐藏 Reels 之间的“你可能喜欢的 Threads”卡片和其他 Meta 推广。默认关闭，因为尚未在真实账号上试过。
 Hide post cards between reels	隐藏 Reels 之间的帖子卡片
 Hides the carousels of posts Facebook puts between reels, like "Catch up on conversations" from your groups. Off by default.	隐藏 Facebook 插在 Reels 之间的帖子轮播，比如来自你小组的“跟上对话”。默认关闭。
 Only reels from accounts I follow	只看我关注的账号的 Reels
@@ -590,6 +590,7 @@ Hide Repost under posts	隐藏帖子下方的转发
 Hide Share under posts	隐藏帖子下方的分享
 # context: switch title under News feed; Send is Facebook's own button under a post that sends it in a chat
 Hide Send under posts	隐藏帖子下方的发送
+Hide Save under posts	隐藏帖子下方的保存
 # context: summary shared by those five switches
 Takes this button out of the row under posts in the feed. The other buttons stay, and a post with all of its buttons hidden shows no row.	从动态中帖子下方的按钮行里移除这个按钮。其他按钮保留，所有按钮都隐藏的帖子不显示按钮行。
 # context: switch title under News feed; the buttons are Like, Comment, Share and the others in the row under a post
@@ -1081,6 +1082,11 @@ Fold long posts will fold posts where Facebook does.	“折叠长帖子”将在
 Fold long posts will show %1$s before See more.	“折叠长帖子”将在“展开”前显示 %1$s.
 Fold long comments will fold comments where Facebook does.	“折叠长评论”将在 Facebook 折叠的位置折叠评论.
 Fold long comments will show %1$s before See more.	“折叠长评论”将在“展开”前显示 %1$s.
+Fold reel captions	折叠短视频说明
+Long reel captions fold where Facebook folds them.	长短视频说明在 Facebook 折叠的位置折叠.
+A long reel caption shows %1$s before more.	长短视频说明在“更多”前显示 %1$s.
+Fold reel captions will fold captions where Facebook does.	“折叠短视频说明”将在 Facebook 折叠的位置折叠说明.
+Fold reel captions will show %1$s before more.	“折叠短视频说明”将在“更多”前显示 %1$s.
 Show full reel captions	显示完整短视频说明
 Long captions on reels show all of their text right away. Tap the caption to fold it back. A change shows from the next reel.	短视频的长说明会直接显示全部文字。点按说明即可重新折叠。更改从下一个短视频开始生效。
 # context: switch title under Reels and Watch, below Show full reel captions; once a reel's caption is opened, a dark see-through box sits behind its text, like movie subtitles
@@ -1092,7 +1098,7 @@ A folded reel caption, the short one with more at the end, sits on the same dark
 # context: switch title under Reels and Watch, below the caption boxes; the name of who posted a reel, at its bottom, gets the same dark see-through box
 Dark box behind reel names	短视频名字加深色底框
 # context: summary of that switch
-The name at the bottom of a reel sits on the same dark box, so it's easy to read over a bright video. A change shows from the next reel.	短视频底部的名字也会显示在同样的深色底框上，在明亮的视频上也容易看清。更改从下一个短视频开始生效。
+The name at the bottom of a reel, with the date and details under it, sits on the same dark box, so it's easy to read over a bright video. A change shows from the next reel.	短视频底部的名字及其下方的日期和详情也会显示在同样的深色底框上，在明亮的视频上也容易看清。更改从下一个短视频开始生效。
 # context: row title under Reels and Watch and its dialog title; how dark every box behind captions and names is, as a percent of black
 Box darkness	底框深浅
 # context: the message in that row's dialog; %1$s and %2$s are the lowest and highest percent, %3$s the percent a blank row gives
@@ -1454,7 +1460,7 @@ Adds an eye button to the top of each story while you view anonymously. Tap it t
 # context: what TalkBack reads for the eye button over a story while that story is still hidden from its viewer list
 Mark as seen	标为已看
 # context: what TalkBack reads for the eye button once the story is marked and waiting to be sent; a second tap takes the mark back
-Marked as seen. Tap again to undo.	已标为已看。再次点按可撤销。
+Marked as seen	已标为已看
 # context: what TalkBack reads for the eye button once the marked story was sent as seen
 Marked as seen and sent	已标为已看并已发送
 # context: the word lists' dialogs, after their first paragraph: a line between slashes is a regular expression; %1$d is how many a list holds, %2$d the most characters each
@@ -1855,7 +1861,7 @@ Shows a small button at the left edge of a reel or video that has the window rea
 # context: switch title under Playback; on, a video you started keeps its sound after you leave Facebook; also the label of a headphones button in the picture-in-picture window
 Keep playing in the background	在后台继续播放
 Next reel in the background	在后台播放下一个 Reels
-When a reel playing in the background ends, the next reel plays instead of the same one again. It goes through the reels Reels had loaded when you left. Works with Keep playing in the background on.	在后台播放的 Reels 结束后，会播放下一个，而不是重复播放同一个。会依次播放你离开时 Reels 已加载的内容。需开启“在后台继续播放”。
+When a reel playing in the background ends, the next reel plays instead of the same one again, and Reels keeps loading more as it goes. Works with Keep playing in the background on.	在后台播放的 Reels 结束后，会播放下一个，而不是重复播放同一个，Reels 也会继续加载更多。需开启“在后台继续播放”。
 # context: summary of that switch; the notification is the one Facebook shows with the video's play and pause buttons
 A video you started with a tap, or a reel you swiped to in Reels, keeps its sound after you leave Facebook, and its notification can pause it. Swiping the notification away or taking a call stops it.	你点按开始播放的视频，或在 Reels 中滑到的短视频，在离开 Facebook 后仍会继续播放声音，可通过其通知暂停。滑走通知或接听电话会停止播放。
 # context: title of that notification when the video has none of its own
@@ -2093,6 +2099,10 @@ A video you open from Saved goes on to the next one in Saved when it ends or whe
 Stay on a saved video when it ends	收藏的视频播完后停留
 # context: summary of that switch
 A saved video that ends stays on screen instead of opening the next one. Swipe up when you want the next.	收藏的视频播完后停留在屏幕上，不会打开下一个。想看下一个时向上滑动。
+# context: switch title under Play saved videos in a row; on, a saved post the row reaches stays on screen instead of being skipped, and a swipe past its end moves on
+Show saved posts in the row	在连播中显示已保存的帖子
+# context: summary of that switch
+A saved post in the row stays on screen instead of being skipped. Swipe up past its end for the next saved video, or down past its top for the one before.	连播中的已保存帖子会留在屏幕上，而不是被跳过。到帖子末尾时上滑可播放下一个已保存视频，在顶部时下滑可回到上一个。
 # context: switch title under Reels and Watch; on, Facebook stops pausing reels and videos to ask "Are you still watching?", which is Facebook's own prompt, so use the wording Facebook shows in this language
 Skip "Are you still watching?"	跳过“你还在看吗？”
 # context: summary of that switch; reels and videos go on to the next one by themselves
@@ -2413,6 +2423,10 @@ Show Comment when comments are off	评论关闭时仍显示“评论”
 Show the post date on reels	在 Reels 上显示发布日期
 Shows when a reel or a video you open full screen was posted, under the name of who posted it. A change shows from the next reel.	在发布者的名字下方显示 Reel 或全屏打开的视频是什么时候发布的。从下一个 Reel 开始生效。
 Keeps the Comment button on reels whose comments are turned off, so you can still read the ones already there. A change shows from the next reel.	在关闭了评论的 Reels 上保留“评论”按钮，让你仍能阅读已有的评论。从下一个 Reel 开始生效。
+# context: switch title under Reels; on, a long video in the Reels viewer (a film or a live replay) gets Facebook's Like, Comment, Share and Save buttons down its right side, which Facebook leaves off
+Side buttons on long videos	长视频的侧边按钮
+# context: summary of that switch; Like, Comment, Share and Save are Facebook's own button names
+Brings back Like, Comment, Share and Save down the side of a long video in the Reels viewer, where Facebook leaves them off. A change shows from the next video.	在 Reels 查看器中为长视频侧边找回赞、评论、分享和收藏按钮，Facebook 原本不显示它们。更改从下一个视频起生效。
 Select part of a post's text	选择帖子文字的一部分
 Holding a post's text opens it in a box where you can select just the part you want and copy that, or copy all of it. The hold itself copies nothing.	长按帖子文字会在一个框中打开，你可以只选择想要的部分并复制，或者全部复制。长按本身不会复制任何内容。
 Hold a feed photo to react	长按动态消息照片来发表心情
@@ -2635,6 +2649,8 @@ After %1$d seconds	%1$d 秒后
 # context: Reels: Burn-in guard's switch that keeps the faded buttons faded while you tap
 Stay dim when I tap	点按时保持淡化
 Once Burn-in guard fades the buttons, they stay faded on Reels whatever you tap or swipe, the next reel too. They still work. Leaving Reels brings them back.	防烧屏保护淡化按钮后，无论在 Reels 点按或滑动什么，按钮都会保持淡化，下一个 Reel 也一样。按钮仍可使用，离开 Reels 后会恢复显示。
+Tap the video to bring them back	点按视频即可恢复
+Once Burn-in guard fades the buttons, a tap on the video brings them back without pausing it. The next tap pauses as usual.	防烧屏保护淡化按钮后，点按视频即可恢复显示，且不会暂停视频。再次点按会照常暂停。
 # context: Reels: Burn-in guard's row for how much of the dimmed buttons, caption and bars still shows, a percent typed in
 Dim to	淡化程度
 How much of the buttons, caption and bars still shows once they dim, in percent, from %1$s to %2$s. Leave it blank for %3$s.	按钮、说明文字和栏淡化后仍显示的程度，按百分比计，范围 %1$s 到 %2$s。留空则使用 %3$s。
@@ -2720,6 +2736,10 @@ Hide friends' reactions on photos and videos	隐藏照片和视频上的好友�
 Takes away the friend's picture with a reaction on it that Facebook puts on a photo or video when a friend reacted. A change shows on the posts drawn after it.	去掉好友回应后 Facebook 放在照片或视频上的好友头像和回应图标。更改会在之后加载的帖子上生效。
 Hide who reacted under posts	隐藏帖子下方的回应者
 Takes away the line under a post that names who reacted, like "Name and others reacted". A change shows on the posts drawn after it.	去掉帖子下方显示谁回应了的那一行，例如“某人和其他人回应了”。更改会在之后加载的帖子上生效。
+# context: switch title under News feed; on, a post whose author turned comments off or limited who can comment keeps Facebook's Comment button, so its comments can still be read
+Show Comment on posts with comments off	在关闭评论的帖子上显示“评论”
+# context: summary of that switch; Comment is Facebook's own button name
+Keeps the Comment button on posts whose author turned comments off or limited who can comment, so you can still read the ones already there. A change shows on the posts drawn after it.	在作者关闭了评论或限制了谁能评论的帖子上保留“评论”按钮，让你仍能阅读已有的评论。更改会在之后加载的帖子上生效。
 Hide the Reels title	隐藏 Reels 标题
 Takes the word Reels off the top of the Reels tab. The buttons beside it stay.	去掉 Reels 标签页顶部的 Reels 字样。旁边的按钮保留。
 Hide Back on opened videos	隐藏已打开视频的返回按钮
@@ -2797,12 +2817,16 @@ Shows a thin bar along the bottom of a story that fills as it plays, like the on
 Seek bar on stories	快拍上的进度条
 Plain slide between people	不同人之间改为平移切换
 Swiping to the next or previous person's stories slides them across instead of turning them like a cube. Applies from your next swipe.	滑到下一个或上一个人的快拍时，画面会平移过去，而不是像立方体那样转动。从你下一次滑动开始生效。
+Show the time on every story	在每条快拍上显示时间
+Stories that leave out how long ago they were posted, like a Page's, show it next to the name the way a friend's story does. Applies from the next story you open.	没有显示发布时间的快拍（例如公共主页的快拍）会像好友的快拍一样在名字旁显示。从你打开的下一条快拍开始生效。
 Fade the story seek bar	淡化快拍进度条
 Story position	快拍播放位置
 Shows a bar along the bottom of a video story that you drag to move through it. The story waits while you drag. Progress bar at the bottom makes way for it on video stories.	在视频快拍底部显示一条可以拖动的进度条，用来在快拍里前后移动。拖动时快拍会等你松手。在视频快拍上，“底部进度条”会给它让位。
 With Seek bar on stories on, the bar fades a few seconds after the story starts or you last touched it. A touch or a pause brings it back.	开启“快拍上的进度条”后，进度条会在快拍开始或你最后一次触碰几秒后变淡。触碰或暂停就会恢复。
 Clean mode	简洁模式
 Clean mode button on reels	短视频上的简洁模式按钮
+Faint Clean mode button	淡化简洁模式按钮
+Facebook's button for leaving Clean mode shows faint, so the text in the video under it stays readable. It still works when you tap it.	Facebook 用于退出简洁模式的按钮会淡化显示，下方视频里的文字依然清晰可读。点按它仍然有效。
 Adds a Clean mode button to the buttons down the side of a reel. Tap it to hide them, and Clean mode stays on as you swipe. Facebook's own Clean mode button brings them back.	在短视频侧边的按钮中添加简洁模式按钮。点按它即可隐藏这些按钮，滑动时简洁模式会保持开启。Facebook 自带的简洁模式按钮可让它们重新显示。
 Open chats in Messenger	在 Messenger 中打开聊天
 Opens chats in the Messenger app instead of inside Facebook, the Message button on a profile included, while Messenger is installed and enabled. Without Messenger, chats stay in Facebook. Restart Facebook after changing it.	在 Messenger 应用中打开聊天，而不是在 Facebook 内打开，包括个人主页上的“发消息”按钮，前提是 Messenger 已安装并启用。没有 Messenger 时，聊天仍在 Facebook 中打开。更改后请重新启动 Facebook。
@@ -3124,7 +3148,7 @@ The time or date under the poster's name is bold, like the name.	发布者姓名
 Show full names	显示完整名字
 A long name at the top of a post wraps onto the next line instead of ending in "...". A name that fits still takes one line.	帖子顶部的长名字会换到下一行，而不是以“...”结尾。放得下的名字仍只占一行。
 Dark box behind feed video names	动态消息视频名字的深色底框
-When a video in your feed has the poster's name on top of the video, that name sits on the same dark box. A change shows on the posts drawn after it.	当动态消息中的视频把发布者姓名显示在视频上时，这个名字也会显示在同样的深色底框上。更改在之后加载的帖子上生效。
+When a video in your feed has the poster's name on top of the video, that name and the date under it sit on the same dark box. A change shows on the posts drawn after it.	当动态消息中的视频把发布者姓名显示在视频上时，这个名字和下方的日期也会显示在同样的深色底框上。更改在之后加载的帖子上生效。
 Quality settings	画质设置
 Request community note	申请社区笔记
 Something went wrong	出了点问题

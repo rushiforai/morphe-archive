@@ -30,4 +30,14 @@ internal object Overrides {
      * getter, so a forced return value there is invisible to it.
      */
     val nativeBooleans = LinkedHashMap<String, Boolean>()
+
+    /**
+     * `CONFIG_VALUE_*` Long keys written into Waze's native config store with an absolute value.
+     * The alert engine reads its policy natively, so a value forced only in the Java getter is
+     * invisible to it - that is why alert distances looked dead on device.
+     */
+    val nativeLongs = LinkedHashMap<String, Long>()
+
+    /** `CONFIG_VALUE_*` String keys written into the native config store. */
+    val nativeStrings = LinkedHashMap<String, String>()
 }

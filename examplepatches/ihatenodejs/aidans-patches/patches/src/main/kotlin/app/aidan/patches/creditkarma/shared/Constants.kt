@@ -15,6 +15,6 @@ val COMPATIBILITY_CREDIT_KARMA = Compatibility(
         "f5ae9364524d92be9eb436eb7436d7c9efa9e1b4e823b0db6bc3989a4d84d0bf"
     ),
     targets = listOf(
-        AppTarget(version = "26.40", minSdk = 32)
+        AppTarget(version = "26.47", minSdk = 32)
     )
 )

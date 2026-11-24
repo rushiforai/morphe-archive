@@ -6,7 +6,6 @@ Burn-in guard	حماية من الاحتراق
 Couldn't add the caption. Saving without it.	تعذرت إضافة الوصف. سيتم الحفظ بدونه.
 Dim when idle	تعتيم عند الخمول
 Dim when idle and shift	تعتيم عند الخمول والإزاحة
-For OLED screens. After 5 seconds without a touch, the buttons, caption and tabs over the video dim to a quarter, and your next touch brings them back. Shift also moves everything on the feed a few pixels every 2 minutes.	لشاشات OLED. بعد 5 ثوان بدون لمس، تخفت الأزرار والتسمية والتبويبات فوق الفيديو إلى الربع، وتعيدها لمستك التالية. كما تحرك الإزاحة كل شيء في الخلاصة بضعة بكسلات كل دقيقتين.
 Hashtags	علامات الهاشتاج
 Importing new history ended Undo for the earlier clear. You can clear the imported history.	استيراد سجل جديد أنهى إمكانية التراجع عن المسح السابق. يمكنك مسح السجل المستورد.
 %1$d setting in that file can't be restored here and was skipped	%1$d إعداد في هذا الملف لا يمكن استعادته هنا وتم تخطيه
@@ -1642,6 +1641,8 @@ One speed from %1$s to %2$s, like 1.8, for the hold and its pull-down lock. It t
 Enter one speed from %1$s to %2$s	أدخل سرعة واحدة من %1$s إلى %2$s
 Slide to change the hold speed	اسحب لتغيير سرعة الضغط المطول
 Hold speed bubble style	نمط فقاعة سرعة التثبيت
+Hold speed bubble size	حجم فقاعة سرعة التثبيت
+How big the bubble is drawn, from %1$d to %2$d. 100 is the normal size, which already grows with your phone's font size.	حجم رسم الفقاعة، من %1$d إلى %2$d. القيمة 100 هي الحجم العادي، وهو يكبر أصلًا مع حجم خط هاتفك.
 Pill	كبسولة
 Circle	دائرة
 Pill is the wide bubble with a row of dots under the speed. Circle is a small round dial with a notch for each speed around its edge.	الكبسولة هي الفقاعة العريضة مع صف من النقاط تحت السرعة. الدائرة هي قرص صغير مستدير مع شق لكل سرعة حول حافتها.
@@ -3458,3 +3459,32 @@ Skips the part of a video where a caption line has a word from Promo words, like
 Promo words	كلمات الترويج
 Separate words or phrases with commas, like casino, promo code. Capital letters don't matter, and "a" & "b" or "a" !& "b" work as they do for Blocked caption words.	افصل الكلمات أو العبارات بفواصل، مثل casino, promo code. لا تهم الأحرف الكبيرة، و"a" & "b" أو "a" !& "b" تعمل كما تعمل في كلمات الوصف المحظورة.
 Skipped a promo line	تم تخطي سطر ترويجي
+Country and date text size	حجم نص البلد والتاريخ
+Use 0 to match the post date's size, or %1$d to %2$d. Sizes only the line under the caption and keeps Android's font scaling.	استخدم 0 ليطابق حجم تاريخ المنشور، أو من %1$d إلى %2$d. يغيّر حجم السطر تحت الوصف فقط ويحافظ على تكبير الخط في Android.
+Post date's size	حجم تاريخ المنشور
+Country and date opacity	عتامة البلد والتاريخ
+How solid the line under the caption is drawn, from 10 to 100. Lower lets more of the video show through.	مدى وضوح السطر تحت الوصف، من 10 إلى 100. القيمة الأقل تُظهر المزيد من الفيديو خلفه.
+Shadow under the country and date	ظل تحت البلد والتاريخ
+Draws a dark shadow under the line's letters so it stays readable on bright videos.	يرسم ظلا داكنا تحت حروف السطر ليبقى مقروءا على مقاطع الفيديو الساطعة.
+Tap brings the controls back	النقر يعيد عناصر التحكم
+A tap shows the hidden controls again instead of pausing the video. They hide again after the delay, or after %1$d seconds if the delay is shorter.	النقرة تُظهر عناصر التحكم المخفية مجددا بدلا من إيقاف الفيديو مؤقتا. تختفي مرة أخرى بعد التأخير، أو بعد %1$d ثوان إذا كان التأخير أقصر.
+For OLED screens. After 5 seconds without a touch, the buttons, caption and tabs over the video dim to the level below, and your next touch brings them back. Shift also moves everything on the feed a few pixels every 2 minutes.	لشاشات OLED. بعد 5 ثوان بدون لمس، تخفت الأزرار والتسمية والتبويبات فوق الفيديو إلى المستوى أدناه، وتعيدها لمستك التالية. كما تحرك الإزاحة كل شيء في الخلاصة بضعة بكسلات كل دقيقتين.
+Burn-in guard dim level	مستوى تعتيم الحماية من الاحتراق
+How solid the buttons, caption and tabs are while dimmed, from %1$d to %2$d. Lower dims them more.	مدى وضوح الأزرار والتسمية والتبويبات أثناء التعتيم، من %1$d إلى %2$d. القيمة الأقل تعتّمها أكثر.
+# context: #501 Fade the controls out, a switch under Automatic Clear display
+Fade the controls out	إخفاء عناصر التحكم بالتلاشي
+The buttons, caption and tabs fade away instead of vanishing at once, and a touch during the fade brings them back. With Android's animations turned off they still vanish at once.	تتلاشى الأزرار والتسمية والتبويبات تدريجيًا بدلًا من أن تختفي فجأة، ولمسة أثناء التلاشي تعيدها. عند إيقاف الرسوم المتحركة في Android تختفي فجأة كما كانت.
+# context: #461 Date instead of age, a switch under Write the month as a word
+Date instead of age	التاريخ بدل العمر
+Recent videos show the date they were posted by the creator's name, like 10-12, in place of an age like 2d ago. Day before month and Write the month as a word change it the same way.	تعرض الفيديوهات الحديثة تاريخ نشرها بجانب اسم صانع المحتوى، مثل 10-12، بدلًا من عمر مثل منذ يومين. يغيّر «اليوم قبل الشهر» و«اكتب الشهر بالاسم» شكله بالطريقة نفسها.
+# context: #503 Keep your place in chats, an Inbox switch under Show message times; the down arrow is the button that jumps a chat to its newest message
+Keep your place in chats	الحفاظ على موضعك في الدردشات
+A chat you've scrolled up in stays where you were when you come back from a video or send a reply. Sending a regular message or tapping the down arrow still takes you to the newest.	تبقى الدردشة التي مررت فيها للأعلى حيث كنت عند عودتك من فيديو أو عند إرسال رد. إرسال رسالة عادية أو النقر على سهم الأسفل لا يزال ينقلك إلى الأحدث.
+# context: #505 Fill wide videos too, a Playback switch right under Fill the screen with the video; it crops landscape and square videos to cover a phone held upright, which Fill alone leaves whole
+Fill wide videos too	املأ الشاشة بالفيديوهات العريضة أيضًا
+With the switch above on, landscape and square videos are cropped to cover the screen too, so only their middle shows. Off, they stay whole.	عند تشغيل المفتاح أعلاه، تُقص الفيديوهات الأفقية والمربعة أيضًا لتغطي الشاشة، فيظهر وسطها فقط. عند إيقافه تبقى كاملة.
+# context: Inbox > Streak: a random daily send time (#507)
+Random time each day	وقت عشوائي كل يوم
+Sends at a different time each day, somewhere between When to send and Latest time.	يرسل في وقت مختلف كل يوم، في وقت ما بين وقت الإرسال وآخر وقت.
+Latest time	آخر وقت
+The end of the random window, on the same day as When to send. If it isn't later, the message goes at When to send.	نهاية النافذة العشوائية، في نفس يوم وقت الإرسال. إذا لم يكن لاحقًا، تُرسل الرسالة في وقت الإرسال.

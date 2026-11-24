@@ -11,13 +11,14 @@ public final class PatchSettingsBackup {
         MERGED, "santodan_nuvio_remaining_episodes", "santodan_nuvio_airing_series",
         "santodan_nuvio_finale_dates", "santodan_nuvio_movie_release_dates",
         "santodan_nuvio_date_label_style", "santodan_stream_preload", "santodan_current_stream",
-        "santodan_playback_buttons", "santodan_introdb"
+        "santodan_playback_buttons", "santodan_introdb", LabelCustomization.SCOPE
     };
     private PatchSettingsBackup() {}
 
     // The expected preference type is also the serialized type; longs stay decimal strings
     // to preserve packed Compose colors without JSON floating-point precision loss.
     public static String type(String scope, String key) {
+        if (scope.equals(LabelCustomization.SCOPE)) return LabelCustomization.type(key);
         if (scope.equals(MERGED)) {
             if (Arrays.asList("enabled", "show_provider", "quick_startup_sync").contains(key)) return "boolean";
             if (key.equals("strategy") || key.matches("snapshot_v2_[0-9]+_main")
@@ -93,7 +94,7 @@ public final class PatchSettingsBackup {
             String scope = scopes.next();
             if (!scope(scope)) throw new IllegalArgumentException("Unknown settings group");
             JSONObject entries = stores.getJSONObject(scope);
-            if (entries.length() > 256) throw new IllegalArgumentException("Too many settings");
+            if (entries.length() > (scope.equals(LabelCustomization.SCOPE) ? 1024 : 256)) throw new IllegalArgumentException("Too many settings");
             Map<String, Object> values = new LinkedHashMap<>();
             for (Iterator<String> keys = entries.keys(); keys.hasNext();) {
                 String key = keys.next(), expected = type(scope, key);
@@ -124,6 +125,8 @@ public final class PatchSettingsBackup {
                     if ((key.endsWith("_main") || key.startsWith("previous_source_")) && !providers.contains(value)) throw invalid();
                     if (key.endsWith("_services") && !providers.containsAll((Set<String>) value)) throw invalid();
                 }
+                if (scope.equals(LabelCustomization.SCOPE) && key.startsWith("label_"))
+                    value = LabelCustomization.valid(key.substring(key.indexOf(':') + 1), value);
                 values.put(key, value);
             }
             result.put(scope, values);

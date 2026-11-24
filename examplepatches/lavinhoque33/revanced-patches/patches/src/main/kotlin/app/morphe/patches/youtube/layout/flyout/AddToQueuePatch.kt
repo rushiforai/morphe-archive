@@ -4,7 +4,7 @@
  *
  * See the included NOTICE file for GPLv3 Section 7 terms that apply to this code.
  *
- * Modified by lavinhoque33, 2026-11-14.
+ * Modified by lavinhoque33, 2026-11-23.
  */
 
 package app.morphe.patches.youtube.layout.flyout
@@ -13,14 +13,17 @@ import app.morphe.patcher.extensions.InstructionExtensions.addInstruction
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructionsWithLabels
 import app.morphe.patcher.extensions.InstructionExtensions.getInstruction
+import app.morphe.patcher.extensions.InstructionExtensions.instructions
 import app.morphe.patcher.patch.BytecodePatchContext
 import app.morphe.patcher.patch.bytecodePatch
 import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod.Companion.toMutable
 import app.morphe.patches.shared.mapping.resourceMappingPatch
 import app.morphe.patches.youtube.general.downloads.FeedFlyoutButtonsInitializerFingerprint
 import app.morphe.patches.youtube.general.downloads.downloadActionsPatch
+import app.morphe.patches.youtube.interaction.queue.QueueInsertResolverFingerprint
 import app.morphe.patches.youtube.layout.playlistautoplay.navigationIntentHook
 import app.morphe.patches.youtube.utils.compatibility.Constants.COMPATIBILITY_YOUTUBE
+import app.morphe.patches.youtube.utils.commandrouter.commandRouterHookPatch
 import app.morphe.patches.youtube.utils.extension.sharedExtensionPatch
 import app.morphe.patches.youtube.utils.loadvideo.loadVideoHookPatch
 import app.morphe.patches.youtube.utils.patch.PatchList.ADD_TO_QUEUE
@@ -28,6 +31,8 @@ import app.morphe.patches.youtube.utils.playlist.playlistPatch
 import app.morphe.patches.youtube.utils.playservice.is_21_05_or_greater
 import app.morphe.patches.youtube.utils.playservice.is_21_13_or_greater
 import app.morphe.patches.youtube.utils.playservice.versionCheckPatch
+import app.morphe.patches.youtube.utils.proto.elementProtoParserHookPatch
+import app.morphe.patches.youtube.utils.proto.hookElement
 import app.morphe.patches.youtube.utils.settings.ResourceUtils.addPreference
 import app.morphe.patches.youtube.utils.settings.settingsPatch
 import app.morphe.patches.youtube.video.information.playerStatusOverrideHook
@@ -36,6 +41,7 @@ import app.morphe.patches.youtube.video.information.videoInformationPatch
 import app.morphe.util.Utils.printWarn
 import app.morphe.util.findFreeRegister
 import app.morphe.util.getReference
+import app.morphe.util.getFreeRegisterProvider
 import app.morphe.util.indexOfFirstInstructionOrThrow
 import app.morphe.util.setExtensionIsPatchIncluded
 import com.android.tools.smali.dexlib2.AccessFlags
@@ -44,8 +50,11 @@ import com.android.tools.smali.dexlib2.builder.MutableMethodImplementation
 import com.android.tools.smali.dexlib2.iface.instruction.FiveRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
+import com.android.tools.smali.dexlib2.iface.instruction.WideLiteralInstruction
+import com.android.tools.smali.dexlib2.iface.instruction.formats.Instruction21c
 import com.android.tools.smali.dexlib2.iface.reference.FieldReference
 import com.android.tools.smali.dexlib2.iface.reference.MethodReference
+import com.android.tools.smali.dexlib2.iface.reference.TypeReference
 import com.android.tools.smali.dexlib2.immutable.ImmutableMethod
 
 private const val EXTENSION_CLASS =
@@ -54,11 +63,16 @@ private const val EXTENSION_CLASS =
 private const val EXTENSION_LOCAL_QUEUE_CLASS =
     "Lapp/morphe/extension/youtube/patches/LocalQueuePatch;"
 
+private const val EXTENSION_THUMBNAIL_QUEUE_CLASS =
+    "Lapp/morphe/extension/youtube/patches/queue/ThumbnailQueuePatch;"
+
 private const val EXTENSION_SLEEP_TIMER_INTERFACE =
     $$"Lapp/morphe/extension/youtube/patches/LocalQueuePatch$SleepTimerController;"
 
 private const val EXTENSION_DOWNLOAD_ACTIONS_CLASS =
     "Lapp/morphe/extension/youtube/patches/general/DownloadActionsPatch;"
+
+private var thumbnailHookInstalled = false
 
 @Suppress("unused")
 val addToQueuePatch = bytecodePatch(
@@ -71,6 +85,8 @@ val addToQueuePatch = bytecodePatch(
         settingsPatch,
         sharedExtensionPatch,
         downloadActionsPatch,
+        commandRouterHookPatch,
+        elementProtoParserHookPatch,
         playlistPatch,
         videoInformationPatch,
         loadVideoHookPatch,
@@ -79,6 +95,7 @@ val addToQueuePatch = bytecodePatch(
     )
 
     execute {
+        thumbnailHookInstalled = false
         if (!is_21_05_or_greater) {
             printWarn("\"${ADD_TO_QUEUE.title}\" is not supported in this version. Use YouTube 21.05 or later.")
             return@execute
@@ -124,7 +141,64 @@ val addToQueuePatch = bytecodePatch(
 
         setExtensionIsPatchIncluded(EXTENSION_CLASS)
         setExtensionIsPatchIncluded(EXTENSION_LOCAL_QUEUE_CLASS)
+
+        thumbnailHookInstalled = hookThumbnailQueueInsert()
+        if (thumbnailHookInstalled) {
+            addPreference(arrayOf("PREFERENCE_SCREEN: FEED", "SETTINGS: QUEUE_THUMBNAIL_BUTTON"))
+            setExtensionIsPatchIncluded(EXTENSION_THUMBNAIL_QUEUE_CLASS)
+        } else {
+            printWarn("Add to queue: the thumbnail queue command resolver is unavailable. Skipping the thumbnail button.")
+        }
     }
+
+    finalize {
+        // Run after feed card layout conversions so the button is carried by the model that will be rendered.
+        if (thumbnailHookInstalled) {
+            hookElement("$EXTENSION_THUMBNAIL_QUEUE_CLASS->addButton([B)[B")
+        }
+    }
+}
+
+/**
+ * Runtime has already resolved the command extension at this cast, but has not started a queue request yet.
+ * Native queue tokens keep the original resolver path.
+ */
+context(_: BytecodePatchContext)
+private fun hookThumbnailQueueInsert(): Boolean {
+    val resolver = QueueInsertResolverFingerprint.methodOrNull ?: return false
+    val instructions = resolver.instructions
+    val experimentIndex = instructions.indexOfFirst {
+        (it as? WideLiteralInstruction)?.wideLiteral == 45388674L
+    }
+    if (experimentIndex < 0) return false
+
+    val castIndex = (0 until experimentIndex).lastOrNull { instructions[it].opcode == Opcode.CHECK_CAST }
+        ?: return false
+    val cast = resolver.getInstruction<Instruction21c>(castIndex)
+    val payloadType = (cast.reference as TypeReference).type
+    val tokenField = instructions.filter { it.opcode == Opcode.IGET_OBJECT }
+        .mapNotNull { it.getReference<FieldReference>() }
+        .filter { it.definingClass == payloadType && it.type == "Ljava/lang/String;" }
+        .distinct()
+        .singleOrNull() ?: return false
+
+    val insertIndex = castIndex + 1
+    val payload = cast.registerA
+    val scratch = resolver.getFreeRegisterProvider(insertIndex, 1, payload).getFreeRegister4Bit()
+    resolver.addInstructionsWithLabels(
+        insertIndex,
+        """
+            move-object/from16 v$scratch, v$payload
+            iget-object v$scratch, v$scratch, $tokenField
+            invoke-static { v$scratch }, $EXTENSION_THUMBNAIL_QUEUE_CLASS->consumeThumbnailToken(Ljava/lang/String;)Z
+            move-result v$scratch
+            if-eqz v$scratch, :original
+            return-void
+            :original
+            nop
+        """
+    )
+    return true
 }
 
 /**

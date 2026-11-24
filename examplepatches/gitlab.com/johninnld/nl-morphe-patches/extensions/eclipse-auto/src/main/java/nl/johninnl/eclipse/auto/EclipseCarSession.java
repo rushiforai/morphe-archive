@@ -33,7 +33,7 @@ import nl.johninnl.eclipse.auto.ui.Navigator;
 /**
  * One car session. UI ownership is separate from the application playback link: the session
  * attaches to {@link MediaLink}, registers the app's own compat token with the host once the link
- * is ready (never before), and shows the player as the root screen when started with
+ * is ready (never before), and opens on the player, above the root page, when started with
  * SHOW_MEDIA_PLAYBACK. It owns the {@link Catalog} of server-fed content, whose pending results are
  * dropped when the session is destroyed.
  */
@@ -71,8 +71,9 @@ final class EclipseCarSession extends Session implements MediaLink.Listener, Hos
         });
         Signals.setListener(queueSignal);
         attach();
-        return MediaConstants.ACTION_SHOW_MEDIA_PLAYBACK.equals(intent.getAction())
-            ? new PlayerScreen(getCarContext(), this) : new RootScreen(getCarContext(), this);
+        return Navigator.start(getCarContext().getCarService(ScreenManager.class),
+            Navigator.<Screen>startStack(MediaConstants.ACTION_SHOW_MEDIA_PLAYBACK.equals(intent.getAction()),
+                () -> new RootScreen(getCarContext(), this), () -> new PlayerScreen(getCarContext(), this)));
     }
 
     /** One background thread for the feeds; results come back to the main thread. */

@@ -9,7 +9,7 @@
  * - inotia00 (https://github.com/inotia00)
  *
  * Licensed under the GNU General Public License v3.0.
- * Modified by lavinhoque33, 2026-11-13.
+ * Modified by lavinhoque33, 2026-11-23.
  *
  * ------------------------------------------------------------------------
  * GPLv3 Section 7 – Additional Terms & Attribution Requirements
@@ -72,6 +72,7 @@ import app.morphe.patches.music.video.information.videoInformationPatch
 import app.morphe.patches.shared.FIXED_RESOLUTION_STRING
 import app.morphe.patches.shared.customspeed.customPlaybackSpeedPatch
 import app.morphe.patches.shared.drc.drcAudioPatch
+import app.morphe.patches.shared.drc.installMusicDrcSelection
 import app.morphe.patches.shared.opus.baseOpusCodecsPatch
 import app.morphe.patches.shared.playbackStartParametersConstructorFingerprint
 import app.morphe.patches.shared.playbackStartParametersToStringFingerprint
@@ -304,11 +305,19 @@ val videoPlaybackPatch = bytecodePatch(
 
         // endregion
 
+        // Keep the old preference key so an existing choice only affects normalization.
         addSwitchPreference(
             CategoryType.VIDEO,
             "revanced_disable_drc_audio",
-            "false"
+            "false",
+            dependencyKey = "",
+            setSummary = true,
+            titleKey = "morphe_music_disable_loudness_normalization_title",
+            summaryKey = "morphe_music_disable_loudness_normalization_summary",
         )
+        if (installMusicDrcSelection()) {
+            addSwitchPreference(CategoryType.VIDEO, "morphe_music_prefer_original_audio_stream", "false")
+        }
         addSwitchPreference(
             CategoryType.VIDEO,
             "revanced_enable_opus_codec",

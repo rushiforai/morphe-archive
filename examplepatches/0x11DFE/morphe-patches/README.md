@@ -23,7 +23,7 @@ are responsible for what you do with it.
 ## Patches list
 
 <!-- PATCHES_START EXPANDED -->
-> **[v1.13.0](https://github.com/0x11DFE/morphe-patches/releases/tag/v1.13.0)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;10 patches total
+> **[v1.18.2](https://github.com/0x11DFE/morphe-patches/releases/tag/v1.18.2)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;12 patches total
 <details open>
 <summary>📦 Scene&nbsp;&nbsp;•&nbsp;&nbsp;4 patches</summary>
 <br>
@@ -60,6 +60,24 @@ are responsible for what you do with it.
 | [Disable PairIP license check](docs/waypoint/README.md#disable-pairip-license-check) | Empties com.pairip.licensecheck.LicenseClient.checkLicense so PairIP does not kill the re-signed APK. Works on any app that ships this class. |  |
 | [Skip Waypoint onboarding paywall](docs/waypoint/README.md#skip-waypoint-onboarding-paywall) | Skips the paywall after the tutorial: it runs the app's own free-choice handler (completeOnboarding, then home) and renders nothing. Fails cleanly when the bundle changes. |  |
 | [Unlock Waypoint Pro](docs/waypoint/README.md#unlock-waypoint-pro) | Unlocks Waypoint Pro. The getCustomerInfo bridge and the hybridcommon mapper report a fake active lifetime entitlement (waypoint_lifetime), so it works even when api.revenuecat.com is unreachable. |  |
+
+</details>
+
+<details open>
+<summary>📦 Galaxy MaxHz&nbsp;&nbsp;•&nbsp;&nbsp;2 patches</summary>
+<br>
+
+**Package name:** `com.tribalfs.gmh`
+
+**🎯 Supported versions:**
+
+| 9.2.0x | 9.2.1x |
+| :---: | :---: |
+
+| 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
+|----------|----------------|-----------|
+| [Random device ID](docs/galaxy-maxhz/README.md#random-device-id) | Replaces the fixed salt in the native device fingerprint with a random salt baked in when the patch is applied, so each patched APK reports its own stable device id to the licensing server. Re-patch for a new id. The local license check does not use the salt and keeps working. |  |
+| [Unlock Premium](docs/galaxy-maxhz/README.md#unlock-premium) | Unlocks premium locally and fully offline. Every signed licence and config request is answered with a valid premium response, the startup APK self-check that would keep the app loading forever is bypassed, and refresh-rate profiles come from the app's own bundled device table. The licence server never validates a re-signed install, so no server connection is needed or attempted. |  |
 
 </details>
 

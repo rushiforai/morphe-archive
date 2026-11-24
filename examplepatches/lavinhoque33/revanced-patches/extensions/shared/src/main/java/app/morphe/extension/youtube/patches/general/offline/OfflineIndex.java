@@ -5,6 +5,7 @@
  * https://github.com/anddea/revanced-patches
  *
  * Licensed under the GNU General Public License v3.0.
+ * Modified by lavinhoque33, 2026-11-24.
  * Written by lavinhoque33, 2026-10-10.
  * Modified by lavinhoque33, 2026-10-24.
  */
@@ -178,6 +179,13 @@ public final class OfflineIndex {
                     return;
                 }
             }
+        }
+    }
+
+    /** Flush a live player's position without overwriting it with a stale worker snapshot. */
+    static void saveUpdatedPosition(OfflineVideo video) {
+        synchronized (LOCK) {
+            if (loaded().contains(video)) saveLocked();
         }
     }
 

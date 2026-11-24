@@ -10,17 +10,11 @@ import java.util.List;
 import app.morphe.extension.shared.settings.Setting;
 import app.morphe.extension.shared.utils.Logger;
 import app.morphe.extension.youtube.settings.Settings;
+import app.morphe.extension.youtube.swipecontrols.SwipeControlsConfigurationProvider.SwipeOverlayStyle;
 import app.morphe.extension.youtube.swipecontrols.SwipeControlsConfigurationProvider.SwipeZoneAction;
 
 @SuppressWarnings({"unused", "deprecation"})
 public class SwipeControlsPatch {
-    private static boolean isActionAssigned(SwipeZoneAction action) {
-        return Settings.SWIPE_LEFT_ZONE.get() == action
-                || Settings.SWIPE_RIGHT_ZONE.get() == action
-                || Settings.SWIPE_TOP_ZONE.get() == action
-                || Settings.SWIPE_BOTTOM_ZONE.get() == action;
-    }
-
     /**
      * Injection point.
      */
@@ -116,11 +110,25 @@ public class SwipeControlsPatch {
         return Settings.ENABLE_SWIPE_TO_SWITCH_VIDEO.get();
     }
 
-    public static final class SwipeOverlayBrightnessColorAvailability implements Setting.Availability {
+    public static final class SwipeOverlayProgressColorAvailability implements Setting.Availability {
+        private final SwipeZoneAction action;
+
+        public SwipeOverlayProgressColorAvailability(SwipeZoneAction action) {
+            this.action = action;
+        }
+
+        private static boolean usesProgress(SwipeOverlayStyle style) {
+            return style == SwipeOverlayStyle.FOLLOW_DEFAULT
+                    ? !Settings.SWIPE_OVERLAY_STYLE.get().isLegacy()
+                    : !style.isLegacy();
+        }
+
         @Override
         public boolean isAvailable() {
-            return isActionAssigned(SwipeZoneAction.BRIGHTNESS) &&
-                    !Settings.SWIPE_OVERLAY_STYLE.get().isLegacy();
+            return ((Settings.SWIPE_LEFT_ZONE.get() == action || Settings.SWIPE_RIGHT_ZONE.get() == action)
+                    && usesProgress(Settings.SWIPE_SIDE_OVERLAY_STYLE.get()))
+                    || ((Settings.SWIPE_TOP_ZONE.get() == action || Settings.SWIPE_BOTTOM_ZONE.get() == action)
+                    && usesProgress(Settings.SWIPE_TOP_BOTTOM_OVERLAY_STYLE.get()));
         }
 
         @Override
@@ -130,64 +138,9 @@ public class SwipeControlsPatch {
                     Settings.SWIPE_RIGHT_ZONE,
                     Settings.SWIPE_TOP_ZONE,
                     Settings.SWIPE_BOTTOM_ZONE,
-                    Settings.SWIPE_OVERLAY_STYLE
-            );
-        }
-    }
-
-    public static final class SwipeOverlayVolumeColorAvailability implements Setting.Availability {
-        @Override
-        public boolean isAvailable() {
-            return isActionAssigned(SwipeZoneAction.VOLUME) &&
-                    !Settings.SWIPE_OVERLAY_STYLE.get().isLegacy();
-        }
-
-        @Override
-        public List<Setting<?>> getParentSettings() {
-            return List.of(
-                    Settings.SWIPE_LEFT_ZONE,
-                    Settings.SWIPE_RIGHT_ZONE,
-                    Settings.SWIPE_TOP_ZONE,
-                    Settings.SWIPE_BOTTOM_ZONE,
-                    Settings.SWIPE_OVERLAY_STYLE
-            );
-        }
-    }
-
-    public static final class SwipeOverlaySpeedColorAvailability implements Setting.Availability {
-        @Override
-        public boolean isAvailable() {
-            return isActionAssigned(SwipeZoneAction.SPEED) &&
-                    !Settings.SWIPE_OVERLAY_STYLE.get().isLegacy();
-        }
-
-        @Override
-        public List<Setting<?>> getParentSettings() {
-            return List.of(
-                    Settings.SWIPE_LEFT_ZONE,
-                    Settings.SWIPE_RIGHT_ZONE,
-                    Settings.SWIPE_TOP_ZONE,
-                    Settings.SWIPE_BOTTOM_ZONE,
-                    Settings.SWIPE_OVERLAY_STYLE
-            );
-        }
-    }
-
-    public static final class SwipeOverlaySeekColorAvailability implements Setting.Availability {
-        @Override
-        public boolean isAvailable() {
-            return isActionAssigned(SwipeZoneAction.SEEK) &&
-                    !Settings.SWIPE_OVERLAY_STYLE.get().isLegacy();
-        }
-
-        @Override
-        public List<Setting<?>> getParentSettings() {
-            return List.of(
-                    Settings.SWIPE_LEFT_ZONE,
-                    Settings.SWIPE_RIGHT_ZONE,
-                    Settings.SWIPE_TOP_ZONE,
-                    Settings.SWIPE_BOTTOM_ZONE,
-                    Settings.SWIPE_OVERLAY_STYLE
+                    Settings.SWIPE_OVERLAY_STYLE,
+                    Settings.SWIPE_SIDE_OVERLAY_STYLE,
+                    Settings.SWIPE_TOP_BOTTOM_OVERLAY_STYLE
             );
         }
     }

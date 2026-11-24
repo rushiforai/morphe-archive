@@ -45,7 +45,7 @@ private object NativePhotoQualityFingerprint : Fingerprint(
 val sendPhotoAsFilePatch = bytecodePatch(
     name = "Send photos in original quality",
     description = "Unlocks Zalo's native original-photo quality option and selects it by default while preserving its normal quality picker.",
-    default = false,
+    default = true,
 ) {
     compatibleWith(Compatibility(
         name = "Zalo",

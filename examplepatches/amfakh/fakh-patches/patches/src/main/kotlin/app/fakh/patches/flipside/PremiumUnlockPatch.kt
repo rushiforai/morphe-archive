@@ -1,3 +1,8 @@
+/*
+ * Copyright 2026 amfakh
+ * SPDX-License-Identifier: GPL-3.0-only
+ */
+
 package app.fakh.patches.flipside
 
 import app.fakh.patches.flipside.shared.Constants.COMPATIBILITY_FLIPSIDE

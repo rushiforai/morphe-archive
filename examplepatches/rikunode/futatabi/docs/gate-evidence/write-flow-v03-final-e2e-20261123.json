@@ -1,0 +1,172 @@
+{
+  "date": "2026-11-23 JST",
+  "kind": "offline-fixture-only",
+  "device": "emulator-5554",
+  "app": "com.Nanasaki.ftutter.morphe",
+  "fixture": "tests/write_flow_fixture.py on 127.0.0.1:18766 (adb reverse)",
+  "totalFixtureRequests": 17,
+  "sequence": [
+    {
+      "method": "POST",
+      "path": "/app-authorizations",
+      "bodyBytes": 273,
+      "contentTypeClass": "application/json"
+    },
+    {
+      "method": "POST",
+      "path": "/app-credentials",
+      "bodyBytes": 186,
+      "contentTypeClass": "application/json"
+    },
+    {
+      "method": "POST",
+      "path": "/threads/aimg",
+      "bodyBytes": 114,
+      "contentTypeClass": "application/json"
+    },
+    {
+      "method": "POST",
+      "path": "/threads/01900000-0000-7000-8000-000000000111/posts",
+      "bodyBytes": 109,
+      "contentTypeClass": "application/json"
+    },
+    {
+      "method": "POST",
+      "path": "/attachments/presign",
+      "bodyBytes": 138,
+      "contentTypeClass": "application/json"
+    },
+    {
+      "method": "PUT",
+      "path": "/mock-upload",
+      "bodyBytes": 18,
+      "contentTypeClass": "image/jpeg"
+    },
+    {
+      "method": "POST",
+      "path": "/threads/aimg",
+      "bodyBytes": 168,
+      "contentTypeClass": "application/json"
+    },
+    {
+      "method": "GET",
+      "path": "/",
+      "bodyBytes": 0,
+      "contentTypeClass": ""
+    },
+    {
+      "method": "POST",
+      "path": "/inc/comment.php?preCheck",
+      "bodyBytes": 54,
+      "contentTypeClass": "application/x-www-form-urlencoded"
+    },
+    {
+      "method": "POST",
+      "path": "/inc/comment.php",
+      "bodyBytes": 54,
+      "contentTypeClass": "application/x-www-form-urlencoded"
+    },
+    {
+      "method": "POST",
+      "path": "/upload/",
+      "bodyBytes": 331,
+      "contentTypeClass": "multipart/form-data"
+    },
+    {
+      "method": "GET",
+      "path": "/client-policy",
+      "bodyBytes": 0,
+      "contentTypeClass": ""
+    },
+    {
+      "method": "GET",
+      "path": "/catalog/aimg?sort=bump&limit=20&page=1",
+      "bodyBytes": 0,
+      "contentTypeClass": ""
+    },
+    {
+      "method": "POST",
+      "path": "/threads/01900000-0000-7000-8000-000000000111/posts",
+      "bodyBytes": 127,
+      "contentTypeClass": "application/json"
+    },
+    {
+      "method": "POST",
+      "path": "/attachments/presign",
+      "bodyBytes": 144,
+      "contentTypeClass": "application/json"
+    },
+    {
+      "method": "PUT",
+      "path": "/mock-upload",
+      "bodyBytes": 632,
+      "contentTypeClass": "image/jpeg"
+    },
+    {
+      "method": "POST",
+      "path": "/threads/aimg",
+      "bodyBytes": 166,
+      "contentTypeClass": "application/json"
+    }
+  ],
+  "fixtureLogSha256": "96f0d7e3c1293957d4698e7169e2b6409ef0a608d1a6ba584351c66f55aac151",
+  "pkce": {
+    "freshStartHttp": 200,
+    "callbackHttp": 200,
+    "upstreamPath": "POST /app-credentials",
+    "statusHttp": 200,
+    "loggedIn": true,
+    "credentialStoredInPrivatePreferences": true,
+    "credentialFoundInFlutterPreferences": false
+  },
+  "aimoge": {
+    "threadHttp": 201,
+    "replyHttp": 201,
+    "presignHttp": 200,
+    "uploadHttp": 200,
+    "postedAfterUploadHttp": 201,
+    "validTinyJpegBytes": 632
+  },
+  "animanch": {
+    "precheckPath": "POST /inc/comment.php?preCheck",
+    "commentPath": "POST /inc/comment.php",
+    "uploadPath": "POST /upload/",
+    "finalHttp": 201,
+    "responseKeys": [
+      "number",
+      "thread",
+      "jump",
+      "attachmentUploaded"
+    ]
+  },
+  "ui": {
+    "threadPicker": true,
+    "replyPostedUsingUi": true,
+    "successTextObserved": true,
+    "uiXmlPathLocalIgnored": "apk-inspection/v03-fixture-e2e/ui-after.xml"
+  },
+  "networkIsolation": {
+    "appUid": 10222,
+    "blockedAllNonLoopbackIpv4AndIpv6": true,
+    "rulesRemoved": true,
+    "adbForwardRemoved": true
+  },
+  "restore": {
+    "fixtureOriginalRestored": true,
+    "sourceRevertedToOriginalHttps": true,
+    "syntheticCredentialsRevertedToPretestPrefs": true,
+    "testMppSha256": "a35108a284e6070601f1710a007776e579af55f255bb9963dd75bb883ea196e6",
+    "testMppBytes": 739314,
+    "prodMppSha256": "45c04d783a7f7861ff2ab51e2f10637d6fb214612f55edd5945659cdbc0c4527",
+    "prodMppBytes": 739379,
+    "hashesDifferent": true,
+    "noRelease": true
+  },
+  "externalPosts": 0,
+  "realOauthLogins": 0,
+  "realCredentialMinting": 0,
+  "notes": [
+    "JWT or credential contents omitted from committed evidence",
+    "Synthetic callback and uploads use the local fixture; real service contract still awaits owner-side validation"
+  ]
+}

@@ -21,6 +21,13 @@ public final class FilterPosition {
     static boolean delayedSnapshot(){return FeatureSwitches.enabled(DELAYED_SNAPSHOT,false);}
     private static final ArrayList<WeakReference<Object>> fragments = new ArrayList<>();
     private static final WeakHashMap<View, Pending> pending = new WeakHashMap<>();
+    private static final WeakHashMap<View, Origin> unfiltered = new WeakHashMap<>();
+    private static final class Origin {
+        final List<Object> rows;
+        final int anchor, offset;
+        final String thread;
+        Origin(Pending pending) throws Exception { rows=pending.lazySnapshot ? pending.rows() : pending.before; anchor=pending.anchor; offset=pending.offset; thread=pending.thread; }
+    }
     private static final java.util.HashMap<Class<?>, Field> responseFields = new java.util.HashMap<>();
     private FilterPosition() {}
 
@@ -124,7 +131,16 @@ public final class FilterPosition {
             Pending previous = pending.remove(list);
             if (previous != null) previous.close();
             Pending next = new Pending(list, required);
+            next.owner = new WeakReference<>(fragment);
+            Object activity = fragment.getClass().getMethod("getActivity").invoke(fragment);
+            if (activity instanceof android.app.Activity) {
+                String version = RuntimeVersion.get((android.app.Activity) activity);
+                next.thread = NativeThreadContext.url(NativeThreadContext.board(fragment, version), version, 1);
+            }
+            Origin origin = unfiltered.get(list);
+            if (origin != null && !java.util.Objects.equals(origin.thread, next.thread)) unfiltered.remove(list);
             if (next.anchor < 0) return;
+            if (!ExtraQuickFilters.filtering(fragment)) unfiltered.put(list, new Origin(next));
             pending.put(list, next);
             if (next.adapter instanceof ListAdapter) ((ListAdapter) next.adapter).registerDataSetObserver(next.observer);
             list.getViewTreeObserver().addOnPreDrawListener(next);
@@ -277,6 +293,8 @@ public final class FilterPosition {
         final int anchorResponse;
         final Handler handler = new Handler(Looper.getMainLooper());
         final Runnable timeout = this::close;
+        WeakReference<Object> owner;
+        String thread;
         boolean closed;
         boolean changed;
         final android.database.DataSetObserver observer = new android.database.DataSetObserver() {
@@ -295,7 +313,7 @@ public final class FilterPosition {
             count.setAccessible(true);
             item.setAccessible(true);
             presentation=presentation(adapter);
-            lazySnapshot=delayedSnapshot()&&presentation!=null;
+            lazySnapshot=delayedSnapshot()&&presentation!=null&&!unfiltered.containsKey(list);
             before = lazySnapshot ? java.util.Collections.emptyList() : rows();
             firstRow = ((Number)count.invoke(adapter)).intValue()==0 ? null : item.invoke(adapter, 0);
             ViewGroup group = (ViewGroup) list;
@@ -357,10 +375,18 @@ public final class FilterPosition {
                 List<Object> after = rows();
                 if (!changed && before.equals(after) && (after.isEmpty() || item.invoke(adapter, 0) == firstRow))
                     return true; // Wait for the asynchronous native list commit.
-                int target = FilterPositionAnchor.nearest(before, after, anchor);
+                Origin origin = unfiltered.get(list);
+                Object fragment = owner == null ? null : owner.get();
+                boolean returning = origin != null && fragment != null
+                        && !ExtraQuickFilters.filtering(fragment);
+                List<Object> sourceRows = returning ? origin.rows : before;
+                int sourceAnchor = returning ? origin.anchor : anchor;
+                int sourceOffset = returning ? origin.offset : offset;
+                int target = FilterPositionAnchor.nearest(sourceRows, after, sourceAnchor);
+                if (returning) unfiltered.remove(list);
                 close();
                 if (target < 0) return true; // No responses remain; leave the native empty state alone.
-                int top = before.get(anchor).equals(after.get(target)) ? offset : 0;
+                int top = sourceRows.get(sourceAnchor).equals(after.get(target)) ? sourceOffset : 0;
                 if (list instanceof ListView) ((ListView) list).setSelectionFromTop(target, top);
                 else {
                     Object manager = call(list, "getLayoutManager", new Class<?>[0]);

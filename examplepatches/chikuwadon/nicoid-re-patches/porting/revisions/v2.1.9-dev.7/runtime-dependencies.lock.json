@@ -1,0 +1,33 @@
+{
+  "sdk": {
+    "platform": "android-37.2",
+    "sha256": "2507cf762abe2171a8cb3c289837fc71f2e66e598f396f1cc10bb7dc10020329"
+  },
+  "artifacts": [
+    {
+      "name": "guava-new.jar",
+      "url": "https://repo.maven.apache.org/maven2/com/google/guava/guava/33.8.0-android/guava-33.8.0-android.jar",
+      "sha256": "c88b3bd93382316b00a387b629d2cc2620119e16c46554b07fa14e9aa07f990e"
+    },
+    {
+      "name": "failureaccess-new.jar",
+      "url": "https://repo.maven.apache.org/maven2/com/google/guava/failureaccess/1.0.3/failureaccess-1.0.3.jar",
+      "sha256": "cbfc3906b19b8f55dd7cfd6dfe0aa4532e834250d7f080bd8d211a3e246b59cb"
+    },
+    {
+      "name": "concurrent-new.jar",
+      "url": "https://dl.google.com/dl/android/maven2/androidx/concurrent/concurrent-futures/1.3.0/concurrent-futures-1.3.0.jar",
+      "sha256": "9111fab38c19cac12f507ce1fed1875c155fd201f5cd5b8c7f3b7e2b18d3fc49"
+    },
+    {
+      "name": "exif-new.aar",
+      "url": "https://dl.google.com/dl/android/maven2/androidx/exifinterface/exifinterface/1.4.2/exifinterface-1.4.2.aar",
+      "sha256": "6bb2b68682a2023c55f35f941444ffea0157947b061e4fd7606ba935e2e77425"
+    },
+    {
+      "name": "r8.jar",
+      "url": "https://dl.google.com/dl/android/maven2/com/android/tools/r8/9.5.29/r8-9.5.29.jar",
+      "sha256": "f8c762ff84640b10083b934a47278758a7665977e618fab0c927fff00521dea3"
+    }
+  ]
+}

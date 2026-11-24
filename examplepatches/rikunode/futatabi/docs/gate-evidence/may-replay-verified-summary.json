@@ -1,0 +1,35 @@
+{
+  "catalog": {
+    "status": 200,
+    "bytes": 28459,
+    "sha256": "d0def5a9d0d664d8635cf8010e81a994bd00eeaef760018f32e633ebdf0e6b3b",
+    "charset": "Shift_JIS",
+    "transfer_encoding": "chunked",
+    "body_replay_byte_equal": true
+  },
+  "thread": {
+    "status": 200,
+    "bytes": 45167,
+    "sha256": "803d595647dee5e5ba469b1b04a8e7ba4a47a2a35c23a917b4b7ba68bc236ac0",
+    "charset": "Shift_JIS",
+    "content_length": 45167,
+    "body_replay_byte_equal": true
+  },
+  "ui": {
+    "thread_post_no_1449110872": true,
+    "reply_no_1449112008": true,
+    "null_check_error": false
+  },
+  "images": [
+    {
+      "file": "first-src.jpg",
+      "bytes": 35167,
+      "sha256": "0d8e9589bf5d9f7a0463dde0fd54bb44b304e46512a8d7b3dbd7011d72fbd7ab"
+    },
+    {
+      "file": "first-thumb.jpg",
+      "bytes": 10918,
+      "sha256": "80bd9dbf8d46f07ed3d5fe4cc96cd97be050e9db4f816182197e305983a234c2"
+    }
+  ]
+}

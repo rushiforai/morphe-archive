@@ -1,3 +1,8 @@
+/*
+ * Copyright 2026 amfakh
+ * SPDX-License-Identifier: GPL-3.0-only
+ */
+
 package app.fakh.extension.idn;
 
 import android.app.Activity;
@@ -21,6 +26,8 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import java.util.function.Predicate;
+
+import app.fakh.extension.shared.Features;
 
 /** The "Fakh Patches" page: one switch per feature that was patched in. Opened from the app's Settings screen. */
 public final class IdnSettingsActivity extends Activity {
@@ -46,31 +53,15 @@ public final class IdnSettingsActivity extends Activity {
         list.setOrientation(LinearLayout.VERTICAL);
         list.setPadding(dp(24), dp(16), dp(24), dp(16));
 
-        if (IdnSettings.isHideTabsIncluded()) {
-            list.addView(header("Tab Home"));
-            for (int i = 0; i < IdnSettings.TABS.length; i++) {
-                list.addView(tabSwitch(IdnSettings.TABS[i], IdnSettings.TAB_LABELS[i]));
+        // Read once first, so the switches saved by earlier versions are moved before the rows show them.
+        IdnSettings.isStopAutoplay();
+        String section = null;
+        for (Features.Feature feature : Features.all()) {
+            if (!feature.section.equals(section)) {
+                section = feature.section;
+                list.addView(header(section));
             }
-        }
-        if (IdnSettings.isHideCreateButtonIncluded()) {
-            list.addView(header("Bilah bawah"));
-            list.addView(flagSwitch("Tombol Create (+)", IdnSettings.SHOW_CREATE_BUTTON));
-        }
-        if (IdnSettings.isStopAutoplayIncluded()) {
-            list.addView(header("Pemutaran"));
-            list.addView(toggle("Autoplay", null,
-                !IdnSettings.isStopAutoplay(), on -> {
-                    IdnSettings.setStopAutoplay(!on);
-                    showRestartBanner();
-                    return true;
-                }));
-        }
-        if (IdnSettings.isHideAdsIncluded() || IdnSettings.isHidePackageBannerIncluded()) {
-            list.addView(header("Promo"));
-            if (IdnSettings.isHideAdsIncluded()) list.addView(flagSwitch("Iklan", IdnSettings.SHOW_ADS));
-            if (IdnSettings.isHidePackageBannerIncluded()) {
-                list.addView(flagSwitch("Banner \"Beli Paket\"", IdnSettings.SHOW_PACKAGE_BANNER));
-            }
+            list.addView(feature.id.startsWith(IdnSettings.SHOW_TAB) ? tabSwitch(feature) : flagSwitch(feature));
         }
 
         ScrollView scroll = new ScrollView(this);
@@ -90,22 +81,23 @@ public final class IdnSettingsActivity extends Activity {
     }
 
     /** A row that shows (on) or hides (off) one home tab; it refuses to hide the last visible one. */
-    private View tabSwitch(String tab, String label) {
-        return toggle(label, null, !IdnSettings.isTabHidden(tab), on -> {
-            if (!on && IdnSettings.hiddenTabCount() >= IdnSettings.TABS.length - 1) {
+    private View tabSwitch(Features.Feature tab) {
+        return toggle(tab.title, null, Features.saved(tab.id), on -> {
+            int[] counts = IdnSettings.tabCounts();
+            if (!on && counts[1] >= counts[0] - 1) {
                 Toast.makeText(this, "Minimal satu tab harus tetap ada.", Toast.LENGTH_SHORT).show();
                 return false;
             }
-            IdnSettings.setTabHidden(tab, !on);
+            Features.set(tab.id, on);
             showRestartBanner();
             return true;
         });
     }
 
-    /** A row that shows (on) or removes (off) something the patches removed by default. */
-    private View flagSwitch(String label, String key) {
-        return toggle(label, null, IdnSettings.flag(key), on -> {
-            IdnSettings.setFlag(key, on);
+    /** A row that shows (on) or removes (off) what its patch changes. */
+    private View flagSwitch(Features.Feature feature) {
+        return toggle(feature.title, null, Features.saved(feature.id), on -> {
+            Features.set(feature.id, on);
             showRestartBanner();
             return true;
         });

@@ -1,0 +1,511 @@
+{
+  "openapi_url": "https://api.nijiurachan.net/openapi.json",
+  "openapi_version": "2026-11-11",
+  "paths_all_mutators_count": 22,
+  "mutators": [
+    {
+      "method": "POST",
+      "path": "/app-authorizations",
+      "security": null,
+      "required_headers": [
+        "x-board-key"
+      ],
+      "body_types": [
+        "application/json"
+      ],
+      "success_statuses": [
+        201
+      ]
+    },
+    {
+      "method": "POST",
+      "path": "/app-authorizations/{id}/decision",
+      "security": null,
+      "required_headers": [
+        "x-board-key"
+      ],
+      "body_types": [
+        "application/json"
+      ],
+      "success_statuses": [
+        200
+      ]
+    },
+    {
+      "method": "POST",
+      "path": "/app-credentials",
+      "security": null,
+      "required_headers": [
+        "x-board-key"
+      ],
+      "body_types": [
+        "application/json"
+      ],
+      "success_statuses": [
+        201
+      ]
+    },
+    {
+      "method": "DELETE",
+      "path": "/app-credentials",
+      "security": [
+        {
+          "aimgToken": []
+        }
+      ],
+      "required_headers": [
+        "x-board-key",
+        "x-aimg-token"
+      ],
+      "body_types": [],
+      "success_statuses": [
+        200
+      ]
+    },
+    {
+      "method": "DELETE",
+      "path": "/app-credentials/current",
+      "security": [
+        {
+          "aimgToken": []
+        }
+      ],
+      "required_headers": [
+        "x-board-key",
+        "x-aimg-token"
+      ],
+      "body_types": [],
+      "success_statuses": [
+        204
+      ]
+    },
+    {
+      "method": "POST",
+      "path": "/tokens",
+      "security": null,
+      "required_headers": [
+        "x-board-key"
+      ],
+      "body_types": [
+        "application/json"
+      ],
+      "success_statuses": [
+        201
+      ]
+    },
+    {
+      "method": "PUT",
+      "path": "/online-users/heartbeat",
+      "security": null,
+      "required_headers": [
+        "x-board-key"
+      ],
+      "body_types": [],
+      "success_statuses": [
+        204
+      ]
+    },
+    {
+      "method": "POST",
+      "path": "/threads/{slug}",
+      "security": [
+        {
+          "aimgToken": []
+        }
+      ],
+      "required_headers": [
+        "x-aimg-token"
+      ],
+      "body_types": [
+        "application/json"
+      ],
+      "success_statuses": [
+        201
+      ]
+    },
+    {
+      "method": "POST",
+      "path": "/threads/{threadId}/posts",
+      "security": [
+        {
+          "aimgToken": []
+        }
+      ],
+      "required_headers": [
+        "x-aimg-token"
+      ],
+      "body_types": [
+        "application/json"
+      ],
+      "success_statuses": [
+        201
+      ]
+    },
+    {
+      "method": "DELETE",
+      "path": "/posts/{postId}",
+      "security": [
+        {
+          "aimgToken": []
+        }
+      ],
+      "required_headers": [
+        "x-aimg-token"
+      ],
+      "body_types": [
+        "application/json"
+      ],
+      "success_statuses": [
+        200
+      ]
+    },
+    {
+      "method": "PUT",
+      "path": "/posts/{postId}/reactions/super",
+      "security": [
+        {
+          "aimgToken": [],
+          "supporterSession": []
+        }
+      ],
+      "required_headers": [
+        "x-aimg-token",
+        "x-aimg-delete-key"
+      ],
+      "body_types": [],
+      "success_statuses": [
+        200
+      ]
+    },
+    {
+      "method": "PUT",
+      "path": "/posts/{postId}/reactions/{type}",
+      "security": [
+        {
+          "aimgToken": []
+        }
+      ],
+      "required_headers": [
+        "x-aimg-token",
+        "x-aimg-delete-key"
+      ],
+      "body_types": [],
+      "success_statuses": [
+        200
+      ]
+    },
+    {
+      "method": "PUT",
+      "path": "/posts/{postId}/poll/vote",
+      "security": [
+        {
+          "aimgToken": []
+        }
+      ],
+      "required_headers": [
+        "x-aimg-token",
+        "x-aimg-delete-key"
+      ],
+      "body_types": [
+        "application/json"
+      ],
+      "success_statuses": [
+        200
+      ]
+    },
+    {
+      "method": "POST",
+      "path": "/threads/{threadId}/close",
+      "security": [
+        {
+          "aimgToken": []
+        }
+      ],
+      "required_headers": [
+        "x-aimg-token"
+      ],
+      "body_types": [
+        "application/json"
+      ],
+      "success_statuses": [
+        200
+      ]
+    },
+    {
+      "method": "POST",
+      "path": "/threads/{threadId}/relay/stop",
+      "security": [
+        {
+          "aimgToken": []
+        }
+      ],
+      "required_headers": [
+        "x-aimg-token"
+      ],
+      "body_types": [
+        "application/json"
+      ],
+      "success_statuses": [
+        200
+      ]
+    },
+    {
+      "method": "POST",
+      "path": "/threads/{threadId}/report",
+      "security": [
+        {
+          "aimgToken": []
+        }
+      ],
+      "required_headers": [
+        "x-aimg-token",
+        "x-aimg-delete-key"
+      ],
+      "body_types": [
+        "application/json"
+      ],
+      "success_statuses": [
+        201
+      ]
+    },
+    {
+      "method": "POST",
+      "path": "/attachments/presign",
+      "security": [
+        {
+          "aimgToken": []
+        }
+      ],
+      "required_headers": [
+        "x-aimg-token",
+        "x-board-key"
+      ],
+      "body_types": [
+        "application/json"
+      ],
+      "success_statuses": [
+        200
+      ]
+    },
+    {
+      "method": "POST",
+      "path": "/private-hello",
+      "security": null,
+      "required_headers": [
+        "x-board-key"
+      ],
+      "body_types": [
+        "application/json"
+      ],
+      "success_statuses": [
+        200
+      ]
+    },
+    {
+      "method": "POST",
+      "path": "/supporter/logout",
+      "security": null,
+      "required_headers": [],
+      "body_types": [],
+      "success_statuses": [
+        204
+      ]
+    },
+    {
+      "method": "POST",
+      "path": "/events",
+      "security": [
+        {
+          "aimgToken": [],
+          "supporterSession": []
+        }
+      ],
+      "required_headers": [],
+      "body_types": [
+        "application/json"
+      ],
+      "success_statuses": [
+        201
+      ]
+    },
+    {
+      "method": "PUT",
+      "path": "/events/{eventId}/interest",
+      "security": [
+        {
+          "aimgToken": []
+        }
+      ],
+      "required_headers": [
+        "x-aimg-delete-key"
+      ],
+      "body_types": [
+        "application/json"
+      ],
+      "success_statuses": [
+        204
+      ]
+    },
+    {
+      "method": "POST",
+      "path": "/events/{eventId}/cancel",
+      "security": [
+        {
+          "aimgToken": [],
+          "supporterSession": []
+        }
+      ],
+      "required_headers": [],
+      "body_types": [
+        "application/json"
+      ],
+      "success_statuses": [
+        204
+      ]
+    }
+  ],
+  "schemas": {
+    "CreateThreadBody": {
+      "required": [
+        "body",
+        "deleteKey"
+      ],
+      "fields": [
+        "requestId",
+        "body",
+        "altcha",
+        "deleteKey",
+        "attachmentId",
+        "allowImageReplies",
+        "enableThreadRelay",
+        "threadNgWords",
+        "sage",
+        "chessEnabled",
+        "showId",
+        "duration",
+        "moderation",
+        "attachmentIds",
+        "attachmentSources",
+        "poll"
+      ]
+    },
+    "CreateReplyBody": {
+      "required": [
+        "body",
+        "deleteKey"
+      ],
+      "fields": [
+        "requestId",
+        "body",
+        "altcha",
+        "deleteKey",
+        "attachmentId",
+        "sage",
+        "age",
+        "showThreadOwner",
+        "attachmentIds",
+        "attachmentSources",
+        "poll"
+      ]
+    },
+    "PresignBody": {
+      "required": [
+        "sha256",
+        "mime",
+        "sizeBytes"
+      ],
+      "fields": [
+        "sha256",
+        "mime",
+        "sizeBytes",
+        "fileName",
+        "source",
+        "storageFallback",
+        "storageFallbackFromAttachmentId"
+      ]
+    },
+    "PresignResult": {
+      "required": [
+        "attachmentId",
+        "uploadUrl",
+        "reused"
+      ],
+      "fields": [
+        "attachmentId",
+        "uploadUrl",
+        "reused"
+      ]
+    },
+    "DeletePostBody": {
+      "required": [],
+      "fields": [
+        "deleteKey"
+      ]
+    },
+    "ClientPolicy": {
+      "required": [
+        "boardKey",
+        "allowedMimeTypes",
+        "maxFileSizeBytes",
+        "maxBodyLength",
+        "maxDeleteKeyLength",
+        "threadsPerHour",
+        "threadCreationCooldownSeconds",
+        "replyCreationCooldownSeconds",
+        "threadReplyCreationCooldownSeconds"
+      ],
+      "fields": [
+        "boardKey",
+        "allowedMimeTypes",
+        "maxFileSizeBytes",
+        "maxBodyLength",
+        "maxDeleteKeyLength",
+        "threadsPerHour",
+        "threadCreationCooldownSeconds",
+        "replyCreationCooldownSeconds",
+        "threadReplyCreationCooldownSeconds"
+      ]
+    }
+  },
+  "client_policy_status": 200,
+  "client_policy": {
+    "boardKey": "aimg",
+    "allowedMimeTypes": [
+      "image/jpeg",
+      "image/png",
+      "image/gif",
+      "image/webp",
+      "image/heic",
+      "video/mp4",
+      "video/quicktime",
+      "video/webm"
+    ],
+    "maxFileSizeBytes": 20971520,
+    "maxBodyLength": 4000,
+    "maxDeleteKeyLength": 64,
+    "threadsPerHour": 60,
+    "threadCreationCooldownSeconds": 60,
+    "replyCreationCooldownSeconds": 10,
+    "threadReplyCreationCooldownSeconds": 5
+  },
+  "security_schemes": {
+    "aimgToken": {
+      "type": "apiKey",
+      "in": "header",
+      "name": "x-aimg-token"
+    },
+    "supporterSession": {
+      "type": "apiKey",
+      "in": "cookie",
+      "name": "__Host-supporter_session"
+    }
+  },
+  "app_auth_pkce": {
+    "start": "POST /app-authorizations",
+    "decision": "POST /app-authorizations/{id}/decision",
+    "exchange": "POST /app-credentials",
+    "method": "S256",
+    "credential_lifetime": "21 days (per OpenAPI 201 description)",
+    "refresh_token": "not issued according to OpenAPI"
+  }
+}

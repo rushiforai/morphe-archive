@@ -53,6 +53,7 @@ public final class MultiResponseNg {
     }
     public static void menu(Object fragment,Menu menu){
         if(menu==null)return;
+        NativeTabGroups.addThreadGroupAction(menu,fragment);
         for(int i=0;i<menu.size();i++){
             MenuItem search=menu.getItem(i);
             if("検索".contentEquals(search.getTitle()==null?"":search.getTitle())

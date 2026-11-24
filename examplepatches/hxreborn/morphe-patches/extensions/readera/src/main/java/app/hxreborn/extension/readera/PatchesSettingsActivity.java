@@ -35,12 +35,13 @@ import android.view.Gravity;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.Window;
-import android.view.WindowInsets;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.ScrollView;
 import android.widget.TextView;
 
+
+import app.hxreborn.extension.shared.patchesmenu.PatchesSettingsPanel;
 
 @SuppressLint("SetTextI18n")
 @SuppressWarnings("unused")
@@ -77,10 +78,18 @@ public final class PatchesSettingsActivity extends Activity {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+        int theme = settingsTheme();
+        if (theme != 0) {
+            setTheme(theme);
+        }
         super.onCreate(savedInstanceState);
         this.style = new SettingsStyle(this);
         this.rows = new SettingsRows(this, this.style);
         styleSystemBars(getWindow());
+    }
+
+    static int settingsTheme() {
+        return 0;
     }
 
     @SuppressWarnings("deprecation")
@@ -90,24 +99,11 @@ public final class PatchesSettingsActivity extends Activity {
     }
 
     private View screen() {
-        LinearLayout screen = new LinearLayout(this);
-        screen.setOrientation(LinearLayout.VERTICAL);
-        screen.setBackgroundColor(this.style.screenBackground);
-        screen.setOnApplyWindowInsetsListener(this::applySystemBarInsets);
-        screen.addView(appBar());
-
+        View bar = appBar();
         this.scroll = new ScrollView(this);
         this.scroll.addView(content(),
                 new ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT));
-        screen.addView(this.scroll, new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, 0, 1f));
-        return screen;
-    }
-
-    @SuppressWarnings("deprecation")
-    private WindowInsets applySystemBarInsets(View view, WindowInsets insets) {
-        view.setPadding(insets.getSystemWindowInsetLeft(), insets.getSystemWindowInsetTop(),
-                insets.getSystemWindowInsetRight(), insets.getSystemWindowInsetBottom());
-        return insets.consumeSystemWindowInsets();
+        return new PatchesSettingsPanel(this, this.style.screenBackground, bar, this.scroll).createContent();
     }
 
     private View appBar() {

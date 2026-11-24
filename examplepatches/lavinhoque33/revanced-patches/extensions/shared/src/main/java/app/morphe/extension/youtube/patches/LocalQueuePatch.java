@@ -4,7 +4,7 @@
  *
  * See the included NOTICE file for GPLv3 Section 7 terms that apply to this code.
  *
- * Modified by lavinhoque33, 2026-10-24
+ * Modified by lavinhoque33, 2026-11-23.
  */
 
 package app.morphe.extension.youtube.patches;
@@ -164,12 +164,21 @@ public final class LocalQueuePatch {
      * the video starts playing.
      */
     public static void add(String videoId, boolean playNext) {
+        add(videoId, playNext, true);
+    }
+
+    /** Unlike the flyout action, a thumbnail tap must not start playback with an empty player. */
+    public static void appendFromThumbnail(String videoId) {
+        add(videoId, false, false);
+    }
+
+    private static void add(String videoId, boolean playNext, boolean allowStartPlayback) {
         try {
             if (videoId.isEmpty()) {
                 return;
             }
 
-            final boolean playNow = PlayerType.getCurrent().isNoneOrHidden() && size() == 0;
+            final boolean playNow = allowStartPlayback && PlayerType.getCurrent().isNoneOrHidden() && size() == 0;
             if (playNow) {
                 if (!startPlayback(videoId)) {
                     Utils.showToastShort(str("morphe_local_queue_play_failed"));

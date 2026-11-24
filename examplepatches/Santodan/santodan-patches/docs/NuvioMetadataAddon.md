@@ -1,8 +1,12 @@
 # NuvioTV metadata add-on selection
 
-Target: **com.nuvio.tv 1.1.0 / 1077** only. Original:
-`../OriginalApps/NuvioTV-1.1.0.apk`, SHA-256
-`a95f94e0bb7da2d0d72e6c93a8dda34bdb4a8bc46c7fa4234834d4c779de1db6`.
+Current target: **com.nuvio.tv 1.1.1 / 1081** only. Original:
+`../OriginalApps/NuvioTV-1.1.1.apk`, SHA-256
+`1ac8aa80ad9fff7b4c21cfe4bfdfed61b4de44a120ff4b1b5743149ccb00928d`.
+See [Nuvio111.md](Nuvio111.md) for migration and delivery checks. Native metadata
+repositories and saved enrichment constructors retain their 1.1.0 contracts.
+The library image helper moved from `z0.c.e` to `z0.d.e`; the guarded library-card
+fingerprint and image-request anchor now use the reviewed 1.1.1 binding.
 
 Enable **NuvioTV - Metadata add-on selection** when patching. Open
 **Settings > Layout > Santodan-Patches** and choose **Metadata add-on**.
@@ -61,8 +65,10 @@ background observer is added.
 
 ## Native evidence
 
-All five retained DEX fixtures match the original APK byte-for-byte. Focused
-evidence is under `../Skills/inspection-evidence/.inspect-nuvio-110/metadata-*`.
+The following feature evidence describes the original 1.1.0 implementation; its
+five retained DEX fixtures match that original byte-for-byte. Focused evidence is
+under `../Skills/inspection-evidence/.inspect-nuvio-110/metadata-*`. The 1.1.1
+comparison and separate fixtures are under `.inspect-nuvio-111` in the same directory.
 Original DEX governs bindings; the local source checkout only helped locate them.
 
 - `fa.c.a(fa.c,String,String):Flow` delegates to native metadata repository

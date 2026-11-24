@@ -10,7 +10,7 @@
  *
  * Licensed under the GNU General Public License v3.0.
  *
- * Modified by lavinhoque33, 2026-11-17.
+ * Modified by lavinhoque33, 2026-11-23.
  *
  * ------------------------------------------------------------------------
  * GPLv3 Section 7 – Additional Terms & Attribution Requirements
@@ -156,6 +156,11 @@ public class PlaylistPatch {
     @GuardedBy("itself")
     private static final BidiMap<String, String> lastVideoIds = new DualHashBidiMap<>();
 
+    /** Taps received while the first thumbnail tap creates the temporary queue. */
+    @Nullable
+    @GuardedBy("lastVideoIds")
+    private static Set<String> pendingThumbnailAdds;
+
     /**
      * Injection point.
      */
@@ -218,6 +223,41 @@ public class PlaylistPatch {
 
                 buildBottomSheetDialog(customActionsEntries);
             }
+        }
+    }
+
+    /** Uses the same temporary playlist as the queue manager, without opening it or starting playback. */
+    public static void appendFromThumbnail(String videoId) {
+        if (AuthUtils.isNotLoggedIn()) {
+            handleCheckError(checkFailedAuth);
+            return;
+        }
+
+        synchronized (lastVideoIds) {
+            if (lastVideoIds.containsKey(videoId)) {
+                return;
+            }
+            if (pendingThumbnailAdds != null) {
+                pendingThumbnailAdds.add(videoId);
+                return;
+            }
+
+            boolean creatingQueue = playlistId.isEmpty();
+            if (creatingQueue) {
+                pendingThumbnailAdds = new LinkedHashSet<>();
+            }
+            fetchQueue(videoId, false, false, false, false, creatingQueue);
+        }
+    }
+
+    private static void finishThumbnailQueueCreation(boolean succeeded) {
+        Set<String> pending;
+        synchronized (lastVideoIds) {
+            pending = pendingThumbnailAdds;
+            pendingThumbnailAdds = null;
+        }
+        if (succeeded && pending != null) {
+            pending.forEach(PlaylistPatch::appendFromThumbnail);
         }
     }
 
@@ -296,9 +336,13 @@ public class PlaylistPatch {
 
     private static void fetchQueue(boolean remove, boolean openPlaylist,
                                    boolean openVideo, boolean reload) {
+        fetchQueue(videoId, remove, openPlaylist, openVideo, reload, false);
+    }
+
+    private static void fetchQueue(String currentVideoId, boolean remove, boolean openPlaylist,
+                                   boolean openVideo, boolean reload, boolean thumbnailCreation) {
         try {
             String currentPlaylistId = playlistId;
-            String currentVideoId = videoId;
             Logger.printDebug(() -> "fetchQueue called: remove=" + remove
                     + ", openPlaylist=" + openPlaylist
                     + ", openVideo=" + openVideo
@@ -324,11 +368,17 @@ public class PlaylistPatch {
                                 if (openPlaylist) {
                                     openQueue(currentVideoId, openVideo, reload);
                                 }
+                                if (thumbnailCreation) {
+                                    finishThumbnailQueueCreation(true);
+                                }
                                 return;
                             }
                         }
                         Logger.printInfo(() -> "fetchQueue delayed callback (create): failed to create queue. request=" + request);
                         showToast(fetchFailedCreate);
+                        if (thumbnailCreation) {
+                            finishThumbnailQueueCreation(false);
+                        }
                     }, DELAY_MILLISECONDS);
                 } else { // Queue is not empty, add or remove video.
                     String setVideoId = lastVideoIds.get(currentVideoId);
@@ -366,6 +416,9 @@ public class PlaylistPatch {
             }
         } catch (Exception ex) {
             Logger.printException(() -> "fetchQueue failure", ex);
+            if (thumbnailCreation) {
+                finishThumbnailQueueCreation(false);
+            }
         }
     }
 

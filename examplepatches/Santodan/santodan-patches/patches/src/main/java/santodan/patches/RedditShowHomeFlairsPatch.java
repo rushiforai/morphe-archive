@@ -54,7 +54,8 @@ public final class RedditShowHomeFlairsPatch {
                     RedditContentFilterPatch.hookFeedLinkMapper(RedditContentFilterPatch.findFeedLinkMapper(
                         context.mutableClassDefBy(RedditContentFilterPatch.FEED_LINK_MAPPER), "a"));
                     RedditContentFilterPatch.hookFeedLinkMapper(RedditContentFilterPatch.findFeedLinkMapper(
-                        context.mutableClassDefBy(RedditContentFilterPatch.FEED_LINK_ALTERNATE_MAPPER), "D"));
+                        context.mutableClassDefBy(RedditContentFilterPatch.FEED_LINK_ALTERNATE_MAPPER),
+                        RedditContentFilterPatch.FEED_LINK_ALTERNATE_MAPPER_METHOD));
                     RedditContentFilterPatch.hookFeedElementProcessor(
                         RedditContentFilterPatch.findFeedElementProcessor(
                             context.mutableClassDefBy(RedditContentFilterPatch.FEED_ELEMENT_PROCESSOR)));

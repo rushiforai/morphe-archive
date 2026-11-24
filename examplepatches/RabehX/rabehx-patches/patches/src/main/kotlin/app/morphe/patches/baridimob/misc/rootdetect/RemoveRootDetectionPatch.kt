@@ -5,30 +5,25 @@
 
 package app.morphe.patches.baridimob.misc.rootdetect
 
-import app.morphe.patcher.Fingerprint
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
-import app.morphe.patcher.patch.bytecodePatch
+import app.morphe.patcher.patch.mutableClassDefByOrNull
+import app.morphe.patcher.patch.patch
 import app.morphe.patches.baridimob.shared.BaridimobConstants
+import app.morphe.patches.shared.returnEarlyAll
 
-/** Disables root detection. */
 @Suppress("unused")
-val removeRootDetectionPatch = bytecodePatch(
+val removeRootDetectionPatch = patch(
     name = "Disable root detection",
     description = "Disables the rooted-device check so the app runs on rooted devices.",
     default = true,
 ) {
+    category("Security")
     compatibleWith(BaridimobConstants.COMPATIBILITY_BARIDIMOB)
 
     execute {
-        val rootCheckerFactoryFingerprint = object : Fingerprint(
-            definingClass = "Lru/bpc/mobilebank/android/di/RootCheckerFactory;",
-            name = "getRootChecker",
-            returnType = "Lru/bpc/mobilebanksdk/DI/RootChecker;",
-            parameters = listOf(),
-        ) {}
-
-        runCatching { rootCheckerFactoryFingerprint.method }.getOrNull()?.let { method ->
-            method.addInstructions(
+        mutableClassDefByOrNull("Lru/bpc/mobilebank/android/di/RootCheckerFactory;")
+            ?.methods?.firstOrNull { it.name == "getRootChecker" }
+            ?.addInstructions(
                 0,
                 """
                     new-instance v0, Lru/bpc/mobilebanksdk/DI/impl/NoCheckRootChecker;
@@ -36,31 +31,12 @@ val removeRootDetectionPatch = bytecodePatch(
                     return-object v0
                 """,
             )
-        }
 
         listOf(
-            object : Fingerprint(
-                definingClass = "Lru/bpc/mobilebanksdk/DI/impl/CommandSuRootChecker;",
-                name = "checkDeviceRooted",
-                returnType = "Z",
-                parameters = listOf(),
-            ) {},
-            object : Fingerprint(
-                definingClass = "Lru/bpc/mobilebanksdk/DI/impl/RootCheckerImpl;",
-                name = "checkDeviceRooted",
-                returnType = "Z",
-                parameters = listOf(),
-            ) {},
-        ).forEach { fingerprint ->
-            runCatching { fingerprint.method }.getOrNull()?.let { method ->
-                method.addInstructions(
-                    0,
-                    """
-                        const/4 v0, 0x0
-                        return v0
-                    """,
-                )
-            }
+            "Lru/bpc/mobilebanksdk/DI/impl/CommandSuRootChecker;",
+            "Lru/bpc/mobilebanksdk/DI/impl/RootCheckerImpl;",
+        ).forEach { cls ->
+            mutableClassDefByOrNull(cls)?.returnEarlyAll(false) { it.name == "checkDeviceRooted" }
         }
     }
 }

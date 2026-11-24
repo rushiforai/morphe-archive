@@ -6,8 +6,8 @@
 | --------------------------- | -------------------------------------------------------------------------- |
 | **Application Name**        | Navigate360 Student                                                        |
 | **Package Name**            | `com.eab.se`                                                               |
-| **Supported Version**       | `26.19.22` (Morphe Compatibility: `26.19.22`, `minSdk` 31)                 |
-| **Analyzed Version Code**   | `26190220` (Derived from APK analysis; Constants specifies version string) |
+| **Supported Version**       | `26.23.8` (Morphe Compatibility: `26.23.8`, `minSdk` 31)                   |
+| **Analyzed Version Code**   | `26230080` (Derived from APK analysis; Constants specifies version string) |
 | **Minimum SDK**             | `31` (Android 12)                                                          |
 | **Distribution Format**     | APKM (`ApkFileType.APKM`); base APK plus language and density splits       |
 | **Package Signing SHA-256** | `7253620866df0a00048e7c1f43976992330e2fdb06f094d47fbf20045f56ec4b`         |
@@ -68,10 +68,10 @@ The plugin initializes the native SDK, attaches a JavaScript bridge to the WebVi
 
 ### 3.2 Sentry Error and Performance Telemetry
 
-`assets/www/index.html` loads Sentry Browser v7.120.4 from `assets/www/bin/sentry.js`, initializes it with the EAB Sentry DSN, and registers lifecycle/network breadcrumbs.
+`assets/www/index.html` loads Sentry Browser v7.120.4 from `assets/www/bin/sentry.js` and initializes it with the EAB Sentry DSN.
 
 - DSN host: `sentry.devops.eab.com`
 - Browser reporting endpoint: `https://5a282e1f1a464673aa8fef5b0d51a633@sentry.devops.eab.com/51`
 - CSP report group: `sentry-csp`
 
-The bootstrap attaches device model, OS version, platform, and Cordova version tags after `deviceready`. It also emits Loading, Paused, Resumed, Offline, and Online breadcrumbs.
+The bootstrap attaches device model, OS version, platform, and Cordova version tags after `deviceready`.

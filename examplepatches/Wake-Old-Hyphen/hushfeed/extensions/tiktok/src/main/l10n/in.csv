@@ -7,7 +7,6 @@ Burn-in guard,Pelindung burn-in layar
 Couldn't add the caption. Saving without it.,Keterangan gagal ditambah. Disimpan tanpa itu.
 Dim when idle,Redupkan saat diam
 Dim when idle and shift,Redupkan saat diam dan geser
-"For OLED screens. After 5 seconds without a touch, the buttons, caption and tabs over the video dim to a quarter, and your next touch brings them back. Shift also moves everything on the feed a few pixels every 2 minutes.","Untuk layar OLED. Setelah 5 detik tanpa sentuhan, tombol, keterangan, dan tab di atas video meredup menjadi seperempat, dan sentuhan berikutnya mengembalikannya. Geser juga memindahkan semua yang ada di feed beberapa piksel setiap 2 menit."
 Hashtags,Tagar
 Importing new history ended Undo for the earlier clear. You can clear the imported history.,Impor riwayat baru mengakhiri opsi Urungkan untuk penghapusan sebelumnya. Anda dapat menghapus riwayat yang diimpor.
 %1$d setting in that file can't be restored here and was skipped,%1$d pengaturan dalam berkas tidak dapat dipulihkan di sini dan dilewati
@@ -1458,6 +1457,8 @@ Custom hold speed,Kecepatan tahan sendiri
 Enter one speed from %1$s to %2$s,Masukkan satu kecepatan dari %1$s hingga %2$s
 Slide to change the hold speed,Geser untuk mengubah kecepatan tahan
 Hold speed bubble style,Gaya gelembung kecepatan tahan
+Hold speed bubble size,Ukuran gelembung kecepatan tahan
+"How big the bubble is drawn, from %1$d to %2$d. 100 is the normal size, which already grows with your phone's font size.","Seberapa besar gelembung digambar, dari %1$d sampai %2$d. 100 adalah ukuran normal, yang sudah ikut membesar mengikuti ukuran font ponselmu."
 Pill,Pil
 Circle,Lingkaran
 Pill is the wide bubble with a row of dots under the speed. Circle is a small round dial with a notch for each speed around its edge.,Pil adalah gelembung lebar dengan sederet titik di bawah kecepatan. Lingkaran adalah dial bulat kecil dengan tanda untuk setiap kecepatan di tepinya.
@@ -3025,3 +3026,27 @@ Skip promo lines,Lewati baris promosi
 Promo words,Kata promosi
 "Separate words or phrases with commas, like casino, promo code. Capital letters don't matter, and ""a"" & ""b"" or ""a"" !& ""b"" work as they do for Blocked caption words.","Pisahkan kata atau frasa dengan koma, seperti casino, promo code. Huruf besar tidak berpengaruh, dan ""a"" & ""b"" atau ""a"" !& ""b"" berfungsi sama seperti di Kata yang diblokir di keterangan."
 Skipped a promo line,Baris promosi dilewati
+Country and date text size,Ukuran teks negara dan tanggal
+"Use 0 to match the post date's size, or %1$d to %2$d. Sizes only the line under the caption and keeps Android's font scaling.","Gunakan 0 agar sama dengan ukuran tanggal postingan, atau %1$d sampai %2$d. Hanya mengubah ukuran baris di bawah keterangan dan tetap mengikuti skala font Android."
+Post date's size,Ukuran tanggal postingan
+Country and date opacity,Opasitas negara dan tanggal
+"How solid the line under the caption is drawn, from 10 to 100. Lower lets more of the video show through.","Seberapa pekat baris di bawah keterangan digambar, dari 10 sampai 100. Nilai lebih rendah membuat video lebih terlihat."
+Shadow under the country and date,Bayangan di bawah negara dan tanggal
+Draws a dark shadow under the line's letters so it stays readable on bright videos.,Menggambar bayangan gelap di bawah huruf baris agar tetap terbaca di video yang terang.
+Tap brings the controls back,Ketuk untuk memunculkan kontrol
+"A tap shows the hidden controls again instead of pausing the video. They hide again after the delay, or after %1$d seconds if the delay is shorter.","Ketukan memunculkan lagi kontrol yang tersembunyi alih-alih menjeda video. Kontrol tersembunyi lagi setelah jeda waktu, atau setelah %1$d detik jika jeda waktunya lebih singkat."
+"For OLED screens. After 5 seconds without a touch, the buttons, caption and tabs over the video dim to the level below, and your next touch brings them back. Shift also moves everything on the feed a few pixels every 2 minutes.","Untuk layar OLED. Setelah 5 detik tanpa sentuhan, tombol, keterangan, dan tab di atas video meredup ke tingkat di bawah, dan sentuhan berikutnya mengembalikannya. Geser juga memindahkan semua yang ada di feed beberapa piksel setiap 2 menit."
+Burn-in guard dim level,Tingkat redup pelindung burn-in
+"How solid the buttons, caption and tabs are while dimmed, from %1$d to %2$d. Lower dims them more.","Seberapa pekat tombol, keterangan, dan tab saat meredup, dari %1$d sampai %2$d. Nilai lebih rendah membuatnya lebih redup."
+Fade the controls out,Pudarkan kontrol
+"The buttons, caption and tabs fade away instead of vanishing at once, and a touch during the fade brings them back. With Android's animations turned off they still vanish at once.","Tombol, keterangan, dan tab memudar alih-alih hilang seketika, dan sentuhan saat memudar memunculkannya lagi. Jika animasi Android dimatikan, semuanya tetap hilang seketika."
+Date instead of age,Tanggal alih-alih usia
+"Recent videos show the date they were posted by the creator's name, like 10-12, in place of an age like 2d ago. Day before month and Write the month as a word change it the same way.","Video baru menampilkan tanggal diunggah di samping nama kreator, seperti 10-12, alih-alih usia seperti 2 hr lalu. Hari sebelum bulan dan Tulis bulan sebagai kata mengubahnya dengan cara yang sama."
+Keep your place in chats,Pertahankan posisi di obrolan
+A chat you've scrolled up in stays where you were when you come back from a video or send a reply. Sending a regular message or tapping the down arrow still takes you to the newest.,Obrolan yang sudah kamu gulir ke atas tetap di posisimu saat kembali dari video atau mengirim balasan. Mengirim pesan biasa atau mengetuk panah bawah tetap membawamu ke yang terbaru.
+Fill wide videos too,Penuhi juga dengan video lebar
+"With the switch above on, landscape and square videos are cropped to cover the screen too, so only their middle shows. Off, they stay whole.","Dengan sakelar di atas aktif, video lanskap dan persegi juga dipotong untuk menutupi layar, jadi hanya bagian tengahnya yang terlihat. Jika mati, video tetap utuh."
+Random time each day,Waktu acak setiap hari
+"Sends at a different time each day, somewhere between When to send and Latest time.","Mengirim pada waktu berbeda setiap hari, di antara Kapan dikirim dan Waktu paling lambat."
+Latest time,Waktu paling lambat
+"The end of the random window, on the same day as When to send. If it isn't later, the message goes at When to send.","Akhir rentang acak, pada hari yang sama dengan Kapan dikirim. Jika tidak lebih lambat, pesan dikirim pada waktu Kapan dikirim."

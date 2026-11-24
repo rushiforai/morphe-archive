@@ -6,7 +6,6 @@ build/
 node_modules/
 .venv/
 .apk-lab/
-.ruff_cache/
 .tools/
 target/
 *.mpp
@@ -18,8 +17,8 @@ target/
 *.dex
 package-lock.json
 bun.lock
-uv.lock
 tools.lock.json
 patches-list.json
 patches-bundle.json
 CHANGELOG.md
+scripts/test-fixtures/

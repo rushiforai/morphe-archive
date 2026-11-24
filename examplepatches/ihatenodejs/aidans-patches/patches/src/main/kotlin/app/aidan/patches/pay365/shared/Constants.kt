@@ -15,6 +15,7 @@ val COMPATIBILITY_365_PAY = Compatibility(
         "8709f6fd781c4ba9a4f50df8c44f8c5a4ccb2fd2b114b71912e79eacf8857b1d"
     ),
     targets = listOf(
-        AppTarget(version = "10.2605.0", minSdk = 27)
+        AppTarget(version = "10.2605.0", minSdk = 27),
+        AppTarget(version = "10.2606.1", minSdk = 27)
     )
 )

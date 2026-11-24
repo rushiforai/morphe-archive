@@ -1,14 +1,14 @@
 version: 2
 updates:
   - package-ecosystem: github-actions
-    labels: []
+    labels: ["dependencies"]
     directory: /
     target-branch: dev
     schedule:
       interval: monthly
 
   - package-ecosystem: npm
-    labels: []
+    labels: ["dependencies"]
     directory: /
     target-branch: dev
     schedule:
@@ -19,7 +19,7 @@ updates:
       - dependency-name: "conventional-changelog-conventionalcommits"
 
   - package-ecosystem: gradle
-    labels: []
+    labels: ["dependencies"]
     directory: /
     target-branch: dev
     schedule:

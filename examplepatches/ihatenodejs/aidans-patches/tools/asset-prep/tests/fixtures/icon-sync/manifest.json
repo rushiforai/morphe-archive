@@ -1,0 +1,446 @@
+{
+  "schemaVersion": 1,
+  "reference": {
+    "pythonVersion": "3.12.14",
+    "pillowVersion": "11.3.0",
+    "iconScript": ".github/scripts/sync_app_icons.py",
+    "iconScriptSha256": "98ad930850144ec826e696be5f878694bcd8f7baa94f532e79a4e1803bc4278c",
+    "captureCommand": ".apk-lab-migration/icons-reference/.venv/bin/python .apk-lab-migration/asset-cli-capture/capture_assets.py",
+    "urlRedirect": "production urllib.request.urlopen redirected from https://play.google.com/store/apps/details?id=<pkg> to loopback"
+  },
+  "patches": {
+    "path": "patches.json",
+    "sha256": "5e746050e770868d83e89e0e72c6acaadb93d1e919527ae0e3cc0b631be83948",
+    "packages": {
+      "com.example.alpha": "Alpha App",
+      "com.example.beta": "Beta App",
+      "com.example.delta": "com.example.delta",
+      "com.example.epsilon": "Epsilon App",
+      "com.example.eta": "Eta App",
+      "com.example.gamma": "Gamma App",
+      "com.example.theta": "Theta App",
+      "com.example.zeta": "Zeta App"
+    }
+  },
+  "sources": {
+    "alpha": {
+      "path": "sources/alpha.png",
+      "sha256": "ec330a01f44248ec3fded2a37a17b77d34db5823387de5f3a3ef57e71f7b4627"
+    },
+    "beta": {
+      "path": "sources/beta.png",
+      "sha256": "ae18ae92a5192e9cb6f1654ab0338fc6e8eb24ea49331bf4880b946bc84fd274"
+    },
+    "gamma": {
+      "path": "sources/gamma.png",
+      "sha256": "bdc19b58c6451428eba7a7626471ca07f4f51ee8e7667a19bfe7784ea8bc16a8"
+    },
+    "epsilon": {
+      "path": "sources/epsilon.png",
+      "sha256": "f8dc3b1c91978462c49875ef52834f7c9b44ceab4adbdd789c14391e9fd863b1"
+    },
+    "eta": {
+      "path": "sources/eta.png",
+      "sha256": "9ed1aeedde9a8dc1c5cd834d53bef9137de3ccadd275b83251d056f70b8f0f27"
+    },
+    "theta": {
+      "path": "sources/theta.png",
+      "sha256": "a496f6fe50e5c6dfa2281827be54658acc451eca911538b08c631956fda8c835"
+    },
+    "zeta": {
+      "path": "sources/zeta.png",
+      "sha256": "54ebfad62385f709c8bddb9f16d0f110ec13f614194794420ed6fba71b2f27ed"
+    },
+    "delta": {
+      "path": "sources/delta.png",
+      "sha256": "0c94099e68b19f60b94db5cdd904bd23470db93926c1aaa2db88dd5fdbac0521"
+    }
+  },
+  "html": {
+    "com.example.alpha": {
+      "path": "html/com.example.alpha.html",
+      "sha256": "317aa8a474e4e1fd54e8c545b7710cf3cbb401e808fb2d8d9a1069ce632b9795"
+    },
+    "com.example.beta": {
+      "path": "html/com.example.beta.html",
+      "sha256": "649df27fc48714c50f7d68d51af84788ab5668bfd86266a62e2306c5ffd5fbd9"
+    },
+    "com.example.gamma": {
+      "path": "html/com.example.gamma.html",
+      "sha256": "5daa42b1e9b43ed74415dbed3b3fd9372e74d709bcf520f65e46fde91315bc2b"
+    },
+    "com.example.delta": {
+      "path": "html/com.example.delta.html",
+      "sha256": "82066b79e757aa578f82d154b0d5a1ef0afd0089841b3a25e8ff294a9378e100"
+    },
+    "com.example.epsilon": {
+      "path": "html/com.example.epsilon.html",
+      "sha256": "ff3afb59782bdb8254f0de9970cb2ace3092da72ec4a9e12dcb86d9818a0004c"
+    },
+    "com.example.eta": {
+      "path": "html/com.example.eta.html",
+      "sha256": "617ea2d806b4883f021eba360b9ef0827dff04c8efcf1b19135cb2d14624ddee"
+    },
+    "com.example.theta": {
+      "path": "html/com.example.theta.html",
+      "sha256": "3fd0f4a5bfb14012f93abd508e842d10459bae1fa97c3161dc40486a6afb8ef1"
+    },
+    "com.example.zeta": {
+      "path": "html/com.example.zeta.html",
+      "sha256": "8f699919517de75822c8b36008543e74932500324e4c354b570f90aa0d11d1b9"
+    }
+  },
+  "regexContract": {
+    "path": "regex/contract.json",
+    "sha256": "b2f8871edc08c603d720be41793652f4177c97c3d1152debd239bb9b05712c10"
+  },
+  "candidates": {
+    "com.example.alpha": {
+      "path": "expected/candidates/com.example.alpha.png",
+      "sha256": "54475ad1ac5025a85dba55f26d10da0a2c7619a2309ea5111ec18b4e5d8228ac",
+      "size": 19561
+    },
+    "com.example.beta": {
+      "path": "expected/candidates/com.example.beta.png",
+      "sha256": "890b23186124a11035fafaed541fae88cc5922752eab0eb3cfcffce57b6238f6",
+      "size": 3150
+    },
+    "com.example.gamma": {
+      "path": "expected/candidates/com.example.gamma.png",
+      "sha256": "d520ecfcc46a55f1cf947e07920e469a6b4cf7ac7113410dea4a3c35ecb6807d",
+      "size": 24573
+    },
+    "com.example.epsilon": {
+      "path": "expected/candidates/com.example.epsilon.png",
+      "sha256": "877c93af28b1e18a9cfbd610f5dbce5c632e2ca511c68262b5ca1e20391d9c01",
+      "size": 22642
+    },
+    "com.example.eta": {
+      "path": "expected/candidates/com.example.eta.png",
+      "sha256": "9c1f18c379fea0c8226ab7ad5f9eddd8be95e6ad739e7b36106b9731e0d4ab61",
+      "size": 47582
+    },
+    "com.example.theta": {
+      "path": "expected/candidates/com.example.theta.png",
+      "sha256": "12a74e23266ff249bf567c2311647a75e751256bc336a408df38382b87181528",
+      "size": 10338
+    },
+    "com.example.zeta": {
+      "path": "expected/candidates/com.example.zeta.png",
+      "sha256": "dd2089adb5c32e1797b2e02a14f739074c37e54099b121898f868c58c56bbc00",
+      "size": 9700
+    }
+  },
+  "compressionOnlyVariant": {
+    "path": "expected/epsilon-compression-variant.png",
+    "sha256": "39df511195b565c69fbea1f066647ba8aa3f63f94f6ee134dd33fa7cf848994c",
+    "size": 39207,
+    "samePixelsAs": "expected/candidates/com.example.epsilon.png"
+  },
+  "stdoutNormalization": {
+    "scope": [
+      "  Added new icon for <package> (<digits> bytes)",
+      "  Updated icon for <package> (<digits> bytes)"
+    ],
+    "replacement": "(<digits> bytes) -> (N bytes)",
+    "reason": "PNG compression/metadata may differ from Pillow while every decoded RGBA byte remains equal; the printed encoded length therefore legitimately differs for genuine writes.",
+    "untouched": "Every other stdout token and every GITHUB_OUTPUT byte must match the Python oracle exactly."
+  },
+  "pythonScenarios": {
+    "check-all-present": {
+      "mode": "--check-only",
+      "exit": 0,
+      "stdout": "All 8 application icons are present.\n",
+      "stderr": "",
+      "githubOutput": "has_missing=false\nmissing_packages=\n",
+      "githubValues": {
+        "has_missing": "false",
+        "missing_packages": ""
+      },
+      "files": {
+        "com.example.alpha.png": {
+          "sha256": "2d711642b726b04401627ca9fbac32f5c8530fb1903cc4db02258717921a4881",
+          "size": 1
+        },
+        "com.example.beta.png": {
+          "sha256": "2d711642b726b04401627ca9fbac32f5c8530fb1903cc4db02258717921a4881",
+          "size": 1
+        },
+        "com.example.delta.png": {
+          "sha256": "2d711642b726b04401627ca9fbac32f5c8530fb1903cc4db02258717921a4881",
+          "size": 1
+        },
+        "com.example.epsilon.png": {
+          "sha256": "2d711642b726b04401627ca9fbac32f5c8530fb1903cc4db02258717921a4881",
+          "size": 1
+        },
+        "com.example.eta.png": {
+          "sha256": "2d711642b726b04401627ca9fbac32f5c8530fb1903cc4db02258717921a4881",
+          "size": 1
+        },
+        "com.example.gamma.png": {
+          "sha256": "2d711642b726b04401627ca9fbac32f5c8530fb1903cc4db02258717921a4881",
+          "size": 1
+        },
+        "com.example.theta.png": {
+          "sha256": "2d711642b726b04401627ca9fbac32f5c8530fb1903cc4db02258717921a4881",
+          "size": 1
+        },
+        "com.example.zeta.png": {
+          "sha256": "2d711642b726b04401627ca9fbac32f5c8530fb1903cc4db02258717921a4881",
+          "size": 1
+        }
+      },
+      "icons": [
+        "com.example.alpha",
+        "com.example.beta",
+        "com.example.delta",
+        "com.example.epsilon",
+        "com.example.eta",
+        "com.example.gamma",
+        "com.example.theta",
+        "com.example.zeta"
+      ],
+      "exception": null,
+      "expectedGithubOutput": "has_missing=false\nmissing_packages=\n",
+      "expectedStdout": "All 8 application icons are present.\n"
+    },
+    "check-missing": {
+      "mode": "--check-only",
+      "exit": 0,
+      "stdout": "Missing icons for 7 package(s): com.example.beta, com.example.delta, com.example.epsilon, com.example.eta, com.example.gamma, com.example.theta, com.example.zeta\n",
+      "stderr": "",
+      "githubOutput": "has_missing=true\nmissing_packages=com.example.beta,com.example.delta,com.example.epsilon,com.example.eta,com.example.gamma,com.example.theta,com.example.zeta\n",
+      "githubValues": {
+        "has_missing": "true",
+        "missing_packages": "com.example.beta,com.example.delta,com.example.epsilon,com.example.eta,com.example.gamma,com.example.theta,com.example.zeta"
+      },
+      "files": {
+        "com.example.alpha.png": {
+          "sha256": "8ed3f6ad685b959ead7022518e1af76cd816f8e8ec7ccdda1ed4018e8f2223f8",
+          "size": 5
+        },
+        "com.example.beta.png": {
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "size": 0
+        }
+      },
+      "icons": [
+        "com.example.alpha",
+        "com.example.beta"
+      ],
+      "exception": null,
+      "expectedGithubOutput": "has_missing=true\nmissing_packages=com.example.delta,com.example.epsilon,com.example.eta,com.example.gamma,com.example.theta,com.example.zeta\n",
+      "expectedStdout": "Missing icons for 6 package(s): com.example.delta, com.example.epsilon, com.example.eta, com.example.gamma, com.example.theta, com.example.zeta\n"
+    },
+    "download-missing": {
+      "mode": "--download-missing",
+      "exit": 0,
+      "stdout": "Fetching Google Play icon for Alpha App (com.example.alpha)...\n  Added new icon for com.example.alpha (19561 bytes)\nFetching Google Play icon for Beta App (com.example.beta)...\n  Added new icon for com.example.beta (3150 bytes)\nFetching Google Play icon for com.example.delta (com.example.delta)...\n  Skipping com.example.delta: image processing failed.\nFetching Google Play icon for Eta App (com.example.eta)...\n  Added new icon for com.example.eta (47582 bytes)\nFetching Google Play icon for Gamma App (com.example.gamma)...\n  Added new icon for com.example.gamma (24573 bytes)\nFetching Google Play icon for Theta App (com.example.theta)...\n  Skipping com.example.theta: could not obtain icon URL.\nFetching Google Play icon for Zeta App (com.example.zeta)...\n  Skipping com.example.zeta: image processing failed.\n\nCompleted. Changes detected: True\n\n### New Icons Added\n- Alpha App (`com.example.alpha`)\n- Beta App (`com.example.beta`)\n- Eta App (`com.example.eta`)\n- Gamma App (`com.example.gamma`)\n",
+      "stderr": "[WARN] Failed to process image from http://127.0.0.1:55599/icons/delta.png: cannot identify image file <_io.BytesIO object at 0x10b18b1a0>\n[WARN] og:image meta tag not found for com.example.theta\n[WARN] Failed to download icon image http://127.0.0.1:55599/icons/zeta.png: HTTP Error 404: Not Found\n",
+      "githubOutput": "changes_detected=true\nsummary<<ghadelim_a80da1282f2c775bbc5f2c92c836968b\n### New Icons Added\n- Alpha App (`com.example.alpha`)\n- Beta App (`com.example.beta`)\n- Eta App (`com.example.eta`)\n- Gamma App (`com.example.gamma`)\nghadelim_a80da1282f2c775bbc5f2c92c836968b\n",
+      "githubValues": {
+        "changes_detected": "true",
+        "summary": "### New Icons Added\n- Alpha App (`com.example.alpha`)\n- Beta App (`com.example.beta`)\n- Eta App (`com.example.eta`)\n- Gamma App (`com.example.gamma`)"
+      },
+      "files": {
+        "com.example.alpha.png": {
+          "sha256": "54475ad1ac5025a85dba55f26d10da0a2c7619a2309ea5111ec18b4e5d8228ac",
+          "size": 19561
+        },
+        "com.example.beta.png": {
+          "sha256": "890b23186124a11035fafaed541fae88cc5922752eab0eb3cfcffce57b6238f6",
+          "size": 3150
+        },
+        "com.example.epsilon.png": {
+          "sha256": "877c93af28b1e18a9cfbd610f5dbce5c632e2ca511c68262b5ca1e20391d9c01",
+          "size": 22642
+        },
+        "com.example.eta.png": {
+          "sha256": "9c1f18c379fea0c8226ab7ad5f9eddd8be95e6ad739e7b36106b9731e0d4ab61",
+          "size": 47582
+        },
+        "com.example.gamma.png": {
+          "sha256": "d520ecfcc46a55f1cf947e07920e469a6b4cf7ac7113410dea4a3c35ecb6807d",
+          "size": 24573
+        }
+      },
+      "icons": [
+        "com.example.alpha",
+        "com.example.beta",
+        "com.example.epsilon",
+        "com.example.eta",
+        "com.example.gamma"
+      ],
+      "exception": null
+    },
+    "sync-all": {
+      "mode": "--sync-all",
+      "exit": 0,
+      "stdout": "Fetching Google Play icon for Alpha App (com.example.alpha)...\n  com.example.alpha: icon unchanged.\nFetching Google Play icon for Beta App (com.example.beta)...\n  Updated icon for com.example.beta (3150 bytes)\nFetching Google Play icon for com.example.delta (com.example.delta)...\n  Skipping com.example.delta: image processing failed.\nFetching Google Play icon for Epsilon App (com.example.epsilon)...\n  Updated icon for com.example.epsilon (22642 bytes)\nFetching Google Play icon for Eta App (com.example.eta)...\n  Added new icon for com.example.eta (47582 bytes)\nFetching Google Play icon for Gamma App (com.example.gamma)...\n  Updated icon for com.example.gamma (24573 bytes)\nFetching Google Play icon for Theta App (com.example.theta)...\n  Skipping com.example.theta: could not obtain icon URL.\nFetching Google Play icon for Zeta App (com.example.zeta)...\n  Skipping com.example.zeta: image processing failed.\n\nCompleted. Changes detected: True\n\n### New Icons Added\n- Eta App (`com.example.eta`)\n### Icons Refreshed from Google Play\n- Beta App (`com.example.beta`)\n- Epsilon App (`com.example.epsilon`)\n- Gamma App (`com.example.gamma`)\n",
+      "stderr": "[WARN] Failed to process image from http://127.0.0.1:55599/icons/delta.png: cannot identify image file <_io.BytesIO object at 0x10b18b600>\n[WARN] og:image meta tag not found for com.example.theta\n[WARN] Failed to download icon image http://127.0.0.1:55599/icons/zeta.png: HTTP Error 404: Not Found\n",
+      "githubOutput": "changes_detected=true\nsummary<<ghadelim_a80da1282f2c775bbc5f2c92c836968b\n### New Icons Added\n- Eta App (`com.example.eta`)\n### Icons Refreshed from Google Play\n- Beta App (`com.example.beta`)\n- Epsilon App (`com.example.epsilon`)\n- Gamma App (`com.example.gamma`)\nghadelim_a80da1282f2c775bbc5f2c92c836968b\n",
+      "githubValues": {
+        "changes_detected": "true",
+        "summary": "### New Icons Added\n- Eta App (`com.example.eta`)\n### Icons Refreshed from Google Play\n- Beta App (`com.example.beta`)\n- Epsilon App (`com.example.epsilon`)\n- Gamma App (`com.example.gamma`)"
+      },
+      "files": {
+        "com.example.alpha.png": {
+          "sha256": "54475ad1ac5025a85dba55f26d10da0a2c7619a2309ea5111ec18b4e5d8228ac",
+          "size": 19561
+        },
+        "com.example.beta.png": {
+          "sha256": "890b23186124a11035fafaed541fae88cc5922752eab0eb3cfcffce57b6238f6",
+          "size": 3150
+        },
+        "com.example.delta.png": {
+          "sha256": "30e7c335c9c1cdf2375b4d68c9769ae5c12667c985e405a12d119bdb2c180351",
+          "size": 9
+        },
+        "com.example.epsilon.png": {
+          "sha256": "877c93af28b1e18a9cfbd610f5dbce5c632e2ca511c68262b5ca1e20391d9c01",
+          "size": 22642
+        },
+        "com.example.eta.png": {
+          "sha256": "9c1f18c379fea0c8226ab7ad5f9eddd8be95e6ad739e7b36106b9731e0d4ab61",
+          "size": 47582
+        },
+        "com.example.gamma.png": {
+          "sha256": "d520ecfcc46a55f1cf947e07920e469a6b4cf7ac7113410dea4a3c35ecb6807d",
+          "size": 24573
+        },
+        "com.example.theta.png": {
+          "sha256": "b168eda5b5dab2b771332c0854f25d2f09b8746032ce0e78831853578878f83b",
+          "size": 9
+        },
+        "com.example.zeta.png": {
+          "sha256": "bf0c9a8e490da2fecc8dd1b7d2b6fb7f465671066eca1fb404879b71decaec3f",
+          "size": 8
+        }
+      },
+      "icons": [
+        "com.example.alpha",
+        "com.example.beta",
+        "com.example.delta",
+        "com.example.epsilon",
+        "com.example.eta",
+        "com.example.gamma",
+        "com.example.theta",
+        "com.example.zeta"
+      ],
+      "exception": null
+    },
+    "download-missing-none": {
+      "mode": "--download-missing",
+      "exit": 0,
+      "stdout": "No packages need icon updates.\n",
+      "stderr": "",
+      "githubOutput": "changes_detected=false\nsummary=No changes detected.\n",
+      "githubValues": {
+        "changes_detected": "false",
+        "summary": "No changes detected."
+      },
+      "files": {
+        "com.example.alpha.png": {
+          "sha256": "2d711642b726b04401627ca9fbac32f5c8530fb1903cc4db02258717921a4881",
+          "size": 1
+        },
+        "com.example.beta.png": {
+          "sha256": "2d711642b726b04401627ca9fbac32f5c8530fb1903cc4db02258717921a4881",
+          "size": 1
+        },
+        "com.example.delta.png": {
+          "sha256": "2d711642b726b04401627ca9fbac32f5c8530fb1903cc4db02258717921a4881",
+          "size": 1
+        },
+        "com.example.epsilon.png": {
+          "sha256": "2d711642b726b04401627ca9fbac32f5c8530fb1903cc4db02258717921a4881",
+          "size": 1
+        },
+        "com.example.eta.png": {
+          "sha256": "2d711642b726b04401627ca9fbac32f5c8530fb1903cc4db02258717921a4881",
+          "size": 1
+        },
+        "com.example.gamma.png": {
+          "sha256": "2d711642b726b04401627ca9fbac32f5c8530fb1903cc4db02258717921a4881",
+          "size": 1
+        },
+        "com.example.theta.png": {
+          "sha256": "2d711642b726b04401627ca9fbac32f5c8530fb1903cc4db02258717921a4881",
+          "size": 1
+        },
+        "com.example.zeta.png": {
+          "sha256": "2d711642b726b04401627ca9fbac32f5c8530fb1903cc4db02258717921a4881",
+          "size": 1
+        }
+      },
+      "icons": [
+        "com.example.alpha",
+        "com.example.beta",
+        "com.example.delta",
+        "com.example.epsilon",
+        "com.example.eta",
+        "com.example.gamma",
+        "com.example.theta",
+        "com.example.zeta"
+      ],
+      "exception": null,
+      "expectedGithubOutput": "changes_detected=false\nsummary=No changes detected.\n",
+      "expectedStdout": "No packages need icon updates.\n"
+    },
+    "missing-patches-list": {
+      "mode": "--check-only",
+      "exit": 1,
+      "stdout": "",
+      "stderr": "FileNotFoundError: Patches list not found: /var/folders/q_/8vvtb5m90p95bxyjx1dw609r0000gn/T/asset-icon-capture-kpmdnaqc/does-not-exist.json\n",
+      "githubOutput": "",
+      "githubValues": {},
+      "files": {},
+      "icons": [],
+      "exception": "FileNotFoundError: Patches list not found: /var/folders/q_/8vvtb5m90p95bxyjx1dw609r0000gn/T/asset-icon-capture-kpmdnaqc/does-not-exist.json"
+    }
+  },
+  "expectedNative": {
+    "download-missing": {
+      "changesDetected": "true",
+      "summary": "### New Icons Added\n- Alpha App (`com.example.alpha`)\n- Beta App (`com.example.beta`)\n- Eta App (`com.example.eta`)\n- Gamma App (`com.example.gamma`)",
+      "githubOutput": "changes_detected=true\nsummary<<ghadelim_a80da1282f2c775bbc5f2c92c836968b\n### New Icons Added\n- Alpha App (`com.example.alpha`)\n- Beta App (`com.example.beta`)\n- Eta App (`com.example.eta`)\n- Gamma App (`com.example.gamma`)\nghadelim_a80da1282f2c775bbc5f2c92c836968b\n",
+      "stdout": "Fetching Google Play icon for Alpha App (com.example.alpha)...\n  Added new icon for com.example.alpha (19561 bytes)\nFetching Google Play icon for Beta App (com.example.beta)...\n  Added new icon for com.example.beta (3150 bytes)\nFetching Google Play icon for com.example.delta (com.example.delta)...\n  Skipping com.example.delta: image processing failed.\nFetching Google Play icon for Eta App (com.example.eta)...\n  Added new icon for com.example.eta (47582 bytes)\nFetching Google Play icon for Gamma App (com.example.gamma)...\n  Added new icon for com.example.gamma (24573 bytes)\nFetching Google Play icon for Theta App (com.example.theta)...\n  Skipping com.example.theta: could not obtain icon URL.\nFetching Google Play icon for Zeta App (com.example.zeta)...\n  Skipping com.example.zeta: image processing failed.\n\nCompleted. Changes detected: True\n\n### New Icons Added\n- Alpha App (`com.example.alpha`)\n- Beta App (`com.example.beta`)\n- Eta App (`com.example.eta`)\n- Gamma App (`com.example.gamma`)\n",
+      "created": [
+        "com.example.alpha",
+        "com.example.beta",
+        "com.example.eta",
+        "com.example.gamma"
+      ],
+      "updated": [],
+      "unchanged": [],
+      "skipped": [
+        "com.example.delta",
+        "com.example.theta",
+        "com.example.zeta"
+      ]
+    },
+    "sync-all": {
+      "changesDetected": "true",
+      "summary": "### New Icons Added\n- Eta App (`com.example.eta`)\n### Icons Refreshed from Google Play\n- Beta App (`com.example.beta`)\n- Gamma App (`com.example.gamma`)",
+      "githubOutput": "changes_detected=true\nsummary<<ghadelim_a80da1282f2c775bbc5f2c92c836968b\n### New Icons Added\n- Eta App (`com.example.eta`)\n### Icons Refreshed from Google Play\n- Beta App (`com.example.beta`)\n- Gamma App (`com.example.gamma`)\nghadelim_a80da1282f2c775bbc5f2c92c836968b\n",
+      "stdout": "Fetching Google Play icon for Alpha App (com.example.alpha)...\n  com.example.alpha: icon unchanged.\nFetching Google Play icon for Beta App (com.example.beta)...\n  Updated icon for com.example.beta (3150 bytes)\nFetching Google Play icon for com.example.delta (com.example.delta)...\n  Skipping com.example.delta: image processing failed.\nFetching Google Play icon for Epsilon App (com.example.epsilon)...\n  com.example.epsilon: icon unchanged.\nFetching Google Play icon for Eta App (com.example.eta)...\n  Added new icon for com.example.eta (47582 bytes)\nFetching Google Play icon for Gamma App (com.example.gamma)...\n  Updated icon for com.example.gamma (24573 bytes)\nFetching Google Play icon for Theta App (com.example.theta)...\n  Skipping com.example.theta: could not obtain icon URL.\nFetching Google Play icon for Zeta App (com.example.zeta)...\n  Skipping com.example.zeta: image processing failed.\n\nCompleted. Changes detected: True\n\n### New Icons Added\n- Eta App (`com.example.eta`)\n### Icons Refreshed from Google Play\n- Beta App (`com.example.beta`)\n- Gamma App (`com.example.gamma`)\n",
+      "created": [
+        "com.example.eta"
+      ],
+      "updated": [
+        "com.example.beta",
+        "com.example.gamma"
+      ],
+      "unchanged": [
+        "com.example.alpha",
+        "com.example.epsilon"
+      ],
+      "skipped": [
+        "com.example.delta",
+        "com.example.theta",
+        "com.example.zeta"
+      ]
+    }
+  }
+}

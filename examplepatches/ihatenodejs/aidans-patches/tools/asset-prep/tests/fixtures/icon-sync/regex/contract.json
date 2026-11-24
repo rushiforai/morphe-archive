@@ -1,0 +1,94 @@
+{
+  "schemaVersion": 1,
+  "reference": {
+    "pythonVersion": "3.12.14",
+    "iconScript": ".github/scripts/sync_app_icons.py",
+    "iconScriptSha256": "98ad930850144ec826e696be5f878694bcd8f7baa94f532e79a4e1803bc4278c",
+    "propertyFirstPattern": "<meta\\s+[^>]*property=[\"\\']og:image[\"\\']\\s+content=[\"\\']([^\"\\']+)[\"\\']",
+    "alternatePattern": "<meta\\s+[^>]*content=[\"\\']([^\"\\']+)[\"\\']\\s+property=[\"\\']og:image[\"\\']",
+    "captureCommand": ".apk-lab-migration/icons-reference/.venv/bin/python .apk-lab-migration/asset-cli-capture/capture_assets.py"
+  },
+  "cases": [
+    {
+      "id": "property-first-ascii",
+      "htmlPath": "regex/property-first-ascii.html",
+      "htmlSha256": "ab9fbafb347856eb637e0c843e4949960d7897781f7b04e08a73a004fe254151",
+      "propertyFirstUrl": "https://example.test/a.png",
+      "alternateUrl": null,
+      "combinedUrl": "https://example.test/a.png",
+      "normalizedUrl": "https://example.test/a.png"
+    },
+    {
+      "id": "content-first-ascii",
+      "htmlPath": "regex/content-first-ascii.html",
+      "htmlSha256": "368a728510f8e6bfc1fb125bcab4afd7c6074fda4e522651d88e9b665dc64d5f",
+      "propertyFirstUrl": null,
+      "alternateUrl": "https://example.test/b.png",
+      "combinedUrl": "https://example.test/b.png",
+      "normalizedUrl": "https://example.test/b.png"
+    },
+    {
+      "id": "property-first-dotless-i",
+      "htmlPath": "regex/property-first-dotless-i.html",
+      "htmlSha256": "79a11831e45ef4fbe81824d7ce8c2c1692753baa198d61ea4cb1e4f45c9000f8",
+      "propertyFirstUrl": "https://example.test/c.png",
+      "alternateUrl": null,
+      "combinedUrl": "https://example.test/c.png",
+      "normalizedUrl": "https://example.test/c.png"
+    },
+    {
+      "id": "property-first-dotted-capital-i",
+      "htmlPath": "regex/property-first-dotted-capital-i.html",
+      "htmlSha256": "69f4754a2377c9a32200603a2ffb6d1ea9fe669f0f55cbdaf731b4c680da2e10",
+      "propertyFirstUrl": "https://example.test/d.png",
+      "alternateUrl": null,
+      "combinedUrl": "https://example.test/d.png",
+      "normalizedUrl": "https://example.test/d.png"
+    },
+    {
+      "id": "content-first-dotless-i",
+      "htmlPath": "regex/content-first-dotless-i.html",
+      "htmlSha256": "f679d317e30b3cb41adce3b13a589bacd4638b1b3ea14aebb43c5fa86dd54d66",
+      "propertyFirstUrl": null,
+      "alternateUrl": "https://example.test/e.png",
+      "combinedUrl": "https://example.test/e.png",
+      "normalizedUrl": "https://example.test/e.png"
+    },
+    {
+      "id": "unit-separator-1c",
+      "htmlPath": "regex/unit-separator-1c.html",
+      "htmlSha256": "b7bc56fd69d6d1ed9c4d646487e86f37b8d22255b8aeb6a7b319fc328ac6eb05",
+      "propertyFirstUrl": "https://example.test/f.png",
+      "alternateUrl": null,
+      "combinedUrl": "https://example.test/f.png",
+      "normalizedUrl": "https://example.test/f.png"
+    },
+    {
+      "id": "record-separator-1f-alt-order",
+      "htmlPath": "regex/record-separator-1f-alt-order.html",
+      "htmlSha256": "1e6b1af2cef0a80d4149f3980df0bfff9088ab448492821f484ddf41b9e751db",
+      "propertyFirstUrl": null,
+      "alternateUrl": "https://example.test/g.png",
+      "combinedUrl": "https://example.test/g.png",
+      "normalizedUrl": "https://example.test/g.png"
+    },
+    {
+      "id": "negative-fullwidth-m",
+      "htmlPath": "regex/negative-fullwidth-m.html",
+      "htmlSha256": "cda72f3e602e424814e102bb9fd5acb7965954bb9d3af4f5ba03b468f621058d",
+      "propertyFirstUrl": null,
+      "alternateUrl": null,
+      "combinedUrl": null,
+      "normalizedUrl": null
+    },
+    {
+      "id": "negative-zero-width-space",
+      "htmlPath": "regex/negative-zero-width-space.html",
+      "htmlSha256": "caff8ca681074ac72c1701fabc251cd5408669be2a4b84d754cbb37d7b039814",
+      "propertyFirstUrl": null,
+      "alternateUrl": null,
+      "combinedUrl": null,
+      "normalizedUrl": null
+    }
+  ]
+}

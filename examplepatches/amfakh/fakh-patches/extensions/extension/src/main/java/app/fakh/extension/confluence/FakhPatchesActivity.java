@@ -1,3 +1,8 @@
+/*
+ * Copyright 2026 amfakh
+ * SPDX-License-Identifier: GPL-3.0-only
+ */
+
 package app.fakh.extension.confluence;
 
 import android.app.Activity;
@@ -18,6 +23,7 @@ import android.widget.ScrollView;
 import android.widget.Switch;
 import android.widget.TextView;
 
+import app.fakh.extension.shared.Features;
 import app.fakh.extension.shared.I18n;
 import app.fakh.extension.shared.RestartBar;
 
@@ -64,14 +70,13 @@ public final class FakhPatchesActivity extends Activity {
         page.addView(scroll, new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, 0, 1));
         setContentView(page);
 
-        content.addView(sectionTitle("Appearance"));
-        if (MaterialYou.isMaterialYouIncluded()) content.addView(row("Material You", MaterialYou.MATERIAL_YOU, null, true));
-        if (MaterialYou.isPitchBlackIncluded()) content.addView(row("Pitch black", MaterialYou.PITCH_BLACK, null, true));
-        if (GlassNavigationBar.isIncluded()) {
-            content.addView(sectionTitle("Navigation bar"));
-            content.addView(row("Liquid Glass navigation bar", MaterialYou.GLASS, null, true));
-            content.addView(row("Background blur", MaterialYou.LIQUID_GLASS,
-                    "Blurs what's behind the glass. Uses more battery and might stutter.", false));
+        String section = null;
+        for (Features.Feature feature : Features.all()) {
+            if (!feature.section.equals(section)) {
+                section = feature.section;
+                content.addView(sectionTitle(section));
+            }
+            content.addView(row(feature));
         }
     }
 
@@ -105,23 +110,23 @@ public final class FakhPatchesActivity extends Activity {
      * A row with the switch's label, the line under it when the label does not say what the switch costs, and the
      * switch; a change is saved at once and applies after a restart.
      */
-    private View row(String label, String key, String subtitle, boolean on) {
+    private View row(Features.Feature feature) {
         LinearLayout row = new LinearLayout(this);
         row.setGravity(Gravity.CENTER_VERTICAL);
         row.setPadding(dp(16), dp(14), dp(16), dp(14));
         LinearLayout texts = new LinearLayout(this);
         texts.setOrientation(LinearLayout.VERTICAL);
-        texts.addView(text(I18n.tr(label), 18, textPrimary));
-        if (subtitle != null) texts.addView(text(I18n.tr(subtitle), 14, textSecondary));
+        texts.addView(text(I18n.tr(feature.title), 18, textPrimary));
+        if (!feature.description.isEmpty()) texts.addView(text(I18n.tr(feature.description), 14, textSecondary));
         row.addView(texts, new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1));
         Switch toggle = new Switch(this);
-        toggle.setChecked(MaterialYou.prefs(this).getBoolean(key, on));
+        toggle.setChecked(Features.saved(feature.id));
         int[][] states = {{android.R.attr.state_checked}, {}};
         toggle.setThumbTintList(new ColorStateList(states, new int[] {accent, 0xFFB9B9B9}));
         toggle.setTrackTintList(new ColorStateList(states, new int[] {accent & 0x66FFFFFF, 0x66808080}));
         toggle.setOnCheckedChangeListener((view, checked) -> {
-            MaterialYou.prefs(this).edit().putBoolean(key, checked).apply();
-            RestartBar.show(this, 0, MaterialYou.materialYou());
+            Features.set(feature.id, checked);
+            if (feature.restart) RestartBar.show(this, 0, MaterialYou.materialYou());
         });
         row.addView(toggle);
         row.setOnClickListener(view -> toggle.toggle());

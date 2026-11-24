@@ -84,7 +84,7 @@ private val notificationSettingsResourcePatch = resourcePatch {
 @Suppress("unused")
 val notificationSettingsPatch = bytecodePatch(
     name = "Notification settings",
-    description = "Adds notification patch settings to LINE. All switches start disabled.",
+    description = "Adds localized notification patch settings to LINE (7 locales: EN, KO, JA, ZH-TW, ZH-CN, TH, ID). All switches start disabled.",
     default = true,
 ) {
     compatibleWith(COMPATIBILITY_LINE)

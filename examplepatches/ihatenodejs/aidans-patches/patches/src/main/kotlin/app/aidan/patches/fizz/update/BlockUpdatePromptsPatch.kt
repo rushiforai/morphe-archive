@@ -1,6 +1,7 @@
 package app.aidan.patches.fizz.update
 
 import app.aidan.patches.fizz.shared.COMPATIBILITY_FIZZ
+import app.aidan.patches.fizz.shared.fizzTargets
 import app.aidan.patches.shared.disableRequiredVoidMethods
 import app.aidan.patches.shared.returnRequiredBoolean
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
@@ -9,21 +10,72 @@ import app.morphe.patcher.extensions.InstructionExtensions.replaceInstruction
 import app.morphe.patcher.patch.BytecodePatchContext
 import app.morphe.patcher.patch.PatchException
 import app.morphe.patcher.patch.bytecodePatch
+import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod
 import com.android.tools.smali.dexlib2.Opcode
+import com.android.tools.smali.dexlib2.iface.instruction.Instruction
 import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.TwoRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.reference.FieldReference
 import com.android.tools.smali.dexlib2.iface.reference.StringReference
-private const val ONBOARDING_UI_STATE_CLASS = "Lge/u1;"
-private const val ONBOARDING_SCREEN_CLASS = "Lge/r1;"
-private const val UPDATE_PROMPT_CLASS = "Lkd/o1;"
-private const val SESSION_STATE_CLASS = "Lnc/j0;"
-private const val VERSION_COMPARATOR_CLASS = "Lnc/c;"
-private const val OKHTTP_INTERCEPTOR_CLASS = "Lic/g;"
-private const val SESSION_STATE_REQUEST_DATA_CLASS = "Lub/dc;"
+
 private const val MAIN_ACTIVITY = "Lcom/fizzsocial/fizz/MainActivity;"
 private const val VERSION_BRIDGE = "Lapp/aidan/extension/fizz/VersionBridge;"
+
+/**
+ * Update-gate and version-spoofing targets for one supported Fizz build.
+ *
+ * [updateFlagField] is the `isAppUpdateRequired` flag of the onboarding UI state, [wireVersion]
+ * and [wireBuildNumber] are the literals the client actually sends, which is what the bridge
+ * spoofs at runtime.
+ */
+private data class UpdateTargets(
+    val sessionState: String,
+    val sessionOutdatedMethod: String,
+    val versionComparator: String,
+    val versionComparatorMethod: String,
+    val onboardingUiState: String,
+    val updateFlagField: String,
+    val onboardingScreen: String,
+    val updatePrompt: String,
+    val okhttpInterceptor: String,
+    val okhttpInterceptorMethod: String,
+    val sessionRequestData: String,
+    val wireVersion: String,
+    val wireBuildNumber: String,
+)
+
+private val UPDATE_TARGETS_1_54_0 = UpdateTargets(
+    sessionState = "Lnc/j0;",
+    sessionOutdatedMethod = "d",
+    versionComparator = "Lnc/c;",
+    versionComparatorMethod = "b",
+    onboardingUiState = "Lge/u1;",
+    updateFlagField = "l0",
+    onboardingScreen = "Lge/r1;",
+    updatePrompt = "Lkd/o1;",
+    okhttpInterceptor = "Lic/g;",
+    okhttpInterceptorMethod = "a",
+    sessionRequestData = "Lub/dc;",
+    wireVersion = "1.54.0",
+    wireBuildNumber = "400032",
+)
+
+private val UPDATE_TARGETS_1_72_0 = UpdateTargets(
+    sessionState = "Ltc/s0;",
+    sessionOutdatedMethod = "m",
+    versionComparator = "Ltc/c;",
+    versionComparatorMethod = "d",
+    onboardingUiState = "Lse/h2;",
+    updateFlagField = "K0",
+    onboardingScreen = "Lse/d2;",
+    updatePrompt = "Ltd/a2;",
+    okhttpInterceptor = "Lnc/i;",
+    okhttpInterceptorMethod = "a",
+    sessionRequestData = "Lub/id;",
+    wireVersion = "1.72.0",
+    wireBuildNumber = "465123",
+)
 
 @Suppress("unused")
 val blockUpdatePromptsPatch = bytecodePatch(
@@ -36,26 +88,28 @@ val blockUpdatePromptsPatch = bytecodePatch(
     extendWith("extensions/extension.mpe")
 
     execute {
-        // Layer 1: SessionState Outdated Check Bypass (nc.j0.d)
-        returnRequiredBoolean(SESSION_STATE_CLASS, "d", false)
+        val targets = fizzTargets("1.54.0" to UPDATE_TARGETS_1_54_0, "1.72.0" to UPDATE_TARGETS_1_72_0)
 
-        // Layer 2: Semantic Version Comparator Bypass (nc.c.b)
-        returnRequiredBoolean(VERSION_COMPARATOR_CLASS, "b", false)
+        // Layer 1: SessionState Outdated Check Bypass
+        returnRequiredBoolean(targets.sessionState, targets.sessionOutdatedMethod, false)
 
-        // Layer 3: Onboarding UI State Field Neutralization (ge.u1.<init>)
-        neutralizeOnboardingUiStateUpdateField()
+        // Layer 2: Semantic Version Comparator Bypass
+        returnRequiredBoolean(targets.versionComparator, targets.versionComparatorMethod, false)
 
-        // Layer 4: Onboarding Screen Update Branch Neutralization (ge.r1.h)
-        neutralizeOnboardingScreenUpdateBranch()
+        // Layer 3: Onboarding UI State Field Neutralization
+        neutralizeOnboardingUiStateUpdateField(targets)
 
-        // Layer 5: Update Prompt Composable Stubbing (kd.o1.a)
-        disableRequiredVoidMethods(UPDATE_PROMPT_CLASS, "a")
+        // Layer 4: Onboarding Screen Update Branch Neutralization
+        neutralizeOnboardingScreenUpdateBranch(targets)
 
-        // Layer 6: OkHttp Header Interceptor Dynamic Version Spoofing (ic.g.a)
-        spoofOkHttpHeaderVersions()
+        // Layer 5: Update Prompt Composable Stubbing
+        disableRequiredVoidMethods(targets.updatePrompt, "a")
 
-        // Layer 7: Session State Request Body DTO Spoofing (ub.dc.<init>)
-        spoofSessionStateRequestBodyVersion()
+        // Layer 6: OkHttp Header Interceptor Dynamic Version Spoofing
+        spoofOkHttpHeaderVersions(targets)
+
+        // Layer 7: Session State Request Body DTO Spoofing
+        spoofSessionStateRequestBodyVersion(targets)
 
         // Layer 8: Lifecycle Bridge Initialization (MainActivity.onCreate)
         injectVersionBridgeInitialization()
@@ -63,176 +117,123 @@ val blockUpdatePromptsPatch = bytecodePatch(
 }
 
 /**
- * Ensures OnboardingUiState.l0 (isAppUpdateRequired) is always initialized to false.
+ * Ensures the onboarding UI state's isAppUpdateRequired flag is always initialized to false.
  */
-private fun BytecodePatchContext.neutralizeOnboardingUiStateUpdateField() {
-    val u1Class = mutableClassDefByOrNull(ONBOARDING_UI_STATE_CLASS)
-        ?: throw PatchException("Class $ONBOARDING_UI_STATE_CLASS not found")
+private fun BytecodePatchContext.neutralizeOnboardingUiStateUpdateField(targets: UpdateTargets) {
+    val stateClass = mutableClassDefByOrNull(targets.onboardingUiState)
+        ?: throw PatchException("Class ${targets.onboardingUiState} not found")
 
-    val initMethod = u1Class.methods.firstOrNull {
-        it.name == "<init>" && it.implementation != null
-    } ?: throw PatchException("Method $ONBOARDING_UI_STATE_CLASS.<init> not found")
-
-    val instructions = initMethod.implementation?.instructions
-        ?: throw PatchException("Missing instructions in $ONBOARDING_UI_STATE_CLASS.<init>")
-
-    val iputIndex = instructions.indexOfFirst { instruction ->
-        instruction.opcode == Opcode.IPUT_BOOLEAN &&
-            (instruction as? ReferenceInstruction)?.reference?.let { ref ->
-                (ref as? FieldReference)?.let { field ->
-                    field.name == "l0" && field.type == "Z"
-                }
-            } == true
+    // The flag is written once, in the primary constructor.
+    val writers = stateClass.methods.mapNotNull { method ->
+        val instructions = method.implementation?.instructions ?: return@mapNotNull null
+        val index = instructions.indexOfFirst { instruction ->
+            instruction.opcode == Opcode.IPUT_BOOLEAN && instruction.isUpdateFlagWrite(targets.updateFlagField)
+        }
+        if (index >= 0) method to index else null
+    }
+    if (writers.size != 1) {
+        throw PatchException(
+            "Expected exactly one IPUT_BOOLEAN of ${targets.onboardingUiState}->${targets.updateFlagField}:Z, " +
+                "found ${writers.size}"
+        )
     }
 
-    if (iputIndex < 0) {
-        throw PatchException("Anchor IPUT_BOOLEAN l0:Z not found in $ONBOARDING_UI_STATE_CLASS.<init>")
-    }
-
-    val iputInst = instructions[iputIndex] as? TwoRegisterInstruction
-        ?: throw PatchException("Instruction at index $iputIndex in $ONBOARDING_UI_STATE_CLASS.<init> is not TwoRegisterInstruction")
+    val (initMethod, iputIndex) = writers.single()
+    val iputInst = initMethod.implementation?.instructions?.get(iputIndex) as? TwoRegisterInstruction
+        ?: throw PatchException(
+            "Instruction at index $iputIndex in ${targets.onboardingUiState}->${initMethod.name} is not TwoRegisterInstruction"
+        )
 
     initMethod.addInstructions(iputIndex, "const/4 v${iputInst.registerA}, 0x0")
 }
 
 /**
- * Ensures the OnboardingScreen update check in ge.r1.h always reads false, bypassing kd.o1.a.
+ * Ensures the onboarding screen's update check always reads false, so the update prompt is never
+ * composed.
  */
-private fun BytecodePatchContext.neutralizeOnboardingScreenUpdateBranch() {
-    val r1Class = mutableClassDefByOrNull(ONBOARDING_SCREEN_CLASS)
-        ?: throw PatchException("Class $ONBOARDING_SCREEN_CLASS not found")
+private fun BytecodePatchContext.neutralizeOnboardingScreenUpdateBranch(targets: UpdateTargets) {
+    val screenClass = mutableClassDefByOrNull(targets.onboardingScreen)
+        ?: throw PatchException("Class ${targets.onboardingScreen} not found")
 
-    val hMethod = r1Class.methods.firstOrNull {
-        it.name == "h" && it.implementation != null
-    } ?: throw PatchException("Method $ONBOARDING_SCREEN_CLASS.h not found")
-
-    val instructions = hMethod.implementation?.instructions
-        ?: throw PatchException("Missing instructions in $ONBOARDING_SCREEN_CLASS.h")
-
-    val igetIndex = instructions.indexOfFirst { instruction ->
-        instruction.opcode == Opcode.IGET_BOOLEAN &&
-            (instruction as? ReferenceInstruction)?.reference?.let { ref ->
-                (ref as? FieldReference)?.let { field ->
-                    field.name == "l0" && field.type == "Z"
-                }
-            } == true
+    val readers = screenClass.methods.mapNotNull { method ->
+        val instructions = method.implementation?.instructions ?: return@mapNotNull null
+        val index = instructions.indexOfFirst { instruction ->
+            instruction.opcode == Opcode.IGET_BOOLEAN && instruction.isUpdateFlagRead(targets.updateFlagField)
+        }
+        if (index >= 0) method to index else null
+    }
+    if (readers.size != 1) {
+        throw PatchException(
+            "Expected exactly one IGET_BOOLEAN of ${targets.onboardingUiState}->${targets.updateFlagField}:Z " +
+                "in ${targets.onboardingScreen}, found ${readers.size}"
+        )
     }
 
-    if (igetIndex < 0) {
-        throw PatchException("Anchor IGET_BOOLEAN l0:Z not found in $ONBOARDING_SCREEN_CLASS.h")
-    }
+    val (composableMethod, igetIndex) = readers.single()
+    val igetInst = composableMethod.implementation?.instructions?.get(igetIndex) as? TwoRegisterInstruction
+        ?: throw PatchException(
+            "Instruction at index $igetIndex in ${targets.onboardingScreen}->${composableMethod.name} " +
+                "is not TwoRegisterInstruction"
+        )
 
-    val igetInst = instructions[igetIndex] as? TwoRegisterInstruction
-        ?: throw PatchException("Instruction at index $igetIndex in $ONBOARDING_SCREEN_CLASS.h is not TwoRegisterInstruction")
-
-    hMethod.replaceInstruction(igetIndex, "const/4 v${igetInst.registerA}, 0x0")
+    composableMethod.replaceInstruction(igetIndex, "const/4 v${igetInst.registerA}, 0x0")
 }
 
 /**
- * Replaces hardcoded client version and build number in OkHttp headers (ic.g.a)
- * with dynamic calls to VersionBridge.
+ * Replaces the hardcoded client version and build number in the OkHttp request headers with
+ * dynamic calls to VersionBridge.
  */
-private fun BytecodePatchContext.spoofOkHttpHeaderVersions() {
-    val gClass = mutableClassDefByOrNull(OKHTTP_INTERCEPTOR_CLASS)
-        ?: throw PatchException("Class $OKHTTP_INTERCEPTOR_CLASS not found")
+private fun BytecodePatchContext.spoofOkHttpHeaderVersions(targets: UpdateTargets) {
+    val interceptorClass = mutableClassDefByOrNull(targets.okhttpInterceptor)
+        ?: throw PatchException("Class ${targets.okhttpInterceptor} not found")
 
-    val aMethod = gClass.methods.firstOrNull {
-        it.name == "a" && it.implementation != null
-    } ?: throw PatchException("Method $OKHTTP_INTERCEPTOR_CLASS.a not found")
+    val interceptorMethod = interceptorClass.methods.firstOrNull {
+        it.name == targets.okhttpInterceptorMethod && it.implementation != null
+    } ?: throw PatchException("Method ${targets.okhttpInterceptor}->${targets.okhttpInterceptorMethod} not found")
 
-    val instructions = aMethod.implementation?.instructions
-        ?: throw PatchException("Missing instructions in $OKHTTP_INTERCEPTOR_CLASS.a")
-
-    val clientVersionHeaderIndex = instructions.indexOfFirst { inst ->
-        inst.opcode == Opcode.CONST_STRING &&
-            (inst as? ReferenceInstruction)?.reference?.let {
-                (it as? StringReference)?.string == "fizz-client-version"
-            } == true
-    }
-    if (clientVersionHeaderIndex < 0) {
-        throw PatchException("Anchor 'fizz-client-version' header not found in $OKHTTP_INTERCEPTOR_CLASS.a")
-    }
-
-    val versionConstIndex = (clientVersionHeaderIndex - 1 downTo maxOf(0, clientVersionHeaderIndex - 4)).firstOrNull { idx ->
-        val inst = instructions[idx]
-        inst.opcode == Opcode.CONST_STRING &&
-            (inst as? ReferenceInstruction)?.reference?.let {
-                (it as? StringReference)?.string == "1.54.0"
-            } == true
-    } ?: throw PatchException("Version string literal '1.54.0' preceding fizz-client-version not found in $OKHTTP_INTERCEPTOR_CLASS.a")
-
-    val reg = (instructions[versionConstIndex] as? OneRegisterInstruction)?.registerA ?: 2
-
-    aMethod.addInstructions(
-        versionConstIndex,
-        """
-        invoke-static {}, $VERSION_BRIDGE->getClientVersion()Ljava/lang/String;
-        move-result-object v$reg
-        """.trimIndent()
+    substituteWireLiteral(
+        method = interceptorMethod,
+        literal = targets.wireVersion,
+        bridgeMethod = "getClientVersion",
+        context = "${targets.okhttpInterceptor}->${targets.okhttpInterceptorMethod}"
     )
-    aMethod.removeInstruction(versionConstIndex + 2)
-
-    // Also spoof fizz-build-number if present
-    val updatedInstructions = aMethod.implementation?.instructions
-        ?: throw PatchException("Missing updated instructions in $OKHTTP_INTERCEPTOR_CLASS.a")
-
-    val buildNumberHeaderIndex = updatedInstructions.indexOfFirst { inst ->
-        inst.opcode == Opcode.CONST_STRING &&
-            (inst as? ReferenceInstruction)?.reference?.let {
-                (it as? StringReference)?.string == "fizz-build-number"
-            } == true
-    }
-    if (buildNumberHeaderIndex >= 0) {
-        val buildConstIndex = (buildNumberHeaderIndex - 2..buildNumberHeaderIndex + 2).firstOrNull { idx ->
-            if (idx !in updatedInstructions.indices) return@firstOrNull false
-            val inst = updatedInstructions[idx]
-            inst.opcode == Opcode.CONST_STRING &&
-                (inst as? ReferenceInstruction)?.reference?.let {
-                    (it as? StringReference)?.string == "400032"
-                } == true
-        }
-        if (buildConstIndex != null) {
-            val buildReg = (updatedInstructions[buildConstIndex] as? OneRegisterInstruction)?.registerA ?: 5
-            aMethod.addInstructions(
-                buildConstIndex,
-                """
-                invoke-static {}, $VERSION_BRIDGE->getBuildNumber()Ljava/lang/String;
-                move-result-object v$buildReg
-                """.trimIndent()
-            )
-            aMethod.removeInstruction(buildConstIndex + 2)
-        }
-    }
+    substituteWireLiteral(
+        method = interceptorMethod,
+        literal = targets.wireBuildNumber,
+        bridgeMethod = "getBuildNumber",
+        context = "${targets.okhttpInterceptor}->${targets.okhttpInterceptorMethod}"
+    )
 }
 
 /**
- * Replaces hardcoded "1.54.0" in SessionStateRequestData (ub.dc.<init>)
- * with dynamic call to VersionBridge.getClientVersion().
+ * Replaces the hardcoded client version in the session state request body DTO with a dynamic call
+ * to VersionBridge.
  */
-private fun BytecodePatchContext.spoofSessionStateRequestBodyVersion() {
-    val dcClass = mutableClassDefByOrNull(SESSION_STATE_REQUEST_DATA_CLASS)
-        ?: throw PatchException("Class $SESSION_STATE_REQUEST_DATA_CLASS not found")
+private fun BytecodePatchContext.spoofSessionStateRequestBodyVersion(targets: UpdateTargets) {
+    val requestDataClass = mutableClassDefByOrNull(targets.sessionRequestData)
+        ?: throw PatchException("Class ${targets.sessionRequestData} not found")
 
-    val initMethod = dcClass.methods.firstOrNull { method ->
-        method.name == "<init>" &&
-            method.parameterTypes.size == 4 &&
-            method.implementation != null
-    } ?: throw PatchException("Constructor $SESSION_STATE_REQUEST_DATA_CLASS.<init>(4 args) not found")
-
-    val instructions = initMethod.implementation?.instructions
-        ?: throw PatchException("Missing instructions in $SESSION_STATE_REQUEST_DATA_CLASS.<init>")
-
-    val versionIndex = instructions.indexOfFirst { inst ->
-        inst.opcode == Opcode.CONST_STRING &&
-            (inst as? ReferenceInstruction)?.reference?.let {
-                (it as? StringReference)?.string == "1.54.0"
-            } == true
+    // The client version is assigned in a single constructor of the DTO.
+    val constructors = requestDataClass.methods.filter { it.name == "<init>" && it.implementation != null }
+    val candidates = constructors.mapNotNull { method ->
+        val instructions = method.implementation?.instructions ?: return@mapNotNull null
+        val index = instructions.indexOfFirst { instruction ->
+            instruction.opcode == Opcode.CONST_STRING && instruction.stringValue == targets.wireVersion
+        }
+        if (index >= 0) method to index else null
     }
-    if (versionIndex < 0) {
-        throw PatchException("Literal '1.54.0' not found in $SESSION_STATE_REQUEST_DATA_CLASS.<init>")
+    if (candidates.size != 1) {
+        throw PatchException(
+            "Expected exactly one constructor of ${targets.sessionRequestData} holding the wire version " +
+                "\"${targets.wireVersion}\", found ${candidates.size}"
+        )
     }
 
-    val reg = (instructions[versionIndex] as? OneRegisterInstruction)?.registerA ?: 0
+    val (initMethod, versionIndex) = candidates.single()
+    val reg = (initMethod.implementation?.instructions?.get(versionIndex) as? OneRegisterInstruction)?.registerA
+        ?: throw PatchException(
+            "Instruction at index $versionIndex in ${targets.sessionRequestData}-><init> is not OneRegisterInstruction"
+        )
 
     initMethod.addInstructions(
         versionIndex,
@@ -268,3 +269,48 @@ private fun BytecodePatchContext.injectVersionBridgeInitialization() {
         "invoke-static {p0}, $VERSION_BRIDGE->init(Landroid/content/Context;)V"
     )
 }
+
+/**
+ * Replaces the single hardcoded wire literal in [method] with a bridge call, so the client stops
+ * advertising its real version.
+ */
+private fun BytecodePatchContext.substituteWireLiteral(
+    method: MutableMethod,
+    literal: String,
+    bridgeMethod: String,
+    context: String
+) {
+    val indices = method.implementation?.instructions?.mapIndexedNotNull { index, instruction ->
+        if (instruction.opcode == Opcode.CONST_STRING && instruction.stringValue == literal) index else null
+    } ?: throw PatchException("Missing instructions in $context")
+
+    if (indices.size != 1) {
+        throw PatchException(
+            "Expected exactly one literal \"$literal\" in $context, found ${indices.size}"
+        )
+    }
+
+    val constIndex = indices.single()
+    val reg = (method.implementation?.instructions?.get(constIndex) as? OneRegisterInstruction)?.registerA
+        ?: throw PatchException("Instruction at index $constIndex in $context is not OneRegisterInstruction")
+
+    method.addInstructions(
+        constIndex,
+        """
+        invoke-static {}, $VERSION_BRIDGE->$bridgeMethod()Ljava/lang/String;
+        move-result-object v$reg
+        """.trimIndent()
+    )
+    method.removeInstruction(constIndex + 2)
+}
+
+private val Instruction.stringValue: String?
+    get() = ((this as? ReferenceInstruction)?.reference as? StringReference)?.string
+
+private fun Instruction.isUpdateFlagWrite(field: String) = opcode == Opcode.IPUT_BOOLEAN && fieldReferenceMatches(field)
+
+private fun Instruction.isUpdateFlagRead(field: String) = opcode == Opcode.IGET_BOOLEAN && fieldReferenceMatches(field)
+
+private fun Instruction.fieldReferenceMatches(field: String) = (this as? ReferenceInstruction)?.reference?.let { ref ->
+    (ref as? FieldReference)?.let { it.name == field && it.type == "Z" }
+} == true

@@ -7,6 +7,7 @@ import app.s.chzzk.common.utils.getReference
 import app.s.chzzk.common.utils.localRegisterCount
 import app.s.chzzk.common.utils.parameterTypeNames
 import app.s.chzzk.common.initializeField
+import app.s.chzzk.shared.Constants.CHZZK_TV_VERSIONS
 import app.s.chzzk.shared.Constants.COMPATIBILITY_CHZZK_MOBILE
 import app.s.chzzk.shared.nativeKeyboxPatch
 import com.android.tools.smali.dexlib2.Opcode
@@ -22,6 +23,8 @@ val hideHomeBannerPatch = bytecodePatch(
     dependsOn(nativeKeyboxPatch)
 
     execute {
+        if (packageMetadata.versionName in CHZZK_TV_VERSIONS) return@execute
+
         val entities = "Lcom/navercorp/game/android/community/data/"
         initializeField("${entities}mobile/entity/home/streaming/StreamingHomeBanners;", "banners", null)
         initializeField("${entities}core/entity/football/FootballCampaign;", "exposure", false)

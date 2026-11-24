@@ -32,10 +32,11 @@ val automotivePremium = bytecodePatch(
     name = "Unlock Premium",
     description = "Makes the app treat itself as the Android Automotive template build, which " +
         "unlocks the in-app Premium features without a subscription. That decision does not read " +
-        "the account roles. Anything the ABRP server authorizes per account stays as it is.",
+        "the account roles. Fixes phone GPS and Android Auto location access while Premium is enabled. " +
+        "Anything the ABRP server authorizes per account stays as it is.",
 ) {
     compatibleWith(abrp)
-    dependsOn(originalInput)
+    dependsOn(originalInput, phoneGps)
 
     execute {
         val owner = mutableClassDefBy(CONFIG_MODULE)

@@ -19,6 +19,8 @@ public final class GenerateScripts {
             "app.jofslash.extension.quora.HideContentPatch",
             "app.jofslash.extension.quora.ReadingPatch",
             "app.jofslash.extension.quora.RemoveAdsPatch",
+            "app.jofslash.extension.quora.HiddenStats",
+            "app.jofslash.extension.quora.Picker",
     };
 
     public static void main(String[] args) throws Exception {
@@ -48,13 +50,15 @@ public final class GenerateScripts {
     private static String sample(String method) {
         switch (method) {
             case "filterKeywords":
-                return "crypto, \"quoted\" word, Elon Musk, c++";
+                return "crypto, \"quoted\" word, Elon Musk, c++, art*";
             case "blockAuthors":
                 return "Jane Doe, Cats of Quora";
             case "answerFont":
                 return "serif";
             case "hideOldAnswers":
                 return "3";
+            case "hideLowVoted":
+                return "10";
             case "hideSeen":
                 return "hide";
             case "sortAnswers":

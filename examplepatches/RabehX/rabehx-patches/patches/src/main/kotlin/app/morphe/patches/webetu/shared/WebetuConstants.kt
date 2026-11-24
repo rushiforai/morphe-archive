@@ -17,7 +17,7 @@ internal object WebetuConstants {
         appIconColor = 0x023C69,
         signatures = null,
         targets = listOf(
-            AppTarget(version = "2.4.0"),
+            AppTarget(version = "2.5.0", versionCode = 36),
         ),
     )
 }

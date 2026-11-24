@@ -1,0 +1,525 @@
+{
+  "mpp_sha256": "ea951e84930b393130dff2381d2aa549ab41519ba557e15daa50b99239d68528",
+  "members": [
+    {
+      "name": "META-INF/",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "date_time": [
+        1980,
+        2,
+        1,
+        0,
+        0,
+        0
+      ],
+      "compress_type": 8,
+      "external_attr": 1106051088,
+      "internal_attr": 0,
+      "create_system": 0,
+      "create_version": 20,
+      "extract_version": 20,
+      "extra": "",
+      "comment": ""
+    },
+    {
+      "name": "META-INF/app.nicoid_patches.kotlin_module",
+      "sha256": "831cbb3c9cc452b7c53ee1862e27fd0865bd46071a6f40762103d63f75be5fc7",
+      "date_time": [
+        1980,
+        2,
+        1,
+        0,
+        0,
+        0
+      ],
+      "compress_type": 8,
+      "external_attr": 2175008768,
+      "internal_attr": 0,
+      "create_system": 0,
+      "create_version": 20,
+      "extract_version": 20,
+      "extra": "",
+      "comment": ""
+    },
+    {
+      "name": "app/",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "date_time": [
+        1980,
+        2,
+        1,
+        0,
+        0,
+        0
+      ],
+      "compress_type": 0,
+      "external_attr": 1106051088,
+      "internal_attr": 0,
+      "create_system": 0,
+      "create_version": 20,
+      "extract_version": 20,
+      "extra": "",
+      "comment": ""
+    },
+    {
+      "name": "app/nicoid/",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "date_time": [
+        1980,
+        2,
+        1,
+        0,
+        0,
+        0
+      ],
+      "compress_type": 0,
+      "external_attr": 1106051088,
+      "internal_attr": 0,
+      "create_system": 0,
+      "create_version": 20,
+      "extract_version": 20,
+      "extra": "",
+      "comment": ""
+    },
+    {
+      "name": "app/nicoid/patches/",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "date_time": [
+        1980,
+        2,
+        1,
+        0,
+        0,
+        0
+      ],
+      "compress_type": 0,
+      "external_attr": 1106051088,
+      "internal_attr": 0,
+      "create_system": 0,
+      "create_version": 20,
+      "extract_version": 20,
+      "extra": "",
+      "comment": ""
+    },
+    {
+      "name": "app/nicoid/patches/NicoidModPatchKt$nicoidModPatch$lambda$0$$inlined$extendWith$1.class",
+      "sha256": "e7d526e1110ce636a56a35cdf3e2a101baccc77997fdae44028941404154edfb",
+      "date_time": [
+        1980,
+        2,
+        1,
+        0,
+        0,
+        0
+      ],
+      "compress_type": 8,
+      "external_attr": 2175008768,
+      "internal_attr": 0,
+      "create_system": 0,
+      "create_version": 20,
+      "extract_version": 20,
+      "extra": "",
+      "comment": ""
+    },
+    {
+      "name": "app/nicoid/patches/NicoidModPatchKt$nicoidModPatch$lambda$0$$inlined$extendWith$2.class",
+      "sha256": "38cfcfdfb70fe26e464b35a5fbf1a675faf3cc87fb171ea644f04eb13044dc06",
+      "date_time": [
+        1980,
+        2,
+        1,
+        0,
+        0,
+        0
+      ],
+      "compress_type": 8,
+      "external_attr": 2175008768,
+      "internal_attr": 0,
+      "create_system": 0,
+      "create_version": 20,
+      "extract_version": 20,
+      "extra": "",
+      "comment": ""
+    },
+    {
+      "name": "app/nicoid/patches/NicoidModPatchKt.class",
+      "sha256": "b2f9034cfafe22864be3b533e0fdc7971c8072614a57158f600fe5a3e77ccf63",
+      "date_time": [
+        1980,
+        2,
+        1,
+        0,
+        0,
+        0
+      ],
+      "compress_type": 8,
+      "external_attr": 2175008768,
+      "internal_attr": 0,
+      "create_system": 0,
+      "create_version": 20,
+      "extract_version": 20,
+      "extra": "",
+      "comment": ""
+    },
+    {
+      "name": "app/nicoid/patches/Payload.class",
+      "sha256": "e79a563f9d6a2683f9833e868f2b9d5484f8c42b34d186b25024eba5cc4bba5f",
+      "date_time": [
+        1980,
+        2,
+        1,
+        0,
+        0,
+        0
+      ],
+      "compress_type": 8,
+      "external_attr": 2175008768,
+      "internal_attr": 0,
+      "create_system": 0,
+      "create_version": 20,
+      "extract_version": 20,
+      "extra": "",
+      "comment": ""
+    },
+    {
+      "name": "classes.dex",
+      "sha256": "71e8e3f68f7cc3b89964a5f1e6900362d060a93dbd3a39169317ac7ecfcce082",
+      "date_time": [
+        1980,
+        2,
+        1,
+        0,
+        0,
+        0
+      ],
+      "compress_type": 8,
+      "external_attr": 25165824,
+      "internal_attr": 0,
+      "create_system": 0,
+      "create_version": 20,
+      "extract_version": 20,
+      "extra": "",
+      "comment": ""
+    },
+    {
+      "name": "extensions/",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "date_time": [
+        1980,
+        2,
+        1,
+        0,
+        0,
+        0
+      ],
+      "compress_type": 0,
+      "external_attr": 1106051088,
+      "internal_attr": 0,
+      "create_system": 0,
+      "create_version": 20,
+      "extract_version": 20,
+      "extra": "",
+      "comment": ""
+    },
+    {
+      "name": "nicoid/",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "date_time": [
+        1980,
+        2,
+        1,
+        0,
+        0,
+        0
+      ],
+      "compress_type": 0,
+      "external_attr": 1106051088,
+      "internal_attr": 0,
+      "create_system": 0,
+      "create_version": 20,
+      "extract_version": 20,
+      "extra": "",
+      "comment": ""
+    },
+    {
+      "name": "nicoid/input-hashes.txt",
+      "sha256": "d80ba2a13355ba06afa78c7ab59500208b685043fee5030ea44d8d60a5437344",
+      "date_time": [
+        1980,
+        2,
+        1,
+        0,
+        0,
+        0
+      ],
+      "compress_type": 8,
+      "external_attr": 2175008768,
+      "internal_attr": 0,
+      "create_system": 0,
+      "create_version": 20,
+      "extract_version": 20,
+      "extra": "",
+      "comment": ""
+    },
+    {
+      "name": "nicoid/resources.zip",
+      "sha256": "9be31b312db1bf883ab508251f63fc2eafe5c656aaaa39bf408c00098a431b0e",
+      "date_time": [
+        1980,
+        2,
+        1,
+        0,
+        0,
+        0
+      ],
+      "compress_type": 8,
+      "external_attr": 2175008768,
+      "internal_attr": 0,
+      "create_system": 0,
+      "create_version": 20,
+      "extract_version": 20,
+      "extra": "",
+      "comment": ""
+    },
+    {
+      "name": "nicoid/ui-strings.txt",
+      "sha256": "c4292a34b33b43533b901f4e00791e4a037eb6f258558adee38ed4ebd921e14b",
+      "date_time": [
+        1980,
+        2,
+        1,
+        0,
+        0,
+        0
+      ],
+      "compress_type": 8,
+      "external_attr": 2175008768,
+      "internal_attr": 0,
+      "create_system": 0,
+      "create_version": 20,
+      "extract_version": 20,
+      "extra": "",
+      "comment": ""
+    },
+    {
+      "name": "util/",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "date_time": [
+        1980,
+        2,
+        1,
+        0,
+        0,
+        0
+      ],
+      "compress_type": 0,
+      "external_attr": 1106051088,
+      "internal_attr": 0,
+      "create_system": 0,
+      "create_version": 20,
+      "extract_version": 20,
+      "extra": "",
+      "comment": ""
+    },
+    {
+      "name": "util/JsonCompatibility$Target.class",
+      "sha256": "12a8acb4c51d4bb1d548c8035b5c3b37a1d17e9c65572acfe427b909dd5eb4ea",
+      "date_time": [
+        1980,
+        2,
+        1,
+        0,
+        0,
+        0
+      ],
+      "compress_type": 8,
+      "external_attr": 2175008768,
+      "internal_attr": 0,
+      "create_system": 0,
+      "create_version": 20,
+      "extract_version": 20,
+      "extra": "",
+      "comment": ""
+    },
+    {
+      "name": "util/JsonCompatibility.class",
+      "sha256": "3a5f8ae2f092eed084e3e18726455219498aa43cfc899a0f80243e61ba20bf19",
+      "date_time": [
+        1980,
+        2,
+        1,
+        0,
+        0,
+        0
+      ],
+      "compress_type": 8,
+      "external_attr": 2175008768,
+      "internal_attr": 0,
+      "create_system": 0,
+      "create_version": 20,
+      "extract_version": 20,
+      "extra": "",
+      "comment": ""
+    },
+    {
+      "name": "util/JsonPatch$Option.class",
+      "sha256": "2ccb4aea6f240e0c7b810e5793259d2eafbcc2fbf1ef954fdc1b672d5836a306",
+      "date_time": [
+        1980,
+        2,
+        1,
+        0,
+        0,
+        0
+      ],
+      "compress_type": 8,
+      "external_attr": 2175008768,
+      "internal_attr": 0,
+      "create_system": 0,
+      "create_version": 20,
+      "extract_version": 20,
+      "extra": "",
+      "comment": ""
+    },
+    {
+      "name": "util/JsonPatch.class",
+      "sha256": "b96954e8e2693fabcfcfbcace33555b29c724f04b3d2c12da0ba822ecd9e83bb",
+      "date_time": [
+        1980,
+        2,
+        1,
+        0,
+        0,
+        0
+      ],
+      "compress_type": 8,
+      "external_attr": 2175008768,
+      "internal_attr": 0,
+      "create_system": 0,
+      "create_version": 20,
+      "extract_version": 20,
+      "extra": "",
+      "comment": ""
+    },
+    {
+      "name": "util/PatchListGeneratorKt$generatePatchList$$inlined$sortedBy$1.class",
+      "sha256": "1b8b556dee7d36d9ed8d8bbbc0851b0ae2d25059552661defa448420573f5c36",
+      "date_time": [
+        1980,
+        2,
+        1,
+        0,
+        0,
+        0
+      ],
+      "compress_type": 8,
+      "external_attr": 2175008768,
+      "internal_attr": 0,
+      "create_system": 0,
+      "create_version": 20,
+      "extract_version": 20,
+      "extra": "",
+      "comment": ""
+    },
+    {
+      "name": "util/PatchListGeneratorKt.class",
+      "sha256": "9aab221b5f07ba565b0bbfb9eb39796016d3396fef3fafbb31741f5e88de4fbb",
+      "date_time": [
+        1980,
+        2,
+        1,
+        0,
+        0,
+        0
+      ],
+      "compress_type": 8,
+      "external_attr": 2175008768,
+      "internal_attr": 0,
+      "create_system": 0,
+      "create_version": 20,
+      "extract_version": 20,
+      "extra": "",
+      "comment": ""
+    },
+    {
+      "name": "nicoid/helpers.mpe",
+      "sha256": "d0fbf3af2a2889e76bea0bedd6ed97e7b7f240e5ea8262ff79e06d2120bef0f9",
+      "date_time": [
+        2026,
+        11,
+        24,
+        13,
+        28,
+        8
+      ],
+      "compress_type": 8,
+      "external_attr": 25165824,
+      "internal_attr": 0,
+      "create_system": 0,
+      "create_version": 20,
+      "extract_version": 20,
+      "extra": "",
+      "comment": ""
+    },
+    {
+      "name": "nicoid/method-delta.dex",
+      "sha256": "1bb41d39034c771f400c67a2c0b3087e42541a3de376a79a5becdb9ec1313560",
+      "date_time": [
+        2026,
+        11,
+        24,
+        13,
+        28,
+        14
+      ],
+      "compress_type": 8,
+      "external_attr": 25165824,
+      "internal_attr": 0,
+      "create_system": 0,
+      "create_version": 20,
+      "extract_version": 20,
+      "extra": "",
+      "comment": ""
+    },
+    {
+      "name": "extensions/extension.mpe",
+      "sha256": "0840710700ce5271bdb8924decbc2b9f41e0009662b13a766a144789d681b756",
+      "date_time": [
+        2026,
+        11,
+        24,
+        13,
+        28,
+        12
+      ],
+      "compress_type": 8,
+      "external_attr": 25165824,
+      "internal_attr": 0,
+      "create_system": 0,
+      "create_version": 20,
+      "extract_version": 20,
+      "extra": "",
+      "comment": ""
+    },
+    {
+      "name": "META-INF/MANIFEST.MF",
+      "sha256": "6c2ecf3c8409c2713fd26d343a8c4846d0b3552d3377bd204d1bb9cf0673b241",
+      "date_time": [
+        2026,
+        11,
+        24,
+        13,
+        28,
+        14
+      ],
+      "compress_type": 8,
+      "external_attr": 25165824,
+      "internal_attr": 0,
+      "create_system": 0,
+      "create_version": 20,
+      "extract_version": 20,
+      "extra": "",
+      "comment": ""
+    }
+  ]
+}

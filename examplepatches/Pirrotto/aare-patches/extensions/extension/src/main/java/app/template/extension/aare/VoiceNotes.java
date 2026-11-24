@@ -60,10 +60,6 @@ public final class VoiceNotes {
     /** A voice message in a spoken text when it isn't among the records (AARE was restarted). */
     private static final Pattern MIC_SEGMENT = Pattern.compile(MIC + "[^.\\n]*");
 
-    /** How far a recording's file time may be from the message time. */
-    private static final long BEFORE_MS = 2 * 60_000L;
-    private static final long AFTER_MS = 60 * 60_000L;
-
     private static final int MAX_RECORDS = 200;
 
     /** Finds and opens recordings off the main thread, one request at a time, in order. */
@@ -161,8 +157,7 @@ public final class VoiceNotes {
     private static void prepare(Context context, Player player, String text, List<Segment> voices, Runnable after) {
         List<Object> items = new ArrayList<>();
         try {
-            List<VoiceNotesAccess.Recording> recordings = VoiceNotesAccess.list(context);
-            if (recordings == null) {
+            if (!VoiceNotesAccess.reachable(context)) {
                 items.add(replaceVoices(text, voices, phrase("voice message", "messaggio vocale")));
                 if (!shizukuHintSpoken) {
                     shizukuHintSpoken = true;
@@ -175,14 +170,20 @@ public final class VoiceNotes {
                 int start = 0;
                 for (Segment v : voices) {
                     items.add(text.substring(start, v.start));
-                    VoiceNotesAccess.Recording r = findRecording(recordings, v.record, used);
-                    ParcelFileDescriptor pfd = r == null ? null : VoiceNotesAccess.open(context, r.path);
-                    if (pfd != null) {
-                        used.add(r.path);
-                        items.add(pfd);
-                    } else {
-                        items.add(phrase("Voice message not downloaded yet.", "Messaggio vocale non ancora scaricato."));
+                    if (v.record == null) {
+                        // Unknown message time (AARE restarted since): no guessing which recording it is.
+                        items.add(phrase("voice message", "messaggio vocale"));
+                        start = v.end;
+                        continue;
                     }
+                    // The helper picks the file saved right after the message and as long as it says
+                    // (VoiceNoteMatch): never one the user sent, nor another chat's.
+                    VoiceNotesAccess.Found found = VoiceNotesAccess.find(context, v.record.timeMs, VoiceNoteMatch.statedMs(v.record.text), used);
+                    if (found != null) {
+                        used.add(found.token);
+                        items.add(found.pfd);
+                    }
+                    else items.add(phrase("Voice message not downloaded yet.", "Messaggio vocale non ancora scaricato."));
                     start = v.end;
                 }
                 items.add(text.substring(start));
@@ -290,36 +291,6 @@ public final class VoiceNotes {
             start = v.end;
         }
         return b.append(text.substring(start)).toString();
-    }
-
-    /**
-     * The recording of a voice message: the received voice note saved closest after the message
-     * time. Without a record, the newest one of the last day.
-     */
-    private static VoiceNotesAccess.Recording findRecording(
-            List<VoiceNotesAccess.Recording> recordings, Record record, Set<String> used) {
-        VoiceNotesAccess.Recording best = null;
-        long bestScore = Long.MAX_VALUE;
-        long now = System.currentTimeMillis();
-        for (VoiceNotesAccess.Recording f : recordings) {
-            if (used.contains(f.path) || f.size == 0) continue;
-            long score;
-            if (record != null && record.timeMs > 0) {
-                long delta = f.modifiedMs - record.timeMs;
-                if (delta < -BEFORE_MS || delta > AFTER_MS) continue;
-                // A file saved before the message time is a weaker match than one after it.
-                score = delta >= 0 ? delta : -delta * 10;
-            } else {
-                long age = now - f.modifiedMs;
-                if (age < 0 || age > 24 * 60 * 60_000L) continue;
-                score = age;
-            }
-            if (score < bestScore) {
-                bestScore = score;
-                best = f;
-            }
-        }
-        return best;
     }
 
     private static String phrase(String english, String italian) {

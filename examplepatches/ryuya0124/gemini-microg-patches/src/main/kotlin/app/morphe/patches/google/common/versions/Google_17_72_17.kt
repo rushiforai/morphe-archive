@@ -103,6 +103,11 @@ val google177217 = AppVersionProfile(
         ),
         HookId.SPLIT_RESTRICTION_REMOVAL to TargetSpec(description = "Remove manifest split requirements; resource split still needs package rename/signing."),
         HookId.APP_LABEL_UPDATE to TargetSpec(description = "Google (Morphe)"),
+        HookId.CONVERSATION_UPDATE_WARNING to TargetSpec(
+            className = "Latze;", methodName = "a", methodDescriptor = "(Ljava/lang/Object;)V", expectedMatches = 1,
+            values = mapOf("superclass" to "Lhggx;", "streamClass" to "Laopx;", "streamMethod" to "<init>", "streamDescriptor" to "(Lgfeh;)V", "streamResponse" to "Lgfeh;"),
+            description = "History receive (gffq.d) and reply wrapper (gfeh.p/q). Runtime removes only the exact English update punt, behavior 1; the response object is copied, never mutated."
+        ),
         HookId.ACCOUNT_SWITCH_LOCK_BYPASS to TargetSpec(
             enabled = false, anchorStrings = listOf("Acquired account-switch Mutex."),
             description = "Historical rejected approach. Do not enable; normal account synchronization is required."

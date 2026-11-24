@@ -106,3 +106,34 @@ internal fun setMetaData(manifest: Document, name: String, value: String) {
         application.appendChild(it)
     }).setAttributeNS(ANDROID, "android:value", value)
 }
+
+/** Removes the named uses-permission elements; fails when none of them was declared. */
+internal fun removePermissions(manifest: Document, vararg names: String): Int {
+    val wanted = names.toSet()
+    val nodes = manifest.getElementsByTagName("uses-permission")
+    val matches = (0 until nodes.length).map { nodes.item(it) as Element }
+        .filter { it.getAttributeNS(ANDROID, "name") in wanted }
+    check(matches.isNotEmpty()) { "None of the expected permissions found: $wanted" }
+    matches.forEach { it.parentNode.removeChild(it) }
+    return matches.size
+}
+
+/**
+ * Removes the Privacy Sandbox advertising-services permissions when the app declares them. Games
+ * that ship a recent Play Billing stack ask for these so an ad SDK can read topics, attribution and
+ * a privacy-preserving ad identifier; a patched game has no use for any of them. Returns the number
+ * removed, so apps without the declarations are not treated as a changed input.
+ */
+internal fun removeAdServicesPermissions(manifest: Document): Int {
+    val adServices = setOf(
+        "android.permission.ACCESS_ADSERVICES_AD_ID",
+        "android.permission.ACCESS_ADSERVICES_ATTRIBUTION",
+        "android.permission.ACCESS_ADSERVICES_TOPICS",
+        "android.permission.ACCESS_ADSERVICES_CUSTOM_AUDIENCE",
+    )
+    val nodes = manifest.getElementsByTagName("uses-permission")
+    val matches = (0 until nodes.length).map { nodes.item(it) as Element }
+        .filter { it.getAttributeNS(ANDROID, "name") in adServices }
+    matches.forEach { it.parentNode.removeChild(it) }
+    return matches.size
+}

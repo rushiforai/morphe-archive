@@ -19,14 +19,18 @@ import java.util.WeakHashMap;
 final class GboardManualIncognitoAccessPointSupport {
     static final String TOKEN = "manual_incognito";
     private static final String LABEL = "Incognito";
-    private static final int OFFICIAL_INCOGNITO_ICON_RESOURCE_ID = 0x7f0806c3;
+    // Gboard 18.8 incognito icon, the one stock aakd uses for its incognito Access Points key.
+    private static final int OFFICIAL_INCOGNITO_ICON_RESOURCE_ID = 0x7f0806c7;
     private static final float OFFICIAL_INCOGNITO_ICON_SCALE = 1.2f;
 
-    private static final String DESCRIPTOR_CLASS = "mmm";
-    private static final String BUILDER_CLASS = "mmh";
-    private static final String ORDER_HELPER_CLASS = "mpb";
-    private static final String IMMUTABLE_COLLECTION_CLASS = "wim";
-    private static final String CONTROLLER_CLASS = "mpq";
+    // Gboard 18.8.0.1022711984-beta names (18.6.3: mmm, mmh, mpb, wim, mpq). The 18.8 builder is
+    // split into the abstract aadm (v(Runnable)) and the concrete AutoValue aaej (q/l/a, c/d).
+    private static final String DESCRIPTOR_CLASS = "aadr";
+    private static final String BUILDER_BASE_CLASS = "aadm";
+    private static final String BUILDER_CLASS = "aaej";
+    private static final String ORDER_HELPER_CLASS = "aaia";
+    private static final String IMMUTABLE_COLLECTION_CLASS = "auco";
+    private static final String CONTROLLER_CLASS = "aajh";
 
     private static final Map<Object, WeakReference<Context>> CONTROLLERS =
             Collections.synchronizedMap(new WeakHashMap<>());
@@ -252,6 +256,7 @@ final class GboardManualIncognitoAccessPointSupport {
         static Handles resolve(ClassLoader classLoader) throws Throwable {
             Class<?> descriptorClass = Class.forName(
                     DESCRIPTOR_CLASS, false, classLoader);
+            Class<?> builderBaseClass = Class.forName(BUILDER_BASE_CLASS, false, classLoader);
             Class<?> builderClass = Class.forName(BUILDER_CLASS, false, classLoader);
             Class<?> orderHelperClass = Class.forName(
                     ORDER_HELPER_CLASS, false, classLoader);
@@ -260,12 +265,16 @@ final class GboardManualIncognitoAccessPointSupport {
             Class<?> controllerClass = Class.forName(
                     CONTROLLER_CLASS, false, classLoader);
 
-            Method descriptorBuilderFactory = descriptorClass.getDeclaredMethod("c");
-            Method builderTokenMethod = builderClass.getDeclaredMethod("l", String.class);
-            Method builderRunnableMethod = builderClass.getDeclaredMethod("q", Runnable.class);
-            Method builderBuildMethod = builderClass.getDeclaredMethod("a");
+            // aadr.m() returns a defaulted aaej (18.6.3 mmm.c()).
+            Method descriptorBuilderFactory = descriptorClass.getDeclaredMethod("m");
+            Method builderTokenMethod = builderClass.getDeclaredMethod("q", String.class);
+            Method builderRunnableMethod = builderBaseClass.getDeclaredMethod("v", Runnable.class);
+            // aadm.b() commits the action set (the v(Runnable) PRESS action) before a();
+            // aaej.a() alone builds a toggle with no tap action.
+            Method builderBuildMethod = builderBaseClass.getDeclaredMethod("b");
             Field builderIconField = builderClass.getDeclaredField("c");
-            Method builderIconResourceMethod = builderClass.getDeclaredMethod("i", int.class);
+            // aaej.l(int) sets the icon resource (field r, flag bit 1); 18.6.3 mmh.i(int).
+            Method builderIconResourceMethod = builderClass.getDeclaredMethod("l", int.class);
             Field builderLabelTextField = builderClass.getDeclaredField("d");
             Field builderContentDescriptionTextField = builderLabelTextField;
             Field controllerOrderHelperField = controllerClass.getDeclaredField("g");

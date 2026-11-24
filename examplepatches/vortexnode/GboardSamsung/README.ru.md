@@ -3,7 +3,7 @@
 <picture>
   <source media="(prefers-color-scheme: dark)" srcset="docs/assets/logo-dark.png">
   <source media="(prefers-color-scheme: light)" srcset="docs/assets/logo.png">
-  <img src="docs/assets/logo.png" alt="GboardSamsung logo" width="128"/>
+  <img src="docs/assets/logo.png" alt="GboardSamsung logo" width="84"/>
 </picture>
 
 # GboardSamsung
@@ -14,9 +14,12 @@ Morphe-патчи, которые переносят эргономику и э�
 
 [English](README.md) · [Русский](README.ru.md)
 
+[![Добавить в Morphe](https://img.shields.io/badge/%D0%94%D0%BE%D0%B1%D0%B0%D0%B2%D0%B8%D1%82%D1%8C%20%D0%B2%20Morphe-%D0%B2%201%20%D1%82%D0%B0%D0%BF-1a73e8?style=for-the-badge&logo=android&logoColor=white)](https://morphe.software/add-source?github=vortexnode/GboardSamsung)
+
 [![Последний релиз](https://img.shields.io/github/v/release/vortexnode/GboardSamsung?style=flat-square&label=release)](https://github.com/vortexnode/GboardSamsung/releases/latest)
+[![Скачивания](https://img.shields.io/github/downloads/vortexnode/GboardSamsung/total?style=flat-square&label=downloads&color=brightgreen)](https://github.com/vortexnode/GboardSamsung/releases)
 [![CI](https://github.com/vortexnode/GboardSamsung/actions/workflows/ci.yml/badge.svg)](https://github.com/vortexnode/GboardSamsung/actions/workflows/ci.yml)
-![Патчи](https://img.shields.io/badge/patches-35-blue?style=flat-square)
+![Патчи](https://img.shields.io/badge/patches-36-blue?style=flat-square)
 ![Целевой Gboard](https://img.shields.io/badge/Gboard-18.5.4-informational?style=flat-square)
 [![Лицензия: GPL-3.0](https://img.shields.io/badge/license-GPL--3.0-green?style=flat-square)](LICENSE)
 
@@ -47,22 +50,39 @@ Morphe-патчи, которые переносят эргономику и э�
   </tr>
 </table>
 
+### Буфер обмена Samsung vs. стандартный Gboard
+
+<table>
+  <tr>
+    <td align="center" valign="top" width="50%">
+      <img src="docs/assets/preview-clipboard-google.jpg" alt="Стандартный буфер Gboard" width="420"/><br/>
+      <sub><b>Стандартный Gboard</b> — дробит один скопированный текст на 4 отдельные карточки (текст, дата, число, место)</sub>
+    </td>
+    <td align="center" valign="top" width="50%">
+      <img src="docs/assets/preview-clipboard-samsung.jpg" alt="Буфер обмена Samsung" width="420"/><br/>
+      <sub><b>Буфер обмена Samsung</b> — сохраняет тот же текст одним цельным блоком</sub>
+    </td>
+  </tr>
+</table>
+
 ## Чем GboardSamsung отличается от оригинала и upstream
 
-Проект развивается как сфокусированный форк [jasonwu1994/Gboard-patches](https://github.com/jasonwu1994/Gboard-patches) с собственными визуальными и UX-доработками под Samsung One UI 8 и без лишних тайваньских/неиспользуемых патчей:
+Проект развивается как сфокусированный форк [jasonwu1994/Gboard-patches](https://github.com/jasonwu1994/Gboard-patches) с собственными визуальными и UX-доработками под Samsung One UI и без лишних тайваньских/неиспользуемых патчей:
 
 | Возможность | Что делает |
 | --- | --- |
-| **Жесты пробела Samsung** | Свайп влево/вправо по пробелу переключает языки, долгое нажатие переводит пробел в управление курсором, плюс отключаемые шевроны языка `< Русский >` через пассивный `ViewOverlay`. |
+| **Жесты пробела Samsung** | Свайп влево/вправо по пробелу с 3 взаимоисключающими режимами (**Samsung One UI** — фиксированный цикл `1→2→3→4`, **Gboard** — недавние языки первыми, **Свободное переключение** с 5-секундной памятью направления и наглядными превью-схемами), долгое нажатие для курсора и отключаемые шевроны `< Русский >` через пассивный `ViewOverlay`. |
 | **Круглые подложки тулбара** | Адаптивные круглые подложки под 3–8 иконками верхнего тулбара (оригинальные иконки Google сохраняются): в теме «Динамический цвет» подхватывают тон больших клавиш Material You, в стандартных темах повторяют стиль микрофона Rambler. Отдельным тумблером включается фиксированная круглая подложка `38dp` под кнопкой меню `⊞` (при раскрытии в `✕` сохраняется родной круг Gboard). |
+| **Буфер обмена Samsung** | Переключатель в **Буфер обмена → Основные**, сохраняющий скопированный текст одним цельным блоком, как в клавиатуре Samsung — без разбивки на отдельные карточки со ссылками, телефонами, адресами и почтой, не затрагивая картинки, закрепление, сроки хранения и остальные функции. |
+| **Фирменная иконка приложения** | Адаптивная светлая и тёмная иконка GboardSamsung с точной посадкой в безопасную зону маски One UI. |
 | **Полная локализация RU / EN** | Русский и английский интерфейс всех разделов «Патчи», встроенный поиск по настройкам и русские описания релизов в Morphe Manager. |
 | **Отдельный пакет (`Package Rename`)** | Устанавливается параллельно с обычным Gboard (`gboardsamsung.com.google.android.inputmethod.latin`) без root-прав. |
 
 ## Быстрая установка через Morphe Manager
 
-1. Откройте [Morphe Manager](https://github.com/MorpheApp/morphe-manager) → **Источники** → **Добавить источник** и вставьте ссылку:
+1. **[Нажмите здесь, чтобы добавить GboardSamsung в Morphe в 1 тап](https://morphe.software/add-source?github=vortexnode/GboardSamsung)** — или откройте [Morphe Manager](https://github.com/MorpheApp/morphe-manager) → **Источники** → **Добавить источник** и вставьте ссылку:
    ```text
-   https://raw.githubusercontent.com/vortexnode/GboardSamsung/main/patches-bundle.json
+   https://github.com/vortexnode/GboardSamsung
    ```
 2. Выберите совместимый оригинальный APK **Gboard `18.5.4`** (рекомендуется `arm64-v8a`).
 3. Отметьте нужные патчи (оставьте **Package Rename**, если хотите не заменять стоковый Gboard) и нажмите **Патчить**.
@@ -72,18 +92,19 @@ Morphe-патчи, которые переносят эргономику и э�
 
 ## Совместимость
 
-- **Рекомендуемая версия:** Gboard `18.5.4` (`arm64-v8a`, проверено на Samsung Galaxy S22 / Android 16 / One UI 8).
+- **Рекомендуемая версия:** Gboard `18.5.4` (`arm64-v8a`, проверено на Samsung Galaxy S22 / Android 16 / One UI).
 - **Root-права:** не требуются.
 - **Автообновления:** каждый релиз автоматически собирает `.mpp` и обновляет `patches-bundle.json` для Morphe Manager.
 
-## Каталог активных патчей (35)
+## Каталог активных патчей (36)
 
-**2 собственных патча GboardSamsung** + **33 отобранных патча из upstream**. Нажмите на нужную категорию, чтобы раскрыть список:
+**3 собственных патча GboardSamsung** + **33 отобранных патча из upstream**. Нажмите на нужную категорию, чтобы раскрыть список:
 
 <details>
-<summary><b>Фишки Samsung One UI (2 собственных патча)</b></summary>
+<summary><b>Фишки Samsung One UI (3 собственных патча)</b></summary>
 
-- **Samsung Spacebar Gestures** — свайп по пробелу для смены языка, долгое нажатие для курсора и отключаемые шевроны `< Русский >`.
+- **Custom App Icon** — адаптивная светлая и тёмная иконка GboardSamsung.
+- **Samsung Spacebar Gestures** — свайп по пробелу в 3 режимах (Samsung One UI, Gboard, Свободное переключение), долгое нажатие для курсора и отключаемые шевроны `< Русский >`.
 - **Toolbar Round Chips** — адаптивные круглые подложки под 3–8 кнопками тулбара (Material You + стандартные темы) и отдельный тумблер для кнопки меню `⊞`.
 
 </details>
@@ -110,7 +131,7 @@ Morphe-патчи, которые переносят эргономику и э�
 <summary><b>Ввод, редактирование и инструменты (9 патчей)</b></summary>
 
 - **Clipboard Custom Character Limit** — настройка максимальной длины записей буфера обмена.
-- **Clipboard Enhancements** — увеличенное время хранения, лимит записей, строки предпросмотра и отметки времени.
+- **Clipboard Enhancements** — включает режим **«Буфер обмена Samsung»** (сохранение текста цельным блоком без разбивки), а также увеличенное время хранения, лимит записей, строки предпросмотра и отметки времени.
 - **Close Proactive Suggestions** — кнопка закрытия проактивных подсказок.
 - **Custom Symbols** — отдельная вкладка пользовательских символов по долгому нажатию запятой.
 - **Floating Web Search** — плавающее окно веб-поиска прямо из клавиатуры.

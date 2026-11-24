@@ -38,7 +38,54 @@ def valid(selector):
     for bad in ("url(", "/*", "image("):
         if bad in lower:
             return f"contains {bad}"
+    if not specific(s):
+        return ("would hide too much: each part must end in an element with a class, id or attribute "
+                "(not div, * or :has() alone), with brackets and quotes closed")
     return None
+
+
+def marked(compound):
+    """Whether one compound selector has a class, an id or an attribute outside :has()/:not()."""
+    outside, depth = [], 0
+    for c in compound:
+        if c == "(":
+            depth += 1
+        elif c == ")":
+            depth -= 1
+        elif depth == 0:
+            outside.append(c)
+    s = "".join(outside)
+    return "." in s or "#" in s or "[" in s
+
+
+def specific(selector):
+    """Same as FilterUpdates.specific: every part hides only elements with a class, id or attribute."""
+    depth, quote, part_start, subject = 0, None, 0, 0
+    for i in range(len(selector) + 1):
+        c = selector[i] if i < len(selector) else ","
+        if quote:
+            if i == len(selector):
+                return False
+            if c == quote:
+                quote = None
+            continue
+        if c in "\"'":
+            quote = c
+        elif c in "([":
+            depth += 1
+        elif c in ")]":
+            depth -= 1
+            if depth < 0:
+                return False
+        elif depth == 0 and c in " \t\n\r>+~":
+            subject = i + 1
+        elif depth == 0 and c == ",":
+            part = selector[part_start:i].strip()
+            last = selector[max(subject, part_start):i].strip()
+            if not part or not last or not marked(last):
+                return False
+            part_start = subject = i + 1
+    return depth == 0
 
 
 def main():

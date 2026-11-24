@@ -55,6 +55,58 @@ internal object CvdEqualiserFlowFingerprint : Fingerprint(
     )
 )
 
+// Page-type parser; renaming the CVD wire names keeps every payload from resolving to a CVD page.
+internal object CvdPageTypeParserFingerprint : Fingerprint(
+    parameters = listOf("Ljava/lang/String;"),
+    filters = listOf(
+        string("LandingV2Page"),
+        string("ConversationalDiscoveryPage")
+    )
+)
+
+// Navigation screens bind their route string in the static initialiser.
+internal object CvdPageScreenFingerprint : Fingerprint(
+    definingClass = "Lcom/hotstar/navigation/Screen${'$'}CVDPage;",
+    name = "<clinit>",
+    returnType = "V"
+)
+
+internal object CvdActionSheetScreenFingerprint : Fingerprint(
+    definingClass = "Lcom/hotstar/navigation/Screen${'$'}CVDActionSheetPage;",
+    name = "<clinit>",
+    returnType = "V"
+)
+
+// Renderers, anchored on the test tags they set rather than any obfuscated class name.
+internal object CvdOrbComposableFingerprint : Fingerprint(
+    returnType = "V",
+    filters = listOf(
+        string("cvdOrb"),
+        string("BffCVDOrb_")
+    )
+)
+
+internal object CvdChatBubbleComposableFingerprint : Fingerprint(
+    returnType = "V",
+    filters = listOf(
+        string("cvd_chat_bubble")
+    )
+)
+
+internal object CvdActionSheetComposableFingerprint : Fingerprint(
+    returnType = "V",
+    filters = listOf(
+        string("tag_cvd_action_sheet_page_content_sheet")
+    )
+)
+
+// Gate that lets the assistant open from core search.
+internal object CvdCoreSearchGateFingerprint : Fingerprint(
+    filters = listOf(
+        string("all.cvd.allowed_cvd_from_core_search_for_lpd")
+    )
+)
+
 // Widget enum clinit (filters in string order); renamed wires make the parser skip CVD widgets.
 internal object CvdWidgetTypeFingerprint : Fingerprint(
     filters = listOf(

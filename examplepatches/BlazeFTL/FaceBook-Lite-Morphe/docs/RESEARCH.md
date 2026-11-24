@@ -346,3 +346,84 @@ Device: OnePlus PJZ110, 1440x3168, density 3.5, Facebook Lite 536.0.0.11.107. Lo
 - If a thin bar with a thumb still shows: send the log with Player buttons on; check that line is present for that video. If it is missing,
   the app's bar is not a `SeekBar` of that size: read its class in the `layout` `TREE` (Views and layout on).
 - Not verified on a device: built from the log, no APK was run.
+
+## 17. Reel without a seek bar, slow profile redirect, Back landing on the empty Reels page (log 2026-11-23 15:55, build 536.0.0.11.107)
+
+### 17.1 No seek bar on a 91 s reel
+- Log: `controls Not shown: video is 91 s, the app has its own controls` for the SWAGmodovars reel. The screenshot shows no bar at all.
+- Cause: `ShortControls` skipped every video of 60 s or more on the assumption that the app draws its own bar. The app does not for every reel
+  (the thin sibling bar of section 16.2 exists in the tree but is not drawn while the reel plays).
+- Fix: a reel (video at least 1.5 times as tall as wide) of any length gets our bar. A long video that is not a reel is still left to the app.
+  A long reel waits 700 ms (`LONG_GRACE_MS`) before our bar is drawn, so an app bar that shows up late does not flash next to ours.
+  The existing rule still applies: while the app's own bar is showing (`appBarShowing`), ours stays hidden.
+
+### 17.2 Redirect timeline (same log)
+| Time | Step |
+| --- | --- |
+| 15:56:29.8 | tap on the creator in the reel (reel covered, `ScreenTransitionLoadingViewV2`) |
+| 15:56:30.67 | Reels page text "No reels yet" seen, 3 dot button tapped (about 0.85 s after the tap) |
+| 15:56:31.14 | sheet found by its shape after 450 ms, row tapped |
+| 15:56:32.25 | profile list shows the tab row (network, about 1.1 s after the row tap) |
+| 15:56:32.61 | Reels tab tapped after 3 stable polls of 100 ms, 32.72 list below the tabs changed |
+- About 2.9 s in total. The network parts (Reels page, profile) cannot be shortened by the patch. The rest was trimmed:
+  scan every 250 ms while a video is on screen (was 500), sheet polls 40 ms from 90 ms (was 60 from 150), tab polls 50 ms (was 100) with the
+  same 3 stable polls, verify polls 60 ms. Expect roughly 0.5 to 0.7 s less.
+- Not possible without the profile's id: skipping the Reels page and the sheet. "View main profile" is a server text and action
+  (not in either dex), so there is nothing to call. Untested idea: tap the avatar or name on the Reels page; it may open the profile at once.
+
+### 17.3 Back from the redirected profile
+- Log: `Reels page [...] not redirected: left for its profile 3 s ago`. Back from the profile showed the Reels page (screenshot 3) and a second Back was needed.
+- `MainActivity.onKeyDown/onKeyUp` run the app's own key handler (`X.0ap.A0P` / `A0O`), and `dispatchKeyEvent` only special-cases volume and D-pad keys.
+  So a `KeyEvent` BACK down and up sent to `activity.dispatchKeyEvent` behaves like the real key.
+- Change (`ProfileRedirect.goBack`): when a page that was left for its profile (`DONE`, matched by exact key or by the creator's name) is on screen
+  again, the window is covered ("Going back") and BACK is sent. It waits up to 1.4 s for the page to go, retries after 1.3 s, at most 3 times,
+  then leaves the page alone (old behaviour). `DONE` is now set when the Reels tab step ends, not 2.5 s later, and the scan runs every 120 ms for
+  90 s after that, so the page is caught within about 100 ms.
+- `DONE` is still cleared when the reel feed is back on screen (`noteViewer`), so the same creator is redirected again on the next tap.
+- Log lines (tag `profile`): `Back from the profile landed on the Reels page [...], pressing Back again (try n of 3)`, then `Left the Reels page N ms after Back`
+  or `Still on the Reels page N ms after Back`.
+- Not verified on a device: built from the log and the smali, no APK was run. If the page stays after Back, send the log (Stories and profiles on).
+
+## 18. Double tap: pause after the double tap, ugly feedback, doubled icons (screenshots 2026-11-23 16:14 and 16:19)
+
+### 18.1 Why the video paused
+- `FbVideoView` (`X.1L2`) installs `A06` (`X.3eF`, an `OnTouchListener`) on itself in `setupGestureDetector`. It feeds a `GestureDetector` with the listener `X.2mu` (type 1).
+- `X.2mu.onSingleTapUp` does nothing for that type. `onSingleTapConfirmed` calls `A00(event, true)`, which toggles play / pause (`A5V`, `A0A`, the "tap" log).
+- A `GestureDetector` confirms a single tap about 300 ms after the DOWN, unless a second tap follows. Our zone took the second tap (the app never saw it), so
+  the app confirmed the first tap alone and paused the video. The old fix (restore the play state at 200 ms and 700 ms) raced that confirmation.
+- Fix: with the second tap of a pair a `MotionEvent.ACTION_CANCEL` goes to the video's own touch handler (`video.dispatchTouchEvent`). `X.3eF.onTouch` passes it to the
+  `GestureDetector`, whose `cancel()` removes the pending TAP message. The pair window is 280 ms (was 300) so the second tap always comes before the confirmation.
+  The play state is still checked at 120, 300, 520, 800 and 1100 ms and put back if it differs from the state at the first tap.
+
+### 18.2 The app's own double tap (`X.2mu.onDoubleTap`, type 1)
+- Direction from the touch x: right of the middle + 65 px forward, left of the middle - 65 px back, the 130 px in the middle does nothing.
+- It seeks by `FbVideoView.A0z` (the skip step) through `A0p`, then shows ONE of the two icons of `GenericVideoViewViewBinder` (`A07` / `A08`, the same views as
+  `skip_forward_icon` / `skip_backward_icon`), hides the other icon and the play icon, and hides it again after 500 ms.
+- It is only on for some players (`A0L(X.1L2)` or `extraConfig.A1M`). Screenshot 2 (1080x1312 video in the Reels tab, not a reel shape and not full screen) is such a
+  case: our zones are off there and the app's own icon shows at 65.5 dp right of the middle of the video view.
+
+### 18.3 Feedback now
+- The big 42 dp translucent disc with "+10 s" is gone. A double tap shows the same round icon as our row's back / forward buttons (`ShortControls.newSkipGlyph`,
+  40 dp, 65.5 dp from the middle of the video), only the one side that was tapped, 350 ms plus a 150 ms fade.
+- It is not drawn while the app's own `skip_backward_icon` / `skip_forward_icon` are showing or while our row's skip buttons are visible (`ShortControls.skipButtonsShowing`).
+  The seek itself still happens.
+- Log lines (tag `doubletap`): `Zones on for ...`, `Play state put back to playing|paused` (only when the second line of defence had to act).
+- Not verified on a device.
+
+### 18.4 Right zone too narrow (log and screenshot 2026-11-24 01:21)
+- Video 1080x1920 at y 296. The right zone was 60 to 82 % of the width, so a double tap on the far right (a tree in the picture, 85 to 100 %) was not ours and the
+  app got both taps. The left zone (0 to 40 %) and the strip near her neck (60 to 82 %) worked.
+- The right zone is now 60 to 100 % of the width. Touches inside it from 82 % of the width and 58 % of the height down are ignored by it (passed on at once, no pair is
+  started): the download icon (about 66 to 70 % of the video height), Like, Comment, Share and the mute / 3 dot buttons stay as they were.
+- The log of this run has no `Play state put back` line, so the cancel of section 18.1 kept the first tap from pausing the video.
+
+## 19. Download button jumps down when a reel is Liked (screenshots 2026-11-24 01:29, 1080x2400)
+- Not liked: button center at y 1605, Like icon at 1750. Liked: Like icon still at 1748 (a blue circle), button at 1650 (45 px lower), Comment and Share unchanged.
+- The button was placed from the Like group: its top, minus the Like to Comment step (148 px), plus the center of its tallest visible child (`iconCenter`).
+  Pressing Like swaps what is inside that group (the reaction icon, an animation view), so the tallest child, and with it the center, changes. Why exactly it is 45 px was not
+  visible in the logs (they were taken before the screenshots).
+- Change: the anchor is now the second group of the column (Comment), which does not change when Like is pressed. The button center is
+  Comment top - 2 x step (Comment to Share, 148 px) + the center of the Comment icon. Same spot as before to within a few px.
+- New log line (tag `video`) when the button moves more than 6 dp while the video itself does not: `Download button moved N px: anchor top ... pitch ... icon center ... anchor ...`.
+  If the button still jumps after Like, send the log of that run.
+- Not verified on a device.

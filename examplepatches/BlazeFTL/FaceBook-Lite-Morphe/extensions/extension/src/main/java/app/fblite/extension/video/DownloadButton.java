@@ -62,10 +62,16 @@ final class DownloadButton {
     private static WeakReference<View> likeVideo = new WeakReference<>(null);
     private static WeakReference<View> likeView = new WeakReference<>(null);
     private static long likeSearchedAt;
-    /** Size of the Like group and the distance from its top to the next group's top, at the last lookup. */
+    /**
+     * Size of the anchor group (the Comment group, see {@link #findLike}) and the distance from its top to the next
+     * group's top (Share), at the last lookup.
+     */
     private static int likeW;
     private static int likeH;
     private static int likePitch;
+    private static int lastCenterTop;
+    private static int lastVideoTop;
+    private static WeakReference<View> lastCenterVideo = new WeakReference<>(null);
 
     private static Icon button;
     private static boolean hiding;
@@ -138,7 +144,9 @@ final class DownloadButton {
         if (photoUrl == null && isReel(video)) {
             float density = context.getResources().getDisplayMetrics().density;
             size = Math.max(dp(context, 30), Math.round(REEL_BUTTON_DP * density));
-            // The button takes the slot above Like: same center line, same step as Like to Comment.
+            // The button takes the slot above Like: same center line, same step as Like to Comment. It is measured
+            // from the Comment group, two steps up: Like changes its own views when it is pressed (the reaction
+            // icon and its animation), the Comment group does not.
             View like = likeOf(video);
             int centerLeft;
             int centerTop;
@@ -146,7 +154,16 @@ final class DownloadButton {
                 like.getLocationInWindow(LIKE_LOC);
                 int pitch = likePitch > 0 ? likePitch : like.getHeight() + Math.round(8 * density);
                 centerLeft = LIKE_LOC[0] + like.getWidth() / 2;
-                centerTop = LIKE_LOC[1] - pitch + Math.round(iconCenter(like));
+                centerTop = LIKE_LOC[1] - 2 * pitch + Math.round(iconCenter(like));
+                if (MorpheLog.enabled("video")) {
+                    if (lastCenterVideo.get() == video && lastVideoTop == LOCATION[1] && Math.abs(centerTop - lastCenterTop) > dp(context, 6)) {
+                        MorpheLog.log("video", "Download button moved " + (centerTop - lastCenterTop) + " px: anchor top " + LIKE_LOC[1]
+                                + " pitch " + pitch + " icon center " + Math.round(iconCenter(like)) + " anchor " + describeLike(like));
+                    }
+                    lastCenterVideo = new WeakReference<>(video);
+                    lastVideoTop = LOCATION[1];
+                    lastCenterTop = centerTop;
+                }
             } else {
                 int fromEdge = Math.round(FALLBACK_CENTER_FROM_EDGE_DP * density);
                 centerLeft = rtl(context) ? LOCATION[0] + fromEdge : LOCATION[0] + width - fromEdge;
@@ -198,7 +215,7 @@ final class DownloadButton {
     }
 
     /**
-     * The first group of the Like, Comment, Share column. The app builds its reels from a pool of views and gives them
+     * The anchor group of the Like, Comment, Share column: the second one (Comment). The app builds its reels from a pool of views and gives them
      * another job when it binds the next reel: the group that was Like can become a small button at the top of the
      * video. A view that is only attached and shown is therefore not trusted. It must keep the size it had at the
      * lookup and still look like a column group, and the column is looked up again every {@link #LIKE_REFRESH_MS}.
@@ -307,10 +324,10 @@ final class DownloadButton {
             if (chain.size() >= 3 && (best == null || chain.size() > best.size())) best = chain;
         }
         if (best == null) return null;
-        likeW = best.get(0).w;
-        likeH = best.get(0).h;
-        likePitch = best.get(1).t - best.get(0).t;
-        return best.get(0).view;
+        likeW = best.get(1).w;
+        likeH = best.get(1).h;
+        likePitch = best.get(2).t - best.get(1).t;
+        return best.get(1).view;
     }
 
     /** A clickable view of the size of a column group (24 dp or wider, 28 to 110 dp tall) in the video's right quarter. */

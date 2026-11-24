@@ -1,1 +1,5 @@
 blank_issues_enabled: false
+contact_links:
+  - name: 💡 Suggestion / Note (Personal Project)
+    url: https://github.com/rimixyz/morphe-patches/issues/new?title=%5BSuggestion%5D+
+    about: Feel free to share an idea — just keep in mind this is a personal hobby repo (no guarantees, ETAs, or commitment to add new apps).

@@ -32,7 +32,7 @@ private const val BOXING = "Lkotlin/coroutines/jvm/internal/Boxing;"
  */
 @Suppress("unused")
 val unlockPlusBenefitsInMyTherapyPatch = patch(
-    name = "Unlock Plus benefits in MyTherapy",
+    name = "Unlock Plus benefits",
     description = "Grants the local Plus state the app reads for ad-free access, extra calendar days and the PDF entry point.",
     default = true,
 ) {

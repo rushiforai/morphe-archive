@@ -17,17 +17,17 @@ ROOT = Path(__file__).resolve().parents[1]
 SITE = ROOT / 'docs/site'
 LANG = {
     'en': {
-        'meta': r'\*\*App version:\*\* (?P<version>\S+) · \*\*Build:\*\* (?P<build>\d+) · \*\*Original file:\*\* (?P<input>XAPK|APKS|APKM|APK)',
+        'meta': r'\*\*App version:\*\* (?P<version>[^\r\n]+?) · \*\*Build:\*\* (?P<build>\d+) · \*\*Original file:\*\* (?P<input>XAPK|APKS|APKM|APK)',
         'table': '| Patch | Default | What it does |',
         'states': {'On': True, 'Off': False},
     },
     'nl': {
-        'meta': r'\*\*Appversie:\*\* (?P<version>\S+) · \*\*Build:\*\* (?P<build>\d+) · \*\*Origineel bestand:\*\* (?P<input>XAPK|APKS|APKM|APK)',
+        'meta': r'\*\*Appversie:\*\* (?P<version>[^\r\n]+?) · \*\*Build:\*\* (?P<build>\d+) · \*\*Origineel bestand:\*\* (?P<input>XAPK|APKS|APKM|APK)',
         'table': '| Patch | Standaard | Wat verandert er? |',
         'states': {'Aan': True, 'Uit': False},
     },
 }
-DOWNLOAD_ROW = re.compile(r'^\| \[[^\]]+\]\(\.\./apps/(?P<slug>[a-z0-9-]+)\.md\) \| (?P<version>\S+) / (?P<build>\d+) \| (?P<download>.+) \|$')
+DOWNLOAD_ROW = re.compile(r'^\| \[[^\]]+\]\(\.\./apps/(?P<slug>[a-z0-9-]+)\.md\) \| (?P<version>[^|\r\n]+?) / (?P<build>\d+) \| (?P<download>.+) \|$')
 BUTTON = re.compile(r'\[[^\]]+\]\((?P<url>https://buzzheavier\.com/[a-z0-9]{12}|https://www\.apkmirror\.com/apk/[a-z0-9/_-]+/|https://github\.com/[a-z0-9-]+/[a-z0-9._-]+/releases|\.\./guides/downloads\.md#local-original-inputs)\)(?:\{ \.md-button(?: \.md-button--primary)? \})?')
 INTERNAL_DETAILS = re.compile(r'(?i)\b(?:smali|bytecode|opcode|method fingerprint|register allocation|payload dump|decompil(?:ed|ation)|packet capture|Frida|DEX|callback hook|runtime trace)\b|/patches/src/|/tests/|docs/privacy/|```')
 

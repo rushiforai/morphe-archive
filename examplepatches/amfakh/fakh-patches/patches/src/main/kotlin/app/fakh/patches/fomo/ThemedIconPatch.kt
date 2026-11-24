@@ -1,3 +1,8 @@
+/*
+ * Copyright 2026 amfakh
+ * SPDX-License-Identifier: GPL-3.0-only
+ */
+
 package app.fakh.patches.fomo
 
 import app.fakh.patches.fomo.shared.Constants.COMPATIBILITY_FOMO

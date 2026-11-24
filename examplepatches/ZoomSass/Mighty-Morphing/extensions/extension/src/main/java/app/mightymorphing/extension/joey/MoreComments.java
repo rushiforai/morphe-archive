@@ -19,6 +19,7 @@ public final class MoreComments {
     private MoreComments() {}
 
     public static Object rewrite(Object adapter, Object request) {
+        boolean tapped = false;
         try {
             URL url = (URL) call(request, "g");
             if (url == null) return null;
@@ -32,6 +33,8 @@ public final class MoreComments {
             if (!"GET".equalsIgnoreCase(method) && !"POST".equalsIgnoreCase(method)) return null;
             Params params = params(url, call(request, "b"));
             if (params.linkId == null || params.children.isEmpty()) return null;
+            tapped = true;
+            RequestLog.count("morechildren-taps");
             String postId = strip(params.linkId, "t3_");
             Object client = field(adapter, "a");
             JSONArray things = new JSONArray();
@@ -46,25 +49,58 @@ public final class MoreComments {
             int continuationDepth = 0;
             Reply failure = null;
             Reply any = null;
+            Reply lastReply = null;
+            long started = System.currentTimeMillis();
+            boolean stop = false;
+            boolean capped = false;
+            boolean bulkWorked = false;
+            int failed = 0;
+            int gone = 0;
+            int unreadable = 0;
+            String firstFailure = null;
             for (String child : params.children) {
                 if (seen.contains(child)) continue;
                 JSONObject comment = bulk.get(child);
                 if (comment == null) {
-                    if (requests >= MAX_REQUESTS) {
+                    if (stop || requests >= MAX_REQUESTS) {
+                        if (requests >= MAX_REQUESTS) capped = true;
                         deferred.add(child);
                         continue;
                     }
                     requests++;
                     Reply reply = get(client, request,
                             focusedUrl(url, postId, child, params.sort, params.profileImg));
+                    lastReply = reply;
                     if (reply.code < 200 || reply.code >= 300) {
-                        if (reply.code < 500) return wrap(request, reply);
-                        failure = reply;
-                        deferred.add(child);
-                        continue;
+                        if (firstFailure == null) {
+                            firstFailure = reply.code + "/" + kind(reply);
+                            RequestLog.Entry note = RequestLog.entry("morechildren-request")
+                                    .put("status", reply.code).put("kind", kind(reply)).put("ms", reply.ms);
+                            limits(note, reply);
+                            note.save();
+                        }
+                        failed++;
+                        if (reply.code == 404) {
+                            gone++;
+                            continue;
+                        }
+                        if (reply.code == 429) stop = true;
+                        if (reply.code == 429 || reply.code >= 500 || things.length() > 0) {
+                            failure = reply;
+                            deferred.add(child);
+                            continue;
+                        }
+                        summary(params.children.size(), things, requests, capped, bulkWorked, deferred.size(),
+                                failed, gone, unreadable, started, reply, false);
+                        return wrap(request, reply);
                     }
                     any = reply;
-                    comment = focusedComment(reply.text, child);
+                    try {
+                        comment = focusedComment(reply.text, child);
+                    } catch (Throwable unreadableReply) {
+                        unreadable++;
+                        continue;
+                    }
                 }
                 progressed = true;
                 if (comment == null) continue;
@@ -86,7 +122,15 @@ public final class MoreComments {
                 requests++;
                 String parentId = top ? null : strip(parent, "t1_");
                 Reply whole = get(client, request, parentListingUrl(url, postId, parentId, params.sort, params.profileImg));
-                if (whole.code < 200 || whole.code >= 300) continue;
+                lastReply = whole;
+                if (whole.code < 200 || whole.code >= 300) {
+                    RequestLog.Entry note = RequestLog.entry("morechildren-bulk")
+                            .put("status", whole.code).put("kind", kind(whole)).put("ms", whole.ms);
+                    limits(note, whole);
+                    note.save();
+                    if (whole.code == 429) stop = true;
+                    continue;
+                }
                 try {
                     JSONArray candidates;
                     if (top) {
@@ -97,11 +141,16 @@ public final class MoreComments {
                         candidates = holder == null ? null : repliesOf(holder.getJSONObject("data").opt("replies"));
                     }
                     if (candidates != null) collect(candidates, params.children, bulk);
+                    bulkWorked = !bulk.isEmpty();
                 } catch (Throwable ignored) {
                     // The single requests below still work.
                 }
             }
-            if (!progressed && failure != null) return wrap(request, failure);
+            if (!progressed && failure != null) {
+                summary(params.children.size(), things, requests, capped, bulkWorked, deferred.size(),
+                        failed, gone, unreadable, started, failure, false);
+                return wrap(request, failure);
+            }
             if (any == null) any = failure;
             JSONArray rest = new JSONArray();
             for (String id : deferred) {
@@ -121,10 +170,48 @@ public final class MoreComments {
             JSONObject data = new JSONObject().put("things", things);
             JSONObject json = new JSONObject().put("errors", new JSONArray()).put("data", data);
             String payload = new JSONObject().put("json", json).toString();
+            boolean unclean = failed > 0 || unreadable > 0 || rest.length() > 0 || things.length() == 0;
+            summary(params.children.size(), things, requests, capped, bulkWorked, rest.length(),
+                    failed, gone, unreadable, started, lastReply, !unclean);
             if (any == null) return null;
+            // Nothing could be read at all: leave it to Joey's own request, as before.
+            if (things.length() == 0 && rest.length() == 0 && unreadable > 0) return null;
             return newResponse(request, payload, any.headers, 200, "OK", any.protocol);
-        } catch (Throwable ignored) {
+        } catch (Throwable failure) {
+            if (tapped) {
+                try {
+                    RequestLog.count("morechildren-problem");
+                    RequestLog.entry("morechildren").put("result", "error")
+                            .put("error", failure.getClass().getSimpleName()).save();
+                } catch (Throwable ignored) {
+                }
+            }
             return null;
+        }
+    }
+
+    /** One note per tap, good ones and problems kept apart. Counts only. */
+    private static void summary(int asked, JSONArray things, int requests, boolean capped, boolean bulk,
+                                int left, int failed, int gone, int unreadable, long started, Reply last,
+                                boolean good) {
+        try {
+            RequestLog.count(good ? "morechildren-clean" : "morechildren-problem");
+            int loaded = 0;
+            for (int i = 0; i < things.length(); i++) {
+                if ("t1".equals(things.getJSONObject(i).optString("kind"))) loaded++;
+            }
+            RequestLog.Entry note = RequestLog.entry("morechildren")
+                    .put("asked", asked).put("loaded", loaded).put("requests", requests)
+                    .put("cap-hit", capped ? "yes" : "no").put("bulk", bulk ? "ok" : "no")
+                    .put("left", left).put("failed", failed).put("gone", gone).put("unreadable", unreadable)
+                    .put("ms", System.currentTimeMillis() - started);
+            if (last != null) {
+                note.put("last-status", last.code).put("last-kind", kind(last));
+                limits(note, last);
+            }
+            if (good) note.saveGood();
+            else note.save();
+        } catch (Throwable ignored) {
         }
     }
 
@@ -174,11 +261,63 @@ public final class MoreComments {
         Object headers;
         String protocol = "HTTP/1.1";
         String message = "";
+        long ms;
+    }
+
+    /** What the reply looks like, as a plain word: json, html, empty or other. */
+    private static String kind(Reply reply) {
+        String text = reply.text == null ? "" : reply.text.trim();
+        if (text.isEmpty()) return "empty";
+        if (text.startsWith("{") || text.startsWith("[")) return "json";
+        String lower = text.length() > 4000 ? text.substring(0, 4000).toLowerCase(Locale.ROOT) : text.toLowerCase(Locale.ROOT);
+        if (lower.contains("<html") || lower.startsWith("<")) {
+            if (lower.contains("too many requests") || lower.contains("whoa there")) return "html-toomany";
+            if (lower.contains("blocked")) return "html-blocked";
+            return "html";
+        }
+        return "other";
+    }
+
+    /** Reddit's rate limit counters, which are plain numbers. */
+    private static void limits(RequestLog.Entry entry, Reply reply) {
+        entry.put("rl-left", header(reply.headers, "x-ratelimit-remaining"));
+        entry.put("rl-used", header(reply.headers, "x-ratelimit-used"));
+        entry.put("rl-reset", header(reply.headers, "x-ratelimit-reset"));
+        entry.put("retry-after", header(reply.headers, "retry-after"));
+    }
+
+    private static String header(Object headers, String name) {
+        if (headers == null) return null;
+        try {
+            Object value = call(headers, "get", new Class<?>[]{String.class}, name);
+            return value == null ? null : String.valueOf(value);
+        } catch (Throwable ignored) {
+            return null;
+        }
+    }
+
+    private static boolean emptyListing(String text) {
+        try {
+            JSONArray children = new JSONObject(text).getJSONObject("data").getJSONArray("children");
+            return children.length() == 0;
+        } catch (Throwable ignored) {
+            return false;
+        }
+    }
+
+    private static boolean canWait() {
+        try {
+            return android.os.Looper.getMainLooper().getThread() != Thread.currentThread();
+        } catch (Throwable ignored) {
+            return false;
+        }
     }
 
     private static Reply get(Object client, Object request, String url) throws Exception {
+        long started = System.currentTimeMillis();
         Object response = fetch(client, request, url);
         Reply reply = new Reply();
+        reply.ms = System.currentTimeMillis() - started;
         reply.code = (Integer) call(response, "code");
         Object body = call(response, "body");
         reply.text = body == null ? "" : String.valueOf(call(body, "string"));
@@ -202,17 +341,65 @@ public final class MoreComments {
      * comments rebuilt from the comments pages, which Reddit still answers.
      */
     private static Object lookup(Object adapter, Object request, URL url, String route) {
+        long started = System.currentTimeMillis();
+        String how = "";
+        int tries = 0;
+        int candidatesTried = 0;
+        String source = "";
+        boolean comment = false;
         try {
             if (!"GET".equalsIgnoreCase(String.valueOf(call(request, "e")))) return null;
-            Object client = field(adapter, "a");
-            Reply first = get(client, request, url.toString());
-            if (first.code != 403 || first.text.trim().startsWith("{") || first.text.trim().startsWith("[")) {
-                return wrap(request, first);
-            }
             String ids = route.contains("/by_id/")
                     ? decode(url.getPath().substring(url.getPath().toLowerCase(Locale.ROOT).indexOf("/by_id/") + 7)
                             .replaceAll("(?i)\\.json$", ""))
                     : queryValue(url.getQuery(), "id");
+            comment = ids != null && ids.contains("t1_");
+            if (comment) RequestLog.count("comment-lookups");
+            Object client = field(adapter, "a");
+            Reply first = get(client, request, url.toString());
+            // Joey's own request path signs in again on a 401. Leave it to that.
+            if (first.code == 401) {
+                if (comment) RequestLog.entry("lookup").put("status", 401).put("result", "left-to-joey").save();
+                return null;
+            }
+            boolean html = first.code == 403 && !kind(first).equals("json");
+            boolean limited = first.code == 429;
+            // Only a comment can be too new to show. Other lookups may be empty for good.
+            boolean empty = comment && first.code == 200 && emptyListing(first.text);
+            if (!html && !limited && !empty) {
+                if (comment) {
+                    RequestLog.count("comment-lookup-clean");
+                    RequestLog.entry("lookup").put("status", first.code).put("kind", kind(first))
+                            .put("ms", first.ms).saveGood();
+                }
+                return wrap(request, first);
+            }
+            how = html ? "blocked" : limited ? "limited" : "empty";
+            if (empty && canWait()) {
+                // A comment that was only just posted can take a moment to show up.
+                for (int i = 0; i < 2 && empty; i++) {
+                    Thread.sleep(i == 0 ? 1200 : 2500);
+                    tries++;
+                    Reply again = get(client, request, url.toString());
+                    if (again.code == 200 && !emptyListing(again.text)) {
+                        RequestLog.count("comment-lookup-recovered");
+                        RequestLog.entry("lookup").put("first", how).put("result", "found-after-wait")
+                                .put("waits", tries).put("ms", System.currentTimeMillis() - started).save();
+                        return wrap(request, again);
+                    }
+                    if (again.code != 200) {
+                        first = again;
+                        empty = false;
+                        html = again.code == 403 && !kind(again).equals("json");
+                        limited = again.code == 429;
+                        how = how + ">" + again.code;
+                    }
+                }
+            }
+            if (!html && !limited && !empty) {
+                note(first, how, tries, candidatesTried, source, "failed-" + first.code, started, comment, false);
+                return wrap(request, first);
+            }
             if (ids == null || ids.isEmpty()) return wrap(request, first);
             Referer referer = new Referer(request);
             JSONArray things = new JSONArray();
@@ -225,19 +412,32 @@ public final class MoreComments {
                             + ".json?limit=1&depth=1&raw_json=1");
                     last = post;
                     if (post.code == 404) continue;
-                    if (post.code < 200 || post.code >= 300) return wrap(request, post);
+                    if (post.code < 200 || post.code >= 300) {
+                        note(first, how, tries, candidatesTried, source, "post-failed-" + post.code, started,
+                                comment, false);
+                        return wrap(request, post);
+                    }
                     thing = firstChild(post.text, 0, fullname);
                 } else if (fullname.startsWith("t1_")) {
                     thing = null;
-                    for (String postId : candidates(client, request, url, referer, fullname)) {
-                        Reply comment = get(client, request, base(url) + "/comments/" + postId + "/comment/"
+                    java.util.Map<String, String> sources = new java.util.HashMap<>();
+                    for (String postId : candidates(client, request, url, referer, fullname, sources)) {
+                        candidatesTried++;
+                        Reply found = get(client, request, base(url) + "/comments/" + postId + "/comment/"
                                 + fullname.substring(3) + ".json?context=0&limit=1&depth=1&raw_json=1");
-                        last = comment;
-                        if (comment.code < 200 || comment.code >= 300) continue;
-                        thing = firstChild(comment.text, 1, fullname);
-                        if (thing != null) break;
+                        last = found;
+                        if (found.code < 200 || found.code >= 300) continue;
+                        thing = firstChild(found.text, 1, fullname);
+                        if (thing != null) {
+                            source = String.valueOf(sources.get(postId));
+                            break;
+                        }
                     }
-                    if (thing == null) return wrap(request, first);
+                    if (thing == null) {
+                        note(first, how, tries, candidatesTried, source, "not-found-last-" + last.code, started,
+                                comment, false);
+                        return wrap(request, first);
+                    }
                     thing.getJSONObject("data").put("replies", "");
                 } else {
                     return wrap(request, first);
@@ -247,9 +447,30 @@ public final class MoreComments {
             JSONObject data = new JSONObject().put("children", things).put("before", JSONObject.NULL)
                     .put("after", JSONObject.NULL).put("dist", things.length()).put("modhash", "");
             String payload = new JSONObject().put("kind", "Listing").put("data", data).toString();
+            note(first, how, tries, candidatesTried, source, things.length() > 0 ? "rebuilt" : "rebuilt-empty",
+                    started, comment, things.length() > 0);
             return newResponse(request, payload, last.headers, 200, "OK", last.protocol);
-        } catch (Throwable ignored) {
+        } catch (Throwable failure) {
+            try {
+                if (comment) RequestLog.count("comment-lookup-failed");
+                RequestLog.entry("lookup").put("first", how).put("result", "error")
+                        .put("error", failure.getClass().getSimpleName()).save();
+            } catch (Throwable ignored) {
+            }
             return null;
+        }
+    }
+
+    private static void note(Reply first, String how, int waits, int candidates, String source, String result,
+                             long started, boolean comment, boolean recovered) {
+        try {
+            if (comment) RequestLog.count(recovered ? "comment-lookup-recovered" : "comment-lookup-failed");
+            RequestLog.Entry entry = RequestLog.entry("lookup").put("first", how).put("status", first.code)
+                    .put("kind", kind(first)).put("waits", waits).put("posts-tried", candidates)
+                    .put("post-from", source).put("result", result).put("ms", System.currentTimeMillis() - started);
+            limits(entry, first);
+            entry.save();
+        } catch (Throwable ignored) {
         }
     }
 
@@ -275,13 +496,24 @@ public final class MoreComments {
 
     /** Posts a comment may belong to, most likely first. A wrong guess is ruled out by the lookup itself. */
     private static java.util.List<String> candidates(Object client, Object request, URL url, Referer referer,
-                                                     String fullname) {
+                                                     String fullname, java.util.Map<String, String> sources) {
         java.util.List<String> list = new java.util.ArrayList<>();
         String link = queryValue(url.getQuery(), "link_id");
-        if (link != null && link.startsWith("t3_")) list.add(link.substring(3));
-        if (referer.postId != null && !list.contains(referer.postId)) list.add(referer.postId);
+        if (link != null && link.startsWith("t3_")) {
+            list.add(link.substring(3));
+            sources.put(link.substring(3), "link");
+        }
+        if (referer.postId != null && !list.contains(referer.postId)) {
+            list.add(referer.postId);
+            sources.put(referer.postId, "referer");
+        }
         synchronized (RECENT) {
-            for (String post : RECENT) if (!list.contains(post)) list.add(post);
+            for (String post : RECENT) {
+                if (!list.contains(post)) {
+                    list.add(post);
+                    sources.put(post, "recent");
+                }
+            }
         }
         try {
             // Last resort for the account's own comments: its history names the post.
@@ -298,6 +530,7 @@ public final class MoreComments {
                             String post = d.optString("link_id");
                             if (post.startsWith("t3_") && !list.contains(post.substring(3))) {
                                 list.add(0, post.substring(3));
+                                sources.put(post.substring(3), "history");
                             }
                         }
                     }

@@ -1,0 +1,41 @@
+{
+  "mode": "--download-missing",
+  "exit": 0,
+  "stdout": "Fetching Google Play icon for Alpha App (com.example.alpha)...\n  Added new icon for com.example.alpha (19561 bytes)\nFetching Google Play icon for Beta App (com.example.beta)...\n  Added new icon for com.example.beta (3150 bytes)\nFetching Google Play icon for com.example.delta (com.example.delta)...\n  Skipping com.example.delta: image processing failed.\nFetching Google Play icon for Eta App (com.example.eta)...\n  Added new icon for com.example.eta (47582 bytes)\nFetching Google Play icon for Gamma App (com.example.gamma)...\n  Added new icon for com.example.gamma (24573 bytes)\nFetching Google Play icon for Theta App (com.example.theta)...\n  Skipping com.example.theta: could not obtain icon URL.\nFetching Google Play icon for Zeta App (com.example.zeta)...\n  Skipping com.example.zeta: image processing failed.\n\nCompleted. Changes detected: True\n\n### New Icons Added\n- Alpha App (`com.example.alpha`)\n- Beta App (`com.example.beta`)\n- Eta App (`com.example.eta`)\n- Gamma App (`com.example.gamma`)\n",
+  "stderr": "[WARN] Failed to process image from http://127.0.0.1:55599/icons/delta.png: cannot identify image file <_io.BytesIO object at 0x10b18b1a0>\n[WARN] og:image meta tag not found for com.example.theta\n[WARN] Failed to download icon image http://127.0.0.1:55599/icons/zeta.png: HTTP Error 404: Not Found\n",
+  "githubOutput": "changes_detected=true\nsummary<<ghadelim_a80da1282f2c775bbc5f2c92c836968b\n### New Icons Added\n- Alpha App (`com.example.alpha`)\n- Beta App (`com.example.beta`)\n- Eta App (`com.example.eta`)\n- Gamma App (`com.example.gamma`)\nghadelim_a80da1282f2c775bbc5f2c92c836968b\n",
+  "githubValues": {
+    "changes_detected": "true",
+    "summary": "### New Icons Added\n- Alpha App (`com.example.alpha`)\n- Beta App (`com.example.beta`)\n- Eta App (`com.example.eta`)\n- Gamma App (`com.example.gamma`)"
+  },
+  "files": {
+    "com.example.alpha.png": {
+      "sha256": "54475ad1ac5025a85dba55f26d10da0a2c7619a2309ea5111ec18b4e5d8228ac",
+      "size": 19561
+    },
+    "com.example.beta.png": {
+      "sha256": "890b23186124a11035fafaed541fae88cc5922752eab0eb3cfcffce57b6238f6",
+      "size": 3150
+    },
+    "com.example.epsilon.png": {
+      "sha256": "877c93af28b1e18a9cfbd610f5dbce5c632e2ca511c68262b5ca1e20391d9c01",
+      "size": 22642
+    },
+    "com.example.eta.png": {
+      "sha256": "9c1f18c379fea0c8226ab7ad5f9eddd8be95e6ad739e7b36106b9731e0d4ab61",
+      "size": 47582
+    },
+    "com.example.gamma.png": {
+      "sha256": "d520ecfcc46a55f1cf947e07920e469a6b4cf7ac7113410dea4a3c35ecb6807d",
+      "size": 24573
+    }
+  },
+  "icons": [
+    "com.example.alpha",
+    "com.example.beta",
+    "com.example.epsilon",
+    "com.example.eta",
+    "com.example.gamma"
+  ],
+  "exception": null
+}

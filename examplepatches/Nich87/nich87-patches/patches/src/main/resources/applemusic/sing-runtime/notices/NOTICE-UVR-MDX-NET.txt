@@ -1,0 +1,14 @@
+UVR-MDX-NET 3 (UVR_MDXNET_3_9662.onnx)
+Model by Ultimate Vocal Remover (UVR) and core developers Anjok07 and aufr33.
+
+UVR provides its models for third-party application use under the MIT
+license with credit to UVR and its developers.
+https://github.com/Anjok07/ultimatevocalremovergui#license
+
+Original model distribution:
+https://github.com/TRvlvr/model_repo/releases/tag/all_public_uvr_models
+SHA-256: e02220e80d8253f4c2209f8924298b2b686bbdf2868b788ff5500fb9bd94aadc
+
+The model is downloaded during setup. Its filename on the download mirror is
+UVR_MDXNET_1_9703.onnx. The verified bytes match UVR-MDX-NET 3 in the original
+distribution.

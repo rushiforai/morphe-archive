@@ -11,11 +11,14 @@ ROOT = Path(__file__).resolve().parents[1]
 
 # Editorial destinations only; app names, versions and patches come from metadata.
 APP_PAGES = {
+    'com.jamworks.dynamicspot': ('dynamicspot', 'other'),
+    'com.cronometer.android.gold': ('cronometer', 'other'),
     'com.bol.shop': ('bol', 'other'),
     'com.klevico.monet': ('monet', 'other'),
     'com.overdevs.at4k': ('at4k', 'other'),
     'com.alibaba.aliexpresshd': ('aliexpress', 'other'),
     'io.homeassistant.companion.android': ('homeassistant', 'other'),
+    'com.xatori.Plugshare': ('plugshare', 'other'),
     'com.tuya.smart': ('tuya', 'other'),
     'com.mcu.reolink': ('reolink', 'other'),
     'com.google.android.apps.messaging': ('messages', 'other'),
@@ -28,6 +31,10 @@ APP_PAGES = {
     'com.spocky.projengmenu': ('projectivy', 'other'),
     'com.king.candycrushsodasaga': ('candy-crush-soda-saga', 'entertainment'),
     'com.vectorunit.purple.googleplay': ('beach-buggy-racing', 'entertainment'),
+    'com.rovio.angrybirdsfriends': ('angry-birds-friends', 'entertainment'),
+    'com.rovio.baba': ('angry-birds-2', 'entertainment'),
+    'com.hitcents.drawastickmanepic3': ('draw-a-stickman-epic-3', 'entertainment'),
+    'com.google.android.apps.automotive.gamesnacks': ('gamesnacks', 'entertainment'),
     'app.wuplay.androidtv': ('wuplay', 'entertainment'),
     'app.wuplay.android': ('wuplay-mobile', 'entertainment'),
     'com.waze': ('waze', 'mobility'),
@@ -97,6 +104,9 @@ APP_PAGES = {
 
 
 def app_page(package):
+    if (package['packageName'] == 'io.homeassistant.companion.android'
+            and package.get('name') == 'Home Assistant (Automotive)'):
+        return 'homeassistant-automotive', 'other'
     mobile = {'nl.uitzendinggemist': 'npo-start', 'nl.rtl.videoland.v2': 'videoland'}
     if package.get('formFactor') == 'MOBILE' and package['packageName'] in mobile:
         return mobile[package['packageName']], 'entertainment'
@@ -111,6 +121,8 @@ def _app_groups(data):
             if package['packageName'] in {'app.morphe.android.apps.youtube.music', 'app.morphe.android.youtube'}:
                 continue
             key = (package['packageName'], package.get('formFactor'))
+            if (package.get('name') or '').endswith(' (Automotive)'):
+                key += ('Automotive',)
             groups.setdefault(key, {'package': package, 'patches': []})['patches'].append((patch, package))
     return groups
 

@@ -20,7 +20,7 @@ import android.widget.ImageView;
 import java.util.ArrayList;
 
 /**
- * The full player in glass: the collapse, cast and menu buttons and the previous, play/pause
+ * The full player in glass: the collapse, cast, Ask Music and menu buttons and the previous, play/pause
  * and next buttons as two rows of liquid glass ({@link JellyGlass}: drops that swell, stretch,
  * wobble and melt together under the finger; a white play icon instead of YouTube Music's
  * white disc), a glass sheen
@@ -35,7 +35,7 @@ final class FullPlayerGlass implements TouchRouter.Watcher {
     private static final ColorStateList WHITE = ColorStateList.valueOf(Color.WHITE);
     private final ViewGroup page;
     private final float density;
-    private final int collapseId, menuId, castId, toggleId, previousId, nextId, playId;
+    private final int collapseId, menuId, castId, askId, toggleId, previousId, nextId, playId;
     private final int actionBarId, sheetId, topControlsId, controlsId;
     /** The action bar's chips, and the hosts that have a sheen. */
     private final ArrayList<View> chips = new ArrayList<>();
@@ -56,6 +56,8 @@ final class FullPlayerGlass implements TouchRouter.Watcher {
         collapseId = LiquidGlassNavBarPatch.id(activity, "player_collapse_button");
         menuId = LiquidGlassNavBarPatch.id(activity, "contextual_menu");
         castId = LiquidGlassNavBarPatch.id(activity, "cast_button_container");
+        // Ask Music, the sparkle between cast and the menu (newer versions).
+        askId = LiquidGlassNavBarPatch.id(activity, "ask_music_global_entry_button");
         toggleId = LiquidGlassNavBarPatch.id(activity, "audio_video_switch_toggle");
         previousId = LiquidGlassNavBarPatch.id(activity, "player_control_previous_button");
         nextId = LiquidGlassNavBarPatch.id(activity, "player_control_next_button");
@@ -68,6 +70,7 @@ final class FullPlayerGlass implements TouchRouter.Watcher {
         topRow = new JellyGlass(page, d, backdrop,
                 new JellyGlass.Drop(collapseId, 40 * d, 0.06f),
                 new JellyGlass.Drop(castId, 40 * d, 0.06f),
+                new JellyGlass.Drop(askId, 40 * d, 0.06f),
                 new JellyGlass.Drop(menuId, 40 * d, 0.06f));
         controlsRow = new JellyGlass(page, d, backdrop,
                 new JellyGlass.Drop(previousId, 56 * d, 0.06f),

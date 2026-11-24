@@ -2,6 +2,7 @@
  * Copyright (C) 2026 lavinhoque33
  * Licensed under the GNU General Public License v3.0 or later.
  * Written by lavinhoque33, 2026-11-20.
+ * Modified by lavinhoque33, 2026-11-23.
  */
 package app.morphe.extension.youtube.patches;
 
@@ -16,6 +17,7 @@ import android.app.Activity;
 import android.content.pm.PackageInfo;
 import android.graphics.Bitmap;
 import android.graphics.Point;
+import android.graphics.Rect;
 import android.view.MotionEvent;
 import android.view.View;
 import android.widget.FrameLayout;
@@ -72,6 +74,7 @@ public class SeekbarThumbnailPreviewTest {
     @After
     public void tearDown() {
         activity.close();
+        Settings.HIDE_THUMBNAIL_PREVIEW_BORDER.resetToDefault();
         Settings.THUMBNAIL_PREVIEW.save(true);
         PlayerType.setFromString("NONE");
         VideoInformation.setVideoLength(0);
@@ -174,6 +177,39 @@ public class SeekbarThumbnailPreviewTest {
         assertEquals("00:40 / 02:00", timestamp().getText().toString());
         assertNull(touch(replacement, MotionEvent.ACTION_UP, 240, 20));
         assertFalse(popup().isShowing());
+    }
+
+    @Test
+    public void hidesAndRestoresBorderWithoutMovingThumbnail() throws Exception {
+        showDirectPreview();
+        var frame = (FrameLayout) previewView("previewFrame");
+        var thumbnail = (View) previewView("thumbnailPreview");
+        var borderedBounds = thumbnailBounds(frame, thumbnail);
+        assertEquals(255, frame.getBackground().getAlpha());
+        assertNull(touch(seekbar, MotionEvent.ACTION_UP, 240, 20));
+
+        Settings.HIDE_THUMBNAIL_PREVIEW_BORDER.save(true);
+        showDirectPreview();
+        assertSame(frame, previewView("previewFrame"));
+        assertEquals(0, frame.getBackground().getAlpha());
+        assertEquals(borderedBounds, thumbnailBounds(frame, thumbnail));
+        assertNull(touch(seekbar, MotionEvent.ACTION_UP, 240, 20));
+
+        Settings.HIDE_THUMBNAIL_PREVIEW_BORDER.save(false);
+        showDirectPreview();
+        assertEquals(255, frame.getBackground().getAlpha());
+        assertEquals(borderedBounds, thumbnailBounds(frame, thumbnail));
+    }
+
+    private static Rect thumbnailBounds(FrameLayout frame, View thumbnail) {
+        var params = frame.getLayoutParams();
+        frame.measure(
+                View.MeasureSpec.makeMeasureSpec(params.width, View.MeasureSpec.EXACTLY),
+                View.MeasureSpec.makeMeasureSpec(params.height, View.MeasureSpec.EXACTLY)
+        );
+        frame.layout(0, 0, params.width, params.height);
+
+        return new Rect(thumbnail.getLeft(), thumbnail.getTop(), thumbnail.getRight(), thumbnail.getBottom());
     }
 
     private void showDirectPreview() throws Exception {

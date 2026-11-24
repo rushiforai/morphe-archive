@@ -8,6 +8,7 @@ import android.graphics.Paint;
 import android.graphics.RectF;
 import android.os.Build;
 import android.os.SystemClock;
+import android.view.KeyEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.WindowInsets;
@@ -35,8 +36,9 @@ import app.fblite.extension.settings.MorpheLog;
  * The page is recognised by the text "No reels yet" in a list of at most 12 items, or, when the "always" switch is
  * on, by a header item that reads like "15 Reels" next to "19K followers" (the creator's Reels page with reels),
  * so for now it works with the app in English. A page that was left for its profile is not redirected again for
- * two minutes (so Back works). A page that is still there after a try is tried at most twice per run, 15 s apart.
- * Every step is written to the debug log (tag "profile").
+ * two minutes. Back from that profile lands on the Reels page again: the page is then left at once with a Back key
+ * press (behind the same cover), so one Back goes from the profile to the reel. A page that is still there after a
+ * try is tried at most twice per run, 15 s apart. Every step is written to the debug log (tag "profile").
  */
 final class ProfileRedirect {
     private static final String EMPTY_PAGE = "no reels yet";
@@ -49,14 +51,19 @@ final class ProfileRedirect {
     private static final long DONE_MS = 120000;
     private static final int HEADER_ITEMS = 8;
     private static final Pattern REELS_COUNT = Pattern.compile("(?:^|[^\\w.,])[\\d.,]+\\+?\\s?[kmb]?\\s+reels?\\b");
-    private static final long SHEET_FIRST_MS = 150;
-    private static final long SHEET_POLL_MS = 60;
-    private static final int SHEET_POLLS = 40;
-    private static final long TAB_POLL_MS = 100;
-    private static final int TAB_POLLS = 45;
+    private static final long SHEET_FIRST_MS = 90;
+    private static final long SHEET_POLL_MS = 40;
+    private static final int SHEET_POLLS = 60;
+    private static final long TAB_POLL_MS = 50;
+    private static final int TAB_POLLS = 90;
     private static final long CURTAIN_MAX_MS = 5500;
     private static final long PROBE_MS = 2500;
     private static final float REFERENCE_WIDTH = 1080f;
+    private static final long BACK_RETRY_MS = 1300;
+    private static final int BACK_POLLS = 24;
+    private static final long BACK_POLL_MS = 60;
+    private static final int MAX_BACKS = 3;
+    private static final long FAST_MS = 90000;
 
     private static boolean busy;
     private static View curtain;
@@ -72,6 +79,10 @@ final class ProfileRedirect {
     private static final Map<String, Integer> TRIES = new HashMap<>();
     private static final Map<String, Long> TRY_AT = new HashMap<>();
     private static String lastSkip = "";
+    private static String backKey;
+    private static int backCount;
+    private static long backAt;
+    private static long doneAt;
     private static final Map<String, Long> DONE = new HashMap<>();
 
     private ProfileRedirect() {
@@ -87,16 +98,25 @@ final class ProfileRedirect {
             busy = false;
             curtainOff();
         }
-        if (lastAt != 0 && now - lastAt < COOLDOWN_MS) return;
         try {
             View root = activity.getWindow().getDecorView();
             String key = reelsPage(root, always, playing == null ? null : FeedItems.pagerOf(playing));
             if (key == null) return;
-            Long done = DONE.get(key);
+            Long done = doneFor(key);
             if (done != null && now - done < DONE_MS) {
-                skipped(key, "left", "left for its profile " + (now - done) / 1000 + " s ago");
+                // Back from the profile landed here: the page is not wanted, go on back to the reel.
+                if (!key.equals(backKey)) {
+                    backKey = key;
+                    backCount = 0;
+                }
+                if (backCount >= MAX_BACKS) {
+                    skipped(key, "left", "left for its profile " + (now - done) / 1000 + " s ago, Back did not leave it");
+                    return;
+                }
+                if (now - backAt >= BACK_RETRY_MS) goBack(activity, root, always, key, now);
                 return;
             }
+            if (lastAt != 0 && now - lastAt < COOLDOWN_MS) return;
             Integer tries = TRIES.get(key);
             Long tryAt = TRY_AT.get(key);
             if (tries != null && tryAt != null && now - tryAt >= TRY_RESET_MS) {
@@ -118,12 +138,86 @@ final class ProfileRedirect {
         }
     }
 
+    private static String nameOf(String key) {
+        int bar = key.indexOf('|');
+        return (bar < 0 ? key : key.substring(0, bar)).trim();
+    }
+
+    /** When this page was left for its profile: by its exact key, else by the creator's name (counts change). */
+    private static Long doneFor(String key) {
+        Long exact = DONE.get(key);
+        if (exact != null) return exact;
+        String name = nameOf(key);
+        if (name.length() < 2) return null;
+        for (Map.Entry<String, Long> entry : DONE.entrySet()) {
+            if (name.equals(nameOf(entry.getKey()))) return entry.getValue();
+        }
+        return null;
+    }
+
+    /** True for a while after a redirect, so the next Back from the profile is caught within about 100 ms. */
+    static boolean fastScan() {
+        return doneAt != 0 && SystemClock.uptimeMillis() - doneAt < FAST_MS && !DONE.isEmpty();
+    }
+
+    /**
+     * Back from the redirected profile lands on the empty Reels page. That page is not wanted: cover the window and
+     * press Back again, so one Back goes from the profile to the reel it was opened from.
+     */
+    private static void goBack(final Activity activity, final View root, final boolean always, final String key, long now) {
+        busy = true;
+        lastAt = now;
+        backAt = now;
+        backCount++;
+        MorpheLog.log("profile", "Back from the profile landed on the Reels page [" + key + "], pressing Back again (try "
+                + backCount + " of " + MAX_BACKS + ")");
+        curtainOn(activity, "Going back");
+        try {
+            long down = SystemClock.uptimeMillis();
+            activity.dispatchKeyEvent(new KeyEvent(down, down, KeyEvent.ACTION_DOWN, KeyEvent.KEYCODE_BACK, 0));
+            activity.dispatchKeyEvent(new KeyEvent(down, SystemClock.uptimeMillis(), KeyEvent.ACTION_UP, KeyEvent.KEYCODE_BACK, 0));
+        } catch (Throwable t) {
+            busy = false;
+            curtainOff();
+            VideoFeatures.log("Profile back key failed", t);
+            return;
+        }
+        backWait(root, always, key, 0);
+    }
+
+    private static void backWait(final View root, final boolean always, final String key, final int n) {
+        VideoFeatures.MAIN.postDelayed(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    boolean still = key.equals(reelsPage(root, always, null));
+                    if (!still || n >= BACK_POLLS) {
+                        MorpheLog.log("profile", still ? "Still on the Reels page " + ((n + 1) * BACK_POLL_MS) + " ms after Back"
+                                : "Left the Reels page " + ((n + 1) * BACK_POLL_MS) + " ms after Back");
+                        VideoFeatures.MAIN.postDelayed(new Runnable() {
+                            @Override
+                            public void run() {
+                                curtainOff();
+                            }
+                        }, still ? 0 : 120);
+                        busy = false;
+                        return;
+                    }
+                    backWait(root, always, key, n + 1);
+                } catch (Throwable t) {
+                    busy = false;
+                    curtainOff();
+                    VideoFeatures.log("Profile back wait failed", t);
+                }
+            }
+        }, BACK_POLL_MS);
+    }
+
     private static int viewerSeen;
 
     /**
-     * Back from the profile lands on the Reels page again and that must stay (see DONE). Once the reel feed itself is
-     * on screen (no Reels page, and the feed's own list painted on top of the video) the page is gone, so the same
-     * creator is skipped again the next time.
+     * Once the reel feed itself is on screen (no Reels page, and the feed's own list painted on top of the video) the
+     * page is gone, so the same creator is skipped again the next time (DONE is cleared).
      */
     private static void noteViewer(Activity activity, boolean always, View video, long now) {
         try {
@@ -141,6 +235,9 @@ final class ProfileRedirect {
                 viewerSeen = 0;
                 DONE.clear();
                 TRIES.clear();
+                backKey = null;
+                backCount = 0;
+                doneAt = 0;
                 MorpheLog.log("profile", "Back in the reel feed, creator pages are skipped again");
             }
         } catch (Throwable t) {
@@ -199,7 +296,7 @@ final class ProfileRedirect {
             MorpheLog.log("profile", "Reels page [" + key + "], tapping the 3 dot button at " + point[0] + "," + point[1]
                     + (found ? " (a view there)" : " (fallback position)") + ", window " + width + "x" + root.getHeight()
                     + ", top inset " + top);
-            curtainOn(activity);
+            curtainOn(activity, "Opening profile");
             Stories.tap(root, point[0], point[1]);
             poll(activity, root, 0);
         } catch (Throwable t) {
@@ -318,9 +415,10 @@ final class ProfileRedirect {
     }
 
     private static final int STABLE_POLLS = 3;
+    private static final int LATE_POLLS = 12;
     private static final int MAX_TAPS = 3;
-    private static final int VERIFY_POLLS = 12;
-    private static final long VERIFY_POLL_MS = 100;
+    private static final int VERIFY_POLLS = 20;
+    private static final long VERIFY_POLL_MS = 60;
     private static int stableX = -1;
     private static int stableY = -1;
     private static int stableCount;
@@ -351,13 +449,13 @@ final class ProfileRedirect {
                             stableX = tab[0];
                             stableY = tab[1];
                         }
-                        boolean late = n >= TAB_POLLS - 6;
+                        boolean late = n >= TAB_POLLS - LATE_POLLS;
                         if (stableCount >= STABLE_POLLS || late) {
                             tapTab(root, tab, 0);
                             return;
                         }
                     }
-                    if (n % 4 == 0) trace(root, "tabs poll " + n);
+                    if (n % 8 == 0) trace(root, "tabs poll " + n);
                     if (n >= TAB_POLLS) {
                         MorpheLog.log("profile", "No Reels tab row found after " + (TAB_POLLS * TAB_POLL_MS) + " ms");
                         logTabRows(root);
@@ -455,6 +553,16 @@ final class ProfileRedirect {
                 curtainOff();
             }
         }, 150);
+        // The page is left for its profile now, not 2.5 s later: a quick Back must already skip the Reels page.
+        String key = runKey;
+        if (key != null && !key.equals(reelsPage(root, runAlways, null))) {
+            DONE.put(key, SystemClock.uptimeMillis());
+            doneAt = SystemClock.uptimeMillis();
+            TRIES.remove(key);
+            backKey = null;
+            backCount = 0;
+        }
+        busy = false;
         probe(root);
     }
 
@@ -556,12 +664,12 @@ final class ProfileRedirect {
     // ------------------------------------------------------------------------------------ curtain
 
     /** A loading screen over the window while the redirect runs, so the pages it passes through are not seen. Touches go through it. */
-    private static void curtainOn(Activity activity) {
+    private static void curtainOn(Activity activity, String text) {
         try {
             if (curtain != null) return;
             boolean night = (activity.getResources().getConfiguration().uiMode & Configuration.UI_MODE_NIGHT_MASK)
                     == Configuration.UI_MODE_NIGHT_YES;
-            View view = Overlay.mark(new Loading(activity, night));
+            View view = Overlay.mark(new Loading(activity, night, text));
             ((ViewGroup) activity.getWindow().getDecorView()).addView(view,
                     new FrameLayout.LayoutParams(FrameLayout.LayoutParams.MATCH_PARENT, FrameLayout.LayoutParams.MATCH_PARENT));
             curtain = view;
@@ -571,16 +679,18 @@ final class ProfileRedirect {
         }
     }
 
-    /** The cover: a plain background, a turning ring and "Opening profile". */
+    /** The cover: a plain background, a turning ring and a short text ("Opening profile", "Going back"). */
     private static final class Loading extends View {
         private final Paint track = new Paint(Paint.ANTI_ALIAS_FLAG);
         private final Paint ring = new Paint(Paint.ANTI_ALIAS_FLAG);
         private final Paint label = new Paint(Paint.ANTI_ALIAS_FLAG);
         private final RectF arc = new RectF();
         private final float density;
+        private final String text;
 
-        Loading(Context context, boolean night) {
+        Loading(Context context, boolean night, String text) {
             super(context);
+            this.text = text;
             density = context.getResources().getDisplayMetrics().density;
             setBackgroundColor(night ? 0xFF18191A : 0xFFFFFFFF);
             track.setStyle(Paint.Style.STROKE);
@@ -604,7 +714,7 @@ final class ProfileRedirect {
             canvas.drawOval(arc, track);
             float angle = (SystemClock.uptimeMillis() % 900L) / 900f * 360f;
             canvas.drawArc(arc, angle, 110f, false, ring);
-            canvas.drawText("Opening profile", cx, cy + r + 28f * density, label);
+            canvas.drawText(text, cx, cy + r + 28f * density, label);
             postInvalidateOnAnimation();
         }
     }
@@ -623,13 +733,8 @@ final class ProfileRedirect {
             public void run() {
                 try {
                     String key = runKey;
-                    if (key != null) {
-                        if (key.equals(reelsPage(root, runAlways, null))) {
-                            MorpheLog.log("profile", "Still on the Reels page after the try");
-                        } else {
-                            DONE.put(key, SystemClock.uptimeMillis());
-                            TRIES.remove(key);
-                        }
+                    if (key != null && key.equals(reelsPage(root, runAlways, null))) {
+                        MorpheLog.log("profile", "Still on the Reels page after the try");
                     }
                     if (MorpheLog.enabled()) {
                         MorpheLog.log("profile", "Screen after the redirect: " + Overlay.describe(root));
@@ -646,9 +751,6 @@ final class ProfileRedirect {
                     }
                 } catch (Throwable t) {
                     VideoFeatures.log("Profile probe failed", t);
-                } finally {
-                    busy = false;
-                    curtainOff();
                 }
             }
         }, PROBE_MS);

@@ -27,17 +27,25 @@ import java.util.WeakHashMap;
 /** Native-screen touch-ups. No image inversion, credential handling or network access. */
 public final class CharcoalTheme {
     private CharcoalTheme() {}
-    public static final int BG=0xff141414, SURFACE=0xff242424, RAISED=0xff303030;
-    public static final int TRACK=0xff444444;
-    public static final int TEXT=0xffe8e8e8, MUTED=0xffb7b7b7, ACCENT=0xffacd58e, ON_ACCENT=0xff161616;
+    public static int BG=0xff141414, SURFACE=0xff242424, RAISED=0xff303030;
+    public static int TRACK=0xff444444;
+    public static int TEXT=0xffe8e8e8, MUTED=0xffb7b7b7, ACCENT=0xffacd58e, ON_ACCENT=0xff161616;
     private static boolean installed;
+    private static MaterialPalette palette=MaterialPalette.charcoal();
     private static final WeakHashMap<View, State> ROOTS=new WeakHashMap<>();
 
-    /** Filled in at patch time. Older Android versions always use the fixed accent. */
+    /** Filled in at patch time. Unsupported devices fall back to the complete charcoal palette. */
     public static boolean useSystemAccent() { return true; }
 
     public static void install(Application application) {
         if(installed || application==null)return;
+        palette=MaterialPalette.resolve(Build.VERSION.SDK_INT,useSystemAccent(),name -> {
+            int id=application.getResources().getIdentifier(name,"color","android");
+            if(id==0)throw new android.content.res.Resources.NotFoundException(name);
+            return application.getResources().getColor(id,application.getTheme());
+        });
+        BG=palette.background;SURFACE=palette.surface;RAISED=palette.raised;TRACK=palette.track;
+        TEXT=palette.text;MUTED=palette.muted;ACCENT=palette.accent;ON_ACCENT=palette.onAccent;
         installed=true;
         application.registerActivityLifecycleCallbacks(new Application.ActivityLifecycleCallbacks() {
             @Override public void onActivityCreated(Activity a,Bundle saved){ attach(a); }
@@ -62,6 +70,7 @@ public final class CharcoalTheme {
         Window window=dialog.getWindow();
         if(window==null || !dialog.isShowing())return;
         View root=window.getDecorView();
+        OnboardingStyling.attachKeyboardSheet(root);
         State state=ROOTS.get(root);
         if(state==null) {
             state=new State(root);ROOTS.put(root,state);root.addOnAttachStateChangeListener(state);
@@ -71,10 +80,6 @@ public final class CharcoalTheme {
     }
     public static int tabIndicatorColor(View view, int original) {
         if(!installed)return original;
-        if(useSystemAccent() && Build.VERSION.SDK_INT>=31) {
-            int id=view.getResources().getIdentifier("system_accent1_200","color","android");
-            if(id!=0)return view.getResources().getColor(id,view.getContext().getTheme());
-        }
         return ACCENT;
     }
     public static void refreshValidityControls() {
@@ -128,10 +133,14 @@ public final class CharcoalTheme {
 
     private static final class State implements ViewTreeObserver.OnPreDrawListener,View.OnAttachStateChangeListener {
         final WeakReference<View> root;
+        final WeakHashMap<ColorStateList,ColorStateList> paletteTints=new WeakHashMap<>();
         final java.util.HashMap<Class<?>,java.lang.reflect.Method[]> shapeAccessors=new java.util.HashMap<>();
+        final java.util.HashMap<Class<?>,java.lang.reflect.Method[]> cardAccessors=new java.util.HashMap<>();
         ViewTreeObserver observer;
         int accent=ACCENT,previousAccent=ACCENT;
         long lastBundlePass;
+        boolean wholeWindowPass;
+        ColorStateList navRipple,navIndicator;
         final java.util.WeakHashMap<View,Integer> tabIndicators=new java.util.WeakHashMap<>();
         ColorStateList accentTint=ColorStateList.valueOf(ACCENT);
         ColorStateList actionTint=new ColorStateList(new int[][]{{-android.R.attr.state_enabled},{}},new int[]{RAISED,ACCENT});
@@ -149,13 +158,8 @@ public final class CharcoalTheme {
         State(View v){root=new WeakReference<>(v);}
         void refreshAccent(View view){
             int next=ACCENT;
-            if(useSystemAccent() && Build.VERSION.SDK_INT>=31){
-                int id=view.getResources().getIdentifier("system_accent1_200","color","android");
-                if(id!=0){
-                    try { next=view.getResources().getColor(id,view.getContext().getTheme()); }
-                    catch(android.content.res.Resources.NotFoundException ignored){}
-                }
-            }
+            navRipple=ColorStateList.valueOf((TEXT&0x00ffffff)|0x14000000);
+            navIndicator=ColorStateList.valueOf((TEXT&0x00ffffff)|0x10000000);
             previousAccent=accent;accent=next;
             filterChoiceText=new ColorStateList(
                 new int[][]{{-android.R.attr.state_enabled},{android.R.attr.state_checked},{android.R.attr.state_selected},{}},
@@ -170,26 +174,68 @@ public final class CharcoalTheme {
                 View bundles=ViewNames.find(view,"cardViewBundleMain")==null?null:ViewNames.find(view,"viewPager2");
                 long now=android.os.SystemClock.uptimeMillis();
                 if(bundles!=null && bundles.isShown() && lastBundlePass!=0 && now-lastBundlePass<200)return true;
-                walk(view,true);previousAccent=accent;lastBundlePass=now;
+                wholeWindowPass=true;
+                try { walk(view,true); } finally { wholeWindowPass=false; }
+                previousAccent=accent;lastBundlePass=now;
             }
             return true;
         }
+        private ColorStateList paletteTint(ColorStateList original) {
+            if(original==null)return null;
+            if(paletteTints.containsKey(original)) {
+                ColorStateList cached=paletteTints.get(original);
+                return cached==null?original:cached;
+            }
+            int[][] states={{-android.R.attr.state_enabled},{android.R.attr.state_checked},
+                {android.R.attr.state_selected},{android.R.attr.state_pressed},{android.R.attr.state_focused},{}};
+            int[] colors=new int[states.length];boolean changed=false;
+            for(int i=0;i<states.length;i++) {
+                int before=original.getColorForState(states[i],original.getDefaultColor());
+                colors[i]=palette.remap(before);changed|=colors[i]!=before;
+            }
+            ColorStateList mapped=changed?new ColorStateList(states,colors):null;
+            paletteTints.put(original,mapped);
+            return mapped==null?original:mapped;
+        }
         private void walk(View v,boolean decor){
             if(v.getVisibility()!=View.VISIBLE)return;
+            if(OnboardingStyling.isRoot(v))return;
+            if(wholeWindowPass && BundleVisuals.isOfferList(v)) { BundleVisuals.stabilize(v); return; }
+            ColorStateList originalTint=v.getBackgroundTintList(),mappedTint=paletteTint(originalTint);
+            if(mappedTint!=originalTint)v.setBackgroundTintList(mappedTint);
+            if(v instanceof ImageView) {
+                ImageView image=(ImageView)v;
+                originalTint=image.getImageTintList();mappedTint=paletteTint(originalTint);
+                if(mappedTint!=originalTint)image.setImageTintList(mappedTint);
+            }
             Drawable background=v.getBackground();
-            if(background instanceof ColorDrawable && light(((ColorDrawable)background).getColor()))
-                v.setBackgroundColor(decor?BG:SURFACE);
+            if(background instanceof ColorDrawable) {
+                int original=((ColorDrawable)background).getColor(),mapped=palette.remap(original);
+                if(mapped!=original)v.setBackgroundColor(mapped);
+                else if(light(original))v.setBackgroundColor(decor?BG:SURFACE);
+            }
+            remapCard(v);
             if(Build.VERSION.SDK_INT>=24 && background instanceof GradientDrawable && !entryName(v).equals("btnFavourite") && !ChipStyling.ownsBackground(background)){
                 ColorStateList color=((GradientDrawable)background).getColor();
-                if(color!=null && light(color.getDefaultColor()))((GradientDrawable)background).setColor(SURFACE);
+                if(color!=null) {
+                    int original=color.getDefaultColor(),mapped=palette.remap(original);
+                    if(mapped!=original)((GradientDrawable)background).setColor(mapped);
+                    else if(light(original))((GradientDrawable)background).setColor(SURFACE);
+                }
             }
             if(background!=null && !(background instanceof ColorDrawable) && !(background instanceof GradientDrawable)) darkShape(background);
             if(v instanceof TextView && !insideRewardAction(v)){
                 TextView text=(TextView)v;int color=text.getCurrentTextColor();
+                ColorStateList originalText=text.getTextColors(),mappedText=paletteTint(originalText);
+                if(mappedText!=originalText) { text.setTextColor(mappedText);color=text.getCurrentTextColor(); }
+                ColorStateList originalHint=text.getHintTextColors(),mappedHint=paletteTint(originalHint);
+                if(mappedHint!=originalHint)text.setHintTextColor(mappedHint);
                 ColorStateList tint=v.getBackgroundTintList();
                 boolean filled=v instanceof Button && tint!=null &&
                         (tint.getDefaultColor()==ACCENT || tint.getDefaultColor()==previousAccent || tint.getDefaultColor()==accent);
-                if(filled){
+                if(entryName(v).equals("tvResourceRemaining")){
+                    if(text.getCurrentTextColor()!=TEXT)text.setTextColor(TEXT);
+                }else if(filled){
                     if(tint.getDefaultColor()!=accent)v.setBackgroundTintList(accentTint);
                     int desired=v.isEnabled()?ON_ACCENT:MUTED;
                     if(text.getCurrentTextColor()!=desired)text.setTextColor(filledText);
@@ -202,6 +248,10 @@ public final class CharcoalTheme {
             }
             if(v instanceof ProgressBar){
                 ProgressBar bar=(ProgressBar)v;
+                ColorStateList originalProgress=bar.getProgressTintList(),mappedProgress=paletteTint(originalProgress);
+                if(mappedProgress!=originalProgress)bar.setProgressTintList(mappedProgress);
+                ColorStateList originalTrack=bar.getProgressBackgroundTintList(),mappedTrack=paletteTint(originalTrack);
+                if(mappedTrack!=originalTrack)bar.setProgressBackgroundTintList(mappedTrack);
                 ColorStateList tint=bar.getProgressTintList();
                 if(tint==null || tint.getDefaultColor()==ACCENT || tint.getDefaultColor()==previousAccent){
                     if(tint==null || tint.getDefaultColor()!=accent)bar.setProgressTintList(accentTint);
@@ -211,6 +261,7 @@ public final class CharcoalTheme {
                 String name=entryName(v);
                 if("bottomNav".equals(name)){
                     setTint(v,"setItemTextColor",navTint);setTint(v,"setItemIconTintList",navTint);
+                    navigationFeedback(v);
                 }
                 if("layoutToolbar".equals(name) || "myActionBar".equals(name)) {
                     solidBackground(v,SURFACE);
@@ -239,6 +290,23 @@ public final class CharcoalTheme {
             if(v instanceof ViewGroup){ViewGroup group=(ViewGroup)v;for(int i=0;i<group.getChildCount();i++)walk(group.getChildAt(i),false);}
             polishComponents(v);
         }
+        private void remapCard(View view) {
+            Class<?> type=view.getClass();
+            java.lang.reflect.Method[] access=cardAccessors.get(type);
+            if(access==null) {
+                try { access=new java.lang.reflect.Method[]{type.getMethod("getCardBackgroundColor"),type.getMethod("setCardBackgroundColor",int.class)}; }
+                catch(NoSuchMethodException | SecurityException ignored) { access=new java.lang.reflect.Method[0]; }
+                cardAccessors.put(type,access);
+            }
+            if(access.length!=2)return;
+            try {
+                Object value=access[0].invoke(view);
+                if(value instanceof ColorStateList) {
+                    int original=((ColorStateList)value).getDefaultColor(),mapped=palette.remap(original);
+                    if(mapped!=original)access[1].invoke(view,mapped);
+                }
+            } catch(ReflectiveOperationException | SecurityException ignored) { }
+        }
         private void darkShape(Drawable drawable) {
             Class<?> type=drawable.getClass();
             java.lang.reflect.Method[] access=shapeAccessors.get(type);
@@ -251,8 +319,11 @@ public final class CharcoalTheme {
             if(access.length!=2)return;
             try {
                 Object fill=access[0].invoke(drawable);
-                if(fill instanceof ColorStateList && light(((ColorStateList)fill).getDefaultColor()))
-                    access[1].invoke(drawable,ColorStateList.valueOf(SURFACE));
+                if(fill instanceof ColorStateList) {
+                    int original=((ColorStateList)fill).getDefaultColor(),mapped=palette.remap(original);
+                    if(mapped!=original)access[1].invoke(drawable,ColorStateList.valueOf(mapped));
+                    else if(light(original))access[1].invoke(drawable,ColorStateList.valueOf(SURFACE));
+                }
             }catch(ReflectiveOperationException | SecurityException ignored){}
         }        private boolean insideRewardAction(View view) {
             android.view.ViewParent parent=view.getParent();
@@ -432,11 +503,6 @@ public final class CharcoalTheme {
                 if(name.equals("tvBalance"))readableText(text,accent);
                 if(name.equals("btnLoan") || name.equals("btnPayLoan"))actionButton(view);
                 if(name.equals("btn_monthly") || name.equals("btn_weekly") || name.equals("btn_daily"))chip(text);
-                if(((name.startsWith("btn_item_") && name.length()==10 || name.startsWith("iv_item_") && name.length()==9) && name.charAt(name.length()-1)>='1' && name.charAt(name.length()-1)<='8')) {
-                    backgroundTint(view,ColorStateList.valueOf(RAISED));readableText(text,view.isEnabled()?TEXT:MUTED);
-                    // Keep existing state, shape, animation, dimensions and click handling.
-                }
-                if(name.equals("btn_item_shuffle"))actionButton(view);
             }
             if(name.equals("cardLoanAvailable") || name.equals("cardLoanReturn"))growLoanCard(view);
             if(name.equals("cardDoubleLoan") || name.equals("cardSingleLoan")) {
@@ -457,7 +523,7 @@ public final class CharcoalTheme {
                 // 0dp constrained children need an explicitly sized parent row.
                 if(lp!=null && lp.height!=minimum){lp.height=minimum;view.setLayoutParams(lp);}
             }
-            if(name.equals("items_container") || name.equals("tv_mode_title"))
+            if(name.equals("tv_mode_title"))
                 backgroundTint(view,ColorStateList.valueOf(SURFACE));
             if(name.equals("iv_top_arc") || name.equals("iv_bottom_arc")) {
                 if(view instanceof ImageView) {
@@ -529,8 +595,7 @@ public final class CharcoalTheme {
             }
             if((name.equals("tvUserName") || name.equals("tvUserNumber")) && view instanceof TextView)
                 readableText((TextView)view,name.equals("tvUserName")?TEXT:MUTED);
-            if(name.equals("tvConfirmation") || name.equals("tvConfirmationMessage") || name.equals("tvWelcome") ||
-               name.equals("tvGetFree") || name.equals("tv200Mb") || name.equals("tvDescription")) {
+            if(name.equals("tvConfirmation") || name.equals("tvConfirmationMessage")) {
                 if(view instanceof TextView)readableText((TextView)view,TEXT);
             }
             if(name.equals("tabs") || name.equals("tabsBundleMain")) {
@@ -548,6 +613,20 @@ public final class CharcoalTheme {
                         view.getClass().getMethod("setTabTextColors",int.class,int.class).invoke(view,MUTED,accent);
                 }catch(ReflectiveOperationException | SecurityException ignored){}
             }
+            RewardIntroStyling.apply(view);
+        }
+        private void navigationFeedback(View view) {
+            optionalTint(view,"getItemRippleColor","setItemRippleColor",navRipple);
+            optionalTint(view,"getItemActiveIndicatorColor","setItemActiveIndicatorColor",navIndicator);
+        }
+        private void optionalTint(View view,String getter,String setter,ColorStateList colors) {
+            try {
+                Object old=view.getClass().getMethod(getter).invoke(view);
+                int[] pressed={android.R.attr.state_pressed};
+                if(!(old instanceof ColorStateList) || ((ColorStateList)old).getDefaultColor()!=colors.getDefaultColor() ||
+                    ((ColorStateList)old).getColorForState(pressed,0)!=colors.getColorForState(pressed,0))
+                    view.getClass().getMethod(setter,ColorStateList.class).invoke(view,colors);
+            } catch(ReflectiveOperationException | SecurityException ignored) { }
         }
         private void solidBackground(View view,int color) {
             Drawable current=view.getBackground();

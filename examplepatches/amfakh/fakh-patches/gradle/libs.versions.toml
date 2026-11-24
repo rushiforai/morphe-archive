@@ -3,9 +3,11 @@ morphe-patcher = "2.3.0"
 #noinspection GradleDependency
 smali = "4220ae75f7"
 gson = "2.14.0"
+aircompressor = "2.0.2"
 
 [libraries]
 gson = { module = "com.google.code.gson:gson", version.ref = "gson" }
+aircompressor = { module = "io.airlift:aircompressor", version.ref = "aircompressor" }
 # Gradle plugins adds the dependency during build, this declaration is here only for dependabot to provide updates.
 #noinspection UnusedVersionCatalogEntry
 morphe-patcher = { module = "app.morphe:morphe-patcher", version.ref = "morphe-patcher" }

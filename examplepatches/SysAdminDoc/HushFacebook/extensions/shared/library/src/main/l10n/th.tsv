@@ -67,7 +67,7 @@ Export settings	ส่งออกการตั้งค่า
 Facebook crashed or froze within a minute of starting three times in a row, so Hushfacebook paused itself.	Facebook ขัดข้องหรือค้างภายในหนึ่งนาทีหลังเริ่มทำงานติดต่อกัน 3 ครั้ง Hushfacebook จึงหยุดการทำงานชั่วคราวโดยอัตโนมัติ
 Facebook no longer downloads ads, or the data it uses to pick them, in the background.	Facebook จะไม่ดาวน์โหลดโฆษณาหรือข้อมูลที่ใช้สำหรับเลือกโฆษณาในเบื้องหลังอีกต่อไป
 Facebook doesn't show its ads inside other apps on this phone.	Facebook จะไม่แสดงโฆษณาของตนภายในแอปอื่นๆ บนโทรศัพท์เครื่องนี้
-Dark mode and this screen use colors from your wallpaper (blue on Android 11). Turn on dark mode in Facebook to see it.	โหมดมืดและหน้าจอนี้จะใช้สีจากวอลเปเปอร์ของคุณ (สีน้ำเงินบน Android 11) เปิดโหมดมืดใน Facebook เพื่อดูผลลัพธ์
+Dark mode and this screen use colors from your wallpaper (blue on Android 11). Turn it off to go back to the old colors without patching again. Restart Facebook to see the change.	โหมดมืดและหน้าจอนี้จะใช้สีจากวอลเปเปอร์ของคุณ (สีน้ำเงินบน Android 11) ปิดเพื่อกลับไปใช้สีเดิมโดยไม่ต้องแพตช์ใหม่ เริ่มต้น Facebook ใหม่อีกครั้งเพื่อดูการเปลี่ยนแปลง
 Hide Stories between posts	ซ่อนสตอรี่ระหว่างโพสต์
 Joining the picture and sound	กำลังรวมภาพและเสียงเข้าด้วยกัน
 # context: summary of the Pause Hushfacebook switch; Debug logging and Lock Facebook are the two switches a pause leaves working
@@ -310,7 +310,7 @@ The Follow button next to the reel's author. You can still follow them from thei
 Hide comment and reaction previews	ซ่อนตัวอย่างความคิดเห็นและการแสดงความรู้สึก
 The comment Facebook previews under a reel and the bubbles of friends who reacted. Open the comments to see them all.	ความคิดเห็นที่ Facebook แสดงตัวอย่างไว้ใต้ reel และฟองสบู่รูปเพื่อนที่แสดงความรู้สึก เปิดความคิดเห็นเพื่อดูทั้งหมด
 Hide Threads cards between reels	ซ่อนการ์ด Threads ระหว่าง Reels
-Hides the "Threads you might like" card between reels. Off by default, since it hasn't been tried on a real account yet.	ซ่อนการ์ด "Threads ที่คุณอาจชอบ" ระหว่าง Reels ปิดใช้งานตามค่าเริ่มต้นเนื่องจากยังไม่ได้ทดสอบกับบัญชีจริง
+Hides the "Threads you might like" card and other Meta promotions between reels. Off by default, since it hasn't been tried on a real account yet.	ซ่อนการ์ด "Threads ที่คุณอาจชอบ" และโปรโมชันอื่นๆ ของ Meta ระหว่าง Reels ปิดใช้งานตามค่าเริ่มต้นเนื่องจากยังไม่ได้ทดสอบกับบัญชีจริง
 Hide post cards between reels	ซ่อนการ์ดโพสต์ระหว่าง Reels
 Hides the carousels of posts Facebook puts between reels, like "Catch up on conversations" from your groups. Off by default.	ซ่อนแถบโพสต์ที่ Facebook แทรกไว้ระหว่าง Reels เช่น "ติดตามบทสนทนา" จากกลุ่มของคุณ ปิดใช้งานตามค่าเริ่มต้น
 Only reels from accounts I follow	เฉพาะ Reels จากบัญชีที่ฉันติดตาม
@@ -590,6 +590,7 @@ Hide Repost under posts	ซ่อน "รีโพสต์" ใต้โพส�
 Hide Share under posts	ซ่อน "แชร์" ใต้โพสต์
 # context: switch title under News feed; Send is Facebook's own button under a post that sends it in a chat
 Hide Send under posts	ซ่อน "ส่ง" ใต้โพสต์
+Hide Save under posts	ซ่อน "บันทึก" ใต้โพสต์
 # context: summary shared by those five switches
 Takes this button out of the row under posts in the feed. The other buttons stay, and a post with all of its buttons hidden shows no row.	นำปุ่มนี้ออกจากแถวใต้โพสต์ในฟีด ปุ่มอื่นๆ จะยังคงอยู่ และโพสต์ที่ซ่อนปุ่มทั้งหมดจะไม่แสดงแถวปุ่ม
 # context: switch title under News feed; the buttons are Like, Comment, Share and the others in the row under a post
@@ -1084,6 +1085,11 @@ Fold long posts will fold posts where Facebook does.	พับโพสต์ท
 Fold long posts will show %1$s before See more.	พับโพสต์ที่ยาวจะแสดง %1$s ก่อนดูเพิ่มเติม
 Fold long comments will fold comments where Facebook does.	พับความคิดเห็นที่ยาวจะพับความคิดเห็นตรงที่ Facebook พับ
 Fold long comments will show %1$s before See more.	พับความคิดเห็นที่ยาวจะแสดง %1$s ก่อนดูเพิ่มเติม
+Fold reel captions	พับคำบรรยาย Reels
+Long reel captions fold where Facebook folds them.	คำบรรยาย Reels ที่ยาวจะพับตรงที่ Facebook พับ
+A long reel caption shows %1$s before more.	คำบรรยาย Reels ที่ยาวจะแสดง %1$s ก่อนเพิ่มเติม
+Fold reel captions will fold captions where Facebook does.	พับคำบรรยาย Reels จะพับคำบรรยายตรงที่ Facebook พับ
+Fold reel captions will show %1$s before more.	พับคำบรรยาย Reels จะแสดง %1$s ก่อนเพิ่มเติม
 Show full reel captions	แสดงคำบรรยาย Reels แบบเต็ม
 Long captions on reels show all of their text right away. Tap the caption to fold it back. A change shows from the next reel.	คำบรรยายขนาดยาวบน Reels จะแสดงข้อความทั้งหมดทันที แตะคำบรรยายเพื่อพับเก็บ การเปลี่ยนแปลงจะมีผลตั้งแต่ Reel ถัดไป
 # context: switch title under Reels and Watch, below Show full reel captions; once a reel's caption is opened, a dark see-through box sits behind its text, like movie subtitles
@@ -1095,7 +1101,7 @@ A folded reel caption, the short one with more at the end, sits on the same dark
 # context: switch title under Reels and Watch, below the caption boxes; the name of who posted a reel, at its bottom, gets the same dark see-through box
 Dark box behind reel names	กล่องสีเข้มด้านหลังชื่อใน Reels
 # context: summary of that switch
-The name at the bottom of a reel sits on the same dark box, so it's easy to read over a bright video. A change shows from the next reel.	ชื่อที่ด้านล่างของ Reels จะอยู่บนกล่องสีเข้มเดียวกัน จึงอ่านง่ายบนวิดีโอที่สว่าง การเปลี่ยนแปลงจะมีผลตั้งแต่ Reels ถัดไป
+The name at the bottom of a reel, with the date and details under it, sits on the same dark box, so it's easy to read over a bright video. A change shows from the next reel.	ชื่อที่ด้านล่างของ Reels พร้อมวันที่และรายละเอียดด้านล่างชื่อ จะอยู่บนกล่องสีเข้มเดียวกัน จึงอ่านง่ายบนวิดีโอที่สว่าง การเปลี่ยนแปลงจะมีผลตั้งแต่ Reels ถัดไป
 # context: row title under Reels and Watch and its dialog title; how dark every box behind captions and names is, as a percent of black
 Box darkness	ความเข้มของกล่อง
 # context: the message in that row's dialog; %1$s and %2$s are the lowest and highest percent, %3$s the percent a blank row gives
@@ -1458,7 +1464,7 @@ Adds an eye button to the top of each story while you view anonymously. Tap it t
 # context: what TalkBack reads for the eye button over a story while that story is still hidden from its viewer list
 Mark as seen	ทำเครื่องหมายว่าดูแล้ว
 # context: what TalkBack reads for the eye button once the story is marked and waiting to be sent; a second tap takes the mark back
-Marked as seen. Tap again to undo.	ทำเครื่องหมายว่าดูแล้ว แตะอีกครั้งเพื่อเลิกทำ
+Marked as seen	ทำเครื่องหมายว่าดูแล้ว
 # context: what TalkBack reads for the eye button once the marked story was sent as seen
 Marked as seen and sent	ทำเครื่องหมายว่าดูแล้วและส่งแล้ว
 # context: the word lists' dialogs, after their first paragraph: a line between slashes is a regular expression; %1$d is how many a list holds, %2$d the most characters each
@@ -1860,7 +1866,7 @@ Shows a small button at the left edge of a reel or video that has the window rea
 # context: switch title under Playback; on, a video you started keeps its sound after you leave Facebook; also the label of a headphones button in the picture-in-picture window
 Keep playing in the background	เล่นต่อในเบื้องหลัง
 Next reel in the background	Reel ถัดไปในเบื้องหลัง
-When a reel playing in the background ends, the next reel plays instead of the same one again. It goes through the reels Reels had loaded when you left. Works with Keep playing in the background on.	เมื่อ Reel ที่เล่นในเบื้องหลังจบ Reel ถัดไปจะเล่นแทนการเล่นซ้ำ Reel เดิม โดยจะเล่นไปตาม Reel ที่ Reels โหลดไว้ตอนที่คุณออก ใช้งานได้เมื่อเปิด "เล่นต่อในเบื้องหลัง"
+When a reel playing in the background ends, the next reel plays instead of the same one again, and Reels keeps loading more as it goes. Works with Keep playing in the background on.	เมื่อ Reel ที่เล่นในเบื้องหลังจบ Reel ถัดไปจะเล่นแทนการเล่นซ้ำ Reel เดิม และ Reels จะโหลดเพิ่มไปเรื่อย ๆ ใช้งานได้เมื่อเปิด "เล่นต่อในเบื้องหลัง"
 # context: summary of that switch; the notification is the one Facebook shows with the video's play and pause buttons
 A video you started with a tap, or a reel you swiped to in Reels, keeps its sound after you leave Facebook, and its notification can pause it. Swiping the notification away or taking a call stops it.	วิดีโอที่คุณแตะเพื่อเริ่มเล่น หรือรีลที่คุณปัดไปถึงใน Reels จะยังคงมีเสียงหลังจากคุณออกจาก Facebook และสามารถหยุดชั่วคราวได้จากการแจ้งเตือนของวิดีโอนั้น การปัดการแจ้งเตือนทิ้งหรือการรับสายจะหยุดการเล่น
 # context: title of that notification when the video has none of its own
@@ -2098,6 +2104,10 @@ A video you open from Saved goes on to the next one in Saved when it ends or whe
 Stay on a saved video when it ends	อยู่ที่วิดีโอที่บันทึกไว้เมื่อเล่นจบ
 # context: summary of that switch
 A saved video that ends stays on screen instead of opening the next one. Swipe up when you want the next.	วิดีโอที่บันทึกไว้ที่เล่นจบจะค้างอยู่บนหน้าจอแทนที่จะเปิดวิดีโอถัดไป ปัดขึ้นเมื่อต้องการดูวิดีโอถัดไป
+# context: switch title under Play saved videos in a row; on, a saved post the row reaches stays on screen instead of being skipped, and a swipe past its end moves on
+Show saved posts in the row	แสดงโพสต์ที่บันทึกไว้ในลำดับ
+# context: summary of that switch
+A saved post in the row stays on screen instead of being skipped. Swipe up past its end for the next saved video, or down past its top for the one before.	โพสต์ที่บันทึกไว้ในลำดับจะอยู่บนหน้าจอแทนที่จะถูกข้าม ปัดขึ้นเมื่อถึงท้ายโพสต์เพื่อไปวิดีโอที่บันทึกไว้ถัดไป หรือปัดลงเมื่ออยู่บนสุดเพื่อกลับไปรายการก่อนหน้า
 # context: switch title under Reels and Watch; on, Facebook stops pausing reels and videos to ask "Are you still watching?", which is Facebook's own prompt, so use the wording Facebook shows in this language
 Skip "Are you still watching?"	ข้าม "คุณยังดูอยู่หรือไม่"
 # context: summary of that switch; reels and videos go on to the next one by themselves
@@ -2418,6 +2428,10 @@ Show Comment when comments are off	แสดงปุ่ม "แสดงคว�
 Show the post date on reels	แสดงวันที่โพสต์ใน Reels
 Shows when a reel or a video you open full screen was posted, under the name of who posted it. A change shows from the next reel.	แสดงเวลาที่โพสต์ Reel หรือวิดีโอที่คุณเปิดแบบเต็มหน้าจอใต้ชื่อของผู้โพสต์ การเปลี่ยนแปลงจะมีผลตั้งแต่ Reel ถัดไป
 Keeps the Comment button on reels whose comments are turned off, so you can still read the ones already there. A change shows from the next reel.	คงปุ่มความคิดเห็นไว้ใน Reels ที่ปิดความคิดเห็น เพื่อให้คุณยังคงสามารถอ่านความคิดเห็นที่มีอยู่แล้วได้ การเปลี่ยนแปลงจะมีผลตั้งแต่ Reel ถัดไป
+# context: switch title under Reels; on, a long video in the Reels viewer (a film or a live replay) gets Facebook's Like, Comment, Share and Save buttons down its right side, which Facebook leaves off
+Side buttons on long videos	ปุ่มด้านข้างบนวิดีโอยาว
+# context: summary of that switch; Like, Comment, Share and Save are Facebook's own button names
+Brings back Like, Comment, Share and Save down the side of a long video in the Reels viewer, where Facebook leaves them off. A change shows from the next video.	นำปุ่มถูกใจ ความคิดเห็น แชร์ และบันทึก กลับมาที่ด้านข้างของวิดีโอยาวในหน้าดู Reels ซึ่ง Facebook ไม่แสดงไว้ การเปลี่ยนแปลงจะแสดงตั้งแต่วิดีโอถัดไป
 Select part of a post's text	เลือกข้อความบางส่วนของโพสต์
 Holding a post's text opens it in a box where you can select just the part you want and copy that, or copy all of it. The hold itself copies nothing.	การกดข้อความของโพสต์ค้างไว้จะเปิดข้อความขึ้นในกล่องที่คุณสามารถเลือกเฉพาะส่วนที่ต้องการและคัดลอก หรือคัดลอกทั้งหมด การกดค้างเพียงอย่างเดียวจะไม่คัดลอกสิ่งใด
 Hold a feed photo to react	แตะรูปภาพในฟีดค้างไว้เพื่อแสดงความรู้สึก
@@ -2640,6 +2654,8 @@ After %1$d seconds	หลังจาก %1$d วินาที
 # context: Reels: Burn-in guard's switch that keeps the faded buttons faded while you tap
 Stay dim when I tap	คงความหรี่แสงไว้เมื่อฉันแตะ
 Once Burn-in guard fades the buttons, they stay faded on Reels whatever you tap or swipe, the next reel too. They still work. Leaving Reels brings them back.	เมื่อการป้องกันหน้าจอเบิร์นทำให้ปุ่มจางลงแล้ว ปุ่มจะยังคงจางอยู่บน Reels ไม่ว่าคุณจะแตะหรือปัด รวมถึงใน Reel ถัดไปด้วย ปุ่มยังคงทำงานได้ตามปกติ การออกจาก Reels จะเรียกปุ่มกลับมา
+Tap the video to bring them back	แตะวิดีโอเพื่อเรียกปุ่มกลับมา
+Once Burn-in guard fades the buttons, a tap on the video brings them back without pausing it. The next tap pauses as usual.	เมื่อการป้องกันหน้าจอเบิร์นทำให้ปุ่มจางลงแล้ว การแตะที่วิดีโอจะเรียกปุ่มกลับมาโดยไม่หยุดวิดีโอชั่วคราว การแตะครั้งถัดไปจะหยุดชั่วคราวตามปกติ
 # context: Reels: Burn-in guard's row for how much of the dimmed buttons, caption and bars still shows, a percent typed in
 Dim to	หรี่แสงเหลือ
 How much of the buttons, caption and bars still shows once they dim, in percent, from %1$s to %2$s. Leave it blank for %3$s.	ปุ่ม คำบรรยาย และแถบต่างๆ ยังมองเห็นได้มากแค่ไหนหลังหรี่แสง เป็นเปอร์เซ็นต์ ตั้งแต่ %1$s ถึง %2$s เว้นว่างไว้เพื่อใช้ %3$s
@@ -2725,6 +2741,10 @@ Hide friends' reactions on photos and videos	ซ่อนความรู้�
 Takes away the friend's picture with a reaction on it that Facebook puts on a photo or video when a friend reacted. A change shows on the posts drawn after it.	ซ่อนรูปเพื่อนพร้อมความรู้สึกที่ Facebook แสดงบนรูปภาพหรือวิดีโอเมื่อเพื่อนแสดงความรู้สึก การเปลี่ยนแปลงจะมีผลกับโพสต์ที่แสดงหลังจากนั้น
 Hide who reacted under posts	ซ่อนชื่อคนที่แสดงความรู้สึกใต้โพสต์
 Takes away the line under a post that names who reacted, like "Name and others reacted". A change shows on the posts drawn after it.	ซ่อนบรรทัดใต้โพสต์ที่บอกว่าใครแสดงความรู้สึก เช่น "ชื่อ และคนอื่นๆ แสดงความรู้สึก" การเปลี่ยนแปลงจะมีผลกับโพสต์ที่แสดงหลังจากนั้น
+# context: switch title under News feed; on, a post whose author turned comments off or limited who can comment keeps Facebook's Comment button, so its comments can still be read
+Show Comment on posts with comments off	แสดงปุ่ม "แสดงความคิดเห็น" ในโพสต์ที่ปิดความคิดเห็น
+# context: summary of that switch; Comment is Facebook's own button name
+Keeps the Comment button on posts whose author turned comments off or limited who can comment, so you can still read the ones already there. A change shows on the posts drawn after it.	คงปุ่มความคิดเห็นไว้ในโพสต์ที่เจ้าของปิดความคิดเห็นหรือจำกัดว่าใครแสดงความคิดเห็นได้ เพื่อให้คุณยังคงสามารถอ่านความคิดเห็นที่มีอยู่แล้วได้ การเปลี่ยนแปลงจะมีผลกับโพสต์ที่แสดงหลังจากนั้น
 Hide the Reels title	ซ่อนชื่อ Reels
 Takes the word Reels off the top of the Reels tab. The buttons beside it stay.	นำคำว่า Reels ออกจากด้านบนของแท็บ Reels ปุ่มต่างๆ ข้างเคียงจะยังคงอยู่
 Hide Back on opened videos	ซ่อนปุ่มย้อนกลับในวิดีโอที่เปิด
@@ -2802,12 +2822,16 @@ Shows a thin bar along the bottom of a story that fills as it plays, like the on
 Seek bar on stories	แถบเลื่อนในสตอรี่
 Plain slide between people	เลื่อนแบบธรรมดาระหว่างแต่ละคน
 Swiping to the next or previous person's stories slides them across instead of turning them like a cube. Applies from your next swipe.	เมื่อปัดไปยังสตอรี่ของคนถัดไปหรือคนก่อนหน้า สตอรี่จะเลื่อนผ่านไปด้านข้างแทนการหมุนแบบลูกบาศก์ จะมีผลตั้งแต่การปัดครั้งถัดไป
+Show the time on every story	แสดงเวลาบนทุกสตอรี่
+Stories that leave out how long ago they were posted, like a Page's, show it next to the name the way a friend's story does. Applies from the next story you open.	สตอรี่ที่ไม่บอกว่าโพสต์มานานเท่าไร เช่น สตอรี่ของเพจ จะแสดงเวลาข้างชื่อเหมือนสตอรี่ของเพื่อน มีผลตั้งแต่สตอรี่ถัดไปที่คุณเปิด
 Fade the story seek bar	จางแถบเลื่อนในสตอรี่
 Story position	ตำแหน่งในสตอรี่
 Shows a bar along the bottom of a video story that you drag to move through it. The story waits while you drag. Progress bar at the bottom makes way for it on video stories.	แสดงแถบที่ด้านล่างของสตอรี่วิดีโอที่คุณสามารถลากเพื่อเลื่อนดูได้ โดยสตอรี่จะหยุดรอขณะที่คุณลาก ทั้งนี้ "แถบแสดงความคืบหน้าที่ด้านล่าง" จะเปิดทางให้แถบนี้ในสตอรี่วิดีโอ
 With Seek bar on stories on, the bar fades a few seconds after the story starts or you last touched it. A touch or a pause brings it back.	เมื่อเปิดใช้งาน "แถบเลื่อนในสตอรี่" แถบจะจางลงหลังจากสตอรี่เริ่มเล่นหรือสัมผัสครั้งล่าสุดไม่กี่วินาที สัมผัสหรือหยุดชั่วคราวเพื่อเรียกแถบกลับมา
 Clean mode	โหมดสะอาด
 Clean mode button on reels	ปุ่มโหมดสะอาดใน Reels
+Faint Clean mode button	ปุ่มโหมดสะอาดแบบจาง
+Facebook's button for leaving Clean mode shows faint, so the text in the video under it stays readable. It still works when you tap it.	ปุ่มของ Facebook สำหรับออกจากโหมดสะอาดจะแสดงแบบจาง ข้อความในวิดีโอที่อยู่ใต้ปุ่มจึงยังอ่านได้ ปุ่มยังใช้งานได้เมื่อคุณแตะ
 Adds a Clean mode button to the buttons down the side of a reel. Tap it to hide them, and Clean mode stays on as you swipe. Facebook's own Clean mode button brings them back.	เพิ่มปุ่มโหมดสะอาดในแถบปุ่มด้านข้างของ Reel แตะปุ่มเพื่อซ่อน และโหมดสะอาดจะยังคงเปิดใช้งานอยู่เมื่อคุณปัด ปุ่มโหมดสะอาดของ Facebook เองจะเรียกปุ่มเหล่านั้นกลับมา
 Open chats in Messenger	เปิดแชทใน Messenger
 Opens chats in the Messenger app instead of inside Facebook, the Message button on a profile included, while Messenger is installed and enabled. Without Messenger, chats stay in Facebook. Restart Facebook after changing it.	เปิดแชทในแอป Messenger แทนภายใน Facebook รวมถึงปุ่มส่งข้อความบนโปรไฟล์ ตราบใดที่ Messenger ติดตั้งและเปิดใช้งานอยู่ หากไม่มี Messenger แชทจะยังคงเปิดใน Facebook เริ่มระบบ Facebook ใหม่อีกครั้งหลังจากเปลี่ยนการตั้งค่านี้
@@ -3129,7 +3153,7 @@ The time or date under the poster's name is bold, like the name.	เวลาห
 Show full names	แสดงชื่อเต็ม
 A long name at the top of a post wraps onto the next line instead of ending in "...". A name that fits still takes one line.	ชื่อยาวที่ด้านบนของโพสต์จะขึ้นบรรทัดใหม่แทนการลงท้ายด้วย "..." ส่วนชื่อที่พอดีจะยังอยู่ในบรรทัดเดียว
 Dark box behind feed video names	กล่องสีเข้มหลังชื่อบนวิดีโอในฟีด
-When a video in your feed has the poster's name on top of the video, that name sits on the same dark box. A change shows on the posts drawn after it.	เมื่อวิดีโอในฟีดข่าวแสดงชื่อของผู้โพสต์ทับอยู่บนวิดีโอ ชื่อนั้นจะอยู่บนกล่องสีเข้มเดียวกัน การเปลี่ยนแปลงจะเห็นในโพสต์ที่โหลดหลังจากนั้น
+When a video in your feed has the poster's name on top of the video, that name and the date under it sit on the same dark box. A change shows on the posts drawn after it.	เมื่อวิดีโอในฟีดข่าวแสดงชื่อของผู้โพสต์ทับอยู่บนวิดีโอ ชื่อนั้นและวันที่ด้านล่างจะอยู่บนกล่องสีเข้มเดียวกัน การเปลี่ยนแปลงจะเห็นในโพสต์ที่โหลดหลังจากนั้น
 Quality settings	การตั้งค่าคุณภาพ
 Request community note	ขอบันทึกจากชุมชน
 Something went wrong	เกิดข้อผิดพลาดบางอย่าง

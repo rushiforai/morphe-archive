@@ -6,17 +6,21 @@ package app.morphe.patches.bereal.misc.settings
 
 import app.morphe.patcher.extensions.InstructionExtensions.addInstruction
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
-import app.morphe.patcher.patch.BytecodePatch
-import app.morphe.patcher.patch.BytecodePatchContext
+import app.morphe.patcher.patch.Patch
 import app.morphe.patcher.patch.PatchException
-import app.morphe.patcher.patch.bytecodePatch
-import app.morphe.patcher.patch.resourcePatch
+import app.morphe.patcher.patch.classDefBy
+import app.morphe.patcher.patch.document
+import app.morphe.patcher.patch.mutableClassDefBy
+import app.morphe.patcher.patch.patch
 import app.morphe.patcher.resource.ResourceType
 import app.morphe.patcher.resource.resourceId
 import app.morphe.patcher.util.getReference
-import app.morphe.patcher.util.matchSingle
 import app.morphe.patches.bereal.misc.base.beRealBasePatch
 import app.morphe.patches.shared.misc.fillPatchDetails
+import app.morphe.patches.shared.misc.hostedcomponents.CORE_COMPONENT_FACTORY
+import app.morphe.patches.shared.misc.hostedcomponents.HostedComponents
+import app.morphe.patches.shared.misc.hostedcomponents.googleSignInActivityHost
+import app.morphe.patches.shared.misc.hostedcomponents.licenseCheckActivityHost
 import app.morphe.patches.shared.misc.returnTrueFrom
 import app.morphe.patches.shared.misc.smali.replaceResourceIdStubs
 import com.android.tools.smali.dexlib2.Opcode
@@ -44,13 +48,15 @@ private const val SETTINGS_ROW_TITLE = "hxreborn patches"
 private const val SETTINGS_ROW_TAG = "settingsscreen_patches_button"
 private const val SETTINGS_ROW_ICON = "ic_gearshape_fill"
 
-private fun BytecodePatchContext.addSettingsRow() {
-    val debugScreenAction = DebugScreenActionToStringFingerprint.matchSingle().classDef
+internal val berealHostedComponents = HostedComponents(CORE_COMPONENT_FACTORY)
+
+private fun addSettingsRow() {
+    val debugScreenAction = DebugScreenActionToStringFingerprint.match().classDef
     val debugScreenField = debugScreenAction.staticFields.single { it.type == debugScreenAction.type }
     val debugScreenReference = "${debugScreenAction.type}->${debugScreenField.name}:${debugScreenAction.type}"
 
-    val click = settingsActionClickFingerprint(debugScreenAction.type).matchSingle()
-    val rows = AboutSectionRowsFingerprint.matchSingle()
+    val click = settingsActionClickFingerprint(debugScreenAction.type).match()
+    val rows = AboutSectionRowsFingerprint.match()
     val rowCall = rows.instructionMatch(Opcode.INVOKE_STATIC_RANGE).getInstruction<RegisterRangeInstruction>()
     val rowFactory = rowCall.getReference<MethodReference>()!!
 
@@ -63,7 +69,7 @@ private fun BytecodePatchContext.addSettingsRow() {
         throw PatchException("The last About section row is not empty")
     }
 
-    val arrayResult = rows.instructionMatches.last()
+    val (_, _, _, _, arrayResult) = rows.instructionMatches
     if (arrayResult.getInstruction<OneRegisterInstruction>().registerA != emptySlot) {
         rows.method.addInstruction(arrayResult.index + 1, "const/16 v$emptySlot, 0x0")
     }
@@ -83,17 +89,19 @@ private fun BytecodePatchContext.addSettingsRow() {
         """,
     )
 
+    val (_, _, _, actionBranch) = click.instructionMatches
     click.method.addInstruction(
-        click.instructionMatches.last().index + 1,
+        actionBranch.index + 1,
         "invoke-static { }, $PATCH_CONTEXT_CLASS->openSettings()V",
     )
 }
 
-internal val settingsPatch = bytecodePatch {
+internal val settingsPatch = patch {
     dependsOn(berealContactsPermissionExtensionPatch, berealDataCollectionExtensionPatch, berealSettingsExtensionPatch, berealSponsoredPostsExtensionPatch, berealUpdatePromptsExtensionPatch, morpheLibraryCoreExtensionPatch, sharedActivityCallbacksAdapterExtensionPatch, sharedDimensionsExtensionPatch)
     dependsOn(
         beRealBasePatch,
-        resourcePatch {
+        berealHostedComponents.patch,
+        patch {
             finalize {
                 document("AndroidManifest.xml").use { document ->
                     val application = document.getElementsByTagName("application").item(0) as Element
@@ -122,6 +130,9 @@ internal val settingsPatch = bytecodePatch {
     )
 
     execute {
+        berealHostedComponents.host(SETTINGS_ACTIVITY_CLASS, licenseCheckActivityHost)
+        berealHostedComponents.host(GALLERY_PICKER_ACTIVITY_CLASS, googleSignInActivityHost)
+        berealHostedComponents.host(RETAKE_COUNT_ACTIVITY_CLASS, googleSignInActivityHost)
         mutableClassDefBy(classDefBy(PAIRIP_APPLICATION_CLASS).superclass!!).methods
             .single { it.name == "onCreate" && it.parameterTypes.isEmpty() && it.returnType == "V" }
             .addInstruction(0, "invoke-static/range { p0 .. p0 }, $PATCH_CONTEXT_CLASS->attach(Landroid/app/Application;)V")
@@ -138,12 +149,12 @@ internal val settingsPatch = bytecodePatch {
     }
 }
 
-internal fun BytecodePatchContext.markFeaturePatched(featureClass: String) =
+internal fun markFeaturePatched(featureClass: String) =
     returnTrueFrom(featureClass, "isPatchIncluded")
 
-internal fun BytecodePatchContext.markFeaturePatched(
+internal fun markFeaturePatched(
     featureClass: String,
-    patch: BytecodePatch,
+    patch: Patch,
 ) {
     markFeaturePatched(featureClass)
     fillPatchDetails(featureClass, patch, "patchName", "patchDescription")

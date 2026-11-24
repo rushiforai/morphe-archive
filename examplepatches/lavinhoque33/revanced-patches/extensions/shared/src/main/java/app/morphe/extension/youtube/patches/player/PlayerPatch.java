@@ -56,6 +56,7 @@ import app.morphe.extension.shared.utils.Logger;
 import app.morphe.extension.shared.utils.ResourceUtils;
 import app.morphe.extension.shared.utils.Utils;
 import app.morphe.extension.youtube.innertube.NextResponseOuterClass.NewElement;
+import app.morphe.extension.youtube.patches.overlaybutton.VideoQualityDialogButton;
 import app.morphe.extension.youtube.patches.utils.InitializationPatch;
 import app.morphe.extension.youtube.patches.utils.PatchStatus;
 import app.morphe.extension.youtube.patches.video.VideoQualityPatch.VideoQualityInterface;
@@ -1270,11 +1271,13 @@ public class PlayerPatch {
 
     // region [Seekbar components] patch
 
-    public static String appendTimeStampInformation(String original) {
+    public static String appendTimeStampInformation(String original, View timestamp) {
         if (!Settings.APPEND_TIME_STAMP_INFORMATION.get()) return original;
 
-        String appendString = Settings.APPEND_TIME_STAMP_INFORMATION_TYPE.get()
-                ? VideoUtils.getFormattedQualityString(null)
+        final boolean appendQuality = Settings.APPEND_TIME_STAMP_INFORMATION_TYPE.get();
+        if (appendQuality && VideoQualityDialogButton.replacesTimestampQuality(timestamp)) return original;
+
+        String appendString = appendQuality ? VideoUtils.getFormattedQualityString(null)
                 : VideoUtils.getFormattedSpeedString(null);
 
         // Encapsulate the entire appendString with bidi control characters
@@ -1323,6 +1326,11 @@ public class PlayerPatch {
             listener.showMenu = true;
             containerView.setOnClickListener(listener);
         }
+    }
+
+    private static boolean useNativeTimestampQualityClick(View view) {
+        return VideoQualityDialogButton.replacesTimestampQuality(view)
+                && Settings.APPEND_TIME_STAMP_INFORMATION_TYPE.get();
     }
 
     /**
@@ -1380,10 +1388,18 @@ public class PlayerPatch {
                 invokeOriginal();
                 return;
             }
+            if (useNativeTimestampQualityClick(view)) {
+                invokeOriginal();
+                return;
+            }
 
             pendingClick = () -> {
                 pendingClick = null;
-                showTimestampMenu(view);
+                if (useNativeTimestampQualityClick(view)) {
+                    invokeOriginal();
+                } else {
+                    showTimestampMenu(view);
+                }
             };
 
             view.postDelayed(pendingClick, ViewConfiguration.getDoubleTapTimeout());

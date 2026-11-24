@@ -3,6 +3,7 @@
  * https://github.com/MorpheApp/morphe-patches/pull/2269
  *
  * See the included NOTICE file for GPLv3 Section 7 terms that apply to this code.
+ * Modified by lavinhoque33, 2026-11-23.
  */
 
 package app.morphe.extension.music.patches.lyrics.ui;
@@ -203,22 +204,24 @@ final class LyricsLineView extends TextView {
      */
     void animateSecondaryExpansion(boolean expand, boolean instant) {
         if (!Settings.LYRICS_SPLIT_BACKGROUND.get()) {
+            // Turning the setting off must also release a row that was already collapsed.
+            if (!secondaryExpanded || secondaryAnimator != null || getAlpha() != 1f) {
+                cancelSecondaryAnimator();
+                secondaryExpanded = true;
+                settleSecondary(true, false);
+            }
             return;
         }
         // Called on every highlight tick, so one already on its way there is left to finish.
-        if (!instant && expand == secondaryExpanded
-                && (secondaryAnimator != null || secondaryFraction == (expand ? 1f : 0f))) {
+        final boolean settled = secondaryFraction == (expand ? 1f : 0f)
+                && getAlpha() == (expand ? LyricsColors.ACTIVE_BG_ALPHA : 0f);
+        if (!instant && expand == secondaryExpanded && (secondaryAnimator != null || settled)) {
             return;
         }
-        // Cleared first, or the cancelled animator's end listener settles the old target.
-        ValueAnimator running = secondaryAnimator;
-        secondaryAnimator = null;
-        if (running != null) {
-            running.cancel();
-        }
+        cancelSecondaryAnimator();
         secondaryExpanded = expand;
         if (instant) {
-            settleSecondary(expand);
+            settleSecondary(expand, true);
             return;
         }
 
@@ -254,12 +257,21 @@ final class LyricsLineView extends TextView {
             public void onAnimationEnd(Animator animation) {
                 if (secondaryAnimator == animation) {
                     secondaryAnimator = null;
-                    settleSecondary(expand);
+                    settleSecondary(expand, true);
                 }
             }
         });
         secondaryAnimator = animator;
         animator.start();
+    }
+
+    private void cancelSecondaryAnimator() {
+        // Cleared first, or the cancelled animator's end listener settles the old target.
+        ValueAnimator running = secondaryAnimator;
+        secondaryAnimator = null;
+        if (running != null) {
+            running.cancel();
+        }
     }
 
     /** Grows out of the lead line's side while it opens, and shrinks back into it. */
@@ -278,14 +290,15 @@ final class LyricsLineView extends TextView {
         invalidate();
     }
 
-    private void settleSecondary(boolean expanded) {
+    private void settleSecondary(boolean expanded, boolean splitBackground) {
         secondaryFraction = expanded ? 1f : 0f;
         final float scale = expanded ? 1f : SECONDARY_CLOSED_SCALE;
         setScaleX(scale);
         setScaleY(scale);
         setTranslationY(0f);
-        setAlpha(expanded ? LyricsColors.ACTIVE_BG_ALPHA : 0f);
-        updateSecondaryMargin(expanded ? Dim.dp4 : 0);
+        float openAlpha = splitBackground ? LyricsColors.ACTIVE_BG_ALPHA : 1f;
+        setAlpha(expanded ? openAlpha : 0f);
+        updateSecondaryMargin(expanded && splitBackground ? Dim.dp4 : 0);
         setVisibility(expanded ? View.VISIBLE : View.GONE);
         requestLayout();
         invalidate();
@@ -361,6 +374,34 @@ final class LyricsLineView extends TextView {
         }
         activeLine = active;
         invalidate();
+    }
+
+    /** Changes singing state independently of the background row's expansion. */
+    void updateEchoLook(boolean active, boolean wordSync, boolean splitBackground) {
+        setActiveLine(active);
+
+        final int color = active && !wordSync ? LyricsColors.lineTextColor() : LyricsColors.unsungWordColor();
+        if (getCurrentTextColor() != color) {
+            setTextColor(color);
+        }
+        // Separate vocals already get their 0.8 opacity from the expansion's view alpha.
+        final float targetAlpha = isSecondary && !splitBackground ? LyricsColors.ACTIVE_BG_ALPHA : 1f;
+        if (lineAlpha != targetAlpha) {
+            lineAlpha = targetAlpha;
+            invalidate();
+        }
+        if (!isSecondary) {
+            final float targetScale = active
+                    ? LyricsViewSupport.ACTIVE_LINE_SCALE : LyricsViewSupport.INACTIVE_LINE_SCALE;
+            if (lineScale != targetScale) {
+                lineScale = targetScale;
+                LyricsViewSupport.applyLineScaleTransform(this, targetScale);
+            }
+        }
+    }
+
+    private float sungRenderingAlpha() {
+        return contentReveal * (isSecondary ? lineAlpha : 1f);
     }
 
     void startContentIn() {
@@ -1101,9 +1142,10 @@ final class LyricsLineView extends TextView {
             int appliedColor = -1;
 
             canvas.save();
-            if (contentReveal < 1f) {
+            final int sungAlpha = Math.round(255f * sungRenderingAlpha());
+            if (sungAlpha < 255) {
                 layerPaint.setColor(Color.WHITE);
-                layerPaint.setAlpha(Math.round(255f * contentReveal));
+                layerPaint.setAlpha(sungAlpha);
                 canvas.saveLayer(0f, 0f, getWidth(), getHeight(), layerPaint);
             }
             canvas.translate(textOriginX(), textOriginY());
@@ -1133,7 +1175,7 @@ final class LyricsLineView extends TextView {
                 canvas.restore();
             }
             canvas.restore();
-            if (contentReveal < 1f) {
+            if (sungAlpha < 255) {
                 canvas.restore();
             }
             tp.setColorFilter(prevFilter);
@@ -2278,7 +2320,7 @@ final class LyricsLineView extends TextView {
             }
         }
 
-        final int mainSungAlpha = Math.round(255f * contentNow);
+        final int mainSungAlpha = Math.round(255f * sungRenderingAlpha());
         final int mainSungColor = (LyricsColors.lineTextColor() & 0x00FFFFFF)
                 | (Math.max(0, Math.min(255, mainSungAlpha)) << 24);
 

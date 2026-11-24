@@ -1,6 +1,7 @@
 package app.southstar21.extension.instagram.liquidglass;
 
 import android.view.MotionEvent;
+import android.view.ViewConfiguration;
 import android.view.Window;
 
 import java.lang.reflect.InvocationHandler;
@@ -118,6 +119,17 @@ final class TouchRouter implements InvocationHandler {
                 tracking = false;
                 if (dragging) {
                     lens.endDrag(x);
+                    return true;
+                }
+                // A quick tap on another tab: Instagram sees the press cancelled and the lens
+                // opens the tab once the drop has glided there. A press held past the long press
+                // time may already have done something in Instagram, so its lift goes through.
+                if (event.getEventTime() - event.getDownTime() < ViewConfiguration.getLongPressTimeout()
+                        && lens.deferTapOnOtherTab()) {
+                    MotionEvent cancel = MotionEvent.obtain(event);
+                    cancel.setAction(MotionEvent.ACTION_CANCEL);
+                    original.dispatch(cancel);
+                    cancel.recycle();
                     return true;
                 }
                 lens.release();

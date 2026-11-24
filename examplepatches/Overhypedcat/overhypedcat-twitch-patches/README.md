@@ -128,9 +128,9 @@ Commits to `dev` publish pre-releases, merges to `main` publish releases
 ## Patches
 
 <!-- PATCHES_START EXPANDED -->
-> **[v4.2.2](https://github.com/Overhypedcat/overhypedcat-twitch-patches/releases/tag/v4.2.2)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;7 patches total
+> **[v4.3.0](https://github.com/Overhypedcat/overhypedcat-twitch-patches/releases/tag/v4.3.0)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;8 patches total
 <details open>
-<summary>Twitch&nbsp;&nbsp;•&nbsp;&nbsp;7 patches</summary>
+<summary>Twitch&nbsp;&nbsp;•&nbsp;&nbsp;8 patches</summary>
 <br>
 
 **Package name:** `tv.twitch.android.app`
@@ -145,6 +145,7 @@ Commits to `dev` publish pre-releases, merges to `main` publish releases
 | [Block ad servers](#block-ad-servers) | Blocks Twitch's banner, display and feed ads (edge.ads.twitch.tv) and its tracking servers inside the app. |  |
 | [Block client-side ads](#block-client-side-ads) | Makes the app treat every ad eligibility check like a Turbo viewer, so it never starts the ads it plays itself (a black screen while their ad server is blocked). |  |
 | [Block stream ads](#block-stream-ads) | Replaces ad-laden live playlists with ad-free ones from other player types, and strips ad segments when no clean playlist exists. |  |
+| [Highest quality](#highest-quality) | Adds a Highest quality switch to the video player's Options: with it on, every stream starts at its highest quality instead of Auto. A quality chosen afterwards stays as chosen. |  |
 | [Patch settings](#patch-settings) | Adds a Patch settings group to the app's Settings (VPN servers for the quality unlock, and Debug mode: a live log window and a log file in Downloads), and the patches' switches to the video player's Options. |  |
 | [Patch switches in the vertical view](#patch-switches-in-the-vertical-view) | Adds a Patches row to the video player's Options in the vertical view, which opens the patches' switches (the vertical view's Options can't hold them itself). |  |
 | [Quality unlock](#quality-unlock) | Unlocks the higher qualities (1440p) Twitch offers only in some countries: a stream's playlist is also asked for through your WireGuard VPN server, and when it offers more, that stream plays through the VPN. Nothing else in the app uses it. Servers are added in Settings, Patch settings. |  |

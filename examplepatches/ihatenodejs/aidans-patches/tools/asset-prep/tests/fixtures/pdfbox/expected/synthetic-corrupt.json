@@ -1,0 +1,14 @@
+{
+  "args": [
+    "--gradle-home",
+    "/Users/aidan/Projects/aidans-patches/tools/asset-prep/tests/fixtures/pdfbox/gradle-home/single",
+    "--aar",
+    "/Users/aidan/Projects/aidans-patches/tools/asset-prep/tests/fixtures/pdfbox/aars/corrupt.aar",
+    "--output",
+    "/var/folders/q_/8vvtb5m90p95bxyjx1dw609r0000gn/T/asset-pdfbox-capture-ytqouz1z/corrupt.zip"
+  ],
+  "exit": 1,
+  "stdout": "",
+  "stderr": "Traceback (most recent call last):\n  File \"/Users/aidan/Projects/aidans-patches/.github/scripts/prepare_pdfbox_assets.py\", line 88, in <module>\n    sys.exit(main())\n             ^^^^^^\n  File \"/Users/aidan/Projects/aidans-patches/.github/scripts/prepare_pdfbox_assets.py\", line 61, in main\n    zipfile.ZipFile(aar_path, \"r\") as aar,\n    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/Users/aidan/.local/share/uv/python/cpython-3.12.14-macos-aarch64-none/lib/python3.12/zipfile/__init__.py\", line 1371, in __init__\n    self._RealGetContents()\n  File \"/Users/aidan/.local/share/uv/python/cpython-3.12.14-macos-aarch64-none/lib/python3.12/zipfile/__init__.py\", line 1438, in _RealGetContents\n    raise BadZipFile(\"File is not a zip file\")\nzipfile.BadZipFile: File is not a zip file\n",
+  "outputExists": false
+}

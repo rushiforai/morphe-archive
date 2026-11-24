@@ -2,6 +2,7 @@ package io.github.forsigh.waze
 
 import app.morphe.patcher.Fingerprint
 import app.morphe.patcher.extensions.InstructionExtensions.replaceInstruction
+import app.morphe.patcher.patch.PatchException
 import app.morphe.patcher.patch.bytecodePatch
 import app.morphe.patcher.patch.intOption
 import com.android.tools.smali.dexlib2.Opcode
@@ -60,6 +61,14 @@ val highRefreshRatePatch = bytecodePatch(
         val method = DisplayModeCeilingFingerprint.method
         val rate = targetRefreshRate ?: 120
         val replacement = java.lang.Double.doubleToRawLongBits(rate.toDouble())
+        // BuilderInstruction21lh stores only the top 16 bits of the double: 90 becomes 88, 165
+        // becomes 160 - a silently different refresh rate. Refuse instead of rounding.
+        if (replacement and 0x0000FFFFFFFFFFFFL != 0L) {
+            throw PatchException(
+                "highRefreshRatePatch: ${rate}Hz cannot be encoded by const-wide/high16 " +
+                    "(only rates whose low 48 bits are zero, e.g. 60, 120, 144); pick another value",
+            )
+        }
         val implementation = method.implementation
             ?: error(
                 "highRefreshRatePatch: the display-mode method was found but has no implementation; " +

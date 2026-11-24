@@ -42,7 +42,7 @@ Click **[Add To Morphe↗️](https://morphe.software/add-source?github=BlazeFTL
 ## 🐉 Patches list
 
 <!-- PATCHES_START -->
-> **[v1.6.10](https://github.com/BlazeFTL/FaceBook-Lite-Morphe/releases/tag/v1.6.10)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;12 patches total
+> **[v1.6.12-dev.1](https://github.com/BlazeFTL/FaceBook-Lite-Morphe/releases/tag/v1.6.12-dev.1)**&nbsp;&nbsp;•&nbsp;&nbsp;`dev`&nbsp;&nbsp;•&nbsp;&nbsp;12 patches total
 <a id="facebook-lite"></a>
 <details open>
 <summary><img src=".github/assets/icons/com.facebook.lite.png" width="18" align="absmiddle">&nbsp;&nbsp;Facebook Lite&nbsp;&nbsp;•&nbsp;&nbsp;12 patches</summary>
@@ -60,7 +60,7 @@ Click **[Add To Morphe↗️](https://morphe.software/add-source?github=BlazeFTL
 | <a id="facebook-lite-double-tap-to-seek"></a>[Double tap to seek](patches/src/main/kotlin/app/fblite/patches/video/VideoFeaturePatches.kt) | Double tap the left or right side of a reel or video to go back or forward 10 seconds. Switched in the Morphe settings screen. |  |
 | <a id="facebook-lite-hide-sponsored-posts"></a>[Hide sponsored posts](patches/src/main/kotlin/app/fblite/patches/ads/HideSponsoredPostsPatch.kt) | Hides sponsored posts in the news feed and removes sponsored reels as they load. |  |
 | <a id="facebook-lite-install-beside-meta-s-apps"></a>[Install beside Meta's apps](patches/src/main/kotlin/app/fblite/patches/coexist/InstallBesideMetaAppsPatch.kt) | Lets the patched app install while Facebook, Messenger or other Meta apps are installed, by renaming the permissions it shares with them. |  |
-| <a id="facebook-lite-morphe-settings"></a>[Morphe settings](patches/src/main/kotlin/app/fblite/patches/settings/MorpheSettingsPatch.kt) | Long Press On Apps's Icon Too See The Option. Adds a settings screen to the app icon's long-press menu, with a font size slider. |  |
+| <a id="facebook-lite-morphe-settings"></a>[Morphe settings](patches/src/main/kotlin/app/fblite/patches/settings/MorpheSettingsPatch.kt) | Long Press On Apps's Icon To See The Option. Adds a settings screen to the app icon's long-press menu, with a font size slider. |  |
 | <a id="facebook-lite-open-profile-when-no-reels"></a>[Open profile when no reels](patches/src/main/kotlin/app/fblite/patches/video/VideoFeaturePatches.kt) | When a creator's Reels page says "No reels yet", opens their main profile for you (3 dot menu > View main profile). Switched in the Morphe settings screen. |  |
 | <a id="facebook-lite-seek-bar-for-short-videos"></a>[Seek bar for short videos](patches/src/main/kotlin/app/fblite/patches/video/VideoFeaturePatches.kt) | Adds a seek bar and the back and forward 10 second buttons to reels and videos under a minute, when the app's own controls are not showing. Switched in the Morphe settings screen. |  |
 | <a id="facebook-lite-skip-creator-s-reels-page"></a>[Skip creator's Reels page](patches/src/main/kotlin/app/fblite/patches/video/VideoFeaturePatches.kt) | When a creator's Reels page opens (tapping their name in a reel), always opens their main profile and its Reels tab, even when the page has reels. Switched in the Morphe settings screen. |  |

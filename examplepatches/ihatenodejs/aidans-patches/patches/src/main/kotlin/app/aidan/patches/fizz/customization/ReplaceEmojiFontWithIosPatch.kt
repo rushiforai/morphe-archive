@@ -1,6 +1,7 @@
 package app.aidan.patches.fizz.customization
 
 import app.aidan.patches.fizz.shared.COMPATIBILITY_FIZZ
+import app.aidan.patches.fizz.shared.fizzTargets
 import app.aidan.patches.shared.compositeFeaturePatch
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
 import app.morphe.patcher.patch.BytecodePatchContext
@@ -8,10 +9,43 @@ import app.morphe.patcher.patch.PatchException
 import com.android.tools.smali.dexlib2.Opcode
 
 private const val EMOJI_COMPAT_INITIALIZER = "Landroidx/emoji2/text/EmojiCompatInitializer;"
-private const val ANDROID_FONT_LOADER = "Lhg/g;"
-private const val PLATFORM_TYPEFACES = "Lwj/a;"
 private const val EMOJI_FONT_BRIDGE = "Lapp/aidan/extension/emoji/EmojiFontBridge;"
 private object FontResourceHolder
+
+/**
+ * Compose font classes reached by the emoji font rewrite. Compose ships fully obfuscated, so
+ * every supported build needs its own verified descriptors.
+ *
+ * [androidFontLoader] declares `[fontLoaderMethod]([resourceFontDescriptor])Landroid/graphics/Typeface;`
+ * and [platformTypefaces] declares
+ * `[platformTypefaceMethod](Ljava/lang/String;[fontWeightDescriptor]I)Landroid/graphics/Typeface;`.
+ */
+private data class FontTargets(
+    val androidFontLoader: String,
+    val fontLoaderMethod: String,
+    val resourceFontDescriptor: String,
+    val platformTypefaces: String,
+    val platformTypefaceMethod: String,
+    val fontWeightDescriptor: String,
+)
+
+private val FONT_TARGETS_1_54_0 = FontTargets(
+    androidFontLoader = "Lhg/g;",
+    fontLoaderMethod = "c",
+    resourceFontDescriptor = "Ln4/v;",
+    platformTypefaces = "Lwj/a;",
+    platformTypefaceMethod = "t",
+    fontWeightDescriptor = "Ln4/r;",
+)
+
+private val FONT_TARGETS_1_72_0 = FontTargets(
+    androidFontLoader = "Ll4/a;",
+    fontLoaderMethod = "b",
+    resourceFontDescriptor = "Ll4/z;",
+    platformTypefaces = "Lal/a;",
+    platformTypefaceMethod = "a",
+    fontWeightDescriptor = "Ll4/s;",
+)
 
 @Suppress("unused")
 val replaceEmojiFontWithIosPatch = compositeFeaturePatch(
@@ -36,9 +70,11 @@ val replaceEmojiFontWithIosPatch = compositeFeaturePatch(
     }
 
     bytecode {
+        val targets = fizzTargets("1.54.0" to FONT_TARGETS_1_54_0, "1.72.0" to FONT_TARGETS_1_72_0)
+
         patchEmojiCompatInitializer()
-        patchAndroidFontLoader()
-        patchPlatformTypefaces()
+        patchAndroidFontLoader(targets)
+        patchPlatformTypefaces(targets)
     }
 }
 
@@ -61,32 +97,32 @@ private fun BytecodePatchContext.patchEmojiCompatInitializer() {
     )
 }
 
-private fun BytecodePatchContext.patchAndroidFontLoader() {
-    val fontLoaderClass = mutableClassDefByOrNull(ANDROID_FONT_LOADER)
-        ?: throw PatchException("Class $ANDROID_FONT_LOADER not found")
+private fun BytecodePatchContext.patchAndroidFontLoader(targets: FontTargets) {
+    val fontLoaderClass = mutableClassDefByOrNull(targets.androidFontLoader)
+        ?: throw PatchException("Class ${targets.androidFontLoader} not found")
     val bMethod = fontLoaderClass.methods.firstOrNull {
-        it.name == "c" &&
-            it.parameterTypes.map(CharSequence::toString) == listOf("Ln4/v;") &&
+        it.name == targets.fontLoaderMethod &&
+            it.parameterTypes.map(CharSequence::toString) == listOf(targets.resourceFontDescriptor) &&
             it.returnType == "Landroid/graphics/Typeface;" &&
             it.implementation != null
-    } ?: throw PatchException("Method $ANDROID_FONT_LOADER->c(Ln4/v;) not found")
+    } ?: throw PatchException("Method ${targets.androidFontLoader}->${targets.fontLoaderMethod} not found")
 
     val impl = bMethod.implementation
-        ?: throw PatchException("Method $ANDROID_FONT_LOADER->b has no implementation")
+        ?: throw PatchException("Method ${targets.androidFontLoader}->${targets.fontLoaderMethod} has no implementation")
 
     val instructions = impl.instructions.toList()
     val getFontIndex = instructions.indexOfFirst {
         it.opcode == Opcode.INVOKE_STATIC_RANGE || it.opcode == Opcode.INVOKE_STATIC
     }
     if (getFontIndex == -1) {
-        throw PatchException("ResourcesCompat.getFont call not found in $ANDROID_FONT_LOADER->b")
+        throw PatchException("ResourcesCompat.getFont call not found in ${targets.androidFontLoader}->${targets.fontLoaderMethod}")
     }
 
     val moveResultSubIndex = instructions.subList(getFontIndex, instructions.size).indexOfFirst {
         it.opcode == Opcode.MOVE_RESULT_OBJECT
     }
     if (moveResultSubIndex == -1) {
-        throw PatchException("move-result-object instruction not found after getFont in $ANDROID_FONT_LOADER->b")
+        throw PatchException("move-result-object instruction not found after getFont in ${targets.androidFontLoader}->${targets.fontLoaderMethod}")
     }
 
     val moveResultIndex = getFontIndex + moveResultSubIndex
@@ -100,18 +136,19 @@ private fun BytecodePatchContext.patchAndroidFontLoader() {
     )
 }
 
-private fun BytecodePatchContext.patchPlatformTypefaces() {
-    val platformTypefacesClass = mutableClassDefByOrNull(PLATFORM_TYPEFACES)
-        ?: throw PatchException("Class $PLATFORM_TYPEFACES not found")
+private fun BytecodePatchContext.patchPlatformTypefaces(targets: FontTargets) {
+    val platformTypefacesClass = mutableClassDefByOrNull(targets.platformTypefaces)
+        ?: throw PatchException("Class ${targets.platformTypefaces} not found")
     val vMethod = platformTypefacesClass.methods.firstOrNull {
-        it.name == "t" &&
-            it.parameterTypes.map(CharSequence::toString) == listOf("Ljava/lang/String;", "Ln4/r;", "I") &&
+        it.name == targets.platformTypefaceMethod &&
+            it.parameterTypes.map(CharSequence::toString) ==
+            listOf("Ljava/lang/String;", targets.fontWeightDescriptor, "I") &&
             it.returnType == "Landroid/graphics/Typeface;" &&
             it.implementation != null
-    } ?: throw PatchException("Method $PLATFORM_TYPEFACES->t not found")
+    } ?: throw PatchException("Method ${targets.platformTypefaces}->${targets.platformTypefaceMethod} not found")
 
     val impl = vMethod.implementation
-        ?: throw PatchException("Method $PLATFORM_TYPEFACES->v has no implementation")
+        ?: throw PatchException("Method ${targets.platformTypefaces}->${targets.platformTypefaceMethod} has no implementation")
 
     val instructions = impl.instructions.toList()
     val returnIndices = instructions.mapIndexedNotNull { index, instruction ->
@@ -119,10 +156,12 @@ private fun BytecodePatchContext.patchPlatformTypefaces() {
     }
 
     if (returnIndices.size < 2) {
-        throw PatchException("Expected at least 2 return-object instructions in $PLATFORM_TYPEFACES->v, found ${returnIndices.size}")
+        throw PatchException(
+            "Expected at least 2 return-object instructions in ${targets.platformTypefaces}->${targets.platformTypefaceMethod}, found ${returnIndices.size}"
+        )
     }
 
-    // Patch the second return-object (after j5.d.d typeface creation)
+    // Patch the second return-object (after the TypefaceCompat typeface creation)
     val secondReturnIndex = returnIndices[1]
     vMethod.addInstructions(
         secondReturnIndex,

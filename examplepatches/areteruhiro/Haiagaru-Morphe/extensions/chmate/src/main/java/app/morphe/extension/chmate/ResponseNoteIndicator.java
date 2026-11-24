@@ -2,7 +2,6 @@ package app.morphe.extension.chmate;
 
 import android.app.Activity;
 import android.graphics.*;
-import android.graphics.drawable.Drawable;
 import android.text.TextUtils;
 import android.view.*;
 import android.widget.*;
@@ -26,16 +25,6 @@ final class ResponseNoteIndicator {
         if(!(list instanceof ViewGroup)||SESSIONS.containsKey(list))return;
         Session session=new Session(fragment,(ViewGroup)list);SESSIONS.put(list,session);
         list.getViewTreeObserver().addOnPreDrawListener(session);list.addOnAttachStateChangeListener(session);changed(list.getContext());
-    }
-    private static final class Icon extends Drawable {
-        final Paint paint=new Paint(Paint.ANTI_ALIAS_FLAG);int color;
-        Icon(int color){this.color=color;}
-        public void draw(Canvas canvas){Rect b=getBounds();float s=b.width(),x=b.left,y=b.top;paint.setColor(color);paint.setStyle(Paint.Style.STROKE);paint.setStrokeWidth(Math.max(1,s/12));
-            Path p=new Path();p.moveTo(x+s*.15f,y+s*.1f);p.lineTo(x+s*.65f,y+s*.1f);p.lineTo(x+s*.88f,y+s*.32f);p.lineTo(x+s*.88f,y+s*.9f);p.lineTo(x+s*.15f,y+s*.9f);p.close();canvas.drawPath(p,paint);
-            canvas.drawLine(x+s*.65f,y+s*.1f,x+s*.65f,y+s*.32f,paint);canvas.drawLine(x+s*.65f,y+s*.32f,x+s*.88f,y+s*.32f,paint);
-            for(float line:new float[]{.48f,.65f})canvas.drawLine(x+s*.3f,y+s*line,x+s*.7f,y+s*line,paint);
-        }
-        public void setAlpha(int a){paint.setAlpha(a);}public void setColorFilter(ColorFilter f){paint.setColorFilter(f);}public int getOpacity(){return PixelFormat.TRANSLUCENT;}
     }
     private static TextView idText(View view){
         if(view instanceof TextView){String text=((TextView)view).getText().toString();if(text.contains("ID:")||text.contains("ID："))return (TextView)view;}
@@ -119,7 +108,7 @@ final class ResponseNoteIndicator {
                         int right=childAt[0]-hostAt[0]+child.getWidth()-child.getPaddingRight()-Math.round(3*list.getResources().getDisplayMetrics().density),bottom=childAt[1]-hostAt[1]+child.getHeight()-child.getPaddingBottom();
                         button.setX(right-hit);button.setY(bottom-hit);android.graphics.Rect visible=new android.graphics.Rect();boolean shown=child.getGlobalVisibleRect(visible)&&visible.contains(childAt[0]+child.getWidth()-child.getPaddingRight()-size/2,childAt[1]+child.getHeight()-child.getPaddingBottom()-size/2);button.setVisibility(shown?View.VISIBLE:View.GONE);
                         int color=id==null?0xff888888:id.getCurrentTextColor();String style=size+":"+hit+":"+color;
-                        if(!style.equals(button.getTag(0x48690d02))){button.setTag(0x48690d02,style);Icon icon=new Icon(color);button.setBackground(new android.graphics.drawable.InsetDrawable(icon,hit-size,hit-size,0,0));}
+                        if(!style.equals(button.getTag(0x48690d02))){button.setTag(0x48690d02,style);android.graphics.drawable.Drawable icon=ToolbarIcons.noteIcon(list.getContext(),color);button.setBackground(new android.graphics.drawable.InsetDrawable(icon,hit-size,hit-size,0,0));}
 
                     }
                 }

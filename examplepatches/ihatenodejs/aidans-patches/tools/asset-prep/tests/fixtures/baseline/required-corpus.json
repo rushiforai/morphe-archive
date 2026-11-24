@@ -1,0 +1,504 @@
+{
+  "schemaVersion": 1,
+  "kind": "apk-lab-icon-required-corpus",
+  "note": "Compiled acceptance floor for plan 011: every frozen public fixture case plus the three approved private Play-original cases. Contains identities/hashes only; no private bytes or paths. Derived once from the frozen public fixture manifest and the captured private manifest; do not regenerate to drop cases.",
+  "requiredCoverage": [
+    "alpha:binary-edge",
+    "alpha:hidden-rgb",
+    "alpha:opaque",
+    "alpha:partial",
+    "alpha:zero",
+    "behavior:malformed",
+    "behavior:orientation",
+    "behavior:profile",
+    "behavior:same-size",
+    "behavior:truncated",
+    "behavior:unsupported",
+    "edge:hard",
+    "format:jpeg",
+    "format:png",
+    "format:webp",
+    "mode:cmyk",
+    "mode:i16",
+    "mode:l",
+    "mode:la",
+    "mode:palette",
+    "mode:rgb",
+    "mode:rgba",
+    "mode:trns",
+    "size:128x128",
+    "size:anisotropic",
+    "size:downscale",
+    "size:nonsquare",
+    "size:odd",
+    "size:one-axis",
+    "size:tiny",
+    "size:upscale",
+    "source:play-original"
+  ],
+  "cases": [
+    {
+      "id": "grayscale-alpha-png",
+      "visibility": "public",
+      "expectedOutcome": "success",
+      "coverage": [
+        "alpha:partial",
+        "format:png",
+        "mode:la",
+        "size:nonsquare"
+      ],
+      "inputSha256": "03b549bd6ef620a656c0d571b2e880a8093542e51023b70d893c79c4c39be5c5",
+      "referenceRgbaSha256": "d5f2b37ea1731fbd9babb77386220267626bad76d9bf2e8750451472a1c685f0"
+    },
+    {
+      "id": "grayscale-png",
+      "visibility": "public",
+      "expectedOutcome": "success",
+      "coverage": [
+        "format:png",
+        "mode:l",
+        "size:upscale"
+      ],
+      "inputSha256": "e4d8235842fd43481f957180b6787dcd5094223c8e2b4bb1ae0a878c4c80db6d",
+      "referenceRgbaSha256": "8f1aebb84fe7a328d2d06a33dbb4e008ed4dcba63f195a5ebc706bd0c66a29a0"
+    },
+    {
+      "id": "jpeg-cmyk",
+      "visibility": "public",
+      "expectedOutcome": "success",
+      "coverage": [
+        "format:jpeg",
+        "mode:cmyk",
+        "size:upscale"
+      ],
+      "inputSha256": "37ff71719a72168d01396a05b5da80a868f29aca74544dea3c900d4766314e7d",
+      "referenceRgbaSha256": "52c61b6459d67152c87703664ad625ea254dc718d157a18bc9ea694164728be0"
+    },
+    {
+      "id": "jpeg-exif-orientation",
+      "visibility": "public",
+      "expectedOutcome": "success",
+      "coverage": [
+        "behavior:orientation",
+        "format:jpeg",
+        "mode:rgb",
+        "size:nonsquare"
+      ],
+      "inputSha256": "0c178ca474462e8c33c293fcf0234bf4fecb61f9f885b3120d00bc6e300620e1",
+      "referenceRgbaSha256": "7514f648dd262445620025ca21c8648ba358a222a7c3031e14012c6c5db2e078"
+    },
+    {
+      "id": "jpeg-grayscale",
+      "visibility": "public",
+      "expectedOutcome": "success",
+      "coverage": [
+        "format:jpeg",
+        "mode:l",
+        "size:nonsquare"
+      ],
+      "inputSha256": "df838040c621e0e6fe6dd3b90a5a1f86c7d0a798dcd21111aee1f973d029460c",
+      "referenceRgbaSha256": "d930454a878ad221742bf7ef9570e082eb2b48fdb146eb6113ccefd4854ce1e2"
+    },
+    {
+      "id": "jpeg-rgb-opaque",
+      "visibility": "public",
+      "expectedOutcome": "success",
+      "coverage": [
+        "alpha:opaque",
+        "format:jpeg",
+        "mode:rgb",
+        "size:upscale"
+      ],
+      "inputSha256": "d2478886e9c67013c2032a7b7cc0d9bebc6651febc8168943cbd833850deea4e",
+      "referenceRgbaSha256": "268a0d9e018b1b2532ee9f7ea4591b8f9d7f2a5be3aa0fca2b70f36b96e169b9"
+    },
+    {
+      "id": "jpeg-truncated",
+      "visibility": "public",
+      "expectedOutcome": "error",
+      "coverage": [
+        "behavior:truncated",
+        "format:jpeg"
+      ],
+      "inputSha256": "386c813ec998d3f4ae112b607bead5715029d0a2088e818b3ad283273d58dd8a"
+    },
+    {
+      "id": "malformed-corrupt-png",
+      "visibility": "public",
+      "expectedOutcome": "error",
+      "coverage": [
+        "behavior:malformed",
+        "format:png"
+      ],
+      "inputSha256": "4c790853b72b67b65eadf7135308c47e4429db8490bd2e38bee450f0e641c451"
+    },
+    {
+      "id": "palette-trns-png",
+      "visibility": "public",
+      "expectedOutcome": "success",
+      "coverage": [
+        "alpha:binary-edge",
+        "format:png",
+        "mode:palette",
+        "mode:trns"
+      ],
+      "inputSha256": "7d07604cc4babff6a11b19196dcca6715a81557cc2911f069f4f4b6c40e6124d",
+      "referenceRgbaSha256": "806a964889b5931ac928763cddbfe9b249983fda7394ea8308fa7cb0254659b7"
+    },
+    {
+      "id": "play-adobe-reader",
+      "visibility": "private",
+      "expectedOutcome": "success",
+      "coverage": [
+        "alpha:partial",
+        "format:png",
+        "mode:rgba",
+        "size:downscale",
+        "source:play-original"
+      ],
+      "inputSha256": "3410b333b80d80711896fc05075e08bedbc9dfe81bb10a5b1b9fc1ca8952577f",
+      "referenceRgbaSha256": "24b33c5679962bca3cd800a95f8ad72267694561222baf0c413e4fb9ab3cd616"
+    },
+    {
+      "id": "play-aftership",
+      "visibility": "private",
+      "expectedOutcome": "success",
+      "coverage": [
+        "alpha:partial",
+        "format:png",
+        "mode:rgba",
+        "size:downscale",
+        "source:play-original"
+      ],
+      "inputSha256": "092d44f68a9ca353250a36e16b3e997c640b38deacbfe94ebc686078e19273aa",
+      "referenceRgbaSha256": "0b50bdf48bc066a5e6e3bb1fc2e65595815665bd674d2c7b767b6e67aa31365a"
+    },
+    {
+      "id": "play-sezzle-jpeg",
+      "visibility": "private",
+      "expectedOutcome": "success",
+      "coverage": [
+        "alpha:opaque",
+        "format:jpeg",
+        "mode:rgb",
+        "size:downscale",
+        "source:play-original"
+      ],
+      "inputSha256": "05b8bc361b165a779d14df047e8b9fffb75e32f0e3ed4634e175aea06f473018",
+      "referenceRgbaSha256": "8ed63645da973d93fb3c18e08b105f5dbad07b9fa0127de821ca9ac08c172be0"
+    },
+    {
+      "id": "png-128-exact-hidden-rgb",
+      "visibility": "public",
+      "expectedOutcome": "success",
+      "coverage": [
+        "alpha:hidden-rgb",
+        "alpha:zero",
+        "behavior:same-size",
+        "format:png",
+        "mode:rgba",
+        "size:128x128"
+      ],
+      "inputSha256": "afdd07010f3c77dcaafedf707fae360a5c5618a8fee2d6439e69300a24ebda41",
+      "referenceRgbaSha256": "49539bf7e0aa620b6aa81baf2f4bcfa023e4260f82ea0612328c6ca48b0fc934"
+    },
+    {
+      "id": "png-16bit-grayscale",
+      "visibility": "public",
+      "expectedOutcome": "success",
+      "coverage": [
+        "format:png",
+        "mode:i16",
+        "size:upscale"
+      ],
+      "inputSha256": "cc0d44e8a49e0d738cb7019b3709c0803d3834672a99606d2abb419b050596e7",
+      "referenceRgbaSha256": "c53705abf6bbda6b27fe65db0ef7c56b51704602c2de7190170095d2e64e2799"
+    },
+    {
+      "id": "png-anisotropic-tall",
+      "visibility": "public",
+      "expectedOutcome": "success",
+      "coverage": [
+        "format:png",
+        "mode:rgb",
+        "size:anisotropic",
+        "size:downscale"
+      ],
+      "inputSha256": "2a4f1ddda0115a8beb72d5b23d1e07c92c152651eb403506fc5337f3f4e378a1",
+      "referenceRgbaSha256": "92489e08f8fad83e8f7504e509b03e049a41e0121b710d04404621ba1e0e84b3"
+    },
+    {
+      "id": "png-anisotropic-wide",
+      "visibility": "public",
+      "expectedOutcome": "success",
+      "coverage": [
+        "format:png",
+        "mode:rgb",
+        "size:anisotropic",
+        "size:downscale"
+      ],
+      "inputSha256": "79df8b6e69ca7fc48fbed427dd8ddd7ad48e2071bde69edd259fb51890cc145f",
+      "referenceRgbaSha256": "b75d3dec171d29f59c65d840a7d4ca79f25dfebc5407713a36646087b2094a9a"
+    },
+    {
+      "id": "png-exif-orientation",
+      "visibility": "public",
+      "expectedOutcome": "success",
+      "coverage": [
+        "behavior:orientation",
+        "format:png",
+        "mode:rgb",
+        "size:nonsquare"
+      ],
+      "inputSha256": "e5f5e618e81ac5115addaed857bd86aadd51cc1f6a173df9431edfb5f2063332",
+      "referenceRgbaSha256": "69b4ad4d68321b7a4804ac8ea73713da3d1d3d1f021cc9a6e9a6ec8571ed1c59"
+    },
+    {
+      "id": "png-icc-profile",
+      "visibility": "public",
+      "expectedOutcome": "success",
+      "coverage": [
+        "behavior:profile",
+        "format:png",
+        "mode:rgb",
+        "size:upscale"
+      ],
+      "inputSha256": "0228d794169b948ed0d79bd7f36f733409c794ee3ae5c227d90a0fd27ddb5034",
+      "referenceRgbaSha256": "d175673e6f586cc86a2ff22fb89c41732d8ad0a7a3b3a15007bf09a7115f7993"
+    },
+    {
+      "id": "png-odd-upscale",
+      "visibility": "public",
+      "expectedOutcome": "success",
+      "coverage": [
+        "format:png",
+        "mode:rgb",
+        "size:nonsquare",
+        "size:odd",
+        "size:upscale"
+      ],
+      "inputSha256": "57610b7678c2aca5016549498a2d691ef14fdd1212f475d5e23dffaded944333",
+      "referenceRgbaSha256": "c824f22af245bc81f447d6a0efa98c928dab7400af4194dc89077346ec678704"
+    },
+    {
+      "id": "png-one-axis-width-downscale",
+      "visibility": "public",
+      "expectedOutcome": "success",
+      "coverage": [
+        "format:png",
+        "mode:rgb",
+        "size:downscale",
+        "size:nonsquare",
+        "size:one-axis"
+      ],
+      "inputSha256": "b69e33b169b4274d74faa819366a60df7200f61786d228f3e4a588ccbb68fff6",
+      "referenceRgbaSha256": "194c2c028f56f3d12fd85c334a3310cee5dd316a2f31c4d1e9cd601ce7f78b4c"
+    },
+    {
+      "id": "png-one-axis-width-upscale",
+      "visibility": "public",
+      "expectedOutcome": "success",
+      "coverage": [
+        "format:png",
+        "mode:rgb",
+        "size:nonsquare",
+        "size:one-axis",
+        "size:upscale"
+      ],
+      "inputSha256": "9f061238ccd2007e662494ee5f2a1271dbc687b4ee2efa4da0bdb629b34cc0c7",
+      "referenceRgbaSha256": "383b73cb9f83adc352d3ff982a4b366f99a608f61cda2fcc9b8bc197a56d0619"
+    },
+    {
+      "id": "png-tiny-1x1",
+      "visibility": "public",
+      "expectedOutcome": "success",
+      "coverage": [
+        "alpha:partial",
+        "format:png",
+        "mode:rgba",
+        "size:tiny",
+        "size:upscale"
+      ],
+      "inputSha256": "e25e9a9953ae97114287c009f471c4a8c570b7e1b335d322e0741643306eaad4",
+      "referenceRgbaSha256": "ba2fbd97b5d11beaaaee567452994efd5d7fc280ea97c1f38c84456b1e8e7f21"
+    },
+    {
+      "id": "png-tiny-nonsquare",
+      "visibility": "public",
+      "expectedOutcome": "success",
+      "coverage": [
+        "format:png",
+        "mode:rgb",
+        "size:nonsquare",
+        "size:tiny",
+        "size:upscale"
+      ],
+      "inputSha256": "2412fb06c28260fa16461c1db02ba67e89a184aa9166f9c50d515362a11e9bef",
+      "referenceRgbaSha256": "f2a4e250b50a8991052a3aaba27033bb67309bfa325120ff3e8c9471e36a3b98"
+    },
+    {
+      "id": "png-truncated",
+      "visibility": "public",
+      "expectedOutcome": "error",
+      "coverage": [
+        "behavior:truncated",
+        "format:png"
+      ],
+      "inputSha256": "ffb5a5b3c8d64a5c49c82676d74e95dc6a543ede289f814e1be840cbaeef8c4e"
+    },
+    {
+      "id": "rgb-downscale-png",
+      "visibility": "public",
+      "expectedOutcome": "success",
+      "coverage": [
+        "alpha:opaque",
+        "format:png",
+        "mode:rgb",
+        "size:downscale"
+      ],
+      "inputSha256": "c5c97fb62866f7adc61be1b0b30e491ca80a201f4089ca9f248cc2744b599693",
+      "referenceRgbaSha256": "f49e215a44d93b7711dfbea73f330abb20b9c1f2979efb403b4ef51c8147a988"
+    },
+    {
+      "id": "rgb-opaque-png",
+      "visibility": "public",
+      "expectedOutcome": "success",
+      "coverage": [
+        "alpha:opaque",
+        "format:png",
+        "mode:rgb",
+        "size:nonsquare",
+        "size:odd",
+        "size:upscale"
+      ],
+      "inputSha256": "9bdbbb550350f2d1cfaf07b7ae6a1188972aa57dcc26a6938a51d99c928d9465",
+      "referenceRgbaSha256": "df1c938d2a9a492fade32042c8b6467a38e0efe6c68ffcb376d940a97d34fec0"
+    },
+    {
+      "id": "rgba-hard-edges-png",
+      "visibility": "public",
+      "expectedOutcome": "success",
+      "coverage": [
+        "alpha:binary-edge",
+        "edge:hard",
+        "format:png",
+        "mode:rgba",
+        "size:downscale"
+      ],
+      "inputSha256": "5c4fe785cdd91191e7a6f6143fec728dec6010c0cc03e094204fd11ce10f8970",
+      "referenceRgbaSha256": "a9667fd37e7d4bf269ce6c92aeaa1f8b265559f7797c7f28aae55d77ec460004"
+    },
+    {
+      "id": "rgba-opaque-png",
+      "visibility": "public",
+      "expectedOutcome": "success",
+      "coverage": [
+        "alpha:opaque",
+        "format:png",
+        "mode:rgba",
+        "size:upscale"
+      ],
+      "inputSha256": "1ad8fb0bf72e34cdd8f8430dc609786a5b5b3fb5106803ed936b7f3fe72a91a1",
+      "referenceRgbaSha256": "7d8c0eb006a7f6941f64d1bcd31b209f07c8d281610489be1c9276a08ef7e682"
+    },
+    {
+      "id": "rgba-partial-alpha-png",
+      "visibility": "public",
+      "expectedOutcome": "success",
+      "coverage": [
+        "alpha:hidden-rgb",
+        "alpha:partial",
+        "format:png",
+        "mode:rgba",
+        "size:nonsquare",
+        "size:upscale"
+      ],
+      "inputSha256": "98823870a00cb594f8b8bb92c8ccf3fd6026e84416a1dd39286524dfaa1ea53f",
+      "referenceRgbaSha256": "7c3ada195044cb0be1991df2e15be9865e4a00cff966ae7bdbec8c71b5d490d7"
+    },
+    {
+      "id": "rgba-zero-alpha-png",
+      "visibility": "public",
+      "expectedOutcome": "success",
+      "coverage": [
+        "alpha:hidden-rgb",
+        "alpha:zero",
+        "format:png",
+        "mode:rgba",
+        "size:upscale"
+      ],
+      "inputSha256": "1fd934c4397c7dd24c3ba89a22c4beeedbfe35c61a4b4cc756f3d542c1877551",
+      "referenceRgbaSha256": "de2f256064a0af797747c2b97505dc0b9f3df0de4f489eac731c23ae9ca9cc31"
+    },
+    {
+      "id": "unsupported-empty",
+      "visibility": "public",
+      "expectedOutcome": "error",
+      "coverage": [
+        "behavior:unsupported"
+      ],
+      "inputSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "id": "unsupported-svg",
+      "visibility": "public",
+      "expectedOutcome": "error",
+      "coverage": [
+        "behavior:unsupported"
+      ],
+      "inputSha256": "94cce56c2c4bc1d0fb5b8e5ddf05d1cf4c15ce425e6c35b0b8932486cf25455c"
+    },
+    {
+      "id": "webp-lossy-rgb",
+      "visibility": "public",
+      "expectedOutcome": "success",
+      "coverage": [
+        "alpha:opaque",
+        "format:webp",
+        "mode:rgb",
+        "size:upscale"
+      ],
+      "inputSha256": "47a1ddc9f30cb00f87beb45de40c0b84d4c9ed68d2af14a37a2ce705a496c9af",
+      "referenceRgbaSha256": "9807a4beca71deaf37c01ff7c1f963c716bb3213a6e0ee9c8c1affcd067faafa"
+    },
+    {
+      "id": "webp-lossy-rgba",
+      "visibility": "public",
+      "expectedOutcome": "success",
+      "coverage": [
+        "alpha:partial",
+        "format:webp",
+        "mode:rgba",
+        "size:nonsquare"
+      ],
+      "inputSha256": "9d3861d9dffdad2ed2a35c8997edac5cd7d3d07ce981f6040beffc8b78ea5b46",
+      "referenceRgbaSha256": "c9266c19d8dc45d90c797bfb7602e22521cb9b950713930ca6d801bea29da52b"
+    },
+    {
+      "id": "webp-rgb-lossless",
+      "visibility": "public",
+      "expectedOutcome": "success",
+      "coverage": [
+        "alpha:opaque",
+        "format:webp",
+        "mode:rgb",
+        "size:upscale"
+      ],
+      "inputSha256": "19f9baa811eec55f4a5be6c5d8c4c29cd83a9c790ec5db29b68fff71dcc5ac47",
+      "referenceRgbaSha256": "42bf750a04f1348644119b219568fc02fcca79fe9fcb8758e7f4d669865fe386"
+    },
+    {
+      "id": "webp-rgba-lossless",
+      "visibility": "public",
+      "expectedOutcome": "success",
+      "coverage": [
+        "alpha:partial",
+        "format:webp",
+        "mode:rgba",
+        "size:upscale"
+      ],
+      "inputSha256": "60f928314e6e13b20c16eed3527cdba13e134ef60653a12a9d259e0bc940165c",
+      "referenceRgbaSha256": "cd61b4b0ccf6933d22fedcff770bb7577ddf6b108ad744b1b755dfcae105a0a2"
+    }
+  ]
+}

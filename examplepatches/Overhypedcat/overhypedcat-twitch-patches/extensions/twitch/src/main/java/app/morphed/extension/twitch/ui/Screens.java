@@ -53,15 +53,19 @@ public final class Screens implements Application.ActivityLifecycleCallbacks {
 
     /** The rows' texts are read when Settings is built: rebuilt so they show what changed. */
     public static void refreshSettingsRows() {
-        Activity activity = settings.get();
-        if (activity != null && !activity.isFinishing() && activity == resumed.get()) activity.recreate();
+        Activity activity = settings.get(), now = resumed.get();
+        if (now == null || now.isFinishing() || activity == null) return;
+        // After a rebuild the rows are noted while the old screen still counts as resumed: the noted one is then
+        // that destroyed screen, and the new one of its kind is the one showing the rows.
+        boolean same = activity == now || (activity.isDestroyed() && activity.getClass() == now.getClass());
+        if (same) now.recreate();
     }
 
     @Override
     public void onActivityResumed(Activity activity) {
         resumed = new WeakReference<>(activity);
         try {
-            if (DebugLog.isOn()) LogWindow.show(activity);
+            if (DebugMode.windowWanted(activity)) LogWindow.show(activity);
             watch(activity);
         } catch (Throwable t) {
             Log.e(App.TAG, "Preparing the screen failed", t);
@@ -73,7 +77,11 @@ public final class Screens implements Application.ActivityLifecycleCallbacks {
         if (resumed.get() == activity) LogWindow.hide();
         PlayerOverlay.paused(activity); // a screen lock ends when the screen goes
         // Left Settings: its rows aren't on screen, nothing to rebuild (the player's screen must never be).
-        if (settings.get() == activity) settings = new WeakReference<>(null);
+        Activity noted = settings.get();
+        // (also the one a rebuild left behind: destroyed, of the same kind as the one leaving now)
+        if (noted == activity || (noted != null && noted.isDestroyed() && noted.getClass() == activity.getClass())) {
+            settings = new WeakReference<>(null);
+        }
     }
 
     private static void watch(Activity activity) {
@@ -124,7 +132,7 @@ public final class Screens implements Application.ActivityLifecycleCallbacks {
                     // another window of the activity: only the Options sheet is looked for there
                 } else if (android.os.Build.VERSION.SDK_INT >= 24 && activity.isInPictureInPictureMode()) {
                     LogWindow.hide();
-                } else if (DebugLog.isOn() && activity == resumed.get()) {
+                } else if (DebugMode.windowWanted(activity) && activity == resumed.get()) {
                     LogWindow.show(activity);
                 }
                 try {

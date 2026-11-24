@@ -93,10 +93,11 @@ Use only managed APK Lab commands described in `../tools/apk-lab/AGENTS.md`. Do 
 
 ```bash
 ./gradlew :patches:compileKotlin :extensions:extension:compileReleaseJavaWithJavac --console=plain
+./gradlew :patches:test
 ./gradlew :patches:buildAndroid
 ./gradlew generatePatchesList
 
-uv run --project tools/apk-lab apk-lab check path/to/app.apkm \
+cargo run --locked --quiet --manifest-path tools/apk-lab/Cargo.toml --bin apk-lab -- check path/to/app.apkm \
   --mpp patches/build/libs/patches-X.Y.Z.mpp \
   --package com.example.app \
   --all

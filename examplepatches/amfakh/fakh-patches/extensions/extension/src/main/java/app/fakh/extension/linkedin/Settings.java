@@ -1,3 +1,11 @@
+/*
+ * Portions based on Michii Patches by heyymichii, GPLv3:
+ * https://github.com/heyymichii/michii-patches
+ *
+ * Modifications copyright 2026 amfakh
+ * SPDX-License-Identifier: GPL-3.0-only
+ */
+
 package app.fakh.extension.linkedin;
 
 import android.annotation.SuppressLint;
@@ -10,11 +18,13 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
+import app.fakh.extension.shared.Features;
+
 /**
- * Feature switches, stored in the app's own SharedPreferences.
- *
- * The isXIncluded() methods return false here. Each feature patch rewrites its method to
- * return true, so the settings screen only lists features that were actually patched in.
+ * The switches of the LinkedIn patches. Which ones are in the app, and their defaults, come from {@link Features}, which
+ * the patches fill in at patch time; the switches stay in the app's own SharedPreferences, as do the list settings
+ * (tabs, their order, the More items, the download folder). Post menu and GmsCore support have no switch, so their
+ * patches still mark them included.
  */
 @SuppressWarnings("unused")
 public final class Settings {
@@ -97,35 +107,35 @@ public final class Settings {
     }
 
     public static boolean isHideAdsIncluded() {
-        return false;
+        return Features.has(HIDE_ADS);
     }
 
     public static boolean isHidePromotedJobsIncluded() {
-        return false;
+        return Features.has(HIDE_PROMOTED_JOBS);
     }
 
     public static boolean isHideSuggestedIncluded() {
-        return false;
+        return Features.has(HIDE_SUGGESTED);
     }
 
     public static boolean isHidePremiumIncluded() {
-        return false;
+        return Features.has(HIDE_PREMIUM);
     }
 
     public static boolean isDownloadMediaIncluded() {
-        return false;
+        return Features.has(DOWNLOAD_MEDIA);
     }
 
     public static boolean isFeedFiltersIncluded() {
-        return false;
+        return Features.has(FOCUS_MODE);
     }
 
     public static boolean isExpandPostsIncluded() {
-        return false;
+        return Features.has(EXPAND_POSTS);
     }
 
     public static boolean isOpenLinksDirectlyIncluded() {
-        return false;
+        return Features.has(OPEN_LINKS_DIRECTLY);
     }
 
     /** Replaced at patch time with the version of the patch bundle (from its manifest). */
@@ -134,67 +144,67 @@ public final class Settings {
     }
 
     public static boolean isSanitizeShareLinksIncluded() {
-        return false;
+        return Features.has(SANITIZE_SHARE_LINKS);
     }
 
     static boolean sanitizeShareLinks() {
-        return isSanitizeShareLinksIncluded() && get(SANITIZE_SHARE_LINKS, true);
+        return Features.on(SANITIZE_SHARE_LINKS);
     }
 
     /** Part of "Open links directly". */
     static boolean resolveShortLinks() {
-        return isOpenLinksDirectlyIncluded() && get(RESOLVE_SHORT_LINKS, true);
+        return Features.on(RESOLVE_SHORT_LINKS);
     }
 
     public static boolean isDisableDoubleTapLikeIncluded() {
-        return false;
+        return Features.has(DISABLE_DOUBLE_TAP_LIKE);
     }
 
     public static boolean isRemoveGapsAndDividersIncluded() {
-        return false;
+        return Features.has(REMOVE_GAPS_AND_DIVIDERS);
     }
 
     public static boolean isGlassNavigationBarIncluded() {
-        return false;
+        return Features.has(GLASS_NAVIGATION_BAR);
     }
 
     public static boolean isMaterialYouIncluded() {
-        return false;
+        return Features.has(MATERIAL_YOU);
     }
 
     // Read once by the Compose themes, so these apply after LinkedIn restarts.
 
     static boolean removeGapsAndDividers() {
-        return isRemoveGapsAndDividersIncluded() && get(REMOVE_GAPS_AND_DIVIDERS, true);
+        return Features.on(REMOVE_GAPS_AND_DIVIDERS);
     }
 
     static boolean glassNavigationBar() {
-        return isGlassNavigationBarIncluded() && get(GLASS_NAVIGATION_BAR, true);
+        return Features.on(GLASS_NAVIGATION_BAR);
     }
 
     static boolean liquidGlass() {
-        return glassNavigationBar() && get(LIQUID_GLASS, false);
+        return Features.on(LIQUID_GLASS);
     }
 
     public static boolean isAlwaysShowNavigationBarIncluded() {
-        return false;
+        return Features.has(ALWAYS_SHOW_NAVIGATION_BAR);
     }
 
     /** Whether the navigation bar stays put while a screen scrolls, instead of sliding away. Called from the app. */
     public static boolean alwaysShowNavigationBar() {
-        return isAlwaysShowNavigationBarIncluded() && get(ALWAYS_SHOW_NAVIGATION_BAR, false);
+        return Features.on(ALWAYS_SHOW_NAVIGATION_BAR);
     }
 
     public static boolean isNavigationBarIncluded() {
-        return false;
+        return Features.has(HIDE_TAB_LABELS);
     }
 
     static boolean hideTabLabels() {
-        return isNavigationBarIncluded() && get(HIDE_TAB_LABELS, false);
+        return Features.on(HIDE_TAB_LABELS);
     }
 
     static boolean hideTabBadges() {
-        return isNavigationBarIncluded() && get(HIDE_TAB_BADGES, false);
+        return Features.on(HIDE_TAB_BADGES);
     }
 
     /** Whether the bottom bar leaves out the tab, named by its constant in HomeTabInfo. */
@@ -251,16 +261,16 @@ public final class Settings {
     }
 
     public static boolean isScreenshotShareIncluded() {
-        return false;
+        return Features.has(NO_SCREENSHOT_SHARE);
     }
 
     /** Called by UpdateScreenCaptureManagerImpl.register: true when the Share sheet must not open on a screenshot. */
     public static boolean blockScreenshotShare() {
-        return isScreenshotShareIncluded() && get(NO_SCREENSHOT_SHARE, true);
+        return Features.on(NO_SCREENSHOT_SHARE);
     }
 
     public static boolean isTopBarButtonsIncluded() {
-        return false;
+        return Features.has(SHOW_TOP_BAR_POST);
     }
 
     static boolean hideTopBarPost() {
@@ -272,47 +282,47 @@ public final class Settings {
     }
 
     static boolean materialYou() {
-        return isMaterialYouIncluded() && get(MATERIAL_YOU, true);
+        return Features.on(MATERIAL_YOU);
     }
 
     public static boolean isAmoledBlackIncluded() {
-        return false;
+        return Features.has(PITCH_BLACK);
     }
 
     static boolean pitchBlack() {
-        return isAmoledBlackIncluded() && get(PITCH_BLACK, false);
+        return Features.on(PITCH_BLACK);
     }
 
     public static boolean isMaterialTabIconsIncluded() {
-        return false;
+        return Features.has(MATERIAL_TAB_ICONS);
     }
 
     static boolean materialTabIcons() {
-        return isMaterialTabIconsIncluded() && get(MATERIAL_TAB_ICONS, false);
+        return Features.on(MATERIAL_TAB_ICONS);
     }
 
     public static boolean isVideoTabIncluded() {
-        return false;
+        return Features.has(VIDEO_TAB_TIME);
     }
 
     static boolean videoTabTime() {
-        return isVideoTabIncluded() && get(VIDEO_TAB_TIME, true);
+        return Features.on(VIDEO_TAB_TIME);
     }
 
     static boolean videoTabAutoScroll() {
-        return isVideoTabIncluded() && get(VIDEO_TAB_AUTO_SCROLL, false);
+        return Features.on(VIDEO_TAB_AUTO_SCROLL);
     }
 
     public static boolean isDarkAppIconIncluded() {
-        return false;
+        return Features.has(DARK_APP_ICON);
     }
 
     static boolean darkAppIcon() {
-        return isDarkAppIconIncluded() && get(DARK_APP_ICON, false);
+        return Features.on(DARK_APP_ICON);
     }
 
     public static boolean isMoreMenuIncluded() {
-        return false;
+        return Features.has(GAMES_SHORTCUT);
     }
 
     static boolean moreMenu() {
@@ -320,7 +330,7 @@ public final class Settings {
     }
 
     static boolean gamesShortcut() {
-        return isMoreMenuIncluded() && get(GAMES_SHORTCUT, true);
+        return Features.on(GAMES_SHORTCUT);
     }
 
     /** Whether the single switch that both hid the More tab and moved its items was on: the default of the two that follow it. */
@@ -341,7 +351,7 @@ public final class Settings {
     }
 
     static boolean disableDoubleTapLike() {
-        return isDisableDoubleTapLikeIncluded() && get(DISABLE_DOUBLE_TAP_LIKE, true);
+        return Features.on(DISABLE_DOUBLE_TAP_LIKE);
     }
 
     // region Backup
@@ -389,45 +399,45 @@ public final class Settings {
     // endregion
 
     public static boolean isBlockTrackingIncluded() {
-        return false;
+        return Features.has(BLOCK_TRACKING);
     }
 
     /** Off by default. */
     static boolean blockTracking() {
-        return isBlockTrackingIncluded() && get(BLOCK_TRACKING, true);
+        return Features.on(BLOCK_TRACKING);
     }
 
     public static boolean isAnonymousProfileViewingIncluded() {
-        return false;
+        return Features.has(ANONYMOUS_PROFILE_VIEWING);
     }
 
     /** Off by default. */
     static boolean anonymousProfileViewing() {
-        return isAnonymousProfileViewingIncluded() && get(ANONYMOUS_PROFILE_VIEWING, true);
+        return Features.on(ANONYMOUS_PROFILE_VIEWING);
     }
 
     public static boolean isSwipeTabsIncluded() {
-        return false;
+        return Features.has(SWIPE_TABS);
     }
 
     static boolean swipeTabs() {
-        return isSwipeTabsIncluded() && get(SWIPE_TABS, true);
+        return Features.on(SWIPE_TABS);
     }
 
     public static boolean isKeepFeedIncluded() {
-        return false;
+        return Features.has(KEEP_FEED);
     }
 
     static boolean keepFeed() {
-        return isKeepFeedIncluded() && get(KEEP_FEED, true);
+        return Features.on(KEEP_FEED);
     }
 
     public static boolean isViewerTapToHideIncluded() {
-        return false;
+        return Features.has(VIEWER_TAP_TO_HIDE);
     }
 
     static boolean viewerTapToHide() {
-        return isViewerTapToHideIncluded() && get(VIEWER_TAP_TO_HIDE, true);
+        return Features.on(VIEWER_TAP_TO_HIDE);
     }
 
     public static boolean isPostMenuIncluded() {
@@ -440,86 +450,86 @@ public final class Settings {
     }
 
     public static boolean isCopyTextIncluded() {
-        return false;
+        return Features.has(COPY_TEXT);
     }
 
     static boolean copyText() {
-        return isCopyTextIncluded() && get(COPY_TEXT, true);
+        return Features.on(COPY_TEXT);
     }
 
     public static boolean isMessagingIncluded() {
-        return false;
+        return Features.has(HIDE_SPONSORED_MESSAGES);
     }
 
     static boolean hideSponsoredMessages() {
-        return isMessagingIncluded() && get(HIDE_SPONSORED_MESSAGES, true);
+        return Features.on(HIDE_SPONSORED_MESSAGES);
     }
 
     /** Off by default: it also stops chats being marked as read on this device. */
     static boolean ghostMode() {
-        return isMessagingIncluded() && get(GHOST_MODE, false);
+        return Features.on(GHOST_MODE);
     }
 
     static boolean openLinksDirectly() {
-        return isOpenLinksDirectlyIncluded() && get(OPEN_LINKS_DIRECTLY, true);
+        return Features.on(OPEN_LINKS_DIRECTLY);
     }
 
     // Feed filters remove normal content, so they are off until the user turns them on.
 
     static boolean expandPosts() {
-        return isExpandPostsIncluded() && get(EXPAND_POSTS, false);
+        return Features.on(EXPAND_POSTS);
     }
 
     static boolean focusMode() {
-        return isFeedFiltersIncluded() && get(FOCUS_MODE, false);
+        return Features.on(FOCUS_MODE);
     }
 
     static boolean hideCelebrations() {
-        return isFeedFiltersIncluded() && get(HIDE_CELEBRATIONS, false);
+        return Features.on(HIDE_CELEBRATIONS);
     }
 
     static boolean hideFeedJobs() {
-        return isFeedFiltersIncluded() && get(HIDE_FEED_JOBS, false);
+        return Features.on(HIDE_FEED_JOBS);
     }
 
     static boolean hideReposts() {
-        return isFeedFiltersIncluded() && get(HIDE_REPOSTS, false);
+        return Features.on(HIDE_REPOSTS);
     }
 
     static boolean hideVideoPosts() {
-        return isFeedFiltersIncluded() && get(HIDE_VIDEO_POSTS, false);
+        return Features.on(HIDE_VIDEO_POSTS);
     }
 
     static boolean hideRecommendations() {
-        return isFeedFiltersIncluded() && get(HIDE_RECOMMENDATIONS, false);
+        return Features.on(HIDE_RECOMMENDATIONS);
     }
 
     static boolean hideGames() {
-        return isFeedFiltersIncluded() && get(HIDE_GAMES, false);
+        return Features.on(HIDE_GAMES);
     }
 
     static boolean hideNewPostsPill() {
-        return isFeedFiltersIncluded() && get(HIDE_NEW_POSTS_PILL, false);
+        return Features.on(HIDE_NEW_POSTS_PILL);
     }
 
     static boolean hideTranslation() {
-        return isFeedFiltersIncluded() && get(HIDE_TRANSLATION, false);
+        return Features.on(HIDE_TRANSLATION);
     }
 
     static boolean hideAds() {
-        return isHideAdsIncluded() && get(HIDE_ADS, true);
+        return Features.on(HIDE_ADS);
     }
 
     static boolean hidePromotedJobs() {
-        return isHidePromotedJobsIncluded() && get(HIDE_PROMOTED_JOBS, true);
+        return Features.on(HIDE_PROMOTED_JOBS);
     }
 
     static boolean hideSuggested() {
-        return isHideSuggestedIncluded() && get(HIDE_SUGGESTED, true);
+        return Features.on(HIDE_SUGGESTED);
     }
 
     static boolean hidePremium() {
-        return isHidePremiumIncluded() && get(HIDE_PREMIUM, true);
+        return Features.on(HIDE_PREMIUM);
     }
 
     /** Called on the "Me" panel upsell slot as HomeNavPanelFeature reads it: null removes the card. */
@@ -528,7 +538,7 @@ public final class Settings {
     }
 
     static boolean downloadMedia() {
-        return isDownloadMediaIncluded() && get(DOWNLOAD_MEDIA, true);
+        return Features.on(DOWNLOAD_MEDIA);
     }
 
     static boolean debug() {
@@ -596,6 +606,7 @@ public final class Settings {
     /** Injected at the start of FlagshipApplication.attachBaseContext. */
     public static void attachBaseContext(Context context) {
         baseContext = context;
+        Features.attachBaseContext(context);
     }
 
     /** The running Application, or LinkedIn's base context while the Application is not there yet. */

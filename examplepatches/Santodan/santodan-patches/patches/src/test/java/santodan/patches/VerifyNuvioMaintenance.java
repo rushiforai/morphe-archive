@@ -41,7 +41,15 @@ public final class VerifyNuvioMaintenance {
         }
         for (var symbol : NuvioNative.class.getFields()) {
             String value = (String) symbol.get(null);
-            if (symbol.getName().endsWith("_TYPE") && !classes.containsKey(value)) throw new AssertionError("Missing contract class: " + symbol.getName());
+            if (value.equals(NuvioNative.REF_LOCAL_HOME_RESUME)) {
+                // This member is generated from the reviewed native observer, rather than present in the original APK.
+                var home = new MutableClass(classes.get(NuvioNative.HOME_MODEL_TYPE));
+                NuvioMergedProgressPatch.hookHomePipeline(home);
+                if (home.getMethods().stream().noneMatch(m -> m.toString().equals(value)))
+                    throw new AssertionError("Missing generated Home resume contract: " + value);
+                continue;
+            }
+            if (symbol.getName().endsWith("_TYPE") && !symbol.getName().startsWith("REF_") && !classes.containsKey(value)) throw new AssertionError("Missing contract class: " + symbol.getName());
             if (value.matches("L[^;]+;->(?:[^()]+:[^:]+|[^()]+\\([^)]*\\).+)"))
                 if (!definitions.contains(value)) throw new AssertionError("Missing native contract: " + symbol.getName() + " = " + value);
         }

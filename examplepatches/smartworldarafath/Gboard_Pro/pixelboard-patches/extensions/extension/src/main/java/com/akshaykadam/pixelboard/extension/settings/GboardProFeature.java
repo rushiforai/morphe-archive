@@ -20,7 +20,7 @@ public final class GboardProFeature implements GboardPatchesSettingsContract.Fea
 
     @Override
     public String getEntrySummary() {
-        return "Appearance, Board UI & Advanced Settings";
+        return "Amoled & Advanced Settings";
     }
 
     @Override
@@ -31,7 +31,6 @@ public final class GboardProFeature implements GboardPatchesSettingsContract.Fea
     @Override
     public List<GboardPatchesSettingsContract.Feature> getNavigationChildren() {
         return Arrays.asList(
-                new GboardAppearanceFeature(context),
                 new GboardBoardUiFeature(context),
                 new GboardAdvancedSettingsFeature(context));
     }
@@ -43,21 +42,10 @@ public final class GboardProFeature implements GboardPatchesSettingsContract.Fea
 
         List<GboardPatchesSettingsContract.Row> rows = new ArrayList<>();
 
-        // 1. Appearance
+        // 1. Amoled
         rows.add(new GboardPatchesSettingsContract.NavigationRow(
-                "Appearance",
-                "Material 3 Expressive UI theme palettes",
-                true,
-                () -> {
-                    if (host != null) {
-                        GboardPatchesSettingsContract.openFeature(host, new GboardAppearanceFeature(ctx));
-                    }
-                }));
-
-        // 2. Board UI
-        rows.add(new GboardPatchesSettingsContract.NavigationRow(
-                "Board UI",
-                "AMOLED Pure Black keyboard styling",
+                "Amoled",
+                "AMOLED Pure Black app & keyboard styling",
                 true,
                 () -> {
                     if (host != null) {
@@ -65,7 +53,7 @@ public final class GboardProFeature implements GboardPatchesSettingsContract.Fea
                     }
                 }));
 
-        // 3. Advanced Settings
+        // 2. Advanced Settings
         rows.add(new GboardPatchesSettingsContract.NavigationRow(
                 "Advanced Settings",
                 "Gemini voice typing, writing tools & modular patches",
@@ -82,8 +70,12 @@ public final class GboardProFeature implements GboardPatchesSettingsContract.Fea
                 "Pro",
                 "Gboard Pro",
                 "Pro",
-                "Exclusive appearance styles, board UI and advanced features",
+                "AMOLED pure black mode and advanced features",
                 Collections.emptyList(),
-                sections);
+                sections,
+                GboardPatchesSettingsContract.RefreshPolicy.none(),
+                GboardPatchesSettingsContract.PanelStyle.FLAT,
+                null,
+                false);
     }
 }

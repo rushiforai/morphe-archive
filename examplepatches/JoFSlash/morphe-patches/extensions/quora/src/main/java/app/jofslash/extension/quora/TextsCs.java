@@ -38,7 +38,6 @@ final class TextsCs {
         m.put("Filters", "Filtry");
         m.put("Keywords, authors and Spaces to hide.", "Klíčová slova, autoři a Spaces ke skrytí.");
         m.put("Separate with commas", "Odděl čárkami");
-        m.put("Matching ignores case. Saved when you go back.", "Na velikosti písmen nezáleží. Uloží se, až se vrátíš zpět.");
         m.put("History", "Historie");
         m.put("Answers, posts and questions you opened.", "Otevřené odpovědi, příspěvky a otázky.");
         m.put("Bookmarks", "Záložky");
@@ -172,7 +171,6 @@ final class TextsCs {
         m.put("Items you already opened, when they come back.", "Už otevřené položky, když se znovu objeví.");
         m.put("Answers older than the years set below.", "Odpovědi starší než počet let nastavený níže.");
         m.put("Items that mention your keywords (see Filters).", "Položky s tvými klíčovými slovy (viz Filtry).");
-        m.put("Items from the people and Spaces in Filters.", "Položky od lidí a Spaces z Filtrů.");
         m.put("Upvote, view, comment and share numbers.", "Počty upvotů, zobrazení, komentářů a sdílení.");
         m.put("The downvote button.", "Tlačítko downvote.");
         m.put("\"123 comments from … and more\" rows.", "Řádky „123 comments from … and more“.");
@@ -266,8 +264,6 @@ final class TextsCs {
         m.put("Couldn't save the file.", "Soubor se nepodařilo uložit.");
         // Presets.
         m.put("Presets", "Předvolby");
-        m.put("Switch many patches at once: everything, a clean feed, or ads only.",
-                "Přepni hodně patchů najednou: vše, čistý feed nebo jen reklamy.");
         m.put("Quora patches are on", "Patche pro Quoru jsou zapnuté");
         m.put("Change them any time in Settings > Morphe, or by long-pressing the Home tab.",
                 "Kdykoli je změníš v Settings > Morphe nebo dlouhým podržením karty Home (domeček dole).");
@@ -297,5 +293,76 @@ final class TextsCs {
         m.put("For reading", "Na čtení");
         m.put("A clean feed, whole answers with more space, no numbers, and bars that hide while you read.",
                 "Čistý feed, celé odpovědi s více místem, bez čísel a lišty, které se při čtení schovají.");
+        // Update notice.
+        m.put("Switch many patches at once: everything, a clean feed, for reading, or ads only.",
+                "Přepni hodně patchů najednou: vše, čistý feed, na čtení nebo jen reklamy.");
+        m.put("Patches ", "Patche ");
+        m.put("A newer version is out: ", "Vyšla novější verze: ");
+        m.put("the newest.", "nejnovější.");
+        m.put("Get the new version", "Získat novou verzi");
+        m.put("What's new, and how to patch again.", "Co je nového a jak znovu napatchovat.");
+        // Block an author with a long press.
+        m.put("Items from the people and Spaces in Filters. Long-press a name to add it.",
+                "Příspěvky lidí a Prostorů z Filtrů. Jméno přidáš dlouhým podržením.");
+        m.put("Hide everything by ", "Skrýt vše od ");
+        m.put("Their answers and posts won't show in the feed or on question pages. You can remove the name again in Patch settings > More > Filters.",
+                "Jejich odpovědi a příspěvky se nezobrazí ve feedu ani na stránkách otázek. Jméno můžeš znovu odebrat v Patch settings > Další > Filtry.");
+        m.put("hidden.", "skryto.");
+        // Hidden counts.
+        m.put("Hidden in the last 7 days: ", "Skryto za posledních 7 dní: ");
+        m.put("Ads", "Reklamy");
+        m.put("AI answers", "AI odpovědi");
+        m.put("Quora+ answers", "Odpovědi Quora+");
+        m.put("Suggestions", "Návrhy");
+        m.put("Your filters", "Tvoje filtry");
+        // Offline pictures.
+        m.put("Saved as text with its pictures: links and formatting aren't kept.",
+                "Uloženo jako text i s obrázky: odkazy a formátování se neukládají.");
+        // Update notice, settings line only.
+        m.put("Shows here when newer patches are out, from GitHub once a day.",
+                "Ukáže tady, když vyjdou novější patche, z GitHubu jednou denně.");
+        // Feed tools: reader view, reading time, filters, picking, author lists.
+        m.put("\"4 min read\" above longer answers.", "„4 min čtení“ nad delšími odpověďmi.");
+        m.put("A Reader view button next to Share under answers.", "Tlačítko Čtečka vedle Sdílet pod odpověďmi.");
+        m.put("All bookmarks with their saved text, to a notes app, Pocket or mail.",
+                "Všechny záložky s uloženým textem do poznámek, Pocketu nebo e-mailu.");
+        m.put("Answers and posts someone only shared again.", "Odpovědi a příspěvky, které někdo jen sdílel dál.");
+        m.put("Answers marked as translated from another language.",
+                "Odpovědi označené jako přeložené z jiného jazyka.");
+        m.put("Answers with fewer upvotes than set below.", "Odpovědi s méně hlasy, než je nastaveno níže.");
+        m.put("Author lists to follow", "Odebírané seznamy autorů");
+        m.put("Bigger", "Větší");
+        m.put("Boxes you picked under More > Pick something to hide.",
+                "Části, které jsi vybral v Další > Vybrat něco ke skrytí.");
+        m.put("Fewer upvotes than", "Méně hlasů než");
+        m.put("Hidden.", "Skryto.");
+        m.put("Hide the marked box and the others like it?", "Skrýt označenou část a ostatní jako ona?");
+        m.put("Hide the marked box?", "Skrýt označenou část?");
+        m.put("Links to text files with names, one per line. They are downloaded once a day.",
+                "Odkazy na textové soubory se jmény, jedno na řádek. Stahují se jednou denně.");
+        m.put("Matching ignores case and finds whole words; end a word with * to also find longer ones (art* finds artist). Saved when you go back.",
+                "Velikost písmen nehraje roli a hledají se celá slova; slovo s * na konci najde i delší (art* najde artist). Uloží se, když se vrátíš.");
+        m.put("Names from the lists: ", "Jména ze seznamů: ");
+        m.put("Not downloaded yet.", "Zatím nestaženo.");
+        m.put("Nothing here can be hidden this way. Try a bigger part of the page.",
+                "Tohle se takto skrýt nedá. Zkus větší část stránky.");
+        m.put("Nothing picked yet", "Zatím nic vybráno");
+        m.put("One per line. Delete a line to show those boxes again.",
+                "Jedno na řádek. Smaž řádek a ty části se znovu ukážou.");
+        m.put("Open a page first.", "Nejdřív otevři stránku.");
+        m.put("Pick something to hide", "Vybrat něco ke skrytí");
+        m.put("Picked to hide", "Vybráno ke skrytí");
+        m.put("Posts that are only a picture or a video.", "Příspěvky, které jsou jen obrázek nebo video.");
+        m.put("Reader view", "Čtečka");
+        m.put("Share", "Sdílet");
+        m.put("Tap a box on the page to hide it and every box like it.",
+                "Klepni na část stránky a skryje se spolu se všemi podobnými.");
+        m.put("Tap what to hide", "Klepni na to, co skrýt");
+        m.put("This is the start the feed shows. Open the answer to read all of it here.",
+                "Tohle je začátek, který ukazuje feed. Otevři odpověď a přečteš si tu celou.");
+        m.put("Too long to share with the saved texts: sharing the titles and links. Save to Downloads keeps all of it.",
+                "S uloženými texty je to na sdílení příliš dlouhé: sdílí se názvy a odkazy. Uložit do Stažených zachová vše.");
+        m.put("You can show it again under Filters.", "Znovu to ukážeš ve Filtrech.");
+        m.put("min read", "min čtení");
     }
 }

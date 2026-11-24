@@ -14,7 +14,7 @@ https://github.com/Santodan/santodan-patches
 ## Patches
 
 <!-- PATCHES_START -->
-> **[v0.20.0](https://github.com/Santodan/santodan-patches/releases/tag/v0.20.0)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;40 patches total
+> **[v0.21.1](https://github.com/Santodan/santodan-patches/releases/tag/v0.21.1)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;41 patches total
 <details>
 <summary>📦 Car Scanner ELM OBD2&nbsp;&nbsp;•&nbsp;&nbsp;2 patches</summary>
 <br>
@@ -102,7 +102,7 @@ Startup app selection and **After standby** are cumulative: enabling both is int
 </details>
 
 <details>
-<summary>📦 NuvioTV&nbsp;&nbsp;•&nbsp;&nbsp;17 patches</summary>
+<summary>📦 NuvioTV&nbsp;&nbsp;•&nbsp;&nbsp;18 patches</summary>
 <br>
 
 These seventeen patches target NuvioTV **1.1.0 (1077)** only. See [1.1.0 verification](docs/Nuvio110.md). For future app updates, see the [shared contracts and maintenance workflow](docs/NuvioMaintenance.md).
@@ -175,12 +175,13 @@ Metadata selection and the independent Continue Watching/library artwork switche
 
 **🎯 Supported versions:**
 
-| 1.1.0 |
+| 1.1.1 |
 | :---: |
 
 | 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
 |----------|----------------|-----------|
 | [NuvioTV - Android TV launcher channels](#nuviotv-android-tv-launcher-channels) | Choose individual catalogs and tracking lists, Library, and Upcoming to publish as Android TV launcher channels. |  |
+| [NuvioTV - Customize labels](#nuviotv-customize-labels) | Customize Nuvio's text badges individually, including New Season, Next Up and New Episode. Edit captions, copy Text/Label/All, and reset one label. |  |
 | [NuvioTV - Customize playback buttons](docs/NuvioPlaybackButtons.md) | Adds optional playback button visibility, ordering and placement in the main row or More actions, with saved settings and reset. |  |
 | [NuvioTV - Finale dates in library and collections](#nuviotv-finale-dates-in-library-and-collections) | Adds separate disabled-by-default settings to show the latest scheduled episode date in library and collection posters. |  |
 | [NuvioTV - Fix startup track reselection](docs/NuvioPlayerStability.md) | Prevents a startup ExoPlayer crash when track reselection requests a seek before a playing media period exists. |  |
@@ -258,7 +259,7 @@ The premium patch also prevents subscription refreshes from resetting the notifi
 
 **🎯 Supported versions:**
 
-| 2026.37.0 |
+| 2026.47.0 |
 | :---: |
 
 | 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
@@ -323,7 +324,7 @@ The generated bundle is written to `patches/build/libs/patches-<version>.mpp`. `
 | Car Scanner ELM OBD2 | `com.ovz.carscanner` | `2.2.42` (arm64 and x86_64), `2.2.21`, `2.1.50` | Premium status; unrestricted experimental alternative; settings/profile and ECU compatibility fixes |
 | MEO (Android TV) | `com.alticelabs.meo.androidtv` | `5.7.0` | Side-by-side installation; Spoof supported device |
 | NuvioTV | `com.nuvio.tv` | `1.1.0-beta.8` | Android TV launcher channels; Finale dates in library and collections; Keep airing series in Upcoming; Merge tracking progress; Preload streams for next episode; Preload streams in Continue Watching; Preload streams on detail page; Remaining episodes in Continue Watching; Upcoming movie dates in library and collections; Side-by-side installation |
-| Reddit | `com.reddit.frontpage` | `2026.37.0` | Content filters (Experimental); Show flairs in home feed (Experimental); Start as guest |
+| Reddit | `com.reddit.frontpage` | `2026.47.0`, `2026.37.0` | Content filters (Experimental) and Show flairs in home feed (Experimental) on 2026.47.0; Start as guest on 2026.37.0 |
 | Peafowl Theme Maker for EMUI | `h7.hamzio.emuithemeotg` | `GMS_27.5.1` | Unlock Theme Ownership (Experimental) |
 | Pillo | `xyz.rtrvr.pillo` | `0.6.27`, `0.6.20`, `0.6.19` | Hybrid Lock-Screen Notifications |
 | Pillo | `xyz.rtrvr.pillo` | `0.6.27`, `0.6.20` | Import weight history from JSON; Local backup and restore; Weight change summaries; Weight in Progress |

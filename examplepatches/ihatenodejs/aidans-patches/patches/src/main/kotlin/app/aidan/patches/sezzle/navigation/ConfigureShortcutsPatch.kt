@@ -6,20 +6,20 @@ import app.morphe.patcher.patch.PatchException
 import app.morphe.patcher.patch.booleanOption
 import app.morphe.patcher.patch.rawResourcePatch
 
-private const val SHORTCUTS_FUNCTION_INDEX = 97583
-private const val EXPECTED_SHORTCUTS_CODE_OFFSET = 0x019ba337
+private const val SHORTCUTS_FUNCTION_INDEX = 90129
+private const val EXPECTED_SHORTCUTS_CODE_OFFSET = 0x01b6cd83
 private const val SHORTCUTS_CAPACITY = 57
 
-private const val DONOR_FUNCTION_INDEX = 75517
-private const val DONOR_CODE_OFFSET = 0x017d2ed7
-private const val DONOR_CAPACITY = 152
+private const val DONOR_FUNCTION_INDEX = 85895
+private const val DONOR_CODE_OFFSET = 0x01b1aa98
+private const val DONOR_CAPACITY = 154
 
 private val EXPECTED_SHORTCUTS_FILTER_BYTES = byteArrayOf(
     0x89.toByte(), 0x01, 0x01, 0x94.toByte(), 0x00, 0xd3.toByte(), 0x30, 0x01,
-    0x00, 0x34, 0x02, 0x00, 0x3b, 0x03, 0x02, 0x00, 0x44, 0x04, 0x03, 0x00,
-    0x9e.toByte(), 0x44, 0x02, 0x01, 0x01, 0x8e.toByte(), 0x6e, 0x02, 0x04, 0x03,
-    0x02, 0xb0.toByte(), 0x16, 0x02, 0x44, 0x02, 0x03, 0x02, 0x47, 0x44, 0x01,
-    0x01, 0x01, 0x8e.toByte(), 0x6e, 0x01, 0x02, 0x03, 0x01, 0x95.toByte(), 0x00,
+    0x00, 0x34, 0x02, 0x00, 0x3b, 0x03, 0x02, 0x01, 0x44, 0x04, 0x03, 0x00,
+    0x8c.toByte(), 0x44, 0x02, 0x01, 0x01, 0x7c, 0x6e, 0x02, 0x04, 0x03,
+    0x02, 0xb0.toByte(), 0x16, 0x02, 0x44, 0x02, 0x03, 0x02, 0x42, 0x44, 0x01,
+    0x01, 0x01, 0x7c, 0x6e, 0x01, 0x02, 0x03, 0x01, 0x95.toByte(), 0x00,
     0x76, 0x00, 0x96.toByte(), 0x00, 0x76, 0x00
 )
 
@@ -40,12 +40,25 @@ private data class ShortcutItemConfig(
  * Builds a Hermes shortcut filter excluding [items], padded to exactly [capacity]
  * bytes. String IDs must fit the width selected by isLongIndex.
  *
+ * [nameStringId] is the bundle's `name` identifier, read with `GetByIdShort`; it
+ * must fit in the opcode's single-byte string operand.
+ *
  * @throws IllegalArgumentException if the predicate exceeds capacity, a comparison
- * jump is outside 1..255 bytes, or the generated exit offset is inconsistent.
+ * jump is outside 1..255 bytes, the name ID exceeds 8 bits, or the generated exit
+ * offset is inconsistent.
  */
-private fun assembleShortcutPredicate(items: List<ShortcutItemConfig>, capacity: Int): ByteArray {
+private fun assembleShortcutPredicate(
+    items: List<ShortcutItemConfig>,
+    capacity: Int,
+    nameStringId: Int
+): ByteArray {
+    require(nameStringId in 0..0xFF) {
+        "Shortcut item name string ID ($nameStringId) exceeds GetByIdShort range"
+    }
     val totalComparisonLength = items.sumOf { (if (it.isLongIndex) 6 else 4) + 4 }
-    val preambleSize = 14
+    // The filter callback receives null entries, so keep the null check. Use the
+    // long jump variant: the short form overflows when many names are excluded.
+    val preambleSize = 17
     val trueReturnOffset = preambleSize + totalComparisonLength
     val falseReturnOffset = trueReturnOffset + 4
     val totalLength = falseReturnOffset + 4
@@ -55,13 +68,24 @@ private fun assembleShortcutPredicate(items: List<ShortcutItemConfig>, capacity:
     }
 
     val buffer = ByteArray(capacity) { 0x7e.toByte() }
-    val preamble = byteArrayOf(
-        0x89.toByte(), 0x01, 0x01,
-        0x94.toByte(), 0x00,
-        0xd3.toByte(), (falseReturnOffset - 5).toByte(), 0x01, 0x00,
-        0x44.toByte(), 0x02, 0x01, 0x00, 0x8e.toByte()
-    )
-    System.arraycopy(preamble, 0, buffer, 0, preamble.size)
+    buffer[0] = 0x89.toByte()   // LoadParam r1, 1
+    buffer[1] = 0x01
+    buffer[2] = 0x01
+    buffer[3] = 0x94.toByte()   // LoadConstNull r0
+    buffer[4] = 0x00
+    val nullJumpOffset = falseReturnOffset - 5
+    buffer[5] = 0xd4.toByte()   // JStrictEqualLong r1, r0, falseReturn
+    buffer[6] = (nullJumpOffset and 0xFF).toByte()
+    buffer[7] = ((nullJumpOffset ushr 8) and 0xFF).toByte()
+    buffer[8] = ((nullJumpOffset ushr 16) and 0xFF).toByte()
+    buffer[9] = ((nullJumpOffset ushr 24) and 0xFF).toByte()
+    buffer[10] = 0x01
+    buffer[11] = 0x00
+    buffer[12] = 0x44.toByte()  // GetByIdShort r2, r1, 0, "name"
+    buffer[13] = 0x02
+    buffer[14] = 0x01
+    buffer[15] = 0x00
+    buffer[16] = nameStringId.toByte()
 
     var cursor = preambleSize
     for (item in items) {
@@ -161,6 +185,27 @@ val configureShortcutsPatch = rawResourcePatch(
         description = "Hides the Pay Later Anywhere shortcut from the Your Shortcuts carousel."
     )
 
+    val hideSezzlePoints = booleanOption(
+        key = "hideSezzlePoints",
+        default = false,
+        title = "Hide Sezzle Points",
+        description = "Hides the Sezzle Points shortcut from the Your Shortcuts carousel."
+    )
+
+    val hideSezzleSpend = booleanOption(
+        key = "hideSezzleSpend",
+        default = false,
+        title = "Hide Sezzle Spend",
+        description = "Hides the Sezzle Spend shortcut from the Your Shortcuts carousel."
+    )
+
+    val hideSezzleUp = booleanOption(
+        key = "hideSezzleUp",
+        default = false,
+        title = "Hide Sezzle Up",
+        description = "Hides the Sezzle Up shortcut from the Your Shortcuts carousel."
+    )
+
     execute {
         val bundleFile = get("assets/index.android.bundle")
         if (!bundleFile.exists()) {
@@ -209,7 +254,7 @@ val configureShortcutsPatch = rawResourcePatch(
             if (excludedItems.any { it.name == name }) return
             val sid = editor.findStringId(name) ?: return
             val neededBytes = (if (sid > 0xFFFF) 6 else 4) + 4
-            val currentBytes = 14 + excludedItems.sumOf { (if (it.isLongIndex) 6 else 4) + 4 } + 8
+            val currentBytes = 17 + excludedItems.sumOf { (if (it.isLongIndex) 6 else 4) + 4 } + 8
             if (currentBytes + neededBytes <= DONOR_CAPACITY) {
                 excludedItems.add(ShortcutItemConfig(name, sid > 0xFFFF, sid))
             }
@@ -227,13 +272,11 @@ val configureShortcutsPatch = rawResourcePatch(
             tryExclude("user_referrals")
         }
 
-        // The promotional offer shortcut is identified as 'sezzle_mobile' or 'offers'
-        if (hideOffers.value == true || hideSezzleMobile.value == true) {
+        if (hideSezzleMobile.value == true) {
             tryExclude("sezzle_mobile")
         }
         if (hideOffers.value == true) {
             tryExclude("offers")
-            tryExclude("offer")
         }
         if (hideGiveaway.value == true) {
             tryExclude("giveaway")
@@ -260,18 +303,43 @@ val configureShortcutsPatch = rawResourcePatch(
                 )
             }
             tryExclude("amazonDeals")
-            tryExclude("amazon")
-            tryExclude("amazonStore")
-            tryExclude("deals")
-            tryExclude("deal")
         }
         if (hidePayLaterAnywhere.value == true) {
             tryExclude("anywhere")
-            tryExclude("sezzleAnywhere")
+            // Pay Later Anywhere is served under cohort-specific discount names.
+            for ((name, donor) in listOf(
+                "anywhere_50_pct_off" to "__STORYBOOK_PREVIEW__",
+                "anywhere_75_pct_off" to "__STORYBOOK_CLIENT_API__",
+                "anywhere_90_pct_off" to "__STORYBOOK_ADDONS_CHANNEL__",
+                "anywhere_95_pct_off" to "__STORYBOOK_STORY_STORE__"
+            )) {
+                if (editor.findStringId(name) == null) {
+                    editor.replaceStringUsingDonor(target = donor, replacement = name, donor = donor)
+                }
+                tryExclude(name)
+            }
+        }
+        if (hideSezzlePoints.value == true) {
+            if (editor.findStringId("sezzle_points") == null) {
+                editor.replaceStringUsingDonor(
+                    target = "__STORYBOOK_ADDONS_MANAGER",
+                    replacement = "sezzle_points",
+                    donor = "__STORYBOOK_ADDONS_MANAGER"
+                )
+            }
+            tryExclude("sezzle_points")
+        }
+        if (hideSezzleSpend.value == true) {
+            tryExclude("sezzle_spend")
+        }
+        if (hideSezzleUp.value == true) {
+            tryExclude("sezzle_up")
         }
 
         if (excludedItems.isNotEmpty()) {
-            val predicateBytes = assembleShortcutPredicate(excludedItems, DONOR_CAPACITY)
+            val nameStringId = editor.findStringId("name")
+                ?: throw PatchException("String 'name' not found")
+            val predicateBytes = assembleShortcutPredicate(excludedItems, DONOR_CAPACITY, nameStringId)
             editor.patchBytes(DONOR_CODE_OFFSET, predicateBytes)
             editor.redirectFunctionHeader(SHORTCUTS_FUNCTION_INDEX, DONOR_CODE_OFFSET, DONOR_CAPACITY)
             editor.patchBytes(EXPECTED_SHORTCUTS_CODE_OFFSET, FILTERED_SHORTCUTS_PREFIX_BYTES)

@@ -40,7 +40,7 @@ public final class AdBlockBridge {
     private AdBlockBridge() {}
 
     /**
-     * Attaches to an NHL-owned WebView during creation in Li9l / Ltv7.
+     * Attaches to an NHL-owned WebView during creation in Lqam.
      */
     public static void attach(WebView webView) {
         if (webView == null) return;
@@ -57,7 +57,7 @@ public final class AdBlockBridge {
     }
 
     /**
-     * Modern shouldInterceptRequest override for Lkhd.
+     * Modern shouldInterceptRequest override for Lk5e.
      */
     public static WebResourceResponse intercept(WebView view, WebResourceRequest request) {
         if (view == null || request == null) return null;
@@ -125,7 +125,7 @@ public final class AdBlockBridge {
     }
 
     /**
-     * Legacy shouldInterceptRequest override for Lkhd.
+     * Legacy shouldInterceptRequest override for Lk5e.
      */
     public static WebResourceResponse interceptLegacy(WebView view, String url) {
         if (view == null || url == null) return null;
@@ -199,7 +199,7 @@ public final class AdBlockBridge {
     }
 
     /**
-     * Injected into Lkhd.onPageStarted.
+     * Injected into Lk5e.onPageStarted.
      */
     public static void onPageStarted(WebView view, String url) {
         if (view == null || url == null) return;
@@ -227,7 +227,7 @@ public final class AdBlockBridge {
     }
 
     /**
-     * Injected into Lkhd.onPageFinished.
+     * Injected into Lk5e.onPageFinished.
      */
     public static void onPageFinished(WebView view, String url) {
         if (view == null || url == null) return;
@@ -241,7 +241,7 @@ public final class AdBlockBridge {
     }
 
     /**
-     * Article loadUrl gate: replaces direct WebView.loadUrl(url, headers) calls in Lowk / Ltv7.
+     * Article loadUrl gate: replaces direct WebView.loadUrl(url, headers) calls in Lme.
      */
     public static void load(WebView view, String url, Map<String, String> headers) {
         if (view == null) return;

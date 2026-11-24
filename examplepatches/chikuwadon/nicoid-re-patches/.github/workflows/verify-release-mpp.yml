@@ -18,6 +18,10 @@ on:
       - '.github/scripts/stage-v2.1.5-mpp.sh'
       - '.github/scripts/stage-v2.1.6-mpp.sh'
       - '.github/scripts/stage-v2.1.7-mpp.sh'
+      - '.github/scripts/stage-v2.1.9-mpp.sh'
+      - 'porting/revisions/v2.1.9-release/**'
+      - 'porting/revisions/v2.1.9-dev.7/**'
+      - '.github/release-notes/v2.1.9.md'
       - '.github/scripts/stage-v2.1.8-mpp.sh'
       - 'porting/revisions/v2.1.8-release/**'
       - 'porting/revisions/v2.1.8-dev.2/**'
@@ -56,6 +60,10 @@ on:
       - '.github/scripts/stage-v2.1.5-mpp.sh'
       - '.github/scripts/stage-v2.1.6-mpp.sh'
       - '.github/scripts/stage-v2.1.7-mpp.sh'
+      - '.github/scripts/stage-v2.1.9-mpp.sh'
+      - 'porting/revisions/v2.1.9-release/**'
+      - 'porting/revisions/v2.1.9-dev.7/**'
+      - '.github/release-notes/v2.1.9.md'
       - '.github/scripts/stage-v2.1.8-mpp.sh'
       - 'porting/revisions/v2.1.8-release/**'
       - 'porting/revisions/v2.1.8-dev.2/**'
@@ -104,6 +112,8 @@ jobs:
           bash -n .github/scripts/stage-v2.1.7-mpp.sh
           python3 -m py_compile porting/revisions/v2.1.8-dev.2/stage_candidate.py porting/revisions/v2.1.8-dev.2/sync_payload.py porting/revisions/v2.1.8-release/test_release.py
           bash -n .github/scripts/stage-v2.1.8-mpp.sh
+          python3 -m py_compile porting/revisions/v2.1.9-release/stage_candidate.py porting/revisions/v2.1.9-release/test_release.py
+          bash -n .github/scripts/stage-v2.1.9-mpp.sh
           bash porting/revisions/v2.1.4-dev.3/test_budget.sh
       - name: Prove SHA-256 identity of the approved v2.1.4-dev.3 MPP
         run: |
@@ -120,7 +130,9 @@ jobs:
         run: python3 porting/tests/VerifyCanonicalHelpers.py
       - name: Check the approved stable staging contract and release notes
         run: |
-          if grep -Eq '^version[[:space:]]*=[[:space:]]*2[.]1[.]8[[:space:]]*$' gradle.properties; then
+          if grep -Eq '^version[[:space:]]*=[[:space:]]*2[.]1[.]9[[:space:]]*$' gradle.properties; then
+            python3 porting/revisions/v2.1.9-release/test_release.py
+          elif grep -Eq '^version[[:space:]]*=[[:space:]]*2[.]1[.]8[[:space:]]*$' gradle.properties; then
             python3 porting/revisions/v2.1.8-release/test_release.py
           elif grep -Eq '^version[[:space:]]*=[[:space:]]*2[.]1[.]7[[:space:]]*$' gradle.properties; then
             python3 porting/revisions/v2.1.7-release/test_release.py

@@ -1,0 +1,77 @@
+{
+  "name": "IMDb",
+  "workflow": "emulator-imdb.yml",
+  "patches": "patches/src/main/kotlin/app/jofslash/patches/imdb",
+  "extension": "extensions/imdb",
+  "docs": "docs/imdb/README.md",
+  "readme": {
+    "style": "generated",
+    "order": [
+      "Ads",
+      "Privacy",
+      "App"
+    ],
+    "intro": {
+      "Ads": "IMDb's own Sponsored banners, video ads and the ad networks.",
+      "Privacy": "Trackers, permissions and the Braze marketing SDK.",
+      "App": "Prompts the app shows by itself, and signing in with Google without Google Play services."
+    }
+  },
+  "store": "https://play.google.com/store/apps/details?id=com.imdb.mobile",
+  "package": "com.imdb.mobile",
+  "summary": "Remove the ads from the movie and TV database and stop its third-party trackers (comScore, Branch, Pinpoint, clickstream), without an account.",
+  "owners": [
+    "IMDb",
+    "Amazon"
+  ],
+  "apk": {
+    "release": "imdb",
+    "version": "first",
+    "asset": "*.apk",
+    "file": "imdb.apk"
+  },
+  "android": {
+    "note": "IMDb's minSdk is 30 (Android 11), and the x86_64 emulator needs arm64 translation, which google_apis images have from API 30 on (not API 33). The release tries the oldest supported version, the newest stable one and the next one; a pull request the oldest and the newest stable.",
+    "pull_request": [
+      {
+        "api": "30",
+        "android": "11",
+        "channel": "stable"
+      },
+      {
+        "api": "36",
+        "android": "16",
+        "channel": "stable"
+      }
+    ],
+    "full": [
+      {
+        "api": "30",
+        "android": "11",
+        "channel": "stable"
+      },
+      {
+        "api": "36",
+        "android": "16",
+        "channel": "stable"
+      },
+      {
+        "api": "37.0",
+        "android": "17",
+        "channel": "canary"
+      }
+    ]
+  },
+  "check": [
+    "python3 .github/scripts/check_app.py imdb \"$APK\" --cli \"$CLI\" --install --expect-screen --compare-original --adb adb"
+  ],
+  "versions": {
+    "pattern": "\\d+(\\.\\d+)+",
+    "example": "9.3.7.109370600",
+    "source": "apkpure",
+    "apkpure": "https://apkpure.com/imdb-movies-tv/com.imdb.mobile",
+    "file": "apk",
+    "shows": "shows its own screen",
+    "phone_test": "try browsing and a search on a phone: the emulator test only starts the app."
+  }
+}

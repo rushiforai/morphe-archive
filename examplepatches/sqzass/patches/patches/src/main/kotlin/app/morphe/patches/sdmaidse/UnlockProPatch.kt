@@ -9,41 +9,80 @@ package app.morphe.patches.sdmaidse
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
 import app.morphe.patcher.patch.AppTarget
 import app.morphe.patcher.patch.Compatibility
+import app.morphe.patcher.patch.PatchException
 import app.morphe.patcher.patch.bytecodePatch
 import app.morphe.patcher.patch.mutableClassDefBy
 
-private const val UPGRADE_EXTENSIONS = "Leu/darken/sdmse/common/upgrade/UpgradeRepoExtensionsKt;"
+private const val UPGRADE_EXTENSIONS =
+    "Leu/darken/sdmse/common/upgrade/UpgradeRepoExtensionsKt;"
+
+private const val UPGRADE_INFO =
+    "Leu/darken/sdmse/common/upgrade/core/UpgradeRepoFoss\$Info;"
+
+private val INFO_CONSTRUCTOR_PARAMS = listOf(
+    "Z",
+    "Ljava/time/Instant;",
+    "Leu/darken/sdmse/common/upgrade/core/FossUpgrade\$Type;",
+    "Ljava/lang/Throwable;",
+)
 
 @Suppress("unused")
 val unlockProPatch = bytecodePatch(
-    name = "Unlock Donor Status",
-    description = "Unlocks SD Maid SE Pro/Donor features for FOSS build by forcing isPro checks to true",
+    name = "Unlock Pro",
+    description = "Forces SD Maid SE FOSS upgrade state to Pro.",
 ) {
     compatibleWith(
         Compatibility(
             name = "SD Maid 2/SE",
             packageName = "eu.darken.sdmse",
             targets = listOf(
-                AppTarget(version = "2.2.3-rc0", versionCode = 20203000, description = "apk MUST be from GITHUB, NOT APKMirror."),
+                AppTarget(
+                    version = "2.2.3-rc0",
+                    versionCode = 20203000,
+                    description = "GitHub build, not APKMirror.",
+                ),
             ),
         ),
     )
 
     execute {
-        val clazz = mutableClassDefBy(UPGRADE_EXTENSIONS)
+        val info = mutableClassDefBy(UPGRADE_INFO)
 
-        // Patch all isPro-related methods to return Boolean.TRUE
-        clazz.methods.filter { method ->
-            method.name.startsWith("isPro") &&
-                method.returnType == "Ljava/lang/Object;"
-        }.forEach { method ->
-            // Replace method body to immediately return Boolean.TRUE
+        val infoConstructor = info.methods.singleOrNull { method ->
+            method.name == "<init>" &&
+                method.returnType == "V" &&
+                method.parameterTypes == INFO_CONSTRUCTOR_PARAMS
+        } ?: throw PatchException(
+            "SD Maid SE: UpgradeRepoFoss\$Info.<init>(Z, Instant, Type, Throwable) not found (version drift?)",
+        )
+
+        // p0 = this, p1 = isPro.
+        infoConstructor.addInstructions(
+            0,
+            "const/4 p1, 0x1",
+        )
+
+        val extensions = mutableClassDefBy(UPGRADE_EXTENSIONS)
+
+        val isProMethods = extensions.methods.filter { method ->
+            method.name == "isPro" &&
+                method.returnType == "Ljava/lang/Object;" &&
+                method.parameterTypes.size == 2
+        }
+
+        if (isProMethods.isEmpty()) {
+            throw PatchException("SD Maid SE: UpgradeRepoExtensionsKt.isPro(...)Object not found")
+        }
+
+        isProMethods.forEach { method ->
+            // Static extension method: p0/p1 are incoming params.
+            // Overwrite p0 as scratch, then return immediately.
             method.addInstructions(
                 0,
                 """
-                sget-object v0, Ljava/lang/Boolean;->TRUE:Ljava/lang/Boolean;
-                return-object v0
-            """,
+                sget-object p0, Ljava/lang/Boolean;->TRUE:Ljava/lang/Boolean;
+                return-object p0
+                """.trimIndent(),
             )
         }
     }

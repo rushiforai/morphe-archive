@@ -1,6 +1,7 @@
 /*
  * Copyright (C) 2026 lavinhoque33
  * Licensed under the GNU General Public License v3.0.
+ * Modified by lavinhoque33, 2026-11-23.
  * Written by lavinhoque33, 2026-11-22.
  */
 package app.morphe.extension.youtube.patches.player;
@@ -22,15 +23,15 @@ public final class BufferedSeekbarPatch {
     /** Injection point: called only from the native buffered segment painters. */
     @SuppressWarnings("unused")
     public static float restoreBufferedFade(View seekbar, float stockFade, boolean scrubbing) {
-        if (stockFade != 0f || scrubbing || VideoInformation.getLiveStreamState()
-                || PlayerType.getCurrent() != PlayerType.WATCH_WHILE_MAXIMIZED
-                || PlayerControlsVisibility.getCurrent() != PlayerControlsVisibility.PLAYER_CONTROLS_VISIBILITY_HIDDEN
-                || !BaseThemeUtils.isAppThemeResolved()
-                || !BaseThemeUtils.isDarkModeEnabled()
-                || seekbar.getResources().getConfiguration().orientation != Configuration.ORIENTATION_PORTRAIT) {
-            return stockFade;
-        }
+        return stockFade == 0f && !scrubbing && isHiddenPortraitWatch(seekbar) ? HIDDEN_BUFFER_FADE : stockFade;
+    }
 
-        return HIDDEN_BUFFER_FADE;
+    static boolean isHiddenPortraitWatch(View seekbar) {
+        return !VideoInformation.getLiveStreamState()
+                && PlayerType.getCurrent() == PlayerType.WATCH_WHILE_MAXIMIZED
+                && PlayerControlsVisibility.getCurrent() == PlayerControlsVisibility.PLAYER_CONTROLS_VISIBILITY_HIDDEN
+                && BaseThemeUtils.isAppThemeResolved()
+                && BaseThemeUtils.isDarkModeEnabled()
+                && seekbar.getResources().getConfiguration().orientation == Configuration.ORIENTATION_PORTRAIT;
     }
 }

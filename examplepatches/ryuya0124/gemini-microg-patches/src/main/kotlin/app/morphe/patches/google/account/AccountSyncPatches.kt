@@ -29,12 +29,12 @@ val accountSwitchLockBypassPatch = bytecodePatch(
     description = "UNSUPPORTED historical experiment. Do not select: breaks account synchronization/login. Patching will stop if enabled.",
     default = false
 ) {
-    compatibleWith("com.google.android.googlequicksearchbox")
+    compatibleWith(*VersionHookRegistry.compatibility("com.google.android.googlequicksearchbox"))
 
     execute {
         VersionHookRegistry.requireProfile(packageMetadata)
         val lockMutexString = VersionHookRegistry.target(HookId.ACCOUNT_SWITCH_LOCK_BYPASS, packageMetadata).anchorStrings.single()
-        val candidateClasses = getAllClassesWithString(lockMutexString)
+        val candidateClasses = classDefByStrings(lockMutexString)
         println("[AccountSwitchLockBypass] Found ${candidateClasses.size} candidate classes with '$lockMutexString'")
 
         var patchedCount = 0
@@ -79,7 +79,7 @@ val accountSwitchLockBypassPatch = bytecodePatch(
         }
 
         // 直接 "account_switch_lock.lock" を持つクラスの親クラスのコルーチンも念のため探索
-        val lockFileCandidates = getAllClassesWithString("account_switch_lock.lock")
+        val lockFileCandidates = classDefByStrings("account_switch_lock.lock")
         for (classDef in lockFileCandidates) {
             println("[AccountSwitchLockBypass] Lock file referencing class: ${classDef.type}")
         }
@@ -102,12 +102,12 @@ val accountSyncLoopFixPatch = bytecodePatch(
     description = "UNSUPPORTED historical experiment. Do not select: breaks account synchronization/login. Patching will stop if enabled.",
     default = false
 ) {
-    compatibleWith("com.google.android.googlequicksearchbox")
+    compatibleWith(*VersionHookRegistry.compatibility("com.google.android.googlequicksearchbox"))
 
     execute {
         VersionHookRegistry.requireProfile(packageMetadata)
         val targetString = VersionHookRegistry.target(HookId.ACCOUNT_SYNC_LOOP_FIX, packageMetadata).anchorStrings.single()
-        val candidateClasses = getAllClassesWithString(targetString)
+        val candidateClasses = classDefByStrings(targetString)
         println("[AccountSyncLoopFix] Found ${candidateClasses.size} candidate classes with '$targetString'")
 
         var patchedCount = 0
@@ -162,7 +162,7 @@ val accountConvertFallbackPatch = bytecodePatch(
     description = "UNSUPPORTED historical experiment. Do not select: breaks account synchronization/login. Patching will stop if enabled.",
     default = false
 ) {
-    compatibleWith("com.google.android.googlequicksearchbox")
+    compatibleWith(*VersionHookRegistry.compatibility("com.google.android.googlequicksearchbox"))
 
     execute {
         VersionHookRegistry.requireProfile(packageMetadata)
@@ -175,7 +175,7 @@ val accountConvertFallbackPatch = bytecodePatch(
         // 2. flia クラス（アカウントリゾルバ）を特定
         // "Found google email address as the old primary email address" を持つ flhx から特定
         val anchorStr = fallbackSpec.anchorStrings[0]
-        val flhxCandidates = getAllClassesWithString(anchorStr)
+        val flhxCandidates = classDefByStrings(anchorStr)
         println("[AccountConvertFallback] Found ${flhxCandidates.size} candidate classes with '$anchorStr'")
 
         var patchedCount = 0
@@ -191,7 +191,7 @@ val accountConvertFallbackPatch = bytecodePatch(
         }
 
         // eass（Failed to convert AGSA account name to account id. を持つクラス）からも探索
-        val eassCandidates = getAllClassesWithString(fallbackSpec.anchorStrings[1])
+        val eassCandidates = classDefByStrings(fallbackSpec.anchorStrings[1])
         for (classDef in eassCandidates) {
             for (field in classDef.fields) {
                 val fType = field.type

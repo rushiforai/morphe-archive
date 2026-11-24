@@ -1,3 +1,53 @@
+## [1.18.2](https://github.com/0x11DFE/morphe-patches/compare/v1.18.1...v1.18.2) (2026-11-23)
+
+### Bug Fixes
+
+* **galaxymaxhz:** escape the JSON quotes for the smali assembler ([2da8e84](https://github.com/0x11DFE/morphe-patches/commit/2da8e848121a4e4f1b6a057374537ed0a36914c6))
+
+## [1.18.1](https://github.com/0x11DFE/morphe-patches/compare/v1.18.0...v1.18.1) (2026-11-23)
+
+### Bug Fixes
+
+* re-release pending Galaxy MaxHz changes ([67f025f](https://github.com/0x11DFE/morphe-patches/commit/67f025f5fdfd3241e8d0b288e57d2acd5d7f7515))
+
+## [1.18.0](https://github.com/0x11DFE/morphe-patches/compare/v1.17.0...v1.18.0) (2026-11-23)
+
+### New Features
+
+* **galaxymaxhz:** support 9.2.1x and drop all baked version data ([b18688c](https://github.com/0x11DFE/morphe-patches/commit/b18688ccf899990656c046412fa1dd7d1691b453))
+
+### Bug Fixes
+
+* **galaxymaxhz:** compile against the real dexlib2 accessors ([98dfc4c](https://github.com/0x11DFE/morphe-patches/commit/98dfc4cea52f7cd205aa016f456c7cd7d56e8a2d))
+
+## [1.17.0](https://github.com/0x11DFE/morphe-patches/compare/v1.16.0...v1.17.0) (2026-11-23)
+
+### New Features
+
+* **galaxymaxhz:** rewrite Unlock Premium as a fully offline unlock ([ab92a54](https://github.com/0x11DFE/morphe-patches/commit/ab92a54dd06f5388d9ed399318432178b64196ee))
+
+### Bug Fixes
+
+* **galaxymaxhz:** fingerprints, honest update check, drop stock-crash patch ([d25bcf5](https://github.com/0x11DFE/morphe-patches/commit/d25bcf56ae565502c0bba7885f811bce3896e44a))
+
+## [1.16.0](https://github.com/0x11DFE/morphe-patches/compare/v1.15.0...v1.16.0) (2026-11-23)
+
+### New Features
+
+* **galaxymaxhz:** bake the device id salt per patch run ([cfe69bc](https://github.com/0x11DFE/morphe-patches/commit/cfe69bc57d1e4185c6305960a896dc36376d3cd1))
+
+## [1.15.0](https://github.com/0x11DFE/morphe-patches/compare/v1.14.0...v1.15.0) (2026-11-23)
+
+### New Features
+
+* **galaxymaxhz:** add Randomise Device ID patch ([4dd7e15](https://github.com/0x11DFE/morphe-patches/commit/4dd7e154aead661a7480db59ed024431f753b6d6))
+
+## [1.14.0](https://github.com/0x11DFE/morphe-patches/compare/v1.13.0...v1.14.0) (2026-11-23)
+
+### New Features
+
+* **galaxymaxhz:** add Unlock Premium patch for Galaxy MaxHz 9.2.0x ([e246f3d](https://github.com/0x11DFE/morphe-patches/commit/e246f3daeeed896b3a4921868ce562e4d577ae54))
+
 ## [1.13.0](https://github.com/0x11DFE/morphe-patches/compare/v1.12.9...v1.13.0) (2026-11-22)
 
 ### New Features

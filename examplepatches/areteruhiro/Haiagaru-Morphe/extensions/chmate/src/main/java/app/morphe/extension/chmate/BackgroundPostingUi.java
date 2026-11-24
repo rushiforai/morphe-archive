@@ -21,6 +21,8 @@ public final class BackgroundPostingUi {
     private static final Map<Activity, WeakReference<Object>> READERS = new WeakHashMap<>();
     private static final Map<Object, Binding> POST_REFRESH = new WeakHashMap<>();
     private static volatile WeakReference<Activity> lastPaused = new WeakReference<>(null);
+    private static WeakReference<Activity> statusToastOwner = new WeakReference<>(null);
+    private static android.widget.Toast statusToast;
 
     private static final class Binding {
         final WeakReference<Object> fragment;
@@ -37,6 +39,7 @@ public final class BackgroundPostingUi {
         boolean hidden;
         boolean failed;
         boolean succeeded;
+        WeakReference<Object> nextReader;
         String submittedBody;
 
         Binding(Object fragment, Activity editor, Activity parent, String version, String thread,
@@ -68,6 +71,9 @@ public final class BackgroundPostingUi {
             if (!supported(version)) return;
             Activity parent = lastPaused.get();
             if (!validParent(editor, parent)) parent = null;
+            Binding existing = BINDINGS.get(fragment);
+            if (existing != null && existing.editor.get() == editor && existing.body.get() == body
+                    && java.util.Objects.equals(existing.postTarget, postTarget)) return;
             Binding binding = new Binding(fragment, editor, parent, version, thread, postTarget, body);
             binding.previousTasks = taskObjects(fragment, version);
             BINDINGS.put(fragment, binding);
@@ -98,10 +104,27 @@ public final class BackgroundPostingUi {
             binding.waiting = false;
             binding.failed = false;
         }
+        clearStatusToast(binding.parent.get());
         clearSubmittedEdgeDraft(binding);
         if (!binding.hidden || binding.thread == null) return;
-        Object reader = binding.reader.get();
-        if (reader == null) return;
+        if (Looper.myLooper() != Looper.getMainLooper()) {
+            MAIN.post(() -> {
+                openNextEditor(binding);
+                queueReaderRefresh(binding);
+            });
+        } else {
+            openNextEditor(binding);
+            queueReaderRefresh(binding);
+        }
+    }
+
+    private static void queueReaderRefresh(Binding binding) {
+        WeakReference<Object> active = READERS.get(binding.parent.get());
+        Object reader = active == null ? binding.reader.get() : active.get();
+        if (reader == null) {
+            openNextEditor(binding);
+            return;
+        }
         POST_REFRESH.put(reader, binding);
         refreshAfterPost(reader, binding, 0);
     }
@@ -117,6 +140,12 @@ public final class BackgroundPostingUi {
             if (editor != null && !editor.isDestroyed() && submitted.contentEquals(body.getText())) {
                 body.setText("");
                 body.setSelection(0);
+                Object fragment = binding.fragment.get();
+                if (fragment != null) try {
+                    fragment.getClass().getMethod("haiagaruSaveExternalDraft").invoke(fragment);
+                } catch (ReflectiveOperationException error) {
+                    android.util.Log.w(TAG, "Submitted draft persistence unavailable", error);
+                }
             }
         };
         if (Looper.myLooper() == Looper.getMainLooper()) clear.run();
@@ -141,31 +170,50 @@ public final class BackgroundPostingUi {
                 if (!Boolean.TRUE.equals(reader.getClass().getMethod("isResumed").invoke(reader))
                         || readerDownloading(reader, binding.version)) {
                     if (attempt < 120) refreshAfterPost(reader, binding, attempt + 1);
-                    else POST_REFRESH.remove(reader);
+                    else {
+                        POST_REFRESH.remove(reader);
+                        openNextEditor(binding);
+                    }
                     return;
                 }
-                POST_REFRESH.remove(reader);
-                OpenTabsRefresh.refreshWatchedFragment(reader);
-                android.util.Log.i(TAG, "Post-success reader refresh dispatched");
+                if (OpenTabsRefresh.refreshWatchedFragment(reader)) {
+                    POST_REFRESH.remove(reader);
+                    android.util.Log.i(TAG, "Post-success reader refresh dispatched");
+                    openNextEditor(binding);
+                } else if (attempt < 120) {
+                    refreshAfterPost(reader, binding, attempt + 1);
+                } else {
+                    POST_REFRESH.remove(reader);
+                    openNextEditor(binding);
+                }
             } catch (Exception error) {
                 POST_REFRESH.remove(reader);
                 android.util.Log.w(TAG, "Post-success reader refresh unavailable", error);
+                openNextEditor(binding);
             }
         }, attempt == 0 ? 350 : 250);
     }
 
     private static boolean readerDownloading(Object reader, String version) throws ReflectiveOperationException {
-        String field = version.contains("191") ? "K" : version.contains("226") ? "B" : null;
-        if (field == null) return false;
-        Object task = NativeFields.find(reader.getClass(), field).get(reader);
-        if (task == null) return false;
-        for (Field candidate : NativeFields.all(task.getClass())) {
-            if (!java.util.concurrent.Future.class.isAssignableFrom(candidate.getType())) continue;
-            candidate.setAccessible(true);
-            java.util.concurrent.Future<?> future = (java.util.concurrent.Future<?>) candidate.get(task);
-            if (future != null && !future.isDone()) return true;
+        if ("0.8.10.242 dev".equals(version)) {
+            Object modelDelegate = NativeFields.find(reader.getClass(), "t").get(reader);
+            Method getValue = modelDelegate.getClass().getMethod("getValue");
+            getValue.setAccessible(true);
+            Object model = getValue.invoke(modelDelegate);
+            Object job = NativeFields.find(model.getClass(), "aI").get(model);
+            if (job == null) return false;
+            Class<?> contract = Class.forName("o.zzcma", false, job.getClass().getClassLoader());
+            return Boolean.TRUE.equals(contract.getMethod("O_").invoke(job));
         }
-        return false;
+
+        boolean old = "0.8.10.191 dev".equals(version);
+        Object task = NativeFields.find(reader.getClass(), old ? "K" : "B").get(reader);
+        if (task == null) return false;
+        Field status = NativeFields.find(task.getClass(), old ? "g" : "f");
+        Field running = status.getType().getDeclaredField(old ? "d" : "b");
+        running.setAccessible(true);
+        // Native uses this state to decide whether the refresh button cancels.
+        return status.get(task) == running.get(null);
     }
 
     static boolean sameThread(String posted, String opened) {
@@ -184,6 +232,7 @@ public final class BackgroundPostingUi {
         EditText body = binding.body.get();
         synchronized (binding) {
             binding.succeeded = false;
+            binding.nextReader = null;
             binding.submittedBody = body == null ? null : body.getText().toString();
             if (editor == null || !enabled(editor) || !validParent(editor, binding.parent.get())) return;
             binding.attempt++;
@@ -269,8 +318,10 @@ public final class BackgroundPostingUi {
             binding.waiting = false;
             binding.failed = true;
             if (!binding.hidden) return;
+            binding.nextReader = null;
             attempt = binding.attempt;
         }
+        clearStatusToast(binding.parent.get());
         java.util.concurrent.CountDownLatch ready = new java.util.concurrent.CountDownLatch(1);
         // A return to the reader may already be queued. Get the editor back in front
         // before the native worker emits its one-shot confirmation event.
@@ -281,6 +332,7 @@ public final class BackgroundPostingUi {
                 ready.countDown();
                 return;
             }
+            synchronized (binding) { binding.hidden = false; }
             awaitCookiePromptEditor(binding, attempt, ready, 0);
         }, 80);
         if (Looper.myLooper() == Looper.getMainLooper()) return;
@@ -320,8 +372,11 @@ public final class BackgroundPostingUi {
             Object fragment = findFragment(callback, 0);
             if (fragment == null) return;
             Binding binding = BINDINGS.get(fragment);
+            // ChMate cancels its lifecycle-bound callback after a successful background post.
+            // Treating that cleanup as a posting failure caused the false
+            // "キャンセルされました" result after "書き込みました".
             if (binding == null || !isError(result, binding.version)) return;
-            nativeFailure(fragment);
+            nativeFailure(fragment, failureMessage(result));
         } catch (Throwable error) {
             android.util.Log.w(TAG, "Could not restore editor after native post error", error);
         }
@@ -330,28 +385,85 @@ public final class BackgroundPostingUi {
     /** New-thread coroutine failures do not use the reply callback classes. */
     public static void nativeFailure(Object fragment, Object reason) {
         if (reason == null || isCancellation(reason)) return;
-        nativeFailure(fragment);
+        nativeFailure(fragment, failureMessage(reason));
     }
 
     public static void nativeFailure(Object fragment) {
+        nativeFailure(fragment, null);
+    }
+
+    /** Native inline errors can arrive without the task's terminal callback. */
+    static void nativeErrorMessage(Activity editor, CharSequence message) {
+        if (editor == null || message == null || message.toString().trim().isEmpty()) return;
+        synchronized (BINDINGS) {
+            for (Binding binding : BINDINGS.values()) {
+                if (binding.editor.get() != editor) continue;
+                synchronized (binding) {
+                    if (!binding.hidden || binding.succeeded) continue;
+                    binding.failed = true;
+                    binding.waiting = false;
+                    binding.nextReader = null;
+                    binding.hidden = false;
+                }
+                clearStatusToast(binding.parent.get());
+                MAIN.post(() -> reopen(editor, binding.parent.get()));
+                return;
+            }
+        }
+    }
+
+    private static void nativeFailure(Object fragment, String detail) {
         Binding binding = BINDINGS.get(fragment);
         if (binding == null) return;
         synchronized (binding) {
-            if (binding.failed || (!binding.waiting && !binding.hidden)) return;
+            if (binding.succeeded || binding.failed || (!binding.waiting && !binding.hidden)) return;
             binding.failed = true;
             binding.waiting = false;
+            binding.nextReader = null;
             if (!binding.hidden) return;
         }
         Activity editor = binding.editor.get();
         Activity parent = binding.parent.get();
+        clearStatusToast(parent);
         if (editor != null && validParent(editor, parent)) {
-            MAIN.postDelayed(() -> {
-                if (!editor.isFinishing() && !editor.isDestroyed()) reopen(editor, parent);
-            }, 80);
+            MAIN.postDelayed(() -> showFailureInReader(binding, detail), 80);
         }
     }
 
+    private static void showFailureInReader(Binding binding, String detail) {
+        Activity editor = binding.editor.get();
+        Activity parent = binding.parent.get();
+        if (!validParent(editor, parent)) return;
+        String message = "書き込みに失敗しました。入力内容は保持されています。";
+        if (detail != null && !detail.isEmpty()) message += "\n\n" + detail;
+        try {
+            new android.app.AlertDialog.Builder(parent)
+                    .setTitle("書き込みエラー")
+                    .setMessage(message)
+                    .setNegativeButton("閉じる", null)
+                    .setPositiveButton("投稿画面を開く", (dialog, which) -> reopen(editor, parent))
+                    .show();
+            android.util.Log.i(TAG, "Native post error shown in the reader");
+        } catch (Throwable unavailable) {
+            android.util.Log.w(TAG, "Could not show post error in the reader", unavailable);
+            reopen(editor, parent);
+        }
+    }
+
+    private static String failureMessage(Object reason) {
+        if (!(reason instanceof Throwable)) return null;
+        Throwable error = (Throwable) reason;
+        String message = error.getLocalizedMessage();
+        if (message == null || message.trim().isEmpty()) message = error.getMessage();
+        if (message == null) return null;
+        message = message.trim().replaceAll("[\\r\\n]+", "\n");
+        // Do not put an unbounded server response or HTML document in a UI dialog.
+        if (message.length() > 500) message = message.substring(0, 500) + "…";
+        return message;
+    }
+
     private static boolean isCancellation(Object reason) {
+        if (reason == null) return false;
         for (Class<?> type = reason.getClass(); type != null; type = type.getSuperclass())
             if (type.getName().equals("java.util.concurrent.CancellationException")) return true;
         return false;
@@ -404,6 +516,93 @@ public final class BackgroundPostingUi {
         }
     }
 
+    static boolean blockEditorWhileSending(Activity parent, Object reader) {
+        if (parent == null) return false;
+        synchronized (BINDINGS) {
+            for (Binding binding : BINDINGS.values()) {
+                if (binding.parent.get() != parent) continue;
+                synchronized (binding) {
+                    Activity editor = binding.editor.get();
+                    if (binding.hidden && !binding.succeeded && !binding.failed
+                            && validParent(editor, parent)) {
+                        // A paused native writer may be waiting for an error/Cookie
+                        // dialog rather than sending. Let the user reach that writer;
+                        // queuing another composer here can leave both waiting forever.
+                        binding.nextReader = null;
+                        binding.waiting = false;
+                        binding.failed = true;
+                        binding.hidden = false;
+                        clearStatusToast(parent);
+                        reopen(editor, parent);
+                        return true;
+                    }
+                }
+            }
+        }
+        return false;
+    }
+
+    private static void openNextEditor(Binding binding) {
+        WeakReference<Object> request;
+        synchronized (binding) {
+            request = binding.nextReader;
+            binding.nextReader = null;
+        }
+        if (request != null) openNextEditorWhenReady(binding, request, 0);
+    }
+
+    private static void showStatusToast(Activity activity, String message) {
+        if (activity == null) return;
+        Runnable show = () -> {
+            if (activity.isFinishing() || activity.isDestroyed()) return;
+            Activity previousOwner = statusToastOwner.get();
+            if (statusToast != null && (previousOwner == activity || previousOwner == null)) {
+                statusToast.cancel();
+            }
+            statusToastOwner = new WeakReference<>(activity);
+            statusToast = android.widget.Toast.makeText(activity, message, android.widget.Toast.LENGTH_SHORT);
+            statusToast.show();
+        };
+        if (Looper.myLooper() == Looper.getMainLooper()) show.run();
+        else MAIN.post(show);
+    }
+
+    private static void clearStatusToast(Activity activity) {
+        Runnable clear = () -> {
+            Activity owner = statusToastOwner.get();
+            if (activity != null && owner != activity) return;
+            if (statusToast != null) statusToast.cancel();
+            statusToast = null;
+            statusToastOwner = new WeakReference<>(null);
+        };
+        if (Looper.myLooper() == Looper.getMainLooper()) clear.run();
+        else MAIN.post(clear);
+    }
+
+    private static void openNextEditorWhenReady(Binding binding, WeakReference<Object> request, int checks) {
+        MAIN.postDelayed(() -> {
+            Activity parent = binding.parent.get();
+            Activity editor = binding.editor.get();
+            Object reader = request.get();
+            if (reader == null || parent == null || parent.isFinishing() || parent.isDestroyed()
+                    || ExternalBoardAuth.activity(reader) != parent) return;
+            if (editor != null && !editor.isDestroyed()) {
+                if (checks < 300) openNextEditorWhenReady(binding, request, checks + 1);
+                return;
+            }
+            try {
+                if (!parent.hasWindowFocus() || !Boolean.TRUE.equals(reader.getClass().getMethod("isResumed").invoke(reader))) return;
+                String url = NativeThreadContext.url(NativeThreadContext.board(reader, binding.version), binding.version, 0);
+                if (!sameThread(binding.thread, url) || url == null) return;
+                Intent intent = new Intent(Intent.ACTION_SENDTO, android.net.Uri.parse(url))
+                        .setClassName(parent.getPackageName(), "jp.syoboi.a2chMate.activity.ResEditActivity$Dialog");
+                parent.startActivity(intent);
+            } catch (Exception error) {
+                android.util.Log.w(TAG, "Next post editor unavailable", error);
+            }
+        }, 100);
+    }
+
     private static boolean moveTo(Activity editor, Activity parent) {
         try {
             if (!validParent(editor, parent)) return false;
@@ -436,7 +635,7 @@ public final class BackgroundPostingUi {
 
     private static boolean enabled(Activity activity) {
         try { return SettingsProfiles.prefs(activity).getBoolean(ENABLED, false); }
-        catch (Throwable ignored) { return true; }
+        catch (Throwable ignored) { return false; }
     }
 
     private static boolean supported(String version) {

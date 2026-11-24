@@ -6,6 +6,7 @@ import android.view.GestureDetector;
 import android.view.MotionEvent;
 import android.view.View;
 import android.widget.TextView;
+import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
@@ -25,8 +26,20 @@ public final class BookSynopsis {
             return size() > KEPT;
         }
     };
+    // The last book details response, whose Data object is the book itself, and the Flutter page
+    // that was in front when it arrived.
+    private static String latest = "";
+    private static WeakReference<Activity> latestPage = new WeakReference<>(null);
+    private static WeakReference<Activity> front = new WeakReference<>(null);
 
     private BookSynopsis() {}
+
+    /** Called when a Flutter page comes to the front. */
+    public static void resumed(Activity activity) {
+        synchronized (BOOKS) {
+            front = new WeakReference<>(activity);
+        }
+    }
 
     /** Called with every successful response of the native HTTP bridge. */
     public static void seen(JSONObject response) {
@@ -43,6 +56,10 @@ public final class BookSynopsis {
         if (!id.isEmpty() && !synopsis.isEmpty()) {
             synchronized (BOOKS) {
                 BOOKS.put(id, new String[]{field(object, "bookName"), synopsis});
+                if (depth == 1) {
+                    latest = id;
+                    latestPage = front;
+                }
             }
             return;
         }
@@ -65,22 +82,39 @@ public final class BookSynopsis {
         return "";
     }
 
-    /** Called from every Flutter page's dispatchTouchEvent; watches for a long press. */
-    public static void touch(Activity activity, MotionEvent event) {
+    // True from a long press that opened the synopsis until that finger lifts.
+    private static boolean swallowing;
+
+    /**
+     * Called from every Flutter page's dispatchTouchEvent; watches for a long press. Returns true
+     * when the event must not reach Flutter: after the synopsis opens, Flutter gets a cancel and
+     * none of the rest of that touch, so the long press does not also tap what was under the finger.
+     */
+    public static boolean touch(Activity activity, MotionEvent event) {
         View decor = activity.getWindow().getDecorView();
         if (!(decor.getTag() instanceof GestureDetector)) {
             decor.setTag(new GestureDetector(activity, new GestureDetector.SimpleOnGestureListener() {
                 @Override public void onLongPress(MotionEvent press) {
-                    show(activity);
+                    if (!show(activity)) return;
+                    MotionEvent cancel = MotionEvent.obtain(press);
+                    cancel.setAction(MotionEvent.ACTION_CANCEL);
+                    activity.getWindow().superDispatchTouchEvent(cancel);
+                    cancel.recycle();
+                    swallowing = true;
                 }
             }));
         }
+        int action = event.getActionMasked();
+        if (action == MotionEvent.ACTION_DOWN) swallowing = false;
         ((GestureDetector) decor.getTag()).onTouchEvent(event);
+        if (!swallowing) return false;
+        if (action == MotionEvent.ACTION_UP || action == MotionEvent.ACTION_CANCEL) swallowing = false;
+        return true;
     }
 
-    private static void show(Activity activity) {
+    private static boolean show(Activity activity) {
         String[] book = bookOnScreen(activity);
-        if (book == null) return;
+        if (book == null) return false;
         String synopsis = book[1];
         AlertDialog dialog = new AlertDialog.Builder(activity)
                 .setTitle(book[0].isEmpty() ? "Synopsis" : book[0])
@@ -91,18 +125,24 @@ public final class BookSynopsis {
                 .show();
         TextView message = dialog.findViewById(android.R.id.message);
         if (message != null) message.setTextIsSelectable(true);
+        return true;
     }
 
-    /** The Flutter page's route carries the book id of a book details page. */
+    /**
+     * A book details page opened from native screens is its own Flutter page whose route carries
+     * the book id. One opened from another Flutter page, such as search, is pushed inside that
+     * page, so it is the book whose details that page fetched last.
+     */
     private static String[] bookOnScreen(Activity activity) {
         ArrayList<String> arguments = activity.getIntent().getStringArrayListExtra("dart_entrypoint_args");
-        String route = arguments == null || arguments.isEmpty() ? "" : arguments.get(0);
-        if (route == null || route.isEmpty()) return null;
+        String route = arguments == null || arguments.isEmpty() || arguments.get(0) == null ? "" : arguments.get(0);
         synchronized (BOOKS) {
             for (Map.Entry<String, String[]> book : BOOKS.entrySet()) {
-                if (route.contains(book.getKey())) return book.getValue();
+                if (!route.isEmpty() && route.contains(book.getKey())) return book.getValue();
             }
+            // ponytail: after going back from those details to the page that opened them, a long
+            // press there still shows them; tracking Flutter's own route stack would fix it.
+            return latestPage.get() == activity ? BOOKS.get(latest) : null;
         }
-        return null;
     }
 }

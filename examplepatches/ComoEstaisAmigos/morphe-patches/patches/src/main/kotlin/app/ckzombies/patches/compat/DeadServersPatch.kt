@@ -1,7 +1,8 @@
 package app.ckzombies.patches.compat
 
+import app.adebisi.patches.shared.rewriteOriginalDexThroughDexPool
 import app.ckzombies.patches.nativelib.deadServersNativePatch
-import app.ckzombies.patches.nativelib.serverCheckStallPatch
+import app.ckzombies.patches.nativelib.networkAvailabilityPatch
 import app.ckzombies.patches.shared.Constants.COMPATIBILITY_CK_ZOMBIES
 import app.morphe.patcher.Fingerprint
 import app.morphe.patcher.extensions.InstructionExtensions.addInstruction
@@ -37,7 +38,7 @@ internal object TapjoyConnectInstanceFingerprint : Fingerprint(
  * causes.
  *
  * Online, the loading screen waits about 30 seconds for gServe's version check, which only ends
- * on its own timeout; [serverCheckStallPatch] makes the game's network availability check return
+ * on its own timeout; [networkAvailabilityPatch] makes the game's network availability check return
  * false, so the login flow never starts and the loading step finishes on its first frame.
  *
  * The engine drives Tapjoy from its frame loop: the points balance about every five seconds in
@@ -67,9 +68,8 @@ internal object TapjoyConnectInstanceFingerprint : Fingerprint(
  * returning there is enough. `GluPlatformActivity.onCreate` still reads the APID through
  * PushManager for JNI initialise, so that getter is put back as a stub.
  *
- * In the mode Morphe Manager patches with, the old bytes stay behind in the original dex
- * without their class definitions, and AhnLab no longer flags OpenFeint either
- * (`PUP/Android.SmsReg`, already on Glu's own APK; OpenFeint sends no SMS).
+ * [rewriteOriginalDexThroughDexPool] so emptied URL constants do not stay in the
+ * original DEX string pool.
  */
 @Suppress("unused")
 val deadServersPatch = patch(
@@ -80,7 +80,7 @@ val deadServersPatch = patch(
     compatibleWith(COMPATIBILITY_CK_ZOMBIES)
 
     dependsOn(
-        serverCheckStallPatch,
+        networkAvailabilityPatch,
         deadServersNativePatch,
         openFeintPatch,
         deadServiceRequestsPatch,
@@ -104,5 +104,6 @@ val deadServersPatch = patch(
                 return-object v0
             """,
         )
+        rewriteOriginalDexThroughDexPool()
     }
 }

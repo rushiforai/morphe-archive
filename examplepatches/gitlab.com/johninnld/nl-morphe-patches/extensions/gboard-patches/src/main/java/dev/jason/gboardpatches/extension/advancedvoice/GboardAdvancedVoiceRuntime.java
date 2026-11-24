@@ -21,8 +21,8 @@ import dev.jason.gboardpatches.extension.rambler.GboardRamblerStockPolicy;
 public final class GboardAdvancedVoiceRuntime {
     private static final String TAG = "GboardPatches";
     private static final String LOG_PREFIX = "[gboard-advanced-voice] ";
-    private static final int ADVANCED_VOICE_PREFERENCE_KEY = 0x7f140971;
-    private static final int AUTO_PUNCTUATION_PREFERENCE_KEY = 0x7f140972;
+    private static final int ADVANCED_VOICE_PREFERENCE_KEY = 0x7f14093c; // 18.8 "enable_enhanced_voice_typing" (jzs)
+    private static final int AUTO_PUNCTUATION_PREFERENCE_KEY = 0x7f14093d; // 18.8 "enable_enhanced_voice_typing_auto_punctuation"
 
     private static final AtomicBoolean ZH_TW_MDD_REQUESTED = new AtomicBoolean(false);
     private static final AtomicInteger INFO_LOG_COUNT = new AtomicInteger();

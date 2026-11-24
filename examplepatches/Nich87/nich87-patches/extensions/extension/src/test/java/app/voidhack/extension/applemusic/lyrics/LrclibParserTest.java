@@ -55,6 +55,39 @@ public final class LrclibParserTest {
     }
 
     @Test
+    public void usesWordTimingFromLrclibWithIndentlessYamlSequences() {
+        String yaml = "version: '1.0'\n"
+                + "lines:\n"
+                + "- text: First line\n"
+                + "  start_ms: 1000\n"
+                + "  words:\n"
+                + "  - text: 'First '\n"
+                + "    start_ms: 1000\n"
+                + "  - text: line\n"
+                + "    start_ms: 1700\n"
+                + "  end_ms: 2300\n"
+                + "- text: Second line\n"
+                + "  start_ms: 3000\n"
+                + "  end_ms: 4200\n"
+                + "  words:\n"
+                + "  - text: 'Second '\n"
+                + "    start_ms: 3000\n"
+                + "  - text: line\n"
+                + "    start_ms: 3800\n";
+        String lrc = "[00:01.00]First line\n[00:03.00]Second line";
+        LrclibModels.LyricsRecord rec = new LrclibModels.LyricsRecord(
+                1L, "Test Track", "Test Artist", "", 10.0, false, true, null, lrc, yaml);
+
+        LrclibParser.TtmlResult res = LrclibParser.buildTtml(rec, 10, true, true, 0, "en");
+        assertEquals(LrclibModels.LyricsSource.LRCLIB_WORD, res.sourceType);
+        assertEquals(2, res.lineCount);
+        assertTrue(res.ttml.contains("<span begin=\"00:01.000\" end=\"00:01.700\">First</span> "
+                + "<span begin=\"00:01.700\" end=\"00:02.300\">line</span>"));
+        assertTrue(res.ttml.contains("<span begin=\"00:03.000\" end=\"00:03.800\">Second</span> "
+                + "<span begin=\"00:03.800\" end=\"00:04.200\">line</span>"));
+    }
+
+    @Test
     public void parsesJapaneseWordSyncedLyricsfileWithoutInsertingSpaces() {
         String yaml = "version: '1.0'\n"
                 + "metadata:\n"

@@ -1,3 +1,9 @@
+## [1.15.0](https://github.com/JacksonJones2003/origin-island-patches/compare/v1.14.2...v1.15.0) (2026-11-24)
+
+### ✨ New Features
+
+* **Apple Music:** show the queue beside the player on unfolded foldables ([04f46fb](https://github.com/JacksonJones2003/origin-island-patches/commit/04f46fb134f07ed57ae6136066edc1b8a3e4e948))
+
 ## [1.14.2](https://github.com/JacksonJones2003/origin-island-patches/compare/v1.14.1...v1.14.2) (2026-11-16)
 
 ### 🐛 Bug Fixes

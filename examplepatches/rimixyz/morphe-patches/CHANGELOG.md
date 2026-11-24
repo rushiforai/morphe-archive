@@ -1,3 +1,50 @@
+## [1.6.6](https://github.com/rimixyz/morphe-patches/compare/v1.6.5...v1.6.6) (2026-11-23)
+
+### 🔧 Improvements
+
+* replace 17TRACK Premium with full ads and tracking blocker, unify Wrestling Revolution patches, bump morphe-patcher to 2.5.0, and polish README ([6bbf8f5](https://github.com/rimixyz/morphe-patches/commit/6bbf8f52151f526678ef7a438382acb8b7b5a5a7))
+
+## [1.6.5](https://github.com/rimixyz/morphe-patches/compare/v1.6.4...v1.6.5) (2026-11-23)
+
+### 🔧 Improvements
+
+* add local backup, restore, and CSV history import patch for MyTherapy ([44a96e9](https://github.com/rimixyz/morphe-patches/commit/44a96e9d012b40d627dbaefc319bf1f210442a0c))
+* unify MyTherapy privacy patches and block all ad formats and SDK initialization ([98734a8](https://github.com/rimixyz/morphe-patches/commit/98734a8798387aa3ee5125d01d2d96fd92563415))
+* unify New Star Soccer ad and privacy patches and enable Retro season selector by default ([aed3b22](https://github.com/rimixyz/morphe-patches/commit/aed3b22f64aad21c208d847fdbc355afcd837959))
+
+### 🐛 Bug Fixes
+
+* create editable schedulers and reminder times when importing MyTherapy CSV history ([fc2e744](https://github.com/rimixyz/morphe-patches/commit/fc2e7449699babbee29658960e45e42ff8eda75f))
+* render MyTherapy backup dialogs with explicit high-contrast theme colors ([dad0971](https://github.com/rimixyz/morphe-patches/commit/dad0971b4127864e2dae0dab7a2b3658a8558e95))
+
+## [1.6.5-dev.4](https://github.com/rimixyz/morphe-patches/compare/v1.6.5-dev.3...v1.6.5-dev.4) (2026-11-22)
+
+### 🔧 Improvements
+
+* unify New Star Soccer ad and privacy patches and enable Retro season selector by default ([aed3b22](https://github.com/rimixyz/morphe-patches/commit/aed3b22f64aad21c208d847fdbc355afcd837959))
+
+## [1.6.5-dev.3](https://github.com/rimixyz/morphe-patches/compare/v1.6.5-dev.2...v1.6.5-dev.3) (2026-11-22)
+
+### 🐛 Bug Fixes
+
+* create editable schedulers and reminder times when importing MyTherapy CSV history ([fc2e744](https://github.com/rimixyz/morphe-patches/commit/fc2e7449699babbee29658960e45e42ff8eda75f))
+
+## [1.6.5-dev.2](https://github.com/rimixyz/morphe-patches/compare/v1.6.5-dev.1...v1.6.5-dev.2) (2026-11-22)
+
+### 🔧 Improvements
+
+* unify MyTherapy privacy patches and block all ad formats and SDK initialization ([98734a8](https://github.com/rimixyz/morphe-patches/commit/98734a8798387aa3ee5125d01d2d96fd92563415))
+
+### 🐛 Bug Fixes
+
+* render MyTherapy backup dialogs with explicit high-contrast theme colors ([dad0971](https://github.com/rimixyz/morphe-patches/commit/dad0971b4127864e2dae0dab7a2b3658a8558e95))
+
+## [1.6.5-dev.1](https://github.com/rimixyz/morphe-patches/compare/v1.6.4...v1.6.5-dev.1) (2026-11-22)
+
+### 🔧 Improvements
+
+* add local backup, restore, and CSV history import patch for MyTherapy ([44a96e9](https://github.com/rimixyz/morphe-patches/commit/44a96e9d012b40d627dbaefc319bf1f210442a0c))
+
 ## [1.6.4](https://github.com/rimixyz/morphe-patches/compare/v1.6.3...v1.6.4) (2026-11-22)
 
 ### 🐛 Bug Fixes

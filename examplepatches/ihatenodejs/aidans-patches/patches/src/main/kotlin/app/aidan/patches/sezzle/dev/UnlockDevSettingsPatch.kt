@@ -5,36 +5,47 @@ import app.aidan.patches.shared.HermesBundleEditor
 import app.morphe.patcher.patch.PatchException
 import app.morphe.patcher.patch.rawResourcePatch
 
-private const val ACCOUNT_EVENT_ALERTS_COHORT_CHECK_OFFSET = 0x62d
-private const val DEV_SETTINGS_EVENT_ALERTS_COHORT_CHECK_OFFSET = 0xef
-private val EXPECTED_ACCOUNT_EVENT_ALERTS_COHORT_CHECK_BYTES = byteArrayOf(
-    0x6e,
-    0x25,
-    0x07,
-    0x02,
-    0x2a
-)
-private val FORCED_ACCOUNT_EVENT_ALERTS_COHORT_BYTES = byteArrayOf(
-    0x95.toByte(),
-    0x25,
-    0x7e,
-    0x7e,
-    0x7e
-)
-private val EXPECTED_DEV_SETTINGS_EVENT_ALERTS_COHORT_CHECK_BYTES = byteArrayOf(
-    0x6e,
-    0x02,
-    0x02,
-    0x00,
-    0x03
-)
-private val FORCED_DEV_SETTINGS_EVENT_ALERTS_COHORT_BYTES = byteArrayOf(
-    0x95.toByte(),
-    0x02,
-    0x7e,
-    0x7e,
-    0x7e
-)
+private const val COHORT_CHECK_SCAN_LIMIT = 20_000
+private const val COHORT_CHECK_PROPERTY = "checkIfUserIsInMobileEventAlertsCohort"
+
+/**
+ * Finds the `Call2` operand that consumes the mobile event-alerts cohort lookup in
+ * [functionName]. The lookup is followed immediately by the call in every supported build.
+ */
+private fun HermesBundleEditor.findCohortCheckCall(functionName: String): Int {
+    val functionOffset = findFunctionOffsetsByName(functionName).singleOrNull()
+        ?: throw PatchException("Expected one $functionName renderer")
+    val propertyId = findStringId(COHORT_CHECK_PROPERTY)
+        ?: throw PatchException("String '$COHORT_CHECK_PROPERTY' not found")
+    val low = (propertyId and 0xFF).toByte()
+    val high = ((propertyId ushr 8) and 0xFF).toByte()
+    val bytes = toByteArray()
+    val limit = minOf(functionOffset + COHORT_CHECK_SCAN_LIMIT, bytes.size - 7)
+
+    for (offset in functionOffset until limit) {
+        if (bytes[offset] != 0x45.toByte() ||
+            bytes[offset + 4] != low ||
+            bytes[offset + 5] != high
+        ) {
+            continue
+        }
+        val callOffset = offset + 6
+        if (bytes[callOffset] == 0x6e.toByte() || bytes[callOffset] == 0x95.toByte()) {
+            return callOffset
+        }
+        throw PatchException("Unexpected cohort check call in $functionName")
+    }
+    throw PatchException("Could not find the event-alerts cohort check in $functionName")
+}
+
+/** Forces the boolean result of the cohort check to `true`. */
+private fun HermesBundleEditor.forceCohortCheckTrue(functionName: String) {
+    val callOffset = findCohortCheckCall(functionName)
+    val bytes = toByteArray()
+    if (bytes[callOffset] == 0x95.toByte()) return
+    val destination = bytes[callOffset + 1]
+    patchBytes(callOffset, byteArrayOf(0x95.toByte(), destination, 0x7e, 0x7e, 0x7e))
+}
 
 @Suppress("unused")
 val unlockDevSettingsPatch = rawResourcePatch(
@@ -52,26 +63,8 @@ val unlockDevSettingsPatch = rawResourcePatch(
         }
 
         val editor = HermesBundleEditor(bundleFile.readBytes())
-        val accountViewOffset = editor.findFunctionOffsetsByName("AccountView").singleOrNull()
-            ?: throw PatchException("Expected one AccountView renderer")
-        val accountCohortCheckOffset = accountViewOffset + ACCOUNT_EVENT_ALERTS_COHORT_CHECK_OFFSET
-
-        if (editor.matchesBytes(accountCohortCheckOffset, EXPECTED_ACCOUNT_EVENT_ALERTS_COHORT_CHECK_BYTES)) {
-            editor.patchBytes(accountCohortCheckOffset, FORCED_ACCOUNT_EVENT_ALERTS_COHORT_BYTES)
-        } else if (!editor.matchesBytes(accountCohortCheckOffset, FORCED_ACCOUNT_EVENT_ALERTS_COHORT_BYTES)) {
-            throw PatchException("Unexpected event-alerts cohort check in AccountView")
-        }
-
-        val devSettingsViewOffset = editor.findFunctionOffsetsByName("DevSettingsView").singleOrNull()
-            ?: throw PatchException("Expected one DevSettingsView renderer")
-        val devSettingsCohortCheckOffset =
-            devSettingsViewOffset + DEV_SETTINGS_EVENT_ALERTS_COHORT_CHECK_OFFSET
-
-        if (editor.matchesBytes(devSettingsCohortCheckOffset, EXPECTED_DEV_SETTINGS_EVENT_ALERTS_COHORT_CHECK_BYTES)) {
-            editor.patchBytes(devSettingsCohortCheckOffset, FORCED_DEV_SETTINGS_EVENT_ALERTS_COHORT_BYTES)
-        } else if (!editor.matchesBytes(devSettingsCohortCheckOffset, FORCED_DEV_SETTINGS_EVENT_ALERTS_COHORT_BYTES)) {
-            throw PatchException("Unexpected event-alerts cohort check in DevSettingsView")
-        }
+        editor.forceCohortCheckTrue("AccountView")
+        editor.forceCohortCheckTrue("DevSettingsView")
 
         editor.updateFooterHash()
         bundleFile.writeBytes(editor.toByteArray())

@@ -16,6 +16,8 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.view.ViewParent;
 
+import app.southstar21.extension.youtubemusic.settings.Settings;
+
 /**
  * A row of glass buttons drawn as one piece of liquid glass, as on iOS: a pressed button swells,
  * leans a little after the finger, stretching along the pull, and springs back when let go,
@@ -225,6 +227,8 @@ final class JellyGlass extends Drawable {
     private final int[] location = new int[2];
     private final float[] uniform = new float[4];
     private RenderNode node;
+    /** Holds the shaded glass in a layer (see Layers). */
+    private RenderNode held;
     private RuntimeShader shader;
     private final FullPlayerGlass.Glass[] fallback;
 
@@ -235,7 +239,10 @@ final class JellyGlass extends Drawable {
         this.drops = drops;
         this.fallback = new FullPlayerGlass.Glass[drops.length];
         for (int i = 0; i < drops.length; i++) {
-            fallback[i] = new FullPlayerGlass.Glass(FullPlayerGlass.Glass.CIRCLE, 0,
+            // A drop that fills its view (the song/video switch) is a capsule the view's size,
+            // not a circle in its middle.
+            fallback[i] = new FullPlayerGlass.Glass(
+                    drops[i].fit ? FullPlayerGlass.Glass.CAPSULE : FullPlayerGlass.Glass.CIRCLE, 0,
                     drops[i].fill > 0.1f ? FullPlayerGlass.Glass.STRONG_FILL : FullPlayerGlass.Glass.FILL);
         }
     }
@@ -244,6 +251,36 @@ final class JellyGlass extends Drawable {
      * Puts the glass behind {@code container}'s buttons and moves the springs one frame on.
      * Runs every frame the full player shows; cheap when everything is in place.
      */
+    /**
+     * The glass reaches past its row (the drops' shadow below them, the rim's bend): the views
+     * around the row clip each child to its own box, which cut the shadow off in a hard line.
+     * Each one stops clipping, from the row up, until one holds the row with that margin, and
+     * never past the page.
+     */
+    private void unclip(ViewGroup container) {
+        // YouTube Music dims the song/video switch (alpha 0.3) for songs without a video, and a
+        // view with alpha is drawn through a layer cut to its own box, glass margin and all.
+        // Drawn without the layer, each part just takes the alpha.
+        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.N
+                && container.hasOverlappingRendering()) {
+            container.forceHasOverlappingRendering(false);
+        }
+        int pad = (int) Math.ceil(12 * density * 1.1f) + 2;
+        float left = -pad, top = -pad, right = container.getWidth() + pad, bottom = container.getHeight() + pad;
+        View child = container;
+        while (child != page && child.getParent() instanceof ViewGroup) {
+            if (left >= 0 && top >= 0 && right <= child.getWidth() && bottom <= child.getHeight()) return;
+            ViewGroup parent = (ViewGroup) child.getParent();
+            if (parent.getClipChildren()) parent.setClipChildren(false);
+            float dx = child.getLeft() + child.getTranslationX(), dy = child.getTop() + child.getTranslationY();
+            left += dx;
+            right += dx;
+            top += dy;
+            bottom += dy;
+            child = parent;
+        }
+    }
+
     void apply(ViewGroup container, boolean relayout) {
         if (container == null) return;
         if (container != this.container) {
@@ -262,6 +299,7 @@ final class JellyGlass extends Drawable {
         }
         if (relayout) {
             for (Drop d : drops) d.view = d.id == 0 ? null : container.findViewById(d.id);
+            unclip(container);
         }
         boolean changed = false;
         for (Drop d : drops) {
@@ -340,6 +378,8 @@ final class JellyGlass extends Drawable {
      * (every frame while the queue sheet moves): then the last drawing is drawn again as is.
      */
     private boolean dirty = true;
+    /** The mode the last frame was drawn in: the liquid node is recorded again after a switch. */
+    private boolean drawnLightweight;
     private int drawnW, drawnH;
     private float drawnX = Float.NaN, drawnY = Float.NaN;
 
@@ -502,7 +542,14 @@ final class JellyGlass extends Drawable {
         }
         ViewGroup c = container;
         if (c == null) return;
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU && canvas.isHardwareAccelerated()
+        // Lightweight glass: each button its own painted glass circle (they still swell and
+        // follow the finger), no refraction shader.
+        boolean lightweight = Settings.lightweightGlass();
+        if (lightweight != drawnLightweight) {
+            drawnLightweight = lightweight;
+            dirty = true;
+        }
+        if (!lightweight && Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU && canvas.isHardwareAccelerated()
                 && c.getWidth() > 0 && c.getHeight() > 0) {
             drawLiquid(canvas, c);
             if (decor != null) decor.draw(canvas);
@@ -531,7 +578,7 @@ final class JellyGlass extends Drawable {
                 && ox == drawnX && oy == drawnY) {
             int save = canvas.save();
             canvas.translate(-pad, -pad);
-            canvas.drawRenderNode(node);
+            canvas.drawRenderNode(Layers.hold(held, node));
             canvas.restoreToCount(save);
             return;
         }
@@ -542,6 +589,7 @@ final class JellyGlass extends Drawable {
         drawnY = oy;
         if (node == null) {
             node = new RenderNode("JellyGlass");
+            held = Layers.holder("JellyGlassLayer");
             shader = new RuntimeShader(SHADER);
         }
         node.setPosition(0, 0, w, h);
@@ -579,7 +627,7 @@ final class JellyGlass extends Drawable {
 
         int save = canvas.save();
         canvas.translate(-pad, -pad);
-        canvas.drawRenderNode(node);
+        canvas.drawRenderNode(Layers.hold(held, node));
         canvas.restoreToCount(save);
     }
 

@@ -27,7 +27,42 @@ dependencies {
     compileOnly(libs.gson)
     patchListGeneratorClasspath(libs.gson)
     pdfboxConfig(libs.pdfbox.android)
+    testImplementation(libs.junit)
 }
+
+val assetPrepDir = rootProject.file("tools/asset-prep")
+val assetPrepHost = providers.exec {
+    commandLine("rustc", "-vV")
+}.standardOutput.asText.map { version ->
+    version.lineSequence().firstOrNull { it.startsWith("host: ") }?.removePrefix("host: ")
+        ?: throw GradleException("rustc -vV did not report a host target")
+}
+// Relative CARGO_TARGET_DIR paths are resolved from the repository root, as in Cargo.
+val assetPrepTargetDir = providers.environmentVariable("CARGO_TARGET_DIR")
+    .map { rootProject.file(it) }
+    .orElse(File(assetPrepDir, "target"))
+val assetPrepBinary = assetPrepHost.map { host ->
+    val suffix = if (host.contains("windows")) ".exe" else ""
+    File(assetPrepTargetDir.get(), "$host/release/asset-prep$suffix")
+}
+val buildAssetPrep = tasks.register<Exec>("buildAssetPrep") {
+    description = "Builds the native host asset preparation tool"
+    workingDir = rootDir
+    inputs.files(File(assetPrepDir, "Cargo.toml"), File(assetPrepDir, "Cargo.lock"))
+    inputs.files(fileTree(File(assetPrepDir, "src")) { include("**/*.rs") })
+    inputs.files(fileTree(File(assetPrepDir, "vendor")))
+    inputs.property("hostTarget", assetPrepHost)
+    outputs.file(assetPrepBinary)
+    doFirst {
+        environment("CARGO_TARGET_DIR", assetPrepTargetDir.get().absolutePath)
+        commandLine(
+            "cargo", "build", "--release", "--locked",
+            "--manifest-path", File(assetPrepDir, "Cargo.toml").absolutePath,
+            "--target", assetPrepHost.get(),
+        )
+    }
+}
+
 val emojiFontDir = layout.buildDirectory.dir("generated/resources/emojiFont")
 val outputFontFile = emojiFontDir.map { it.file("fonts/AppleColorEmoji.ttf") }
 
@@ -36,10 +71,9 @@ val prepareEmojiFont = tasks.register<Exec>("prepareEmojiFont") {
     outputs.file(outputFontFile)
 
     val fontCacheDir = File(gradle.gradleUserHomeDir, "caches/aidans-patches/fonts")
-    val scriptFile = rootProject.file(".github/scripts/prepare_emoji_font.py")
-
-    inputs.file(scriptFile)
-    inputs.property("scriptVersion", "1.0.1")
+    dependsOn(buildAssetPrep)
+    inputs.file(assetPrepBinary)
+    inputs.property("fontSourceSha256", "e37c7af6265ac4a0af6d57bc65e86109a776d9966e8343334557f63da482516f")
 
     workingDir = rootDir
     doFirst {
@@ -48,8 +82,8 @@ val prepareEmojiFont = tasks.register<Exec>("prepareEmojiFont") {
     }
 
     commandLine(
-        "python3",
-        scriptFile.absolutePath,
+        assetPrepBinary.get().absolutePath,
+        "font",
         "--output",
         outputFontFile.get().asFile.absolutePath,
         "--cache-dir",
@@ -294,9 +328,8 @@ val prepareAdobeScanOcrModel = tasks.register<Exec>("prepareAdobeScanOcrModel") 
     outputs.file(outputAdobeScanOcrModel)
 
     val ocrCacheDir = File(gradle.gradleUserHomeDir, "caches/aidans-patches/ocr")
-    val scriptFile = rootProject.file(".github/scripts/prepare_ocr_model.py")
-
-    inputs.file(scriptFile)
+    dependsOn(buildAssetPrep)
+    inputs.file(assetPrepBinary)
     inputs.property("modelVersion", "4.1.0-65727574")
 
     workingDir = rootDir
@@ -306,8 +339,8 @@ val prepareAdobeScanOcrModel = tasks.register<Exec>("prepareAdobeScanOcrModel") 
     }
 
     commandLine(
-        "python3",
-        scriptFile.absolutePath,
+        assetPrepBinary.get().absolutePath,
+        "ocr",
         "--output",
         outputAdobeScanOcrModel.get().asFile.absolutePath,
         "--cache-dir",
@@ -320,8 +353,8 @@ val preparePdfBoxAssets = tasks.register<Exec>("preparePdfBoxAssets") {
     description = "Extracts and packages PDFBox assets into a zip for Adobe Scan"
     outputs.file(outputPdfBoxAssetsZip)
 
-    val scriptFile = rootProject.file(".github/scripts/prepare_pdfbox_assets.py")
-    inputs.file(scriptFile)
+    dependsOn(buildAssetPrep)
+    inputs.file(assetPrepBinary)
     inputs.property("pdfBoxVersion", libs.versions.pdfbox.android.get())
     inputs.files(pdfboxConfig)
 
@@ -331,8 +364,8 @@ val preparePdfBoxAssets = tasks.register<Exec>("preparePdfBoxAssets") {
         val aarFile = pdfboxConfig.files.firstOrNull { it.name.endsWith(".aar") }
             ?: throw GradleException("Could not resolve pdfbox-android AAR dependency from pdfboxConfig configuration.")
         commandLine(
-            "python3",
-            scriptFile.absolutePath,
+            assetPrepBinary.get().absolutePath,
+            "pdfbox",
             "--output",
             outputPdfBoxAssetsZip.get().asFile.absolutePath,
             "--gradle-home",
@@ -345,8 +378,8 @@ val preparePdfBoxAssets = tasks.register<Exec>("preparePdfBoxAssets") {
     }
 
     commandLine(
-        "python3",
-        scriptFile.absolutePath,
+        assetPrepBinary.get().absolutePath,
+        "pdfbox",
         "--output",
         outputPdfBoxAssetsZip.get().asFile.absolutePath,
         "--gradle-home",

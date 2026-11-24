@@ -147,8 +147,13 @@ val speedometerScalePatch = bytecodePatch(
             recordLong("spd", "CONFIG_VALUE_MAP_SPEEDOMETER_MIN_SPEED_KPH" to 0L)
             recordLong("spd", "CONFIG_VALUE_MAP_SHOW_SPEEDOMETER_AFTER_NUM_SESSIONS" to 2_147_483_647L)
         }
-        val dialScale = (dial ?: "1.0x").removeSuffix("x").toFloat()
-        val signScale = (sign ?: "1.0x").removeSuffix("x").toFloat()
+        val dialToken = dial ?: "1.0x"
+        val signToken = sign ?: "1.0x"
+        val allowed = setOf("1.0x", "1.0", "1.15x", "1.3x", "1.5x", "2.0x")
+        requireChoice("speedometerScalePatch", "dial", dialToken, allowed)
+        requireChoice("speedometerScalePatch", "sign", signToken, allowed)
+        val dialScale = dialToken.removeSuffix("x").toFloat()
+        val signScale = signToken.removeSuffix("x").toFloat()
         // Resolved before the stock-size early return: a build that moved the cluster must fail the
         // row loudly, not report success while scaling nothing.
         val method = resolveAnchor(

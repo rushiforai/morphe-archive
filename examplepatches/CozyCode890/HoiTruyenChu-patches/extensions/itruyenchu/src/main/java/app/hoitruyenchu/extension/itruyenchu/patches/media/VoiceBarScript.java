@@ -13,8 +13,8 @@ package app.hoitruyenchu.extension.itruyenchu.patches.media;
  * </ul>
  * The voice bar is found by wrapping react/jsx-runtime: its memo component (function name
  * "VoiceBar") gets a wrapper that tracks mounting and marks its render, and the buttons are
- * recognized by their lucide icon. Module ids of app 2.1.0: 288 react/jsx-runtime, 114 react,
- * 74 react-native, 883 lucide-react-native, 2766 useTTSVoiceStore, 3234 expo-speech.
+ * recognized by their lucide icon. App modules (jsx, react, rn, icons, voice, speech) come from
+ * {@code __htcR(name)}, ids per app version in AppInfo.
  * Plain ES5, everything inside try/catch: an exception escaping here would be a fatal JS error.
  */
 final class VoiceBarScript {
@@ -31,10 +31,10 @@ final class VoiceBarScript {
             + "  try {\n"
             + "    var g = typeof globalThis !== 'undefined' ? globalThis : this;\n"
             + "    if (typeof g.__r !== 'function') { log('no __r'); return; }\n"
-            + "    var JSX = g.__r(288);\n"
-            + "    var React = g.__r(114);\n"
-            + "    var RN = g.__r(74);\n"
-            + "    var VM = g.__r(2766);\n"
+            + "    var JSX = g.__htcR('jsx');\n"
+            + "    var React = g.__htcR('react');\n"
+            + "    var RN = g.__htcR('rn');\n"
+            + "    var VM = g.__htcR('voice');\n"
             + "    var V = VM && VM.useTTSVoiceStore;\n"
             + "    if (!JSX || typeof JSX.jsx !== 'function' || typeof JSX.jsxs !== 'function'\n"
             + "        || !React || typeof React.useEffect !== 'function'\n"
@@ -51,7 +51,7 @@ final class VoiceBarScript {
             + "\n"
             + "    function stopSpeech() {\n"
             + "      try {\n"
-            + "        var S = g.__r(3234);\n"
+            + "        var S = g.__htcR('speech');\n"
             + "        if (S && typeof S.stop === 'function') {\n"
             + "          var p = S.stop();\n"
             + "          if (p && typeof p.then === 'function') p.then(null, function () {});\n"
@@ -106,6 +106,9 @@ final class VoiceBarScript {
             + "      return true;\n"
             + "    }\n"
             + "\n"
+            + "    // Used by the mini player while the reader is under another screen.\n"
+            + "    g.__htcBarCtl = { next: goNext, prev: goPrev };\n"
+            + "\n"
             + "    function onPrevPressed() {\n"
             + "      try { if (!goPrev()) log('no previous chapter'); } catch (e) { log('prev failed ' + e); }\n"
             + "    }\n"
@@ -127,7 +130,7 @@ final class VoiceBarScript {
             + "      for (var k in orig) { if (k.indexOf('__htc') === 0) VoiceBar[k] = orig[k]; }\n"
             + "      VoiceBar.__htc = true;\n"
             + "      memo.type = VoiceBar;\n"
-            + "      try { icons = g.__r(883); } catch (e) { icons = null; }\n"
+            + "      try { icons = g.__htcR('icons'); } catch (e) { icons = null; }\n"
             + "      log('voice bar hooked' + (icons ? '' : ' (no icons)'));\n"
             + "    }\n"
             + "\n"
@@ -221,6 +224,8 @@ final class VoiceBarScript {
             + "    }\n"
             + "\n"
             + "    RN.DeviceEventEmitter.addListener('htcMediaCommand', function (msg) {\n"
+            + "      // The mini player reads (the reader is closed): it answers.\n"
+            + "      try { if (mounted <= 0 && typeof g.__htcPlayerActive === 'function' && g.__htcPlayerActive()) return; } catch (e) {}\n"
             + "      var s = String(msg);\n"
             + "      var i = s.indexOf('#');\n"
             + "      var cmd = i >= 0 ? s.substring(0, i) : s;\n"

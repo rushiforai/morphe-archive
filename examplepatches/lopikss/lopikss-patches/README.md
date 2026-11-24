@@ -82,9 +82,9 @@ Tell me the **game name, Android package, exact version**, what you'd like chang
 This catalog is generated automatically from published Morphe patch metadata.
 
 <!-- PATCHES_START EXPANDED -->
-> **[v1.5.0](https://github.com/lopikss/lopikss-patches/releases/tag/v1.5.0)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;14 patches total
+> **[v1.6.0](https://github.com/lopikss/lopikss-patches/releases/tag/v1.6.0)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;15 patches total
 <details open>
-<summary>📦 XP Hero&nbsp;&nbsp;•&nbsp;&nbsp;14 patches</summary>
+<summary>📦 XP Hero&nbsp;&nbsp;•&nbsp;&nbsp;15 patches</summary>
 <br>
 
 **🎯 Supported versions:**
@@ -98,6 +98,7 @@ This catalog is generated automatically from published Morphe patch metadata.
 | [XP Hero | Free Hero Evolve](#xp-hero-free-hero-evolve) | Experimental: zero hero evolution materials and pieces. |  |
 | [XP Hero | Free Hero Level Up](#xp-hero-free-hero-level-up) | Experimental: zero hero level-up resource costs. |  |
 | [XP Hero | Free Hero Upgrade (0 Shards)](#xp-hero-free-hero-upgrade-0-shards) | Experimental: shows 0 shards, credits +1 just before the normal 1-shard upgrade, then consumes it. Net cost 0; do not combine with 1-shard fallback. |  |
+| [XP Hero | Free Party Skill Enhancements](#xp-hero-free-party-skill-enhancements) | Experimental (27.0.0): zero all three material costs for 60 party-skill levels across six Boss Raid skills, including Battle Cry. In-game completion is not yet verified. |  |
 | [XP Hero | Free Rune Upgrades](#xp-hero-free-rune-upgrades) | Experimental: zero both resource costs for all 1,440 rune upgrade levels. |  |
 | [XP Hero | Free S-Ticket Rolls](#xp-hero-free-s-ticket-rolls) | Experimental: make S-Ticket rolls cost 0 in XP Hero 26.2.0. |  |
 | [XP Hero | Free Shops](#xp-hero-free-shops) | Choose which shop categories have zero in-game currency prices. Open patch settings for six toggles. | • Daily Gem Shop<br>• Chest Shops<br>• Token Shop<br>• Invasion Shop<br>• Exchange Shop<br>• Other Shops |

@@ -5,6 +5,7 @@
 package app.hushgram.extension.instagram.feed;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
 import org.junit.After;
@@ -130,6 +131,62 @@ public class CaptionLengthTest {
                 Surface.SHOPPING_MEDIA_VIEWER, Surface.COMMENTS_VIEW, Surface.NOT_SET}) {
             assertEquals(other.name(), 1, reels(other, 1, true, true));
         }
+    }
+
+    /**
+     * #821: the Reels tab's own caption render (Instagram 456) asks with its count alone. The reels switch
+     * opens it whole, the same as a reel surface through the feed builder.
+     */
+    @Test
+    public void theReelsTabsOwnCaptionOpensWholeWithTheReelSwitch() {
+        assertEquals(Integer.MAX_VALUE, CaptionLength.reelLines(2, () -> true));
+        assertEquals(Integer.MAX_VALUE, CaptionLength.reelLines(1, () -> true));
+        String report = HookStatus.report().toString();
+        assertTrue(report, report.contains(CaptionLength.REEL_COUNT_CHANGED));
+        assertTrue(HookStatus.missing(FamilyNames.EXPAND_CAPTIONS).toString(),
+                HookStatus.missing(FamilyNames.EXPAND_CAPTIONS).isEmpty());
+    }
+
+    @Test
+    public void theReelsTabsOwnCaptionKeepsInstagramsCountOtherwise() {
+        assertEquals("switch off", 2, CaptionLength.reelLines(2, () -> false));
+        assertEquals("no cut", 0, CaptionLength.reelLines(0, () -> true));
+        assertEquals("already open", Integer.MAX_VALUE, CaptionLength.reelLines(Integer.MAX_VALUE, () -> true));
+        assertEquals("a broken switch", 2, CaptionLength.reelLines(2, () -> {
+            throw new IllegalStateException("boom");
+        }));
+        // The public hook reads the saved switch, which starts off.
+        assertEquals(2, CaptionLength.reelLines(2));
+        Settings.EXPAND_REEL_CAPTIONS.save(true);
+        assertEquals(Integer.MAX_VALUE, CaptionLength.reelLines(2));
+    }
+
+    /** #821: with the reel switch on, the Reels tab's caption renders read their caption as open. */
+    @Test
+    public void theReelsTabsOwnCaptionReadsAsOpenWithTheReelSwitch() {
+        assertTrue("a closed caption", CaptionLength.reelCaptionOpen(0, () -> true));
+        assertTrue("an open one", CaptionLength.reelCaptionOpen(1, () -> true));
+        String report = HookStatus.report().toString();
+        assertTrue(report, report.contains(CaptionLength.REEL_OPENED));
+        assertTrue(HookStatus.missing(FamilyNames.EXPAND_CAPTIONS).toString(),
+                HookStatus.missing(FamilyNames.EXPAND_CAPTIONS).isEmpty());
+    }
+
+    @Test
+    public void theReelsTabsOwnCaptionKeepsInstagramsFlagOtherwise() {
+        assertFalse("switch off, closed", CaptionLength.reelCaptionOpen(0, () -> false));
+        assertTrue("switch off, opened by Instagram", CaptionLength.reelCaptionOpen(1, () -> false));
+        assertFalse("a broken switch", CaptionLength.reelCaptionOpen(0, () -> {
+            throw new IllegalStateException("boom");
+        }));
+        String missing = HookStatus.missing(FamilyNames.EXPAND_CAPTIONS).toString();
+        assertTrue(missing, missing.contains(CaptionLength.HOOK));
+        // The public hook reads the saved switch, which starts off.
+        assertFalse(CaptionLength.reelCaptionOpen(0));
+        Settings.EXPAND_REEL_CAPTIONS.save(true);
+        assertTrue(CaptionLength.reelCaptionOpen(0));
+        PauseForTests.pause(HushgramPause.Reason.SWITCH);
+        assertFalse("paused", CaptionLength.reelCaptionOpen(0));
     }
 
     @Test

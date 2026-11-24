@@ -6,15 +6,15 @@ import java.lang.reflect.Method;
 
 /**
  * Resolves the app's loaded {@code CryptoManager} singleton through its Dagger graph, using the
- * obfuscated accessors confirmed for OneConnect 1.8.52.23:
+ * obfuscated accessors confirmed for OneConnect 1.8.52.23 and re-confirmed on 1.8.54.23:
  *
  * <pre>
  *   comp = sk.b.a(context)      // static accessor, returns the component (interface sk.a / impl f4)
  *   cm   = comp.X()             // -&gt; com.samsung.android.oneconnect.base.security.CryptoManager
  * </pre>
  *
- * These names are version-specific; the patch is pinned to 1.8.52.23. All reflective, all guarded —
- * returns null (→ no key, no row) if anything about the graph differs.
+ * These names are version-specific; the patch is pinned to 1.8.52.23 / 1.8.54.23. All reflective,
+ * all guarded — returns null (→ no key, no row) if anything about the graph differs.
  */
 final class DtDi {
 

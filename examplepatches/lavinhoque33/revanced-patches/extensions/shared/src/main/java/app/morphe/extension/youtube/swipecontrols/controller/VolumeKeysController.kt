@@ -1,6 +1,7 @@
 package app.morphe.extension.youtube.swipecontrols.controller
 
 import android.view.KeyEvent
+import app.morphe.extension.youtube.swipecontrols.controller.gesture.core.SwipeDetector.SwipeDirection
 import app.morphe.extension.youtube.swipecontrols.SwipeControlsHostActivity
 
 /**
@@ -44,6 +45,7 @@ class VolumeKeysController(
         if (event.action == KeyEvent.ACTION_DOWN) {
             controller.audio?.apply {
                 adjustVolumeBySteps(controller.config.volumeSwipeSensitivity * if (volumeUp) 1 else -1)
+                controller.overlay.selectGestureStyle(SwipeDirection.NONE)
                 controller.overlay.onVolumeChanged(volume, maxVolume, boostStep)
             }
         }

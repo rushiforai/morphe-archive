@@ -25,7 +25,7 @@ attributes = {
     'Source': 'https://github.com/ryuya0124/gemini-microg-patches',
     'Author': 'ryuya0124',
     'Website': 'https://github.com/ryuya0124/gemini-microg-patches',
-    'Patcher-Version': '1.12.0',
+    'Patcher-Version': '2.5.0',
 }
 lines = []
 for key, value in attributes.items():

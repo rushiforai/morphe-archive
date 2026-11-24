@@ -1,0 +1,30 @@
+[package]
+name = "turbojpeg-sys"
+version = "1.2.0"
+edition = "2021"
+resolver = "2"
+build = "build.rs"
+links = "turbojpeg"
+description = "Raw bindings for TurboJPEG, built from pinned libjpeg-turbo 3.1.1"
+license = "Unlicense OR MIT"
+repository = "https://github.com/honzasp/rust-turbojpeg"
+publish = false
+
+[lib]
+name = "turbojpeg_sys"
+path = "src/lib.rs"
+
+[dependencies]
+libc = "0.2"
+
+[build-dependencies]
+cmake = "0.1"
+
+[features]
+default = ["cmake"]
+# Accepted for compatibility with the upstream `turbojpeg` crate's feature map.
+# This crate always builds the pinned static source; pkg-config is never used.
+cmake = []
+pkg-config = []
+require-simd = []
+bindgen = []

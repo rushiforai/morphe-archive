@@ -13,6 +13,7 @@ import android.widget.LinearLayout;
 import android.widget.ScrollView;
 import android.widget.Switch;
 import android.widget.TextView;
+import app.saketh.extension.comments.TranslateButton;
 import app.saketh.extension.comments.TranslateLanguage;
 import app.saketh.extension.gifs.GifSearch;
 import app.saketh.extension.theme.ThemeHooks;
@@ -70,6 +71,11 @@ public final class PatchControlsActivity extends Activity {
         toggle(blocking, "hide_popups", "Hide promotional popups", "Hide campaigns and automatic prompts. Manual check-in remains available.", true);
         ui.divider(blocking);
         toggle(blocking, "hide_featured_works", "Hide Featured Works page", "Stop the full-screen Featured Works page at launch and its shortcut above the bottom tabs. Reopen the app to apply.", true);
+        ui.section(body, "ACCOUNTS");
+        // WebNovel's own block list, which it otherwise opens only from the menu on your profile.
+        ui.valueRow(ui.card(body), "Blocked accounts", "See the users you blocked. Tap one to open their profile and unblock them.",
+                value -> startActivity(new Intent().setClassName(this, "com.qidian.Int.reader.user.UserBlockedListActivity")))
+                .setText("›");
         ui.section(body, "READER");
         LinearLayout reader = ui.card(body);
         toggle(reader, "disable_reward_timer", "Disable reading reward timer",
@@ -141,7 +147,13 @@ public final class PatchControlsActivity extends Activity {
     }
 
     private void translateLanguage(LinearLayout card) {
-        ui.valueRow(card, "Translate comments to", "Language for Translate in the comment long-press menu. "
+        ui.valueRow(card, "Translate button", "Where Translate appears on comments, reviews and replies.",
+                value -> TranslateButton.choose(this, () -> {
+                    value.setText(TranslateButton.label());
+                    saved.setText("Saved. Reopen the comments to apply.");
+                })).setText(TranslateButton.label());
+        ui.divider(card);
+        ui.valueRow(card, "Translate comments to", "Language for Translate. "
                 + "You can also change it from the translation window.", value -> TranslateLanguage.choose(this, () -> {
                     value.setText(TranslateLanguage.label());
                     saved.setText("Saved. Applies to the next translation.");

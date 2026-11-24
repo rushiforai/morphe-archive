@@ -9,7 +9,7 @@ fun main(args: Array<String>) {
         check(manifest.packageName == "com.google.android.apps.bard.morphe")
         val queries = manifest.manifestElement.getElements("queries").asSequence().toList()
         val packages = queries.flatMap { q -> (q as ResXmlElement).getElements("package").asSequence().toList() }
-        val names = packages.map { (it as ResXmlElement).searchAttributeByName("name")?.valueAsString }
+        val names = packages.map { (it as ResXmlElement).searchAttributeByName("name")?.dataAsString }
         check(names.count { it == "com.google.android.googlequicksearchbox.morphe" } == 1) {
             "Gemini must explicitly query the clone exactly once: $names"
         }

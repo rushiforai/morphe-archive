@@ -1,3 +1,8 @@
+/*
+ * Copyright 2026 amfakh
+ * SPDX-License-Identifier: GPL-3.0-only
+ */
+
 package app.fakh.patches.jira
 
 import app.fakh.patches.jira.shared.Constants.COMPATIBILITY_JIRA

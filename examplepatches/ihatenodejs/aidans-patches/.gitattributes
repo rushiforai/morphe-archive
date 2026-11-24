@@ -6,3 +6,7 @@
 
 # These are Windows script files and should use crlf
 *.bat           text eol=crlf
+
+# Independent raw pixel references must never undergo line-ending conversion.
+*.rgba          binary
+*.zlib          binary

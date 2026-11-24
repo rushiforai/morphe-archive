@@ -36,23 +36,22 @@ val processNameSanitizePatch = bytecodePatch(
     description = "クローン環境下でプロセス名から .morphe を自動除去し、Dagger DI コンポーネントの初期化クラッシュを防止します。",
     default = true
 ) {
-    compatibleWith("com.google.android.googlequicksearchbox")
+    compatibleWith(*VersionHookRegistry.compatibility("com.google.android.googlequicksearchbox"))
 
     execute {
         val spec = VersionHookRegistry.target(HookId.PROCESS_NAME_REDIRECT, packageMetadata)
         val mainSpec = VersionHookRegistry.target(HookId.MAIN_PROCESS_CHECK, packageMetadata)
         val targetProcessKey = spec.anchorStrings.single()
-        val candidateClasses = getAllClassesWithString(targetProcessKey)
+        val candidateClasses = classDefByStrings(targetProcessKey)
         println("[ProcessNameSanitizePatch] Found ${candidateClasses.size} candidate classes with '$targetProcessKey'")
 
         val targetMethodsToPatch = mutableSetOf<String>()
 
         // 1. targetProcessKey を参照しているクラス（gplh 等）からプロセス名取得メソッドを特定
         for (classDef in candidateClasses) {
-            val mutableClass = mutableClassDefBy(classDef)
-            for (method in mutableClass.methods) {
-                if (method.implementation == null) continue
-                val insList = method.instructions.toList()
+            // Identification only reads instructions; the original class is enough.
+            for (method in classDef.methods) {
+                val insList = method.implementation?.instructions?.toList() ?: continue
 
                 val hasProcessString = insList.any { ins ->
                     (ins.opcode == Opcode.CONST_STRING || ins.opcode == Opcode.CONST_STRING_JUMBO) &&
@@ -97,7 +96,7 @@ val processNameSanitizePatch = bytecodePatch(
                     emptySet(), emptySet(),
                     ImmutableMethodImplementation(3, emptyList<Instruction>(), emptyList(), emptyList())
                 ))
-                helper.addInstructions("""
+                helper.addInstructions(0, """
                     const-string v0, ".morphe"
                     const-string v1, ""
                     invoke-virtual {v2, v0, v1}, Ljava/lang/String;->replace(Ljava/lang/CharSequence;Ljava/lang/CharSequence;)Ljava/lang/String;
@@ -141,9 +140,9 @@ val processNameSanitizePatch = bytecodePatch(
         // TikTok's main-process check compares against Context.getPackageName().
         // Give that check the real process name so :search uses its local account
         // store instead of recursively binding AccountSyncService to itself.
-        val mainProcessClasses = getAllClassesWithString(mainSpec.anchorStrings.single())
+        val mainProcessClasses = classDefByStrings(mainSpec.anchorStrings.single())
         var fixedMainProcessChecks = 0
-        for (classDef in mainProcessClasses) {
+        for (classDef in mainProcessClasses.filter { c -> c.methods.any { mainSpec.matches(it) && it.implementation != null } }) {
             val mutableClass = mutableClassDefBy(classDef)
             for (method in mutableClass.methods) {
                 if (!mainSpec.matches(method) || method.implementation == null) continue

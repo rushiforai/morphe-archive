@@ -2,11 +2,10 @@ package app.ckzombies.patches.compat
 
 import app.ckzombies.patches.nativelib.jniGuardsPatch
 import app.ckzombies.patches.shared.Constants.COMPATIBILITY_CK_ZOMBIES
-import app.morphe.patcher.patch.PatchException
+import app.adebisi.patches.shared.removeUnusedNamedEntries
 import app.morphe.patcher.patch.document
 import app.morphe.patcher.patch.patch
 import org.w3c.dom.Document
-import org.w3c.dom.Element
 
 /**
  * The receivers and service of two dead services. Urban Airship delivered push over C2DM, which
@@ -44,16 +43,7 @@ internal fun removeUnusedEntries(document: Document) {
     val wanted = REMOVED_COMPONENTS +
         REMOVED_PERMISSIONS.map { "uses-permission" to if (it.startsWith(".")) packageName + it else it } +
         ("permission" to "$packageName.permission.C2D_MESSAGE")
-
-    // Find every one first, so a missing entry leaves the manifest as it was.
-    val found = wanted.map { (tag, name) ->
-        val list = document.getElementsByTagName(tag)
-        val matches = (0 until list.length).map { list.item(it) as Element }
-            .filter { it.getAttribute("android:name") == name }
-        if (matches.isEmpty()) throw PatchException("AndroidManifest.xml has no <$tag> named $name")
-        matches
-    }
-    found.flatten().forEach { it.parentNode.removeChild(it) }
+    removeUnusedNamedEntries(document, wanted)
 }
 
 @Suppress("unused")

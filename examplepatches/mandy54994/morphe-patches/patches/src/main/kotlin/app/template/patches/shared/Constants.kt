@@ -17,7 +17,7 @@ object Constants {
         name = "Twine RSS Reader",
         packageName = "dev.sasikanth.rss.reader",
         targets = listOf(
-            AppTarget(version = "3.9.0")
+            AppTarget(version = "3.10.0")
         )
     )
 }

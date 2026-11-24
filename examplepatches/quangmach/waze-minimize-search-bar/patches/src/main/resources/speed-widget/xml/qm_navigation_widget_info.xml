@@ -1,0 +1,12 @@
+<appwidget-provider xmlns:android="http://schemas.android.com/apk/res/android"
+    android:initialLayout="@layout/qm_navigation_widget"
+    android:configure="app.template.extension.extension.SpeedWidgetControls"
+    android:minWidth="230dp"
+    android:minHeight="72dp"
+    android:minResizeWidth="180dp"
+    android:minResizeHeight="56dp"
+    android:targetCellWidth="4"
+    android:targetCellHeight="1"
+    android:resizeMode="horizontal|vertical"
+    android:updatePeriodMillis="0"
+    android:widgetCategory="home_screen" />

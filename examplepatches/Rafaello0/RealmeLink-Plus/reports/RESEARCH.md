@@ -41,3 +41,20 @@ https://github.com/hxreborn/morphe-patches/tree/v1.80.0
 - `0x7f130d68` → `@string/link_virtual_experience`
 
 Патч обмежено `fragment_main.xml`, атрибути `visibility=gone` і розміри 0dp для трьох цільових вузлів. Не видаляти вузли або ID: збереження runtime binding. Якщо Morphe resource decode не знаходить рівно один вузол за ID, падати з помилкою, а не переписувати інші layout. Зміни не зачіпають окремі екрани налаштувань навушників або годинника. Програмну появу рекламних віджетів додатково обмежено їхнім нульовим розміром.
+
+
+## Виправлення патчингу після помилок Morphe 2.7.1 / Patcher 2.5.0
+
+На скриншотах від 24 листопада: `ReLoginToastFingerprint` не знайдено,
+а `AMOLED dark theme` впав через залежність `amoledThemeResourcesPatch`.
+Наданий для дослідження APK уже пропатчений hxreborn v1.80.0: SHA-256
+`d1f2a5d8f8fc0d6c4098fb8aff6ec830af42e92ffd9822563f5c8660a650a2ce`;
+у `resources.arsc` є саме ці три маркери теми:
+`hx_page`, `hx_surface`, `hx_on_surface`.
+Відключення hxreborn у Morphe виключає дублювання *джерел*, але не скасовує зміни
+у вже модифікованому APK. Жодного автоматичного «відкату» не робити.
+
+Патч обходу сесії: під час пошуку optional toast тепер `matchAllOrNull`
+замість `matchSingle`, тож відсутність toast не блокує обов'язковий
+`ReLoginPromptFingerprint`. AMOLED-тему не зроблено бездумно «толерантною» до
+змінених ресурсів: потрібний чистий APK та реальна глибинна помилка (Caused by).

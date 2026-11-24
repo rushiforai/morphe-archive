@@ -44,8 +44,14 @@ public final class ProblemReport {
     private static final int KEEP_CRASHES = 3;
     private static final String HANDLE = "u/ZoomSass";
     private static volatile boolean sInstalled;
+    private static volatile Context sApp;
 
     private ProblemReport() {
+    }
+
+    /** The app context, once install has run. Null before that. */
+    static Context app() {
+        return sApp;
     }
 
     /** Replaced by the patch with the bundle version it was built as. */
@@ -62,6 +68,7 @@ public final class ProblemReport {
         if (sInstalled || context == null) return;
         sInstalled = true;
         Context app = context.getApplicationContext() != null ? context.getApplicationContext() : context;
+        sApp = app;
         Thread.UncaughtExceptionHandler previous = Thread.getDefaultUncaughtExceptionHandler();
         Thread.setDefaultUncaughtExceptionHandler((thread, error) -> {
             try {
@@ -195,11 +202,51 @@ public final class ProblemReport {
         out.append("\n[Morphe settings]\n");
         describeMorphe(activity, out);
 
+        out.append("\n[Network]\n");
+        describeNetwork(activity, out);
+
+        out.append("\n[Comment request counts since last clear]\n");
+        List<String> counts = RequestLog.counts(activity);
+        if (counts.isEmpty()) out.append("none recorded\n");
+        for (String line : counts) out.append(line).append('\n');
+
+        out.append("\n[Recent request problems]\n");
+        List<String> requests = RequestLog.lines(activity);
+        if (requests.isEmpty()) out.append("none recorded\n");
+        for (String line : requests) out.append(line).append('\n');
+
+        out.append("\n[Recent good requests]\n");
+        List<String> good = RequestLog.goodLines(activity);
+        if (good.isEmpty()) out.append("none recorded\n");
+        for (String line : good) out.append(line).append('\n');
+
         out.append("\n[Recent crashes]\n");
         List<String> crashes = crashes(activity);
         if (crashes.isEmpty()) out.append("none recorded\n");
         for (String crash : crashes) out.append(crash);
         return out.toString();
+    }
+
+    /** Connection type and whether a VPN is on. Nothing about the network's name or address. */
+    private static void describeNetwork(Activity activity, StringBuilder out) {
+        try {
+            android.net.ConnectivityManager manager = (android.net.ConnectivityManager)
+                    activity.getSystemService(Context.CONNECTIVITY_SERVICE);
+            android.net.Network network = manager == null ? null : manager.getActiveNetwork();
+            android.net.NetworkCapabilities caps = network == null ? null : manager.getNetworkCapabilities(network);
+            if (caps == null) {
+                out.append("Connection: none or unknown\n");
+                return;
+            }
+            String type = caps.hasTransport(android.net.NetworkCapabilities.TRANSPORT_WIFI) ? "wifi"
+                    : caps.hasTransport(android.net.NetworkCapabilities.TRANSPORT_CELLULAR) ? "mobile"
+                    : caps.hasTransport(android.net.NetworkCapabilities.TRANSPORT_ETHERNET) ? "ethernet" : "other";
+            out.append("Connection: ").append(type).append('\n');
+            out.append("VPN: ").append(caps.hasTransport(android.net.NetworkCapabilities.TRANSPORT_VPN) ? "on" : "off")
+                    .append('\n');
+        } catch (Throwable ignored) {
+            out.append("Connection: unknown\n");
+        }
     }
 
     /** Window versus the whole display (split screen, pop-up, folded or unfolded) and navigation mode. */
@@ -284,7 +331,8 @@ public final class ProblemReport {
         }
         float density = activity.getResources().getDisplayMetrics().density;
         LinearLayout page = MorpheDialog.page(activity, "Report a problem",
-                "A report of your phone, screen, app versions and changed settings. No account, subreddits, "
+                "A report of your phone, screen, app versions, changed settings and recent comment requests "
+                        + "(feature names, status codes and counts only). No account, subreddits, "
                         + "posts or anything you've written. It's all shown below, and that's all that gets sent. "
                         + "Uploads are private links, deleted after 30 days.");
         android.widget.EditText note = new android.widget.EditText(activity);
@@ -335,6 +383,7 @@ public final class ProblemReport {
         TextView clear = MorpheDialog.action(activity, "Clear", MorpheDialog.SUB);
         clear.setOnClickListener(v -> {
             new File(activity.getFilesDir(), CRASH_FILE).delete();
+            RequestLog.clear(activity);
             try {
                 base[0] = build(activity);
             } catch (Throwable t) {
@@ -342,9 +391,9 @@ public final class ProblemReport {
             }
             body.setText(base[0]);
             clear.setVisibility(android.view.View.GONE);
-            Toast.makeText(activity, "Crash list cleared", Toast.LENGTH_SHORT).show();
+            Toast.makeText(activity, "Crash and request logs cleared", Toast.LENGTH_SHORT).show();
         });
-        if (crashes(activity).isEmpty()) {
+        if (crashes(activity).isEmpty() && RequestLog.isEmpty(activity)) {
             page.addView(MorpheDialog.actions(activity, copy, share, upload));
         } else {
             page.addView(MorpheDialog.actions(activity, clear, copy, share, upload));

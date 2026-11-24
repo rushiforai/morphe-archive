@@ -1,6 +1,6 @@
 # Patch catalogue
 
-**Patch bundle: 1.101.0**
+**Patch bundle: 1.106.0**
 
 Check the supported app versions and default setting for each patch. The app page explains what each patch changes when using the app.
 
@@ -74,6 +74,32 @@ Check the supported app versions and default setting for each patch. The app pag
 | Remove sponsored items | On | 8.180.0, 8.180.1 |
 | Skip splash promotions | On | 8.180.0, 8.180.1 |
 | Spoof signature | On | 8.180.0, 8.180.1 |
+
+## Angry Birds 2
+
+[What do the patches change?](../apps/angry-birds-2.md)
+
+`com.rovio.baba`
+
+| Patch | Default | App versions |
+| --- | --- | --- |
+| Disable tracking | On | 26.7.3 |
+| Hide ads | On | 26.7.3 |
+| Hide paid shop tab | On | 26.7.3 |
+| Parked app for Android Auto | On | 26.7.3 |
+
+## Angry Birds Friends
+
+[What do the patches change?](../apps/angry-birds-friends.md)
+
+`com.rovio.angrybirdsfriends`
+
+| Patch | Default | App versions |
+| --- | --- | --- |
+| Disable tracking | On | 14.9.0 |
+| Hide ads | On | 14.9.0 |
+| Hide paid shop tab | On | 14.9.0 |
+| Parked app for Android Auto | On | 14.9.0 |
 
 ## Apple Music
 
@@ -175,6 +201,22 @@ Check the supported app versions and default setting for each patch. The app pag
 | Hide ads | On | 1.330.1 |
 | Parked app for Android Auto | On | 1.330.1 |
 
+## Cronometer
+
+[What do the patches change?](../apps/cronometer.md)
+
+`com.cronometer.android.gold`
+
+| Patch | Default | App versions |
+| --- | --- | --- |
+| Disable Adjust tracking | On | 4.57.2 |
+| Disable Amplitude tracking | On | 4.57.2 |
+| Disable Braze tracking | On | 4.57.2 |
+| Disable Datadog telemetry | On | 4.57.2 |
+| Disable Firebase Analytics | On | 4.57.2 |
+| Disable ads | On | 4.57.2 |
+| Disable ads, tracking and Gold upsells | On | 4.57.2 |
+
 ## De Morgen
 
 [What do the patches change?](../apps/demorgen.md)
@@ -229,6 +271,17 @@ Check the supported app versions and default setting for each patch. The app pag
 | Remove subscription paywalls | On | 9.0.27.3 |
 | Search and sort playlists | On | 9.0.27.3 |
 
+## Draw a Stickman: EPIC 3
+
+[What do the patches change?](../apps/draw-a-stickman-epic-3.md)
+
+`com.hitcents.drawastickmanepic3`
+
+| Patch | Default | App versions |
+| --- | --- | --- |
+| Disable tracking | On | 1.13.19873 |
+| Hide ads | On | 1.13.19873 |
+
 ## DS Nieuws
 
 [What do the patches change?](../apps/dsnieuws.md)
@@ -253,6 +306,20 @@ Check the supported app versions and default setting for each patch. The app pag
 | Disable tracking | On | 5.8.0 |
 | Hide ads | On | 5.8.0 |
 | Skip consent screens | On | 5.8.0 |
+
+## dynamicSpot
+
+[What do the patches change?](../apps/dynamicspot.md)
+
+`com.jamworks.dynamicspot`
+
+| Patch | Default | App versions |
+| --- | --- | --- |
+| AMOLED theme | On | 3.02 |
+| Fix PairIP startup | On | 3.02 |
+| Remove promotions | On | 3.02 |
+| Stop automatic app selection | On | 3.02 |
+| Unlock Pro | On | 3.02 |
 
 ## EasyPark
 
@@ -344,6 +411,16 @@ Check the supported app versions and default setting for each patch. The app pag
 | Read full articles | On | 2.6.8 |
 | Skip consent screens | On | 2.6.8 |
 
+## GameSnacks
+
+[What do the patches change?](../apps/gamesnacks.md)
+
+`com.google.android.apps.automotive.gamesnacks`
+
+| Patch | Default | App versions |
+| --- | --- | --- |
+| Parked app for Android Auto | On | 1.40.827663177 |
+
 ## Gboard
 
 [What do the patches change?](../apps/gboard.md)
@@ -362,6 +439,7 @@ Check the supported app versions and default setting for each patch. The app pag
 | Cursor trackpad mode | On | 18.8.0.1022711984-beta-arm64-v8a, 18.8.0.1022711984-beta-armeabi-v7a |
 | Custom Theme | On | 18.8.0.1022711984-beta-arm64-v8a, 18.8.0.1022711984-beta-armeabi-v7a |
 | Custom branding | On | 18.8.0.1022711984-beta-arm64-v8a, 18.8.0.1022711984-beta-armeabi-v7a |
+| Enable Inline Autofill Suggestions | On | 18.8.0.1022711984-beta-arm64-v8a, 18.8.0.1022711984-beta-armeabi-v7a |
 | Enable OCR / Scan Text | On | 18.8.0.1022711984-beta-arm64-v8a, 18.8.0.1022711984-beta-armeabi-v7a |
 | Frosted Glass | On | 18.8.0.1022711984-beta-arm64-v8a, 18.8.0.1022711984-beta-armeabi-v7a |
 | G Logo on Spacebar | On | 18.8.0.1022711984-beta-arm64-v8a, 18.8.0.1022711984-beta-armeabi-v7a |
@@ -381,6 +459,7 @@ Check the supported app versions and default setting for each patch. The app pag
 | Rambler voice typing | On | 18.8.0.1022711984-beta-arm64-v8a, 18.8.0.1022711984-beta-armeabi-v7a |
 | Rounded Keyboard Panel | On | 18.8.0.1022711984-beta-arm64-v8a, 18.8.0.1022711984-beta-armeabi-v7a |
 | Simple Calculator | On | 18.8.0.1022711984-beta-arm64-v8a, 18.8.0.1022711984-beta-armeabi-v7a |
+| Smart Compose | On | 18.8.0.1022711984-beta-arm64-v8a, 18.8.0.1022711984-beta-armeabi-v7a |
 | Toolbar Editing Buttons | On | 18.8.0.1022711984-beta-arm64-v8a, 18.8.0.1022711984-beta-armeabi-v7a |
 | Use Bluetooth microphone | On | 18.8.0.1022711984-beta-arm64-v8a, 18.8.0.1022711984-beta-armeabi-v7a |
 | Web Clipboard | On | 18.8.0.1022711984-beta-arm64-v8a, 18.8.0.1022711984-beta-armeabi-v7a |
@@ -502,6 +581,17 @@ Check the supported app versions and default setting for each patch. The app pag
 | Patch | Default | App versions |
 | --- | --- | --- |
 | Allow any Android Auto host | On | 2026.10.1-full |
+
+## Home Assistant (Automotive)
+
+[What do the patches change?](../apps/homeassistant-automotive.md)
+
+`io.homeassistant.companion.android`
+
+| Patch | Default | App versions |
+| --- | --- | --- |
+| Allow any Android Auto host | On | 2026.11.2-full |
+| Android Auto | On | 2026.11.2-full |
 
 ## Humo
 
@@ -752,6 +842,16 @@ Check the supported app versions and default setting for each patch. The app pag
 | Patch | Default | App versions |
 | --- | --- | --- |
 | Custom branding | On | Any |
+
+## PlugShare (Automotive)
+
+[What do the patches change?](../apps/plugshare.md)
+
+`com.xatori.Plugshare`
+
+| Patch | Default | App versions |
+| --- | --- | --- |
+| Android Auto | On | AAOS v1.8.2 |
 
 ## Podimo
 

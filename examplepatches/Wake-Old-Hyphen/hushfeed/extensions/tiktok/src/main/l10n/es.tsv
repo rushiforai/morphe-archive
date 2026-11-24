@@ -6,7 +6,6 @@ Burn-in guard	Protección contra el quemado de pantalla
 Couldn't add the caption. Saving without it.	No se añadió la descripción. Se guarda sin ella.
 Dim when idle	Atenuar en reposo
 Dim when idle and shift	Atenuar en reposo y desplazar
-For OLED screens. After 5 seconds without a touch, the buttons, caption and tabs over the video dim to a quarter, and your next touch brings them back. Shift also moves everything on the feed a few pixels every 2 minutes.	Para pantallas OLED. Tras 5 segundos sin tocar, los botones, la descripción y las pestañas sobre el vídeo se atenúan a una cuarta parte, y tu siguiente toque los devuelve. Desplazar también mueve todo el feed unos píxeles cada 2 minutos.
 Hashtags	Hashtags
 Importing new history ended Undo for the earlier clear. You can clear the imported history.	Importar un historial nuevo impide deshacer el borrado anterior. Puedes borrar el historial importado.
 %1$d setting in that file can't be restored here and was skipped	%1$d ajuste del archivo no se puede restaurar aquí y se omitió
@@ -1479,6 +1478,8 @@ One speed from %1$s to %2$s, like 1.8, for the hold and its pull-down lock. It t
 Enter one speed from %1$s to %2$s	Introduce una velocidad de %1$s a %2$s
 Slide to change the hold speed	Desliza para cambiar la velocidad al mantener
 Hold speed bubble style	Estilo de la burbuja de velocidad al mantener
+Hold speed bubble size	Tamaño de la burbuja de velocidad al mantener
+How big the bubble is drawn, from %1$d to %2$d. 100 is the normal size, which already grows with your phone's font size.	Qué tan grande se dibuja la burbuja, de %1$d a %2$d. 100 es el tamaño normal, que ya crece con el tamaño de letra de tu teléfono.
 Pill	Píldora
 Circle	Círculo
 Pill is the wide bubble with a row of dots under the speed. Circle is a small round dial with a notch for each speed around its edge.	Píldora es la burbuja ancha con una fila de puntos bajo la velocidad. Círculo es un pequeño dial redondo con una marca por cada velocidad en el borde.
@@ -3187,3 +3188,32 @@ Skips the part of a video where a caption line has a word from Promo words, like
 Promo words	Palabras promocionales
 Separate words or phrases with commas, like casino, promo code. Capital letters don't matter, and "a" & "b" or "a" !& "b" work as they do for Blocked caption words.	Separa palabras o frases con comas, como casino, promo code. Las mayúsculas no importan, y "a" & "b" o "a" !& "b" funcionan igual que en Palabras bloqueadas en las descripciones.
 Skipped a promo line	Se saltó una línea promocional
+Country and date text size	Tamaño del texto del país y la fecha
+Use 0 to match the post date's size, or %1$d to %2$d. Sizes only the line under the caption and keeps Android's font scaling.	Usa 0 para igualar el tamaño de la fecha de publicación, o de %1$d a %2$d. Solo cambia la línea debajo de la descripción y respeta la escala de fuente de Android.
+Post date's size	Tamaño de la fecha de publicación
+Country and date opacity	Opacidad del país y la fecha
+How solid the line under the caption is drawn, from 10 to 100. Lower lets more of the video show through.	Qué tan sólida se dibuja la línea debajo de la descripción, de 10 a 100. Un valor menor deja ver más el vídeo.
+Shadow under the country and date	Sombra bajo el país y la fecha
+Draws a dark shadow under the line's letters so it stays readable on bright videos.	Dibuja una sombra oscura bajo las letras de la línea para que se lea bien en vídeos claros.
+Tap brings the controls back	Tocar devuelve los controles
+A tap shows the hidden controls again instead of pausing the video. They hide again after the delay, or after %1$d seconds if the delay is shorter.	Un toque vuelve a mostrar los controles ocultos en lugar de pausar el vídeo. Se ocultan de nuevo tras el retardo, o tras %1$d segundos si el retardo es menor.
+For OLED screens. After 5 seconds without a touch, the buttons, caption and tabs over the video dim to the level below, and your next touch brings them back. Shift also moves everything on the feed a few pixels every 2 minutes.	Para pantallas OLED. Tras 5 segundos sin tocar, los botones, la descripción y las pestañas sobre el vídeo se atenúan al nivel de abajo, y tu siguiente toque los devuelve. Desplazar también mueve todo el feed unos píxeles cada 2 minutos.
+Burn-in guard dim level	Nivel de atenuación de la protección contra el quemado
+How solid the buttons, caption and tabs are while dimmed, from %1$d to %2$d. Lower dims them more.	Qué tan sólidos quedan los botones, la descripción y las pestañas al atenuarse, de %1$d a %2$d. Un valor menor los atenúa más.
+# context: #501 Fade the controls out, a switch under Automatic Clear display
+Fade the controls out	Desvanecer los controles
+The buttons, caption and tabs fade away instead of vanishing at once, and a touch during the fade brings them back. With Android's animations turned off they still vanish at once.	Los botones, la descripción y las pestañas se desvanecen en lugar de desaparecer de golpe, y un toque durante el desvanecimiento los devuelve. Con las animaciones de Android desactivadas siguen desapareciendo de golpe.
+# context: #461 Date instead of age, a switch under Write the month as a word
+Date instead of age	Fecha en lugar de edad
+Recent videos show the date they were posted by the creator's name, like 10-12, in place of an age like 2d ago. Day before month and Write the month as a word change it the same way.	Los videos recientes muestran la fecha en que se publicaron junto al nombre del creador, como 10-12, en lugar de una edad como hace 2 d. Día antes del mes y Escribir el mes con letras la cambian de la misma forma.
+# context: #503 Keep your place in chats, an Inbox switch under Show message times; the down arrow is the button that jumps a chat to its newest message
+Keep your place in chats	Mantener tu posición en los chats
+A chat you've scrolled up in stays where you were when you come back from a video or send a reply. Sending a regular message or tapping the down arrow still takes you to the newest.	Un chat en el que subiste se queda donde estabas al volver de un video o al enviar una respuesta. Enviar un mensaje normal o tocar la flecha hacia abajo te sigue llevando al más reciente.
+# context: #505 Fill wide videos too, a Playback switch right under Fill the screen with the video; it crops landscape and square videos to cover a phone held upright, which Fill alone leaves whole
+Fill wide videos too	Llenar también con videos anchos
+With the switch above on, landscape and square videos are cropped to cover the screen too, so only their middle shows. Off, they stay whole.	Con el interruptor de arriba activado, los videos horizontales y cuadrados también se recortan para cubrir la pantalla, así que solo se ve su centro. Desactivado, se ven completos.
+# context: Inbox > Streak: a random daily send time (#507)
+Random time each day	Hora aleatoria cada día
+Sends at a different time each day, somewhere between When to send and Latest time.	Envía a una hora distinta cada día, en algún momento entre Cuándo enviar y Hora más tardía.
+Latest time	Hora más tardía
+The end of the random window, on the same day as When to send. If it isn't later, the message goes at When to send.	El final del intervalo aleatorio, el mismo día que Cuándo enviar. Si no es más tarde, el mensaje sale a la hora de Cuándo enviar.

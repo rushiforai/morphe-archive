@@ -7,6 +7,7 @@
  *
  * See the included NOTICE file for GPLv3 Section 7 terms that apply to Morphe contributions.
  * Modified by lavinhoque33, 2026-11-20
+ * Modified by lavinhoque33, 2026-11-23
  */
 
 package app.morphe.extension.youtube.patches.video;
@@ -33,6 +34,7 @@ import app.morphe.extension.shared.settings.BooleanSetting;
 import app.morphe.extension.shared.settings.IntegerSetting;
 import app.morphe.extension.shared.utils.Logger;
 import app.morphe.extension.shared.utils.Utils;
+import app.morphe.extension.youtube.patches.overlaybutton.VideoQualityDialogButton;
 import app.morphe.extension.youtube.patches.utils.PatchStatus;
 import app.morphe.extension.youtube.settings.Settings;
 import app.morphe.extension.youtube.utils.VideoUtils;
@@ -535,6 +537,7 @@ public class VideoQualityPatch {
             VideoQualityInterface updatedCurrentQuality = qualities[Math.max(0, originalQualityIndex)];
             if (updatedCurrentQuality.patch_getResolution() != AUTOMATIC_VIDEO_QUALITY_VALUE) {
                 effectiveQuality = updatedCurrentQuality;
+                VideoQualityDialogButton.onEffectiveQualityChanged();
                 setCurrentQuality(updatedCurrentQuality);
             }
         } catch (Exception ex) {
@@ -594,8 +597,9 @@ public class VideoQualityPatch {
         effectiveQuality = null;
         currentMenuInterface = null;
 
-        // Hide the quality until playback starts and the qualities are available.
+        // Clear both labels until the native player reports the new video's quality.
         updateQualityString(null);
+        VideoQualityDialogButton.onEffectiveQualityChanged();
     }
 
     /**

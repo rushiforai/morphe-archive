@@ -195,7 +195,7 @@ val pictureInPicturePatch = bytecodePatch(
                     AccessFlags.PUBLIC.value,
                     emptySet(),
                     emptySet(),
-                    ImmutableMethodImplementation(4, emptyList(), emptyList(), emptySet()),
+                    ImmutableMethodImplementation(6, emptyList(), emptyList(), emptySet()),
                 ),
             )
             router.addInstructions(
@@ -204,7 +204,14 @@ val pictureInPicturePatch = bytecodePatch(
                 invoke-virtual {p0}, Landroid/app/Activity;->isInPictureInPictureMode()Z
                 move-result v0
                 if-eqz v0, :pipPassThrough
-                const v0, 0x7f0a0820
+                const-string v0, "wazeMapAndroidView"
+                const-string v1, "id"
+                invoke-virtual {p0}, Landroid/content/Context;->getPackageName()Ljava/lang/String;
+                move-result-object v2
+                invoke-virtual {p0}, Landroid/content/Context;->getResources()Landroid/content/res/Resources;
+                move-result-object v3
+                invoke-virtual {v3, v0, v1, v2}, Landroid/content/res/Resources;->getIdentifier(Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)I
+                move-result v0
                 invoke-virtual {p0, v0}, Landroid/app/Activity;->findViewById(I)Landroid/view/View;
                 move-result-object v0
                 if-eqz v0, :pipPassThrough

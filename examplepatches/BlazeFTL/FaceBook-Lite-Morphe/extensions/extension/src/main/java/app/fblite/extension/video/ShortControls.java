@@ -28,17 +28,19 @@ import app.fblite.extension.settings.MorpheLog;
 import app.fblite.extension.settings.MorpheSettings;
 
 /**
- * Facebook Lite gives a seek bar and the back / forward 10 second buttons only to videos of a minute or more. This
- * draws the same controls over reels and full screen videos that are shorter: a seek bar along the bottom of the
- * video, and, while the video is paused or for a moment after a touch, back 10, play / pause and forward 10 in the
- * middle. It talks to the video's own player (MediaPlayerControl), so seeking is the app's own seeking.
+ * Facebook Lite gives a seek bar and the back / forward 10 second buttons only to videos of a minute or more, and
+ * even then not to every reel (a 91 s reel had none). This draws the same controls over reels and full screen
+ * videos that are shorter, and over reels of any length: a seek bar along the bottom of the video, and, while the
+ * video is paused or for a moment after a touch, back 10, play / pause and forward 10 in the middle. It talks to the video's own player (MediaPlayerControl), so seeking is the app's own seeking.
  *
  * The views sit on the window's decor view like the download button, and are hidden while a comment sheet or
  * another list is drawn over the video.
  */
 final class ShortControls {
-    /** Videos at least this long already have the app's own controls. */
+    /** Videos at least this long may have the app's own controls (reels still get ours when the app shows none). */
     private static final int MAX_MS = 60_000;
+    /** A long reel waits this long for the app's own bar before ours is drawn (no flash when the app shows one). */
+    private static final long LONG_GRACE_MS = 700;
     private static final int SKIP_MS = 10_000;
     private static final long TICK_MS = 50;
     private static final long ROW_HOLD_MS = 3000;
@@ -62,6 +64,8 @@ final class ShortControls {
     private static boolean covered;
     private static int lastDuration;
     private static WeakReference<View> lastDurationFor = new WeakReference<>(null);
+    private static WeakReference<View> longFor = new WeakReference<>(null);
+    private static long longSince;
     private static String lastReason = "";
     private static final Rect FRAME = new Rect();
     private static final Overlay.Probe PROBE_MID = new Overlay.Probe();
@@ -216,10 +220,10 @@ final class ShortControls {
         if (video.getWidth() <= 0 || video.getHeight() <= 0) return "video has no size";
         int duration = durationOf(player, video);
         if (duration <= 0) return "no duration yet";
-        if (duration >= MAX_MS) return "video is " + duration / 1000 + " s, the app has its own controls";
         View decor = activity.getWindow().getDecorView();
         boolean tall = video.getHeight() >= video.getWidth() * REEL_ASPECT;
         boolean full = decor.getHeight() > 0 && video.getHeight() >= decor.getHeight() * 0.8f;
+        if (duration >= MAX_MS && !tall) return "video is " + duration / 1000 + " s and not a reel, the app has its own controls";
         return tall || full ? null : "not a reel or full screen video (" + video.getWidth() + "x" + video.getHeight() + ")";
     }
 
@@ -503,6 +507,27 @@ final class ShortControls {
         return NATIVE;
     }
 
+    /** A round "back 10" or "forward 10" button that only draws (the double tap feedback uses it). */
+    static View newSkipGlyph(Context context, boolean forward) {
+        Glyph glyph = new Glyph(context, forward ? Glyph.FORWARD : Glyph.BACK);
+        glyph.setOnClickListener(null);
+        glyph.setClickable(false);
+        glyph.setFocusable(false);
+        return glyph;
+    }
+
+    /** True while the app's own back / forward 10 icons, or our row's, are on screen over this video. */
+    static boolean skipButtonsShowing(Activity activity, View video) {
+        try {
+            if (shown && target.get() == video && back != null && back.getVisibility() == View.VISIBLE) return true;
+            Native app = nativeOf(activity, video);
+            return showing(app.back) || showing(app.forward);
+        } catch (Throwable t) {
+            VideoFeatures.log("Skip buttons check failed", t);
+            return false;
+        }
+    }
+
     /** Shown on screen and not faded out. */
     static boolean showing(View view) {
         if (view == null || !view.isShown() || view.getWidth() <= 0 || view.getHeight() <= 0) return false;
@@ -529,7 +554,8 @@ final class ShortControls {
         int duration = durationOf(player, video);
         int position = player.getCurrentPosition();
         boolean playing = player.isPlaying();
-        if (duration <= 0 || duration >= MAX_MS) return fail("duration " + duration);
+        if (duration <= 0) return fail("duration " + duration);
+        if (duration >= MAX_MS && video.getHeight() < video.getWidth() * REEL_ASPECT) return fail("duration " + duration + ", not a reel");
 
         video.getLocationInWindow(LOCATION);
         int vx = LOCATION[0];
@@ -593,7 +619,15 @@ final class ShortControls {
                     + " " + appBar.getWidth() + "x" + appBar.getHeight() + " alpha " + appBar.getAlpha()
                     + ", video " + (duration / 1000) + " s");
         }
-        int barVisibility = (!appSeek || bar.dragging) ? View.VISIBLE : View.GONE;
+        boolean waiting = false;
+        if (duration >= MAX_MS) {
+            if (longFor.get() != video) {
+                longFor = new WeakReference<>(video);
+                longSince = now;
+            }
+            waiting = now - longSince < LONG_GRACE_MS;
+        }
+        int barVisibility = ((!appSeek && !waiting) || bar.dragging) ? View.VISIBLE : View.GONE;
         if (bar.getVisibility() != barVisibility) {
             bar.setVisibility(barVisibility);
             if (barVisibility == View.VISIBLE) bar.bringToFront();

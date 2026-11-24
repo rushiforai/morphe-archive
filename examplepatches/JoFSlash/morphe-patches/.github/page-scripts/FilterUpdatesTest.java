@@ -32,6 +32,24 @@ public final class FilterUpdatesTest {
         check("   ", false);
         check(null, false);
         check(".a" + " .b".repeat(150), false);
+        // Too wide: they would hide the whole page or every element of a kind.
+        check("*", false);
+        check("div", false);
+        check("body", false);
+        check(".feed > *", false);
+        check(".feed div", false);
+        check("div:has(.ad)", false);
+        check(".a, div", false);
+        check(".a,", false);
+        check("[class*=\"ad\"", false);
+        check(".a:not(.b", false);
+        check("[title=\"a]\"", false);
+        // Narrow enough.
+        check(".feed > [class*=ad]", true);
+        check("div.ad", true);
+        check("#ad", true);
+        check("[data-x=\"a,b > c\"]", true);
+        check("a[href*=\"poe.com\"]:not(.x)", true);
         if (failures > 0) System.exit(1);
         System.out.println("FilterUpdates: ok");
     }

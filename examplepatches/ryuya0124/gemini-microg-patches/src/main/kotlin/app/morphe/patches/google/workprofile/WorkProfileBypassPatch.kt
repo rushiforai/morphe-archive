@@ -16,7 +16,7 @@ val bypassWorkProfilePatch = bytecodePatch(
     description = "セキュアフォルダ（Work Profile）環境下でGeminiネイティブUIの起動を拒否しWeb版へリダイレクトする制限をバイパスします。",
     default = true
 ) {
-    compatibleWith("com.google.android.googlequicksearchbox")
+    compatibleWith(*VersionHookRegistry.compatibility("com.google.android.googlequicksearchbox"))
 
     execute {
         val pkgName = packageMetadata.packageName
@@ -124,8 +124,8 @@ val bypassWorkProfilePatch = bytecodePatch(
         if (patchedCount == 0) {
             println("[WorkProfilePatch] Engaging Tier 3 DEX-wide search...")
             val anchorKeyword = spec.anchorStrings[0]
-            val matchingClasses = getAllClassesWithString(anchorKeyword)
-            for (classDef in matchingClasses) {
+            val matchingClasses = classDefByStrings(anchorKeyword)
+            for (classDef in matchingClasses.filter { c -> c.methods.any { spec.matches(it) && it.implementation != null } }) {
                 val mutableClass = mutableClassDefBy(classDef)
                 for (method in mutableClass.methods) {
                     if (method.implementation == null) continue

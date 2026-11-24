@@ -8,7 +8,7 @@
  * - anddea (https://github.com/anddea)
  *
  * Licensed under the GNU General Public License v3.0.
- * Modified by lavinhoque33, 2026-11-20
+ * Modified by lavinhoque33, 2026-11-23
  *
  * ------------------------------------------------------------------------
  * GPLv3 Section 7 – Additional Terms & Attribution Requirements
@@ -112,9 +112,11 @@ public final class CustomBrandingPatch {
     private static final String DEFAULT_NAME_INDEX_RESOURCE = "morphe_custom_branding_default_name_index";
     private static final String MAIN_ACTIVITY_RESOURCE = "morphe_custom_branding_main_activity";
     private static final String ORIGINAL_LAUNCHER_RESOURCE = "morphe_custom_branding_original_launcher";
+    private static final String ALIAS_KEY_PREFIX_RESOURCE = "morphe_custom_branding_alias_key_prefix";
     private static final String NOTIFICATION_ICON_PREFIX = "morphe_notification_icon_";
     private static final String HEADER_RESOURCE_PREFIX = "morphe_custom_branding_header_";
     private static final String SPLASH_RESOURCE_PREFIX = "morphe_custom_branding_splash_";
+    private static final String SPLASH_FALLBACK_RESOURCE_PREFIX = "morphe_custom_branding_splash_fallback_";
     private static final String SYSTEM_SPLASH_STYLE_PREFIX =
             "morphe_custom_branding_system_splash_";
     private static final String BRANDING_STATE = "morphe_branding_state";
@@ -242,7 +244,7 @@ public final class CustomBrandingPatch {
             if (iconValues.length == 0 || nameEntries.length == 0) return;
 
             // A value equal to a Setting's default is intentionally absent from SharedPreferences.
-            // Only correct an unavailable selection (for example custom assets omitted after a repatch).
+            // Repatching can remove the previously selected pack or custom folder.
             String selectedIcon = SharedYouTubeSettings.CUSTOM_BRANDING_ICON.get();
             if (!hasIcon(iconValues, selectedIcon)) {
                 selectedIcon = getString(context, DEFAULT_ICON_RESOURCE, "original");
@@ -262,7 +264,9 @@ public final class CustomBrandingPatch {
 
             boolean useSystemSplash = isSystemSplashEnabled(context);
             applySystemSplashTheme(activity, useSystemSplash, starting, false);
-            LauncherAliasReconciler.reconcile(context, selectedIcon, selectedNameIndex, useSystemSplash);
+            String aliasKeyPrefix = getString(context, ALIAS_KEY_PREFIX_RESOURCE, "");
+            String aliasIconKey = aliasKeyPrefix.isEmpty() ? selectedIcon : aliasKeyPrefix + selectedIcon;
+            LauncherAliasReconciler.reconcile(context, aliasIconKey, selectedNameIndex, useSystemSplash);
         } catch (Exception ignored) {
             // Branding resources can be missing on a root-mounted installation.
         }
@@ -921,10 +925,14 @@ public final class CustomBrandingPatch {
                 context);
         if (themedIdentifier != 0) return themedIdentifier;
 
-        return ResourceUtils.getIdentifier(
+        int identifier = ResourceUtils.getIdentifier(
                 SPLASH_RESOURCE_PREFIX + selectedIcon,
                 ResourceType.DRAWABLE,
                 context);
+        if (identifier != 0) return identifier;
+
+        String fallback = getString(context, SPLASH_FALLBACK_RESOURCE_PREFIX + selectedIcon, "");
+        return fallback.isEmpty() ? 0 : ResourceUtils.getIdentifier(fallback, ResourceType.DRAWABLE, context);
     }
 
     private static void showSplashOverlay(

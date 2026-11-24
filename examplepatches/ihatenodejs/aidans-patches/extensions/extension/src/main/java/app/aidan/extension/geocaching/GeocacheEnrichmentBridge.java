@@ -12,6 +12,7 @@ import android.graphics.Color;
 import android.graphics.drawable.GradientDrawable;
 import android.view.View;
 import android.widget.TextView;
+import android.widget.Toast;
 import java.io.BufferedReader;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -38,6 +39,7 @@ public final class GeocacheEnrichmentBridge {
     private static final Map<String, Object> sEnrichedCaches = new ConcurrentHashMap<>();
     private static volatile Object sY82 = null;
     private static final Set<String> sPmoCacheCodes = Collections.newSetFromMap(new ConcurrentHashMap<>());
+    private static final Set<String> sWarnedPmoCodes = Collections.newSetFromMap(new ConcurrentHashMap<>());
     private static final Pattern PATTERN_PMO_DESC_PREFIX =
             Pattern.compile("^(\\s*Premium\\s+Member\\s+Only\\s+Cache\\b[.:]?)\\s*(.*)$",
                     Pattern.CASE_INSENSITIVE | Pattern.DOTALL);
@@ -616,99 +618,42 @@ public final class GeocacheEnrichmentBridge {
         }
     }
 
-    public static void bindCacheSummaryWarning(View itemView, Object data) {
-        if (itemView == null) return;
+    public static void notifyPmoRestricted(Context context, Object geocache) {
+        if (context == null || geocache == null) return;
         try {
-            View warningContainer = itemView.findViewWithTag("pmo_warning_container");
-            if (warningContainer == null) {
-                int resId = itemView.getResources().getIdentifier("pmo_warning_container", "id", itemView.getContext().getPackageName());
-                if (resId != 0) {
-                    warningContainer = itemView.findViewById(resId);
-                }
-            }
-            if (warningContainer == null) return;
-
             String code = null;
             boolean isPmo = false;
-            if (data != null) {
-                try {
-                    Field stubField = data.getClass().getField("a");
-                    Object stub = stubField.get(data);
-                    if (stub != null) {
-                        try {
-                            Field codeField = stub.getClass().getField("code");
-                            Object c = codeField.get(stub);
-                            if (c instanceof String) {
-                                code = (String) c;
-                            }
-                        } catch (Throwable ignored) {
-                        }
-                        try {
-                            Field premiumField = stub.getClass().getField("premium");
-                            isPmo = premiumField.getBoolean(stub);
-                        } catch (Throwable ignored) {
-                        }
-                    }
-                } catch (Throwable t) {
-                    Log.w(TAG, "Failed to resolve cache premium status for warning banner", t);
+            try {
+                Field codeField = geocache.getClass().getField("code");
+                Object c = codeField.get(geocache);
+                if (c instanceof String) {
+                    code = (String) c;
                 }
+            } catch (Throwable ignored) {
             }
-            if (code == null) {
-                int codeResId = itemView.getResources().getIdentifier("textview_summary_cachecode", "id", itemView.getContext().getPackageName());
-                if (codeResId != 0) {
-                    View codeView = itemView.findViewById(codeResId);
-                    if (codeView instanceof TextView) {
-                        CharSequence txt = ((TextView) codeView).getText();
-                        if (txt != null) {
-                            code = txt.toString().trim();
-                        }
-                    }
-                }
+            try {
+                Field premiumField = geocache.getClass().getField("isPremium");
+                isPmo = premiumField.getBoolean(geocache);
+            } catch (Throwable ignored) {
             }
-
             if (!isPmo && code != null) {
                 isPmo = isCachePmo(code);
             }
+            if (!isPmo || code == null || code.isEmpty()) return;
 
-            Log.i(TAG, "bindCacheSummaryWarning: code=" + code + ", isPmo=" + isPmo);
-            if (!isPmo) {
-                warningContainer.setVisibility(View.GONE);
-                return;
+            String key = code.toUpperCase();
+            if (sWarnedPmoCodes.size() > 256) {
+                sWarnedPmoCodes.clear();
             }
+            if (!sWarnedPmoCodes.add(key)) return;
 
-            warningContainer.setVisibility(View.VISIBLE);
-
-            Context context = itemView.getContext();
-            boolean isDark = isDarkMode(context);
-            float density = context.getResources().getDisplayMetrics().density;
-
-            GradientDrawable bg = new GradientDrawable();
-            bg.setCornerRadius(8f * density);
-            int strokeWidth = Math.max(1, Math.round(1f * density));
-
-            if (isDark) {
-                bg.setColor(Color.parseColor("#332211"));
-                bg.setStroke(strokeWidth, Color.parseColor("#885522"));
-            } else {
-                bg.setColor(Color.parseColor("#FFF3E0"));
-                bg.setStroke(strokeWidth, Color.parseColor("#FFB74D"));
-            }
-            warningContainer.setBackground(bg);
-
-            View textView = warningContainer.findViewWithTag("pmo_warning_text");
-            if (textView == null) {
-                int textResId = itemView.getResources().getIdentifier("pmo_warning_text", "id", itemView.getContext().getPackageName());
-                if (textResId != 0) {
-                    textView = warningContainer.findViewById(textResId);
-                }
-            }
-            if (textView instanceof TextView) {
-                ((TextView) textView).setTextColor(
-                        isDark ? Color.parseColor("#FFA726") : Color.parseColor("#B54B00")
-                );
-            }
+            Toast.makeText(
+                    context.getApplicationContext(),
+                    "Premium Member Only cache: description, hints and logs are restricted by the server for basic accounts.",
+                    Toast.LENGTH_LONG
+            ).show();
         } catch (Throwable t) {
-            Log.w(TAG, "Failed to bind cache summary warning", t);
+            Log.w(TAG, "Failed to show PMO notice", t);
         }
     }
 

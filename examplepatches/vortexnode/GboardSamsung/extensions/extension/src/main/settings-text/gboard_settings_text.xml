@@ -335,8 +335,52 @@
         <translation locale="ru">Переключение языка свайпом по пробелу</translation>
     </string>
     <string name="gboard_patches_spacebar_language_swipe_summary">
-        <translation locale="en">Swipe left or right on the spacebar to switch Gboard languages. Short tap still inserts a space and holding moves the cursor.</translation>
-        <translation locale="ru">Свайп влево или вправо по пробелу переключает языки Gboard. Короткое нажатие по-прежнему вводит пробел, а удержание перемещает курсор.</translation>
+        <translation locale="en">Swipe left or right on the spacebar to switch Gboard languages. Short tap still inserts a space and holding moves the cursor. One of the 3 modes below is always active (default: Samsung One UI).</translation>
+        <translation locale="ru">Свайп влево или вправо по пробелу переключает языки Gboard. Короткое нажатие по-прежнему вводит пробел, а удержание перемещает курсор. Один из трёх режимов ниже всегда активен (по умолчанию — Samsung One UI).</translation>
+    </string>
+    <string name="gboard_patches_spacebar_swipe_mode_samsung_title">
+        <translation locale="en">Samsung One UI</translation>
+        <translation locale="ru">Samsung One UI</translation>
+    </string>
+    <string name="gboard_patches_spacebar_swipe_mode_samsung_summary">
+        <translation locale="en">Fixed cyclic order of your languages without shuffling. With 4 layouts (1-2-3-4): swipe right-to-left switches to the next language (1 -> 2 -> 3 -> 4 -> 1), swipe left-to-right switches to the previous one (4 -> 3 -> 2 -> 1). Requires Switch language by swiping on spacebar.</translation>
+        <translation locale="ru">Фиксированный циклический порядок языков без перетасовки. Например, при 4 раскладках (1-2-3-4): свайп справа налево включает следующий язык (1 -> 2 -> 3 -> 4 -> 1), слева направо — предыдущий (4 -> 3 -> 2 -> 1). Зависит от переключателя «Переключение языка свайпом по пробелу».</translation>
+    </string>
+    <string name="gboard_patches_spacebar_swipe_mode_samsung_preview_caption">
+        <translation locale="en">Fixed order: swipe left for next, swipe right for previous</translation>
+        <translation locale="ru">Фиксированный цикл: влево — следующий, вправо — предыдущий</translation>
+    </string>
+    <string name="gboard_patches_spacebar_swipe_mode_gboard_title">
+        <translation locale="en">Gboard</translation>
+        <translation locale="ru">Gboard</translation>
+    </string>
+    <string name="gboard_patches_spacebar_swipe_mode_gboard_summary">
+        <translation locale="en">Recent-first order like the stock Gboard globe key. With 4 layouts, your 2 most recently used languages stay at the front so 1 swipe jumps between them, while continuing to swipe reaches the 3rd and 4th layouts. Requires Switch language by swiping on spacebar.</translation>
+        <translation locale="ru">Порядок по недавним языкам, как у кнопки глобуса Gboard. Например, при 4 раскладках 2 последних использованных языка держатся в начале списка для быстрого переключения в 1 свайп, а следующие свайпы открывают 3-й и 4-й языки. Зависит от переключателя «Переключение языка свайпом по пробелу».</translation>
+    </string>
+    <string name="gboard_patches_spacebar_swipe_mode_gboard_preview_caption">
+        <translation locale="en">Recent-first order: fast jump between 2 active languages</translation>
+        <translation locale="ru">Недавние первыми: быстрый переход между 2 основными языками</translation>
+    </string>
+    <string name="gboard_patches_spacebar_swipe_mode_free_title">
+        <translation locale="en">Free direction switching</translation>
+        <translation locale="ru">Свободное переключение</translation>
+    </string>
+    <string name="gboard_patches_spacebar_swipe_mode_free_summary">
+        <translation locale="en">Fixed order (1-2-3-4) without strict swipe sides. Your first swipe in either direction switches to the next language (+1); for 5 seconds, swiping the same way keeps moving forward (+1), while swiping the opposite way goes back (-1). Requires Switch language by swiping on spacebar.</translation>
+        <translation locale="ru">Фиксированный порядок (1-2-3-4) без жёсткой привязки к стороне. Первый свайп в любую сторону включает следующий язык (+1); в течение 5 секунд свайп в ту же сторону идёт дальше (+1), а в противоположную — возвращает назад (-1). Зависит от переключателя «Переключение языка свайпом по пробелу».</translation>
+    </string>
+    <string name="gboard_patches_spacebar_swipe_mode_free_preview_caption">
+        <translation locale="en">First swipe in any direction goes next; opposite goes back within 5s</translation>
+        <translation locale="ru">Первый свайп в любую сторону — вперёд, обратный в течение 5 сек — назад</translation>
+    </string>
+    <string name="gboard_patches_spacebar_swipe_mode_keep_samsung_notice">
+        <translation locale="en">One swipe mode must stay active while spacebar switching is on — keeping default Samsung One UI.</translation>
+        <translation locale="ru">Один из режимов должен быть активен — оставлен режим по умолчанию: Samsung One UI.</translation>
+    </string>
+    <string name="gboard_patches_spacebar_swipe_mode_fallback_samsung_notice">
+        <translation locale="en">One swipe mode must stay active — switched back to default Samsung One UI.</translation>
+        <translation locale="ru">Один из режимов должен быть активен — включён режим по умолчанию: Samsung One UI.</translation>
     </string>
     <string name="gboard_patches_spacebar_language_chevrons_title">
         <translation locale="en">Spacebar language chevrons</translation>
@@ -609,6 +653,14 @@
     <string name="gboard_patches_clipboard_card_preview_limit_summary">
         <translation locale="en">Gboard puts the entire text into each card on the Clipboard page and renders it repeatedly, which can make vertical scrolling stutter. This switch makes each clipboard card actually hold only the first 1,000 characters while it is rendered to avoid scrolling lag.</translation>
         <translation locale="ru">Gboard помещает весь текст целиком в каждую карточку буфера обмена и многократно его перерисовывает, что может вызывать рывки при прокрутке. Этот переключатель ограничивает отображаемый в карточке текст первыми 1000 символами для плавной прокрутки.</translation>
+    </string>
+    <string name="gboard_patches_clipboard_samsung_mode_title">
+        <translation locale="en">Samsung Clipboard</translation>
+        <translation locale="ru">Буфер обмена Samsung</translation>
+    </string>
+    <string name="gboard_patches_clipboard_samsung_mode_summary">
+        <translation locale="en">Save copied text as a single whole block, like Samsung Keyboard. Unlike the stock Google clipboard, Gboard will not split copied text into separate cards for links, phone numbers, addresses, or emails.</translation>
+        <translation locale="ru">Сохранять скопированный текст одним цельным блоком, как в клавиатуре Samsung. В отличие от стандартного буфера Google, Gboard не будет разбивать текст на отдельные карточки со ссылками, телефонами, адресами и почтой.</translation>
     </string>
     <string name="gboard_patches_clipboard_show_sensitive_content_title">
         <translation locale="en">Show sensitive clipboard contents</translation>

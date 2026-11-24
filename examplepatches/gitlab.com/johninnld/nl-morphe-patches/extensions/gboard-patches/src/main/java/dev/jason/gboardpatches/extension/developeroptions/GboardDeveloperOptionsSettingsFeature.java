@@ -12,7 +12,7 @@ import dev.jason.gboardpatches.extension.settings.GboardSettingsText;
 
 public final class GboardDeveloperOptionsSettingsFeature
         implements GboardPatchesSettingsContract.Feature {
-    private static final int TARGET_HEADER_KEY_RESOURCE_ID = 0x7f140a6d;
+    private static final int TARGET_HEADER_KEY_RESOURCE_ID = 0x7f140a66; // "settings_header_developer_options"
 
     private final String entryTitle;
     private final String entrySummary;

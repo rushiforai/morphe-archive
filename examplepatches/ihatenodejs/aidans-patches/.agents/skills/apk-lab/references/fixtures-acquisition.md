@@ -9,6 +9,7 @@ Acquire Android application artifacts directly from Google Play, normalize split
 Downloads APK/APKM artifacts using Google Play accounts (`apkeep` with `goopdl` fallback, followed by configured package mappings in APKMirror) and normalizes multi-split downloads into `.apkm` container bundles (or single `.apk` for APKMirror APK mappings).
 
 ### Normalization Pipeline
+
 1. Downloads base APK and configuration splits (`split_config.*.apk`).
 2. Parses badging metadata across regular `.apk` files using the inspection badging parser (non-APK files such as `.dm`/`.obb` are excluded).
 3. Enforces container invariants:
@@ -17,68 +18,81 @@ Downloads APK/APKM artifacts using Google Play accounts (`apkeep` with `goopdl` 
 4. Packages splits into a canonical `.apkm` ZIP container containing the base and split APKs.
 
 ### Credentials & Prerequisites
+
 - Google Play accounts: `APKEEP_ACCOUNTS` or `${XDG_CONFIG_HOME:-~/.config}/aidans-patches/google-play-accounts.json`.
 - R2 storage: `R2_ACCOUNT_ID`, `R2_ACCESS_KEY_ID`, and `R2_SECRET_ACCESS_KEY` (default bucket: `aidans-patches-apk-fixtures`).
+
 ### CLI Invocation
 
 ```bash
 # Acquire the latest version of an app from Google Play
-uv run --project tools/apk-lab apk-lab acquire com.example.app
+cargo run --locked --quiet --manifest-path tools/apk-lab/Cargo.toml --bin apk-lab -- acquire com.example.app
 
 # Acquire a specific version to a target output directory
-uv run --project tools/apk-lab apk-lab acquire com.example.app \
+cargo run --locked --quiet --manifest-path tools/apk-lab/Cargo.toml --bin apk-lab -- acquire com.example.app \
   --version 2.22.09 \
   --out-dir /tmp/artifacts
 ```
 
 ### CLI Arguments
+
 - `package` (required positional): Application package name.
 - `--version VERSION`: Desired version name.
 - `--version-code INT`: Desired version code.
 - `--out-dir DIR`: Directory to place the acquired artifact (defaults to system temporary directory).
 
 ### Exit Codes
+
 - `0`: Acquisition and normalization succeeded.
 - `4`: `INFRASTRUCTURE_FAILURE` — Downloader authentication error, download failure, network error, or normalization failure.
+
 ---
 
 ## 2. `fixtures` — Private R2 Cloud Fixtures
 
 Manages the repository's two-slot private Cloudflare R2 storage architecture (`aidans-patches-apk-fixtures`):
+
 - `fixtures/<package>/target`: Currently supported production patch target APK.
 - `fixtures/<package>/latest`: Newest version released on Google Play Store.
 
 ### Subcommands
 
 #### `seed`
+
 Uploads a local artifact to an R2 slot, calculating hashes and signing certificate metadata.
+
 ```bash
-uv run --project tools/apk-lab apk-lab fixtures seed \
+cargo run --locked --quiet --manifest-path tools/apk-lab/Cargo.toml --bin apk-lab -- fixtures seed \
   --package com.example.app \
   --role target \
   --artifact path/to/app.apkm
 ```
 
 #### `info`
+
 Inspects fixture metadata stored in R2 (displays role, version name/code, first 16 SHA-256 characters, and acquisition source).
+
 ```bash
 # Check both slots (target and latest)
-uv run --project tools/apk-lab apk-lab fixtures info --package com.example.app
+cargo run --locked --quiet --manifest-path tools/apk-lab/Cargo.toml --bin apk-lab -- fixtures info --package com.example.app
 
 # Check specific slot
-uv run --project tools/apk-lab apk-lab fixtures info --package com.example.app --role target
+cargo run --locked --quiet --manifest-path tools/apk-lab/Cargo.toml --bin apk-lab -- fixtures info --package com.example.app --role target
 ```
 
 #### `download`
+
 Downloads an APK artifact from an R2 slot to local disk.
+
 ```bash
-uv run --project tools/apk-lab apk-lab fixtures download \
+cargo run --locked --quiet --manifest-path tools/apk-lab/Cargo.toml --bin apk-lab -- fixtures download \
   --package com.example.app \
   --role target \
   --out /tmp/target.apkm
 ```
 
 ### CLI Arguments
+
 - `fixture_subcommand`: `seed`, `info`, or `download`.
 - `--package PACKAGE` (required): Application package name.
 - `--role {target,latest}`: Target slot role.
@@ -86,55 +100,21 @@ uv run --project tools/apk-lab apk-lab fixtures download \
 - `--out PATH`: Destination path for `download`.
 
 ### Slot Rotation Logic (`rotate_slots_on_new_latest`)
+
 When a new version is released on Google Play:
+
 1. If the existing `latest` matches the repository's desired target version, it is copied to `target`.
 2. The newly acquired version is uploaded to `latest`.
 3. If `target` and `latest` have the same version and hash, `target` is cleared.
 
 ### Exit Codes
+
 CLI handlers return `0` on success, `2` on CLI argument syntax errors, and `4` (`INFRASTRUCTURE_FAILURE`) on caught exceptions (missing credentials, package mismatch, network, or S3 errors).
 
-Underlying Python APIs distinguish:
-- `2`: Missing credentials or invalid arguments (`ValueError`).
-- `3`: Artifact package mismatch or invalid container (`ValueError`).
-- `4`: R2 communication or S3 API error (`R2StorageError`).
----
+## 3. Native Library and Test References
 
-## 3. Python API Reference
-
-```python
-from pathlib import Path
-from apk_lab.acquisition import acquire_artifact
-from apk_lab.fixtures import R2FixtureManager, SlotMetadata
-
-# Acquire from Google Play
-acquired_path, source = acquire_artifact(
-    package_name="com.example.app",
-    out_dir=Path("/tmp/artifacts"),
-    expected_version="2.22.09",
-)
-print(f"Acquired artifact at {acquired_path} via {source.value}")
-
-# Manage R2 Fixture Slots
-fixture_mgr = R2FixtureManager()
-
-# Inspect slot
-target_meta = fixture_mgr.get_slot_metadata("com.example.app", role="target")
-if target_meta:
-    print(f"Target version: {target_meta.version_name} ({target_meta.version_code})")
-    print(f"SHA-256: {target_meta.sha256}")
-
-# Download fixture
-downloaded = fixture_mgr.download_slot(
-    package="com.example.app",
-    role="target",
-    dest_path=Path("/tmp/target.apkm"),
-)
-
-# Seed fixture from local file
-seeded_meta = fixture_mgr.seed_fixture(
-    package="com.example.app",
-    role="target",
-    artifact_path=Path("path/to/app.apkm"),
-)
-```
+There is no supported Python API. CLI handlers return `0` on success, `2` on CLI
+argument syntax errors, and `4` (`INFRASTRUCTURE_FAILURE`) on missing credentials,
+package mismatch, network, or S3 errors. Rust modules (`acquisition.rs`, `fixtures.rs`)
+back the commands above and are covered by
+`cargo test --locked --manifest-path tools/apk-lab/Cargo.toml`.

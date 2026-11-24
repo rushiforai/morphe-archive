@@ -133,3 +133,5 @@ node_modules/
 .idea/
 local.properties
 new-manifest-only
+# IDE compile output
+bin/

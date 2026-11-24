@@ -30,6 +30,7 @@ public final class NativeToolTabs {
         return Math.max(48,Math.min(80,context.getSharedPreferences(WacchoiSearchOptions.PREFS,0)
                 .getInt(HEADER_HEIGHT_KEY,48)));
     }
+    public static final String NOTES_KEY="nativeToolTabNotes";
     public static final String SETTINGS_KEY="nativeToolTabSettings", EDDI_KEY="nativeToolTabEddi";
     public static final String SEARCH_KEY="nativeToolTabSearch", CHECKER_KEY="nativeToolTabChecker", HISSI_KEY="nativeToolTabHissi", FULL_KEY="nativeToolTabWacchoi";
     private static final String PREFIX="haiagaru-tool://";
@@ -66,12 +67,13 @@ public final class NativeToolTabs {
     public static Object stockFragment(){throw new IllegalStateException("Native tab bridge not installed");}
     static boolean enabled(Activity activity){return supported()&&activity.getSharedPreferences(WacchoiSearchOptions.PREFS,0).getBoolean(KEY,false);}
     static boolean selected(Activity activity,String tool){
-        String key="settings".equals(tool)?SETTINGS_KEY:"eddi".equals(tool)?EDDI_KEY:"search".equals(tool)?SEARCH_KEY:"checker".equals(tool)?CHECKER_KEY:"hissi".equals(tool)?HISSI_KEY:"wacchoi".equals(tool)?FULL_KEY:null;
+        String key="notes".equals(tool)?NOTES_KEY:"settings".equals(tool)?SETTINGS_KEY:"eddi".equals(tool)?EDDI_KEY:"search".equals(tool)?SEARCH_KEY:"checker".equals(tool)?CHECKER_KEY:"hissi".equals(tool)?HISSI_KEY:"wacchoi".equals(tool)?FULL_KEY:null;
         return key!=null&&activity.getSharedPreferences(WacchoiSearchOptions.PREFS,0).getBoolean(key,true);
     }
     static void resumed(Activity activity){
         if(!tablet(activity))return;
         created(activity);searchHost=new java.lang.ref.WeakReference<>(activity);
+        NativeTabGroups.resume(activity);
         PendingManual pending=manualTabs.get(activity.getTaskId());
         if(pending!=null&&pending.host.get()==activity)new android.os.Handler(android.os.Looper.getMainLooper()).post(()->{
             if(manualTabs.remove(activity.getTaskId(),pending)&&!openManual(activity,pending.tool))
@@ -140,13 +142,13 @@ public final class NativeToolTabs {
     /** Explicit manual action does not change or depend on automatic routing preferences. */
     static boolean openManual(Activity activity,String tool){return createTab(activity,tool,null);}
     private static boolean createTab(Activity activity,String tool,Intent launch){
-        if(!supported()||!tablet(activity)||!java.util.Arrays.asList("settings","eddi","search","checker","hissi","wacchoi").contains(tool))return false;
+        if(!supported()||!tablet(activity)||!java.util.Arrays.asList("settings","eddi","search","checker","hissi","wacchoi","notes").contains(tool))return false;
         boolean home=enabled(activity);
         Bundle args=new Bundle();args.putString("_data",PREFIX+tool+(home?"?pane=home":"?pane=thread"));
         // Native pages compare the URL. Distinct search requests must not select
         // an older tab whose serialized launch/form still contains the previous query.
         if(launch!=null&&!"settings".equals(tool))args.putString("_data",args.getString("_data")+"&request="+java.util.UUID.randomUUID());
-        args.putString(Intent.EXTRA_TITLE,"settings".equals(tool)?"Haiagaru設定":"eddi".equals(tool)?"エッヂ過去ログ検索":"search".equals(tool)?"投稿を探す":"checker".equals(tool)?"投稿検索・結果":"hissi".equals(tool)?"必死チェッカーもどき":"ワッチョイ全文検索");
+        args.putString(Intent.EXTRA_TITLE,"notes".equals(tool)?"メモ":"settings".equals(tool)?"Haiagaru設定":"eddi".equals(tool)?"エッヂ過去ログ検索":"search".equals(tool)?"投稿を探す":"checker".equals(tool)?"投稿検索・結果":"hissi".equals(tool)?"必死チェッカーもどき":"ワッチョイ全文検索");
         if(launch!=null)try{args.putString(Intent.EXTRA_TEXT,new org.json.JSONObject().put("launch",launch.toUri(Intent.URI_INTENT_SCHEME)).toString());}catch(org.json.JSONException error){throw new IllegalArgumentException(error);}
         try{
             String version=activity.getPackageManager().getPackageInfo(activity.getPackageName(),0).versionName;
@@ -332,6 +334,7 @@ public final class NativeToolTabs {
         try{
             ThreadSelection selection=paneSelection(activity,fragment,home);
             if(selection==null||selection.index+offset<0||selection.index+offset>=selection.count)return false;
+            if(!home&&NativeTabGroups.movePastCollapsed(activity,offset))return true;
             tabCall(selection.owner,selection.select,new Class<?>[]{int.class},selection.relative?offset:selection.index+offset);
             return true;
         }catch(Exception error){android.util.Log.w("Haiagaru","Could not select adjacent thread tab",error);return false;}
@@ -389,6 +392,7 @@ public final class NativeToolTabs {
         final Activity target=host;
         java.util.ArrayList<String> tools=new java.util.ArrayList<>(),labels=new java.util.ArrayList<>();
         tools.add("settings");labels.add("Haiagaru設定");
+        tools.add("notes");labels.add("メモ");
         tools.add("eddi");labels.add("エッヂ過去ログ検索");
         tools.add("search");labels.add("投稿を探す");
         tools.add("checker");labels.add("投稿検索・結果（必死チェッカー／Kyodemo）");
@@ -417,7 +421,7 @@ public final class NativeToolTabs {
     static String tool(Bundle args){
         String value=args==null?null:args.getString("_data");if(value==null)return null;
         Uri uri=Uri.parse(value);if(!"haiagaru-tool".equals(uri.getScheme())||uri.getUserInfo()!=null)return null;
-        for(String name:new String[]{"settings","eddi","search","checker","hissi","wacchoi"})if(name.equals(uri.getHost()))return name;
+        for(String name:new String[]{"settings","eddi","search","checker","hissi","wacchoi","notes"})if(name.equals(uri.getHost()))return name;
         return null;
     }
     // Several tabs share the Activity state transaction: never retain a full 120KB result per tab.
@@ -496,6 +500,20 @@ public final class NativeToolTabs {
                     @Override void close(){controller.close();}
                 };
             }
+        }
+        if ("notes".equals(tool(args))) {
+            Intent launch = new Intent();
+            try {
+                org.json.JSONObject saved = new org.json.JSONObject(args.getString(Intent.EXTRA_TEXT, "{}"));
+                if (saved.has("launch")) launch = Intent.parseUri(saved.getString("launch"), Intent.URI_INTENT_SCHEME);
+            } catch (Exception error) { android.util.Log.w("Haiagaru", "Memo tab launch unavailable", error); }
+            FrameLayout notes = new FrameLayout(activity);
+            notes.addView(SettingsTabUi.notes(activity, launch, () -> closeCurrentTab(activity, fragment)),
+                    new FrameLayout.LayoutParams(-1, -1));
+            return new Content(notes) {
+                @Override void save(Bundle out) {}
+                @Override void close() { SettingsTabUi.clear(notes); }
+            };
         }
         if("settings".equals(tool(args)))return new SettingsContent(activity,args,restored,fragment);
         return new SearchContent(activity,args,restored,tool(args),fragment);

@@ -1,9 +1,20 @@
+/*
+ * Copyright 2026 amfakh
+ * SPDX-License-Identifier: GPL-3.0-only
+ */
+
 package app.fakh.patches.linkedin.navigation
 
+import app.fakh.patches.linkedin.shared.Constants.ALWAYS_SHOW_NAVIGATION_BAR
 import app.fakh.patches.linkedin.shared.Constants.COMPATIBILITY_LINKEDIN
 import app.fakh.patches.linkedin.shared.Constants.EXTENSION_PACKAGE
-import app.fakh.patches.linkedin.shared.markIncluded
+import app.fakh.patches.linkedin.shared.Constants.GLASS_NAVIGATION_BAR
+import app.fakh.patches.linkedin.shared.Constants.HIDE_TAB_BADGES
+import app.fakh.patches.linkedin.shared.Constants.HIDE_TAB_LABELS
+import app.fakh.patches.linkedin.shared.Constants.LIQUID_GLASS
+import app.fakh.patches.linkedin.shared.Constants.SWIPE_TABS
 import app.fakh.patches.linkedin.shared.settingsPatch
+import app.fakh.patches.shared.register
 import app.morphe.patcher.Fingerprint
 import app.morphe.patcher.extensions.InstructionExtensions.addInstruction
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
@@ -104,7 +115,7 @@ val navigationBarPatch = patch(
     compatibleWith(COMPATIBILITY_LINKEDIN)
     category("Feature")
     dependsOn(navigationHooksPatch)
-    execute { markIncluded("isNavigationBarIncluded") }
+    execute { register(HIDE_TAB_LABELS, HIDE_TAB_BADGES) }
 }
 
 @Suppress("unused")
@@ -116,7 +127,7 @@ val swipeTabsPatch = patch(
     compatibleWith(COMPATIBILITY_LINKEDIN)
     category("Feature")
     dependsOn(navigationHooksPatch)
-    execute { markIncluded("isSwipeTabsIncluded") }
+    execute { register(SWIPE_TABS) }
 }
 
 @Suppress("unused")
@@ -128,7 +139,7 @@ val glassNavigationBarPatch = patch(
     compatibleWith(COMPATIBILITY_LINKEDIN)
     category("Theme")
     dependsOn(navigationHooksPatch)
-    execute { markIncluded("isGlassNavigationBarIncluded") }
+    execute { register(GLASS_NAVIGATION_BAR, LIQUID_GLASS) }
 }
 
 /** SlimBottomNavigationBehavior.handleDirection(bar, direction): slides the bottom bar away or back as a screen scrolls. */
@@ -149,7 +160,7 @@ val alwaysShowNavigationBarPatch = patch(
     category("Feature")
     dependsOn(settingsPatch)
     execute {
-        markIncluded("isAlwaysShowNavigationBarIncluded")
+        register(ALWAYS_SHOW_NAVIGATION_BAR)
         // The bar is only ever slid away from here, so skipping it keeps the bar where it is.
         ScrollDirectionFingerprint.method.apply {
             addInstructionsWithLabels(

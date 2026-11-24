@@ -96,9 +96,11 @@ final class HeaderGlass {
             "  if (d1 < d0 || d2 < d0 || d3 < d0) return half4(0.0);\n" +
             "  float d = blend(d0, d1, d2, d3);\n" +
             "  float coverage = clamp(0.5 - d, 0.0, 1.0);\n" +
-            // A soft shadow just below, lifting the glass off the page.
-            "  float ds = field(p - float2(0.0, 2.5 * dp));\n" +
-            "  half4 shadow = half4(0.0, 0.0, 0.0, 0.14 * (1.0 - smoothstep(-2.0 * dp, 9.0 * dp, ds)));\n" +
+            // A soft shadow just below, lifting the glass off the page. Short: the header clips
+            // what is drawn below it, a few dp under the circles, and a longer one ends in a line.
+            "  float ds = field(p - float2(0.0, 1.0 * dp));\n" +
+            "  float sf = 1.0 - smoothstep(-1.0 * dp, 4.0 * dp, ds);\n" +
+            "  half4 shadow = half4(0.0, 0.0, 0.0, 0.10 * sf * sf);\n" +
             "  if (coverage <= 0.0) return shadow * alpha;\n" +
 
             "  float e = 0.75;\n" +
@@ -118,37 +120,42 @@ final class HeaderGlass {
             "  float ws = max(w0 + w1 + w2 + w3, 1e-4);\n" +
             "  float press = (w0 * s0.w + w1 * s1.w + w2 * s2.w + w3 * s3.w) / ws;\n" +
 
-            "  half4 col;\n" +
-            "  col.r = content.eval(p + off * 1.03).r;\n" +
-            "  col.g = content.eval(p + off).g;\n" +
-            "  col.b = content.eval(p + off * 0.97).b;\n" +
-            "  col.a = 1.0;\n" +
-            "  half luma = dot(col.rgb, half3(0.2126, 0.7152, 0.0722));\n" +
-            "  col.rgb = mix(half3(luma), col.rgb, 1.15);\n" +
-            "  col.rgb = clamp(col.rgb * lift.x + lift.y, 0.0, 1.0);\n" +
+            // What is behind, premultiplied: where the page is see-through (a video, say) the
+            // glass stays see-through too instead of turning black.
+            "  half4 mid = content.eval(p + off);\n" +
+            "  half a = mid.a;\n" +
+            "  half3 rgb = half3(content.eval(p + off * 1.03).r, mid.g, content.eval(p + off * 0.97).b);\n" +
+            "  rgb = clamp(rgb / max(a, 0.001), 0.0, 1.0);\n" +
+            "  half luma = dot(rgb, half3(0.2126, 0.7152, 0.0722));\n" +
+            "  rgb = mix(half3(luma), rgb, 1.15);\n" +
+            "  rgb = clamp(rgb * lift.x + lift.y, 0.0, 1.0);\n" +
+            "  half4 col = half4(rgb * a, a);\n" +
 
             // Clear, as iOS glass is: a light wash of the glass' own color, more when pressed.
             "  half amount = tint.a + 0.10 * press;\n" +
-            "  col.rgb = mix(col.rgb, half3(tint.rgb), amount);\n" +
+            "  col = col * (1.0 - amount) + half4(half3(tint.rgb), 1.0) * amount;\n" +
 
             // Light gathered in the bent rim, then the specular: thin and sharp where the edge
             // faces the light (top left) and, fainter, opposite it (bottom right).
             "  float rim = smoothstep(0.25, 1.0, t);\n" +
             "  float facing = dot(n, light);\n" +
             "  float spec = pow(max(facing, 0.0), 3.0) + 0.55 * pow(max(-facing, 0.0), 3.0);\n" +
-            "  col.rgb += half3(rim * (0.05 + 0.04 * press));\n" +
-            "  col.rgb += half3(rim * rim * pow(max(facing, 0.0), 4.0) * 0.08);\n" +
+            "  half glow = half(rim * (0.05 + 0.04 * press) + rim * rim * pow(max(facing, 0.0), 4.0) * 0.08);\n" +
+            "  col.rgb += glow;\n" +
+            "  col.a += glow * (1.0 - col.a);\n" +
             "  float edge = 1.0 - smoothstep(0.0, 1.0 * dp, -d);\n" +
             "  col.rgb *= 1.0 - edge * rimDark;\n" +
-            "  col.rgb += half3(edge * (0.03 + 0.35 * spec));\n" +
             // The tilt glint on the bent rim, on the circle this pixel belongs to.
             "  float2 ga = p - glint.xy;\n" +
             "  float2 gb = p - glintOpp;\n" +
             "  float gk = -0.5 / max(glint.z * glint.z, 1.0);\n" +
             "  float g = exp(dot(ga, ga) * gk) + 0.35 * exp(dot(gb, gb) * gk);\n" +
-            "  col.rgb += half3(rim * g * glint.w);\n" +
+            "  half shine = half(edge * (0.03 + 0.35 * spec) + rim * g * glint.w);\n" +
+            "  col.rgb += shine;\n" +
+            "  col.a += shine * (1.0 - col.a);\n" +
 
             "  col = clamp(col, 0.0, 1.0);\n" +
+            "  col.rgb = min(col.rgb, half3(col.a));\n" +
             "  return (col * coverage + shadow * (1.0 - coverage)) * alpha;\n" +
             "}\n";
 
@@ -186,7 +193,13 @@ final class HeaderGlass {
 
     private boolean ensureBackdrop() {
         if (width <= 0 || height <= 0) return false;
-        if (shared == null) shared = new RenderNode("HeaderGlassBackdrop");
+        if (shared == null) {
+            shared = new RenderNode("HeaderGlassBackdrop");
+            // Its own layer, as the edge blur's backdrop has: the base color is drawn under the
+            // page (DST_OVER) and only lands there in a layer of its own. Without one the
+            // see-through parts stay empty and the light glass showed them as dark gray.
+            shared.setUseCompositingLayer(true, null);
+        }
         if (!stale) return true;
         stale = false;
         shared.setPosition(0, 0, width, height);
@@ -240,12 +253,12 @@ final class HeaderGlass {
         put(u, 0, c, c, r, clamp01(self.press.value));
         for (int i = 0; i < n; i++) put(u, 4 * (i + 1), c + nx[i], c + ny[i], nr[i], np[i]);
         if (self.dark) {
-            put(u, 16, 0.24f, 0.24f, 0.26f, 0.34f);
+            put(u, 16, 0.24f, 0.24f, 0.26f, 0.80f);
             u[20] = 1.0f;
             u[21] = 0.03f;
             u[22] = 0f;
         } else {
-            put(u, 16, 1f, 1f, 1f, 0.30f);
+            put(u, 16, 1f, 1f, 1f, 0.80f);
             u[20] = 1.08f;
             u[21] = 0.025f;
             u[22] = 0.08f;

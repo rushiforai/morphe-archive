@@ -53,13 +53,30 @@ public final class OsmStyleBridge {
     private static Context getAppContext() {
         try {
             Class<?> appClass = Class.forName("com.groundspeak.geocaching.intro.GeoApplication");
-            Field pField = appClass.getDeclaredField("P");
-            pField.setAccessible(true);
-            return (Context) pField.get(null);
+            Field instanceField = appClass.getDeclaredField("R");
+            instanceField.setAccessible(true);
+            Object instance = instanceField.get(null);
+            if (instance instanceof Context) {
+                return (Context) instance;
+            }
+        } catch (Throwable t) {
+            Log.e(TAG, "Failed to resolve GeoApplication.R", t);
+        }
+        try {
+            Class<?> appClass = Class.forName("com.groundspeak.geocaching.intro.GeoApplication");
+            Field lazyField = appClass.getDeclaredField("P");
+            lazyField.setAccessible(true);
+            Object lazy = lazyField.get(null);
+            if (lazy != null) {
+                Object value = lazy.getClass().getMethod("get").invoke(lazy);
+                if (value instanceof Context) {
+                    return (Context) value;
+                }
+            }
         } catch (Throwable t) {
             Log.e(TAG, "Failed to resolve GeoApplication.P", t);
-            return null;
         }
+        return null;
     }
 
     public static String getSelectedStyleUrl(Context context) {
@@ -213,21 +230,10 @@ public final class OsmStyleBridge {
             return;
         } catch (Throwable ignored) {
         }
-        try {
-            Method vmMethod = fragmentObj.getClass().getMethod("v");
-            Object sharedVm = vmMethod.invoke(fragmentObj);
-            if (sharedVm != null) {
-                Field k0Field = sharedVm.getClass().getDeclaredField("k0");
-                k0Field.setAccessible(true);
-                Object k0Flow = k0Field.get(sharedVm);
-                if (k0Flow != null) {
-                    Method oMethod = k0Flow.getClass().getMethod("o", Object.class, Object.class);
-                    oMethod.invoke(k0Flow, null, Boolean.FALSE);
-                }
-            }
-        } catch (Throwable t) {
-            Log.w(TAG, "Failed to dismiss map settings sheet", t);
-        }
+        // The only remaining host is MapLibreFragment's Compose map-settings sheet. Its former
+        // boolean StateFlow (SharedMapViewModel.k0) is now a CameraPosition, so there is no
+        // reflective dismissal channel; the sheet closes when the user dismisses it.
+        Log.d(TAG, "No dismiss() on " + fragmentObj.getClass().getName() + "; leaving sheet open");
     }
 
     public static void promptCustomStyleUrl(final Object fragmentObj, final Context context) {

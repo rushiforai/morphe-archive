@@ -99,6 +99,10 @@ public final class GboardClipboardRuntime {
         return PRUNE_HOOK_ADAPTER.handleCustomPrune(receiver);
     }
 
+    public static boolean shouldKeepWholeClipboardBlock(Object receiver) {
+        return PRUNE_HOOK_ADAPTER.shouldKeepWholeClipboardBlock(receiver);
+    }
+
     public static void afterAdapterTrim(Object receiver) {
         UI_HOOK_ADAPTER.afterAdapterTrim(receiver);
     }

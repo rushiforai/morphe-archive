@@ -1,12 +1,18 @@
 package app.morphe.extension.youtube.swipecontrols.controller
 
 import android.app.Activity
+import android.graphics.Rect
+import android.view.MotionEvent
 import android.view.View
 import app.morphe.extension.shared.utils.ResourceType
 import app.morphe.extension.shared.utils.ResourceUtils.getIdentifier
 import app.morphe.extension.shared.utils.Utils.dipToPixels
 import app.morphe.extension.youtube.swipecontrols.SwipeControlsConfigurationProvider
+import app.morphe.extension.youtube.swipecontrols.SwipeControlsConfigurationProvider.SwipeZoneAction
+import app.morphe.extension.youtube.swipecontrols.controller.gesture.core.SwipeDetector.SwipeDirection
+import app.morphe.extension.youtube.swipecontrols.misc.Point
 import app.morphe.extension.youtube.swipecontrols.misc.Rectangle
+import app.morphe.extension.youtube.swipecontrols.misc.contains
 import kotlin.math.max
 import kotlin.math.min
 
@@ -48,6 +54,8 @@ class SwipeZonesController(
      * 20dp, in pixels
      */
     private val _20dp = dipToPixels(20f)
+    private val portraitTopInset = dipToPixels(16f)
+    private val portraitBottomInset = dipToPixels(24f)
 
     /**
      * 40dp, in pixels
@@ -64,16 +72,60 @@ class SwipeZonesController(
      */
     private val sizeAdjustableOverlayId = getIdentifier("inset_controls_overlay_wrapper", ResourceType.ID, host)
 
+    private val portraitBounds = Rect()
+    private val locationInWindow = IntArray(2)
+    private var portraitSwipeRect: Rectangle? = null
+
+    /**
+     * Snapshot the visible watch player's bounds at DOWN. In portrait a missing or clipped player
+     * must never fall back to the activity bounds, which include the watch feed.
+     */
+    internal fun preparePortraitTouch(watchControls: View, event: MotionEvent): Rectangle? {
+        portraitSwipeRect = null
+        val player = watchControls.findViewById<View>(sizeAdjustableOverlayId) ?: return null
+        if (!player.isShown || !player.getLocalVisibleRect(portraitBounds)) return null
+
+        player.getLocationInWindow(locationInWindow)
+        portraitBounds.offset(locationInWindow[0], locationInWindow[1])
+        val safeBounds = Rectangle(
+            portraitBounds.left + _20dp,
+            portraitBounds.top + portraitTopInset,
+            portraitBounds.width() - _20dp * 2,
+            portraitBounds.height() - portraitTopInset - portraitBottomInset,
+        )
+        val origin = Point(event.x.toInt(), event.y.toInt())
+        if (safeBounds.width <= 0 || safeBounds.height <= 0 || origin !in safeBounds) return null
+
+        portraitSwipeRect = safeBounds
+        if (!containsActiveZone(origin)) return null
+
+        return Rectangle(
+            portraitBounds.left, portraitBounds.top, portraitBounds.width(), portraitBounds.height()
+        )
+    }
+
     /**
      * current bounding rectangle of the player
      */
     private var playerRect: Rectangle? = null
+    private var offlineSwipeRect: Rectangle? = null
+
+    /** Offline touches are local to the unobstructed player viewport, not the stock watch UI. */
+    internal fun setOfflineViewport(viewport: Rectangle) {
+        offlineSwipeRect = viewport
+    }
 
     /**
      * rectangle of the area that is effectively usable for swipe controls
      */
     private val effectiveSwipeRect: Rectangle
         get() {
+            offlineSwipeRect?.let { return it }
+
+            if (config.enablePortraitSwipeControls) {
+                return portraitSwipeRect ?: EMPTY_RECT
+            }
+
             maybeAttachPlayerBoundsListener()
             val p = if (playerRect != null) playerRect!! else fallbackScreenRect()
             return Rectangle(
@@ -114,40 +166,47 @@ class SwipeZonesController(
      * Additional dead zone applied *inside* the `effectiveSwipeRect` for horizontal swipes
      * to avoid conflicting with system back gestures.
      */
-    private val horizontalInnerDeadZone = _40dp // Use 40dp for inner horizontal dead zone
+    private val horizontalInnerDeadZone = _40dp
 
-    /** The effective starting X-coordinate for horizontal swipe zones. */
-    private val horizontalZoneEffectiveLeft get() = effectiveSwipeRect.left + horizontalInnerDeadZone
+    private fun horizontalZone(fromTop: Boolean): Rectangle {
+        val rect = effectiveSwipeRect
+        val height = max(0, rect.height * config.horizontalSwipeZoneSize / 100)
 
-    /** The effective width available for horizontal swipe zones after applying inner dead zones. */
-    private val horizontalZoneEffectiveWidth get() = max(0, effectiveSwipeRect.width - (horizontalInnerDeadZone * 2))
-
-    /** The height for each horizontal zone, measured as a percentage of the effective height. */
-    private val horizontalZoneHeight
-        get() = max(0, effectiveSwipeRect.height * config.horizontalSwipeZoneSize / 100)
-    private val topHorizontalZoneTop get() = effectiveSwipeRect.top
-    private val bottomHorizontalZoneTop get() = effectiveSwipeRect.bottom - horizontalZoneHeight
+        return Rectangle(
+            rect.left + horizontalInnerDeadZone,
+            if (fromTop) rect.top else rect.bottom - height,
+            max(0, rect.width - horizontalInnerDeadZone * 2),
+            height,
+        )
+    }
 
     /** The rectangle of the top control zone. */
-    val top: Rectangle
-        get() {
-            return Rectangle(
-                horizontalZoneEffectiveLeft,
-                topHorizontalZoneTop,
-                horizontalZoneEffectiveWidth,
-                horizontalZoneHeight
-            )
-        }
+    val top: Rectangle get() = horizontalZone(fromTop = true)
 
     /** The rectangle of the bottom control zone. */
-    val bottom: Rectangle
-        get() {
-            return Rectangle(
-                horizontalZoneEffectiveLeft,
-                bottomHorizontalZoneTop,
-                horizontalZoneEffectiveWidth,
-                horizontalZoneHeight
-            )
+    val bottom: Rectangle get() = horizontalZone(fromTop = false)
+
+    internal fun containsActiveZone(point: Point): Boolean =
+        (config.leftZoneAction != SwipeZoneAction.OFF && point in left) ||
+            (config.rightZoneAction != SwipeZoneAction.OFF && point in right) ||
+            (config.topZoneAction != SwipeZoneAction.OFF && point in top) ||
+            (config.bottomZoneAction != SwipeZoneAction.OFF && point in bottom)
+
+    internal fun actionAt(origin: Point, direction: SwipeDirection): SwipeZoneAction =
+        when (direction) {
+            SwipeDirection.HORIZONTAL -> when (origin) {
+                in top -> config.topZoneAction
+                in bottom -> config.bottomZoneAction
+                else -> SwipeZoneAction.OFF
+            }
+
+            SwipeDirection.VERTICAL -> when (origin) {
+                in left -> config.leftZoneAction
+                in right -> config.rightZoneAction
+                else -> SwipeZoneAction.OFF
+            }
+
+            SwipeDirection.NONE -> SwipeZoneAction.OFF
         }
 
     /**
@@ -178,5 +237,9 @@ class SwipeZonesController(
             min(sizeAdjustableOverlay.width, playerWidthWithPadding),
             sizeAdjustableOverlay.height,
         )
+    }
+
+    private companion object {
+        val EMPTY_RECT = Rectangle(0, 0, 0, 0)
     }
 }

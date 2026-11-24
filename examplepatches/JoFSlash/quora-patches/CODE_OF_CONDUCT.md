@@ -15,7 +15,7 @@ taking part should be able to do that without being put down.
 - Insults, harassment, threats, or comments about someone's person, background or identity.
 - Posting someone's private information, including account details from logs or screenshots.
 - Spam, advertising, and links to modified APKs or other files that aren't from this repository.
-- Requests to get around Quora+ payments, Google Health Premium or other paid features, or to
+- Requests to get around an app's payments (Quora+, Premium, Pro and the like) or other paid features, or to
   access paid content. The Quora patches hide Quora+ content; they don't unlock it.
 
 ## Enforcement

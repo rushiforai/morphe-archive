@@ -31,6 +31,10 @@ public final class VideoFeatures {
     private static final long SCAN_INTERVAL_MS = 500;
     /** While a story is on screen: a sponsored story is on screen for at most one tick before it is skipped. */
     private static final long STORY_SCAN_INTERVAL_MS = 100;
+    /** After a redirected profile, until the next Back: the Reels page that Back lands on is skipped at once. */
+    private static final long PROFILE_SCAN_INTERVAL_MS = 120;
+    /** While a video is on screen with the profile redirect on: a tapped creator's page is caught sooner. */
+    private static final long REEL_SCAN_INTERVAL_MS = 250;
     private static long nextScanDelay = SCAN_INTERVAL_MS;
     static final Handler MAIN = new Handler(Looper.getMainLooper());
     private static Class<?> videoViewClass;
@@ -171,7 +175,13 @@ public final class VideoFeatures {
             Overlay.trace(activity.getWindow().getDecorView());
         }
         // Also while a video plays: the reel under a creator's page can keep playing, and the page still has to go.
-        if (profile) ProfileRedirect.check(activity, profileAlways, playing != null ? playing : paused);
+        if (profile) {
+            ProfileRedirect.check(activity, profileAlways, playing != null ? playing : paused);
+            // A creator's page opens a moment after a tap in a reel, and Back from the redirected profile lands on one:
+            // look more often then, so the redirect and the Back skip start within about 100 to 250 ms.
+            if (ProfileRedirect.fastScan()) nextScanDelay = Math.min(nextScanDelay, PROFILE_SCAN_INTERVAL_MS);
+            else if (playing != null || paused != null) nextScanDelay = Math.min(nextScanDelay, REEL_SCAN_INTERVAL_MS);
+        }
         // A sponsored story: no download button, and the viewer is moved on. The header's "Sponsored" label is the
         // signal, and for a story video also the ad mark in its tracking text.
         Stories.Header story = download || skipStoryAds || controls || doubleTap ? Stories.read(activity) : null;

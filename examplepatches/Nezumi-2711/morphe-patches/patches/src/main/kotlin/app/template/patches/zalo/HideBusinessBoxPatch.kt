@@ -32,7 +32,7 @@ private object BusinessBoxListFingerprint : Fingerprint(
 val hideBusinessBoxPatch = bytecodePatch(
     name = "Hide Business Box in Messages",
     description = "Hide the Business Box row in Messages when enabled in Nezumi Settings.",
-    default = false,
+    default = true,
 ) {
     compatibleWith(Compatibility(
         name = "Zalo",
@@ -92,7 +92,7 @@ val hideBusinessBoxPatch = bytecodePatch(
             "invoke-static {}, Lcom/zing/zalo/MainApplication;->getAppContext()Landroid/content/Context;")
         method.addInstructionsWithLabels(guardIndex + 1, """
             move-result-object v0
-            invoke-static {v0}, Lapp/template/extension/extension/NezumiSettings;->isBusinessBoxHidden(Landroid/content/Context;)Z
+            invoke-static {v0}, $MESSAGES_TAB->isBusinessBoxHidden(Landroid/content/Context;)Z
             move-result v0
             if-nez v0, :nezumi_hide_business_box
             invoke-virtual {p6}, $cacheCall
@@ -100,4 +100,4 @@ val hideBusinessBoxPatch = bytecodePatch(
 
         attachNezumiSettings("attachBusinessBox")
     }
-}
+}

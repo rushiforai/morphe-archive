@@ -57,11 +57,13 @@ val customMapTilePatch = bytecodePatch(
 ## 2. Composite Feature Patches (`compositeFeaturePatch`)
 
 ### Why Composite Patches Exist
+
 A `bytecodePatch` operates strictly over Dalvik DEX bytecode. It cannot directly read or mutate APK asset files (`assets/`), raw resources, or `res/xml` documents. When a single logical feature requires Dalvik bytecode changes *and* companion XML or raw assets, declaring two separate public patches pollutes the UI and `patches-list.json`.
 
 `compositeFeaturePatch` solves this by creating a user-facing bytecode patch and internal companion patches tagged with category `"Internal"`. Because companion patches are instantiated as local objects within the builder function rather than top-level class members, Morphe's reflective `PatchLoader` never exposes them in UI patch lists or `patches-list.json`.
 
 ### Composite DSL Structure & Invariants
+
 Defined in `app.aidan.patches.shared.CompositePatch.kt`:
 
 ```kotlin
@@ -100,6 +102,7 @@ val hideBannerAdsPatch = compositeFeaturePatch(
 ```
 
 ### Invariants for Composite Patches
+
 1. **Concurrent Layer Support**: A composite patch can declare `resources { ... }`, `rawResources { ... }`, or both alongside `bytecode { ... }`. Both companion patches are instantiated as private local objects inside `build()`, keeping them encapsulated from reflective discovery while automatically executing them when the parent feature is selected.
 2. **Category Propagation**: The user-facing bytecode patch gets the specified `category(...)` (e.g. `"Ads"`). The companion patches automatically receive `category("Internal")`.
 3. **Compatibility Propagation**: Declared `compatibleWith(...)` targets are propagated to both the bytecode patch and the internal companion patches.
@@ -112,6 +115,7 @@ val hideBannerAdsPatch = compositeFeaturePatch(
 When feature requirements exceed a 1-to-1 composite patch, use explicit DAG relationships:
 
 ### Scenario 1: Shared Resource Prerequisite Across Multiple Patches
+
 If multiple bytecode patches depend on the same underlying resource patch, declare the resource patch as a standalone top-level `val` and link it using `dependsOn(...)`:
 
 ```kotlin
@@ -132,7 +136,7 @@ val removeLoginPatch = bytecodePatch(
     description = "Removes forced login screen.",
     default = true,
 ) {
-    category("Auth")
+    category("Security")
     compatibleWith(COMPATIBILITY_AFTERSHIP)
     dependsOn(bypassSignatureCheckResourcePatch) // Explicit dependency
     execute { /* Dalvik edits */ }
@@ -140,11 +144,14 @@ val removeLoginPatch = bytecodePatch(
 ```
 
 ### Scenario 2: Multi-Layer Requirements (XML + Raw Assets + Bytecode)
+
 When a single logical feature requires both Android XML edits and raw asset edits alongside Dalvik bytecode:
 Use a single `compositeFeaturePatch` declaring both `resources { ... }` and `rawResources { ... }`. Standalone `resourcePatch` or `rawResourcePatch` declarations should only be used if the resource layer is a shared prerequisite needed by multiple independent features (as in Scenario 1).
 
 ### Scenario 3: Linking Java Extension Bridges (`extendWith`)
+
 Whenever Dalvik Smali invokes code compiled from `extensions/extension/src/main/java/`:
+
 ```kotlin
 val consentGatePatch = bytecodePatch(
     name = "Consent Gate",
@@ -160,6 +167,7 @@ val consentGatePatch = bytecodePatch(
     }
 }
 ```
+
 *Note*: `extendWith(...)` packages runtime Java code into target DEX. It does not replace resource patching.
 
 ---
@@ -169,6 +177,7 @@ val consentGatePatch = bytecodePatch(
 Patches can define typed configuration options that users configure via the Morphe UI or CLI:
 
 ### Boolean Option
+
 ```kotlin
 val suppressForceUpdates = booleanOption(
     key = "suppress_force_updates",
@@ -177,9 +186,21 @@ val suppressForceUpdates = booleanOption(
     description = "Bypasses mandatory app version update prompts."
 )
 ```
-In execution blocks, read the value using `suppressForceUpdates.value`.
+
+`Option<Boolean>.value` is nullable (`Boolean?`). Inside `execute`, use the explicit shared helper or a null-safe comparison:
+
+```kotlin
+// Requires: import app.aidan.patches.shared.isEnabled
+if (suppressForceUpdates.isEnabled) { ... }
+// Equivalent without the helper: suppressForceUpdates.value != false
+```
+
+Do not write `if (suppressForceUpdates.value)`; it does not compile for `Boolean?`.
+
+Inside `compositeFeaturePatch`, define options through the builder's `booleanOption(...)`/`registerOption(...)` methods so they are attached to the resulting patch.
 
 ### String Option
+
 ```kotlin
 val customApiEndpoint = stringOption(
     key = "custom_endpoint",
@@ -189,39 +210,51 @@ val customApiEndpoint = stringOption(
 )
 ```
 
+Validate/normalize user strings before using them in DOM paths, URLs, Smali text, or descriptors; a string option is untrusted input.
+
 ### Standard Category Taxonomy
-All user-facing patches should use one of the standard category names:
+
+Use the categories already present in `patches/src/main/kotlin`:
+
 - `"Ads"`: Ad removal, banner suppression, sponsor hiding.
-- `"Tracking"`: Analytics, crash reporter stubs, telemetry suppression.
-- `"Customization"`: UI themes, icon replacement, font changes, map tile swapping.
-- `"Features"`: Unlocking premium capabilities, additional utilities, custom stores.
-- `"Security"`: Signature verification bypass, integrity check neutralization, SSL pinning bypass.
-- `"Navigation"`: Bottom bar item reordering, shortcut replacement, tab removal.
-- `"Dev"`: Developer settings, internal debug menus, logging bridges.
+- `"Customization"`: Themes, icons, fonts, map tiles, app name/colors.
+- `"Developer"`: Developer settings, debug menus, internal tooling.
+- `"Features"`: Unlocking capabilities, premium features, extra utilities.
+- `"General"`: Cross-cutting fixes such as crash workarounds or update prompts.
+- `"Interface"`: Screen/row removal, layout changes, navigation visibility.
+- `"Notifications"`: Notification and live-activity behavior.
+- `"Privacy"`: Tracking/analytics removal, permissions, account/data controls.
+- `"Security"`: Authentication/integrity/signature checks, consent gates.
 - `"Internal"`: Reserved exclusively for companion patches (filtered from public metadata).
+
+Do not invent a new category for a single patch; reuse the closest existing one.
 
 ---
 
 ## 5. Compatibility Constants
 
-Compatibility metadata is centralized per application under `patches/src/main/kotlin/app/aidan/patches/<app>/shared/Constants.kt`:
+Compatibility metadata is centralized per application under `patches/src/main/kotlin/app/aidan/patches/<app>/shared/Constants.kt`. Use the current `Compatibility(name, packageName, apkFileType, ..., targets = listOf(AppTarget(...)))` form; do not copy the legacy `PackageName(versions = ...)` form into new files.
 
 ```kotlin
 package app.aidan.patches.sezzle.shared
 
+import app.morphe.patcher.patch.ApkFileType
+import app.morphe.patcher.patch.AppTarget
 import app.morphe.patcher.patch.Compatibility
-import app.morphe.patcher.patch.PackageName
 
-object Constants {
-    const val PACKAGE_NAME = "com.sezzle.sezzlemobile"
+const val SEZZLE_PACKAGE_NAME = "com.sezzle.sezzlemobile"
 
-    val COMPATIBILITY_SEZZLE = Compatibility(
-        PackageName(
-            name = PACKAGE_NAME,
-            versions = arrayOf("14.50.0", "14.51.1", "14.52.0"),
-        )
-    )
-}
+val COMPATIBILITY_SEZZLE = Compatibility(
+    name = "Sezzle",
+    packageName = SEZZLE_PACKAGE_NAME,
+    apkFileType = ApkFileType.APKM,
+    appIconColor = 0x5C2C94,
+    targets = listOf(
+        AppTarget(version = "5.3.9", minSdk = 24),
+    ),
+)
 ```
+
+`signatures` is optional and should be set when the app's signing certificate is a compatibility constraint. Add only versions verified against a real artifact (see the [App Upgrade Playbook](app-upgrade-playbook.md)).
 
 Patches bind to these constants via `compatibleWith(COMPATIBILITY_<APP>)`. Never hardcode raw package names or version arrays inside individual patch files.

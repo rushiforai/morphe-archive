@@ -44,7 +44,7 @@ public final class PatchSettingsRows {
                 int count = QualityUnlock.servers().names().size();
                 return count == 0 ? "None" : count == 1 ? "1 server" : count + " servers";
             }
-            return context != null && DebugMode.isOn(context) ? "On" : "Off";
+            return context == null ? "" : DebugMode.rowText(DebugMode.isOn(context), DebugMode.windowClosed(context));
         } catch (Throwable t) {
             Log.e(App.TAG, "Settings row text failed", t);
             return "";

@@ -77,7 +77,6 @@ export function copyDirRecursive(src: string, dest: string): void {
         [
           'node_modules',
           '.git',
-          '.venv',
           'target',
           'build',
           '.gradle',
@@ -197,33 +196,6 @@ export async function applyApprovedProposal(
             );
             touchedFiles.add(manifestRel);
           }
-        }
-      }
-
-      // --- PyPI Packages ---
-      else if (id.startsWith('pypi:')) {
-        const hashIdx = id.indexOf('#');
-        const manifestRel = id.slice(5, hashIdx);
-        const [, pkgName] = id.slice(hashIdx + 1).split('/');
-        const stagedManifest = path.join(stagingDir, manifestRel);
-
-        if (fs.existsSync(stagedManifest)) {
-          let content = fs.readFileSync(stagedManifest, 'utf8');
-          // Replace package constraint in python pyproject.toml
-          const safePkgName = escapeRegex(pkgName);
-          const regex = new RegExp(
-            `("${safePkgName}(?:\\[[^\\]]+\\])?\\s*)(===|==|>=|>|<=|<|~=|!=)\\s*([^,;\\s"]+)([^"]*)(")`,
-            'g',
-          );
-          content = content.replace(
-            regex,
-            (_match, prefix, op, _oldVer, suffix, quote) => {
-              const newOp = op === '==' ? '==' : '>=';
-              return `${prefix}${newOp}${to}${suffix}${quote}`;
-            },
-          );
-          fs.writeFileSync(stagedManifest, content);
-          touchedFiles.add(manifestRel);
         }
       }
 
@@ -371,21 +343,6 @@ export async function applyApprovedProposal(
               touchedFiles.add(`.github/workflows/${file}`);
             }
           }
-        }
-      }
-
-      // --- Pre-commit Hooks ---
-      else if (id.startsWith('hook:')) {
-        const hookRepo = id.slice(5);
-        const stagedPc = path.join(stagingDir, '.pre-commit-config.yaml');
-        if (fs.existsSync(stagedPc)) {
-          let content = fs.readFileSync(stagedPc, 'utf8');
-          const regex = new RegExp(
-            `(repo:\\s*https://github.com/${hookRepo}[\\s\\S]*?rev:\\s*)(\\S+)`,
-          );
-          content = content.replace(regex, `$1v${to.replace(/^v/, '')}`);
-          fs.writeFileSync(stagedPc, content);
-          touchedFiles.add('.pre-commit-config.yaml');
         }
       }
 
@@ -602,26 +559,6 @@ export async function applyApprovedProposal(
       if (bunRes.code !== 0)
         throw new Error(`bun install in site failed: ${bunRes.stderr}`);
       touchedFiles.add('site/bun.lock');
-    }
-
-    if (touchedFiles.has('tools/apk-lab/pyproject.toml')) {
-      const apkLabDir = path.join(stagingDir, 'tools/apk-lab');
-      const pyUpdates = proposal.updates.filter((u) =>
-        u.id.startsWith('pypi:tools/apk-lab/'),
-      );
-      const pkgsToUpgrade = pyUpdates
-        .map((u) => u.id.split('/').at(-1) ?? '')
-        .filter(Boolean);
-      const upgradeArgs = [
-        'lock',
-        '--project',
-        '.',
-        ...pkgsToUpgrade.flatMap((p) => ['--upgrade-package', p]),
-      ];
-      const uvRes = await runner('uv', upgradeArgs, apkLabDir);
-      if (uvRes.code !== 0)
-        throw new Error(`uv lock failed in tools/apk-lab: ${uvRes.stderr}`);
-      touchedFiles.add('tools/apk-lab/uv.lock');
     }
 
     if (touchedFiles.has('tools/play-metadata/Cargo.toml')) {

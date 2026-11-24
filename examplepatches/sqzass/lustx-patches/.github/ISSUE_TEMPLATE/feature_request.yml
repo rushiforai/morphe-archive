@@ -1,41 +1,68 @@
 name: ⭐ Feature request
-description: Create a detailed request for a new feature.
-title: 'feat: '
-labels: ['feature']
+description: Suggest a new patch, improvement, or behavior change.
+title: "feat: "
+labels: ["feature"]
 body:
   - type: markdown
     attributes:
       value: |
-        # Lusted Patches feature request
+        # Lustx Patches feature request
 
         Before creating a new feature request, please keep the following in mind:
+        - **Do not submit a duplicate feature request**: Search existing requests, including closed issues, [here](https://github.com/sqzass/lustx-patches/issues?q=is%3Aissue).
+        - This repo contains **patches**, not full apps. Feature requests must relate to patch behavior or new patch ideas.
 
-        - We currently only accept feature requests for Pawxy.
-        - **Do not submit a duplicate feature request**: Search for existing feature requests, including closed issues, [here](https://github.com/lustx/lusted-patches/issues?q=is%3Aissue).
-  - type: textarea
+  - type: input
+    id: target-app
     attributes:
-      label: Feature description
-      description: |
-        - Describe your feature in detail
-  - type: textarea
-    attributes:
-      label: Motivation
-      description: | 
-        A strong motivation is necessary for a feature request to be considered.
-        
-        - Why should this feature be implemented? 
-        - What is the explicit use case?
-        - What are the benefits?
-        - What makes this feature important?
+      label: Target app
+      description: Which app is this feature request for? (e.g. Pawxy, PortDroid, or "universal")
     validations:
       required: true
+
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem / motivation
+      description: |
+        What problem are you trying to solve? Why is the current patch insufficient?
+        A strong motivation is necessary for a feature request to be considered.
+        - What is the explicit use case?
+        - What are the benefits?
+    validations:
+      required: true
+
+  - type: textarea
+    id: proposed-solution
+    attributes:
+      label: Proposed solution
+      description: Describe the feature or patch behavior you want in detail.
+    validations:
+      required: true
+
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives considered
+      description: Any other approaches or workarounds you've thought about.
+    validations:
+      required: false
+
+  - type: textarea
+    id: additional-context
+    attributes:
+      label: Additional context
+      description: Screenshots, mockups, references to similar patches, etc.
+    validations:
+      required: false
+
   - type: checkboxes
     id: acknowledgements
     attributes:
       label: Acknowledgements
       description: Your feature request will be closed if you don't follow the checklist below.
       options:
-        - label: I have checked all open and closed feature requests and this is not a duplicate
+        - label: I have checked all open and closed feature requests and this is not a duplicate.
           required: true
-        - label: This is a feature request for Pawxy
+        - label: This is a request for a patch in Lustx Patches, not for the original app developer.
           required: true

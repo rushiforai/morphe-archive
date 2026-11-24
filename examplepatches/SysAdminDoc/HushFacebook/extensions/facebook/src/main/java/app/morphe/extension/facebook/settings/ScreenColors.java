@@ -40,6 +40,7 @@ import androidx.annotation.Nullable;
 
 import app.morphe.extension.facebook.theme.AmoledTheme;
 import app.morphe.extension.facebook.theme.ForceDarkMode;
+import app.morphe.extension.facebook.theme.MaterialYouSwitch;
 import app.morphe.extension.facebook.theme.MaterialYouTheme;
 import app.morphe.extension.facebook.theme.TonePalette;
 import app.morphe.extension.shared.settings.preference.ImmediateAction;
@@ -56,9 +57,10 @@ import app.morphe.extension.shared.settings.preference.ImmediateAction;
  * and dialog buttons the accent at 80 or 40. Every pair meets WCAG 2.2 AA with room to spare,
  * which ScreenColorsTest works out.
  *
- * <p>Without the theme in the build, {@link #forScreen} answers null and the screen keeps the black
- * page and dark Material rows it always had, in the AMOLED theme's Background colour when that
- * isn't black ({@link #black}).
+ * <p>Without the theme in the build, the screen still follows the phone (#559): light, it takes the
+ * fixed palette's light tones ({@link #fixedLight}), and dark, {@link #forScreen} answers null and
+ * the screen keeps the black page and dark Material rows it always had, in the AMOLED theme's
+ * Background colour when that isn't black ({@link #black}).
  */
 final class ScreenColors {
     final boolean light;
@@ -213,10 +215,10 @@ final class ScreenColors {
      * The black page's colours: {@link #DEFAULT}, unless the AMOLED theme is in this build with a
      * Background colour other than black. Then they're built from that colour (issue #214), which
      * left the page black with dark blue cards under an app in #0D1117. A Material You build hides
-     * the Background row, so a colour saved before it doesn't count.
+     * the Background row while that theme is switched on, so a colour saved before it doesn't count then.
      */
     static ScreenColors black() {
-        if (!PatchFamily.AMOLED_THEME.inBuild() || PatchFamily.MATERIAL_YOU_THEME.inBuild()) return DEFAULT;
+        if (!PatchFamily.AMOLED_THEME.inBuild() || materialYou()) return DEFAULT;
         int[] surfaces = AmoledTheme.surfaces();
         if (surfaces[0] == Color.BLACK) return DEFAULT;
         ScreenColors colors = tinted;
@@ -268,16 +270,40 @@ final class ScreenColors {
     }
 
     /**
-     * The colours for a screen shown in this context: the phone's palette, dark or light as the
-     * context's configuration says, and dark while Force dark mode keeps Facebook dark. Null when
-     * the Material You theme isn't in this build.
+     * The colours for a screen shown in this context: dark or light as the context's configuration
+     * says, and dark while Force dark mode keeps Facebook dark. With the Material You theme in this
+     * build and switched on they're the phone's palette. Without it a light screen takes {@link #fixedLight} (#559),
+     * and a dark one answers null for the black page.
      */
     @Nullable
     static ScreenColors forScreen(Context context) {
-        if (!PatchFamily.MATERIAL_YOU_THEME.inBuild()) return null;
         int night = context.getResources().getConfiguration().uiMode & Configuration.UI_MODE_NIGHT_MASK;
         boolean light = night != Configuration.UI_MODE_NIGHT_YES && !ForceDarkMode.forcing();
+        if (!materialYou()) return light ? fixedLight() : null;
         return new ScreenColors(MaterialYouTheme.phonePalette(context), light);
+    }
+
+    /** Whether the Material You theme is in this build and switched on (D#527). */
+    private static boolean materialYou() {
+        return PatchFamily.MATERIAL_YOU_THEME.inBuild() && MaterialYouSwitch.switchedOn();
+    }
+
+    /** {@link #fixedLight}, made the first time it's asked for. */
+    @Nullable
+    private static volatile ScreenColors fixedLight;
+
+    /**
+     * The light page a build without the Material You theme shows on a light phone (#559): the
+     * light tones of the fixed palette Android 11 gets, so it's the same on every phone and holds
+     * to the same AA pairs as the wallpaper palettes.
+     */
+    static ScreenColors fixedLight() {
+        ScreenColors colors = fixedLight;
+        if (colors == null) {
+            colors = new ScreenColors(TonePalette.fallback(), true);
+            fixedLight = colors;
+        }
+        return colors;
     }
 
     /** The framework theme rows and dialogs are built with, so what this class doesn't paint still reads. */

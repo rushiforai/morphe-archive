@@ -675,15 +675,15 @@ public final class GboardAiWritingToolsRuntime {
             }
             if (GboardRoundedKeysSettings.isRoundedKeyPhenotypeFlag(flagName)
                     && originalResult instanceof Boolean) {
-                if (GboardRoundedKeysSettings.isEnabled(context)) {
-                    if (!Boolean.TRUE.equals(originalResult)) {
-                        logLimited(FLAG_LOG_COUNT,
-                                "flag=" + flagName
-                                        + ", original=" + describe(originalResult)
-                                        + ", enforced=" + describe(Boolean.TRUE));
-                    }
-                    return Boolean.TRUE;
+                boolean enabled = GboardRoundedKeysSettings.isEnabled(context);
+                Boolean target = Boolean.valueOf(enabled);
+                if (!target.equals(originalResult)) {
+                    logLimited(FLAG_LOG_COUNT,
+                            "flag=" + flagName
+                                    + ", original=" + describe(originalResult)
+                                    + ", enforced=" + describe(target));
                 }
+                return target;
             }
             if (GboardGoogleSansSettings.isGoogleSansPhenotypeFlag(flagName)) {
                 boolean enabled = GboardGoogleSansSettings.isEnabled(context);
@@ -758,7 +758,14 @@ public final class GboardAiWritingToolsRuntime {
             GboardAiWritingToolsSettings.Snapshot settings,
             GboardAiWritingToolsOfficialPreferences.Snapshot officialPreferences,
             String packageName) {
-        if (flagName == null || settings == null || !settings.featureEnabled) {
+        if (flagName == null || settings == null) {
+            return originalResult;
+        }
+        if (!settings.featureEnabled) {
+            if (originalResult instanceof Boolean
+                    && (isWritingToolsV2Flag(flagName) || isWritingToolsFeatureBooleanFlag(flagName))) {
+                return Boolean.FALSE;
+            }
             return originalResult;
         }
 
@@ -824,7 +831,20 @@ public final class GboardAiWritingToolsRuntime {
             return originalResult;
         }
 
-        if (FLAG_CONFIG_PROOFREAD.equals(flagName)
+        if (isWritingToolsFeatureBooleanFlag(flagName)) {
+            return Boolean.TRUE;
+        }
+        if (FLAG_ENABLE_MODELESS_SMART_EDIT.equals(flagName)
+                || FLAG_AUTO_CORRECT_WITH_REPLACE_TEXT.equals(flagName)
+                || FLAG_WRITING_HELPER_ENABLE_PARTIAL_SELECTION_ON_LONG_INPUT.equals(flagName)
+                || FLAG_TRUNCATE_TEXT_AFTER_CURSOR_IN_GMAIL.equals(flagName)) {
+            return Boolean.FALSE;
+        }
+        return originalResult;
+    }
+
+    private static boolean isWritingToolsFeatureBooleanFlag(String flagName) {
+        return FLAG_CONFIG_PROOFREAD.equals(flagName)
                 || FLAG_WRITING_TOOLS.equals(flagName)
                 || FLAG_WRITING_HELPER_ENABLE_TEXT_STYLIZATION_INTERNAL.equals(flagName)
                 || FLAG_WRITING_HELPER.equals(flagName)
@@ -835,16 +855,7 @@ public final class GboardAiWritingToolsRuntime {
                 || FLAG_WRITING_TOOLS_REPLACE_BUTTON.equals(flagName)
                 || FLAG_WRITING_TOOLS_CONTEXT_OPT_IN.equals(flagName)
                 || FLAG_WRITING_HELPER_ON_SELECTED_TEXT.equals(flagName)
-                || FLAG_WRITING_TOOLS_USE_V2_LANDSCAPE_LAYOUT.equals(flagName)) {
-            return Boolean.TRUE;
-        }
-        if (FLAG_ENABLE_MODELESS_SMART_EDIT.equals(flagName)
-                || FLAG_AUTO_CORRECT_WITH_REPLACE_TEXT.equals(flagName)
-                || FLAG_WRITING_HELPER_ENABLE_PARTIAL_SELECTION_ON_LONG_INPUT.equals(flagName)
-                || FLAG_TRUNCATE_TEXT_AFTER_CURSOR_IN_GMAIL.equals(flagName)) {
-            return Boolean.FALSE;
-        }
-        return originalResult;
+                || FLAG_WRITING_TOOLS_USE_V2_LANDSCAPE_LAYOUT.equals(flagName);
     }
 
     static BackendDecision backendDecision(String backendType) {

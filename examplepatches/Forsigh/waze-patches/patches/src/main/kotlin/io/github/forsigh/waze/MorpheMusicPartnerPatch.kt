@@ -17,6 +17,7 @@ import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.builder.instruction.BuilderInstruction11n
 import com.android.tools.smali.dexlib2.iface.instruction.formats.Instruction11x
 import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
+import com.android.tools.smali.dexlib2.iface.instruction.TwoRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
 import io.github.forsigh.waze.WazeConstants.COMPATIBILITY_WAZE
 import org.w3c.dom.Element
@@ -134,6 +135,7 @@ val morpheMusicSupportPatch = resourcePatch(
     default = false,
 ) {
     compatibleWith(COMPATIBILITY_WAZE)
+    category("Audio & Partners")
 
     execute {
         document("AndroidManifest.xml").use { dom ->
@@ -167,6 +169,7 @@ val morpheMusicPartnerPatch = bytecodePatch(
     default = true,
 ) {
     compatibleWith(COMPATIBILITY_WAZE)
+    category("Audio & Partners")
 
     dependsOn(morpheMusicSupportPatch)
     // The flags recorded below need the emitter patch in the build; ticking this row alone must
@@ -281,6 +284,31 @@ val morpheMusicPartnerPatch = bytecodePatch(
             "morpheMusicPartnerPatch: appended ${packages.size} partner entries to Waze's own " +
                 "arrays inside ${host.name} (scope 0x${PARTNER_SCOPE.toString(16)})"
         )
+
+        if (partnersMethod != null) {
+            // getPartners() measured PackageNames.length before these appends and sizes the au[]
+            // roster from that stale count, so both appended entries were dropped. Reload the length
+            // into the register new-array reads its size from.
+            val mutated = host.implementation
+                ?: throw PatchException("morpheMusicPartnerPatch: getPartners() lost its body")
+            val newArrayIndex = mutated.instructions.indexOfFirst { instruction ->
+                instruction.opcode == Opcode.NEW_ARRAY &&
+                    (instruction as? ReferenceInstruction)?.reference?.toString()
+                        ?.contains("/au;") == true
+            }
+            if (newArrayIndex < 0) throw PatchException(
+                "morpheMusicPartnerPatch: getPartners() no longer builds its au[] roster"
+            )
+            val sizeRegister = host.getInstruction<TwoRegisterInstruction>(newArrayIndex).registerB
+            host.addInstructions(
+                newArrayIndex,
+                """
+                    iget-object v$sizeRegister, $instance, Lcom/waze/sdk/SdkConfiguration;->PackageNames:[Ljava/lang/String;
+                    array-length v$sizeRegister, v$sizeRegister
+                """.trimIndent(),
+            )
+            println("morpheMusicPartnerPatch: roster size reloaded into v$sizeRegister before new-array")
+        }
 
 
 

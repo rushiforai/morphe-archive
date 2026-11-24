@@ -19,7 +19,10 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-/** Copy and Translate items in WebNovel's comment long-press menu. */
+/**
+ * Translate button of comments, reviews and replies. It goes beside Like, in the ⋯ sheet or in
+ * the long-press menu, as chosen in Patch controls; each place knows its item's exact text.
+ */
 public final class CommentActions {
     private static final Class<?>[] TRANSLATE_PARAMETERS = {
             String.class, String.class, ArrayList.class, String.class, Long.class, Long.class};
@@ -36,11 +39,9 @@ public final class CommentActions {
             View item = items.findViewById(id(context, hidden));
             if (item != null) item.setVisibility(View.GONE);
         }
-        items.findViewById(id(context, "saketh_comment_copy")).setOnClickListener(view -> {
-            menu.dismiss();
-            copy(context, text);
-        });
-        items.findViewById(id(context, "saketh_comment_translate")).setOnClickListener(view -> {
+        View translate = items.findViewById(id(context, "saketh_comment_translate"));
+        translate.setVisibility(TranslateButton.at(TranslateButton.LONG_PRESS) ? View.VISIBLE : View.GONE);
+        translate.setOnClickListener(view -> {
             menu.dismiss();
             translate(context, text);
         });
@@ -50,6 +51,62 @@ public final class CommentActions {
     private static String commentText(View anchor) {
         View text = anchor instanceof TextView ? anchor : anchor.findViewById(id(anchor.getContext(), "commentContent"));
         return text instanceof TextView ? ((TextView) text).getText().toString() : "";
+    }
+
+    /**
+     * Called when WebNovel's ⋯ sheet of a review, reply or comment is filled in. The sheet's
+     * operation data carries that item's exact text.
+     */
+    public static void moreSheet(View sheet, Object operation) {
+        Context context = sheet.getContext();
+        String text = text(operation, "getCommentContent");
+        View close = sheet.findViewById(id(context, "closeFl"));
+        View row = sheet.findViewById(id(context, "saketh_more_translate"));
+        row.setVisibility(!text.isEmpty() && TranslateButton.at(TranslateButton.MORE_SHEET) ? View.VISIBLE : View.GONE);
+        row.setOnClickListener(view -> {
+            // The sheet's own close row dismisses it; the sheet itself is not reachable from here.
+            if (close != null) close.performClick();
+            translate(context, text);
+        });
+    }
+
+    /** Called when an action row (time, Reply, Like, ⋯) of a review, reply or comment is bound to its item. */
+    public static void actionRow(View row, Object item) {
+        besideLike(row, item, "saketh_action_translate");
+    }
+
+    /**
+     * Called when the review at the top of a review's page is bound. Book reviews pass their
+     * list holder and page item; ranking comments pass their header view and review.
+     */
+    public static void reviewHead(Object head, Object review) {
+        try {
+            View root = head instanceof View ? (View) head : (View) head.getClass().getField("itemView").get(head);
+            if (review != null && !review.getClass().getSimpleName().equals("MainCommentBean")) {
+                review = call(review, "getReview");
+            }
+            besideLike(root, review, "saketh_head_translate");
+        } catch (ReflectiveOperationException | RuntimeException ignored) {
+            // Leave the header as it is.
+        }
+    }
+
+    private static void besideLike(View root, Object item, String button) {
+        View icon = root.findViewById(id(root.getContext(), button));
+        if (icon == null) return;
+        String text = text(item, "getContent");
+        icon.setVisibility(!text.isEmpty() && TranslateButton.at(TranslateButton.BESIDE_LIKE) ? View.VISIBLE : View.GONE);
+        icon.setOnClickListener(view -> translate(view.getContext(), text));
+    }
+
+    /** The item's text from its getter, or "" when it has none. */
+    private static String text(Object item, String getter) {
+        try {
+            Object content = item == null ? null : call(item, getter);
+            return content == null ? "" : content.toString().trim();
+        } catch (ReflectiveOperationException ignored) {
+            return "";
+        }
     }
 
     private static int id(Context context, String name) {

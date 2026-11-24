@@ -15,12 +15,13 @@ private val target = Compatibility(
 )
 
 private fun screenPatch(title: String, detail: String, hook: String, usage: Boolean = false) = bytecodePatch(
-    name = title, description = detail, default = true
+    name = null, description = detail, default = true
 ) {
     compatibleWith(target)
     dependsOn(sharedExtensionPatch)
     if(!usage && hook!="spaceHomeSections")dependsOn(initialHomeVisibility(hook))
     execute {
+        if (!CustomizationSettings.enabled(hook)) return@execute
         val screen = if (usage) "FragUsage" else "FragHome"
         Fingerprint(
             definingClass = "Lcom/zong/customercare/view/ui/$screen;", name = "onViewCreated",
@@ -31,6 +32,7 @@ private fun screenPatch(title: String, detail: String, hook: String, usage: Bool
 
 private val chatbotEntryGuard = bytecodePatch {
     execute {
+        if (!CustomizationSettings.enabled("hideChatbot")) return@execute
         // .112-specific: REA traced access$showChatBot to this private opening method.
         Fingerprint(
             definingClass = "Lcom/zong/customercare/HomeActivity;", name = "receiveFile",
@@ -40,12 +42,13 @@ private val chatbotEntryGuard = bytecodePatch {
 }
 
 private fun navPatch(title: String, detail: String, hook: String, blockChatbot: Boolean = false) = bytecodePatch(
-    name = title, description = detail, default = true
+    name = null, description = detail, default = true
 ) {
     compatibleWith(target)
     dependsOn(sharedExtensionPatch)
     if (blockChatbot) dependsOn(chatbotEntryGuard)
     execute {
+        if (!CustomizationSettings.enabled(hook)) return@execute
         val method = Fingerprint(
             definingClass = "Lcom/zong/customercare/HomeActivity;", name = "onCreate",
             returnType = "V", parameters = listOf("Landroid/os/Bundle;")
@@ -96,13 +99,14 @@ val hideChatbotPatch = navPatch(
 
 @Suppress("unused")
 val hideBundlePromotionsPatch = bytecodePatch(
-    name = "Hide bundle browsing promotions",
+    name = null,
     description = "Hide the advertising banner above the bundle browsing and results section.",
     default = true
 ) {
     compatibleWith(target)
     dependsOn(sharedExtensionPatch)
     execute {
+        if (!CustomizationSettings.enabled("hideBundlePromotions")) return@execute
         for (screen in listOf("FragBundlesMain", "FragBundleDetails")) Fingerprint(
             definingClass = "Lcom/zong/customercare/view/ui/$screen;", name = "onViewCreated",
             returnType = "V", parameters = listOf("Landroid/view/View;", "Landroid/os/Bundle;")
@@ -117,12 +121,13 @@ val hideHomeRechargePatch=screenPatch(
 
 @Suppress("unused")
 val hideOnlineRechargePromotionsPatch=bytecodePatch(
-    name="Hide online recharge promotions",
+    name=null,
     description="Hide banners and inline promotions on Online Recharge when that section is enabled.", default=true
 ) {
     compatibleWith(target)
     dependsOn(sharedExtensionPatch)
     execute {
+        if (!CustomizationSettings.enabled("hideOnlinePromotions")) return@execute
         Fingerprint(
             definingClass="Lcom/zong/customercare/view/ui/FragOrPaymentMethods;",name="onViewCreated",
             returnType="V",parameters=listOf("Landroid/view/View;","Landroid/os/Bundle;")
@@ -139,13 +144,14 @@ val hideDrawerExtrasPatch=navPatch(
 
 @Suppress("unused")
 val holdStartupCoverPatch=bytecodePatch(
-    name="Hold startup until Home settles",
+    name=null,
     description="Keep a matching dark brand cover for at least 450ms and until loading/three clean frames settle; maximum 1.8 seconds.",
     default=true
 ) {
     compatibleWith(target)
     dependsOn(sharedExtensionPatch)
     execute {
+        if (!CustomizationSettings.enabled("holdStartup")) return@execute
         val create=Fingerprint(
             definingClass="Lcom/zong/customercare/HomeActivity;",name="onCreate",
             returnType="V",parameters=listOf("Landroid/os/Bundle;")

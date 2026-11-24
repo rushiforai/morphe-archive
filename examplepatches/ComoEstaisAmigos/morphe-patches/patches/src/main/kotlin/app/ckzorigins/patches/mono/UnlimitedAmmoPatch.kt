@@ -1,7 +1,8 @@
 package app.ckzorigins.patches.mono
 
 import app.ckzorigins.patches.shared.Constants.COMPATIBILITY
-import app.ckzorigins.patches.shared.applyByteEdits
+import app.ckzorigins.patches.shared.Constants.ORIGINAL_APK
+import app.adebisi.patches.shared.applyByteEdits
 import app.morphe.patcher.patch.patch
 
 /**
@@ -19,7 +20,7 @@ internal val reloadHudPatch = patch {
     dependsOn(gluBackupPatch)
 
     execute {
-        applyByteEdits(DllEdits.PATH, DllEdits.HUD_RELOAD)
+        applyByteEdits(DllEdits.PATH, DllEdits.HUD_RELOAD, ORIGINAL_APK)
     }
 }
 
@@ -38,6 +39,6 @@ val unlimitedAmmoPatch = patch(
     dependsOn(gluBackupPatch, disableAmmoRefillPopupPatch, reloadHudPatch)
 
     execute {
-        applyByteEdits(DllEdits.PATH, DllEdits.AMMO)
+        applyByteEdits(DllEdits.PATH, DllEdits.AMMO, ORIGINAL_APK)
     }
 }

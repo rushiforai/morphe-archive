@@ -12,6 +12,8 @@ Selecteer de armeabi-v7a-APK (build 176124765) of arm64-v8a-APK (build 176124766
 
 | Patch | Standaard | Wat verandert er? |
 | --- | --- | --- |
+| **Enable Inline Autofill Suggestions** | Aan | Schakelt Gboard's Android-ontvanger voor inline automatisch invullen in, zodat een wachtwoordmanager zoals Bitwarden aanmeldsuggesties in het toetsenbord kan tonen. Vereist Android 11+, een actieve provider voor automatisch invullen en diens inline-weergave. Werkt via de Bitwarden-client bij gebruik van Vaultwarden. |
+| **Smart Compose** | Aan | Toont **Tekstcorrectie → Smart Compose** en schakelt de client-side functie voor tekstaanvulling in. De taal-, model- en appvoorwaarden van Google blijven gelden. Staat los van wachtwoorden invullen. |
 | **Parakeet voice typing** | Aan | Voegt **Parakeet-spraakinvoer** toe aan Gboard-instellingen → Spraakinvoer. Zodra je daar een model downloadt en het aanzet, zet de microfoontoets spraak op de telefoon zelf om in tekst met NVIDIA Parakeet, in plaats van met de spraakherkenning van Google. Elke zin wordt herkend in de taal waarin je hem uitspreekt, dus Nederlands en Engels werken in hetzelfde dictaat zonder te wisselen. Zolang er geen model klaarstaat, gebruikt Gboard gewoon de spraakinvoer van Google. De gepatchte Gboard krijgt het Parakeet-app-icoon. |
 | **Rambler voice typing** | Aan | Voegt Rambler van Google toe aan Gboard-instellingen → Spraakinvoer, als keuze naast Parakeet (de standaard-spraakinvoer van Gboard). Kies je **Rambler**, dan stuurt de microfoontoets je spraak naar de servers van Google. Die maken er afgewerkte tekst van en voeren gesproken bewerkingen uit, zoals "verwijder de laatste zin". Parakeet blijft de standaardkeuze. |
 | **Rambler personal dictionary** | Aan | Voegt **Spraakwoordenboek** toe aan Gboard-instellingen → Spraakinvoer, met de eigen **lijst met spraakcorrecties** van Gboard: namen en woorden die je toevoegt, importeert of exporteert. Rambler krijgt ze bij elk dictaat mee en schrijft ze daardoor goed. Werkt alleen samen met Rambler voice typing. |
@@ -45,7 +47,7 @@ Selecteer de armeabi-v7a-APK (build 176124765) of arm64-v8a-APK (build 176124766
 | **Hidden flags (18.8)** | Aan | Drie interne 18.8-flags via Gboard's eigen override-opslag: app-specifieke woordweging, de app-specifieke suggestiebalk en de vierkante genormaliseerde zoekradius. Zie [Verborgen flags](#verborgen-flags-188). |
 | **Beta features (18.8)** | Aan | Schakelt vijf functies voor het klembord, het zwevende toetsenbord, Emoji2 en het verwijderen van suggesties in. Per functie instelbaar via **Patches → More settings → Beta features**. Zie [Beta-functies](#beta-functies-188). |
 
-Clipboard Enhancements, Web Clipboard, Toolbar Editing Buttons, Cursor trackpad mode, Incognito Mode Toggle, Simple Calculator, Rounded Keyboard Panel, Frosted Glass, Custom Theme, G Logo on Spacebar en Key Shape Selection zijn overgenomen van het GPLv3-project [Gboard Patches](https://github.com/jasonwu1994/Gboard-patches) en bijgewerkt voor Gboard 18.8.0.
+Enable Inline Autofill Suggestions, Smart Compose, Clipboard Enhancements, Web Clipboard, Toolbar Editing Buttons, Cursor trackpad mode, Incognito Mode Toggle, Simple Calculator, Rounded Keyboard Panel, Frosted Glass, Custom Theme, G Logo on Spacebar en Key Shape Selection zijn overgenomen van het GPLv3-project [Gboard Patches](https://github.com/jasonwu1994/Gboard-patches) en bijgewerkt voor Gboard 18.8.0.
 
 
 ### Advanced voice typing (NGA)

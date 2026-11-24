@@ -200,7 +200,7 @@ class HermesBundleEditor(private val data: ByteArray) {
             return if (isOverflowed) {
                 val infoOffset = buffer.getInt(headerOffset + 8) and 0x01FFFFFF
                 val largeOffset = (infoOffset shl 16) or (offset and 0xFFFF)
-                require(largeOffset >= 0 && largeOffset + 16 <= data.size) {
+                require(largeOffset >= 0 && largeOffset <= data.size - 16) {
                     "Large function header offset $largeOffset out of bounds"
                 }
                 val largeCodeOffset = buffer.getInt(largeOffset)
@@ -241,7 +241,7 @@ class HermesBundleEditor(private val data: ByteArray) {
             val offset = word0 and 0x01FFFFFF
             val funcName = (word1 ushr 14) and 0xFF
             val largeOffset = (funcName shl 24) or (offset and 0x00FFFFFF)
-            require(largeOffset >= 0 && largeOffset + 16 <= data.size) {
+            require(largeOffset >= 0 && largeOffset <= data.size - 16) {
                 "Invalid large header offset: $largeOffset"
             }
             buffer.putInt(largeOffset, newCodeOffset)
@@ -254,10 +254,7 @@ class HermesBundleEditor(private val data: ByteArray) {
         }
     }
 
-    fun matchesBytes(offset: Int, expected: ByteArray): Boolean {
-        if (offset < 0 || offset + expected.size > data.size) return false
-        return data.copyOfRange(offset, offset + expected.size).contentEquals(expected)
-    }
+    fun matchesBytes(offset: Int, expected: ByteArray): Boolean = data.matchesAt(offset, expected)
 
     fun findFunctionOffsetByName(functionName: String, predicate: (codeOffset: Int) -> Boolean = { true }): Int? {
         val nameId = findStringId(functionName) ?: return null
@@ -283,18 +280,25 @@ class HermesBundleEditor(private val data: ByteArray) {
     }
 
     fun patchBytes(offset: Int, bytes: ByteArray) {
+        require(data.hasRange(offset, bytes.size)) {
+            "Patch range offset=$offset length=${bytes.size} exceeds ${data.size} bytes"
+        }
         System.arraycopy(bytes, 0, data, offset, bytes.size)
     }
 
     fun patchBytesIfMatches(offset: Int, expected: ByteArray, replacement: ByteArray) {
         require(expected.size == replacement.size) { "Patch must preserve bytecode size" }
-        require(data.copyOfRange(offset, offset + expected.size).contentEquals(expected)) {
+        require(data.hasRange(offset, expected.size)) {
+            "Patch range offset=$offset length=${expected.size} exceeds ${data.size} bytes"
+        }
+        require(data.matchesAt(offset, expected)) {
             "Unexpected bytecode at offset $offset"
         }
         System.arraycopy(replacement, 0, data, offset, replacement.size)
     }
 
     fun updateFooterHash() {
+        require(data.size >= 20) { "Bundle too small for SHA-1 footer: ${data.size} bytes" }
         val md = MessageDigest.getInstance("SHA-1")
         md.update(data, 0, data.size - 20)
         val hash = md.digest()

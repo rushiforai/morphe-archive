@@ -1,5 +1,26 @@
 # Changelog
 
+## 1.0.9
+
+### Changed
+
+- **Copy and translate** now adds a **Translate** button to book reviews, review replies and chapter and paragraph comments. It sits beside Like by default. **Patch controls > Comments > Translate button** moves it into the ⋯ menu or the paragraph-comment long-press menu instead. The separate Copy item is gone; copy the translation from the translation window.
+
+### Fixed
+
+- Long-pressing a book's details page opens the synopsis when the book was opened from search or another Flutter page. Before, nothing happened there.
+- Long-pressing a review preview on a book's details page no longer also opens that review after the synopsis appears.
+
+## 1.0.8
+
+### Added
+
+- **Patch controls > Accounts > Blocked accounts** opens WebNovel's own list of users you blocked. Tap one to open their profile and unblock them.
+
+### Fixed
+
+- **Hide blocked authors' books** no longer stops tag and genre results from loading. When every book on a page was by blocked authors, the list showed "No results" and stopped. It now skips to the next page.
+
 ## 1.0.7
 
 ### Added

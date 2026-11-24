@@ -7,21 +7,34 @@ package app.morphe.patches.ultimea.misc.settings
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructionsWithLabels
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
 import app.morphe.patcher.extensions.InstructionExtensions.getInstruction
-import app.morphe.patcher.patch.BytecodePatchContext
 import app.morphe.patcher.patch.Patch
 import app.morphe.patcher.patch.PatchException
-import app.morphe.patcher.patch.bytecodePatch
-import app.morphe.patcher.patch.resourcePatch
+import app.morphe.patcher.patch.document
+import app.morphe.patcher.patch.mutableClassDefBy
+import app.morphe.patcher.patch.patch
+import app.morphe.patcher.patch.resourceFile
 import app.morphe.patcher.util.smali.ExternalLabel
 import app.morphe.patches.ultimea.misc.fix.signature.spoofSignaturePatch
 import app.morphe.patches.shared.misc.dart.dartAotLibrary
-import app.morphe.patches.shared.misc.fillAppliedPatch
+import app.morphe.patches.shared.misc.addAppliedPatchMetadata
+import app.morphe.patches.shared.misc.hostedcomponents.CORE_COMPONENT_FACTORY
+import app.morphe.patches.shared.misc.hostedcomponents.ComponentHost
+import app.morphe.patches.shared.misc.hostedcomponents.HostedComponents
+import app.morphe.patches.shared.misc.hostedcomponents.declarePublicStyle
+import app.morphe.patches.shared.misc.hostedcomponents.replaceThemeStub
 import org.w3c.dom.Element
 import app.morphe.patches.shared.misc.extension.ultimeaSettingsExtensionPatch
 
 internal const val ULTIMEA_EXTENSION = "Lapp/hxreborn/extension/ultimea/"
 private const val MENU = "${ULTIMEA_EXTENSION}PatchesMenu;"
 private const val ACTIVITY = "app.hxreborn.extension.ultimea.PatchesSettingsActivity"
+private const val ACTIVITY_TYPE = "${ULTIMEA_EXTENSION}PatchesSettingsActivity;"
+private const val MENU_STYLE = "hx_ultimea_menu"
+private val settingsHostActivity = ComponentHost(
+    "activity",
+    "io.flutter.plugins.urllauncher.WebViewActivity",
+    mapOf("theme" to "@android:style/Theme.NoTitleBar.Fullscreen"),
+)
 private val icons = listOf(
     "hx_ultimea_ic_back",
     "hx_ultimea_ic_reset",
@@ -32,23 +45,25 @@ private val icons = listOf(
     "hx_ultimea_ic_firmware",
 )
 
-internal fun BytecodePatchContext.markPatchApplied(methodName: String, patch: Patch) =
-    fillAppliedPatch("${ULTIMEA_EXTENSION}AppliedPatches;", methodName, patch, withDescription = false)
+internal fun markPatchApplied(methodName: String, patch: Patch) =
+    addAppliedPatchMetadata("${ULTIMEA_EXTENSION}AppliedPatches;", methodName, patch, withDescription = false)
 
-internal val patchesSettingsPatch = bytecodePatch {
-    dependsOn(ultimeaSettingsExtensionPatch)
-    dependsOn(spoofSignaturePatch, resourcePatch {
+private val hostedComponents = HostedComponents(CORE_COMPONENT_FACTORY)
+
+internal val patchesSettingsPatch = patch {
+    dependsOn(ultimeaSettingsExtensionPatch, hostedComponents.patch)
+    dependsOn(spoofSignaturePatch, patch {
         dependsOn(nativeMethodsPatch)
         execute {
             icons.forEach { name ->
                 val stream = UltimeaResources::class.java.getResourceAsStream("/ultimea/drawable/$name.xml")
                     ?: throw PatchException("Missing patches menu icon $name")
-                stream.use { get("res/drawable/$name.xml").outputStream().use(it::copyTo) }
+                stream.use { resourceFile("res/drawable/$name.xml").outputStream().use(it::copyTo) }
             }
             listOf("values" to false, "values-night" to true).forEach { (qualifier, dark) ->
                 document("res/$qualifier/styles.xml").use { document ->
                     val style = document.createElement("style")
-                    style.setAttribute("name", "hx_ultimea_menu")
+                    style.setAttribute("name", MENU_STYLE)
                     style.setAttribute("parent", if (dark) "@android:style/Theme.DeviceDefault.NoActionBar"
                         else "@android:style/Theme.DeviceDefault.Light.NoActionBar")
                     mapOf(
@@ -64,6 +79,7 @@ internal val patchesSettingsPatch = bytecodePatch {
                     document.documentElement.appendChild(style)
                 }
             }
+            mutableClassDefBy(ACTIVITY_TYPE).replaceThemeStub("settingsTheme", declarePublicStyle(MENU_STYLE))
             val library = dartAotLibrary()
             library.writeBytes(library.readBytes().apply { addPatchesMenu() })
             document("AndroidManifest.xml").use { document ->
@@ -71,12 +87,13 @@ internal val patchesSettingsPatch = bytecodePatch {
                 val activity = document.createElement("activity")
                 activity.setAttribute("android:name", ACTIVITY)
                 activity.setAttribute("android:exported", "false")
-                activity.setAttribute("android:theme", "@style/hx_ultimea_menu")
+                activity.setAttribute("android:theme", "@style/$MENU_STYLE")
                 application.appendChild(activity)
             }
         }
     })
     execute {
+        hostedComponents.host(ACTIVITY, settingsHostActivity)
         FlutterInitFingerprint.matchAll(1..1).single().method.addInstructions(
             0,
             """

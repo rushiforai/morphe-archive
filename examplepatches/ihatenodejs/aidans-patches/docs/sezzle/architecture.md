@@ -6,8 +6,8 @@
 | --------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | **Application Name**        | Sezzle: Buy Now, Pay Later                                                                                                                                                                                                                      |
 | **Package Name**            | `com.sezzle.sezzlemobile`                                                                                                                                                                                                                       |
-| **Supported Version**       | `5.3.9` (Morphe Compatibility: `5.3.9`, `minSdk` 24)                                                                                                                                                                                            |
-| **Analyzed Version Code**   | `1889` (Derived from APK analysis; Constants specifies version string)                                                                                                                                                                          |
+| **Supported Version**       | `5.3.24` (Morphe Compatibility: `5.3.24`, `minSdk` 24)                                                                                                                                                                                          |
+| **Analyzed Version Code**   | `2106` (Derived from APK analysis; Constants specifies version string)                                                                                                                                                                          |
 | **Minimum SDK**             | `24` (Android 7.0)                                                                                                                                                                                                                              |
 | **Distribution Format**     | APKM (`ApkFileType.APKM`)                                                                                                                                                                                                                       |
 | **Technology Stack**        | React Native Fabric (New Architecture) compiled to **Hermes Bytecode v98** (`assets/index.android.bundle`), native Android host (`MainActivity` extending `ReactActivity`), Microsoft CodePush, and Morphe Java extension (`ConsentGate.java`). |
@@ -92,7 +92,7 @@ Sezzle incorporates advertising networks, survey offerwalls, and behavioral anal
 See [Sezzle Patch Specifications](patches.md) for full technical implementation details.
 
 1. **`Remove Ads and Tracking` (`compositeFeaturePatch`):** Neutralizes advertising and tracking SDKs at the Dalvik layer and strips Thanks network and Rokt post-payment offers in Hermes bytecode via nine bytecode substitutions and a footer SHA-1 rehash.
-2. **`Clean Authentication` (`rawResourcePatch`):** Restricts login to Google SSO and unmounts unavailable phone SMS controls.
+2. **`Clean Authentication` (`rawResourcePatch`):** Unmounts the unavailable phone SMS controls while keeping Google and Apple sign-in.
 3. **`Unlock Custom App Icons` (`rawResourcePatch`):** Unlocks launcher icon variants without a Premium subscription.
 4. **`Enable App Debugging` (`resourcePatch`):** Adds `android:debuggable="true"` to `AndroidManifest.xml`.
 5. **`Unlock Developer Settings` (`rawResourcePatch`):** Unlocks internal Development Settings in Account.
@@ -102,7 +102,7 @@ See [Sezzle Patch Specifications](patches.md) for full technical implementation 
 9. **`Remove Promos & Giveaways` (`rawResourcePatch`):** Suppresses deal popups, giveaway flows, Knot card-linking dialogs, and marketing banners.
 10. **`Remove Rewards` (`rawResourcePatch`):** Removes the Rewards bottom tab while retaining Account access to Sezzle Points.
 11. **`Replace AI Discover with Products` (`rawResourcePatch`):** Restores the original non-AI Products tab.
-12. **`Replace Shop with Home` (`rawResourcePatch`):** Replaces commercial store feeds with a clean personal finance dashboard.
-13. **`Patch Consent Screen` (`bytecodePatch`):** Injects native `ConsentGate` modal dialog into `MainActivity.onCreate`.
-14. **`Suppress In-App Updates and Rating Prompts` (`rawResourcePatch`):** Neutralizes Hermes update sagas, update modals, store URLs, trustFall checks, and rating prompts.
-15. **`Suppress Updates and Integrity Checks` (`bytecodePatch`):** Disables CodePush OTA downloads and stubs RootBeer / JailMonkey.
+12. **`Rename Shop to Home` (`rawResourcePatch`):** Renames the Shop bottom navigation tab to Home; the stock store screen remains.
+13. **`Clean Home` (`rawResourcePatch`):** Unmounts Home shortcut rows, store/brand carousels, and promotional banners; the real Sezzle Spend balance banner stays visible unless the opt-in removal option is enabled.
+14. **`Patch Consent Screen` (`bytecodePatch`):** Injects native `ConsentGate` modal dialog into `MainActivity.onCreate`.
+15. **`Suppress In-App Updates and Rating Prompts` (`rawResourcePatch`):** Neutralizes Hermes update sagas, update modals, store URLs, trustFall checks, and rating prompts.

@@ -10,9 +10,6 @@ import app.morphe.patcher.patch.rawResourcePatch
 private val EXPECTED_ROKT_GIVEAWAYS_BYTES = byteArrayOf(0x34, 0x03, 0x00, 0x3b)
 private val HIDDEN_ROKT_GIVEAWAYS_BYTES = byteArrayOf(0x96.toByte(), 0x01, 0x76.toByte(), 0x01)
 
-private val EXPECTED_GIVEAWAY_SHOP_ROUTING_BYTES = byteArrayOf(0x34, 0x03, 0x00, 0x3b)
-private val HIDDEN_GIVEAWAY_SHOP_ROUTING_BYTES = byteArrayOf(0x96.toByte(), 0x01, 0x76.toByte(), 0x01)
-
 private val EXPECTED_MARKETING_GIVEAWAY_BYTES = byteArrayOf(0x34, 0x04, 0x00, 0x40)
 private val HIDDEN_MARKETING_GIVEAWAY_BYTES = byteArrayOf(0x94.toByte(), 0x01, 0x76.toByte(), 0x01)
 
@@ -28,9 +25,6 @@ private val HIDDEN_STORE_OFFER_MODAL_CONFIG_BYTES = byteArrayOf(0x92.toByte(), 0
 
 private val EXPECTED_WEBVIEW_DEALS_POPOVER_CONFIG_BYTES = byteArrayOf(0x34, 0x04, 0x00, 0x40)
 private val HIDDEN_WEBVIEW_DEALS_POPOVER_CONFIG_BYTES = byteArrayOf(0x92.toByte(), 0x00, 0x76.toByte(), 0x00)
-
-private val EXPECTED_IS_NEW_OFFER_MODAL_ENABLED_BYTES = byteArrayOf(0x34, 0x00, 0x00, 0x3b)
-private val HIDDEN_IS_NEW_OFFER_MODAL_ENABLED_BYTES = byteArrayOf(0x96.toByte(), 0x00, 0x76.toByte(), 0x00)
 
 private val EXPECTED_SINGLE_MERCHANT_DEAL_BYTES = byteArrayOf(0x40, 0x01, 0x01, 0x89.toByte())
 private val HIDDEN_SINGLE_MERCHANT_DEAL_BYTES = byteArrayOf(0x92.toByte(), 0x00, 0x76.toByte(), 0x00)
@@ -69,7 +63,7 @@ private val EXPECTED_PLAYTIME_CAMPAIGNS_BYTES = byteArrayOf(0x40, 0x03, 0x0a, 0x
 private val HIDDEN_PLAYTIME_CAMPAIGNS_BYTES = byteArrayOf(0x92.toByte(), 0x00, 0x76.toByte(), 0x00)
 
 // 5. Referrals & Social
-private val EXPECTED_REFERRAL_UNAVAILABLE_BYTES = byteArrayOf(0x34, 0x02, 0x00, 0x3b)
+private val EXPECTED_REFERRAL_UNAVAILABLE_BYTES = byteArrayOf(0x34, 0x01, 0x00, 0x3b)
 private val HIDDEN_REFERRAL_UNAVAILABLE_BYTES = byteArrayOf(0x95.toByte(), 0x01, 0x76.toByte(), 0x01)
 
 // 6. Trivia
@@ -80,7 +74,7 @@ private val EXPECTED_TRIVIA_LIVE_ACTIVITY_PUSH_TO_START_BYTES = byteArrayOf(0x34
 private val HIDDEN_TRIVIA_LIVE_ACTIVITY_PUSH_TO_START_BYTES = byteArrayOf(0x96.toByte(), 0x00, 0x76.toByte(), 0x00)
 
 // 7. Notification Prompts
-private val EXPECTED_NOTIFICATION_PERMISSION_MODAL_V2_BYTES = byteArrayOf(0x34, 0x1c, 0x00, 0x40)
+private val EXPECTED_NOTIFICATION_PERMISSION_MODAL_V2_BYTES = byteArrayOf(0x34, 0x10, 0x00, 0x40)
 private val HIDDEN_NOTIFICATION_PERMISSION_MODAL_V2_BYTES = byteArrayOf(0x92.toByte(), 0x00, 0x76.toByte(), 0x00)
 
 private val EXPECTED_ENABLE_NOTIFICATIONS_MODAL_BYTES = byteArrayOf(0x34, 0x08, 0x00, 0x89.toByte())
@@ -163,15 +157,6 @@ val removePromosAndGiveawaysPatch = rawResourcePatch(
             throw PatchException("Unexpected bytecode at useRoktGiveawaysEnabled")
         }
 
-        // 2. Disable Giveaway Shop Routing
-        val giveawayShopRoutingOffset = editor.findFunctionOffsetByName("useGiveawayShopRoutingEnabled")
-            ?: throw PatchException("useGiveawayShopRoutingEnabled function not found")
-        if (editor.matchesBytes(giveawayShopRoutingOffset, EXPECTED_GIVEAWAY_SHOP_ROUTING_BYTES)) {
-            editor.patchBytes(giveawayShopRoutingOffset, HIDDEN_GIVEAWAY_SHOP_ROUTING_BYTES)
-        } else if (!editor.matchesBytes(giveawayShopRoutingOffset, HIDDEN_GIVEAWAY_SHOP_ROUTING_BYTES)) {
-            throw PatchException("Unexpected bytecode at useGiveawayShopRoutingEnabled")
-        }
-
         // 3. Disable Marketing Giveaway
         val marketingGiveawayOffset = editor.findFunctionOffsetByName("useMarketingGiveaway")
             ?: throw PatchException("useMarketingGiveaway function not found")
@@ -214,14 +199,6 @@ val removePromosAndGiveawaysPatch = rawResourcePatch(
                 webviewDealsPopoverConfigOffset,
                 EXPECTED_WEBVIEW_DEALS_POPOVER_CONFIG_BYTES,
                 HIDDEN_WEBVIEW_DEALS_POPOVER_CONFIG_BYTES
-            )
-
-            val isNewOfferModalEnabledOffset = editor.findFunctionOffsetByName("useIsNewOfferModalEnabled")
-                ?: throw PatchException("useIsNewOfferModalEnabled function not found")
-            editor.patchBytesIfMatches(
-                isNewOfferModalEnabledOffset,
-                EXPECTED_IS_NEW_OFFER_MODAL_ENABLED_BYTES,
-                HIDDEN_IS_NEW_OFFER_MODAL_ENABLED_BYTES
             )
 
             val singleMerchantDealOffset = editor.findFunctionOffsetByName("useSingleMerchantDeal")

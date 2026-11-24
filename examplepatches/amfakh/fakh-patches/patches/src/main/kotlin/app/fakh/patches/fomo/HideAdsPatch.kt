@@ -1,10 +1,17 @@
+/*
+ * Copyright 2026 amfakh
+ * SPDX-License-Identifier: GPL-3.0-only
+ */
+
 package app.fakh.patches.fomo
 
 import app.fakh.patches.fomo.shared.Constants.COMPATIBILITY_FOMO
+import app.fakh.patches.fomo.shared.Constants.HIDE_ADS
 import app.fakh.patches.fomo.shared.HermesBundle
 import app.fakh.patches.fomo.shared.HermesBundle.Companion.OP_JMP
 import app.fakh.patches.fomo.shared.HermesBundle.Companion.OP_JSTRICT_EQUAL_LONG
 import app.fakh.patches.fomo.shared.HermesBundle.Companion.OP_LOAD_CONST_STRING
+import app.fakh.patches.shared.register
 import app.morphe.patcher.patch.PatchException
 import app.morphe.patcher.patch.rawResourcePatch
 import java.nio.ByteBuffer
@@ -62,13 +69,17 @@ val fomoHideAdsPatch = rawResourcePatch(
 ) {
     compatibleWith(COMPATIBILITY_FOMO)
     category("Ads")
+    dependsOn(hideAdsSwitchPatch)
 
     execute {
+        register(HIDE_ADS)
         val bundleFile = get("assets/index.android.bundle")
         if (!bundleFile.exists()) {
             throw PatchException("FOMO: assets/index.android.bundle not found.")
         }
 
+        // The untouched bundle stays in the app, for the Hide ads switch of Fakh Patches to turn off.
+        bundleFile.copyTo(bundleFile.resolveSibling("index.android.bundle.original"), overwrite = true)
         val bytes = bundleFile.readBytes()
         val bundle = HermesBundle(bytes)
 

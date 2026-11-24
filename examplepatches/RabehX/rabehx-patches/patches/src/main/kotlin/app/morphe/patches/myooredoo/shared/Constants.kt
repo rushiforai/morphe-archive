@@ -19,7 +19,8 @@ internal object Constants {
         // and some stable distributions are delivered as verified APK/XAPK variants.
         signatures = null,
         targets = listOf(
-            AppTarget(version = "1.5.15"),
+            // retainOriginalV2Signature() signs with v3 only, which requires Android 9+ (API 28).
+            AppTarget(version = "1.5.21", versionCode = 2365, minSdk = 28),
         ),
     )
 }

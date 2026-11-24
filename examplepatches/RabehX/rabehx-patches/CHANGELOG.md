@@ -1,3 +1,14 @@
+## [0.0.5](https://github.com/RabehX/rabehx-patches/compare/v0.0.4...v0.0.5) (2026-11-23)
+
+### Bug Fixes
+
+* **baridimob:** migrate to Morphe 2.5 binary XML API and fix lazy TLS config lookup ([6ae688a](https://github.com/RabehX/rabehx-patches/commit/6ae688ac713449acbf69493437fc94fc0d039965))
+
+### Features
+
+* **myooredoo:** support 1.5.21 with tracking removal, root bypass and spoof signature ([3efe481](https://github.com/RabehX/rabehx-patches/commit/3efe481375694e398067a18da44d4dad9e61bb81))
+* **webetu:** support 2.5.0 with Hermes freeze/watermark patches and telemetry removal ([a9f26ac](https://github.com/RabehX/rabehx-patches/commit/a9f26ac06971ab3970d1e0ac1da33f518fd84854))
+
 ## [0.0.4](https://github.com/RabehX/rabehx-patches/compare/v0.0.3...v0.0.4) (2026-09-27)
 
 ### Bug Fixes

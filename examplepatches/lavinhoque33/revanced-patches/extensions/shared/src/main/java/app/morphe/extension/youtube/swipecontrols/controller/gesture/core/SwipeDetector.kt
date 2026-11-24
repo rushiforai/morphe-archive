@@ -70,13 +70,17 @@ class SwipeDetectorImpl(
         distanceX: Float,
         distanceY: Float,
     ) {
+        submitDisplacement(to.x - from.x, to.y - from.y)
+    }
+
+    internal fun submitDisplacement(x: Float, y: Float) {
         if (currentSwipe == SwipeDetector.SwipeDirection.NONE) {
             // no swipe direction was detected yet, try to detect one
             // if the user did not swipe far enough, we cannot detect what direction they swiped
             // so we wait until a greater distance was swiped
             // NOTE: sqrt() can be high- cost, so using squared magnitudes here
-            val deltaX = abs(to.x - from.x)
-            val deltaY = abs(to.y - from.y)
+            val deltaX = abs(x)
+            val deltaY = abs(y)
             val swipeMagnitudeSquared = deltaX.pow(2) + deltaY.pow(2)
             if (swipeMagnitudeSquared > swipeMagnitudeThreshold.pow(2)) {
                 currentSwipe = if (deltaY > deltaX) {

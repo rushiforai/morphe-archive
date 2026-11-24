@@ -10,7 +10,7 @@
 
 v0.3.2から `Automatic Clone Setup` を標準選択に含め、パッケージ・権限宣言・ProviderをMPP内でクローン化する。権限参照は `ClonePermissionSupport` がManifest/DEXを更新する。公式Clone appの追加や手動オプションは不要。分割版Google本体のxxhdpi splitも同じパッケージ名に変更し、既存と同じキーで署名する。nodpi単体APKではresource splitを追加しない。
 
-Patcher1.12は公開パッチ名順で実行し、逆順でfinalizeする。`Automatic Clone Setup` は任意の外部 `Clone app` より先に原本を記録し、最後に固定名前空間へ整える。これにより従来のClone appを追加した既定false/false・旧true/true設定でも二重変換を防ぐ。標準選択を維持し、任意パッケージ名は使用しない。既定選択と旧設定の実APK検証は `scripts/emulator/test-issue8-options.py`。
+Patcher 1.12〜2.5は公開パッチ名順で実行し、逆順でfinalizeする。`Automatic Clone Setup` は任意の外部 `Clone app` より先に原本を記録し、最後に固定名前空間へ整える。これにより従来のClone appを追加した既定false/false・旧true/true設定でも二重変換を防ぐ。標準選択を維持し、任意パッケージ名は使用しない。既定選択と旧設定の実APK検証は `scripts/emulator/test-issue8-options.py`。
 
 ## microGログイン
 
@@ -57,3 +57,11 @@ v0.3.3以降は3レジスタを明示したprivate static補助メソッドで�
 ## バージョンごとの定義
 
 難読化名・探索アンカー・レジスタ条件はcommon/versions配下の版別Kotlinファイルに集約。VersionHookRegistryはversionName/versionCodeの完全一致を要求する。閲覧用JSONと追加手順は[バージョン別記録](versions/README.md)を参照。パッチのアルゴリズムと共通GMS定数は各パッチに保持する。
+
+## Patcher 2.5への対応（Issue #9）
+
+MPPのManifestの `Patcher-Version` は2.5.0を宣言する。Patcher 2.xはこの値で互換動作を切り替え、2.0未満を宣言したバンドルが1つでもあると、同時に読み込んだ全バンドルで「全リソースを先に展開する」旧動作になる。Googleアプリでは11,265ファイルの展開が毎回走るため、宣言値を実際のビルド対象に合わせる。
+
+文字列の置換はPatcher 2.5の `replaceStrings()` を使う。索引から一度で候補を探し、実際に置換する命令があるクラスだけをmutableにする。読み取りだけの探索では元のクラスを調べ、変更するクラスだけを `mutableClassDefBy` する。
+
+Patcher 2はリソースを要求時に読み込む。命令索引の構築後に初めてManifestを要求すると、87MBのGoogleリソーステーブルが索引と同時にメモリへ乗るため、索引を使うbytecodeパッチは読み取り専用の `resourceTablePreloadPatch` に依存させて先にテーブルを読み込む。Manifestの内容は変更しない。[検証記録](testing/issue-9-patcher-2.5.md)。

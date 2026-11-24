@@ -1,13 +1,22 @@
 package app.morphe.extension.youtube.swipecontrols
 
 import android.app.Activity
+import android.content.res.Configuration
+import android.graphics.Rect
 import android.os.Build
 import android.os.Bundle
+import android.view.Gravity
 import android.view.KeyEvent
 import android.view.MotionEvent
+import android.view.View
 import android.view.ViewGroup
+import android.widget.FrameLayout
 import app.morphe.extension.shared.utils.Logger.printDebug
 import app.morphe.extension.shared.utils.Logger.printException
+import app.morphe.extension.shared.utils.ResourceType
+import app.morphe.extension.shared.utils.ResourceUtils.getIdentifier
+import app.morphe.extension.shared.utils.Utils.dipToPixels
+import app.morphe.extension.youtube.settings.Settings
 import app.morphe.extension.youtube.shared.PlayerType
 import app.morphe.extension.youtube.sponsorblock.ui.SponsorBlockViewController
 import app.morphe.extension.youtube.swipecontrols.controller.AudioVolumeController
@@ -61,10 +70,24 @@ class SwipeControlsHostActivity : Activity() {
      */
     private lateinit var keys: VolumeKeysController
 
-    /**
-     * Pass a gesture downstream when it starts on SponsorBlock's draggable new-segment panel.
-     */
-    private var isTouchingNewSegmentLayout = false
+    private var swipeGestureInProgress = false
+    private var portraitSwipeInProgress = false
+    private var portraitOverlayBounds: Rectangle? = null
+
+    // MainActivity's stock constructor bypasses this injected superclass's constructor.
+    // Keep all non-default instance state in the lifecycle initialization path.
+    private var controlsOverlayId = 0
+    private var elevatedOverlayId = 0
+    private var playButtonId = 0
+    private var timeBarId = 0
+    private var inlineTimeBarId = 0
+    private var largeTimeBarId = 0
+    private var engagementPanelContentId = 0
+    private var maxTimeBarHeight = 0
+    private lateinit var touchBounds: Rect
+    private lateinit var windowLocation: IntArray
+    private lateinit var regularScrubber: PreciseSeekOverlay
+    private lateinit var elevatedScrubber: PreciseSeekOverlay
 
     private var playerTypeObserver: ((PlayerType) -> Unit)? = null
 
@@ -95,33 +118,105 @@ class SwipeControlsHostActivity : Activity() {
             return super.dispatchTouchEvent(ev)
         }
 
-        when (ev.actionMasked) {
-            MotionEvent.ACTION_DOWN -> isTouchingNewSegmentLayout =
-                SponsorBlockViewController.isNewSegmentLayoutVisibleAndContains(ev.rawX, ev.rawY)
-
-            MotionEvent.ACTION_UP,
-            MotionEvent.ACTION_CANCEL -> {
-                if (isTouchingNewSegmentLayout) {
-                    return super.dispatchTouchEvent(ev).also {
-                        isTouchingNewSegmentLayout = false
-                    }
-                }
-            }
+        val action = ev.actionMasked
+        if (action == MotionEvent.ACTION_DOWN) {
+            if (swipeGestureInProgress) gesture.cancelTouchEvent(ev)
+            swipeGestureInProgress = prepareSwipeGesture(ev)
+        } else if (swipeGestureInProgress &&
+            (!canContinueSwipe() || (portraitSwipeInProgress && ev.pointerCount > 1))
+        ) {
+            // Cancel only RVX's detector, including any delayed action. Native fine scrubbing
+            // keeps the original DOWN/MOVE/UP sequence even if its overlay closes before UP.
+            gesture.cancelTouchEvent(ev)
+            overlay.hideFeedback()
+            swipeGestureInProgress = false
         }
 
-        if (isTouchingNewSegmentLayout) {
-            return super.dispatchTouchEvent(ev)
+        if (!swipeGestureInProgress) return super.dispatchTouchEvent(ev)
+
+        val consumed = gesture.submitTouchEvent(ev)
+        if (action == MotionEvent.ACTION_UP || action == MotionEvent.ACTION_CANCEL) {
+            swipeGestureInProgress = false
         }
 
-        return if (gesture.submitTouchEvent(ev)) {
-            // Consumed events bypass Activity's user-interaction report, leaving autoplay idle.
-            if (ev.actionMasked == MotionEvent.ACTION_DOWN) {
-                onUserInteraction()
-            }
+        if (!consumed) return super.dispatchTouchEvent(ev)
 
-            true
+        // Consumed DOWN bypasses Activity's user-interaction report, leaving autoplay idle.
+        if (action == MotionEvent.ACTION_DOWN) onUserInteraction()
+        return true
+    }
+
+    private fun prepareSwipeGesture(event: MotionEvent): Boolean {
+        if (!config.enableSwipeControls ||
+            SponsorBlockViewController.isNewSegmentLayoutVisibleAndContains(event.rawX, event.rawY)
+        ) return false
+
+        val controlsOverlay = findViewById<View>(controlsOverlayId)
+        regularScrubber.bind(controlsOverlay)
+        elevatedScrubber.bind(if (elevatedOverlayId == 0) null else findViewById(elevatedOverlayId))
+        if (isPreciseSeekActive()) {
+            overlay.hideFeedback()
+            return false
+        }
+
+        // Let native scrubbing decide whether to open its precise mode without an intercepted DOWN.
+        if (touchesVisibleBar(controlsOverlay?.findViewById(timeBarId), event) ||
+            touchesVisibleBar(controlsOverlay?.findViewById(inlineTimeBarId), event) ||
+            touchesVisibleBar(controlsOverlay?.findViewById(largeTimeBarId), event)
+        ) return false
+
+        portraitSwipeInProgress = config.enablePortraitSwipeControls
+        if (!portraitSwipeInProgress) {
+            setPortraitOverlayBounds(null)
+            return true
+        }
+
+        if (!isPortraitSwipeAvailable() ||
+            controlsOverlay?.findViewById<View>(playButtonId)?.isShown == true ||
+            touchesVisibleView(findViewById(engagementPanelContentId), event)
+        ) return false
+
+        val playerBounds = zones.preparePortraitTouch(controlsOverlay ?: return false, event) ?: return false
+        setPortraitOverlayBounds(playerBounds)
+        return true
+    }
+
+    private fun playerViewId(name: String) = getIdentifier(name, ResourceType.ID, this)
+
+    private fun isPreciseSeekActive(): Boolean = regularScrubber.isShown() || elevatedScrubber.isShown()
+
+    private fun isPortraitSwipeAvailable(): Boolean =
+        config.enablePortraitSwipeControls && resources.configuration.orientation == Configuration.ORIENTATION_PORTRAIT
+
+    internal fun canContinueSwipe(): Boolean = swipeGestureInProgress &&
+        config.enableSwipeControls && (!portraitSwipeInProgress || isPortraitSwipeAvailable()) && !isPreciseSeekActive()
+
+    private fun touchesVisibleBar(view: View?, event: MotionEvent): Boolean =
+        view != null && view.height <= maxTimeBarHeight && touchesVisibleView(view, event)
+
+    private fun touchesVisibleView(view: View?, event: MotionEvent): Boolean {
+        if (view == null || !view.isShown || !view.getLocalVisibleRect(touchBounds)) return false
+
+        view.getLocationInWindow(windowLocation)
+        return touchBounds.contains(
+            event.x.toInt() - windowLocation[0],
+            event.y.toInt() - windowLocation[1],
+        )
+    }
+
+    private fun setPortraitOverlayBounds(bounds: Rectangle?) {
+        if (portraitOverlayBounds == bounds) return
+        portraitOverlayBounds = bounds
+        overlay.hideFeedback()
+
+        overlay.layoutParams = if (bounds == null) {
+            FrameLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT)
         } else {
-            super.dispatchTouchEvent(ev)
+            contentRoot.getLocationInWindow(windowLocation)
+            FrameLayout.LayoutParams(bounds.width, bounds.height, Gravity.TOP or Gravity.LEFT).apply {
+                leftMargin = bounds.left - windowLocation[0]
+                topMargin = bounds.top - windowLocation[1]
+            }
         }
     }
 
@@ -167,6 +262,8 @@ class SwipeControlsHostActivity : Activity() {
     private fun initialize() {
         // create controllers
         printDebug { "initializing swipe controls controllers" }
+        initializeTouchState()
+
         config = SwipeControlsConfigurationProvider()
         keys = VolumeKeysController(this)
         audio = createAudioController()
@@ -200,6 +297,23 @@ class SwipeControlsHostActivity : Activity() {
         currentHost = WeakReference(this)
     }
 
+    private fun initializeTouchState() {
+        controlsOverlayId = playerViewId("youtube_controls_overlay")
+        elevatedOverlayId = playerViewId("elevated_controls_layout")
+        playButtonId = playerViewId("player_control_play_pause_replay_button_touch_area")
+        timeBarId = playerViewId("time_bar")
+        inlineTimeBarId = playerViewId("watch_while_time_bar_view")
+        largeTimeBarId = playerViewId("large_controls_time_bar")
+        engagementPanelContentId = playerViewId("engagement_panel_content")
+        maxTimeBarHeight = dipToPixels(64f)
+        touchBounds = Rect()
+        windowLocation = IntArray(2)
+
+        val fineScrubbingId = playerViewId("fine_scrubbing_overlay")
+        regularScrubber = PreciseSeekOverlay(fineScrubbingId, playerViewId("fine_scrubbing_overlay_stub"))
+        elevatedScrubber = PreciseSeekOverlay(fineScrubbingId, playerViewId("elevated_fine_scrubbing_overlay_stub"))
+    }
+
     /**
      * (re) attaches swipe overlays
      */
@@ -207,6 +321,28 @@ class SwipeControlsHostActivity : Activity() {
         printDebug { "attaching swipe controls overlay" }
         contentRoot.removeView(overlay)
         contentRoot.addView(overlay)
+    }
+
+    /** Each stock stub inflates a view with the same ID, even in the separate elevated container. */
+    private class PreciseSeekOverlay(private val overlayId: Int, private val stubId: Int) {
+        private var container: View? = null
+        private var overlay: View? = null
+        private var stub: View? = null
+
+        fun bind(parent: View?) {
+            container = parent
+            overlay = parent?.findViewById(overlayId)
+            stub = if (overlay == null && stubId != 0) parent?.findViewById(stubId) else null
+        }
+
+        fun isShown(): Boolean {
+            // Do not walk the view tree on every MOVE. A replaced stub signals inflation.
+            if (stub?.isAttachedToWindow == false) {
+                overlay = container?.findViewById(overlayId)
+                stub = null
+            }
+            return overlay?.isShown == true
+        }
     }
 
     // Flag that indicates whether the brightness has been saved and restored default brightness
@@ -218,6 +354,12 @@ class SwipeControlsHostActivity : Activity() {
      * @param type the new player type
      */
     private fun onPlayerTypeChanged(type: PlayerType) {
+        if (type != PlayerType.WATCH_WHILE_MAXIMIZED && Settings.SWIPE_PORTRAIT.get()) {
+            runOnUiThread {
+                if (PlayerType.current != PlayerType.WATCH_WHILE_MAXIMIZED) setPortraitOverlayBounds(null)
+            }
+        }
+
         when {
             // If saving and restoring brightness is enabled, and the player type is WATCH_WHILE_FULLSCREEN,
             // and brightness has already been saved, then restore the screen brightness
@@ -252,7 +394,7 @@ class SwipeControlsHostActivity : Activity() {
      */
     private fun createScreenController() =
         if (config.enableBrightnessControl) {
-            ScreenBrightnessController(this)
+            ScreenBrightnessController(window, config)
         } else {
             null
         }

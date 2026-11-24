@@ -68,7 +68,7 @@ public final class NuvioUpdateInstaller {
     public static void disableMetadata(MutableClass installer, MutableClass receiver) {
         MutableMethod method = unique(installer, "b");
         if (!method.toString().equals(INSTALLER + "->b(Landroid/content/Context;Ljava/io/File;ZZ)V") ||
-            (method.getAccessFlags() & 8) == 0 || !NuvioPlaybackButtonsPatch.fingerprint(method).equals("7d40ed67d709182b487a6422037abae563644563c9b53afc78cedc665e0d3e18"))
+            (method.getAccessFlags() & 8) == 0 || !NuvioPlaybackButtonsPatch.fingerprint(method).equals("2f4ff52bae37577456a196bbf40e2e953c0484097d77387f24fa1788566b3df1"))
             throw new IllegalStateException("Changed or already patched installer");
         MutableMethod callback = receiver(receiver);
         int result = dmResult(callback);

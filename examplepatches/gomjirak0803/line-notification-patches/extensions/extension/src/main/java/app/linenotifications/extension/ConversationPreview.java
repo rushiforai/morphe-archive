@@ -15,11 +15,17 @@ final class ConversationPreview {
 
     static Notification apply(Notification.Builder builder, NotificationPolicy.ChatKey chat, String room,
                               int unread, List<NotificationPolicy.Message> messages) {
-        return apply(builder, chat, room, unread, messages, null);
+        return apply(builder, chat, room, unread, messages, null, null);
     }
 
     static Notification apply(Notification.Builder builder, NotificationPolicy.ChatKey chat, String room,
                               int unread, List<NotificationPolicy.Message> messages, Map<String, Icon> icons) {
+        return apply(builder, chat, room, unread, messages, icons, null);
+    }
+
+    static Notification apply(Notification.Builder builder, NotificationPolicy.ChatKey chat, String room,
+                              int unread, List<NotificationPolicy.Message> messages, Map<String, Icon> icons,
+                              Map<String, NativeLine.MediaPreview> mediaPreviews) {
         // recoverBuilder can retain the previous custom/Inbox style. Clear only presentation
         // metadata, keeping LINE's routing, account marker, actions and native-action backup.
         Bundle extras = new Bundle(builder.getExtras());
@@ -48,7 +54,20 @@ final class ConversationPreview {
                 person = personBuilder.build();
                 people.put(message.senderId, person);
             }
-            style.addMessage(new Notification.MessagingStyle.Message(message.text, message.timestampMillis, person));
+            Notification.MessagingStyle.Message item = new Notification.MessagingStyle.Message(
+                    message.text, message.timestampMillis, person);
+            NativeLine.MediaPreview media = mediaPreviews != null ? mediaPreviews.get(message.id) : null;
+            if (media != null && media.uri != null && media.mimeType != null) {
+                item.setData(media.mimeType, media.uri);
+            }
+            style.addMessage(item);
+        }
+        if (!messages.isEmpty()) {
+            NotificationPolicy.Message latest = messages.get(messages.size() - 1);
+            String sender = group ? latest.sender : title;
+            if (sender == null || sender.isEmpty()) sender = Strings.get("line_notify_fallback_sender", "Message");
+            String ticker = group ? (sender + ": " + latest.text) : latest.text;
+            builder.setContentTitle(title).setContentText(latest.text).setTicker(ticker);
         }
         // The platform determines wrapping, sender grouping and visible rows. The source
         // snapshot retains at most 25 messages; the native total count can be larger.

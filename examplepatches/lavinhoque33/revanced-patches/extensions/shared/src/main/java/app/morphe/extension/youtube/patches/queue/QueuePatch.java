@@ -1,6 +1,6 @@
 // SPDX-FileCopyrightText: 2026 Reseam contributors <https://reseam.app>
 // SPDX-License-Identifier: AGPL-3.0-or-later
-// Modified by lavinhoque33, 2026-11-10
+// Modified by lavinhoque33, 2026-11-23
 
 package app.morphe.extension.youtube.patches.queue;
 
@@ -183,6 +183,41 @@ public final class QueuePatch {
         return new Proto.Writer()
                 .message(1, new Proto.Writer().message(QUEUE_INSERT, insertion))
                 .message(2, new Proto.Writer().message(WATCH_MINIMIZED, minimized)).toByteArray();
+    }
+
+    /** Runs only the insert branch, never the minimized-watch branch used by the stock flyout. */
+    static byte[] thumbnailInsertCommand(String videoId) {
+        return new Proto.Writer()
+                .message(QUEUE_INSERT, new Proto.Writer().string(1, token(videoId, POSITION_LAST)))
+                .toByteArray();
+    }
+
+    /** The card opted into stock queueing only if its own menu contains an actual insert for this video. */
+    static boolean hasStockThumbnailInsert(byte[] menu, String videoId) {
+        for (byte[] item : menuEntries(menu, 0)) {
+            byte[] command = Proto.bytes(item, ITEM_COMMAND);
+            if (command == null) continue;
+
+            byte[] state = Proto.bytes(command, PLAYER_STATE_COMMAND);
+            if (state != null) {
+                command = Proto.bytes(state, 1);
+                if (command == null) continue;
+            }
+
+            byte[] insert = Proto.bytes(command, QUEUE_INSERT);
+            if (insert == null) continue;
+
+            String encodedToken = Proto.string(insert, 1);
+            if (encodedToken == null) continue;
+
+            byte[] token = Base64.decode(Uri.decode(encodedToken), Base64.URL_SAFE);
+            byte[] queue = Proto.bytes(token, QUEUE_TOKEN);
+            byte[] target = queue == null ? null : Proto.bytes(queue, 1);
+            if (target != null && videoId.equals(Proto.string(target, 1))) {
+                return true;
+            }
+        }
+        return false;
     }
 
     /** The video a player state command shaped like {@link #playerStateCommand}'s plays minimized. */

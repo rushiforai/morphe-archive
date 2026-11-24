@@ -132,23 +132,27 @@ final class ReadingHistory {
         }
     }
 
-    synchronized void remove(Context context, String url) {
+    void remove(Context context, String url) {
         if (context == null || url == null) return;
-        try {
-            List<Item> items = load(context);
-            boolean changed = false;
-            for (int i = items.size() - 1; i >= 0; i--) {
-                if (items.get(i).url.equals(url)) {
-                    items.remove(i);
-                    changed = true;
+        synchronized (this) {
+            try {
+                List<Item> items = load(context);
+                boolean changed = false;
+                for (int i = items.size() - 1; i >= 0; i--) {
+                    if (items.get(i).url.equals(url)) {
+                        items.remove(i);
+                        changed = true;
+                    }
                 }
+                if (changed) save(context, items);
+            } catch (Exception ex) {
+                Log.e(TAG, "Failed to save " + prefsName, ex);
             }
-            if (changed) save(context, items);
-            // A removed bookmark takes its offline copy with it.
-            if (this == BOOKMARKS) OfflineCopies.remove(context, url);
-        } catch (Exception ex) {
-            Log.e(TAG, "Failed to save " + prefsName, ex);
         }
+        // A removed bookmark takes its offline copy with it. Outside this list's lock: OfflineCopies
+        // holds its own lock while it asks whether a page is bookmarked, so taking both here in the
+        // other order could leave the two threads waiting for each other.
+        if (this == BOOKMARKS) OfflineCopies.remove(context, url);
     }
 
     synchronized boolean contains(Context context, String url) {

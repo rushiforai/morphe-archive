@@ -376,3 +376,88 @@ object SentryPerformanceProviderOnCreateFingerprint : Fingerprint(
     returnType = "Z",
     parameters = emptyList()
 )
+
+/**
+ * Matches RNBackgroundActionsTask notification builder (p in v2.0.14, o in v2.0.4) -> Notification.
+ * Builds the foreground service notification for live tracking.
+ */
+object RnBackgroundActionsNotificationFingerprint : Fingerprint(
+    definingClass = "Lcom/asterinet/react/bgactions/RNBackgroundActionsTask;",
+    isStatic = true,
+    returnType = "Landroid/app/Notification;"
+)
+
+/**
+ * Matches NetworkingModule.sendRequestInternalReal(...) in React Native 0.76+ (GajiHub v2.0.14).
+ * Called by both sendRequest (JS) and sendRequestInternal.
+ */
+object NetworkingModuleSendRequestRealFingerprint : Fingerprint(
+    definingClass = "Lcom/facebook/react/modules/network/NetworkingModule;",
+    name = "sendRequestInternalReal",
+    returnType = "V",
+    parameters = listOf(
+        "Ljava/lang/String;",
+        "Ljava/lang/String;",
+        "I",
+        "Lcom/facebook/react/bridge/ReadableArray;",
+        "Lcom/facebook/react/bridge/ReadableMap;",
+        "Ljava/lang/String;",
+        "Z",
+        "I",
+        "Z",
+        "Ljava/lang/String;"
+    )
+)
+
+/**
+ * Matches NetworkingModule.sendRequestInternal(...) in older React Native (GajiHub v2.0.4 fallback).
+ */
+object NetworkingModuleSendRequestFingerprint : Fingerprint(
+    definingClass = "Lcom/facebook/react/modules/network/NetworkingModule;",
+    name = "sendRequestInternal",
+    returnType = "V",
+    parameters = listOf(
+        "Ljava/lang/String;",
+        "Ljava/lang/String;",
+        "I",
+        "Lcom/facebook/react/bridge/ReadableArray;",
+        "Lcom/facebook/react/bridge/ReadableMap;",
+        "Ljava/lang/String;",
+        "Z",
+        "I",
+        "Z"
+    )
+)
+
+/**
+ * Matches BackgroundActionsModule.start(ReadableMap, Promise)V
+ */
+object BackgroundActionsModuleStartFingerprint : Fingerprint(
+    definingClass = "Lcom/asterinet/react/bgactions/BackgroundActionsModule;",
+    name = "start",
+    returnType = "V",
+    parameters = listOf(
+        "Lcom/facebook/react/bridge/ReadableMap;",
+        "Lcom/facebook/react/bridge/Promise;"
+    )
+)
+
+/**
+ * Matches BackgroundActionsModule.stop(Promise)V
+ */
+object BackgroundActionsModuleStopFingerprint : Fingerprint(
+    definingClass = "Lcom/asterinet/react/bgactions/BackgroundActionsModule;",
+    name = "stop",
+    returnType = "V",
+    parameters = listOf("Lcom/facebook/react/bridge/Promise;")
+)
+
+/**
+ * Matches RNBackgroundActionsTask.onStartCommand(Intent, int, int)I
+ */
+object RnBackgroundActionsOnStartCommandFingerprint : Fingerprint(
+    definingClass = "Lcom/asterinet/react/bgactions/RNBackgroundActionsTask;",
+    name = "onStartCommand",
+    returnType = "I",
+    parameters = listOf("Landroid/content/Intent;", "I", "I")
+)

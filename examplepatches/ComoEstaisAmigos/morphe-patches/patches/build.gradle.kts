@@ -3,7 +3,7 @@ group = "app.ckzombies"
 patches {
     about {
         name = "Adebisi Patches"
-        description = "Contract Killer: Zombies (NR) v3.1.0 and Contract Killer: Zombies 2 Origins v2.0.1."
+        description = "Contract Killer: Zombies (NR) v3.1.0, Contract Killer: Zombies 2 Origins v2.0.1, and Dead Crossing v1.06."
         source = "git@github.com:ComoEstaisAmigos/morphe-patches.git"
         author = "ComoEstaisAmigos"
         contact = "na"

@@ -190,74 +190,47 @@ private fun markUncompressed(destFile: java.io.File, destPath: String) {
 }
 
 private fun BytecodePatchContext.patchWebViewFactories() {
-    // 1. In Li9l.invoke (Article WebView factory)
-    val i9lClass = mutableClassDefByOrNull("Li9l;")
-        ?: throw PatchException("Missing required class Li9l; (Article WebView Factory)")
-    val i9lInvoke = i9lClass.methods.singleOrNull { it.name == "invoke" && it.returnType == "Ljava/lang/Object;" }
-        ?: throw PatchException("Missing required method Li9l.invoke")
+    // Article/GameZone WebView factory (merged in 17.2.0)
+    val factoryClass = mutableClassDefByOrNull("Lqam;")
+        ?: throw PatchException("Missing required class Lqam; (WebView Factory)")
+    val invoke = factoryClass.methods.singleOrNull { it.name == "invoke" && it.returnType == "Ljava/lang/Object;" }
+        ?: throw PatchException("Missing required method Lqam.invoke")
 
-    // 1. Neutralize MobileAds.b(WebView) in Li9l first (before any instruction shifts)
-    val i9lInsts = i9lInvoke.implementation?.instructions?.toList()
-        ?: throw PatchException("Li9l.invoke has no implementation")
-    for ((idx, inst) in i9lInsts.withIndex()) {
+    val instructions = invoke.implementation?.instructions?.toList()
+        ?: throw PatchException("Lqam.invoke has no implementation")
+
+    // Neutralize MobileAds.initialize(WebView) if present.
+    for ((idx, inst) in instructions.withIndex()) {
         val ref = (inst as? com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction)?.reference as? com.android.tools.smali.dexlib2.iface.reference.MethodReference
         if (ref?.definingClass == "Lcom/google/android/gms/ads/MobileAds;" && ref.name == "b") {
-            i9lInvoke.replaceInstruction(idx, "nop")
+            invoke.replaceInstruction(idx, "nop")
         }
     }
 
-    // 2. Attach AdBlockBridge after setWebViewClient
-    val setClientIdx = i9lInsts.indexOfFirst { inst ->
+    // Attach AdBlockBridge after setWebViewClient. WebView is v2 at this call site.
+    val setClientIdx = instructions.indexOfFirst { inst ->
         val ref = (inst as? com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction)?.reference as? com.android.tools.smali.dexlib2.iface.reference.MethodReference
         inst.opcode == com.android.tools.smali.dexlib2.Opcode.INVOKE_VIRTUAL &&
             ref?.definingClass == "Landroid/webkit/WebView;" &&
             ref.name == "setWebViewClient"
     }
-    if (setClientIdx != -1) {
-        i9lInvoke.addInstructions(
-            setClientIdx + 1,
-            "invoke-static {v2}, Lapp/aidan/extension/nhl/adblock/AdBlockBridge;->attach(Landroid/webkit/WebView;)V"
-        )
+    if (setClientIdx == -1) {
+        throw PatchException("Could not find WebView.setWebViewClient in Lqam.invoke")
     }
-
-    // 2. In Ltv7.invoke (GameZone WebView factory)
-    val tv7Class = mutableClassDefByOrNull("Ltv7;")
-        ?: throw PatchException("Missing required class Ltv7; (GameZone WebView Factory)")
-    val tv7Invoke = tv7Class.methods.singleOrNull { it.name == "invoke" && it.returnType == "Ljava/lang/Object;" }
-        ?: throw PatchException("Missing required method Ltv7.invoke")
-
-    val tv7Insts = tv7Invoke.implementation?.instructions?.toList()
-        ?: throw PatchException("Ltv7.invoke has no implementation")
-    // Neutralize MobileAds.b(WebView) in Ltv7
-    for ((idx, inst) in tv7Insts.withIndex()) {
-        val ref = (inst as? com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction)?.reference as? com.android.tools.smali.dexlib2.iface.reference.MethodReference
-        if (ref?.definingClass == "Lcom/google/android/gms/ads/MobileAds;" && ref.name == "b") {
-            tv7Invoke.replaceInstruction(idx, "nop")
-        }
-    }
-
-    val tv7SetClientIdx = tv7Insts.indexOfFirst { inst ->
-        val ref = (inst as? com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction)?.reference as? com.android.tools.smali.dexlib2.iface.reference.MethodReference
-        inst.opcode == com.android.tools.smali.dexlib2.Opcode.INVOKE_VIRTUAL &&
-            ref?.definingClass == "Landroid/webkit/WebView;" &&
-            ref.name == "setWebViewClient"
-    }
-    if (tv7SetClientIdx != -1) {
-        tv7Invoke.addInstructions(
-            tv7SetClientIdx + 1,
-            "invoke-static {v2}, Lapp/aidan/extension/nhl/adblock/AdBlockBridge;->attach(Landroid/webkit/WebView;)V"
-        )
-    }
+    invoke.addInstructions(
+        setClientIdx + 1,
+        "invoke-static {v2}, Lapp/aidan/extension/nhl/adblock/AdBlockBridge;->attach(Landroid/webkit/WebView;)V"
+    )
 }
 
 private fun BytecodePatchContext.patchWebViewClient() {
-    val khdClass = mutableClassDefByOrNull("Lkhd;")
-        ?: throw PatchException("Missing required class Lkhd; (WebViewClient)")
+    val khdClass = mutableClassDefByOrNull("Lk5e;")
+        ?: throw PatchException("Missing required class Lk5e; (WebViewClient)")
 
     // 1. Add shouldInterceptRequest(WebView, WebResourceRequest)
     val interceptMethod1 = MutableMethod(
         ImmutableMethod(
-            "Lkhd;",
+            "Lk5e;",
             "shouldInterceptRequest",
             listOf(
                 ImmutableMethodParameter("Landroid/webkit/WebView;", emptySet(), null),
@@ -283,7 +256,7 @@ private fun BytecodePatchContext.patchWebViewClient() {
     // 2. Add shouldInterceptRequest(WebView, String)
     val interceptMethod2 = MutableMethod(
         ImmutableMethod(
-            "Lkhd;",
+            "Lk5e;",
             "shouldInterceptRequest",
             listOf(
                 ImmutableMethodParameter("Landroid/webkit/WebView;", emptySet(), null),
@@ -326,77 +299,61 @@ private fun BytecodePatchContext.patchWebViewClient() {
 }
 
 private fun BytecodePatchContext.patchArticleLoadUrl() {
-    // 1. In Lowk.invoke (Article loadUrl lambda)
-    val owkClass = mutableClassDefByOrNull("Lowk;")
-    if (owkClass != null) {
-        for (method in owkClass.methods) {
-            if (method.name == "invoke" && method.implementation != null) {
-                val insts = method.implementation!!.instructions.toList()
-                for ((idx, inst) in insts.withIndex()) {
-                    val ref = (inst as? com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction)?.reference as? com.android.tools.smali.dexlib2.iface.reference.MethodReference
-                    if (inst.opcode == com.android.tools.smali.dexlib2.Opcode.INVOKE_VIRTUAL &&
-                        ref?.definingClass == "Landroid/webkit/WebView;" &&
-                        ref.name == "loadUrl" &&
-                        ref.parameterTypes.size == 2
-                    ) {
-                        method.replaceInstruction(
-                            idx,
-                            "invoke-static {v1, v0, v2}, Lapp/aidan/extension/nhl/adblock/AdBlockBridge;->load(Landroid/webkit/WebView;Ljava/lang/String;Ljava/util/Map;)V"
-                        )
-                    }
-                }
+    // Lme.invoke (merged article WebView loadUrl lambda)
+    val lambdaClass = mutableClassDefByOrNull("Lme;")
+        ?: throw PatchException("Missing required class Lme; (Article loadUrl lambda)")
+    var patched = false
+    for (method in lambdaClass.methods) {
+        if (method.name != "invoke" || method.implementation == null) continue
+        val instructions = method.implementation!!.instructions.toList()
+        for ((idx, inst) in instructions.withIndex()) {
+            val ref = (inst as? com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction)?.reference as? com.android.tools.smali.dexlib2.iface.reference.MethodReference
+            if (inst.opcode == com.android.tools.smali.dexlib2.Opcode.INVOKE_VIRTUAL &&
+                ref?.definingClass == "Landroid/webkit/WebView;" &&
+                ref.name == "loadUrl" &&
+                ref.parameterTypes.size == 2
+            ) {
+                // Registers at this call site: v1 = WebView, v2 = URL, v0 = headers map.
+                method.replaceInstruction(
+                    idx,
+                    "invoke-static {v1, v2, v0}, Lapp/aidan/extension/nhl/adblock/AdBlockBridge;->load(Landroid/webkit/WebView;Ljava/lang/String;Ljava/util/Map;)V"
+                )
+                patched = true
             }
         }
     }
-
-    // 2. In Ltv7.invoke (GameZone loadUrl)
-    val tv7Class = mutableClassDefByOrNull("Ltv7;")
-    if (tv7Class != null) {
-        for (method in tv7Class.methods) {
-            if (method.name == "invoke" && method.implementation != null) {
-                val insts = method.implementation!!.instructions.toList()
-                for ((idx, inst) in insts.withIndex()) {
-                    val ref = (inst as? com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction)?.reference as? com.android.tools.smali.dexlib2.iface.reference.MethodReference
-                    if (inst.opcode == com.android.tools.smali.dexlib2.Opcode.INVOKE_VIRTUAL &&
-                        ref?.definingClass == "Landroid/webkit/WebView;" &&
-                        ref.name == "loadUrl" &&
-                        ref.parameterTypes.size == 2
-                    ) {
-                        method.replaceInstruction(
-                            idx,
-                            "invoke-static {v2, v0, v1}, Lapp/aidan/extension/nhl/adblock/AdBlockBridge;->load(Landroid/webkit/WebView;Ljava/lang/String;Ljava/util/Map;)V"
-                        )
-                    }
-                }
-            }
-        }
+    if (!patched) {
+        throw PatchException("Missing required WebView.loadUrl(String, Map) in Lme.invoke")
     }
 }
 
 private fun BytecodePatchContext.patchSettingsSection() {
-    val dq8Class = mutableClassDefByOrNull("Ldq8;")
-        ?: throw PatchException("Missing required class Ldq8; (Settings Composable)")
-    val kMethod = dq8Class.methods.singleOrNull { it.name == "k" }
-        ?: throw PatchException("Missing required method Ldq8.k")
+    val settingsClass = mutableClassDefByOrNull("Ltc9;")
+        ?: throw PatchException("Missing required class Ltc9; (Settings Composable)")
+    val kMethod = settingsClass.methods.singleOrNull { method ->
+        method.name == "k" &&
+            method.parameterTypes.size == 4 &&
+            method.returnType == "V"
+    } ?: throw PatchException("Missing required method Ltc9.k")
 
     val insts = kMethod.implementation?.instructions?.toList()
-        ?: throw PatchException("Ldq8.k has no implementation")
+        ?: throw PatchException("Ltc9.k has no implementation")
 
-    // Find Lbg8;->d invocation
-    val bg8DIndex = insts.indexOfFirst { inst ->
+    // Find the Lse9;->k preferences section invocation.
+    val preferencesIndex = insts.indexOfFirst { inst ->
         val ref = (inst as? com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction)?.reference as? com.android.tools.smali.dexlib2.iface.reference.MethodReference
         inst.opcode == com.android.tools.smali.dexlib2.Opcode.INVOKE_STATIC &&
-            ref?.definingClass == "Lbg8;" &&
-            ref.name == "d"
+            ref?.definingClass == "Lse9;" &&
+            ref.name == "k"
     }
-    if (bg8DIndex == -1) {
-        throw PatchException("Could not find Lbg8.d anchor in Ldq8.k")
+    if (preferencesIndex == -1) {
+        throw PatchException("Could not find Lse9.k anchor in Ltc9.k")
     }
 
-    // Inject Aidan's Patches settings row right before Preferences in Ldq8.k
-    // v9 is Context, v3 is Composer, v4 is changed
+    // Inject Aidan's Patches settings row right before Preferences in Ltc9.k.
+    // v12 is Context, v7 is Composer, v0 is changed.
     kMethod.addInstructions(
-        bg8DIndex,
-        "invoke-static {v9, v3, v4}, Lapp/aidan/extension/nhl/adblock/SettingsBridge;->renderSection(Landroid/content/Context;Ljava/lang/Object;I)V"
+        preferencesIndex,
+        "invoke-static {v12, v7, v0}, Lapp/aidan/extension/nhl/adblock/SettingsBridge;->renderSection(Landroid/content/Context;Ljava/lang/Object;I)V"
     )
 }

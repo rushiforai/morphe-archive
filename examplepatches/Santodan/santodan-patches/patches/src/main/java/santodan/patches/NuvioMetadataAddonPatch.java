@@ -11,7 +11,7 @@ import java.util.function.Function;
 import kotlin.Unit;
 import software.santodan.nuvio.NuvioNative;
 
-/** Exact 1.1.0 hooks; native repositories retain HTTP, cancellation and fallback behavior. */
+/** Exact 1.1.1 hooks; native repositories retain HTTP, cancellation and fallback behavior. */
 public final class NuvioMetadataAddonPatch {
     static final String EXT = "Lsoftware/santodan/extension/nuviometadata/NuvioMetadataAddon;";
     static final String SETTINGS = "Lsoftware/santodan/extension/nuviometadata/NuvioMetadataSettings;";
@@ -27,7 +27,7 @@ public final class NuvioMetadataAddonPatch {
         SAVED_PROGRESS, "116d1e6dc59a4f440964e6e95515f33d22afe54a5aba03f08940827922956c03",
         SAVED_NEXT, "2096e1b2fb552ed9dca9b14694ac24aa49a98721a8fec48b782172fb02a5ece3",
         NuvioNative.REF_METADATA_INIT, "76394768c0fa86d59f0bdcb4de5b77a261af810cf7e686f9a9118077b3d95138",
-        NuvioNative.REF_METADATA_LIBRARY_CARD, "800b82d66ce710038da4de9a390f4594172e54bc0367c98d22ab3d1edb3f62c4",
+        NuvioNative.REF_METADATA_LIBRARY_CARD, "96c166d2b5040c5ce3ca79a0e50fb5cd2b9c6d9a847b7369c5ebfe823ec20998",
         ENRICHMENT, "80e409ed0717433e6ec34cfeaf42c8100adae668ff3f543beb87033038af0d06",
         CLASSIC, "64899fdbddda1f66194a9dd797e97291c8b0c13319a7857100c4071ec0a1be4d",
         NuvioNative.REF_METADATA_FACADE, "a8429dcee3af379548ef8be729b7501bd802456a11b92e6469e9ae360b28f838",
@@ -38,12 +38,12 @@ public final class NuvioMetadataAddonPatch {
         return PatchKt.bytecodePatch("NuvioTV - Metadata add-on selection",
             "Choose a per-profile metadata add-on, with independent options for Continue Watching and library poster artwork.", false, builder -> {
                 builder.compatibleWith(new Compatibility(NuvioNative.PACKAGE_NAME, "NuvioTV", null, ApkFileType.APK,
-                    null, null, List.of(new AppTarget("1.1.0", null, false, null, null)), FormFactor.TV, false));
+                    null, null, List.of(new AppTarget(NuvioNative.VERSION, null, false, null, null)), FormFactor.TV, false));
                 builder.dependsOn(NuvioSettingsMenuPatch.getMenuPatch());
                 builder.extendWith(() -> NuvioStreamPreloadPatch.extension("nuvio-metadata-addon"));
                 builder.execute(context -> {
                     if (!NuvioNative.PACKAGE_NAME.equals(context.getPackageMetadata().getPackageName()) ||
-                        !"1.1.0".equals(context.getPackageMetadata().getVersionName())) throw new IllegalStateException("Metadata selection requires original NuvioTV 1.1.0");
+                        !NuvioNative.VERSION.equals(context.getPackageMetadata().getVersionName())) throw new IllegalStateException("Metadata selection requires original NuvioTV 1.1.1");
                     Function<String, MutableClass> classes = type -> context.mutableClassDefBy(type);
                     validate(classes);
                     install(classes);
@@ -154,7 +154,7 @@ public final class NuvioMetadataAddonPatch {
             NuvioRemainingEpisodesPatch.parameterStart(repositoryInit), 1, extension("registerRepository", List.of(OBJECT), "V")));
         var library = method(classes, NuvioNative.REF_METADATA_LIBRARY_CARD);
         var libraryCode = NuvioRemainingEpisodesPatch.instructions(library);
-        int imageUrl = NuvioAnchors.reference(libraryCode, "Lz0/c;->e(Ljava/lang/String;Lg1/n;)I", "library poster URL before native image request");
+        int imageUrl = NuvioAnchors.reference(libraryCode, NuvioNative.REF_METADATA_LIBRARY_IMAGE, "library poster URL before native image request");
         library.getImplementation().addInstruction(imageUrl, new BuilderInstruction35c(Opcode.INVOKE_STATIC, 4, 0, 7, 13, 9, 0,
             extension("libraryPoster", List.of(OBJECT, STRING, OBJECT, "Z"), STRING)));
         library.getImplementation().addInstruction(imageUrl + 1, new BuilderInstruction11x(Opcode.MOVE_RESULT_OBJECT, 7));

@@ -1,6 +1,7 @@
 package app.ckzorigins.patches.mono
 
-import app.ckzorigins.patches.shared.applyByteEdits
+import app.ckzorigins.patches.shared.Constants.ORIGINAL_APK
+import app.adebisi.patches.shared.applyByteEdits
 import app.morphe.patcher.patch.patch
 
 /**
@@ -13,6 +14,6 @@ import app.morphe.patcher.patch.patch
  */
 internal val disableAmmoRefillPopupPatch = patch {
     execute {
-        applyByteEdits(DllEdits.PATH, DllEdits.AMMO_REFILL_POPUP)
+        applyByteEdits(DllEdits.PATH, DllEdits.AMMO_REFILL_POPUP, ORIGINAL_APK)
     }
 }

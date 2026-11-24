@@ -25,9 +25,10 @@ val instrumentClusterPatch = bytecodePatch(
     dependsOn(configOverridesPatch)
 
     val large by booleanOption(
-        "large", true,
-        title = "Large cluster layout",
-        description = "Uses the bigger layout on the cluster. Stock: small.",
+        "large", false,
+        title = "Light-commercial-vehicle mode (LCV)",
+        description = "Forces AAOS_LCV_SUPPORT_ENABLED. It is Waze's large-commercial-vehicle support " +
+            "(dimension bounds in millimetres), not a cluster layout size - off by default.",
     )
 
     execute {

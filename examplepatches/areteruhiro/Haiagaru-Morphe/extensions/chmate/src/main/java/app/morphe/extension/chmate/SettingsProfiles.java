@@ -56,6 +56,7 @@ public final class SettingsProfiles {
         booleanKey(ExternalBoardGroups.KEY);defaultValue(ExternalBoardGroups.KEY,false);
         booleanKey(BrowserUaTemplates.ENABLED);defaultValue(BrowserUaTemplates.ENABLED,false);
         booleanKey(ResponseMultiSelection.COPY_POPUP);defaultValue(ResponseMultiSelection.COPY_POPUP,false);
+        booleanKey(DirectCopyGesture.KEY);defaultValue(DirectCopyGesture.KEY,false);
         booleanKey(WacchoiClipboard.STRIP_PARENTHESES);defaultValue(WacchoiClipboard.STRIP_PARENTHESES,false);
         booleanKey("videoLandscapeImmersive");defaultValue("videoLandscapeImmersive",false);
         booleanKey(BoardCookies.KEY);defaultValue(BoardCookies.KEY,false);
@@ -72,6 +73,7 @@ public final class SettingsProfiles {
         booleanKey(VideoViewerSettings.INLINE_WIFI);defaultValue(VideoViewerSettings.INLINE_WIFI,false);
         booleanKey(HomeSelectionBar.KEY);defaultValue(HomeSelectionBar.KEY,false);
         booleanKey(VideoViewerSettings.INLINE_GIF);defaultValue(VideoViewerSettings.INLINE_GIF,false);
+        booleanKey(ImageViewerRotationButton.HIDE_BOTTOM_ACTIONS);
         booleanKey(ImageViewerRotationButton.MENU_KEY);defaultValue(ImageViewerRotationButton.MENU_KEY,true);
         booleanKey(UpdateConnectionHeaders.KEY);defaultValue(UpdateConnectionHeaders.KEY,true);
         booleanKey(ResponseNoteIndicator.KEY);defaultValue(ResponseNoteIndicator.KEY,true);
@@ -89,6 +91,7 @@ public final class SettingsProfiles {
         booleanKey(ExpertSettings.COOKIE_AUTH_UI);defaultValue(ExpertSettings.COOKIE_AUTH_UI,true);
         booleanKey(ExpertSettings.RUNTIME_VERSION);defaultValue(ExpertSettings.RUNTIME_VERSION,true);
         booleanKey(HomeThreadOrder.FOLD_ON_TAP);defaultValue(HomeThreadOrder.FOLD_ON_TAP,true);
+        booleanKey(HomeBoardFoldLabels.TITLE_CONTROL);defaultValue(HomeBoardFoldLabels.TITLE_CONTROL,true);
         booleanKey(ExpertSettings.BACKGROUND_POSTING);defaultValue(ExpertSettings.BACKGROUND_POSTING,false);
         booleanKey(ShortThreadFilter.ENABLED);defaultValue(ShortThreadFilter.ENABLED,false);
         numberKey(ShortThreadFilter.LIMIT,1,ShortThreadFilter.MAX);defaultValue(ShortThreadFilter.LIMIT,1);
@@ -167,6 +170,10 @@ public final class SettingsProfiles {
         defaultValue(ThreadRefreshOptions.KEY,false);
         booleanKey("hissiViewerShowAdjust");
         defaultValue(NativeToolTabs.HEADER_HEIGHT_KEY,48);
+        RULES.put(NativeTabGroups.DATA,v->{
+            if(!(v instanceof String)||((String)v).length()>1048576)return false;
+            try{ThreadTabGroupStore.decode((String)v);return true;}catch(Exception invalid){return false;}
+        });
         defaultValue("hissiViewerShowAdjust",true);
         numberKey("hissiViewerTextZoom",100,130);
         booleanKey(PopularReplies.CUSTOM_THRESHOLD);defaultValue(PopularReplies.CUSTOM_THRESHOLD,false);
@@ -189,14 +196,14 @@ public final class SettingsProfiles {
         "popularReplyPopup","popularReplyDirect","quickFilterCounts","quickFilterExtras","bottomQuickFilterPanel","persistentBottomQuickFilters",QuickFilterOptions.TRANSPARENT,"compactQuickFilters","wacchoiSearchEnabled","wacchoiBackgroundSearch",
         "wacchoiLongPressSearch","wacchoiLongPressSuffixSearch","wacchoiLongPressPrefixSearch","wacchoiLongPressSuffixNg","wacchoiLongPressPrefixNg","responseExtraTools","wacchoiSearchHistory","showEdgeSearch","showZzzSearch","readThreadsFirstNewOnly","automaticFoldMode",
         "groupBrowsingHistoryByBoard","showRefreshTargetsInHistoryPopup","imageVpnEnabled","hideDroppedHomeThreads","hideDroppedDrafts","hideDroppedSent","nativeToolTabs","nativeToolTabSettings","nativeToolTabEddi",
-        "nativeToolTabSearch","nativeToolTabChecker","nativeToolTabHissi","nativeToolTabWacchoi",NativeToolTabChMateGestures.KEY,"floatingQuickFilterButton","hissiViewerCompactHeader",
+        "threadTabGroupsEnabled",NativeTabGroups.BUTTON_KEY,"nativeToolTabNotes","nativeToolTabSearch","nativeToolTabChecker","nativeToolTabHissi","nativeToolTabWacchoi",NativeToolTabChMateGestures.KEY,"floatingQuickFilterButton","hissiViewerCompactHeader",
         ThreadRefreshOptions.KEY
     };
     static SharedPreferences prefs(Context c){return c.getSharedPreferences(WacchoiSearchOptions.PREFS,0);}
     static boolean resetDefaults(Activity activity){
         catalog(activity);
         SharedPreferences.Editor edit=prefs(activity).edit();
-        for(String key:RULES.keySet())edit.remove(key);
+        for(String key:RULES.keySet())if(!NativeTabGroups.DATA.equals(key))edit.remove(key);
         edit.remove(MinimalSetup.ACTIVE);
         if(!edit.commit())return false;
         SharedPreferences.Editor archive=activity.getSharedPreferences("haiagaru_eddi_search",0).edit();

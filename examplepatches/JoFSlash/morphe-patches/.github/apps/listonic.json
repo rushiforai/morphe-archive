@@ -1,0 +1,78 @@
+{
+  "name": "Listonic",
+  "workflow": "emulator-listonic.yml",
+  "patches": "patches/src/main/kotlin/app/jofslash/patches/listonic",
+  "extension": "extensions/listonic",
+  "docs": "docs/listonic/README.md",
+  "readme": {
+    "style": "generated",
+    "order": [
+      "Ads",
+      "App",
+      "Privacy"
+    ],
+    "intro": {
+      "Ads": "Banners, ads between list items, full-screen ads and partner leaflets.",
+      "App": "Premium offers and buttons, prompts, coins and Google sign-in.",
+      "Privacy": "Trackers and permissions. They change nothing you see."
+    }
+  },
+  "store": "https://play.google.com/store/apps/details?id=com.l",
+  "package": "com.l",
+  "summary": "Remove the ads, sale campaigns, rating prompts and trackers from the grocery shopping list, and sign in with Google through MicroG-RE.",
+  "owners": [
+    "Listonic"
+  ],
+  "apk": {
+    "release": "listonic",
+    "version": "first",
+    "asset": "*.apks",
+    "file": "listonic.apks"
+  },
+  "android": {
+    "note": "Listonic 9.25.1 needs Android 12L or newer (minSdk 32): every version from there, and the next one, whose image is only in the SDK's canary channel so far. Except Android 13: its x86_64 image has no ARM translation, so neither the original nor the patched app installs there (INSTALL_FAILED_NO_MATCHING_ABIS); on a phone it's fine. The release tries the oldest supported version, the newest stable one and the next one; a pull request the oldest and the newest stable.",
+    "pull_request": [
+      {
+        "api": "32",
+        "android": "12L",
+        "channel": "stable"
+      },
+      {
+        "api": "36",
+        "android": "16",
+        "channel": "stable"
+      }
+    ],
+    "full": [
+      {
+        "api": "32",
+        "android": "12L",
+        "channel": "stable"
+      },
+      {
+        "api": "36",
+        "android": "16",
+        "channel": "stable"
+      },
+      {
+        "api": "37.0",
+        "android": "17",
+        "channel": "canary"
+      }
+    ]
+  },
+  "check": [
+    "python3 .github/scripts/check_app.py listonic \"$APK\" --cli \"$CLI\" --install --expect-screen --compare-original --adb adb"
+  ],
+  "versions": {
+    "pattern": "\\d+(\\.\\d+)+",
+    "example": "9.25.2",
+    "source": "hand",
+    "play_country": "CZ",
+    "apkpure": "https://apkpure.com/grocery-shopping-list-listonic/com.l",
+    "file": "apks",
+    "cert_sha256": "a466547928e013613e4d99bb06743c45a45bc4dfdeb51aee8974e9d99a859d9b",
+    "shows": "shows its own screen",
+    "phone_test": "sign in on a phone and look at the home screen: the emulator test only starts the app."
+  }
+}

@@ -115,6 +115,43 @@ class XmlTest(unittest.TestCase):
         self.assertEqual(resolve.fill_ja_placeholders(out), (out, []))
 
 
+def settings(locales, *entries):
+    return f'<?xml version="1.0" encoding="utf-8"?>\n<settings-text locales="{locales}">\n' + "".join(entries) + "</settings-text>\n"
+
+
+def entry(name, en, zh, ja=None, gap=""):
+    lines = [f'    <string name="{name}">', f'        <translation locale="en">{en}</translation>',
+             f'        <translation locale="zh-Hant">{zh}</translation>']
+    if ja is not None:
+        lines.append(f'        <translation locale="ja">{ja}</translation>')
+    return gap + "\n".join(lines + ["    </string>"]) + "\n"
+
+
+class SettingsMergeTest(unittest.TestCase):
+    BASE = settings("en zh-Hant", entry("a", "A", "甲"), entry("b", "B", "乙"), entry("c", "C", "丙"), entry("d", "D", "丁"))
+    OURS = settings("en zh-Hant ja", entry("a", "A", "甲", "エー"), entry("b", "B", "乙", "ビー"),
+                    entry("f", "F", "戊", "エフ"), entry("c", "C", "丙", "シー"), entry("d", "D", "丁", "ディー", gap="\n"))
+
+    def test_upstream_edits_keep_fork_entries_and_unchanged_ja(self):
+        theirs = settings("en zh-Hant", entry("a", "A", "甲"), entry("b", "B2", "乙2"), entry("n", "N", "新"),
+                          entry("d", "D", "丁", gap="\n"))
+        merged = resolve.merge_settings_xml(self.BASE, self.OURS, theirs)
+        expected = settings("en zh-Hant ja", entry("a", "A", "甲", "エー"), entry("b", "B2", "乙2"), entry("f", "F", "戊", "エフ"),
+                            entry("n", "N", "新"), entry("d", "D", "丁", "ディー", gap="\n"))
+        self.assertEqual(merged, expected)
+        self.assertEqual(resolve.fill_ja_placeholders(merged)[1], ["b", "n"])
+
+    def test_fork_edit_of_en_is_kept_when_upstream_left_it(self):
+        ours = self.OURS.replace(">C<", ">C fork<")
+        theirs = settings("en zh-Hant", entry("a", "A", "甲"), entry("b", "B", "乙"), entry("c", "C", "丙"), entry("d", "D", "丁"))
+        self.assertIn(">C fork<", resolve.merge_settings_xml(self.BASE, ours, theirs))
+
+    def test_both_sides_editing_an_entry_is_a_conflict(self):
+        ours = self.OURS.replace(">C<", ">C fork<")
+        theirs = self.BASE.replace(">C<", ">C upstream<")
+        self.assertIsNone(resolve.merge_settings_xml(self.BASE, ours, theirs))
+
+
 class BundleTest(unittest.TestCase):
     def test_render_bundle_matches_upstream_layout(self):
         upstream = '{\n  "created_at": "old",\n  "description": "old",\n  "download_url": "old",\n  "signature_download_url": "",\n  "version": "2.0.0"\n}'

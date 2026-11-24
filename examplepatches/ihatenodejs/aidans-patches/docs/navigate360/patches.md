@@ -2,7 +2,7 @@
 
 ## Overview
 
-This document describes telemetry-removal patches for **Navigate360 Student** (`com.eab.se`) version `26.19.22`.
+This document describes telemetry-removal patches for **Navigate360 Student** (`com.eab.se`) version `26.23.8`.
 
 | Patch Name                                                      | Type               | Default | Description                                                                        |
 | --------------------------------------------------------------- | ------------------ | ------- | ---------------------------------------------------------------------------------- |
@@ -38,18 +38,18 @@ Cordova assets independently start Sentry Browser reporting and expose Gainsight
 
 ### Asset Changes
 
-| Asset                                                   | Change                                                                                                                                                                                    |
-| ------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `assets/www/index.html`                                 | Removes the `Reporting-Endpoints` Sentry group, the CSP `report-to sentry-csp` directive, the `./bin/sentry.js` script include, and the Sentry initialization/lifecycle breadcrumb block. |
-| `assets/bundle.js`                                      | Replaces the Gainsight `sendMessage` and `startEngine` export implementations with no-ops.                                                                                                |
-| `assets/www/plugins/cordova-gainsight/www/gainsight.js` | Replaces `attach`, `getDiagnostics`, and `getApiKey` Cordova calls with resolved inert responses; no call reaches `cordova/exec`.                                                         |
+| Asset                                                   | Change                                                                                                                                                               |
+| ------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `assets/www/index.html`                                 | Removes the `Reporting-Endpoints` Sentry group, the CSP `report-to sentry-csp` directive, the `./bin/sentry.js` script include, and the Sentry initialization block. |
+| `assets/bundle.js`                                      | Replaces the Gainsight `sendMessage` and `startEngine` export implementations with no-ops.                                                                           |
+| `assets/www/plugins/cordova-gainsight/www/gainsight.js` | Replaces `attach`, `getDiagnostics`, and `getApiKey` Cordova calls with resolved inert responses; no call reaches `cordova/exec`.                                    |
 
 Each replacement is exact and mandatory. A missing expected asset sequence causes `PatchException`, preserving the target-version guard.
 
 ### Verification
 
 1. Build with `./gradlew :patches:buildAndroid clean --no-daemon`.
-2. Run `./gradlew generatePatchesList`; verify both entries are registered for `com.eab.se` version `26.19.22`.
+2. Run `./gradlew generatePatchesList`; verify both entries are registered for `com.eab.se` version `26.23.8`.
 3. Apply the bundle to the Navigate360 APKM and verify compatibility succeeds.
 4. Inspect the output: no Sentry script/init block or Sentry CSP endpoint remains, the Gainsight Cordova module's `attach`, `getDiagnostics`, and `getApiKey` methods return resolved inert promises without invoking `promiseExec`, and the listed native methods return immediately.
 5. On device, exercise normal navigation and push registration. Confirm no requests target `esp-mobile.aptrinsic.com` or `sentry.devops.eab.com`.

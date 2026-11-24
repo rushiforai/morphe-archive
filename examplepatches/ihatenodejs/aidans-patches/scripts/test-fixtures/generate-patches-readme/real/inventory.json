@@ -1,0 +1,4188 @@
+{
+  "NOTE": "Do NOT manually edit this file. This file is automatically updated when semantic release (release.yml) runs. Manually editing this file can break your releases and break third party tools that use this file.",
+  "version": "1.10.0-dev.1",
+  "apps": [
+    {
+      "packageName": "com.adobe.reader",
+      "name": "Adobe Reader",
+      "description": null,
+      "apkFileType": "APKM",
+      "appIconColor": "#FA0F00",
+      "signatures": [
+        "b6dd0562256487fcd6c98cde137858ef50d9adb9f9cd2f1ca58c5357efdf0faf"
+      ],
+      "targets": [
+        {
+          "version": "26.9.2.50367",
+          "versionCodes": null,
+          "isExperimental": false,
+          "minSdk": 28,
+          "description": null
+        }
+      ],
+      "patchNames": [
+        "Remove Ads and Tracking"
+      ],
+      "supportedVersions": [
+        "26.9.2.50367"
+      ],
+      "latestSupportedVersion": "26.9.2.50367"
+    },
+    {
+      "packageName": "com.adobe.scan.android",
+      "name": "Adobe Scan",
+      "description": null,
+      "apkFileType": "APKM",
+      "appIconColor": "#1473E6",
+      "signatures": [
+        "b6dd0562256487fcd6c98cde137858ef50d9adb9f9cd2f1ca58c5357efdf0faf"
+      ],
+      "targets": [
+        {
+          "version": "26.09.25",
+          "versionCodes": null,
+          "isExperimental": false,
+          "minSdk": 32,
+          "description": null
+        }
+      ],
+      "patchNames": [
+        "Local Premium",
+        "Remove Ads and Tracking",
+        "Remove Attribution",
+        "Remove Login",
+        "Remove Useless/Promotional Items",
+        "Use System Font"
+      ],
+      "supportedVersions": [
+        "26.09.25"
+      ],
+      "latestSupportedVersion": "26.09.25"
+    },
+    {
+      "packageName": "com.aftership.AfterShip",
+      "name": "AfterShip",
+      "description": null,
+      "apkFileType": "APK",
+      "appIconColor": "#FD5B26",
+      "signatures": [],
+      "targets": [
+        {
+          "version": "5.25.8",
+          "versionCodes": null,
+          "isExperimental": false,
+          "minSdk": 23,
+          "description": null
+        }
+      ],
+      "patchNames": [
+        "Add Copy Tracking Number Option",
+        "Bypass Native Signature Check",
+        "Custom Google Maps API Key",
+        "Full AMOLED Theme",
+        "Hide Broken Tracking Map",
+        "OpenStreetMap Drop-in Replacement",
+        "Remove Ads and Tracking",
+        "Remove AfterShip Account Page Links",
+        "Remove Feedback",
+        "Remove Login",
+        "Remove Shipment Sync"
+      ],
+      "supportedVersions": [
+        "5.25.8"
+      ],
+      "latestSupportedVersion": "5.25.8"
+    },
+    {
+      "packageName": "com.ashtoncofer.Buzz",
+      "name": "Fizz",
+      "description": null,
+      "apkFileType": "APKM",
+      "appIconColor": "#7F00FF",
+      "signatures": [
+        "622850867847ccb7a1371bc42c865b1137fa51bd19987dc81b53815c9a9817bf"
+      ],
+      "targets": [
+        {
+          "version": "1.54.0",
+          "versionCodes": null,
+          "isExperimental": false,
+          "minSdk": 23,
+          "description": null
+        },
+        {
+          "version": "1.72.0",
+          "versionCodes": null,
+          "isExperimental": false,
+          "minSdk": 24,
+          "description": null
+        }
+      ],
+      "patchNames": [
+        "Block Update Prompts",
+        "Enable Developer Settings",
+        "Remove Ads",
+        "Remove Tracking and Analytics",
+        "Replace Emoji Font with iOS"
+      ],
+      "supportedVersions": [
+        "1.54.0",
+        "1.72.0"
+      ],
+      "latestSupportedVersion": "1.72.0"
+    },
+    {
+      "packageName": "com.avinside",
+      "name": "365 Pay",
+      "description": null,
+      "apkFileType": "APKM",
+      "appIconColor": "#00A859",
+      "signatures": [
+        "8709f6fd781c4ba9a4f50df8c44f8c5a4ccb2fd2b114b71912e79eacf8857b1d"
+      ],
+      "targets": [
+        {
+          "version": "10.2605.0",
+          "versionCodes": null,
+          "isExperimental": false,
+          "minSdk": 27,
+          "description": null
+        }
+      ],
+      "patchNames": [
+        "Display Cutout Adaptation",
+        "Remove Ads",
+        "Remove Tracking",
+        "Unlock Developer Tools"
+      ],
+      "supportedVersions": [
+        "10.2605.0"
+      ],
+      "latestSupportedVersion": "10.2605.0"
+    },
+    {
+      "packageName": "com.creditkarma.mobile",
+      "name": "Credit Karma",
+      "description": null,
+      "apkFileType": "APKM",
+      "appIconColor": "#008600",
+      "signatures": [
+        "f5ae9364524d92be9eb436eb7436d7c9efa9e1b4e823b0db6bc3989a4d84d0bf"
+      ],
+      "targets": [
+        {
+          "version": "26.40",
+          "versionCodes": null,
+          "isExperimental": false,
+          "minSdk": 32,
+          "description": null
+        }
+      ],
+      "patchNames": [
+        "Remove Tracking"
+      ],
+      "supportedVersions": [
+        "26.40"
+      ],
+      "latestSupportedVersion": "26.40"
+    },
+    {
+      "packageName": "com.eab.se",
+      "name": "Navigate360 Student",
+      "description": null,
+      "apkFileType": "APKM",
+      "appIconColor": "#0071CE",
+      "signatures": [
+        "7253620866df0a00048e7c1f43976992330e2fdb06f094d47fbf20045f56ec4b"
+      ],
+      "targets": [
+        {
+          "version": "26.19.22",
+          "versionCodes": null,
+          "isExperimental": false,
+          "minSdk": 31,
+          "description": null
+        }
+      ],
+      "patchNames": [
+        "Remove Tracking and Telemetry",
+        "Remove Web Telemetry"
+      ],
+      "supportedVersions": [
+        "26.19.22"
+      ],
+      "latestSupportedVersion": "26.19.22"
+    },
+    {
+      "packageName": "com.eumlab.android.prometronome",
+      "name": "Pro Metronome",
+      "description": null,
+      "apkFileType": "APKM",
+      "appIconColor": "#ACD371",
+      "signatures": [
+        "67ba64147a05aedb766363801f77a59e04f37ab8785062a12c5678dadf8b7c35"
+      ],
+      "targets": [
+        {
+          "version": "1.14",
+          "versionCodes": null,
+          "isExperimental": false,
+          "minSdk": 23,
+          "description": null
+        }
+      ],
+      "patchNames": [
+        "Remove Tracking",
+        "Unlock Pro"
+      ],
+      "supportedVersions": [
+        "1.14"
+      ],
+      "latestSupportedVersion": "1.14"
+    },
+    {
+      "packageName": "com.groundspeak.geocaching.intro",
+      "name": "Geocaching",
+      "description": null,
+      "apkFileType": "APKM",
+      "appIconColor": "#007D46",
+      "signatures": [
+        "6959a7790bff42cc28fbe41c20d457401e32f4854f414dbc390de9f1529c9295",
+        "7f000458070a8272e5960f2b3c9d3348372f31b0e600c86af34fc06e85f8db8c"
+      ],
+      "targets": [
+        {
+          "version": "10.21.0",
+          "versionCodes": null,
+          "isExperimental": false,
+          "minSdk": 29,
+          "description": null
+        }
+      ],
+      "patchNames": [
+        "Enable Developer Tools and Feature Flags",
+        "Local Premium",
+        "OpenStreetMap Drop-in Replacement",
+        "Remove Lists",
+        "Remove Shop",
+        "Remove Tracking and Analytics",
+        "Unlock Cache Filter and Sorting Tools",
+        "Unlock Experimental Features",
+        "Unlock Templates"
+      ],
+      "supportedVersions": [
+        "10.21.0"
+      ],
+      "latestSupportedVersion": "10.21.0"
+    },
+    {
+      "packageName": "com.instructure.candroid",
+      "name": "Canvas Student",
+      "description": null,
+      "apkFileType": "APKM",
+      "appIconColor": "#E62725",
+      "signatures": [
+        "abfe1362d84c5234c174c2c03d405a480405e361162f7b28dad6bec825ba02b3"
+      ],
+      "targets": [
+        {
+          "version": "8.12.0",
+          "versionCodes": null,
+          "isExperimental": false,
+          "minSdk": 28,
+          "description": null
+        }
+      ],
+      "patchNames": [
+        "Change App Icon",
+        "Change App Name",
+        "Clone App",
+        "Disable AI Study Tools",
+        "Fix PDF Viewer Crash",
+        "Remove Tracking and Analytics",
+        "Show Remote Config Editor",
+        "Unlock Notebook and Offline Content"
+      ],
+      "supportedVersions": [
+        "8.12.0"
+      ],
+      "latestSupportedVersion": "8.12.0"
+    },
+    {
+      "packageName": "com.nhl.gc1112.free",
+      "name": "NHL",
+      "description": null,
+      "apkFileType": "APKM",
+      "appIconColor": "#000000",
+      "signatures": [
+        "2309209340875f6f8a008ea25dbd98d8a03e482704d43211933d2b9a91923aff"
+      ],
+      "targets": [
+        {
+          "version": "17.0.0",
+          "versionCodes": null,
+          "isExperimental": false,
+          "minSdk": 29,
+          "description": null
+        }
+      ],
+      "patchNames": [
+        "Enable Notifications and Live Activities",
+        "Remove Ads",
+        "Remove Tracking",
+        "Unlock Hidden Features",
+        "Web Ad Blocker"
+      ],
+      "supportedVersions": [
+        "17.0.0"
+      ],
+      "latestSupportedVersion": "17.0.0"
+    },
+    {
+      "packageName": "com.sezzle.sezzlemobile",
+      "name": "Sezzle",
+      "description": null,
+      "apkFileType": "APKM",
+      "appIconColor": "#5C2C94",
+      "signatures": [],
+      "targets": [
+        {
+          "version": "5.3.9",
+          "versionCodes": null,
+          "isExperimental": false,
+          "minSdk": 24,
+          "description": null
+        }
+      ],
+      "patchNames": [
+        "Clean Authentication",
+        "Configure Shortcuts",
+        "Enable App Debugging",
+        "Hide Sezzle Mobile",
+        "Patch Consent Screen",
+        "Remove Ads and Tracking",
+        "Remove Promos & Giveaways",
+        "Remove Rewards",
+        "Remove Sezzle Subscriptions",
+        "Replace AI Discover with Products",
+        "Replace Shop with Home",
+        "Suppress In-App Updates and Rating Prompts",
+        "Suppress Updates and Integrity Checks",
+        "Unlock Custom App Icons",
+        "Unlock Developer Settings",
+        "Unlock Receipt Scanner"
+      ],
+      "supportedVersions": [
+        "5.3.9"
+      ],
+      "latestSupportedVersion": "5.3.9"
+    },
+    {
+      "packageName": "com.sidelineswap.android",
+      "name": "SidelineSwap",
+      "description": null,
+      "apkFileType": "XAPK",
+      "appIconColor": "#02C874",
+      "signatures": [
+        "e434334ea79d8702a5d023ce7bfae4da9fa5539796cb9e0ba515cb471528697f"
+      ],
+      "targets": [
+        {
+          "version": "1.52.0",
+          "versionCodes": null,
+          "isExperimental": false,
+          "minSdk": 28,
+          "description": null
+        }
+      ],
+      "patchNames": [
+        "AMOLED Theme",
+        "Block Tracking and Telemetry",
+        "Change Brand Color",
+        "Remove Invite Friends"
+      ],
+      "supportedVersions": [
+        "1.52.0"
+      ],
+      "latestSupportedVersion": "1.52.0"
+    },
+    {
+      "packageName": "com.tripledot.blackjack",
+      "name": "Blackjack",
+      "description": null,
+      "apkFileType": "APKM",
+      "appIconColor": "#205B1F",
+      "signatures": [
+        "32e1c2b4c9ab0189d3e4e1c67806e6f4fc454aa758a74ccaedda8a309aa6b205"
+      ],
+      "targets": [
+        {
+          "version": "2.22.09",
+          "versionCodes": null,
+          "isExperimental": false,
+          "minSdk": 25,
+          "description": null
+        }
+      ],
+      "patchNames": [
+        "Add Custom Chip Store",
+        "Remove Ads",
+        "Remove Internet Permissions",
+        "Remove Notifications",
+        "Remove Tracking and Analytics",
+        "Skip to Next Level"
+      ],
+      "supportedVersions": [
+        "2.22.09"
+      ],
+      "latestSupportedVersion": "2.22.09"
+    }
+  ],
+  "patches": [
+    {
+      "name": "AMOLED Theme",
+      "description": "Forces SidelineSwap into a pure-black AMOLED theme with dark system bars, black app surfaces, readable light text and icons, and force dark mode on embedded WebViews.",
+      "default": false,
+      "category": "Customization",
+      "dependencies": [],
+      "compatiblePackages": [
+        {
+          "packageName": "com.sidelineswap.android",
+          "name": "SidelineSwap",
+          "description": null,
+          "apkFileType": "XAPK",
+          "appIconColor": "#02C874",
+          "signatures": [
+            "e434334ea79d8702a5d023ce7bfae4da9fa5539796cb9e0ba515cb471528697f"
+          ],
+          "targets": [
+            {
+              "version": "1.52.0",
+              "versionCodes": null,
+              "isExperimental": false,
+              "minSdk": 28,
+              "description": null
+            }
+          ]
+        }
+      ],
+      "options": []
+    },
+    {
+      "name": "Add Copy Tracking Number Option",
+      "description": "Adds an option to copy tracking numbers in the multi-shipment selection menu.",
+      "default": true,
+      "category": "Features",
+      "dependencies": [
+        "Bypass Native Signature Check"
+      ],
+      "compatiblePackages": [
+        {
+          "packageName": "com.aftership.AfterShip",
+          "name": "AfterShip",
+          "description": null,
+          "apkFileType": "APK",
+          "appIconColor": "#FD5B26",
+          "signatures": null,
+          "targets": [
+            {
+              "version": "5.25.8",
+              "versionCodes": null,
+              "isExperimental": false,
+              "minSdk": 23,
+              "description": null
+            }
+          ]
+        }
+      ],
+      "options": []
+    },
+    {
+      "name": "Add Custom Chip Store",
+      "description": "Replaces the unavailable store with a dialog to view and set your exact chip balance.",
+      "default": true,
+      "category": "Features",
+      "dependencies": [],
+      "compatiblePackages": [
+        {
+          "packageName": "com.tripledot.blackjack",
+          "name": "Blackjack",
+          "description": null,
+          "apkFileType": "APKM",
+          "appIconColor": "#205B1F",
+          "signatures": [
+            "32e1c2b4c9ab0189d3e4e1c67806e6f4fc454aa758a74ccaedda8a309aa6b205"
+          ],
+          "targets": [
+            {
+              "version": "2.22.09",
+              "versionCodes": null,
+              "isExperimental": false,
+              "minSdk": 25,
+              "description": null
+            }
+          ]
+        }
+      ],
+      "options": []
+    },
+    {
+      "name": "Block Tracking and Telemetry",
+      "description": "Neutralizes first-party analytics (SidelineSwap backend), behavioral tracking (Amplitude, Firebase Analytics, Facebook App Events, Iterable), diagnostic telemetry (Firebase Crashlytics, Timber logging tree), payment gateway telemetry (Braintree FPTI), Google Play Install Referrer, and zeros the Google Play Advertising ID (AAID).",
+      "default": true,
+      "category": "Privacy",
+      "dependencies": [],
+      "compatiblePackages": [
+        {
+          "packageName": "com.sidelineswap.android",
+          "name": "SidelineSwap",
+          "description": null,
+          "apkFileType": "XAPK",
+          "appIconColor": "#02C874",
+          "signatures": [
+            "e434334ea79d8702a5d023ce7bfae4da9fa5539796cb9e0ba515cb471528697f"
+          ],
+          "targets": [
+            {
+              "version": "1.52.0",
+              "versionCodes": null,
+              "isExperimental": false,
+              "minSdk": 28,
+              "description": null
+            }
+          ]
+        }
+      ],
+      "options": [
+        {
+          "key": "disableFirstParty",
+          "title": "Disable First-Party Analytics",
+          "description": "Neutralizes SidelineSwap's central event dispatcher (AnalyticsLogger), first-party client, and LogRepo HTTP event uploads.",
+          "required": false,
+          "type": "kotlin.Boolean",
+          "default": true,
+          "values": null
+        },
+        {
+          "key": "disableAmplitude",
+          "title": "Disable Amplitude Analytics",
+          "description": "Neutralizes the Amplitude client wrapper and core Amplitude SDK event tracking, identification, and initialization across all repositories.",
+          "required": false,
+          "type": "kotlin.Boolean",
+          "default": true,
+          "values": null
+        },
+        {
+          "key": "disableFirebase",
+          "title": "Disable Firebase & GMS Analytics",
+          "description": "Neutralizes FirebaseClient, Google Play Services Measurement event queue, and removes background AppMeasurement services and sessions.",
+          "required": false,
+          "type": "kotlin.Boolean",
+          "default": true,
+          "values": null
+        },
+        {
+          "key": "disableCrashlytics",
+          "title": "Disable Crashlytics & Diagnostic Logging",
+          "description": "Neutralizes the Timber Crashlytics logging tree and Firebase Crashlytics exception, log, and custom key reporting.",
+          "required": false,
+          "type": "kotlin.Boolean",
+          "default": true,
+          "values": null
+        },
+        {
+          "key": "disableFacebook",
+          "title": "Disable Facebook SDK & App Events",
+          "description": "Neutralizes Facebook SDK initialization, auto-event collection, activity lifecycle tracking, and removes FacebookInitProvider.",
+          "required": false,
+          "type": "kotlin.Boolean",
+          "default": true,
+          "values": null
+        },
+        {
+          "key": "disableIterable",
+          "title": "Disable Iterable Telemetry",
+          "description": "Neutralizes Iterable client calls, In-App message tracking, session event uploads, and lifecycle callback registration.",
+          "required": false,
+          "type": "kotlin.Boolean",
+          "default": true,
+          "values": null
+        },
+        {
+          "key": "disableBraintreeTelemetry",
+          "title": "Disable Braintree Gateway Telemetry",
+          "description": "Stubs Braintree FPTI background upload and database workers with immediate success, and neutralizes BraintreeClient analytics dispatchers.",
+          "required": false,
+          "type": "kotlin.Boolean",
+          "default": true,
+          "values": null
+        },
+        {
+          "key": "zeroAdvertisingId",
+          "title": "Zero Google Play Advertising ID",
+          "description": "Spoofs minified and standard Google Play AdvertisingIdClient calls to return an all-zero UUID and forces limit-ad-tracking to true.",
+          "required": false,
+          "type": "kotlin.Boolean",
+          "default": true,
+          "values": null
+        },
+        {
+          "key": "disableInstallReferrer",
+          "title": "Disable Install Referrer Tracking",
+          "description": "Neutralizes Google Play Install Referrer querying and client connections across attribution listeners.",
+          "required": false,
+          "type": "kotlin.Boolean",
+          "default": true,
+          "values": null
+        }
+      ]
+    },
+    {
+      "name": "Block Update Prompts",
+      "description": "Blocks forced app update prompts, allowing older versions of the app to continue running.",
+      "default": true,
+      "category": "General",
+      "dependencies": [],
+      "compatiblePackages": [
+        {
+          "packageName": "com.ashtoncofer.Buzz",
+          "name": "Fizz",
+          "description": null,
+          "apkFileType": "APKM",
+          "appIconColor": "#7F00FF",
+          "signatures": [
+            "622850867847ccb7a1371bc42c865b1137fa51bd19987dc81b53815c9a9817bf"
+          ],
+          "targets": [
+            {
+              "version": "1.54.0",
+              "versionCodes": null,
+              "isExperimental": false,
+              "minSdk": 23,
+              "description": null
+            },
+            {
+              "version": "1.72.0",
+              "versionCodes": null,
+              "isExperimental": false,
+              "minSdk": 24,
+              "description": null
+            }
+          ]
+        }
+      ],
+      "options": []
+    },
+    {
+      "name": "Bypass Native Signature Check",
+      "description": "Neutralizes APK signature verification in libandroidsig-lib.so so API requests succeed when signed with custom keys.",
+      "default": true,
+      "category": "Security",
+      "dependencies": [],
+      "compatiblePackages": [
+        {
+          "packageName": "com.aftership.AfterShip",
+          "name": "AfterShip",
+          "description": null,
+          "apkFileType": "APK",
+          "appIconColor": "#FD5B26",
+          "signatures": null,
+          "targets": [
+            {
+              "version": "5.25.8",
+              "versionCodes": null,
+              "isExperimental": false,
+              "minSdk": 23,
+              "description": null
+            }
+          ]
+        }
+      ],
+      "options": []
+    },
+    {
+      "name": "Change App Icon",
+      "description": "Recolors the Canvas launcher icon and optionally replaces its foreground with a custom PNG. The image is an adaptive-icon foreground, so launchers mask it to their icon shape; keep artwork inside the central safe area of a 432x432 PNG.",
+      "default": false,
+      "category": "Customization",
+      "dependencies": [],
+      "compatiblePackages": [
+        {
+          "packageName": "com.instructure.candroid",
+          "name": "Canvas Student",
+          "description": null,
+          "apkFileType": "APKM",
+          "appIconColor": "#E62725",
+          "signatures": [
+            "abfe1362d84c5234c174c2c03d405a480405e361162f7b28dad6bec825ba02b3"
+          ],
+          "targets": [
+            {
+              "version": "8.12.0",
+              "versionCodes": null,
+              "isExperimental": false,
+              "minSdk": 28,
+              "description": null
+            }
+          ]
+        }
+      ],
+      "options": [
+        {
+          "key": "foregroundColor",
+          "title": "Foreground Color",
+          "description": "Color of the original launcher foreground vector (#RRGGBB or opaque #AARRGGBB). Also tints the monochrome icon vector.",
+          "required": false,
+          "type": "kotlin.String",
+          "default": "#E62429",
+          "values": null
+        },
+        {
+          "key": "backgroundColor",
+          "title": "Background Color",
+          "description": "Adaptive icon background color (#RRGGBB or opaque #AARRGGBB).",
+          "required": false,
+          "type": "kotlin.String",
+          "default": "#FFFFFF",
+          "values": null
+        },
+        {
+          "key": "customForeground",
+          "title": "Custom Foreground Image",
+          "description": "Optional square PNG used as the adaptive icon foreground. The launcher masks the image to its icon shape, so keep artwork inside the central safe area.",
+          "required": false,
+          "type": "kotlin.String",
+          "default": "",
+          "values": null
+        }
+      ]
+    },
+    {
+      "name": "Change App Name",
+      "description": "Replaces the launcher label shown under the app icon. In-app text is unchanged.",
+      "default": false,
+      "category": "Customization",
+      "dependencies": [],
+      "compatiblePackages": [
+        {
+          "packageName": "com.instructure.candroid",
+          "name": "Canvas Student",
+          "description": null,
+          "apkFileType": "APKM",
+          "appIconColor": "#E62725",
+          "signatures": [
+            "abfe1362d84c5234c174c2c03d405a480405e361162f7b28dad6bec825ba02b3"
+          ],
+          "targets": [
+            {
+              "version": "8.12.0",
+              "versionCodes": null,
+              "isExperimental": false,
+              "minSdk": 28,
+              "description": null
+            }
+          ]
+        }
+      ],
+      "options": [
+        {
+          "key": "appName",
+          "title": "App Name",
+          "description": "Launcher label shown under the app icon.",
+          "required": false,
+          "type": "kotlin.String",
+          "default": "Canvas",
+          "values": null
+        }
+      ]
+    },
+    {
+      "name": "Change Brand Color",
+      "description": "Customizes the primary accent brand color across SidelineSwap buttons, navigation highlights, badges, and accents.",
+      "default": false,
+      "category": "Customization",
+      "dependencies": [],
+      "compatiblePackages": [
+        {
+          "packageName": "com.sidelineswap.android",
+          "name": "SidelineSwap",
+          "description": null,
+          "apkFileType": "XAPK",
+          "appIconColor": "#02C874",
+          "signatures": [
+            "e434334ea79d8702a5d023ce7bfae4da9fa5539796cb9e0ba515cb471528697f"
+          ],
+          "targets": [
+            {
+              "version": "1.52.0",
+              "versionCodes": null,
+              "isExperimental": false,
+              "minSdk": 28,
+              "description": null
+            }
+          ]
+        }
+      ],
+      "options": [
+        {
+          "key": "primaryColor",
+          "title": "Primary Brand Color",
+          "description": "Hex color string (e.g. #1E88E5 for Material Blue, #9C27B0 for Purple, #FF5722 for Orange, #000000 for Monochrome).",
+          "required": false,
+          "type": "kotlin.String",
+          "default": "#1E88E5",
+          "values": null
+        },
+        {
+          "key": "primaryDarkColor",
+          "title": "Primary Dark Color",
+          "description": "Hex color string for status bars and dark accents (defaults to #1565C0).",
+          "required": false,
+          "type": "kotlin.String",
+          "default": "#1565C0",
+          "values": null
+        }
+      ]
+    },
+    {
+      "name": "Clean Authentication",
+      "description": "Shows Google sign-in only and removes the unavailable phone sign-in controls.",
+      "default": true,
+      "category": "Security",
+      "dependencies": [],
+      "compatiblePackages": [
+        {
+          "packageName": "com.sezzle.sezzlemobile",
+          "name": "Sezzle",
+          "description": null,
+          "apkFileType": "APKM",
+          "appIconColor": "#5C2C94",
+          "signatures": null,
+          "targets": [
+            {
+              "version": "5.3.9",
+              "versionCodes": null,
+              "isExperimental": false,
+              "minSdk": 24,
+              "description": null
+            }
+          ]
+        }
+      ],
+      "options": [
+        {
+          "key": "injectPatchWarning",
+          "title": "Inject patch warning",
+          "description": "Adds a patched-app caution warning below the Google sign-in message on the login screen.",
+          "required": false,
+          "type": "kotlin.Boolean",
+          "default": true,
+          "values": null
+        }
+      ]
+    },
+    {
+      "name": "Clone App",
+      "description": "Changes the package name so this build installs alongside the original Canvas Student. The clone has separate app data. Re-signed or cloned App Links, push notifications, and package/certificate-bound services may not work; verify login, sharing, and document viewing.",
+      "default": false,
+      "category": "Customization",
+      "dependencies": [],
+      "compatiblePackages": [
+        {
+          "packageName": "com.instructure.candroid",
+          "name": "Canvas Student",
+          "description": null,
+          "apkFileType": "APKM",
+          "appIconColor": "#E62725",
+          "signatures": [
+            "abfe1362d84c5234c174c2c03d405a480405e361162f7b28dad6bec825ba02b3"
+          ],
+          "targets": [
+            {
+              "version": "8.12.0",
+              "versionCodes": null,
+              "isExperimental": false,
+              "minSdk": 28,
+              "description": null
+            }
+          ]
+        }
+      ],
+      "options": [
+        {
+          "key": "packageName",
+          "title": "Clone Package Name",
+          "description": "Android package name for the clone. It must contain at least two segments and must differ from com.instructure.candroid.",
+          "required": false,
+          "type": "kotlin.String",
+          "default": "com.instructure.candroid.morphe",
+          "values": null
+        }
+      ]
+    },
+    {
+      "name": "Configure Shortcuts",
+      "description": "Customizes items displayed in the Your Shortcuts carousel.",
+      "default": true,
+      "category": "Interface",
+      "dependencies": [],
+      "compatiblePackages": [
+        {
+          "packageName": "com.sezzle.sezzlemobile",
+          "name": "Sezzle",
+          "description": null,
+          "apkFileType": "APKM",
+          "appIconColor": "#5C2C94",
+          "signatures": null,
+          "targets": [
+            {
+              "version": "5.3.9",
+              "versionCodes": null,
+              "isExperimental": false,
+              "minSdk": 24,
+              "description": null
+            }
+          ]
+        }
+      ],
+      "options": [
+        {
+          "key": "hideReferAFriend",
+          "title": "Hide Refer a Friend",
+          "description": "Hides the Refer a Friend shortcut from the Your Shortcuts carousel.",
+          "required": false,
+          "type": "kotlin.Boolean",
+          "default": true,
+          "values": null
+        },
+        {
+          "key": "hideGiveaway",
+          "title": "Hide Giveaway",
+          "description": "Hides the Giveaway shortcut from the Your Shortcuts carousel.",
+          "required": false,
+          "type": "kotlin.Boolean",
+          "default": true,
+          "values": null
+        },
+        {
+          "key": "hideOffers",
+          "title": "Hide Offers",
+          "description": "Hides the Offers shortcut from the Your Shortcuts carousel.",
+          "required": false,
+          "type": "kotlin.Boolean",
+          "default": true,
+          "values": null
+        },
+        {
+          "key": "hideRewards",
+          "title": "Hide Rewards",
+          "description": "Hides the Rewards shortcut from the Your Shortcuts carousel.",
+          "required": false,
+          "type": "kotlin.Boolean",
+          "default": true,
+          "values": null
+        },
+        {
+          "key": "hideSezzleMobile",
+          "title": "Hide Sezzle Mobile",
+          "description": "Hides the Sezzle Mobile shortcut from the Your Shortcuts carousel.",
+          "required": false,
+          "type": "kotlin.Boolean",
+          "default": true,
+          "values": null
+        },
+        {
+          "key": "hideAmazonDeals",
+          "title": "Hide Amazon Deals",
+          "description": "Hides the Amazon Deals shortcut from the Your Shortcuts carousel.",
+          "required": false,
+          "type": "kotlin.Boolean",
+          "default": true,
+          "values": null
+        },
+        {
+          "key": "hidePayLaterAnywhere",
+          "title": "Hide Pay Later Anywhere",
+          "description": "Hides the Pay Later Anywhere shortcut from the Your Shortcuts carousel.",
+          "required": false,
+          "type": "kotlin.Boolean",
+          "default": true,
+          "values": null
+        }
+      ]
+    },
+    {
+      "name": "Custom Google Maps API Key",
+      "description": "Replaces the embedded Google Maps API key with a personal Google Cloud API key so native Google Maps renders on re-signed builds. Note: To use native Google Maps, disable the OpenStreetMap Drop-in Replacement patch.",
+      "default": false,
+      "category": "Customization",
+      "dependencies": [
+        "Bypass Native Signature Check"
+      ],
+      "compatiblePackages": [
+        {
+          "packageName": "com.aftership.AfterShip",
+          "name": "AfterShip",
+          "description": null,
+          "apkFileType": "APK",
+          "appIconColor": "#FD5B26",
+          "signatures": null,
+          "targets": [
+            {
+              "version": "5.25.8",
+              "versionCodes": null,
+              "isExperimental": false,
+              "minSdk": 23,
+              "description": null
+            }
+          ]
+        }
+      ],
+      "options": [
+        {
+          "key": "apiKey",
+          "title": "Google Maps API Key",
+          "description": "Custom Google Maps API key from Google Cloud Console (with Maps SDK for Android enabled).",
+          "required": false,
+          "type": "kotlin.String",
+          "default": "",
+          "values": null
+        }
+      ]
+    },
+    {
+      "name": "Disable AI Study Tools",
+      "description": "Hides Study Tools and stops page content from being sent to Instructure's AI study-assist endpoint.",
+      "default": false,
+      "category": "Privacy",
+      "dependencies": [],
+      "compatiblePackages": [
+        {
+          "packageName": "com.instructure.candroid",
+          "name": "Canvas Student",
+          "description": null,
+          "apkFileType": "APKM",
+          "appIconColor": "#E62725",
+          "signatures": [
+            "abfe1362d84c5234c174c2c03d405a480405e361162f7b28dad6bec825ba02b3"
+          ],
+          "targets": [
+            {
+              "version": "8.12.0",
+              "versionCodes": null,
+              "isExperimental": false,
+              "minSdk": 28,
+              "description": null
+            }
+          ]
+        }
+      ],
+      "options": []
+    },
+    {
+      "name": "Display Cutout Adaptation",
+      "description": "Dynamically adjusts header height and top padding on devices with camera cutouts or tall status bars so location selectors and action icons clear the camera hole.",
+      "default": true,
+      "category": "General",
+      "dependencies": [],
+      "compatiblePackages": [
+        {
+          "packageName": "com.avinside",
+          "name": "365 Pay",
+          "description": null,
+          "apkFileType": "APKM",
+          "appIconColor": "#00A859",
+          "signatures": [
+            "8709f6fd781c4ba9a4f50df8c44f8c5a4ccb2fd2b114b71912e79eacf8857b1d"
+          ],
+          "targets": [
+            {
+              "version": "10.2605.0",
+              "versionCodes": null,
+              "isExperimental": false,
+              "minSdk": 27,
+              "description": null
+            }
+          ]
+        }
+      ],
+      "options": []
+    },
+    {
+      "name": "Enable App Debugging",
+      "description": "Marks the app debuggable so patch developers can use ADB run-as after reinstalling.",
+      "default": false,
+      "category": "Developer",
+      "dependencies": [],
+      "compatiblePackages": [
+        {
+          "packageName": "com.sezzle.sezzlemobile",
+          "name": "Sezzle",
+          "description": null,
+          "apkFileType": "APKM",
+          "appIconColor": "#5C2C94",
+          "signatures": null,
+          "targets": [
+            {
+              "version": "5.3.9",
+              "versionCodes": null,
+              "isExperimental": false,
+              "minSdk": 24,
+              "description": null
+            }
+          ]
+        }
+      ],
+      "options": []
+    },
+    {
+      "name": "Enable Developer Settings",
+      "description": "Adds an in-app developer mod menu accessible via a top-bar header button, with controls for Mobile Studio.",
+      "default": false,
+      "category": "Developer",
+      "dependencies": [],
+      "compatiblePackages": [
+        {
+          "packageName": "com.ashtoncofer.Buzz",
+          "name": "Fizz",
+          "description": null,
+          "apkFileType": "APKM",
+          "appIconColor": "#7F00FF",
+          "signatures": [
+            "622850867847ccb7a1371bc42c865b1137fa51bd19987dc81b53815c9a9817bf"
+          ],
+          "targets": [
+            {
+              "version": "1.54.0",
+              "versionCodes": null,
+              "isExperimental": false,
+              "minSdk": 23,
+              "description": null
+            },
+            {
+              "version": "1.72.0",
+              "versionCodes": null,
+              "isExperimental": false,
+              "minSdk": 24,
+              "description": null
+            }
+          ]
+        }
+      ],
+      "options": [
+        {
+          "key": "mobileStudio",
+          "title": "Mobile Studio",
+          "description": "Includes Mobile Studio trigger in the developer settings menu and permanently unlocks Mobile Studio access.",
+          "required": false,
+          "type": "kotlin.Boolean",
+          "default": true,
+          "values": null
+        }
+      ]
+    },
+    {
+      "name": "Enable Developer Tools and Feature Flags",
+      "description": "Exposes the internal Debug Menu in Settings and provides selectors for LaunchDarkly feature flags, Remote Config controls, and remaining membership gates.",
+      "default": false,
+      "category": "Developer",
+      "dependencies": [],
+      "compatiblePackages": [
+        {
+          "packageName": "com.groundspeak.geocaching.intro",
+          "name": "Geocaching",
+          "description": null,
+          "apkFileType": "APKM",
+          "appIconColor": "#007D46",
+          "signatures": [
+            "7f000458070a8272e5960f2b3c9d3348372f31b0e600c86af34fc06e85f8db8c",
+            "6959a7790bff42cc28fbe41c20d457401e32f4854f414dbc390de9f1529c9295"
+          ],
+          "targets": [
+            {
+              "version": "10.21.0",
+              "versionCodes": null,
+              "isExperimental": false,
+              "minSdk": 29,
+              "description": null
+            }
+          ]
+        }
+      ],
+      "options": [
+        {
+          "key": "exposeDebugMenuInSettings",
+          "title": "Expose Debug Menu in Settings",
+          "description": "Restores the internal Debug Menu item in Settings (LaunchDarkly overrides, Remote Config overrides, AutoLogger, Style/Component/Tooltip previews, and DebugSharedPrefs toggles).",
+          "required": false,
+          "type": "kotlin.Boolean",
+          "default": true,
+          "values": null
+        },
+        {
+          "key": "enableAchievementDebugTap",
+          "title": "Enable Achievement Debug Tap",
+          "description": "Enables the internal Debug.TEST_AWARD tap handler in AchievementActivity to test confetti and cycle achievement states.",
+          "required": false,
+          "type": "kotlin.Boolean",
+          "default": false,
+          "values": null
+        },
+        {
+          "key": "unlockTrailsMapTypeGate",
+          "title": "Unlock Trails Map Types",
+          "description": "Unlocks Trails and Wheelchair Trails in MapTypeSelectionFragment when OpenStreetMap Drop-in Replacement is not enabled.",
+          "required": false,
+          "type": "kotlin.Boolean",
+          "default": true,
+          "values": null
+        },
+        {
+          "key": "unlockNewsletterSettingsGate",
+          "title": "Unlock Newsletter Language Settings",
+          "description": "Unlocks newsletter language selection and hides the Basic-account upgrade banner in NewsletterSettingsFragment.",
+          "required": false,
+          "type": "kotlin.Boolean",
+          "default": true,
+          "values": null
+        },
+        {
+          "key": "unlockHideCachePremiumOption",
+          "title": "Unlock Hide Cache Premium Controls",
+          "description": "Enables Premium-only controls in HideCacheViewModel and ConversationViewModel GC code validation.",
+          "required": false,
+          "type": "kotlin.Boolean",
+          "default": true,
+          "values": null
+        },
+        {
+          "key": "enableCacheDetailsRedesign",
+          "title": "Enable Cache Details Redesign",
+          "description": "Enables the redesigned Geocache Details layout (cache-details-rework).",
+          "required": false,
+          "type": "kotlin.Boolean",
+          "default": true,
+          "values": null
+        },
+        {
+          "key": "showTotalLogCount",
+          "title": "Show Total Log Count",
+          "description": "Shows the total log count in geocache activity and details (show-total-log-count).",
+          "required": false,
+          "type": "kotlin.Boolean",
+          "default": true,
+          "values": null
+        },
+        {
+          "key": "enableShareablesInApp",
+          "title": "Enable Shareables",
+          "description": "Enables in-app Shareables, filter, and FTUE (show-shareables-in-app, mobile-shareables-filter, mobile-shareables-ftue).",
+          "required": false,
+          "type": "kotlin.Boolean",
+          "default": false,
+          "values": null
+        },
+        {
+          "key": "enableCollaborativeLists",
+          "title": "Enable Collaborative Lists",
+          "description": "Enables the collaborative lists feature in Listhub (collaborative-lists).",
+          "required": false,
+          "type": "kotlin.Boolean",
+          "default": false,
+          "values": null
+        },
+        {
+          "key": "enableLodestones",
+          "title": "Enable Lodestones",
+          "description": "Enables Lodestone features across the app (show-lodestones-mobile).",
+          "required": false,
+          "type": "kotlin.Boolean",
+          "default": false,
+          "values": null
+        },
+        {
+          "key": "enableEditLogDate",
+          "title": "Enable Edit Log Date",
+          "description": "Enables editing geocache log dates and date selector (edit-geocache-log, show-log-date-selector).",
+          "required": false,
+          "type": "kotlin.Boolean",
+          "default": false,
+          "values": null
+        },
+        {
+          "key": "enableBetterEventsFilter",
+          "title": "Enable Better Events Filter",
+          "description": "Enables Better Events filter, map, and AR attribute (better-events-filter, better-events-map, show-ar-attribute-in-filter).",
+          "required": false,
+          "type": "kotlin.Boolean",
+          "default": false,
+          "values": null
+        },
+        {
+          "key": "enableSelectCacheTypes",
+          "title": "Enable Select Cache Types",
+          "description": "Enables select cache types and filter settings saving (select-cache-types, save-filter-settings).",
+          "required": false,
+          "type": "kotlin.Boolean",
+          "default": false,
+          "values": null
+        },
+        {
+          "key": "enableDiagnosticFlags",
+          "title": "Enable Diagnostic Flags",
+          "description": "Enables diagnostic info, FCM token display, ANR data prompt, API regions, and map timeout.",
+          "required": false,
+          "type": "kotlin.Boolean",
+          "default": false,
+          "values": null
+        },
+        {
+          "key": "forceMapTrayEnabled",
+          "title": "Force Map Tray Enabled",
+          "description": "Forces the map tray feature enabled (RemoteConfig.MAP_TRAY).",
+          "required": false,
+          "type": "kotlin.Boolean",
+          "default": false,
+          "values": null
+        },
+        {
+          "key": "forceHideLastLogCount",
+          "title": "Force Hide Last Log DNF",
+          "description": "Forces hiding the last log DNF count (RemoteConfig.HIDE_LAST_LOG_DNF).",
+          "required": false,
+          "type": "kotlin.Boolean",
+          "default": false,
+          "values": null
+        },
+        {
+          "key": "forceShowDowntimeBanner",
+          "title": "Force Show Downtime Banner",
+          "description": "Forces the downtime maintenance banner visible (RemoteConfig.SHOW_DOWNTIME_BANNER).",
+          "required": false,
+          "type": "kotlin.Boolean",
+          "default": false,
+          "values": null
+        },
+        {
+          "key": "forceDisableMapAutoUpdate",
+          "title": "Force Disable Map Auto Update",
+          "description": "Disables automatic map updating when panning/zooming (RemoteConfig.MAP_AUTO_UPDATE_DISABLED).",
+          "required": false,
+          "type": "kotlin.Boolean",
+          "default": false,
+          "values": null
+        },
+        {
+          "key": "forceSendDiagnosticLogs",
+          "title": "Force Send Diagnostic Logs",
+          "description": "Forces sending diagnostic logs with bug reports (RemoteConfig.SEND_DIAGNOSTIC_INFO_LOGS).",
+          "required": false,
+          "type": "kotlin.Boolean",
+          "default": false,
+          "values": null
+        },
+        {
+          "key": "forceLinearCalloutsEnabled",
+          "title": "Force Linear Callouts Enabled",
+          "description": "Forces linear callout views enabled (RemoteConfig.LINEAR_CALLOUTS_ENABLED).",
+          "required": false,
+          "type": "kotlin.Boolean",
+          "default": false,
+          "values": null
+        }
+      ]
+    },
+    {
+      "name": "Enable Notifications and Live Activities",
+      "description": "Enables Firebase Cloud Messaging (FCM) push notifications and Live Activities (live game score lockscreen and notification drawer updates) by spoofing the release certificate SHA-1, bypassing Play Services signature checks for MicroG, and activating the live score tracker gate.",
+      "default": true,
+      "category": "Notifications",
+      "dependencies": [],
+      "compatiblePackages": [
+        {
+          "packageName": "com.nhl.gc1112.free",
+          "name": "NHL",
+          "description": null,
+          "apkFileType": "APKM",
+          "appIconColor": "#000000",
+          "signatures": [
+            "2309209340875f6f8a008ea25dbd98d8a03e482704d43211933d2b9a91923aff"
+          ],
+          "targets": [
+            {
+              "version": "17.0.0",
+              "versionCodes": null,
+              "isExperimental": false,
+              "minSdk": 29,
+              "description": null
+            }
+          ]
+        }
+      ],
+      "options": [
+        {
+          "key": "spoofCertificateHash",
+          "title": "Spoof Certificate SHA-1",
+          "description": "Spoofs the release signing certificate SHA-1 in Firebase Installations requests so FCM registration succeeds on re-signed APKs.",
+          "required": false,
+          "type": "kotlin.Boolean",
+          "default": true,
+          "values": null
+        },
+        {
+          "key": "supportMicroG",
+          "title": "Support MicroG & Unverified Play Services",
+          "description": "Bypasses GoogleSignatureVerifier checks to allow push registration with MicroG and unverified Play Services.",
+          "required": false,
+          "type": "kotlin.Boolean",
+          "default": true,
+          "values": null
+        },
+        {
+          "key": "forceLiveActivitiesEnabled",
+          "title": "Force Live Activities Enabled",
+          "description": "Forces the Live Activity game score tracker toggle to be available on all live and upcoming games.",
+          "required": false,
+          "type": "kotlin.Boolean",
+          "default": true,
+          "values": null
+        }
+      ]
+    },
+    {
+      "name": "Fix PDF Viewer Crash",
+      "description": "Stops the document viewer from aborting when opening any PDF. Nutrient's license grants form viewing and filling but not form editing, yet the native library applies its editing-only license assertion to view-path calls such as form field loading, so the process is killed.",
+      "default": true,
+      "category": "General",
+      "dependencies": [],
+      "compatiblePackages": [
+        {
+          "packageName": "com.instructure.candroid",
+          "name": "Canvas Student",
+          "description": null,
+          "apkFileType": "APKM",
+          "appIconColor": "#E62725",
+          "signatures": [
+            "abfe1362d84c5234c174c2c03d405a480405e361162f7b28dad6bec825ba02b3"
+          ],
+          "targets": [
+            {
+              "version": "8.12.0",
+              "versionCodes": null,
+              "isExperimental": false,
+              "minSdk": 28,
+              "description": null
+            }
+          ]
+        }
+      ],
+      "options": [
+        {
+          "key": "removeEvaluationWatermark",
+          "title": "Remove Evaluation Watermark",
+          "description": "Blanks the native 'For Evaluation Purposes Only' watermark. A cloned package's bundle identifier does not match the bundled Nutrient license, so the SDK stamps the watermark over every document.",
+          "required": false,
+          "type": "kotlin.Boolean",
+          "default": true,
+          "values": null
+        }
+      ]
+    },
+    {
+      "name": "Full AMOLED Theme",
+      "description": "Themes AfterShip in pure AMOLED black by removing dark gray backgrounds from the bottom navigation bar, account items, cards, and windows.",
+      "default": true,
+      "category": "Customization",
+      "dependencies": [
+        "Bypass Native Signature Check"
+      ],
+      "compatiblePackages": [
+        {
+          "packageName": "com.aftership.AfterShip",
+          "name": "AfterShip",
+          "description": null,
+          "apkFileType": "APK",
+          "appIconColor": "#FD5B26",
+          "signatures": null,
+          "targets": [
+            {
+              "version": "5.25.8",
+              "versionCodes": null,
+              "isExperimental": false,
+              "minSdk": 23,
+              "description": null
+            }
+          ]
+        }
+      ],
+      "options": []
+    },
+    {
+      "name": "Hide Broken Tracking Map",
+      "description": "Suppresses the unauthenticated blank white Google Maps view when neither a custom Google Maps API key nor OpenStreetMap is used.",
+      "default": false,
+      "category": "Interface",
+      "dependencies": [
+        "Bypass Native Signature Check"
+      ],
+      "compatiblePackages": [
+        {
+          "packageName": "com.aftership.AfterShip",
+          "name": "AfterShip",
+          "description": null,
+          "apkFileType": "APK",
+          "appIconColor": "#FD5B26",
+          "signatures": null,
+          "targets": [
+            {
+              "version": "5.25.8",
+              "versionCodes": null,
+              "isExperimental": false,
+              "minSdk": 23,
+              "description": null
+            }
+          ]
+        }
+      ],
+      "options": []
+    },
+    {
+      "name": "Hide Sezzle Mobile",
+      "description": "Hides Sezzle Mobile offers and account entry points.",
+      "default": false,
+      "category": "Interface",
+      "dependencies": [],
+      "compatiblePackages": [
+        {
+          "packageName": "com.sezzle.sezzlemobile",
+          "name": "Sezzle",
+          "description": null,
+          "apkFileType": "APKM",
+          "appIconColor": "#5C2C94",
+          "signatures": null,
+          "targets": [
+            {
+              "version": "5.3.9",
+              "versionCodes": null,
+              "isExperimental": false,
+              "minSdk": 24,
+              "description": null
+            }
+          ]
+        }
+      ],
+      "options": []
+    },
+    {
+      "name": "Local Premium",
+      "description": "Enables locally executable premium OCR, editing, compression, and password protection tools without cloud or GenAI access.",
+      "default": true,
+      "category": "Features",
+      "dependencies": [],
+      "compatiblePackages": [
+        {
+          "packageName": "com.adobe.scan.android",
+          "name": "Adobe Scan",
+          "description": null,
+          "apkFileType": "APKM",
+          "appIconColor": "#1473E6",
+          "signatures": [
+            "b6dd0562256487fcd6c98cde137858ef50d9adb9f9cd2f1ca58c5357efdf0faf"
+          ],
+          "targets": [
+            {
+              "version": "26.09.25",
+              "versionCodes": null,
+              "isExperimental": false,
+              "minSdk": 32,
+              "description": null
+            }
+          ]
+        }
+      ],
+      "options": [
+        {
+          "key": "enableLocalPdfCompression",
+          "title": "Local PDF Compression",
+          "description": "Replaces Adobe Document Cloud post-save compression with on-device JPEG stream re-compression. Overrides Compress PDF removal when enabled.",
+          "required": false,
+          "type": "kotlin.Boolean",
+          "default": true,
+          "values": null
+        },
+        {
+          "key": "enableLocalPdfProtection",
+          "title": "Local PDF Password Protection",
+          "description": "Replaces Adobe Document Cloud password encryption with AES-256 on-device PDF protection and offline removal.",
+          "required": false,
+          "type": "kotlin.Boolean",
+          "default": true,
+          "values": null
+        },
+        {
+          "key": "enableLocalPdfExport",
+          "title": "Local PDF Export",
+          "description": "Replaces Adobe Document Cloud export with on-device editable Word, Excel, and PowerPoint conversion. Layout reconstruction is best-effort.",
+          "required": false,
+          "type": "kotlin.Boolean",
+          "default": true,
+          "values": null
+        },
+        {
+          "key": "enableLocalPdfCombine",
+          "title": "Local PDF Combine",
+          "description": "Combines local Adobe Scan documents into a new PDF on device without changing the originals.",
+          "required": false,
+          "type": "kotlin.Boolean",
+          "default": true,
+          "values": null
+        }
+      ]
+    },
+    {
+      "name": "Local Premium",
+      "description": "Enables local Premium membership status across profile and account screens, removes upgrade promotions, banners, icons, and server-dependent profile statistics, and enriches public cache details (description, hints, owner) when server blocks basic accounts.",
+      "default": true,
+      "category": "Interface",
+      "dependencies": [],
+      "compatiblePackages": [
+        {
+          "packageName": "com.groundspeak.geocaching.intro",
+          "name": "Geocaching",
+          "description": null,
+          "apkFileType": "APKM",
+          "appIconColor": "#007D46",
+          "signatures": [
+            "7f000458070a8272e5960f2b3c9d3348372f31b0e600c86af34fc06e85f8db8c",
+            "6959a7790bff42cc28fbe41c20d457401e32f4854f414dbc390de9f1529c9295"
+          ],
+          "targets": [
+            {
+              "version": "10.21.0",
+              "versionCodes": null,
+              "isExperimental": false,
+              "minSdk": 29,
+              "description": null
+            }
+          ]
+        }
+      ],
+      "options": [
+        {
+          "key": "showLocalPremiumWarnings",
+          "title": "Show Local Premium Warnings",
+          "description": "Shows an informational warning banner on Premium Member Only caches indicating that complete cache data is restricted by the server for basic accounts.",
+          "required": false,
+          "type": "kotlin.Boolean",
+          "default": true,
+          "values": null
+        }
+      ]
+    },
+    {
+      "name": "OpenStreetMap Drop-in Replacement",
+      "description": "Replaces the broken Google Maps view with a free, self-contained OpenStreetMap (Leaflet) engine that renders routes, checkpoints, and dark/light styled tiles without requiring an API key.",
+      "default": true,
+      "category": "Customization",
+      "dependencies": [
+        "Bypass Native Signature Check"
+      ],
+      "compatiblePackages": [
+        {
+          "packageName": "com.aftership.AfterShip",
+          "name": "AfterShip",
+          "description": null,
+          "apkFileType": "APK",
+          "appIconColor": "#FD5B26",
+          "signatures": null,
+          "targets": [
+            {
+              "version": "5.25.8",
+              "versionCodes": null,
+              "isExperimental": false,
+              "minSdk": 23,
+              "description": null
+            }
+          ]
+        }
+      ],
+      "options": [
+        {
+          "key": "addZoomButtons",
+          "title": "Add Zoom Buttons",
+          "description": "Displays floating + and − zoom buttons on the map.",
+          "required": false,
+          "type": "kotlin.Boolean",
+          "default": false,
+          "values": null
+        }
+      ]
+    },
+    {
+      "name": "OpenStreetMap Drop-in Replacement",
+      "description": "Replaces Google Maps with OpenStreetMap (MapLibre vector engine) and adds in-app OpenStreetMap style switching and custom URL configuration to Map settings.",
+      "default": true,
+      "category": "Customization",
+      "dependencies": [],
+      "compatiblePackages": [
+        {
+          "packageName": "com.groundspeak.geocaching.intro",
+          "name": "Geocaching",
+          "description": null,
+          "apkFileType": "APKM",
+          "appIconColor": "#007D46",
+          "signatures": [
+            "7f000458070a8272e5960f2b3c9d3348372f31b0e600c86af34fc06e85f8db8c",
+            "6959a7790bff42cc28fbe41c20d457401e32f4854f414dbc390de9f1529c9295"
+          ],
+          "targets": [
+            {
+              "version": "10.21.0",
+              "versionCodes": null,
+              "isExperimental": false,
+              "minSdk": 29,
+              "description": null
+            }
+          ]
+        }
+      ],
+      "options": []
+    },
+    {
+      "name": "Patch Consent Screen",
+      "description": "Requires consent to a patched-app warning before opening Sezzle authentication.",
+      "default": true,
+      "category": "Security",
+      "dependencies": [
+        "Clean Authentication"
+      ],
+      "compatiblePackages": [
+        {
+          "packageName": "com.sezzle.sezzlemobile",
+          "name": "Sezzle",
+          "description": null,
+          "apkFileType": "APKM",
+          "appIconColor": "#5C2C94",
+          "signatures": null,
+          "targets": [
+            {
+              "version": "5.3.9",
+              "versionCodes": null,
+              "isExperimental": false,
+              "minSdk": 24,
+              "description": null
+            }
+          ]
+        }
+      ],
+      "options": []
+    },
+    {
+      "name": "Remove Ads",
+      "description": "Removes banner, interstitial, and rewarded advertising and removes ad-based chip offers.",
+      "default": true,
+      "category": "Ads",
+      "dependencies": [],
+      "compatiblePackages": [
+        {
+          "packageName": "com.tripledot.blackjack",
+          "name": "Blackjack",
+          "description": null,
+          "apkFileType": "APKM",
+          "appIconColor": "#205B1F",
+          "signatures": [
+            "32e1c2b4c9ab0189d3e4e1c67806e6f4fc454aa758a74ccaedda8a309aa6b205"
+          ],
+          "targets": [
+            {
+              "version": "2.22.09",
+              "versionCodes": null,
+              "isExperimental": false,
+              "minSdk": 25,
+              "description": null
+            }
+          ]
+        }
+      ],
+      "options": []
+    },
+    {
+      "name": "Remove Ads",
+      "description": "Removes sponsored feed advertisements and optional marketplace listing advertisements from the feed.",
+      "default": true,
+      "category": "Ads",
+      "dependencies": [],
+      "compatiblePackages": [
+        {
+          "packageName": "com.ashtoncofer.Buzz",
+          "name": "Fizz",
+          "description": null,
+          "apkFileType": "APKM",
+          "appIconColor": "#7F00FF",
+          "signatures": [
+            "622850867847ccb7a1371bc42c865b1137fa51bd19987dc81b53815c9a9817bf"
+          ],
+          "targets": [
+            {
+              "version": "1.54.0",
+              "versionCodes": null,
+              "isExperimental": false,
+              "minSdk": 23,
+              "description": null
+            },
+            {
+              "version": "1.72.0",
+              "versionCodes": null,
+              "isExperimental": false,
+              "minSdk": 24,
+              "description": null
+            }
+          ]
+        }
+      ],
+      "options": [
+        {
+          "key": "removeMarketplaceAds",
+          "title": "Remove Marketplace Ads",
+          "description": "Removes marketplace listing advertisements injected into the feed.",
+          "required": false,
+          "type": "kotlin.Boolean",
+          "default": true,
+          "values": null
+        }
+      ]
+    },
+    {
+      "name": "Remove Ads",
+      "description": "Removes Google Ad Manager banner and native advertisements, disables Blaze story/moment sponsored placements, blocks Google Interactive Media Ads (IMA) video ad requests, and neutralizes Brightcove IMA mid-roll and pre-roll ad playback.",
+      "default": true,
+      "category": "Ads",
+      "dependencies": [],
+      "compatiblePackages": [
+        {
+          "packageName": "com.nhl.gc1112.free",
+          "name": "NHL",
+          "description": null,
+          "apkFileType": "APKM",
+          "appIconColor": "#000000",
+          "signatures": [
+            "2309209340875f6f8a008ea25dbd98d8a03e482704d43211933d2b9a91923aff"
+          ],
+          "targets": [
+            {
+              "version": "17.0.0",
+              "versionCodes": null,
+              "isExperimental": false,
+              "minSdk": 29,
+              "description": null
+            }
+          ]
+        }
+      ],
+      "options": [
+        {
+          "key": "removePromotionsCarousel",
+          "title": "Remove Promotions Carousel",
+          "description": "Removes the promotions carousel from the Home screen.",
+          "required": false,
+          "type": "kotlin.Boolean",
+          "default": true,
+          "values": null
+        }
+      ]
+    },
+    {
+      "name": "Remove Ads",
+      "description": "Removes in-app promotional message campaigns and popups (OneSignal In-App Messages), neutralizes in-app review and rating prompts, and zeroes Google Play and Huawei Advertising IDs.",
+      "default": true,
+      "category": "Ads",
+      "dependencies": [],
+      "compatiblePackages": [
+        {
+          "packageName": "com.avinside",
+          "name": "365 Pay",
+          "description": null,
+          "apkFileType": "APKM",
+          "appIconColor": "#00A859",
+          "signatures": [
+            "8709f6fd781c4ba9a4f50df8c44f8c5a4ccb2fd2b114b71912e79eacf8857b1d"
+          ],
+          "targets": [
+            {
+              "version": "10.2605.0",
+              "versionCodes": null,
+              "isExperimental": false,
+              "minSdk": 27,
+              "description": null
+            }
+          ]
+        }
+      ],
+      "options": [
+        {
+          "key": "removeInAppMessages",
+          "title": "Remove In-App Messages",
+          "description": "Suppresses OneSignal promotional campaigns and marketing message displays.",
+          "required": false,
+          "type": "kotlin.Boolean",
+          "default": true,
+          "values": null
+        },
+        {
+          "key": "removeReviewPrompts",
+          "title": "Remove Review Prompts",
+          "description": "Neutralizes Google Play in-app review and rating prompts.",
+          "required": false,
+          "type": "kotlin.Boolean",
+          "default": true,
+          "values": null
+        },
+        {
+          "key": "zeroAdvertisingId",
+          "title": "Zero Advertising ID",
+          "description": "Spoofs Google Play and Huawei Advertising ID (AAID) with zeroes and forces limit ad tracking enabled.",
+          "required": false,
+          "type": "kotlin.Boolean",
+          "default": true,
+          "values": null
+        }
+      ]
+    },
+    {
+      "name": "Remove Ads and Tracking",
+      "description": "Disables Adobe MobileCore, EventHub, Document Cloud Analytics (DCMAnalytics and ARDCMAnalytics), Adobe Growth Platform (DGP/MAU), Adobe Journey Optimizer (AJO), Branch deep-link attribution, Creative SDK, Next Best Action (NBA) tools profiling, Facebook App Events, Firebase Performance, Firebase Sessions, and Crashlytics telemetry; suppresses Google Mobile Ads (AdMob), interstitials, rewarded ads, banner pools, paywalls, and in-app reviews; removes telemetry preferences; and zeroes the Google Play Advertising ID.",
+      "default": true,
+      "category": "Ads",
+      "dependencies": [],
+      "compatiblePackages": [
+        {
+          "packageName": "com.adobe.reader",
+          "name": "Adobe Reader",
+          "description": null,
+          "apkFileType": "APKM",
+          "appIconColor": "#FA0F00",
+          "signatures": [
+            "b6dd0562256487fcd6c98cde137858ef50d9adb9f9cd2f1ca58c5357efdf0faf"
+          ],
+          "targets": [
+            {
+              "version": "26.9.2.50367",
+              "versionCodes": null,
+              "isExperimental": false,
+              "minSdk": 28,
+              "description": null
+            }
+          ]
+        }
+      ],
+      "options": [
+        {
+          "key": "removeTracking",
+          "title": "Disable Telemetry & Tracking",
+          "description": "Disables Adobe MobileCore, EventHub, Document Cloud Analytics (DCMAnalytics and ARDCMAnalytics), Adobe Growth Platform (DGP/MAU), Adobe Journey Optimizer (AJO), Branch attribution, Creative SDK, Next Best Action (NBA) tools profiling, Facebook App Events, Firebase Performance, Firebase Sessions, Crashlytics, and zeroes the Google Play Advertising ID.",
+          "required": false,
+          "type": "kotlin.Boolean",
+          "default": true,
+          "values": null
+        },
+        {
+          "key": "removeAds",
+          "title": "Disable In-App Ads & Paywalls",
+          "description": "Disables in-app ads (AdMob banners, native ads, document-close interstitials, rewarded edit interstitials, and prefetching), ad performance metrics, ad analytics, dynamic paywalls, and in-app review prompts.",
+          "required": false,
+          "type": "kotlin.Boolean",
+          "default": true,
+          "values": null
+        },
+        {
+          "key": "removeSettings",
+          "title": "Remove Settings",
+          "description": "Removes the Send usage info and Send crash reports preferences from the Preferences menu, and suppresses crash reporting dialogs.",
+          "required": false,
+          "type": "kotlin.Boolean",
+          "default": true,
+          "values": null
+        }
+      ]
+    },
+    {
+      "name": "Remove Ads and Tracking",
+      "description": "Disables Adobe Experience Platform MobileCore, EventHub, Adobe Growth SDK (DGP/MAU and Dunamis), Adobe Journey Optimizer (AJO), Creative SDK, Branch attribution, Facebook App Events and Audience Network, Firebase Performance, Firebase Sessions, and Crashlytics telemetry; suppresses Google Mobile Ads (AdMob), interstitials, banner preloaders, and in-app reviews; removes telemetry preferences; zeroes the Google Play Advertising ID; and blocks hardware android_id collection.",
+      "default": true,
+      "category": "Ads",
+      "dependencies": [],
+      "compatiblePackages": [
+        {
+          "packageName": "com.adobe.scan.android",
+          "name": "Adobe Scan",
+          "description": null,
+          "apkFileType": "APKM",
+          "appIconColor": "#1473E6",
+          "signatures": [
+            "b6dd0562256487fcd6c98cde137858ef50d9adb9f9cd2f1ca58c5357efdf0faf"
+          ],
+          "targets": [
+            {
+              "version": "26.09.25",
+              "versionCodes": null,
+              "isExperimental": false,
+              "minSdk": 32,
+              "description": null
+            }
+          ]
+        }
+      ],
+      "options": [
+        {
+          "key": "removeAds",
+          "title": "Disable In-App Ads",
+          "description": "Disables banner and interstitial ads, banner preloading, ad analytics, and InMobi SDK initialization.",
+          "required": false,
+          "type": "kotlin.Boolean",
+          "default": true,
+          "values": null
+        },
+        {
+          "key": "removeAdobeTracking",
+          "title": "Disable Adobe Telemetry & Growth",
+          "description": "Disables Adobe Experience Platform MobileCore, EventHub dispatch, Adobe Growth SDK (DGP/MAU and Dunamis), Adobe Journey Optimizer (AJO), Creative SDK, and AEP NetworkService.",
+          "required": false,
+          "type": "kotlin.Boolean",
+          "default": true,
+          "values": null
+        },
+        {
+          "key": "removeFirebaseTracking",
+          "title": "Disable Firebase Telemetry",
+          "description": "Disables Firebase Performance Monitoring (AppStartTrace and network timing), Firebase Sessions, Firebase Installations, and Crashlytics collection.",
+          "required": false,
+          "type": "kotlin.Boolean",
+          "default": true,
+          "values": null
+        },
+        {
+          "key": "removeFacebookTracking",
+          "title": "Disable Facebook Tracking",
+          "description": "Disables Facebook SDK initialization (FacebookInitProvider), Audience Network ContentProvider, App Events logging, and remote settings fetch.",
+          "required": false,
+          "type": "kotlin.Boolean",
+          "default": true,
+          "values": null
+        },
+        {
+          "key": "removeDeviceIdentifiers",
+          "title": "Zero Device Identifiers",
+          "description": "Zeroes the Google Play Advertising ID, blocks Install Referrer, and neutralizes hardware android_id collection in AccountManager and Creative SDK.",
+          "required": false,
+          "type": "kotlin.Boolean",
+          "default": true,
+          "values": null
+        },
+        {
+          "key": "removeReviewPrompts",
+          "title": "Disable Review Prompts",
+          "description": "Suppresses in-app rating and review dialogs.",
+          "required": false,
+          "type": "kotlin.Boolean",
+          "default": true,
+          "values": null
+        },
+        {
+          "key": "removeSettings",
+          "title": "Remove Settings",
+          "description": "Removes the Send usage info and Send crash info preferences and suppresses the crash reports dialog, whose telemetry backends are disabled by this patch.",
+          "required": false,
+          "type": "kotlin.Boolean",
+          "default": true,
+          "values": null
+        }
+      ]
+    },
+    {
+      "name": "Remove Ads and Tracking",
+      "description": "Neutralizes in-app advertisements (Disco Network SDK shopping/cashback ads and list placements), removes the 'Leave us a 5-star review' in-app rating prompt dialogs, zeros the Google Play Advertising ID (AAID), disables first-party behavioral and impression analytics (StatisticsCenter, AbsListImpEventHelper, AutoUploadManager), and blocks diagnostic telemetry (Firebase Analytics, Crashlytics, Logan logging).",
+      "default": true,
+      "category": "Ads",
+      "dependencies": [
+        "Bypass Native Signature Check"
+      ],
+      "compatiblePackages": [
+        {
+          "packageName": "com.aftership.AfterShip",
+          "name": "AfterShip",
+          "description": null,
+          "apkFileType": "APK",
+          "appIconColor": "#FD5B26",
+          "signatures": null,
+          "targets": [
+            {
+              "version": "5.25.8",
+              "versionCodes": null,
+              "isExperimental": false,
+              "minSdk": 23,
+              "description": null
+            }
+          ]
+        }
+      ],
+      "options": []
+    },
+    {
+      "name": "Remove Ads and Tracking",
+      "description": "Removes all ads (AppLovin MAX, Google Mobile Ads, Rokt, Thanks network, Playtime, InBrain Surveys) and disables analytics and tracking SDKs (AppsFlyer, FullStory, Braze, Firebase Analytics, mParticle, Facebook SDK, AppCenter).",
+      "default": true,
+      "category": "Ads",
+      "dependencies": [],
+      "compatiblePackages": [
+        {
+          "packageName": "com.sezzle.sezzlemobile",
+          "name": "Sezzle",
+          "description": null,
+          "apkFileType": "APKM",
+          "appIconColor": "#5C2C94",
+          "signatures": null,
+          "targets": [
+            {
+              "version": "5.3.9",
+              "versionCodes": null,
+              "isExperimental": false,
+              "minSdk": 24,
+              "description": null
+            }
+          ]
+        }
+      ],
+      "options": []
+    },
+    {
+      "name": "Remove AfterShip Account Page Links",
+      "description": "Removes the About the app, Share the app, and Feedback links from the Account screen.",
+      "default": true,
+      "category": "Interface",
+      "dependencies": [
+        "Bypass Native Signature Check"
+      ],
+      "compatiblePackages": [
+        {
+          "packageName": "com.aftership.AfterShip",
+          "name": "AfterShip",
+          "description": null,
+          "apkFileType": "APK",
+          "appIconColor": "#FD5B26",
+          "signatures": null,
+          "targets": [
+            {
+              "version": "5.25.8",
+              "versionCodes": null,
+              "isExperimental": false,
+              "minSdk": 23,
+              "description": null
+            }
+          ]
+        }
+      ],
+      "options": []
+    },
+    {
+      "name": "Remove Attribution",
+      "description": "Names new scans 'Scan on [date]' instead of 'Adobe Scan [date]' and removes the attribution text from shared files.",
+      "default": true,
+      "category": "Customization",
+      "dependencies": [],
+      "compatiblePackages": [
+        {
+          "packageName": "com.adobe.scan.android",
+          "name": "Adobe Scan",
+          "description": null,
+          "apkFileType": "APKM",
+          "appIconColor": "#1473E6",
+          "signatures": [
+            "b6dd0562256487fcd6c98cde137858ef50d9adb9f9cd2f1ca58c5357efdf0faf"
+          ],
+          "targets": [
+            {
+              "version": "26.09.25",
+              "versionCodes": null,
+              "isExperimental": false,
+              "minSdk": 32,
+              "description": null
+            }
+          ]
+        }
+      ],
+      "options": [
+        {
+          "key": "removeScanAttribution",
+          "title": "Remove Scan Name Attribution",
+          "description": "Names new scans 'Scan on [date]' instead of 'Adobe Scan [date]'.",
+          "required": false,
+          "type": "kotlin.Boolean",
+          "default": true,
+          "values": null
+        },
+        {
+          "key": "removeShareAttribution",
+          "title": "Remove Share Attribution Text",
+          "description": "Removes the promotional 'Created and shared using Adobe Scan.' text from shared files.",
+          "required": false,
+          "type": "kotlin.Boolean",
+          "default": true,
+          "values": null
+        }
+      ]
+    },
+    {
+      "name": "Remove Feedback",
+      "description": "Removes prompting for feedback on shipments.",
+      "default": true,
+      "category": "Interface",
+      "dependencies": [
+        "Bypass Native Signature Check"
+      ],
+      "compatiblePackages": [
+        {
+          "packageName": "com.aftership.AfterShip",
+          "name": "AfterShip",
+          "description": null,
+          "apkFileType": "APK",
+          "appIconColor": "#FD5B26",
+          "signatures": null,
+          "targets": [
+            {
+              "version": "5.25.8",
+              "versionCodes": null,
+              "isExperimental": false,
+              "minSdk": 23,
+              "description": null
+            }
+          ]
+        }
+      ],
+      "options": []
+    },
+    {
+      "name": "Remove Internet Permissions",
+      "description": "Removes Internet permissions from AndroidManifest.xml to prevent network access.",
+      "default": true,
+      "category": "Privacy",
+      "dependencies": [],
+      "compatiblePackages": [
+        {
+          "packageName": "com.tripledot.blackjack",
+          "name": "Blackjack",
+          "description": null,
+          "apkFileType": "APKM",
+          "appIconColor": "#205B1F",
+          "signatures": [
+            "32e1c2b4c9ab0189d3e4e1c67806e6f4fc454aa758a74ccaedda8a309aa6b205"
+          ],
+          "targets": [
+            {
+              "version": "2.22.09",
+              "versionCodes": null,
+              "isExperimental": false,
+              "minSdk": 25,
+              "description": null
+            }
+          ]
+        }
+      ],
+      "options": [
+        {
+          "key": "removeBrokenScreens",
+          "title": "Remove Broken Screens",
+          "description": "Removes Help Center buttons whose network-only content is unavailable without Internet access.",
+          "required": false,
+          "type": "kotlin.Boolean",
+          "default": true,
+          "values": null
+        }
+      ]
+    },
+    {
+      "name": "Remove Invite Friends",
+      "description": "Removes the Invite Friends option from the Account screen and eliminates the non-functional orange dot notification badge from the Account navigation icon.",
+      "default": true,
+      "category": "Interface",
+      "dependencies": [],
+      "compatiblePackages": [
+        {
+          "packageName": "com.sidelineswap.android",
+          "name": "SidelineSwap",
+          "description": null,
+          "apkFileType": "XAPK",
+          "appIconColor": "#02C874",
+          "signatures": [
+            "e434334ea79d8702a5d023ce7bfae4da9fa5539796cb9e0ba515cb471528697f"
+          ],
+          "targets": [
+            {
+              "version": "1.52.0",
+              "versionCodes": null,
+              "isExperimental": false,
+              "minSdk": 28,
+              "description": null
+            }
+          ]
+        }
+      ],
+      "options": []
+    },
+    {
+      "name": "Remove Lists",
+      "description": "Removes the Lists option from the bottom navigation bar.",
+      "default": true,
+      "category": "Interface",
+      "dependencies": [],
+      "compatiblePackages": [
+        {
+          "packageName": "com.groundspeak.geocaching.intro",
+          "name": "Geocaching",
+          "description": null,
+          "apkFileType": "APKM",
+          "appIconColor": "#007D46",
+          "signatures": [
+            "7f000458070a8272e5960f2b3c9d3348372f31b0e600c86af34fc06e85f8db8c",
+            "6959a7790bff42cc28fbe41c20d457401e32f4854f414dbc390de9f1529c9295"
+          ],
+          "targets": [
+            {
+              "version": "10.21.0",
+              "versionCodes": null,
+              "isExperimental": false,
+              "minSdk": 29,
+              "description": null
+            }
+          ]
+        }
+      ],
+      "options": []
+    },
+    {
+      "name": "Remove Login",
+      "description": "Starts Adobe Scan in its existing account-free local workspace and removes account sign-in gates; Adobe cloud features are unavailable.",
+      "default": true,
+      "category": "Security",
+      "dependencies": [],
+      "compatiblePackages": [
+        {
+          "packageName": "com.adobe.scan.android",
+          "name": "Adobe Scan",
+          "description": null,
+          "apkFileType": "APKM",
+          "appIconColor": "#1473E6",
+          "signatures": [
+            "b6dd0562256487fcd6c98cde137858ef50d9adb9f9cd2f1ca58c5357efdf0faf"
+          ],
+          "targets": [
+            {
+              "version": "26.09.25",
+              "versionCodes": null,
+              "isExperimental": false,
+              "minSdk": 32,
+              "description": null
+            }
+          ]
+        }
+      ],
+      "options": [
+        {
+          "key": "cleanUpAuthComponents",
+          "title": "Clean Up Auth Components",
+          "description": "Removes the profile icon, sign-out, and sign-in options from the Settings menu.",
+          "required": false,
+          "type": "kotlin.Boolean",
+          "default": true,
+          "values": null
+        },
+        {
+          "key": "removeLinkSharing",
+          "title": "Remove Link Sharing",
+          "description": "Removes cloud link sharing options from the Share sheet, preserving local PDF sharing.",
+          "required": false,
+          "type": "kotlin.Boolean",
+          "default": true,
+          "values": null
+        },
+        {
+          "key": "removeEditText",
+          "title": "Remove Edit Text",
+          "description": "Removes the non-functional Edit text option from file option menus and the preview screen.",
+          "required": false,
+          "type": "kotlin.Boolean",
+          "default": true,
+          "values": null
+        },
+        {
+          "key": "removeMove",
+          "title": "Remove Move",
+          "description": "Removes the non-functional Move file option from file option menus.",
+          "required": false,
+          "type": "kotlin.Boolean",
+          "default": true,
+          "values": null
+        },
+        {
+          "key": "removeSaveAsWord",
+          "title": "Remove Save as Word Doc",
+          "description": "Removes the cloud-dependent Save as Word doc option from scan cards.",
+          "required": false,
+          "type": "kotlin.Boolean",
+          "default": true,
+          "values": null
+        }
+      ]
+    },
+    {
+      "name": "Remove Login",
+      "description": "Forces guest mode always on first install, removes login buttons and carousels, strips account/login controls from the Account tab, and suppresses login prompts.",
+      "default": true,
+      "category": "Security",
+      "dependencies": [
+        "Bypass Native Signature Check"
+      ],
+      "compatiblePackages": [
+        {
+          "packageName": "com.aftership.AfterShip",
+          "name": "AfterShip",
+          "description": null,
+          "apkFileType": "APK",
+          "appIconColor": "#FD5B26",
+          "signatures": null,
+          "targets": [
+            {
+              "version": "5.25.8",
+              "versionCodes": null,
+              "isExperimental": false,
+              "minSdk": 23,
+              "description": null
+            }
+          ]
+        }
+      ],
+      "options": []
+    },
+    {
+      "name": "Remove Notifications",
+      "description": "Removes notification permissions from AndroidManifest.xml to eliminate push notifications entirely.",
+      "default": true,
+      "category": "Privacy",
+      "dependencies": [],
+      "compatiblePackages": [
+        {
+          "packageName": "com.tripledot.blackjack",
+          "name": "Blackjack",
+          "description": null,
+          "apkFileType": "APKM",
+          "appIconColor": "#205B1F",
+          "signatures": [
+            "32e1c2b4c9ab0189d3e4e1c67806e6f4fc454aa758a74ccaedda8a309aa6b205"
+          ],
+          "targets": [
+            {
+              "version": "2.22.09",
+              "versionCodes": null,
+              "isExperimental": false,
+              "minSdk": 25,
+              "description": null
+            }
+          ]
+        }
+      ],
+      "options": []
+    },
+    {
+      "name": "Remove Promos & Giveaways",
+      "description": "Blocks in-app deal popups, giveaway screens, Knot card-linking dialogs, and marketing banners across the app.",
+      "default": true,
+      "category": "Ads",
+      "dependencies": [],
+      "compatiblePackages": [
+        {
+          "packageName": "com.sezzle.sezzlemobile",
+          "name": "Sezzle",
+          "description": null,
+          "apkFileType": "APKM",
+          "appIconColor": "#5C2C94",
+          "signatures": null,
+          "targets": [
+            {
+              "version": "5.3.9",
+              "versionCodes": null,
+              "isExperimental": false,
+              "minSdk": 24,
+              "description": null
+            }
+          ]
+        }
+      ],
+      "options": [
+        {
+          "key": "blockMerchantDealPopovers",
+          "title": "Block Merchant Deal Popovers",
+          "description": "Suppresses in-session merchant deal popovers, store offer modals, and webview deal overlays.",
+          "required": false,
+          "type": "kotlin.Boolean",
+          "default": true,
+          "values": null
+        },
+        {
+          "key": "blockKnotAccountLinking",
+          "title": "Block Knot Account Linking Promos",
+          "description": "Suppresses Knot card auto-sync onboarding dialogs, activation gates, and account linking banners.",
+          "required": false,
+          "type": "kotlin.Boolean",
+          "default": true,
+          "values": null
+        },
+        {
+          "key": "blockWalletMarketing",
+          "title": "Block Wallet Marketing",
+          "description": "Removes promotional merchant cards, empty state marketing, and boost banners from wallet screens.",
+          "required": false,
+          "type": "kotlin.Boolean",
+          "default": true,
+          "values": null
+        },
+        {
+          "key": "blockPlaytimeMarketing",
+          "title": "Block Playtime Marketing",
+          "description": "Neutralizes Playtime campaign listings and rewards promo carousels in Hermes UI.",
+          "required": false,
+          "type": "kotlin.Boolean",
+          "default": true,
+          "values": null
+        },
+        {
+          "key": "blockReferralsAndSocial",
+          "title": "Block Referrals & Social",
+          "description": "Hides referral invite banners (\"Give and Get\"), contact permission prompts, and social share modals.",
+          "required": false,
+          "type": "kotlin.Boolean",
+          "default": true,
+          "values": null
+        },
+        {
+          "key": "blockTrivia",
+          "title": "Block Trivia",
+          "description": "Hides live trivia giveaway banners and push-to-start game prompts.",
+          "required": false,
+          "type": "kotlin.Boolean",
+          "default": false,
+          "values": null
+        },
+        {
+          "key": "blockNotificationPrompts",
+          "title": "Block Notification Prompts",
+          "description": "Suppresses the pre-permission \"Don't Miss Out!\" marketing dialog (NotificationPermissionModalV2 / EnableNotificationsModal) and bypasses soft push-opt-in gates.",
+          "required": false,
+          "type": "kotlin.Boolean",
+          "default": false,
+          "values": null
+        }
+      ]
+    },
+    {
+      "name": "Remove Rewards",
+      "description": "Removes Rewards navigation while keeping Account's Sezzle Points item and routing the Home shortcut to the same page.",
+      "default": true,
+      "category": "Interface",
+      "dependencies": [],
+      "compatiblePackages": [
+        {
+          "packageName": "com.sezzle.sezzlemobile",
+          "name": "Sezzle",
+          "description": null,
+          "apkFileType": "APKM",
+          "appIconColor": "#5C2C94",
+          "signatures": null,
+          "targets": [
+            {
+              "version": "5.3.9",
+              "versionCodes": null,
+              "isExperimental": false,
+              "minSdk": 24,
+              "description": null
+            }
+          ]
+        }
+      ],
+      "options": []
+    },
+    {
+      "name": "Remove Sezzle Subscriptions",
+      "description": "Removes references to Sezzle Anywhere and Sezzle Premium subscriptions in Account benefits, Wallet, and Orders help.",
+      "default": false,
+      "category": "Interface",
+      "dependencies": [],
+      "compatiblePackages": [
+        {
+          "packageName": "com.sezzle.sezzlemobile",
+          "name": "Sezzle",
+          "description": null,
+          "apkFileType": "APKM",
+          "appIconColor": "#5C2C94",
+          "signatures": null,
+          "targets": [
+            {
+              "version": "5.3.9",
+              "versionCodes": null,
+              "isExperimental": false,
+              "minSdk": 24,
+              "description": null
+            }
+          ]
+        }
+      ],
+      "options": []
+    },
+    {
+      "name": "Remove Shipment Sync",
+      "description": "Removes email shipment synchronization features, including prompts, banners, dialogs, empty state sync cards, and account settings.",
+      "default": true,
+      "category": "Privacy",
+      "dependencies": [
+        "Bypass Native Signature Check"
+      ],
+      "compatiblePackages": [
+        {
+          "packageName": "com.aftership.AfterShip",
+          "name": "AfterShip",
+          "description": null,
+          "apkFileType": "APK",
+          "appIconColor": "#FD5B26",
+          "signatures": null,
+          "targets": [
+            {
+              "version": "5.25.8",
+              "versionCodes": null,
+              "isExperimental": false,
+              "minSdk": 23,
+              "description": null
+            }
+          ]
+        }
+      ],
+      "options": []
+    },
+    {
+      "name": "Remove Shop",
+      "description": "Removes the Shop Geocaching promotional section and link from the Profile screen.",
+      "default": true,
+      "category": "Interface",
+      "dependencies": [],
+      "compatiblePackages": [
+        {
+          "packageName": "com.groundspeak.geocaching.intro",
+          "name": "Geocaching",
+          "description": null,
+          "apkFileType": "APKM",
+          "appIconColor": "#007D46",
+          "signatures": [
+            "7f000458070a8272e5960f2b3c9d3348372f31b0e600c86af34fc06e85f8db8c",
+            "6959a7790bff42cc28fbe41c20d457401e32f4854f414dbc390de9f1529c9295"
+          ],
+          "targets": [
+            {
+              "version": "10.21.0",
+              "versionCodes": null,
+              "isExperimental": false,
+              "minSdk": 29,
+              "description": null
+            }
+          ]
+        }
+      ],
+      "options": []
+    },
+    {
+      "name": "Remove Tracking",
+      "description": "Neutralizes Google Play Advertising ID tracking, Firebase Analytics, Datadog telemetry, Kochava attribution, New Relic, Luciq, root/emulator checks, and integrity attestation.",
+      "default": true,
+      "category": "Privacy",
+      "dependencies": [],
+      "compatiblePackages": [
+        {
+          "packageName": "com.creditkarma.mobile",
+          "name": "Credit Karma",
+          "description": null,
+          "apkFileType": "APKM",
+          "appIconColor": "#008600",
+          "signatures": [
+            "f5ae9364524d92be9eb436eb7436d7c9efa9e1b4e823b0db6bc3989a4d84d0bf"
+          ],
+          "targets": [
+            {
+              "version": "26.40",
+              "versionCodes": null,
+              "isExperimental": false,
+              "minSdk": 32,
+              "description": null
+            }
+          ]
+        }
+      ],
+      "options": [
+        {
+          "key": "zeroAdvertisingId",
+          "title": "Zero Advertising ID",
+          "description": "Spoofs the Google Play Advertising ID and Kochava client to return an all-zero identifier and force limit-ad-tracking.",
+          "required": false,
+          "type": "kotlin.Boolean",
+          "default": true,
+          "values": null
+        },
+        {
+          "key": "disableFirebaseAnalytics",
+          "title": "Disable Firebase Analytics",
+          "description": "Blocks Firebase Analytics and Google Play AppMeasurement event and property logging.",
+          "required": false,
+          "type": "kotlin.Boolean",
+          "default": true,
+          "values": null
+        },
+        {
+          "key": "disableCrashlytics",
+          "title": "Disable Crashlytics",
+          "description": "Neutralizes Firebase Crashlytics crash reporting and diagnostic logging.",
+          "required": false,
+          "type": "kotlin.Boolean",
+          "default": true,
+          "values": null
+        },
+        {
+          "key": "disableDatadog",
+          "title": "Disable Datadog Telemetry",
+          "description": "Blocks Datadog initialization, SDK logger, and background upload workers.",
+          "required": false,
+          "type": "kotlin.Boolean",
+          "default": true,
+          "values": null
+        },
+        {
+          "key": "disableKochava",
+          "title": "Disable Kochava Tracker",
+          "description": "Neutralizes Kochava attribution, event tracking, and background jobs.",
+          "required": false,
+          "type": "kotlin.Boolean",
+          "default": true,
+          "values": null
+        },
+        {
+          "key": "disableScribe",
+          "title": "Disable Scribe & Diagnostic Uploads",
+          "description": "Neutralizes Intuit Scribe telemetry and diagnostic log upload tasks.",
+          "required": false,
+          "type": "kotlin.Boolean",
+          "default": true,
+          "values": null
+        },
+        {
+          "key": "disableNewRelic",
+          "title": "Disable New Relic Telemetry",
+          "description": "Blocks Credit Karma New Relic event collection and background upload scheduling.",
+          "required": false,
+          "type": "kotlin.Boolean",
+          "default": true,
+          "values": null
+        },
+        {
+          "key": "disableLuciqTelemetry",
+          "title": "Disable Luciq Telemetry & Session Recording",
+          "description": "Neutralizes Luciq APM session updates, auto screen recording, and diagnostic screenshot collection.",
+          "required": false,
+          "type": "kotlin.Boolean",
+          "default": true,
+          "values": null
+        },
+        {
+          "key": "neutralizeRootDetection",
+          "title": "Neutralize Root & Emulator Detection",
+          "description": "Forces local root, su binary, build tags, and emulator detection checks to report clean across Luciq, MiSnap IAD, ThreatMetrix, and diagnostic loggers.",
+          "required": false,
+          "type": "kotlin.Boolean",
+          "default": true,
+          "values": null
+        },
+        {
+          "key": "neutralizeIntegrityAttestation",
+          "title": "Neutralize Integrity & Attestation Checks",
+          "description": "Bypasses NokNok Play Integrity and JailBreak signals, Firebase App Check Play Integrity provider, and ThreatMetrix APK self-hash, tamper code, and malicious app profiling.",
+          "required": false,
+          "type": "kotlin.Boolean",
+          "default": true,
+          "values": null
+        }
+      ]
+    },
+    {
+      "name": "Remove Tracking",
+      "description": "Removes the OneTrust CMP tracking consent popup, zeros Google Play Advertising ID (AAID), blocks host application analytics, disables Firebase Analytics, AppMeasurement, Firebase Performance Monitoring, Crashlytics, and Sessions telemetry, neutralizes UrbanAirship and Blaze tracking, user activity, and logging, suppresses Brightcove video metrics reporting and backlog processing, and blocks Ticketmaster telemetry.",
+      "default": true,
+      "category": "Privacy",
+      "dependencies": [],
+      "compatiblePackages": [
+        {
+          "packageName": "com.nhl.gc1112.free",
+          "name": "NHL",
+          "description": null,
+          "apkFileType": "APKM",
+          "appIconColor": "#000000",
+          "signatures": [
+            "2309209340875f6f8a008ea25dbd98d8a03e482704d43211933d2b9a91923aff"
+          ],
+          "targets": [
+            {
+              "version": "17.0.0",
+              "versionCodes": null,
+              "isExperimental": false,
+              "minSdk": 29,
+              "description": null
+            }
+          ]
+        }
+      ],
+      "options": [
+        {
+          "key": "disableOneTrustCmp",
+          "title": "Disable OneTrust CMP",
+          "description": "Neutralizes OneTrust CMP tracking consent popups, network calls, and routes consent checks so push notification SDKs remain consented while advertising and tracking remain denied.",
+          "required": false,
+          "type": "kotlin.Boolean",
+          "default": true,
+          "values": null
+        },
+        {
+          "key": "removeBrokenPrivacySettings",
+          "title": "Remove Broken Privacy Settings",
+          "description": "Removes the broken Privacy Settings entry from the Settings screen.",
+          "required": false,
+          "type": "kotlin.Boolean",
+          "default": true,
+          "values": null
+        },
+        {
+          "key": "zeroAdvertisingId",
+          "title": "Zero Advertising ID",
+          "description": "Spoofs the Google Play Advertising ID (AAID) to return an all-zero identifier and limit ad tracking.",
+          "required": false,
+          "type": "kotlin.Boolean",
+          "default": true,
+          "values": null
+        },
+        {
+          "key": "disableHostAnalytics",
+          "title": "Disable Host App Analytics",
+          "description": "Blocks host application screen tracking and interaction event logging.",
+          "required": false,
+          "type": "kotlin.Boolean",
+          "default": true,
+          "values": null
+        },
+        {
+          "key": "disableFirebaseAnalytics",
+          "title": "Disable Firebase Analytics",
+          "description": "Blocks Firebase Analytics, AppMeasurement, and the WebView JavaScript analytics bridge.",
+          "required": false,
+          "type": "kotlin.Boolean",
+          "default": true,
+          "values": null
+        },
+        {
+          "key": "disableFirebasePerformance",
+          "title": "Disable Firebase Performance Monitoring",
+          "description": "Neutralizes Firebase Performance Monitoring traces, metrics, and gauge collection.",
+          "required": false,
+          "type": "kotlin.Boolean",
+          "default": true,
+          "values": null
+        },
+        {
+          "key": "disableUrbanAirshipTelemetry",
+          "title": "Disable UrbanAirship Telemetry",
+          "description": "Neutralizes UrbanAirship install referrer capture, event queueing, session tracking, and metered usage telemetry.",
+          "required": false,
+          "type": "kotlin.Boolean",
+          "default": true,
+          "values": null
+        },
+        {
+          "key": "disableBlazeTracking",
+          "title": "Disable Blaze Tracking & Logging",
+          "description": "Blocks Blaze SDK bulk event analytics, user viewing activity history, and remote diagnostic logging.",
+          "required": false,
+          "type": "kotlin.Boolean",
+          "default": true,
+          "values": null
+        },
+        {
+          "key": "disableBrightcoveAnalytics",
+          "title": "Disable Brightcove Video Analytics",
+          "description": "Suppresses Brightcove video playback metrics, interactivity tracking, and backlog processing.",
+          "required": false,
+          "type": "kotlin.Boolean",
+          "default": true,
+          "values": null
+        },
+        {
+          "key": "disableTicketmasterTelemetry",
+          "title": "Disable Ticketmaster Telemetry",
+          "description": "Neutralizes Ticketmaster authentication analytics, event reporting queues, and presence analytics.",
+          "required": false,
+          "type": "kotlin.Boolean",
+          "default": true,
+          "values": null
+        },
+        {
+          "key": "disableCrashlyticsAndSessions",
+          "title": "Disable Crashlytics & Sessions",
+          "description": "Neutralizes Firebase Crashlytics logging, exception capture, Sessions lifecycle monitoring, and DataTransport uploads.",
+          "required": false,
+          "type": "kotlin.Boolean",
+          "default": true,
+          "values": null
+        }
+      ]
+    },
+    {
+      "name": "Remove Tracking",
+      "description": "Neutralizes diagnostic telemetry, event logging, and user tracking (Firebase Analytics, Crashlytics, Instana APM, Branch Metrics, and OneSignal session and outcome tracking).",
+      "default": true,
+      "category": "Privacy",
+      "dependencies": [],
+      "compatiblePackages": [
+        {
+          "packageName": "com.avinside",
+          "name": "365 Pay",
+          "description": null,
+          "apkFileType": "APKM",
+          "appIconColor": "#00A859",
+          "signatures": [
+            "8709f6fd781c4ba9a4f50df8c44f8c5a4ccb2fd2b114b71912e79eacf8857b1d"
+          ],
+          "targets": [
+            {
+              "version": "10.2605.0",
+              "versionCodes": null,
+              "isExperimental": false,
+              "minSdk": 27,
+              "description": null
+            }
+          ]
+        }
+      ],
+      "options": [
+        {
+          "key": "disableFirebaseAnalytics",
+          "title": "Disable Firebase Analytics",
+          "description": "Blocks React Native Firebase Analytics and Google Play AppMeasurement event tracking.",
+          "required": false,
+          "type": "kotlin.Boolean",
+          "default": true,
+          "values": null
+        },
+        {
+          "key": "disableCrashlytics",
+          "title": "Disable Firebase Crashlytics",
+          "description": "Neutralizes Firebase Crashlytics crash reporting and diagnostic logging.",
+          "required": false,
+          "type": "kotlin.Boolean",
+          "default": true,
+          "values": null
+        },
+        {
+          "key": "disableInstana",
+          "title": "Disable Instana APM",
+          "description": "Neutralizes Instana End-User Monitoring (EUM) and background telemetry workers.",
+          "required": false,
+          "type": "kotlin.Boolean",
+          "default": true,
+          "values": null
+        },
+        {
+          "key": "disableBranch",
+          "title": "Disable Branch Metrics",
+          "description": "Neutralizes Branch Metrics attribution and event tracking.",
+          "required": false,
+          "type": "kotlin.Boolean",
+          "default": true,
+          "values": null
+        },
+        {
+          "key": "disableOneSignalTracking",
+          "title": "Disable OneSignal Telemetry",
+          "description": "Blocks OneSignal custom events, session outcomes, tags, and location tracking.",
+          "required": false,
+          "type": "kotlin.Boolean",
+          "default": true,
+          "values": null
+        }
+      ]
+    },
+    {
+      "name": "Remove Tracking",
+      "description": "Neutralizes Umeng Analytics, Facebook App Events, Advertising ID harvesting, device fingerprinting, Bolts measurement events, and Google DataTransport telemetry.",
+      "default": true,
+      "category": "Privacy",
+      "dependencies": [],
+      "compatiblePackages": [
+        {
+          "packageName": "com.eumlab.android.prometronome",
+          "name": "Pro Metronome",
+          "description": null,
+          "apkFileType": "APKM",
+          "appIconColor": "#ACD371",
+          "signatures": [
+            "67ba64147a05aedb766363801f77a59e04f37ab8785062a12c5678dadf8b7c35"
+          ],
+          "targets": [
+            {
+              "version": "1.14",
+              "versionCodes": null,
+              "isExperimental": false,
+              "minSdk": 23,
+              "description": null
+            }
+          ]
+        }
+      ],
+      "options": [
+        {
+          "key": "disableFacebookEvents",
+          "title": "Disable Facebook App Events",
+          "description": "Neutralizes Facebook SDK session logging, purchase tracking, and attribution identifiers.",
+          "required": false,
+          "type": "kotlin.Boolean",
+          "default": true,
+          "values": null
+        },
+        {
+          "key": "zeroAdvertisingId",
+          "title": "Zero Advertising ID",
+          "description": "Spoofs the Google Play Advertising ID client to return an all-zero identifier and force limit-ad-tracking.",
+          "required": false,
+          "type": "kotlin.Boolean",
+          "default": true,
+          "values": null
+        },
+        {
+          "key": "disableTelemetry",
+          "title": "Disable Background Telemetry",
+          "description": "Neutralizes Bolts measurement events and Google DataTransport runtime schedulers.",
+          "required": false,
+          "type": "kotlin.Boolean",
+          "default": true,
+          "values": null
+        },
+        {
+          "key": "disableUmengAnalytics",
+          "title": "Disable Umeng Analytics",
+          "description": "Neutralizes Umeng Analytics initialization, session/page lifecycle tracking, and error reporting.",
+          "required": false,
+          "type": "kotlin.Boolean",
+          "default": true,
+          "values": null
+        },
+        {
+          "key": "neutralizeDeviceFingerprint",
+          "title": "Neutralize Device Fingerprinting",
+          "description": "Replaces hardware-derived device and preset UUIDs with random identifiers and returns an empty device ID.",
+          "required": false,
+          "type": "kotlin.Boolean",
+          "default": true,
+          "values": null
+        }
+      ]
+    },
+    {
+      "name": "Remove Tracking and Analytics",
+      "description": "Neutralizes active advertising telemetry, analytics, attribution, and crash reporting.",
+      "default": true,
+      "category": "Privacy",
+      "dependencies": [],
+      "compatiblePackages": [
+        {
+          "packageName": "com.tripledot.blackjack",
+          "name": "Blackjack",
+          "description": null,
+          "apkFileType": "APKM",
+          "appIconColor": "#205B1F",
+          "signatures": [
+            "32e1c2b4c9ab0189d3e4e1c67806e6f4fc454aa758a74ccaedda8a309aa6b205"
+          ],
+          "targets": [
+            {
+              "version": "2.22.09",
+              "versionCodes": null,
+              "isExperimental": false,
+              "minSdk": 25,
+              "description": null
+            }
+          ]
+        }
+      ],
+      "options": []
+    },
+    {
+      "name": "Remove Tracking and Analytics",
+      "description": "Neutralizes behavioral tracking (Pendo SDK session recordings, guides, and click tracking), student surveillance telemetry (Pandata pageview recording, time-spent counters, and background upload worker), first-party app analytics (ScreenView processors, offline analytics, token logging), crash reporting (Firebase Crashlytics), and in-app rating prompts.",
+      "default": true,
+      "category": "Privacy",
+      "dependencies": [],
+      "compatiblePackages": [
+        {
+          "packageName": "com.instructure.candroid",
+          "name": "Canvas Student",
+          "description": null,
+          "apkFileType": "APKM",
+          "appIconColor": "#E62725",
+          "signatures": [
+            "abfe1362d84c5234c174c2c03d405a480405e361162f7b28dad6bec825ba02b3"
+          ],
+          "targets": [
+            {
+              "version": "8.12.0",
+              "versionCodes": null,
+              "isExperimental": false,
+              "minSdk": 28,
+              "description": null
+            }
+          ]
+        }
+      ],
+      "options": [
+        {
+          "key": "removeCrashlyticsCollection",
+          "title": "Disable Crashlytics Collection",
+          "description": "Sets the Firebase Crashlytics collection manifest flag to false and removes the Crashlytics NDK registrar. The existing Java Crashlytics method stubs remain active.",
+          "required": false,
+          "type": "kotlin.Boolean",
+          "default": true,
+          "values": null
+        }
+      ]
+    },
+    {
+      "name": "Remove Tracking and Analytics",
+      "description": "Neutralizes first-party client event tracking, Mixpanel analytics, Airbridge and Adjust attribution SDKs, Google Advertising ID (AAID) collection, and bypasses PairIP Play Integrity verification, with options for silent DM screenshots and Sentry telemetry removal.",
+      "default": true,
+      "category": "Privacy",
+      "dependencies": [],
+      "compatiblePackages": [
+        {
+          "packageName": "com.ashtoncofer.Buzz",
+          "name": "Fizz",
+          "description": null,
+          "apkFileType": "APKM",
+          "appIconColor": "#7F00FF",
+          "signatures": [
+            "622850867847ccb7a1371bc42c865b1137fa51bd19987dc81b53815c9a9817bf"
+          ],
+          "targets": [
+            {
+              "version": "1.54.0",
+              "versionCodes": null,
+              "isExperimental": false,
+              "minSdk": 23,
+              "description": null
+            },
+            {
+              "version": "1.72.0",
+              "versionCodes": null,
+              "isExperimental": false,
+              "minSdk": 24,
+              "description": null
+            }
+          ]
+        }
+      ],
+      "options": [
+        {
+          "key": "silentScreenshots",
+          "title": "Silent Screenshots",
+          "description": "Suppresses screenshot notification dispatches to chat counterparts in direct message conversations.",
+          "required": false,
+          "type": "kotlin.Boolean",
+          "default": true,
+          "values": null
+        },
+        {
+          "key": "disableCrashReporting",
+          "title": "Disable Crash Reporting",
+          "description": "Neutralizes Sentry crash reporting, performance tracing, and operational session telemetry.",
+          "required": false,
+          "type": "kotlin.Boolean",
+          "default": true,
+          "values": null
+        }
+      ]
+    },
+    {
+      "name": "Remove Tracking and Analytics",
+      "description": "Neutralizes first-party analytics (AnalyticsRepo), Google Analytics / Firebase (Analytics, Crashlytics, Performance, In-App Messaging), Facebook App Events, Iterable marketing telemetry, Usercentrics consent collection, and zeros the Google Play Advertising ID (AAID).",
+      "default": true,
+      "category": "Privacy",
+      "dependencies": [],
+      "compatiblePackages": [
+        {
+          "packageName": "com.groundspeak.geocaching.intro",
+          "name": "Geocaching",
+          "description": null,
+          "apkFileType": "APKM",
+          "appIconColor": "#007D46",
+          "signatures": [
+            "7f000458070a8272e5960f2b3c9d3348372f31b0e600c86af34fc06e85f8db8c",
+            "6959a7790bff42cc28fbe41c20d457401e32f4854f414dbc390de9f1529c9295"
+          ],
+          "targets": [
+            {
+              "version": "10.21.0",
+              "versionCodes": null,
+              "isExperimental": false,
+              "minSdk": 29,
+              "description": null
+            }
+          ]
+        }
+      ],
+      "options": [
+        {
+          "key": "stripCrashlytics",
+          "title": "Disable Firebase Crashlytics",
+          "description": "Neutralizes Firebase Crashlytics diagnostic telemetry and crash reporting.",
+          "required": false,
+          "type": "kotlin.Boolean",
+          "default": true,
+          "values": null
+        },
+        {
+          "key": "stripFacebook",
+          "title": "Disable Facebook Telemetry",
+          "description": "Neutralizes Facebook App Events SDK logging and activation pings.",
+          "required": false,
+          "type": "kotlin.Boolean",
+          "default": true,
+          "values": null
+        },
+        {
+          "key": "stripIterable",
+          "title": "Disable Iterable Marketing Telemetry",
+          "description": "Neutralizes Iterable marketing SDK event and push tracking.",
+          "required": false,
+          "type": "kotlin.Boolean",
+          "default": true,
+          "values": null
+        },
+        {
+          "key": "stripUsercentrics",
+          "title": "Disable Usercentrics Consent Telemetry",
+          "description": "Neutralizes Usercentrics consent management and tracking telemetry.",
+          "required": false,
+          "type": "kotlin.Boolean",
+          "default": true,
+          "values": null
+        }
+      ]
+    },
+    {
+      "name": "Remove Tracking and Telemetry",
+      "description": "Neutralizes Gainsight PX behavioral analytics (session tracking, screen views, custom events, user identification) and disables the Cordova Gainsight native plugin.",
+      "default": true,
+      "category": "Privacy",
+      "dependencies": [],
+      "compatiblePackages": [
+        {
+          "packageName": "com.eab.se",
+          "name": "Navigate360 Student",
+          "description": null,
+          "apkFileType": "APKM",
+          "appIconColor": "#0071CE",
+          "signatures": [
+            "7253620866df0a00048e7c1f43976992330e2fdb06f094d47fbf20045f56ec4b"
+          ],
+          "targets": [
+            {
+              "version": "26.19.22",
+              "versionCodes": null,
+              "isExperimental": false,
+              "minSdk": 31,
+              "description": null
+            }
+          ]
+        }
+      ],
+      "options": []
+    },
+    {
+      "name": "Remove Useless/Promotional Items",
+      "description": "Removes promotional, feedback, and broken cloud items from Settings and file menus.",
+      "default": false,
+      "category": "Interface",
+      "dependencies": [],
+      "compatiblePackages": [
+        {
+          "packageName": "com.adobe.scan.android",
+          "name": "Adobe Scan",
+          "description": null,
+          "apkFileType": "APKM",
+          "appIconColor": "#1473E6",
+          "signatures": [
+            "b6dd0562256487fcd6c98cde137858ef50d9adb9f9cd2f1ca58c5357efdf0faf"
+          ],
+          "targets": [
+            {
+              "version": "26.09.25",
+              "versionCodes": null,
+              "isExperimental": false,
+              "minSdk": 32,
+              "description": null
+            }
+          ]
+        }
+      ],
+      "options": [
+        {
+          "key": "removeAbout",
+          "title": "About Adobe Scan",
+          "description": "Removes the About Adobe Scan item from the Settings menu.",
+          "required": false,
+          "type": "kotlin.Boolean",
+          "default": true,
+          "values": null
+        },
+        {
+          "key": "removeHelp",
+          "title": "Help",
+          "description": "Removes the Help item from the Settings menu.",
+          "required": false,
+          "type": "kotlin.Boolean",
+          "default": true,
+          "values": null
+        },
+        {
+          "key": "removeRateApp",
+          "title": "Rate App",
+          "description": "Removes the Rate app item from the Settings menu.",
+          "required": false,
+          "type": "kotlin.Boolean",
+          "default": true,
+          "values": null
+        },
+        {
+          "key": "removeSupportForum",
+          "title": "Online Support Forum",
+          "description": "Removes the Online support forum item from the Settings menu.",
+          "required": false,
+          "type": "kotlin.Boolean",
+          "default": true,
+          "values": null
+        },
+        {
+          "key": "removeShareApp",
+          "title": "Share This App",
+          "description": "Removes the Share this app item from the Settings menu.",
+          "required": false,
+          "type": "kotlin.Boolean",
+          "default": true,
+          "values": null
+        },
+        {
+          "key": "removeFillAndSign",
+          "title": "Fill & Sign",
+          "description": "Removes the Fill & Sign item from file option menus and Recent scan cards.",
+          "required": false,
+          "type": "kotlin.Boolean",
+          "default": true,
+          "values": null
+        },
+        {
+          "key": "removeOpenInAcrobat",
+          "title": "Open in Adobe Acrobat",
+          "description": "Removes the Open in Adobe Acrobat option from file option menus, the preview screen, and Recent scan cards.",
+          "required": false,
+          "type": "kotlin.Boolean",
+          "default": false,
+          "values": null
+        },
+        {
+          "key": "removeGenerativeSummary",
+          "title": "Generative Summary",
+          "description": "Removes Generative summary actions from the File Options bottom sheet.",
+          "required": false,
+          "type": "kotlin.Boolean",
+          "default": true,
+          "values": null
+        },
+        {
+          "key": "removeEditText",
+          "title": "Edit Text",
+          "description": "Removes Edit text from file option menus, the preview bottom toolbar, and scan cards.",
+          "required": false,
+          "type": "kotlin.Boolean",
+          "default": true,
+          "values": null
+        },
+        {
+          "key": "removeMove",
+          "title": "Move",
+          "description": "Removes Move file from file option menus across all surfaces.",
+          "required": false,
+          "type": "kotlin.Boolean",
+          "default": true,
+          "values": null
+        },
+        {
+          "key": "removeCompressPdf",
+          "title": "Compress PDF",
+          "description": "Removes Compress PDF from file option menus and Send compressed from the Share sheet. Automatically skipped if Local PDF Compression is enabled.",
+          "required": false,
+          "type": "kotlin.Boolean",
+          "default": true,
+          "values": null
+        }
+      ]
+    },
+    {
+      "name": "Remove Web Telemetry",
+      "description": "Removes Sentry error/performance reporting, CSP telemetry endpoints, and Gainsight web bootstrap scripts from the embedded Cordova web bundle.",
+      "default": true,
+      "category": "Privacy",
+      "dependencies": [],
+      "compatiblePackages": [
+        {
+          "packageName": "com.eab.se",
+          "name": "Navigate360 Student",
+          "description": null,
+          "apkFileType": "APKM",
+          "appIconColor": "#0071CE",
+          "signatures": [
+            "7253620866df0a00048e7c1f43976992330e2fdb06f094d47fbf20045f56ec4b"
+          ],
+          "targets": [
+            {
+              "version": "26.19.22",
+              "versionCodes": null,
+              "isExperimental": false,
+              "minSdk": 31,
+              "description": null
+            }
+          ]
+        }
+      ],
+      "options": []
+    },
+    {
+      "name": "Replace AI Discover with Products",
+      "description": "Replaces the AI Discover navigation tab with Sezzle's original non-AI Products tab and removes the Sezzle AI callout in search. Includes an option to remove the Products tab completely.",
+      "default": true,
+      "category": "Interface",
+      "dependencies": [],
+      "compatiblePackages": [
+        {
+          "packageName": "com.sezzle.sezzlemobile",
+          "name": "Sezzle",
+          "description": null,
+          "apkFileType": "APKM",
+          "appIconColor": "#5C2C94",
+          "signatures": null,
+          "targets": [
+            {
+              "version": "5.3.9",
+              "versionCodes": null,
+              "isExperimental": false,
+              "minSdk": 24,
+              "description": null
+            }
+          ]
+        }
+      ],
+      "options": [
+        {
+          "key": "removeProductsTab",
+          "title": "Remove Products Tab",
+          "description": "Removes the Products tab from the navigation bar altogether instead of keeping it as a replacement for Discover.",
+          "required": false,
+          "type": "kotlin.Boolean",
+          "default": false,
+          "values": null
+        }
+      ]
+    },
+    {
+      "name": "Replace Emoji Font with iOS",
+      "description": "Replaces Android system emoji with iOS Apple Color Emoji across Compose UI, posts, comments, and direct messages (effective on Android 10+ / API 29+).",
+      "default": true,
+      "category": "Customization",
+      "dependencies": [],
+      "compatiblePackages": [
+        {
+          "packageName": "com.ashtoncofer.Buzz",
+          "name": "Fizz",
+          "description": null,
+          "apkFileType": "APKM",
+          "appIconColor": "#7F00FF",
+          "signatures": [
+            "622850867847ccb7a1371bc42c865b1137fa51bd19987dc81b53815c9a9817bf"
+          ],
+          "targets": [
+            {
+              "version": "1.54.0",
+              "versionCodes": null,
+              "isExperimental": false,
+              "minSdk": 23,
+              "description": null
+            },
+            {
+              "version": "1.72.0",
+              "versionCodes": null,
+              "isExperimental": false,
+              "minSdk": 24,
+              "description": null
+            }
+          ]
+        }
+      ],
+      "options": []
+    },
+    {
+      "name": "Replace Shop with Home",
+      "description": "Replaces the Shop bottom navigation tab with Home, a custom screen to replace the overly-commercial Shop screen.",
+      "default": true,
+      "category": "Interface",
+      "dependencies": [],
+      "compatiblePackages": [
+        {
+          "packageName": "com.sezzle.sezzlemobile",
+          "name": "Sezzle",
+          "description": null,
+          "apkFileType": "APKM",
+          "appIconColor": "#5C2C94",
+          "signatures": null,
+          "targets": [
+            {
+              "version": "5.3.9",
+              "versionCodes": null,
+              "isExperimental": false,
+              "minSdk": 24,
+              "description": null
+            }
+          ]
+        }
+      ],
+      "options": []
+    },
+    {
+      "name": "Show Remote Config Editor",
+      "description": "Adds the hidden Remote Config editor to Settings, allowing Firebase remote-config overrides and experimental flags to be inspected and changed.",
+      "default": false,
+      "category": "Developer",
+      "dependencies": [],
+      "compatiblePackages": [
+        {
+          "packageName": "com.instructure.candroid",
+          "name": "Canvas Student",
+          "description": null,
+          "apkFileType": "APKM",
+          "appIconColor": "#E62725",
+          "signatures": [
+            "abfe1362d84c5234c174c2c03d405a480405e361162f7b28dad6bec825ba02b3"
+          ],
+          "targets": [
+            {
+              "version": "8.12.0",
+              "versionCodes": null,
+              "isExperimental": false,
+              "minSdk": 28,
+              "description": null
+            }
+          ]
+        }
+      ],
+      "options": []
+    },
+    {
+      "name": "Skip to Next Level",
+      "description": "Allows tapping the next level indicator on the top bar to show a confirmation dialog and skip to the next level. REQUIRES Add Custom Chip Store to be enabled.",
+      "default": true,
+      "category": "Features",
+      "dependencies": [
+        "Add Custom Chip Store"
+      ],
+      "compatiblePackages": [
+        {
+          "packageName": "com.tripledot.blackjack",
+          "name": "Blackjack",
+          "description": null,
+          "apkFileType": "APKM",
+          "appIconColor": "#205B1F",
+          "signatures": [
+            "32e1c2b4c9ab0189d3e4e1c67806e6f4fc454aa758a74ccaedda8a309aa6b205"
+          ],
+          "targets": [
+            {
+              "version": "2.22.09",
+              "versionCodes": null,
+              "isExperimental": false,
+              "minSdk": 25,
+              "description": null
+            }
+          ]
+        }
+      ],
+      "options": []
+    },
+    {
+      "name": "Suppress In-App Updates and Rating Prompts",
+      "description": "Neutralizes Hermes Redux update sagas, UpdateAppModal dialogs, Play Store URL redirects, trustFall tamper detection, and in-app rating prompts.",
+      "default": true,
+      "category": "Security",
+      "dependencies": [],
+      "compatiblePackages": [
+        {
+          "packageName": "com.sezzle.sezzlemobile",
+          "name": "Sezzle",
+          "description": null,
+          "apkFileType": "APKM",
+          "appIconColor": "#5C2C94",
+          "signatures": null,
+          "targets": [
+            {
+              "version": "5.3.9",
+              "versionCodes": null,
+              "isExperimental": false,
+              "minSdk": 24,
+              "description": null
+            }
+          ]
+        }
+      ],
+      "options": [
+        {
+          "key": "suppressForceUpdates",
+          "title": "Suppress Force Updates",
+          "description": "Neutralizes Redux force update sagas, version verification selectors, and UpdateAppModal.",
+          "required": false,
+          "type": "kotlin.Boolean",
+          "default": true,
+          "values": null
+        },
+        {
+          "key": "bypassTrustFall",
+          "title": "Bypass Hermes Tamper Checks",
+          "description": "Forces trustFall, isJailBroken, hookDetected, and canMockLocation to always return false in Hermes JS.",
+          "required": false,
+          "type": "kotlin.Boolean",
+          "default": true,
+          "values": null
+        },
+        {
+          "key": "suppressRatingPrompts",
+          "title": "Suppress Store Rating Prompts",
+          "description": "Suppresses in-app review requests and milestone rating dialogs that redirect to Google Play.",
+          "required": false,
+          "type": "kotlin.Boolean",
+          "default": true,
+          "values": null
+        }
+      ]
+    },
+    {
+      "name": "Suppress Updates and Integrity Checks",
+      "description": "Disables Microsoft CodePush OTA updates and neutralizes Dalvik root and tamper detection SDKs (RootBeer and JailMonkey).",
+      "default": true,
+      "category": "Security",
+      "dependencies": [
+        "Suppress In-App Updates and Rating Prompts"
+      ],
+      "compatiblePackages": [
+        {
+          "packageName": "com.sezzle.sezzlemobile",
+          "name": "Sezzle",
+          "description": null,
+          "apkFileType": "APKM",
+          "appIconColor": "#5C2C94",
+          "signatures": null,
+          "targets": [
+            {
+              "version": "5.3.9",
+              "versionCodes": null,
+              "isExperimental": false,
+              "minSdk": 24,
+              "description": null
+            }
+          ]
+        }
+      ],
+      "options": [
+        {
+          "key": "disableCodePush",
+          "title": "Disable CodePush OTA",
+          "description": "Prevents Microsoft CodePush from downloading remote JavaScript bundles that override local patches.",
+          "required": false,
+          "type": "kotlin.Boolean",
+          "default": true,
+          "values": null
+        },
+        {
+          "key": "bypassRootAndTamperDetection",
+          "title": "Bypass Root & Tamper Detection",
+          "description": "Bypasses RootBeer and JailMonkey checks in Dalvik bytecode so modified or rooted devices are never flagged.",
+          "required": false,
+          "type": "kotlin.Boolean",
+          "default": true,
+          "values": null
+        }
+      ]
+    },
+    {
+      "name": "Unlock Cache Filter and Sorting Tools",
+      "description": "Unlocks advanced cache search filters and sorting options without prompting for Geocaching Premium.",
+      "default": true,
+      "category": "Features",
+      "dependencies": [],
+      "compatiblePackages": [
+        {
+          "packageName": "com.groundspeak.geocaching.intro",
+          "name": "Geocaching",
+          "description": null,
+          "apkFileType": "APKM",
+          "appIconColor": "#007D46",
+          "signatures": [
+            "7f000458070a8272e5960f2b3c9d3348372f31b0e600c86af34fc06e85f8db8c",
+            "6959a7790bff42cc28fbe41c20d457401e32f4854f414dbc390de9f1529c9295"
+          ],
+          "targets": [
+            {
+              "version": "10.21.0",
+              "versionCodes": null,
+              "isExperimental": false,
+              "minSdk": 29,
+              "description": null
+            }
+          ]
+        }
+      ],
+      "options": []
+    },
+    {
+      "name": "Unlock Custom App Icons",
+      "description": "Enables custom launcher app icons (Arctic, Peach, Glass, Rainbow, Sand, Classic) without requiring a Sezzle Premium subscription.",
+      "default": true,
+      "category": "Customization",
+      "dependencies": [],
+      "compatiblePackages": [
+        {
+          "packageName": "com.sezzle.sezzlemobile",
+          "name": "Sezzle",
+          "description": null,
+          "apkFileType": "APKM",
+          "appIconColor": "#5C2C94",
+          "signatures": null,
+          "targets": [
+            {
+              "version": "5.3.9",
+              "versionCodes": null,
+              "isExperimental": false,
+              "minSdk": 24,
+              "description": null
+            }
+          ]
+        }
+      ],
+      "options": []
+    },
+    {
+      "name": "Unlock Developer Settings",
+      "description": "Makes the internal Development Settings menu visible to every signed-in account.",
+      "default": false,
+      "category": "Developer",
+      "dependencies": [],
+      "compatiblePackages": [
+        {
+          "packageName": "com.sezzle.sezzlemobile",
+          "name": "Sezzle",
+          "description": null,
+          "apkFileType": "APKM",
+          "appIconColor": "#5C2C94",
+          "signatures": null,
+          "targets": [
+            {
+              "version": "5.3.9",
+              "versionCodes": null,
+              "isExperimental": false,
+              "minSdk": 24,
+              "description": null
+            }
+          ]
+        }
+      ],
+      "options": []
+    },
+    {
+      "name": "Unlock Developer Tools",
+      "description": "Exposes the internal developer and diagnostics screen (Environment Settings) on the Welcome Screen, and allows booting directly with Debug Messages or Demo Mode enabled.",
+      "default": false,
+      "category": "Developer",
+      "dependencies": [],
+      "compatiblePackages": [
+        {
+          "packageName": "com.avinside",
+          "name": "365 Pay",
+          "description": null,
+          "apkFileType": "APKM",
+          "appIconColor": "#00A859",
+          "signatures": [
+            "8709f6fd781c4ba9a4f50df8c44f8c5a4ccb2fd2b114b71912e79eacf8857b1d"
+          ],
+          "targets": [
+            {
+              "version": "10.2605.0",
+              "versionCodes": null,
+              "isExperimental": false,
+              "minSdk": 27,
+              "description": null
+            }
+          ]
+        }
+      ],
+      "options": [
+        {
+          "key": "unlockDeveloperSettings",
+          "title": "Unlock Developer Settings",
+          "description": "Reduces the hidden Welcome Screen logo tap gesture from five taps to a single tap to open the Environment Settings menu.",
+          "required": false,
+          "type": "kotlin.Boolean",
+          "default": true,
+          "values": null
+        },
+        {
+          "key": "startWithDebugMessages",
+          "title": "Start with Debug Messages",
+          "description": "Initializes application state with Debug Messages enabled upon startup.",
+          "required": false,
+          "type": "kotlin.Boolean",
+          "default": false,
+          "values": null
+        },
+        {
+          "key": "startInDemoMode",
+          "title": "Start in Demo Mode",
+          "description": "Initializes application state with Demo Mode enabled upon startup.",
+          "required": false,
+          "type": "kotlin.Boolean",
+          "default": false,
+          "values": null
+        }
+      ]
+    },
+    {
+      "name": "Unlock Experimental Features",
+      "description": "Unlocks beta and experimental features in Settings without Geocaching Premium.",
+      "default": false,
+      "category": "Features",
+      "dependencies": [],
+      "compatiblePackages": [
+        {
+          "packageName": "com.groundspeak.geocaching.intro",
+          "name": "Geocaching",
+          "description": null,
+          "apkFileType": "APKM",
+          "appIconColor": "#007D46",
+          "signatures": [
+            "7f000458070a8272e5960f2b3c9d3348372f31b0e600c86af34fc06e85f8db8c",
+            "6959a7790bff42cc28fbe41c20d457401e32f4854f414dbc390de9f1529c9295"
+          ],
+          "targets": [
+            {
+              "version": "10.21.0",
+              "versionCodes": null,
+              "isExperimental": false,
+              "minSdk": 29,
+              "description": null
+            }
+          ]
+        }
+      ],
+      "options": [
+        {
+          "key": "unlockAllBetaFeatures",
+          "title": "Unlock All Beta Projects",
+          "description": "Unlocks all 10% beta features (Activity Feed, Cache Log Translation, Autofill, Confetti, etc.).",
+          "required": false,
+          "type": "kotlin.Boolean",
+          "default": true,
+          "values": null
+        },
+        {
+          "key": "enableUnpersistedExperimentalFeatures",
+          "title": "Enable Hidden Experimental Toggles",
+          "description": "Persists and enables the Collaborative Lists, Has Parking, and Trackables Only toggles in Experimental Features.",
+          "required": false,
+          "type": "kotlin.Boolean",
+          "default": true,
+          "values": null
+        },
+        {
+          "key": "bypassExperimentalServerSync",
+          "title": "Bypass Experimental Server Sync",
+          "description": "Keeps experimental feature toggles local without POSTing to or being overwritten by /mobile/v1/user/settings/mobileexperiments.",
+          "required": false,
+          "type": "kotlin.Boolean",
+          "default": true,
+          "values": null
+        }
+      ]
+    },
+    {
+      "name": "Unlock Hidden Features",
+      "description": "Unlocks the internal Developer Settings menu, Draft Mini Tracker, and NHL GameZone on the Home surface, with independent options for each feature.",
+      "default": false,
+      "category": "Features",
+      "dependencies": [],
+      "compatiblePackages": [
+        {
+          "packageName": "com.nhl.gc1112.free",
+          "name": "NHL",
+          "description": null,
+          "apkFileType": "APKM",
+          "appIconColor": "#000000",
+          "signatures": [
+            "2309209340875f6f8a008ea25dbd98d8a03e482704d43211933d2b9a91923aff"
+          ],
+          "targets": [
+            {
+              "version": "17.0.0",
+              "versionCodes": null,
+              "isExperimental": false,
+              "minSdk": 29,
+              "description": null
+            }
+          ]
+        }
+      ],
+      "options": [
+        {
+          "key": "enableDeveloperSettings",
+          "title": "Enable Developer Tools & Settings",
+          "description": "Unlocks the internal Developer Settings screen inside Settings (Environment switcher, Analytics Debugger, String Key Overlay, Mock Localization, Invalidate Cache, and Ad Inspector), and activates the nhl://setAPI deep link.",
+          "required": false,
+          "type": "kotlin.Boolean",
+          "default": false,
+          "values": null
+        },
+        {
+          "key": "enableDraftMiniTracker",
+          "title": "Enable Draft Mini Tracker",
+          "description": "Forces the shipped Draft Mini Tracker visibility gate on; tracker content still depends on NHL draft data.",
+          "required": false,
+          "type": "kotlin.Boolean",
+          "default": true,
+          "values": null
+        },
+        {
+          "key": "showGameZoneOnHome",
+          "title": "Show GameZone on Home",
+          "description": "Forces the shipped NHL GameZone Home visibility gate on; web content and authentication remain server-controlled.",
+          "required": false,
+          "type": "kotlin.Boolean",
+          "default": true,
+          "values": null
+        }
+      ]
+    },
+    {
+      "name": "Unlock Notebook and Offline Content",
+      "description": "Forces the client-side Notebook and Offline Content environment feature flags on, regardless of the institution's rollout. Server support is still required for content sync.",
+      "default": false,
+      "category": "Features",
+      "dependencies": [],
+      "compatiblePackages": [
+        {
+          "packageName": "com.instructure.candroid",
+          "name": "Canvas Student",
+          "description": null,
+          "apkFileType": "APKM",
+          "appIconColor": "#E62725",
+          "signatures": [
+            "abfe1362d84c5234c174c2c03d405a480405e361162f7b28dad6bec825ba02b3"
+          ],
+          "targets": [
+            {
+              "version": "8.12.0",
+              "versionCodes": null,
+              "isExperimental": false,
+              "minSdk": 28,
+              "description": null
+            }
+          ]
+        }
+      ],
+      "options": [
+        {
+          "key": "enableNotebook",
+          "title": "Enable Notebook",
+          "description": "Forces FeatureFlagProvider.notebookEnabled to return true.",
+          "required": false,
+          "type": "kotlin.Boolean",
+          "default": true,
+          "values": null
+        },
+        {
+          "key": "enableOfflineContent",
+          "title": "Enable Offline Content",
+          "description": "Forces FeatureFlagProvider.offlineEnabled to return true.",
+          "required": false,
+          "type": "kotlin.Boolean",
+          "default": true,
+          "values": null
+        }
+      ]
+    },
+    {
+      "name": "Unlock Pro",
+      "description": "Unlocks all Pro features including polyrhythms, advanced subdivisions, visual beat modes, practice modes, and unlimited presets.",
+      "default": true,
+      "category": "Features",
+      "dependencies": [],
+      "compatiblePackages": [
+        {
+          "packageName": "com.eumlab.android.prometronome",
+          "name": "Pro Metronome",
+          "description": null,
+          "apkFileType": "APKM",
+          "appIconColor": "#ACD371",
+          "signatures": [
+            "67ba64147a05aedb766363801f77a59e04f37ab8785062a12c5678dadf8b7c35"
+          ],
+          "targets": [
+            {
+              "version": "1.14",
+              "versionCodes": null,
+              "isExperimental": false,
+              "minSdk": 23,
+              "description": null
+            }
+          ]
+        }
+      ],
+      "options": []
+    },
+    {
+      "name": "Unlock Receipt Scanner",
+      "description": "Makes the receipt scanner available from Development Settings and forces its V2 flow to render. REQUIRES Unlock Developer Settings to be enabled.",
+      "default": false,
+      "category": "Features",
+      "dependencies": [
+        "Unlock Developer Settings"
+      ],
+      "compatiblePackages": [
+        {
+          "packageName": "com.sezzle.sezzlemobile",
+          "name": "Sezzle",
+          "description": null,
+          "apkFileType": "APKM",
+          "appIconColor": "#5C2C94",
+          "signatures": null,
+          "targets": [
+            {
+              "version": "5.3.9",
+              "versionCodes": null,
+              "isExperimental": false,
+              "minSdk": 24,
+              "description": null
+            }
+          ]
+        }
+      ],
+      "options": []
+    },
+    {
+      "name": "Unlock Templates",
+      "description": "Unlocks geocache log templates, allowing creating, editing, and applying custom log templates without Geocaching Premium.",
+      "default": true,
+      "category": "Features",
+      "dependencies": [],
+      "compatiblePackages": [
+        {
+          "packageName": "com.groundspeak.geocaching.intro",
+          "name": "Geocaching",
+          "description": null,
+          "apkFileType": "APKM",
+          "appIconColor": "#007D46",
+          "signatures": [
+            "7f000458070a8272e5960f2b3c9d3348372f31b0e600c86af34fc06e85f8db8c",
+            "6959a7790bff42cc28fbe41c20d457401e32f4854f414dbc390de9f1529c9295"
+          ],
+          "targets": [
+            {
+              "version": "10.21.0",
+              "versionCodes": null,
+              "isExperimental": false,
+              "minSdk": 29,
+              "description": null
+            }
+          ]
+        }
+      ],
+      "options": []
+    },
+    {
+      "name": "Use System Font",
+      "description": "Overrides Adobe Clean fonts across XML layouts, dialogs, and Jetpack Compose screens with the device's system font.",
+      "default": false,
+      "category": "Customization",
+      "dependencies": [],
+      "compatiblePackages": [
+        {
+          "packageName": "com.adobe.scan.android",
+          "name": "Adobe Scan",
+          "description": null,
+          "apkFileType": "APKM",
+          "appIconColor": "#1473E6",
+          "signatures": [
+            "b6dd0562256487fcd6c98cde137858ef50d9adb9f9cd2f1ca58c5357efdf0faf"
+          ],
+          "targets": [
+            {
+              "version": "26.09.25",
+              "versionCodes": null,
+              "isExperimental": false,
+              "minSdk": 32,
+              "description": null
+            }
+          ]
+        }
+      ],
+      "options": []
+    },
+    {
+      "name": "Web Ad Blocker",
+      "description": "Blocks advertisements, sponsored banners, and analytics tracking in NHL article views and embedded web content using bundled NHL rules and optional downloadable filter list subscriptions (EasyList, EasyPrivacy).",
+      "default": true,
+      "category": "Ads",
+      "dependencies": [],
+      "compatiblePackages": [
+        {
+          "packageName": "com.nhl.gc1112.free",
+          "name": "NHL",
+          "description": null,
+          "apkFileType": "APKM",
+          "appIconColor": "#000000",
+          "signatures": [
+            "2309209340875f6f8a008ea25dbd98d8a03e482704d43211933d2b9a91923aff"
+          ],
+          "targets": [
+            {
+              "version": "17.0.0",
+              "versionCodes": null,
+              "isExperimental": false,
+              "minSdk": 29,
+              "description": null
+            }
+          ]
+        }
+      ],
+      "options": []
+    }
+  ]
+}

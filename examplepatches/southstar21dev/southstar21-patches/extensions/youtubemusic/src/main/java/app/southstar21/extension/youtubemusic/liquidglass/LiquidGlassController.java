@@ -117,7 +117,10 @@ final class LiquidGlassController implements ViewTreeObserver.OnPreDrawListener 
                     android.graphics.RectF pill = glass.getPill();
                     outline.setRoundRect(Math.round(pill.left), Math.round(pill.top),
                             Math.round(pill.right), Math.round(pill.bottom), glass.cornerRadius());
-                    outline.setAlpha(Math.min(1f, styleSource.get().shadow));
+                    // Lightweight glass paints its own shadow: none cast (the elevation stays,
+                    // for the drawing order).
+                    NavbarStyle style = styleSource.get();
+                    outline.setAlpha(style.lightweight() ? 0f : Math.min(1f, style.shadow));
                 }
             });
             // Elevation (and the lens above it) is set from the Shadow setting in enforceGeometry().
@@ -278,10 +281,11 @@ final class LiquidGlassController implements ViewTreeObserver.OnPreDrawListener 
         float slid = bar.getHeight() > 0 ? bar.getTranslationY() / bar.getHeight() : 0f;
         float alpha = Math.max(0f, Math.min(1f, 1f - slid));
         if (bottomBlur.getAlpha() != alpha) bottomBlur.setAlpha(alpha);
-        int visibility = barShown && alpha > 0f ? View.VISIBLE : View.GONE;
+        // Lightweight glass has no blurred band along the bottom: a whole screen wide blur.
+        int visibility = barShown && alpha > 0f && !styleSource.get().lightweight() ? View.VISIBLE : View.GONE;
         if (bottomBlur.getVisibility() != visibility) bottomBlur.setVisibility(visibility);
         // Like the glass: re-recording what's behind it every frame kept the app drawing.
-        if (barShown && refresh) bottomBlur.invalidate();
+        if (visibility == View.VISIBLE && refresh) bottomBlur.refreshBackdrop();
     }
 
     /**

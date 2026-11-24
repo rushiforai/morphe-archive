@@ -22,25 +22,6 @@ export function compareSemver(vA: string, vB: string): number {
   }
 }
 
-export function parsePep440(v: string): number[] {
-  const clean = v.replace(/^[v=><~^ ]+/, '').trim();
-  const base = clean.split(/[+a-zA-Z-]/)[0];
-  return base.split('.').map((p) => parseInt(p, 10) || 0);
-}
-
-export function comparePep440(vA: string, vB: string): number {
-  const pA = parsePep440(vA);
-  const pB = parsePep440(vB);
-  const maxLen = Math.max(pA.length, pB.length);
-  for (let i = 0; i < maxLen; i++) {
-    const numA = pA[i] || 0;
-    const numB = pB[i] || 0;
-    if (numA > numB) return 1;
-    if (numA < numB) return -1;
-  }
-  return 0;
-}
-
 export function loadGradleCredentials(): { user?: string; key?: string } {
   const candidates = [
     path.join(process.cwd(), 'local.properties'),
@@ -210,78 +191,6 @@ export class SourceManager {
       latest: sha,
       sourceUrl: `https://github.com/${owner}/${repo}/tree/${branch}`,
     };
-  }
-
-  // --- PyPI ---
-  async resolvePypi(
-    name: string,
-    projectRequiresPython = '>=3.12',
-  ): Promise<{
-    latest: string;
-    blocked?: boolean;
-    reason?: string;
-    sourceUrl: string;
-  }> {
-    const url = `https://pypi.org/pypi/${name}/json`;
-    const data = await this.fetchJson<{
-      releases?: Record<
-        string,
-        Array<{ yanked?: boolean; requires_python?: string }>
-      >;
-    }>(url);
-    const releases = data.releases || {};
-    const validVersions: string[] = [];
-    const blockedVersions: string[] = [];
-
-    for (const [ver, files] of Object.entries(releases)) {
-      if (
-        ver.includes('a') ||
-        ver.includes('b') ||
-        ver.includes('rc') ||
-        ver.includes('dev')
-      )
-        continue;
-      if (Array.isArray(files) && files.length > 0) {
-        const isYanked = files.some((f) => f.yanked === true);
-        if (isYanked) continue;
-        const reqPy = files[0]?.requires_python;
-        let isBlocked = false;
-        if (reqPy) {
-          const match = reqPy.match(/(?:>=|>|==)\s*3\.([0-9]+)/);
-          if (match && parseInt(match[1], 10) > 12) {
-            isBlocked = true;
-          }
-        }
-        if (isBlocked) {
-          blockedVersions.push(ver);
-        } else {
-          validVersions.push(ver);
-        }
-      }
-    }
-    validVersions.sort(comparePep440);
-    const chosen = validVersions[validVersions.length - 1];
-    blockedVersions.sort(comparePep440);
-    const newestBlocked = blockedVersions[blockedVersions.length - 1];
-
-    if (
-      newestBlocked &&
-      (!chosen || comparePep440(newestBlocked, chosen) > 0)
-    ) {
-      return {
-        latest: newestBlocked,
-        blocked: true,
-        reason: `Latest release ${newestBlocked} requires newer Python than ${projectRequiresPython}`,
-        sourceUrl: `https://pypi.org/project/${name}/`,
-      };
-    }
-
-    if (!chosen) {
-      throw new Error(
-        `No stable non-yanked release found for PyPI package ${name}`,
-      );
-    }
-    return { latest: chosen, sourceUrl: `https://pypi.org/project/${name}/` };
   }
 
   // --- Crates.io ---
@@ -573,36 +482,7 @@ export async function resolveDependencyItem(
       }
     }
 
-    // 2. Python (PyPI)
-    else if (item.ecosystem === 'pypi') {
-      if (item.declared === 'latest' || item.declared === 'unbounded') {
-        const res = await sources.resolvePypi(item.name);
-        item.latest = res.latest;
-        item.sourceUrl = res.sourceUrl;
-        if (item.status !== 'held') {
-          item.status = item.declared === 'latest' ? 'moving' : 'update';
-        }
-      } else {
-        const res = await sources.resolvePypi(item.name);
-        item.latest = res.latest;
-        item.sourceUrl = res.sourceUrl;
-        if (res.blocked) {
-          item.status = 'blocked';
-          item.reason = res.reason;
-        } else if (item.status !== 'held') {
-          const comp = comparePep440(res.latest, item.declared);
-          if (comp > 0) {
-            item.status = 'update';
-          } else if (comp < 0) {
-            item.status = 'ahead';
-          } else {
-            item.status = 'current';
-          }
-        }
-      }
-    }
-
-    // 3. Rust (crates.io)
+    // 2. Rust (crates.io)
     else if (item.ecosystem === 'crates') {
       const res = await sources.resolveCrates(item.name);
       item.latest = res.latest;
@@ -619,7 +499,7 @@ export async function resolveDependencyItem(
       }
     }
 
-    // 4. Gradle (Morphe repo or Maven Central)
+    // 3. Gradle (Morphe repo or Maven Central)
     else if (item.ecosystem === 'gradle') {
       if (item.status === 'unused') {
         // Leave unused entries as is
@@ -651,7 +531,7 @@ export async function resolveDependencyItem(
       }
     }
 
-    // 5. GitHub Actions & Hooks
+    // 4. GitHub Actions
     else if (item.ecosystem === 'action') {
       const [owner, repo] = item.name.split('/');
       const res = await sources.resolveGitHubRelease(owner, repo);
@@ -663,18 +543,9 @@ export async function resolveDependencyItem(
         item.status =
           compareSemver(cleanLatest, cleanDeclared) > 0 ? 'update' : 'current';
       }
-    } else if (item.ecosystem === 'hook') {
-      const [owner, repo] = item.name.split('/');
-      const res = await sources.resolveGitHubRelease(owner, repo);
-      item.latest = `v${res.latest}`;
-      item.sourceUrl = res.sourceUrl;
-      if (item.status !== 'held') {
-        item.status =
-          compareSemver(res.latest, item.declared) > 0 ? 'update' : 'current';
-      }
     }
 
-    // 6. Tools & Toolchains
+    // 5. Tools & Toolchains
     else if (item.ecosystem === 'tool') {
       if (item.id === 'tool:gradle') {
         const res = await sources.resolveGradleWrapper();
@@ -763,7 +634,7 @@ export async function resolveDependencyItem(
       }
     }
 
-    // 7. Embedded Leaflet
+    // 6. Embedded Leaflet
     else if (item.ecosystem === 'embedded' && item.name === 'leaflet') {
       const res = await sources.resolveNpm('leaflet');
       item.latest = res.latest;
@@ -774,7 +645,7 @@ export async function resolveDependencyItem(
       }
     }
 
-    // 8. C++ CMake FetchContent
+    // 7. C++ CMake FetchContent
     else if (item.ecosystem === 'cmake') {
       let res: { latest: string; sourceUrl: string } | null = null;
       if (item.name === 'libjpeg-turbo') {

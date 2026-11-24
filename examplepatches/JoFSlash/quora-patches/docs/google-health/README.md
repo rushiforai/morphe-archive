@@ -56,7 +56,7 @@ subscription.
 ## Patches
 
 <!-- PATCHES_START -->
-Version 1.10.0, 12 patches. Supported Google Health versions: 5.13.health-mobile-1104148438-1023845615.
+Version 1.11.0, 12 patches. Supported Google Health versions: 5.13.health-mobile-1104148438-1023845615.
 
 <details>
 <summary><b>Privacy</b> (2)</summary>
@@ -146,7 +146,7 @@ getting around the payment isn't something these patches do.
 
 Building needs a GitHub token with `read:packages` in `GITHUB_ACTOR` / `GITHUB_TOKEN` (or `gpr.user` /
 `gpr.key` in `~/.gradle/gradle.properties`), because the Morphe Gradle plugin comes from GitHub Packages.
-`.github/scripts/check_app.py` applies every patch to an APKM and, with `--install`, starts the patched app
+`.github/scripts/check_app.py google-health` applies every patch to an APKM and, with `--install`, starts the patched app
 on a connected phone or emulator. See [CONTRIBUTING.md](CONTRIBUTING.md).
 
 ## Thanks

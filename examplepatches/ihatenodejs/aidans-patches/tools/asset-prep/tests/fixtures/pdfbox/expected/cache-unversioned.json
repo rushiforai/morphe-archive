@@ -1,0 +1,25 @@
+{
+  "args": [
+    "--gradle-home",
+    "/Users/aidan/Projects/aidans-patches/tools/asset-prep/tests/fixtures/pdfbox/gradle-home/single",
+    "--output",
+    "/var/folders/q_/8vvtb5m90p95bxyjx1dw609r0000gn/T/asset-pdfbox-capture-ytqouz1z/cache-unversioned.zip"
+  ],
+  "exit": 0,
+  "stdout": "Packaged 1 PDFBox assets into /var/folders/q_/8vvtb5m90p95bxyjx1dw609r0000gn/T/asset-pdfbox-capture-ytqouz1z/cache-unversioned.zip\n",
+  "stderr": "",
+  "outputExists": true,
+  "output": {
+    "entries": [
+      {
+        "name": "com/tom_roush/only.txt",
+        "size": 5,
+        "sha256": "321b4285d2fec34a6dc5b6fdb1ab9ee46b1a3129c83e52a00a713a38bac0fe00",
+        "method": 8,
+        "directory": false
+      }
+    ],
+    "count": 1
+  },
+  "outputSha256": "8c7bb09f5f9dc644727b08b3d47f8ffcf71f6233b01f31dc3264c39194f66bc4"
+}

@@ -72,7 +72,8 @@ internal fun MutableMethod.whenEnabled(setting: String, body: String, index: Int
 internal fun MutableMethod.hookAt(index: Int, code: String) {
     val original = implementation!!.instructions[index]
     val labels = original.location.labels.toList()
-    addInstructions(index, code)
+    // The labels variant resolves branches to labels inside the hook code; plain addInstructions does not.
+    addInstructionsWithLabels(index, code)
     val first = implementation!!.instructions[index].location
     // Existing branches must run the hook rather than skip it.
     labels.forEach { label ->

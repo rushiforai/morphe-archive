@@ -31,10 +31,10 @@ Build the bundle and apply it to an APKM from APKMirror:
 
 ```
 ./gradlew buildAndroid
-python .github/scripts/check_google_health.py google-health.apkm --cli morphe-cli.jar --install
+python .github/scripts/check_app.py google-health google-health.apkm --cli morphe-cli.jar --install
 ```
 
-`check_google_health.py` applies every patch, lists the ones that fail, installs the patched app on the phone or
+`check_app.py google-health` applies every patch, lists the ones that fail, installs the patched app on the phone or
 emulator connected over adb and checks that it starts without errors from the patches. Then try the change
 in the app itself, signed in through MicroG-RE.
 
@@ -46,8 +46,8 @@ applies every patch and starts the app on an emulator. Then it opens a pull requ
 `bump: Support Google Health <version>`, or an issue that says what failed. Sign in on a phone before
 merging the pull request.
 
-By hand: run `check_google_health.py` on the new APKM. When every patch applies and the app starts, add the version
-with `python .github/scripts/add_google_health_version.py <version>` and upload the APKM to `JoFSlash/morphe-apks`
+By hand: run `check_app.py google-health` on the new APKM. When every patch applies and the app starts, add the version
+with `python .github/scripts/add_version.py google-health <version>` and upload the APKM to `JoFSlash/morphe-apks`
 as a release named `google-health-<version>`, so the emulator test can use it.
 
 ## Continuous integration

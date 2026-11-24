@@ -1,0 +1,104 @@
+{
+  "observedAt": "2026-11-24 JST",
+  "scope": "MUSE-approved restoration, edited-board retention, Mebuki reply transport only",
+  "environment": {
+    "repo": "rikunode/futatabi",
+    "device": "emulator-5554",
+    "app": "com.Nanasaki.ftutter.morphe",
+    "appUid": 10222,
+    "realSiteLogin": false,
+    "realSitePosting": false,
+    "release": false
+  },
+  "restorationBeforeAndAfter": {
+    "priorFixture": "tests/v04_mebuki_trial_fixture.py at 127.0.0.1:18766",
+    "normalFixtureRestored": "tests/adb_reverse_fixture.py at 127.0.0.1:18766",
+    "originalDebugApkRestored": true,
+    "originalFlutterPrefsShaMatched": true,
+    "originalMigrationPrefsShaMatched": true,
+    "originalExtensionPrefsShaMatched": true,
+    "originalFixtureLoginLogPreserved": true,
+    "ipv4IsolationRemoved": true,
+    "ipv6IsolationRemoved": true,
+    "adbForward18767Removed": true,
+    "priorAdbReverse18766Preserved": true,
+    "syntheticCookieRemoved": true
+  },
+  "boardRetention": {
+    "testInput": "valid UTF-8 Android SharedPreferences XML, migration flag already true",
+    "inputUrls": [
+      "https://example.invalid/custom/",
+      "https://may.2chan.net/b/",
+      "http://127.0.0.1:18765/aimoge/",
+      "http://127.0.0.1:18765/animanch/"
+    ],
+    "firstAppLaunch": "PASS, list unchanged",
+    "secondAppLaunch": "PASS, list unchanged",
+    "customBoardRetained": true,
+    "removedImgNotRecreated": true,
+    "otherBoardsUnchanged": true,
+    "source": "noncommitted adb pull before/after snapshots"
+  },
+  "mebuki": {
+    "knownPublicJsFields": [
+      "content",
+      "replyToId",
+      "showUsername",
+      "showThreadOwner"
+    ],
+    "source": "locally inspected public app._main.t._tslug-CVcJPhqn.js",
+    "upstreamRoute": "POST /t/LOCALdemoA0 (fixture only)",
+    "fixture": "tests/v04_mebuki_reply_fixture.py",
+    "localBase": "127.0.0.1:18766",
+    "loginMaterial": "synthetic mock_session only, app private SharedPreferences",
+    "bridgeUnauthenticatedReplyHttp": 401,
+    "authenticatedReplyHttp": 202,
+    "simulatedUpstreamHttp": 200,
+    "bridgeConfirmed": false,
+    "requestFieldsRecorded": [
+      [
+        "content",
+        "replyToId",
+        "showThreadOwner",
+        "showUsername"
+      ],
+      [
+        "content",
+        "showThreadOwner",
+        "showUsername"
+      ]
+    ],
+    "fixturePostCount": 2,
+    "bodyTextLogged": false,
+    "cookieValueLogged": false,
+    "fixtureAllKnownFields": true,
+    "fixtureAllFakeCookiePresent": true,
+    "logSha256": "644b34dafdf9f7a9fcbe0b74fe5fd4eb54e3514e2a3a782ec4c386ce33c7a797",
+    "localUIThreadPicker": "PASS",
+    "localUIReplyEditor": "PASS",
+    "localUISubmit": "PASS",
+    "localUIUnconfirmedOutcomeLabel": "PASS",
+    "newThreadRequestHttp": 400,
+    "attachmentRequestHttp": 400,
+    "threadCreateImplemented": false,
+    "attachmentImplemented": false,
+    "realServerActionResponseSchema": "NOT VERIFIED",
+    "realCookieAttributesAndExpiry": "NOT VERIFIED"
+  },
+  "builds": {
+    "temporaryLocalTestMpp": {
+      "bytes": 748503,
+      "sha256": "e4c0c4c9d9cf0a1804194f039155124270775884098a0ce73decfae2c7631185"
+    },
+    "productionSourceMpp": {
+      "bytes": 748555,
+      "sha256": "c4e49f4bce2f0479565fbab730a993a835ab495f2c75d81459b0ee082914a0ae"
+    },
+    "sha256Different": true,
+    "normalUpstreamHostHttpsRestored": true,
+    "gradle": "BUILD SUCCESSFUL",
+    "version": "0.3.0 unchanged",
+    "releaseCreated": false
+  },
+  "disclaimer": "The fixture's HTTP 200 proves only the local transport and form contract accepted by our fixture; it is not proof that the real Mebuki site accepts or persists the reply."
+}

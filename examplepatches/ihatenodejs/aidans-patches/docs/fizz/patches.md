@@ -10,7 +10,7 @@ This document specifies binary bytecode patches developed for **Fizz** (`com.ash
 
 - **Name:** Remove Tracking and Analytics
 - **Target Package:** `com.ashtoncofer.Buzz`
-- **Supported Versions:** `1.54.0`
+- **Supported Versions:** `1.54.0`, `1.72.0`
 - **Default State:** `true` (Enabled by default)
 - **Type:** Dalvik Bytecode Patch (`bytecodePatch`)
 - **Dependencies:** None
@@ -56,7 +56,8 @@ This patch neutralizes these surveillance, attribution, and anti-tamper mechanis
 
 #### Layer 2: First-Party Analytics Event Logger & Batch Dispatcher
 
-- **Target 1:** `Lra/ga;` (Event queue and flush manager)
+- **Target 1:** `Lra/ga;` (Event queue and flush manager; `Lpa/ue;` on 1.72.0). Method names shift by
+  one on 1.72.0 — see the version table above.
   - `a(Lra/q9;Z)V`: Injects `return-void` (stops event enqueuing).
   - `e()V`: Injects `return-void`.
   - `f()V`: Injects `return-void`.
@@ -140,9 +141,42 @@ This patch neutralizes these surveillance, attribution, and anti-tamper mechanis
 
 ---
 
+#### Version-specific targets (1.54.0 → 1.72.0)
+
+Fizz renames its own classes on every release, so each layer resolves its targets from the patch's
+`TRACKING_TARGETS_1_*` table selected by `packageMetadata.versionName`. Sandboxed SDK classes
+(PairIP, Adjust, Airbridge, Google AAID) keep stable descriptors on both builds.
+
+| Role                                    | 1.54.0                                           | 1.72.0                                           |
+| --------------------------------------- | ------------------------------------------------ | ------------------------------------------------ |
+| Analytics batcher                       | `Lra/ga;`                                        | `Lpa/ue;`                                        |
+| Log event                               | `a(Lra/q9;Z)V`                                   | `a(Lpa/pd;Z)V`                                   |
+| Flush buffered events                   | `e()V`                                           | `f()V`                                           |
+| Reset analytics                         | `f()V`                                           | `g()V`                                           |
+| Dispatch batch                          | `d(ZLql/c;)Ljava/lang/Object;`                   | `e(ZLzm/c;)Ljava/lang/Object;`                   |
+| Send batch                              | `g(Lfb/c;Lql/c;)Ljava/lang/Object;`              | `h(Leb/c;Lzm/c;)Ljava/lang/Object;`              |
+| Analytics request client                | `Ljc/k0;`                                        | `Loc/s0;`                                        |
+| Operational reporter                    | `Lec/j;`                                         | `Lhc/l;`                                         |
+| Mixpanel client                         | `Lfk/u;` (flush `d`, `l`)                        | `Lml/u;` (flush `d`, `k`)                        |
+| Mixpanel identify / track / track-timed | `i` / `k` / `m`                                  | `h` / `j` / `l`                                  |
+| Mixpanel people / opted-out             | `b` / `h()Z`                                     | `b` / `g()Z`                                     |
+| Analytics identity store                | `Lra/ya;`                                        | `Lpa/tf;`                                        |
+| Airbridge wrapper                       | `Lsa/l0;`                                        | `Lqa/n0;`                                        |
+| Adjust wrapper                          | `Lsa/b;`                                         | `Lqa/b;`                                         |
+| Wrapper intent check                    | `f(Intent;Lhe/d;)Z`                              | `i(Intent;Loa/x0;)Z`                             |
+| Wrapper availability check              | `g(Context)Z` (Adjust only)                      | `j(Context)Z` (Adjust only)                      |
+| Wrapper no-op void set                  | `a`–`e`                                          | `a`, `d`, `e`, `f`, `g`                          |
+| AAID registrar coroutine                | `Lsa/n0;`                                        | `Lqa/p0;`                                        |
+| Sentry facade                           | `Lec/p1;`                                        | `Lhc/d2;`                                        |
+| Sentry Android initializer              | `Lio/sentry/android/core/s1;->b(Context;y;k4;)V` | `Lio/sentry/android/core/r1;->b(Context;x;k4;)V` |
+| DM screenshot worker                    | `Lsd/a2;`                                        | `Lde/b3;`                                        |
+| Chat screenshot upload                  | `Ljc/n2;->q(String;Lql/c;)`                      | `Loc/m3;->s(String;Lzm/c;)`                      |
+| Kotlin `Unit` singleton                 | `Lkl/z;`                                         | `Ltm/z;`                                         |
+| Result success wrapper                  | `Lcb/l;`                                         | `Lbb/m;`                                         |
+
 ### 4. Preconditions & Verification
 
-1. **Target Specification**: Compatible with Fizz `1.54.0` (`com.ashtoncofer.Buzz`), signature SHA-256 `622850867847ccb7a1371bc42c865b1137fa51bd19987dc81b53815c9a9817bf`.
+1. **Target Specification**: Compatible with Fizz `1.54.0` and `1.72.0` (`com.ashtoncofer.Buzz`), signature SHA-256 `622850867847ccb7a1371bc42c865b1137fa51bd19987dc81b53815c9a9817bf`.
 2. **Build Verification**:
 
    ```bash
@@ -164,7 +198,7 @@ This patch neutralizes these surveillance, attribution, and anti-tamper mechanis
 
 - **Name:** Replace Emoji Font with iOS
 - **Target Package:** `com.ashtoncofer.Buzz`
-- **Supported Versions:** `1.54.0`
+- **Supported Versions:** `1.54.0`, `1.72.0`
 - **Default State:** `true` (Enabled by default)
 - **Type:** Composite Feature Patch (`compositeFeaturePatch`)
 - **Dependencies:** None
@@ -181,7 +215,7 @@ Fizz defaults to Android system / Google Noto emoji styling for all user content
 #### Layer 1: Internal Asset Packaging
 
 - **Target File:** `assets/fonts/AppleColorEmoji.ttf`
-- **Source:** Generated at build time by `.github/scripts/prepare_emoji_font.py` (downloaded from upstream release, preserved at native 2048 UPM matching hmtx advance widths, injected with `cmap` Format 14, and pruned to 96x96 strike) and packaged in patch bundle resources (`fonts/AppleColorEmoji.ttf`).
+- **Source:** Generated at build time by `tools/asset-prep` (`font` subcommand via Gradle `prepareEmojiFont`): downloaded from the pinned upstream release, preserved at native 2048 UPM matching hmtx advance widths, injected with `cmap` Format 14, and pruned to the 96x96 strike. The exact processed bytes are packaged in patch bundle resources (`fonts/AppleColorEmoji.ttf`).
 - **Effect:** Extracts and packages the single-strike 96x96 (36.6 MB) Apple Color Emoji font file directly into the APK's assets directory.
 
 #### Layer 2: EmojiCompat Neutralization
@@ -223,6 +257,17 @@ Fizz defaults to Android system / Google Noto emoji styling for all user content
 
 - **Effect:** Ensures system and generic fallback typefaces in Compose also include Apple Color Emoji in their fallback hierarchy on Android API 29+.
 
+#### Version-specific targets (1.54.0 → 1.72.0)
+
+Compose ships fully obfuscated, so the font and typeface anchors come from the patch's
+`FONT_TARGETS_1_*` table selected by `packageMetadata.versionName`. The emoji asset path and the
+`EmojiCompatInitializer` descriptor are identical on both builds.
+
+| Role                | 1.54.0                                                            | 1.72.0                                                            |
+| ------------------- | ----------------------------------------------------------------- | ----------------------------------------------------------------- |
+| Android font loader | `Lhg/g;->c(Ln4/v;)Landroid/graphics/Typeface;`                    | `Ll4/a;->b(Ll4/z;)Landroid/graphics/Typeface;`                    |
+| Platform typefaces  | `Lwj/a;->t(Ljava/lang/String;Ln4/r;I)Landroid/graphics/Typeface;` | `Lal/a;->a(Ljava/lang/String;Ll4/s;I)Landroid/graphics/Typeface;` |
+
 ---
 
 ### 3. Preconditions & Verification
@@ -249,7 +294,7 @@ Fizz defaults to Android system / Google Noto emoji styling for all user content
 
 - **Name:** Enable Developer Settings
 - **Target Package:** `com.ashtoncofer.Buzz`
-- **Supported Versions:** `1.54.0`
+- **Supported Versions:** `1.54.0`, `1.72.0`
 - **Default State:** `false` (Disabled by default)
 - **Type:** Dalvik Bytecode Patch (`bytecodePatch`)
 - **Extensions:** `extensions/extension.mpe` (`app.aidan.extension.fizz.DeveloperMenuBridge`, `DeveloperMenuDialog`)
@@ -309,7 +354,31 @@ This patch adds a dedicated Developer Settings button into the Home Screen top n
 
 #### Layer 4: Mobile Studio Drawer Gating Bypass (`de.k1.invokeSuspend`)
 
-- When `mobileStudio == true`, patches case 1 of `de.k1.invokeSuspend` to return `Boolean.TRUE`, ensuring the root Compose drawer mounts and animates on all user accounts.
+- When `mobileStudio == true`, patches the spoof-user case of the drawer gate's `invokeSuspend`
+  (`de.k1` on 1.54.0, `de.r2` on 1.72.0) to return `Boolean.TRUE`, ensuring the root Compose drawer
+  mounts and animates on all user accounts.
+
+#### Version-specific targets (1.54.0 → 1.72.0)
+
+The top bar composable, its injectable register set, and every reflected Compose symbol differ per
+build, so the whole button block is stored per version in `DEVELOPER_TARGETS_1_*`.
+
+| Role                              | 1.54.0                                | 1.72.0                                                           |
+| --------------------------------- | ------------------------------------- | ---------------------------------------------------------------- |
+| Home top bar composable           | `Ltd/v;->a(...)`                      | `Lee/n1;->a(Lee/w8;Ldf/k0;Lhn/c;Lk1/i1;Ly2/q;Lhn/c;Lhn/a;Z...)V` |
+| Compose `Alignment.CenterEnd`     | `La3/b;->f`                           | `Ly2/b;->f`                                                      |
+| Settings icon vector              | `Loe/u;->a:Ln3/e;`                    | `Lrf/i0;->a:Ll3/e;`                                              |
+| Icon renderer                     | `Lk2/t0;->b(...)`                     | `Li2/w1;->b(...)`                                                |
+| `Modifier` / `Role` / `Function0` | `La3/s;` / `Lg4/g;` / `Lyl/a;`        | `Ly2/q;` / `Le4/h;` / `Lhn/a;`                                   |
+| Color scheme tint                 | `Lye/c;->z:J`                         | `Lcg/d;->y:J`                                                    |
+| Mobile Studio drawer gate         | `Lde/k1;->invokeSuspend`              | `Lde/r2;->invokeSuspend`                                         |
+| `SpoofUser` model                 | `Lcom/fizzsocial/fizz/data/local/v6;` | `Lcom/fizzsocial/fizz/data/local/y7;`                            |
+| Kotlin `Unit` singleton           | `Lkl/z;`                              | `Ltm/z;`                                                         |
+| Request holder on `MainActivity`  | `m0`                                  | `o0` (`Lpe/o0;->a:Ltn/k0;`)                                      |
+
+Live registers at the 1.72.0 injection point are `v2` (RowScope), `v4` (row modifier), `v8`
+(composer) and `v42` (color scheme); the injected block builds its own modifier chain in `v11`–`v22`
+and materializes each padding constant directly, because the assembler drops plain `move` copies.
 
 ---
 
@@ -317,7 +386,7 @@ This patch adds a dedicated Developer Settings button into the Home Screen top n
 
 - **Name:** Remove Ads
 - **Target Package:** `com.ashtoncofer.Buzz`
-- **Supported Versions:** `1.54.0`
+- **Supported Versions:** `1.54.0`, `1.72.0`
 - **Default State:** `true` (Enabled by default)
 - **Type:** Dalvik Bytecode Patch (`bytecodePatch`)
 - **Dependencies:** None
@@ -359,13 +428,28 @@ This patch eliminates sponsored feed advertisements by default and provides a co
   - If `removeMarketplaceAds == false`, calls `filterAdsOnly(List)` to retain marketplace listing cards while still filtering commercial ads.
 
 - **Filtering Behavior:** The patch filters the list passed to `displayItems` before the existing comparison/assignment; the bridge source does not establish repository-state, deduplication, `endReached`, or continuous-pagination behavior.
-- **Register Safety:** The injected call reuses the selected display-list register (the target invoke's `registerC`, or fallback `v6`) for both the argument and result; no separate scratch-register guarantee is asserted.
+- **Register Safety:** The injected call reuses the register that holds the freshly built display
+  list (the `Object.equals` receiver) for both the argument and result, and fails fast when that
+  register exceeds the 4-bit `invoke-static` operand range.
+
+#### Version-specific targets (1.54.0 → 1.72.0)
+
+| Role                     | 1.54.0                                 | 1.72.0                                 |
+| ------------------------ | -------------------------------------- | -------------------------------------- |
+| Feed state builder       | `HomeFeedViewModel.l0(Ltd/j4;)Ltd/j4;` | `HomeFeedViewModel.u0(Lee/w8;)Lee/w8;` |
+| Feed page state          | `Ltd/f0;` (display items field `l`)    | `Lee/d2;` (display items field `l`)    |
+| Marketplace listing card | `sc.t1`                                | `yc.z1`                                |
+| Commercial ad item       | `sc.k` (type enum field `b`)           | `yc.n` (type enum field `b`)           |
+
+The injected call reuses the register that holds the freshly built list at the `Object.equals`
+comparison (the comparison's receiver), which is the same value later copied into the page state;
+the patch fails when that register exceeds `v15` or when the page-state copy is not found after it.
 
 ---
 
 ### 4. Preconditions & Verification
 
-1. **Target Specification**: Compatible with Fizz `1.54.0` (`com.ashtoncofer.Buzz`).
+1. **Target Specification**: Compatible with Fizz `1.54.0` and `1.72.0` (`com.ashtoncofer.Buzz`).
 2. **Build Verification**:
 
    ```bash
@@ -384,7 +468,7 @@ This patch eliminates sponsored feed advertisements by default and provides a co
 
 - **Name:** Block Update Prompts
 - **Target Package:** `com.ashtoncofer.Buzz`
-- **Supported Versions:** `1.54.0`
+- **Supported Versions:** `1.54.0`, `1.72.0`
 - **Default State:** `true` (Enabled by default)
 - **Type:** Dalvik Bytecode Patch (`bytecodePatch`) with Extension Bridge (`extensions/extension.mpe`)
 - **Dependencies:** None
@@ -427,25 +511,27 @@ This patch neutralizes forced update prompts and active backend gateway version 
 - **Mechanism:** Locates the `IGET_BOOLEAN` instruction reading field `l0:Z` from `Lge/u1;` and replaces it with `const/4 v$registerA, 0x0`.
 - **Effect:** Ensures the subsequent `if-eqz v0, :cond_57f` branch always branches past the update prompt composable `kd.o1.a`, allowing the normal onboarding UI to render.
 
-#### Layer 5: Update Prompt Composable Stubbing (`kd.o1.a`)
+#### Layer 5: Update Prompt Composable Stubbing (`kd.o1.a` / `td.a2.a`)
 
 - **Target:** `Lkd/o1;`
-- **Method:** `a(La3/s;Lo2/p;I)V`
-- **Mechanism:** Injects an immediate `return-void` at index 0 via `disableRequiredVoidMethods("Lkd/o1;", "a")`.
+- **Method:** `a(La3/s;Lo2/p;I)V` on 1.54.0, `a(Ly2/q;Lm2/p;I)V` on 1.72.0
+- **Mechanism:** Injects an immediate `return-void` at index 0 into the update prompt composable
+  (`Lkd/o1;` on 1.54.0, `Ltd/a2;` on 1.72.0).
 - **Effect:** Defense-in-depth: if the update composable layout ("New Fizz Update Available" and "Open Play Store" button) is ever invoked directly, it immediately returns without rendering anything.
 
-#### Layer 6: OkHttp Header Interceptor Dynamic Version Spoofing (`ic.g.a`)
+#### Layer 6: OkHttp Header Interceptor Dynamic Version Spoofing
 
-- **Target:** `Lic/g;` (`ic.g`)
+- **Target:** `Lic/g;` on 1.54.0, `Lnc/i;` on 1.72.0
 - **Method:** `a(Lokhttp3/internal/http/RealInterceptorChain;)Lokhttp3/Response;`
-- **Mechanism:** Locates the `CONST_STRING` instructions defining `"1.54.0"` (associated with `fizz-client-version` header) and `"400032"` (associated with `fizz-build-number` header), replacing them with static invocations to `VersionBridge.getClientVersion()` and `VersionBridge.getBuildNumber()`.
+- **Mechanism:** Locates the single `CONST_STRING` holding the build's wire client version (`"1.54.0"` / `"1.72.0"`) and build number (`"400032"` / `"465123"`), replacing each with a static invocation to `VersionBridge.getClientVersion()` / `VersionBridge.getBuildNumber()`. Literal lookup replaces the earlier header-proximity search because 1.72.0 emits the header name before its value.
 - **Effect:** Ensures every outbound HTTP/HTTPS request sent by the app transmits the latest spoofed client version and build number in request headers.
 
-#### Layer 7: Session State Request Body DTO Spoofing (`ub.dc.<init>`)
+#### Layer 7: Session State Request Body DTO Spoofing
 
-- **Target:** `Lub/dc;` (`SessionStateRequestData`)
-- **Method:** `<init>(Ljava/lang/String;Llb/j0;Ljava/lang/String;Ljava/lang/String;)V`
-- **Mechanism:** Replaces the hardcoded `"1.54.0"` literal stored into `this.a` (`clientVersion`) with `VersionBridge.getClientVersion()`.
+- **Target:** `Lub/dc;` (`SessionStateRequestData`) on 1.54.0, `Lub/id;` on 1.72.0
+- **Method:** `<init>(Ljava/lang/String;Llb/j0;Ljava/lang/String;Ljava/lang/String;)V` on 1.54.0;
+  `<init>(Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Llb/j0;Ljava/lang/String;Ljava/lang/String;)V` on 1.72.0
+- **Mechanism:** Selects the constructor that holds the wire version literal (`"1.54.0"` / `"1.72.0"`) exactly once and replaces that literal with `VersionBridge.getClientVersion()`.
 - **Effect:** Guarantees that the JSON request body sent to `/api/v1/app/session-state` carries the spoofed client version, preventing server-side transition to `SessionUnavailable` ("Error connecting to Fizz").
 
 #### Layer 8: Lifecycle Bridge Initialization (`MainActivity.onCreate`)
@@ -457,9 +543,24 @@ This patch neutralizes forced update prompts and active backend gateway version 
 
 ---
 
+#### Version-specific targets (1.54.0 → 1.72.0)
+
+| Role                         | 1.54.0                                 | 1.72.0                                             |
+| ---------------------------- | -------------------------------------- | -------------------------------------------------- |
+| Session state outdated check | `Lnc/j0;->d()Z`                        | `Ltc/s0;->m()Z`                                    |
+| Semantic version comparator  | `Lnc/c;->b`                            | `Ltc/c;->d(Ljava/lang/String;Ljava/lang/String;)Z` |
+| Onboarding UI state flag     | `Lge/u1;->l0:Z`                        | `Lse/h2;->K0:Z`                                    |
+| Onboarding screen flag read  | single `IGET_BOOLEAN` in `Lge/r1;`     | single `IGET_BOOLEAN` in `Lse/d2;`                 |
+| Update prompt composable     | `Lkd/o1;->a`                           | `Ltd/a2;->a`                                       |
+| OkHttp header interceptor    | `Lic/g;->a` (wire `1.54.0` / `400032`) | `Lnc/i;->a` (wire `1.72.0` / `465123`)             |
+| Session state request DTO    | `Lub/dc;-><init>` (4 args)             | `Lub/id;-><init>` (7 args)                         |
+
+The version and build literals are located inside the interceptor rather than by header proximity,
+because 1.72.0 emits the header name before its value, and both literals must occur exactly once.
+
 ### 3. Preconditions & Verification
 
-1. **Target Specification**: Compatible with Fizz `1.54.0` (`com.ashtoncofer.Buzz`).
+1. **Target Specification**: Compatible with Fizz `1.54.0` and `1.72.0` (`com.ashtoncofer.Buzz`).
 2. **Build Verification**:
 
    ```bash

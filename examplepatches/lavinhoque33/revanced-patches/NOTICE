@@ -22,6 +22,25 @@ Reseam NOTICE
 Portions of this software incorporate or are derived from code provided by the Reseam project:
 https://git.reseam.app/reseam/patches.
 
+The optional Reseam icon pack includes artwork from Reseam v1.1.0:
+https://github.com/Reseam/patches/tree/b51a7df87feecf660f866ab3dddddceb057e4bce/shared/youtube-common/patch/src/main/resources/reseam-branding
+Copyright (C) 2026 Reseam contributors
+Licensed under the GNU Affero General Public License, version 3 or later
+(see LICENSE-Reseam). The adaptive icon layers were converted to this
+project's icon format. These builds are not the original Reseam app.
+This license grants no rights under trademark law to use the name
+"Reseam" or its logos.
+
+=============
+
+ReVanced icon artwork
+
+The optional ReVanced icon pack includes the legacy launcher artwork from
+ReVanced Patches v4.16.0 (GNU General Public License, version 3):
+https://gitlab.com/ReVanced/revanced-patches/-/tree/ef8aa22779fcf9fa1db67bbf33a1515ca4beed35/src/main/resources/custom-branding
+The launcher bitmaps are unchanged; the monochrome layer is derived from
+the legacy foreground. This pack does not use the later ReVanced branding.
+
 =============
 
 Morphe NOTICE

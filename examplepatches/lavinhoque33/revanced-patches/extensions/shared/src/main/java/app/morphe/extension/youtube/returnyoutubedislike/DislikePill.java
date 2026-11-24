@@ -2,6 +2,7 @@
  * Copyright (C) 2026 lavinhoque33
  *
  * Licensed under the GNU General Public License v3.0.
+ * Modified by lavinhoque33, 2026-11-23
  * Written by lavinhoque33, 2026-10-28
  *
  * Segmented button layout adapted from Morphe's ReturnYouTubeDislikeButtons:
@@ -42,6 +43,8 @@ public final class DislikePill {
     private static final float COUNT_MARGIN = pixels(14);
     private static final float COUNT_CENTER_OFFSET = pixels(20);
     private static final Paint countPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
+    private static final int ACCESSIBILITY_TAG_ID =
+            ResourceUtils.getIdIdentifier("elements_accessibility_view_tag_id");
     private static final ThreadLocal<float[]> previousWidths = ThreadLocal.withInitial(() -> new float[2]);
     private static final Map<View, CountDrawable> counts = new WeakHashMap<>();
     @Nullable
@@ -70,7 +73,7 @@ public final class DislikePill {
     public static synchronized void setWatchSession(@Nullable Object session) {
         dislikeText = "";
         watchSession = session;
-        Utils.runOnMainThreadNowOrLater(DislikePill::invalidateCounts);
+        Utils.runOnMainThreadNowOrLater(DislikePill::removeObsoleteCounts);
     }
 
     public static synchronized void update(@NonNull Object session, @NonNull CharSequence text, int color) {
@@ -81,6 +84,22 @@ public final class DislikePill {
         dislikeText = text.toString();
         textColor = color;
         Utils.runOnMainThreadNowOrLater(DislikePill::invalidateCounts);
+    }
+
+    private static void removeObsoleteCounts() {
+        Object session = watchSession;
+        var iterator = counts.entrySet().iterator();
+        while (iterator.hasNext()) {
+            var entry = iterator.next();
+            View host = entry.getKey();
+            CountDrawable drawable = entry.getValue();
+            if (host == null || drawable.session != session) {
+                iterator.remove();
+                if (host != null) {
+                    drawable.removeFrom(host);
+                }
+            }
+        }
     }
 
     private static void invalidateCounts() {
@@ -123,56 +142,49 @@ public final class DislikePill {
         return margin > 0 ? (Utils.isRightToLeftLocale() ? 0 : 2) : -1;
     }
 
-    /** Called before Litho mounts its content; wait until the host has its final bounds. */
+    /** Called as Litho binds or clears a host's accessibility attributes. */
     public static void onContentDescription(@NonNull View host, @Nullable CharSequence description) {
-        removeCount(host);
         Object session = watchSession;
         if (session == null || !isEnabled() || description == null) {
             return;
         }
 
-        int tagId = ResourceUtils.getIdIdentifier("elements_accessibility_view_tag_id");
-        Object tag = tagId == 0 ? null : host.getTag(tagId);
-        if (tag == null || !tag.toString().startsWith("id.video.dislike")) {
+        CountDrawable existing = counts.get(host);
+        if (!isDislikeHost(host)) {
+            if (existing != null) {
+                counts.remove(host);
+                existing.removeFrom(host);
+            }
             return;
         }
-
-        WeakReference<View> hostRef = new WeakReference<>(host);
-        String mountedDescription = description.toString();
-        Utils.runOnMainThread(() -> {
-            View mounted = hostRef.get();
-            // Square compact-action/Shorts buttons must keep their existing counts and layout.
-            if (mounted == null || !mounted.isAttachedToWindow() || watchSession != session
-                    || !isEnabled() || mounted.getWidth() <= mounted.getHeight()
-                    || !TextUtils.equals(mountedDescription, mounted.getContentDescription())) {
-                return;
-            }
-            removeCount(mounted);
-            CountDrawable drawable = new CountDrawable(mounted, mountedDescription, session);
-            counts.put(mounted, drawable);
-            mounted.getOverlay().add(drawable);
-            mounted.addOnAttachStateChangeListener(drawable);
-        });
-    }
-
-    private static void removeCount(View host) {
-        CountDrawable existing = counts.remove(host);
-        if (existing != null) {
-            host.getOverlay().remove(existing);
-            host.removeOnAttachStateChangeListener(existing);
+        if (existing != null && existing.session == session && existing.getCallback() != null) {
+            return;
         }
+        if (existing != null) {
+            existing.removeFrom(host);
+        }
+
+        // Litho can update or briefly clear descriptions on the same button during a rebind.
+        // Do not tear down a visible count and leave it absent until a posted reattach.
+        CountDrawable drawable = new CountDrawable(host, session);
+        counts.put(host, drawable);
+        host.getOverlay().add(drawable);
+        host.addOnLayoutChangeListener(drawable);
     }
 
-    private static final class CountDrawable extends Drawable implements View.OnAttachStateChangeListener {
+    private static boolean isDislikeHost(View host) {
+        Object tag = ACCESSIBILITY_TAG_ID == 0 ? null : host.getTag(ACCESSIBILITY_TAG_ID);
+        return tag != null && tag.toString().startsWith("id.video.dislike");
+    }
+
+    private static final class CountDrawable extends Drawable implements View.OnLayoutChangeListener {
         private final WeakReference<View> hostReference;
-        private final String description;
         private final Object session;
         private final Paint paint = new Paint(countPaint);
         private final Paint.FontMetrics fontMetrics = new Paint.FontMetrics();
 
-        CountDrawable(View host, String description, Object session) {
+        CountDrawable(View host, Object session) {
             hostReference = new WeakReference<>(host);
-            this.description = description;
             this.session = session;
             paint.setTextAlign(Paint.Align.CENTER);
             setBounds(0, 0, host.getWidth(), host.getHeight());
@@ -182,9 +194,10 @@ public final class DislikePill {
         public void draw(@NonNull Canvas canvas) {
             View host = hostReference.get();
             String text = dislikeText;
+            // A recycled host must not draw the count over another action, even if Litho
+            // has not called the description setter yet. Square icon-only buttons use a separate path.
             if (host == null || watchSession != session || !isEnabled() || text.isEmpty()
-                    || host.getWidth() <= host.getHeight()
-                    || !TextUtils.equals(description, host.getContentDescription())) {
+                    || host.getWidth() <= host.getHeight() || !isDislikeHost(host)) {
                 return;
             }
 
@@ -195,15 +208,15 @@ public final class DislikePill {
             canvas.drawText(text, center, (host.getHeight() - fontMetrics.bottom - fontMetrics.top) / 2f, paint);
         }
 
-        @Override
-        public void onViewAttachedToWindow(View view) {
+        void removeFrom(View host) {
+            host.getOverlay().remove(this);
+            host.removeOnLayoutChangeListener(this);
         }
 
         @Override
-        public void onViewDetachedFromWindow(View view) {
-            if (counts.get(view) == this) {
-                removeCount(view);
-            }
+        public void onLayoutChange(View view, int left, int top, int right, int bottom,
+                                   int oldLeft, int oldTop, int oldRight, int oldBottom) {
+            setBounds(0, 0, right - left, bottom - top);
         }
 
         @Override

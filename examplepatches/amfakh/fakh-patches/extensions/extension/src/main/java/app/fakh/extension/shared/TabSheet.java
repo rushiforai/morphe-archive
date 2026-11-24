@@ -1,3 +1,8 @@
+/*
+ * Copyright 2026 amfakh
+ * SPDX-License-Identifier: GPL-3.0-only
+ */
+
 package app.fakh.extension.shared;
 
 import android.app.Activity;
@@ -170,6 +175,74 @@ public final class TabSheet {
             if (onToggle != null) onToggle.toggled(on[0]);
         });
         return line;
+    }
+
+    /** What the sheet reports when the user picks one of the rows of {@link #radioRows}. */
+    public interface OnPick {
+        /** Called with the index of the row that was picked. */
+        void picked(int index);
+    }
+
+    /**
+     * A column of rows of which one is chosen, drawn as a ring with a dot in the chosen one. Picking a row moves the
+     * dot to it and reports it.
+     *
+     * @param context  the activity
+     * @param labels   the text of each row
+     * @param chosen   the index of the row that is chosen at first
+     * @param text     the color of the labels
+     * @param accent   the color of the chosen ring and dot
+     * @param ring     the color of the rings that are not chosen
+     * @param onPick   called with the index of the row the user picks, or null
+     * @return the column
+     */
+    public static View radioRows(Context context, String[] labels, int chosen, int text, int accent, int ring,
+            OnPick onPick) {
+        float density = context.getResources().getDisplayMetrics().density;
+        LinearLayout column = new LinearLayout(context);
+        column.setOrientation(LinearLayout.VERTICAL);
+        View[] marks = new View[labels.length];
+        for (int i = 0; i < labels.length; i++) {
+            LinearLayout line = new LinearLayout(context);
+            line.setOrientation(LinearLayout.HORIZONTAL);
+            line.setGravity(Gravity.CENTER_VERTICAL);
+            int vertical = Math.round(14 * density);
+            int side = Math.round(24 * density);
+            line.setPadding(side, vertical, side, vertical);
+            TextView name = new TextView(context);
+            name.setText(labels[i]);
+            name.setTextColor(text);
+            name.setTextSize(16);
+            line.addView(name, new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f));
+            View mark = new View(context);
+            marks[i] = mark;
+            int size = Math.round(24 * density);
+            line.addView(mark, new LinearLayout.LayoutParams(size, size));
+            int index = i;
+            line.setOnClickListener(v -> {
+                for (int j = 0; j < marks.length; j++) marks[j].setBackground(radio(j == index, accent, ring, density));
+                if (onPick != null) onPick.picked(index);
+            });
+            column.addView(line);
+        }
+        for (int j = 0; j < marks.length; j++) marks[j].setBackground(radio(j == chosen, accent, ring, density));
+        return column;
+    }
+
+    /** A ring, with a dot in it when chosen, as the app's own choice sheets draw their radio buttons. */
+    private static android.graphics.drawable.Drawable radio(boolean chosen, int accent, int ring, float density) {
+        GradientDrawable outer = new GradientDrawable();
+        outer.setShape(GradientDrawable.OVAL);
+        outer.setStroke(Math.round(2 * density), chosen ? accent : ring);
+        if (!chosen) return outer;
+        GradientDrawable dot = new GradientDrawable();
+        dot.setShape(GradientDrawable.OVAL);
+        dot.setColor(accent);
+        android.graphics.drawable.LayerDrawable layers = new android.graphics.drawable.LayerDrawable(
+                new android.graphics.drawable.Drawable[] {outer, dot});
+        int inset = Math.round(6 * density);
+        layers.setLayerInset(1, inset, inset, inset, inset);
+        return layers;
     }
 
     /** Closes the sheet with the same slide it opened with, then runs the close callback. */

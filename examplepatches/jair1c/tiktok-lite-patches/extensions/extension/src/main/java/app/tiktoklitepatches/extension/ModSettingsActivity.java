@@ -153,7 +153,7 @@ public final class ModSettingsActivity extends Activity {
         info.setPadding(0, dp(14), 0, dp(6));
         panel.addView(info);
         action(panel, strings.get(GITHUB), true, () -> startActivity(new Intent(
-                Intent.ACTION_VIEW, Uri.parse("https://github.com/jair1c/tiktok-lite-patches"))));
+                Intent.ACTION_VIEW, Uri.parse("https://github.com/KyVexo/tiktok-lite-patches"))));
         action(panel, strings.get(CLOSE), false, dialog::dismiss);
 
         ScrollView scroll = new ScrollView(this);

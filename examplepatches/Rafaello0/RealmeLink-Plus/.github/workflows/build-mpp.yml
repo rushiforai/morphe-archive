@@ -49,14 +49,30 @@ jobs:
           set -euo pipefail
           python3 tools/test_runtime_java.py
 
+      - name: Test upstream overlay retention
+        run: python3 tools/test_prepare_upstream.py
+
+      - name: Verify already-patched APK detection
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 tools/test_check_input_apk.py
+
       - name: Validate source tree
         shell: bash
         run: |
           set -euo pipefail
+          session=overlay/patches/src/main/kotlin/app/morphe/patches/realmelink/session/BypassSessionExpiryPatch.kt
+          test -s "$session"
+          grep -Fq 'ReLoginToastFingerprint.matchAllOrNull()' "$session"
           test -s overlay/patches/src/main/kotlin/app/morphe/patches/realmelink/modes/ModeMemoryPatches.kt
           test -s overlay/extensions/extension/src/main/java/app/hxreborn/extension/realmelink/ModeKeeper.java
           grep -Fq 'Remember noise control mode' overlay/patches/src/main/kotlin/app/morphe/patches/realmelink/modes/ModeMemoryPatches.kt
           grep -Fq 'Remember game mode' overlay/patches/src/main/kotlin/app/morphe/patches/realmelink/modes/ModeMemoryPatches.kt
+          ! grep -Fq 'Expose single tap (experimental)' overlay/patches/src/main/kotlin/app/morphe/patches/realmelink/modes/ModeMemoryPatches.kt
+          test -s overlay/extensions/extension/src/main/java/app/hxreborn/extension/realmelink/HeadsetProfileNames.java
+          grep -Fq 'Gravity.TOP | Gravity.END' overlay/extensions/extension/src/main/java/app/hxreborn/extension/realmelink/ModeSettingsUi.java
+          grep -Fq 'HeadsetProfileNames.labels' overlay/extensions/extension/src/main/java/app/hxreborn/extension/realmelink/ModeSettingsUi.java
 
       - name: Validate home-screen patch source
         shell: bash
@@ -182,7 +198,7 @@ jobs:
           else
             gh release create "$RELEASE_TAG" "dist/$BUNDLE_FILENAME" \
               --title "RealmeLink Plus $RELEASE_TAG" \
-              --notes "RealmeLink Plus $RELEASE_TAG by RaFaeLL0. Five Morphe patches for realme Link 5.8.811.2814, including two preserved GPL-3.0-only patches from hxreborn. Import with Morphe Sources. This build has automated compilation and packaging tests; physical-device testing is separate." \
+              --notes "RealmeLink Plus $RELEASE_TAG by RaFaeLL0. Six Morphe patches for realme Link 5.8.811.2814, including two preserved GPL-3.0-only patches from hxreborn. Import with Morphe Sources. This build has automated compilation and packaging tests; physical-device testing is separate." \
               --latest
           fi
 

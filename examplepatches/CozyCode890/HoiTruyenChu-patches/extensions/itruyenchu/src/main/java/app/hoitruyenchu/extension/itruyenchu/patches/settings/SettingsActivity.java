@@ -154,9 +154,11 @@ public final class SettingsActivity extends Activity {
         }
 
         if (HtcPatches.ttsReliability()) ttsSection();
+        if (HtcPatches.ttsReliability()) wordSection();
         if (HtcPatches.backgroundReading()) backgroundSection();
         if (HtcPatches.rememberSpeed()) speedSection();
         if (HtcPatches.mediaControls()) mediaSection();
+        if (HtcPatches.miniPlayer()) playerSection();
         if (HtcPatches.resumeListening()) resumeSection();
         if (HtcPatches.tapToSeek()) tapSection();
         if (HtcPatches.chapterTitles()) titlesSection();
@@ -181,11 +183,32 @@ public final class SettingsActivity extends Activity {
                 new Object[]{0, 1, 2, 3, 4, 5},
                 new String[]{"Không đọc lại", "1 lần", "2 lần", "3 lần", "4 lần", "5 lần"});
         toggle(HtcSettings.TTS_APPLY_SPEED, "Áp dụng tốc độ mới ngay",
-                "Đổi tốc độ khi đang đọc thì dòng hiện tại được đọc lại với tốc độ mới", on);
+                "Đổi tốc độ khi đang đọc thì đọc tiếp ngay với tốc độ mới", on);
         action("Bộ đọc (TTS engine)", engineLabel(), on, this::pickEngine);
         action("Giọng đọc", voiceLabel(), on, this::pickVoice);
         action("Nghe thử", "Đọc một câu mẫu với bộ đọc, giọng và tốc độ đang chọn", on, this::preview);
         reset("tts.", "Đọc to (TTS)");
+    }
+
+    private void wordSection() {
+        header("Nghe tiếp đúng chữ");
+        String m = HtcSettings.WORD_ENABLED;
+        toggle(m, "Nghe tiếp từ chữ đang đọc",
+                "Dừng rồi phát lại (nút dừng, thông báo, cuộc gọi, tai nghe, hẹn giờ, đổi tốc độ, mở lại truyện) thì đọc tiếp từ chữ đó, không đọc lại từ đầu dòng",
+                true);
+        boolean on = HtcSettings.bool(m);
+        choice(HtcSettings.WORD_FROM, "Đọc tiếp từ", on,
+                new Object[]{"word", "back", "phrase", "seconds"},
+                new String[]{"Đúng chữ đang đọc", "Lùi 1–2 chữ", "Đầu cụm gần nhất (sau dấu phẩy, dấu chấm)", "Lùi khoảng 2 giây"});
+        boolean reader = on && HtcPatches.tapToSeek();
+        choice(HtcSettings.WORD_KARAOKE, "Tô sáng theo chữ", reader,
+                new Object[]{"off", "bold", "dim", "underline"},
+                new String[]{"Không, chỉ tô dòng", "Tô đậm chữ đang đọc", "Làm mờ phần chưa đọc", "Gạch chân chữ đang đọc"});
+        choice(HtcSettings.WORD_TAP, "Chạm vào chữ trong dòng", reader,
+                new Object[]{"line", "word", "hold"},
+                new String[]{"Đọc từ đầu dòng", "Đọc từ chữ được chạm (ước lượng, có thể lệch 1 chữ)",
+                        "Chạm: từ đầu dòng · nhấn giữ: từ chữ được chạm"});
+        reset("word.", "Nghe tiếp đúng chữ");
     }
 
     private void backgroundSection() {
@@ -202,15 +225,69 @@ public final class SettingsActivity extends Activity {
     }
 
     private void speedSection() {
-        header("Nhớ tốc độ đọc");
+        header("Tốc độ đọc");
         String m = HtcSettings.SPEED_ENABLED;
-        toggle(m, "Giữ tốc độ khi mở lại app", "Một tốc độ cho mọi truyện", true);
+        toggle(m, "Giữ tốc độ khi mở lại app", "Một tốc độ cho mọi truyện. Tắt thì menu tốc độ cũng về như app", true);
         boolean on = HtcSettings.bool(m);
         float speed = shownSpeed > 0 ? shownSpeed : HtcSettings.savedSpeed();
-        action("Tốc độ đọc", String.format(Locale.US, "%.2fx · chỉnh từ 0.50x đến 3.00x", speed), on, this::pickSpeed);
-        toggle(HtcSettings.SPEED_EXTRA_LEVELS, "Thêm mức tốc độ",
-                "Bảng chọn tốc độ của thanh đọc có thêm 0.90x, 1.10x, 1.75x, 2.50x, 3.00x", on);
-        reset("speed.", "Nhớ tốc độ đọc");
+        action("Tốc độ đọc", String.format(Locale.US, "%.2fx · chỉnh từ %s đến %s", speed,
+                speedLabel(HtcSettings.integer(HtcSettings.SPEED_MIN)), speedLabel(HtcSettings.integer(HtcSettings.SPEED_MAX))),
+                on, this::pickSpeed);
+        choice(HtcSettings.SPEED_MENU, "Kiểu menu tốc độ", on,
+                new Object[]{"youtube", "list"},
+                new String[]{"Kiểu YouTube (thay menu cũ)", "Danh sách của app + thanh kéo phía trên"});
+        choice(HtcSettings.SPEED_MIN, "Tốc độ thấp nhất", on,
+                new Object[]{10, 25, 50, 75, 100},
+                new String[]{"0.10x", "0.25x", "0.50x", "0.75x", "1.00x"});
+        choice(HtcSettings.SPEED_MAX, "Tốc độ cao nhất", on,
+                new Object[]{150, 200, 250, 300, 350, 400},
+                new String[]{"1.50x", "2.00x", "2.50x", "3.00x", "3.50x", "4.00x (bộ đọc có thể không nhanh hơn được)"});
+        choice(HtcSettings.SPEED_STEP, "Bước của nút −/+ và thanh kéo", on,
+                new Object[]{1, 5, 10, 25},
+                new String[]{"0.01", "0.05", "0.10", "0.25"});
+        choice(HtcSettings.SPEED_CHIPS_MODE, "Nút chọn nhanh", on,
+                new Object[]{"auto", "custom", "recent"},
+                new String[]{"Tự sinh từ thấp nhất đến cao nhất", "Tự nhập danh sách", "1.0x + các tốc độ dùng gần đây"});
+        String chipsMode = HtcSettings.string(HtcSettings.SPEED_CHIPS_MODE);
+        if ("auto".equals(chipsMode)) {
+            choice(HtcSettings.SPEED_CHIP_STEP, "Khoảng cách các nút chọn nhanh", on,
+                    new Object[]{10, 25, 50},
+                    new String[]{"0.10", "0.25", "0.50"});
+        } else if ("custom".equals(chipsMode)) {
+            action("Danh sách nút chọn nhanh", HtcSettings.string(HtcSettings.SPEED_CHIPS), on, this::editChips);
+        }
+        toggle(HtcSettings.SPEED_SNAP, "Hút vào mốc khi kéo",
+                "Kéo gần 1.0x hoặc một nút chọn nhanh thì tự dính vào, rung nhẹ", on);
+        toggle(HtcSettings.SPEED_REMAINING, "Thời gian còn lại của chương",
+                "Dòng \"Còn ~6 phút ở 1.25x\" dưới số tốc độ (ước lượng)", on);
+        toggle(HtcSettings.SPEED_RESET_BUTTON, "Nút về 1.0x", "Cạnh số tốc độ trong menu", on);
+        toggle(HtcSettings.SPEED_EXTRA_LEVELS, "Thêm nút chọn nhanh vào danh sách của app",
+                "Chỉ khi kiểu menu là \"Danh sách của app\"", on && "list".equals(HtcSettings.string(HtcSettings.SPEED_MENU)));
+        reset("speed.", "Tốc độ đọc");
+    }
+
+    private static String speedLabel(int hundredths) {
+        return String.format(Locale.US, "%.2fx", hundredths / 100f);
+    }
+
+    private void editChips() {
+        final android.widget.EditText input = new android.widget.EditText(this);
+        input.setText(HtcSettings.string(HtcSettings.SPEED_CHIPS));
+        input.setInputType(android.text.InputType.TYPE_CLASS_TEXT);
+        input.setHint("0.8, 1, 1.2, 1.5");
+        LinearLayout box = new LinearLayout(this);
+        box.setPadding(dp(20), dp(8), dp(20), 0);
+        box.addView(input, new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT));
+        new AlertDialog.Builder(this)
+                .setTitle("Nút chọn nhanh")
+                .setMessage("Các tốc độ, cách nhau bởi dấu phẩy (ngoài khoảng thấp nhất – cao nhất thì bỏ qua)")
+                .setView(box)
+                .setPositiveButton("Lưu", (d, w) -> {
+                    HtcSettings.put(HtcSettings.SPEED_CHIPS, input.getText().toString().trim());
+                    render();
+                })
+                .setNegativeButton("Hủy", null)
+                .show();
     }
 
     private void mediaSection() {
@@ -224,6 +301,18 @@ public final class SettingsActivity extends Activity {
                 new Object[]{"chapter", "line1", "line5"},
                 new String[]{"Đổi chương", "Tới / lùi 1 dòng", "Tới / lùi 5 dòng"});
         reset("media.", "Điều khiển trên màn hình khóa");
+    }
+
+    private void playerSection() {
+        header("Thanh phát mini");
+        String m = HtcSettings.PLAYER_ENABLED;
+        toggle(m, "Vẫn nghe khi rời trình đọc",
+                "Thanh phát mini trên thanh tab: ảnh bìa, truyện, chương, các nút như thanh đọc. Chạm để mở lại đúng dòng",
+                true);
+        choice(HtcSettings.PLAYER_ON_LEAVE, "Khi rời trình đọc lúc đang nghe", HtcSettings.bool(m),
+                new Object[]{"continue", "pause", "ask", "stop"},
+                new String[]{"Đọc tiếp + thanh mini", "Dừng, vẫn hiện thanh mini", "Hỏi mỗi lần", "Dừng như cũ"});
+        reset("player.", "Thanh phát mini");
     }
 
     private void resumeSection() {
@@ -249,9 +338,19 @@ public final class SettingsActivity extends Activity {
         choice(HtcSettings.TAP_AUTO_RETURN, "Tự quay về dòng đang đọc", on,
                 new Object[]{0, 5, 10, 30},
                 new String[]{"Tắt", "Sau 5 giây không chạm", "Sau 10 giây không chạm", "Sau 30 giây không chạm"});
+        choice(HtcSettings.TAP_CURRENT_LINE, "Chạm dòng đang đọc (khi đang phát)", on,
+                new Object[]{"nothing", "pause", "restart"},
+                new String[]{"Không làm gì", "Tạm dừng / đọc tiếp", "Đọc lại dòng từ đầu"});
+        choice(HtcSettings.TAP_OTHER_LINE, "Chạm dòng khác (khi đang phát)", on,
+                new Object[]{"jump", "mark", "nothing"},
+                new String[]{"Nhảy tới dòng đó và đọc tiếp", "Dừng đọc, chỉ đánh dấu dòng", "Không làm gì"});
         choice(HtcSettings.TAP_CLOSED_BAR, "Chạm khi thanh đọc đang đóng", on,
                 new Object[]{"mark", "nothing", "play"},
                 new String[]{"Mở thanh đọc, đánh dấu dòng", "Không làm gì", "Mở thanh đọc và đọc luôn"});
+        choice(HtcSettings.TAP_FOLLOW_POSITION, "Vị trí dòng đang đọc khi tự cuộn", on,
+                new Object[]{"bottom", "top", "middle", "page"},
+                new String[]{"Dưới cùng (ngay trên thanh đọc)", "Trên cùng (như app)", "Ở giữa",
+                        "Chỉ cuộn khi dòng sắp khuất (lật cả trang)"});
         reset("tap.", "Chạm dòng để nghe");
     }
 
@@ -302,6 +401,11 @@ public final class SettingsActivity extends Activity {
 
     private void generalSection() {
         header("Chung");
+        toggle(HtcSettings.GEAR_ENABLED, "Nút mở cài đặt (bánh răng nổi)",
+                "Góc trên bên phải; chấm đỏ khi có bản vá mới", true);
+        choice(HtcSettings.GEAR_SCREENS, "Hiện nút ở", HtcSettings.bool(HtcSettings.GEAR_ENABLED),
+                new Object[]{"reader", "tabs", "home", "all"},
+                new String[]{"Chỉ trong trình đọc", "Các tab chính", "Chỉ Trang chủ", "Mọi màn hình"});
         toggle(HtcSettings.DEBUG, "Ghi log gỡ lỗi", "Các script ghi log [HTC-...] để báo lỗi", true);
         action("Chia sẻ log", "Gửi log HTC-* (để báo lỗi)", true, this::shareLog);
         action("Xuất cài đặt", "Lưu ra file .json", true, () -> {
@@ -657,7 +761,10 @@ public final class SettingsActivity extends Activity {
 
     private void pickSpeed() {
         float current = shownSpeed > 0 ? shownSpeed : HtcSettings.savedSpeed();
-        final int steps = 50; // 0.50x .. 3.00x by 0.05
+        final int min = Math.max(10, HtcSettings.integer(HtcSettings.SPEED_MIN));
+        final int max = Math.max(min + 10, Math.min(400, HtcSettings.integer(HtcSettings.SPEED_MAX)));
+        final int step = Math.max(1, HtcSettings.integer(HtcSettings.SPEED_STEP));
+        final int steps = (max - min) / step;
         LinearLayout box = new LinearLayout(this);
         box.setOrientation(LinearLayout.VERTICAL);
         box.setPadding(dp(24), dp(16), dp(24), dp(4));
@@ -667,13 +774,13 @@ public final class SettingsActivity extends Activity {
         label.setTextColor(colorText);
         final SeekBar bar = new SeekBar(this);
         bar.setMax(steps);
-        int progress = Math.round((Math.max(0.5f, Math.min(3f, current)) - 0.5f) / 0.05f);
+        int progress = Math.round((Math.max(min, Math.min(max, current * 100f)) - min) / step);
         bar.setProgress(progress);
-        label.setText(String.format(Locale.US, "%.2fx", 0.5f + progress * 0.05f));
+        label.setText(speedLabel(min + progress * step));
         bar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
             @Override
             public void onProgressChanged(SeekBar seekBar, int p, boolean fromUser) {
-                label.setText(String.format(Locale.US, "%.2fx", 0.5f + p * 0.05f));
+                label.setText(speedLabel(min + p * step));
             }
 
             @Override
@@ -690,7 +797,7 @@ public final class SettingsActivity extends Activity {
                 .setTitle("Tốc độ đọc")
                 .setView(box)
                 .setPositiveButton("Đặt", (d, w) -> {
-                    float speed = Math.round((0.5f + bar.getProgress() * 0.05f) * 100f) / 100f;
+                    float speed = (min + bar.getProgress() * step) / 100f;
                     if (HtcSettings.sendSpeed(speed)) {
                         shownSpeed = speed;
                         toast(String.format(Locale.US, "Tốc độ đọc: %.2fx", speed));

@@ -115,6 +115,9 @@ Restart the app, check if the behavior is present, then answer below"</string>
         &lt;p&gt;Reseam NOTICE&lt;/p&gt;
         &lt;p&gt;Portions of this software incorporate or are derived from code provided by the Reseam
         project:&lt;br&gt;https://git.reseam.app/reseam/patches.&lt;/p&gt;
+        &lt;p&gt;Copyright (C) 2026 Reseam contributors&lt;br&gt;The optional Reseam icon pack adapts
+        Reseam v1.1.0 artwork under the GNU Affero General Public License, version 3 or later.
+        This licence grants no rights under trademark law to use the name “Reseam” or its logos.&lt;/p&gt;
         &lt;p&gt;=============&lt;/p&gt;
         &lt;p&gt;Morphe NOTICE&lt;/p&gt;
         &lt;p&gt;Portions of this software incorporate or are derived from code provided by the Morphe software
@@ -293,6 +296,8 @@ To fix this, turn on \'Spoof video streams\' and change the \'Default client\' t
     <string name="morphe_hide_feed_subtitle_views_summary">Hides recognized view counts below video titles without filtering out videos or hiding the thumbnail badge.</string>
     <string name="morphe_hide_feed_subtitle_age_title">Hide upload dates below feed videos</string>
     <string name="morphe_hide_feed_subtitle_age_summary">Hides recognized upload dates and relative times, such as “2 days ago”, below video titles.</string>
+    <string name="morphe_home_feed_channel_names_title">Show channel names on Home</string>
+    <string name="morphe_home_feed_channel_names_summary">Shows channel display names instead of @handles below video titles on Home when YouTube provides the name.</string>
     <string name="morphe_feed_long_press_menu_summary">Tapping and holding anywhere on a feed video opens its menu</string>
     <string name="morphe_feed_long_press_menu_title">Tap and hold to open video menu</string>
     <string name="morphe_feed_watch_later_button_summary">A Watch later button is shown on the thumbnails of feed videos. Tapping and holding it opens Save to playlist</string>
@@ -571,6 +576,10 @@ To use this feature, turn off \'Spoof video streams\'"</string>
 
 Not used while Unlock queue or Premium-style queue is on"</string>
     <string name="morphe_queue_override_flyout_menu_title">Override feed flyout queue button</string>
+    <string name="morphe_queue_thumbnail_button_title">Show Add to queue on thumbnails</string>
+    <string name="morphe_queue_thumbnail_button_summary">Adds a button to supported video thumbnails. The button adds the video to the queue without playing it.</string>
+    <string name="morphe_queue_thumbnail_start_playback">Play a video first to use YouTube’s queue.</string>
+    <string name="morphe_queue_thumbnail_unavailable">No queue is available for this video.</string>
     <string name="morphe_reload_video_summary_off">Reload video button is hidden</string>
     <string name="morphe_reload_video_summary_on">Reload video button is shown</string>
     <string name="morphe_reload_video_title">Show reload video button</string>
@@ -621,6 +630,9 @@ Not used while Unlock queue or Premium-style queue is on"</string>
     <string name="morphe_seekbar_thumbnail_heatmap_peak_point">Most replayed</string>
     <string name="morphe_seekbar_thumbnail_preview_summary">Shows a video thumbnail while dragging the seekbar</string>
     <string name="morphe_seekbar_thumbnail_preview_title">Enable seekbar thumbnails</string>
+    <string name="morphe_hide_seekbar_thumbnail_preview_border_title">Hide old seekbar thumbnail border</string>
+    <string name="morphe_hide_seekbar_thumbnail_preview_border_summary_on">The white thumbnail border is hidden</string>
+    <string name="morphe_hide_seekbar_thumbnail_preview_border_summary_off">The white thumbnail border is shown</string>
     <!-- Custom seekbar thumb. Modified by lavinhoque33, 2026-11-17. -->
     <string name="morphe_custom_seekbar_thumb_title">Enable custom seekbar thumb</string>
     <string name="morphe_custom_seekbar_thumb_summary">Replace the seekbar thumb with an image or animated GIF. Animated images require Android 9 or newer</string>
@@ -1801,6 +1813,8 @@ Words with uppercase letters in the middle must be entered with the casing (ie: 
     <string name="revanced_hide_navigation_notifications_button_summary_off">Notifications button is shown</string>
     <string name="revanced_hide_navigation_notifications_button_summary_on">Notifications button is hidden</string>
     <string name="revanced_hide_navigation_notifications_button_title">Hide Notifications button</string>
+    <string name="morphe_hide_toolbar_companion_button_title">Hide Companion button</string>
+    <string name="morphe_hide_toolbar_companion_button_summary">Hides the toolbar button for using your phone as a companion to YouTube on TV</string>
     <string name="revanced_hide_toolbar_messages_button_title">Hide Messages button</string>
     <string name="revanced_hide_toolbar_messages_button_summary">Hides the Messages button from the toolbar when YouTube shows it</string>
     <string name="revanced_hide_navigation_shorts_button_summary_off">Shorts button is shown</string>
@@ -2330,7 +2344,9 @@ Swipe to expand or close"</string>
     <string name="revanced_miniplayer_glass_title">Glass miniplayer</string>
     <string name="revanced_miniplayer_hide_overlay_buttons_legacy_title">Hide expand and close buttons</string>
     <string name="revanced_miniplayer_hide_overlay_buttons_summary_off">Overlay buttons are shown</string>
-    <string name="revanced_miniplayer_hide_overlay_buttons_summary_on">Overlay buttons are hidden</string>
+    <string name="revanced_miniplayer_hide_overlay_buttons_summary_on">"Overlay buttons are hidden
+
+Default: swipe down to close. Buttons stay available with touch exploration."</string>
     <string name="revanced_miniplayer_hide_overlay_buttons_title">Hide overlay buttons</string>
     <string name="revanced_miniplayer_hide_rewind_forward_summary_off">Skip forward and back are shown</string>
     <string name="revanced_miniplayer_hide_rewind_forward_summary_on">Skip forward and back are hidden</string>
@@ -2444,8 +2460,11 @@ Info:
 Tap and hold to reset playback speed to 1.0x. Tap and hold again to reset back to default speed"</string>
     <string name="revanced_overlay_button_speed_dialog_title">Show speed dialog button</string>
     <string name="revanced_overlay_button_speed_dialog_type_title">Speed dialog type (player button)</string>
+    <string name="revanced_overlay_button_video_quality_current">Video quality: %1$dp</string>
     <string name="revanced_overlay_button_video_quality_label">Video quality</string>
-    <string name="revanced_overlay_button_video_quality_summary">Open video quality directly from the player controls.</string>
+    <string name="revanced_overlay_button_video_quality_resolution_summary">Show a number such as 1080 instead of a label such as FHD.</string>
+    <string name="revanced_overlay_button_video_quality_resolution_title">Show exact resolution on the quality button</string>
+    <string name="revanced_overlay_button_video_quality_summary">Show the current quality and tap to change it. Replaces the quality shortcut on the timestamp.</string>
     <string name="revanced_overlay_button_video_quality_title">Show video quality button</string>
     <string name="revanced_overlay_button_vot_summary">Show overlay button to toggle voice-over translation for the current video</string>
     <string name="revanced_overlay_button_vot_title">Voice Over Translation</string>
@@ -2694,6 +2713,10 @@ Audio is saved to %2$s"</string>
     <string name="revanced_offline_video_missing">This download no longer exists</string>
     <string name="revanced_offline_player_speed">Playback speed</string>
     <string name="revanced_offline_player_speed_normal">Normal</string>
+    <string name="revanced_offline_player_speed_unsupported">This download cannot play at %s</string>
+    <string name="revanced_offline_player_seek_hint">%1$+ds</string>
+    <string name="revanced_offline_player_repeat">Always repeat</string>
+    <string name="revanced_offline_player_repeat_pause">Always repeat, then pause</string>
     <string name="revanced_offline_player_fullscreen">Fullscreen</string>
     <!-- Aspect ratio button of the built-in offline player. -->
     <string name="revanced_offline_player_aspect">Aspect ratio</string>
@@ -3477,6 +3500,8 @@ Adjust brightness by swiping vertically on the left side of the screen"</string>
     <string name="revanced_swipe_lowest_value_enable_auto_brightness_summary_off">Lowest value of the brightness gesture does not activate auto-brightness</string>
     <string name="revanced_swipe_lowest_value_enable_auto_brightness_summary_on">Lowest value of the brightness gesture activates auto-brightness</string>
     <string name="revanced_swipe_lowest_value_enable_auto_brightness_title">Enable auto-brightness gesture</string>
+    <string name="revanced_swipe_overlay_background_color_summary">Choose the background color. Use the opacity slider to adjust transparency.</string>
+    <string name="revanced_swipe_overlay_background_color_title">Swipe overlay background color</string>
     <string name="revanced_swipe_overlay_background_opacity_summary">Opacity value between 0-100</string>
     <string name="revanced_swipe_overlay_background_opacity_title">Swipe overlay background opacity</string>
     <string name="revanced_swipe_overlay_progress_brightness_color_summary">The color of the progress bar for brightness controls</string>
@@ -3496,9 +3521,14 @@ Adjust brightness by swiping vertically on the left side of the screen"</string>
     <string name="revanced_swipe_overlay_style_entry_5">Circular overlay (minimal)</string>
     <string name="revanced_swipe_overlay_style_entry_6">Vertical overlay</string>
     <string name="revanced_swipe_overlay_style_entry_7">Vertical overlay (minimal)</string>
+    <string name="revanced_swipe_overlay_style_entry_8">Horizontal overlay (center)</string>
+    <string name="revanced_swipe_overlay_style_follow_default">Use default overlay style</string>
     <string name="revanced_swipe_overlay_style_title">Swipe overlay style</string>
     <string name="revanced_swipe_overlay_timeout_summary">The amount of milliseconds the overlay is visible</string>
     <string name="revanced_swipe_overlay_timeout_title">Swipe overlay timeout</string>
+    <string name="revanced_swipe_portrait_summary_off">Swipe controls are available only in fullscreen</string>
+    <string name="revanced_swipe_portrait_summary_on">Swipe controls also work inside the portrait watch player while its controls are hidden</string>
+    <string name="revanced_swipe_portrait_title">Swipe controls in portrait</string>
     <string name="revanced_swipe_press_to_engage_summary_off">Press to swipe is disabled</string>
     <string name="revanced_swipe_press_to_engage_summary_on">Press to swipe is enabled</string>
     <string name="revanced_swipe_press_to_engage_title">Enable press to swipe gesture</string>
@@ -3506,6 +3536,7 @@ Adjust brightness by swiping vertically on the left side of the screen"</string>
     <string name="revanced_swipe_save_and_restore_brightness_summary_off">Do not save and restore brightness when exiting or entering fullscreen</string>
     <string name="revanced_swipe_save_and_restore_brightness_summary_on">Save and restore brightness when exiting or entering fullscreen</string>
     <string name="revanced_swipe_save_and_restore_brightness_title">Save and restore brightness</string>
+    <string name="revanced_swipe_side_overlay_style_title">Left and right edge overlay style</string>
     <string name="revanced_swipe_seek_distance_summary">The amount of pixels to swipe to skip through video content. Lower values make seeking faster, higher values make it slower (1-1000)</string>
     <string name="revanced_swipe_seek_distance_title">Seek distance</string>
     <string name="revanced_swipe_seek_summary_off">Fullscreen seek swipe is disabled</string>
@@ -3527,6 +3558,7 @@ Adjust speed by swiping horizontally on the bottom half of the screen"</string>
     <string name="revanced_swipe_text_overlay_size_title">Swipe overlay text size</string>
     <string name="revanced_swipe_threshold_summary">The amount of threshold for swipe to occur</string>
     <string name="revanced_swipe_threshold_title">Swipe magnitude threshold</string>
+    <string name="revanced_swipe_top_bottom_overlay_style_title">Top and bottom edge overlay style</string>
     <string name="revanced_swipe_top_zone_title">Top swipe gesture</string>
     <string name="revanced_swipe_vertical_zone_summary">Percentage of the player width reserved at the left and right edges for configured swipe actions</string>
     <string name="revanced_swipe_vertical_zone_title">Vertical swipe area</string>

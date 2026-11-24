@@ -8,7 +8,12 @@ import app.morphe.patcher.extensions.InstructionExtensions.instructions
 import app.morphe.patcher.patch.bytecodePatch
 import app.morphe.patcher.util.getReference
 import com.android.tools.smali.dexlib2.AccessFlags
+import app.morphe.patcher.resource.ResourceType
+import app.morphe.patcher.resource.hasResourceId
+import app.morphe.patcher.resource.resourceId
 import com.android.tools.smali.dexlib2.Opcode
+import com.android.tools.smali.dexlib2.iface.ClassDef
+import com.android.tools.smali.dexlib2.iface.instruction.NarrowLiteralInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.FiveRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.TwoRegisterInstruction
@@ -282,6 +287,28 @@ val youtubeExtrasPatch = bytecodePatch(
                     "invoke-static { v$spinner }, $EXTENSION/LiveChat;->onSortMenu(Landroid/widget/Spinner;)V"
                 )
             }
+        }
+
+        // The reason after a hand-made Not interested (AutoReason): the notice's presenter, whose constructor takes the notice's
+        // view and reads R.id.dismissal_reasons_text, reports the view at the constructor's first instruction (p1 still holds
+        // the view there; at the returns the compiler had reused the register, and a hook of the reasons row's constructor at its
+        // returns failed Android's verifier on 2026-11-23). The reasons list is found in the app's windows at run time.
+        run {
+            val noticeId = if (hasResourceId(ResourceType.ID, "dismissal_reasons_text")) resourceId(ResourceType.ID, "dismissal_reasons_text") else null
+            fun MethodLike(method: com.android.tools.smali.dexlib2.iface.Method, id: Long?) = id != null && method.name == "<init>" &&
+                method.implementation?.instructions?.any { it.opcode == Opcode.CONST && it is NarrowLiteralInstruction && it.narrowLiteral.toLong() == id } == true
+            val notices = mutableListOf<ClassDef>()
+            classDefForEach { classDef ->
+                if (classDef.type.startsWith("Lio/github/bryceaspringfield/") || classDef.type.startsWith("Lapp/morphe/")) return@classDefForEach
+                if (classDef.methods.any { MethodLike(it, noticeId) && it.parameterTypes.firstOrNull()?.toString() == "Landroid/view/View;" }) notices.add(classDef)
+            }
+            notices.forEach { classDef ->
+                mutableClassDefBy(classDef).methods.filter { MethodLike(it, noticeId) && it.parameterTypes.firstOrNull()?.toString() == "Landroid/view/View;" }.forEach {
+                    it.addInstruction(0, "invoke-static { p1 }, $EXTENSION/AutoReason;->onNotice(Landroid/view/View;)V")
+                }
+            }
+            if (notices.isEmpty()) logger.warning("YouTube Extras: the reason after Not interested is not hooked (no notice class)")
+            else logger.info("YouTube Extras: the reason after Not interested hooks ${notices.map { it.type }}")
         }
     }
 }

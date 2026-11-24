@@ -789,6 +789,9 @@ Takes Reply off each comment in a post's or reel's comments. View more replies s
 # context: Comments: a Hide comments switch that takes the heart (the like button) and the like count under it off each comment in a comment sheet (#762).
 Hide likes on comments	Ẩn lượt thích trên bình luận
 Takes the heart and the like count off each comment in a post's or reel's comments.	Gỡ trái tim và số lượt thích khỏi từng bình luận của bài viết hoặc reel.
+# context: Comments: a Hide comments switch that takes AI labels like AI-generated profile off the line with a commenter's name and time in a comment sheet (#787). AI-generated profile is a label Instagram shows there, use this language's Instagram words for it if you know them.
+Hide AI labels on comments	Ẩn nhãn AI trên bình luận
+Takes AI-generated profile and similar AI labels off the line with a commenter's name. The name and the time stay.	Bỏ nhãn “Trang cá nhân do AI tạo” và các nhãn AI tương tự khỏi dòng có tên người bình luận. Tên và thời gian vẫn giữ.
 # context: Comments: a Hide comments switch that takes the comment box off the bottom of a comment sheet (#762). Comment box is the field where you type a comment; Post is Instagram's own label on its send button, use this language's Instagram word for it.
 Hide the comment box	Ẩn ô bình luận
 Takes the comment box, with your picture and Post, off the bottom of a post's or reel's comments. Turn it off when you want to comment.	Gỡ ô bình luận, cùng ảnh của bạn và nút Đăng, khỏi phía dưới phần bình luận của bài viết hoặc reel. Hãy tắt khi bạn muốn bình luận.
@@ -911,6 +914,10 @@ The chip sits under the posts, followers and following counts.	Nhãn nằm bên 
 A smaller chip, centered under the profile picture. A profile with no room there gets the small chip under the counts.	Một nhãn nhỏ hơn, căn giữa bên dưới ảnh đại diện. Trang cá nhân không đủ chỗ ở đó sẽ dùng nhãn nhỏ bên dưới số liệu.
 Turn on Show it as a chip to use this choice.	Hãy bật Hiện dạng nhãn để dùng lựa chọn này.
 Turn on Show if a profile follows you to use this choice.	Hãy bật Hiện trang cá nhân có theo dõi bạn không để dùng lựa chọn này.
+# context: Profiles: switch under Show if a profile follows you. A green check or red cross by the menu in a profile's top bar (#842)
+Show it as an icon at the top	Hiện dạng biểu tượng ở trên cùng
+# context: Profiles: summary of Show it as an icon at the top. The chip is the Show it as a chip label
+Puts a green check by the menu at the top of the profile when they follow you and a red cross when they don't, instead of the words or the chip. Tap it to see the rest of what Instagram has said about you two.	Đặt dấu tích xanh lá cạnh menu ở đầu trang cá nhân khi tài khoản đó theo dõi bạn và dấu X đỏ khi không theo dõi, thay cho dòng chữ hoặc nhãn. Chạm vào để xem những gì khác Instagram đã cho biết về hai bạn.
 The Add comment bar under a reel you open from a profile's reposts. The comment button still opens the comments.	Thanh Thêm bình luận bên dưới reel bạn mở từ mục đăng lại của một trang cá nhân. Nút bình luận vẫn mở phần bình luận.
 Hide the comment bar on all reels	Ẩn thanh bình luận trên mọi reel
 The Add a comment bar under every reel, including the ones in the Reels tab. The comment button still opens the comments.	Thanh Thêm bình luận bên dưới mọi reel, kể cả trong tab Reels. Nút bình luận vẫn mở phần bình luận.
@@ -962,6 +969,8 @@ Turns Instagram's blue, on Follow buttons, links and the like, into the color yo
 Badges in the accent color	Huy hiệu theo màu nhấn
 The red dots and counts for new messages and notifications take the color you picked. Restart Instagram to see the change.	Chấm đỏ và số lượng tin nhắn, thông báo mới lấy màu bạn đã chọn. Hãy khởi động lại Instagram để thấy thay đổi.
 Icons in the accent color	Biểu tượng theo màu nhấn
+Reel buttons in the accent color	Nút reel theo màu nhấn
+The buttons beside a reel and their counts take the color you picked instead of white. Restart Instagram to see the change.	Các nút bên cạnh reel và số đếm của chúng lấy màu bạn đã chọn thay cho màu trắng. Khởi động lại Instagram để thấy thay đổi.
 Instagram's icons on the top bar, the tab bar and under posts take the color you picked. Text stays as it is. Restart Instagram to see the change.	Biểu tượng của Instagram trên thanh trên cùng, thanh tab và dưới bài viết lấy màu bạn đã chọn. Văn bản giữ nguyên. Hãy khởi động lại Instagram để thấy thay đổi.
 Story rings in the accent color	Vòng tin theo màu nhấn
 Story rings take the color you picked instead of Instagram's gradient. A few other gradients share those colors and change with them. Restart Instagram to see the change.	Vòng tin lấy màu bạn đã chọn thay cho dải màu của Instagram. Một vài dải màu khác dùng chung các màu đó và đổi theo. Khởi động lại Instagram để thấy thay đổi.
@@ -1003,7 +1012,7 @@ Half a second	Nửa giây
 1.5 seconds	1,5 giây
 On this Instagram build it covers %1$d of %2$d routes. The diagnostic report lists the rest.	Trên bản Instagram này, nó bao phủ %1$d trong %2$d lộ trình. Báo cáo chẩn đoán liệt kê phần còn lại.
 Hide suggested accounts in Messages	Ẩn tài khoản gợi ý trong Tin nhắn
-Takes the accounts Instagram suggests off the bottom of your messages. Your chats and follow requests stay. Restart Instagram to see the change.	Gỡ các tài khoản Instagram gợi ý khỏi cuối phần tin nhắn. Cuộc trò chuyện và yêu cầu theo dõi vẫn giữ. Hãy khởi động lại Instagram để thấy thay đổi.
+Takes the accounts Instagram suggests off the bottom of your messages and out of the search there. Your chats and follow requests stay. Restart Instagram to see the change.	Gỡ các tài khoản Instagram gợi ý khỏi cuối phần tin nhắn và khỏi phần tìm kiếm ở đó. Cuộc trò chuyện và yêu cầu theo dõi vẫn giữ. Hãy khởi động lại Instagram để thấy thay đổi.
 # context: switch on the Messages page after Hide suggested accounts in Messages; New message is Instagram's own label for the pencil button in the inbox top bar and the screen it opens (#762)
 Hide the New message button	Ẩn nút Tin nhắn mới
 Takes the pencil button for a new message off the top of your messages.	Gỡ nút bút chì để viết tin nhắn mới khỏi phía trên tin nhắn của bạn.
@@ -1410,6 +1419,7 @@ On a carousel, the download icon saves all of its pages at once instead of askin
 Hide reels by caption words	Ẩn reel theo từ trong chú thích
 Also on Home	Cả trên trang chủ
 Leaves out posts on Home whose caption holds a word or phrase from the list too. Pull down on Home to refresh after changing it.	Cũng bỏ các bài viết trên trang chủ có chú thích chứa từ hoặc cụm từ trong danh sách. Hãy kéo xuống trên trang chủ để làm mới sau khi thay đổi.
+Leaves out posts on Home that use a hidden sound too. Pull down on Home to refresh after changing it.	Cũng bỏ các bài viết trên trang chủ dùng âm thanh bị ẩn. Hãy kéo xuống trên trang chủ để làm mới sau khi thay đổi.
 Leaves out reels in the Reels tab whose caption holds a word or phrase from the list below. A reel you open yourself still plays.	Bỏ các reel trong tab Reels có chú thích chứa từ hoặc cụm từ trong danh sách bên dưới. Reel bạn tự mở vẫn phát.
 Blocked words	Từ bị chặn
 Words or phrases, with a comma or a new line between them. Capital letters don't matter, a hashtag works too, and an @name hides that account's posts.	Các từ hoặc cụm từ, cách nhau bằng dấu phẩy hoặc dòng mới. Không phân biệt chữ hoa, hashtag cũng được, và @tên sẽ ẩn bài viết của tài khoản đó.
@@ -1685,6 +1695,11 @@ Find a post, reel, story or profile you saw before.	Tìm lại bài viết, reel
 Recently seen	Đã xem gần đây
 Open profile	Mở trang cá nhân
 Remove from history	Xóa khỏi lịch sử
+# context: the long press menu on a row of the viewing history page (#228). Open opens the post, reel, story's person or profile in Instagram. The account is whoever posted the row, or the profile itself. Removed %d from history is a short toast with how many rows went.
+Show all from this account	Hiện tất cả từ tài khoản này
+Open	Mở
+Remove all from this account	Xóa tất cả từ tài khoản này
+Removed %d from history	Đã xóa %d mục khỏi lịch sử
 # context: the viewing history page's button that switches its rows to a grid of big pictures, then back
 Show as grid	Hiển thị dạng lưới
 Show as list	Hiển thị dạng danh sách
@@ -2325,6 +2340,8 @@ Removed the folder %s	Đã gỡ thư mục %s
 Renamed the folder to %s	Đã đổi tên thư mục thành %s
 # context: row in the long press menu on an account on the Saved profiles page, and title of the folder checklist it opens; an account can be in several folders (#687)
 Choose folders	Chọn thư mục
+# context: a row in the menu on a saved account's profile (#629) naming the Saved profiles folders it's in, comma separated; tapping it opens the folder picker.
+Folders: %s	Thư mục: %s
 # context: toast after Choose folders with every folder unticked; %s is the account's username, which stays saved (#687)
 @%s is in no folder now	@%s giờ không ở thư mục nào
 # context: toast after Choose folders leaves the account in one folder; %1$s is its username, %2$s the folder's name (#687)
@@ -2453,10 +2470,18 @@ Shows the time played and the video's length over the seek bar on feed videos, l
 Show the time left	Hiện thời gian còn lại
 # context: Summary of Show the time left; -0:33 / 0:45 is an example time, keep the digits and the minus sign as they are (#711)
 The time on the seek bar counts down what's left of the video, like -0:33 / 0:45. A tap on the time switches back.	Thời gian trên thanh tua đếm ngược phần còn lại của video, như -0:33 / 0:45. Chạm vào thời gian để chuyển lại.
+# context: Feed settings: a switch under Time on the seek bar that moves the time from the middle of the bar to the corner under Instagram's tags button (#711)
+Time under the tags button	Thời gian dưới nút gắn thẻ
+# context: Summary of Time under the tags button (#711)
+Puts the time in the corner under the tags button instead of the middle of the bar.	Đặt thời gian ở góc dưới nút gắn thẻ thay vì ở giữa thanh.
 # context: Feed settings: a switch under Tap a feed video to pause it that keeps any tap on a feed video from opening Reels (#706)
 Taps on feed videos stay in the feed	Chạm vào video bảng feed vẫn ở lại bảng feed
 # context: Summary of Taps on feed videos stay in the feed; Tap a feed video to pause it is the switch above it, use its translation (#706)
 A tap on a feed video, or on the screen it shows when it ends, no longer opens it full screen in Reels. Tap a feed video to pause it still pauses it, and the buttons on that screen still work.	Chạm vào video trên bảng feed, hoặc vào màn hình hiện ra khi video kết thúc, không còn mở video toàn màn hình trong Reels. Nhấn video bảng feed để tạm dừng vẫn tạm dừng video, và các nút trên màn hình đó vẫn hoạt động.
+# context: Feed settings: a switch under Tap a feed video to pause it that pauses only for a tap in the middle of the video (#706)
+Only the middle pauses it	Chỉ phần giữa mới tạm dừng
+# context: Summary of Only the middle pauses it; Taps on feed videos stay in the feed is another switch, use its translation (#706)
+Only a tap in the middle of the video, where Instagram puts its play button, pauses or plays it. A tap anywhere else opens it in Reels, unless Taps on feed videos stay in the feed is on.	Chỉ khi chạm vào giữa video, nơi Instagram đặt nút phát, mới tạm dừng hoặc phát video. Chạm ở chỗ khác sẽ mở video trong Reels, trừ khi Chạm vào video bảng feed vẫn ở lại bảng feed đang bật.
 # context: Item in Items in the three-dot menus under Feed: Instagram's Report row in the menus behind the three dots (#697)
 Report	Báo cáo
 # context: Item in Items in the three-dot menus under Feed: Instagram's Unfollow row (#697)
@@ -2491,6 +2516,10 @@ Keeps 2x only when you hold the video for about 3 seconds. Let go sooner and it 
 Keep the name while you hold	Giữ tên khi nhấn giữ
 # context: Summary of Keep the name while you hold, a switch under Hold for 2x on feed videos (#552)
 The name over a feed video stays while you hold it for 2x. Instagram's 2x and time labels don't show then.	Tên trên video ở bảng feed vẫn hiện khi bạn giữ video để xem 2x. Nhãn 2x và thời gian của Instagram sẽ không hiện.
+# context: Title of a switch under Hold for 2x on feed videos (#639)
+Hold the middle to pause it	Giữ phần giữa để tạm dừng
+# context: Summary of Hold the middle to pause it, a switch under Hold for 2x on feed videos (#639)
+Holding the middle of a feed video pauses it until you let go. Hold its left or right side for 2x.	Nhấn giữ phần giữa của video trong bảng feed sẽ tạm dừng video cho đến khi bạn thả tay. Nhấn giữ cạnh trái hoặc phải để phát 2x.
 # context: Stories settings: title and dialog title of the list under Story ring size that picks how thick story rings are drawn (#528)
 Ring thickness	Độ dày vòng
 # context: Stories settings: the Ring thickness choice that keeps the thickness Instagram gives story rings (#528)
@@ -2702,6 +2731,7 @@ Record this call	Ghi âm cuộc gọi này
 Stop recording	Dừng ghi âm
 # context: a toast when the Record button can't start a recording (#732)
 Couldn't start recording this call	Không thể bắt đầu ghi âm cuộc gọi
+Record calls closed Instagram, so it's off now.	Ghi âm cuộc gọi đã đóng Instagram nên đã tắt.
 # context: a toast when a finished call recording can't be saved to the phone (#732)
 Couldn't save the call recording	Không lưu được bản ghi âm cuộc gọi
 # context: a toast when a recording ends with no sound in it (#732)
@@ -2724,3 +2754,31 @@ Even on silent	Kể cả khi im lặng
 Feed videos start with sound with the phone on silent or vibrate too. Only the media volume counts.	Video trong bảng feed vẫn bắt đầu có tiếng khi điện thoại ở chế độ im lặng hoặc rung. Chỉ âm lượng nội dung nghe nhìn được tính.
 Also in search	Cả trong tìm kiếm
 Takes rows of the Explore grid and of search results out when a post in them holds a word or phrase from the list, or comes from an account the list names with @.	Bỏ các hàng trong lưới Khám phá và kết quả tìm kiếm khi có bài viết trong đó chứa từ hoặc cụm từ trong danh sách, hoặc đến từ tài khoản mà danh sách ghi bằng @.
+Holding a post's Share button shows a row of people to send it to. Instagram shows four, and this shows as many as fit across the screen.	Giữ nút Chia sẻ của một bài viết sẽ hiện một hàng người để gửi đến. Instagram hiện bốn người, còn tùy chọn này hiện nhiều nhất có thể vừa chiều ngang màn hình.
+More people when you hold Share	Thêm người khi giữ nút Chia sẻ
+Copy hashtags	Sao chép hashtag
+Hashtags	Hashtag
+Hashtags copied	Đã sao chép hashtag
+Couldn't copy the hashtags	Không sao chép được hashtag
+Translate caption	Dịch chú thích
+No app here can translate it	Không có ứng dụng dịch
+# context: Reels switch Hide reels you've seen and its summary (#830)
+Hide reels you've seen	Ẩn reel bạn đã xem
+Leaves reels you've already watched out of the Reels tab when Instagram shows them again. Reels you open from a profile or a chat still play. The last 3000 are kept on this phone.	Bỏ các reel bạn đã xem ra khỏi tab Reels khi Instagram hiển thị lại. Reel bạn mở từ trang cá nhân hoặc đoạn chat vẫn phát bình thường. 3000 reel gần nhất được lưu trên điện thoại này.
+# context: Messages switch Chat groups, its chat menu row, dialogs and toasts (discussion #838)
+Chat groups	Nhóm cuộc trò chuyện
+Long press a chat and tap Move to group to put it in a group you name. It leaves your main inbox. Long press the Messages button to show one group, or all chats. Groups stay on this phone.	Nhấn giữ một cuộc trò chuyện rồi chạm Chuyển vào nhóm để đưa nó vào nhóm do bạn đặt tên. Nó sẽ rời hộp thư chính. Nhấn giữ nút Tin nhắn để xem một nhóm hoặc tất cả cuộc trò chuyện. Nhóm được lưu trên điện thoại này.
+Move to group	Chuyển vào nhóm
+Group or hide chat	Xếp nhóm hoặc ẩn cuộc trò chuyện
+No group	Không có nhóm
+New group	Nhóm mới
+Group name	Tên nhóm
+All chats	Tất cả cuộc trò chuyện
+Showing all chats	Đang hiện tất cả cuộc trò chuyện
+Showing %1$s	Đang hiện %1$s
+%1$s is in %2$s	%1$s ở trong %2$s
+%1$s is back in your inbox	%1$s đã về hộp thư
+Long press a chat to group it	Nhấn giữ cuộc trò chuyện để xếp nhóm
+# context: Stories switch Story rings on saved posts and its summary, for posts on the Saved page (#790)
+Story rings on saved posts	Vòng tin trên bài viết đã lưu
+Posts you saved show the story ring around the author's picture, like Home does, and a tap on it opens their story. It only uses stories Instagram has already loaded.	Bài viết bạn đã lưu hiện vòng tin quanh ảnh của người đăng, giống trang chủ, và chạm vào đó sẽ mở tin của họ. Chỉ dùng các tin Instagram đã tải sẵn.

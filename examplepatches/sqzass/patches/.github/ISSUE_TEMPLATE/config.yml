@@ -1,1 +1,8 @@
 blank_issues_enabled: false
+contact_links:
+  - name: Questions & general discussion
+    url: https://github.com/sqzass/lustx-patches/discussions
+    about: Ask usage questions, share tips, or discuss patches here instead of opening an issue.
+  - name: Security vulnerability
+    url: https://github.com/sqzass/lustx-patches/security/advisories/new
+    about: Report security issues privately. Do not open a public issue.

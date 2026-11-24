@@ -187,6 +187,7 @@ final class LrclibParser {
         List<MutableLine> mutableLines = new ArrayList<>();
         MutableLine currentLine = null;
         MutableWord currentWord = null;
+        int lineIndent = -1;
         boolean inWords = false;
         boolean inPlainBlock = false;
         int plainBlockIndent = -1;
@@ -218,10 +219,13 @@ final class LrclibParser {
 
             int indent = countLeadingSpaces(raw);
             String trimmed = raw.trim();
+            boolean sequenceItem = trimmed.startsWith("- ") || trimmed.equals("-");
+            boolean inLines = "lines".equals(section);
 
-            if (indent == 0) {
+            if (indent == 0 && !(inLines && sequenceItem)) {
                 currentLine = null;
                 currentWord = null;
+                lineIndent = -1;
                 inWords = false;
                 if (trimmed.equals("metadata:")) {
                     section = "metadata";
@@ -257,8 +261,10 @@ final class LrclibParser {
                 continue;
             }
 
-            if ("lines".equals(section)) {
-                if (indent == 2 && (trimmed.startsWith("- ") || trimmed.equals("-"))) {
+            if (inLines) {
+                int lineFieldIndent = lineIndent + 2;
+                if (sequenceItem && (lineIndent < 0 || indent == lineIndent)) {
+                    lineIndent = indent;
                     currentLine = new MutableLine();
                     mutableLines.add(currentLine);
                     currentWord = null;
@@ -267,7 +273,14 @@ final class LrclibParser {
                     if (!afterDash.isEmpty()) {
                         applyLineField(currentLine, afterDash);
                     }
-                } else if (currentLine != null && indent == 4) {
+                } else if (inWords && sequenceItem && indent >= lineFieldIndent) {
+                    currentWord = new MutableWord();
+                    currentLine.words.add(currentWord);
+                    String afterDash = trimmed.substring(1).trim();
+                    if (!afterDash.isEmpty()) {
+                        applyWordField(currentWord, afterDash);
+                    }
+                } else if (currentLine != null && indent == lineFieldIndent) {
                     if (trimmed.startsWith("words:")) {
                         String rest = trimmed.substring("words:".length()).trim();
                         inWords = rest.isEmpty();
@@ -277,17 +290,8 @@ final class LrclibParser {
                         currentWord = null;
                         applyLineField(currentLine, trimmed);
                     }
-                } else if (currentLine != null && inWords && indent >= 6) {
-                    if (trimmed.startsWith("- ") || trimmed.equals("-")) {
-                        currentWord = new MutableWord();
-                        currentLine.words.add(currentWord);
-                        String afterDash = trimmed.length() > 1 ? trimmed.substring(1).trim() : "";
-                        if (!afterDash.isEmpty()) {
-                            applyWordField(currentWord, afterDash);
-                        }
-                    } else if (currentWord != null) {
-                        applyWordField(currentWord, trimmed);
-                    }
+                } else if (currentWord != null && indent > lineFieldIndent) {
+                    applyWordField(currentWord, trimmed);
                 }
             }
         }

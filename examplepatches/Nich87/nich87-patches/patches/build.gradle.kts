@@ -15,13 +15,29 @@ patches {
 // Separate configuration so gson is available at runtime for the
 // generatePatchesList task but never bundled into the APK.
 val patchListGeneratorClasspath = configurations.create("patchListGeneratorClasspath")
+val singRuntimeAar = configurations.create("singRuntimeAar") {
+    isCanBeConsumed = false
+    isTransitive = false
+}
 
 dependencies {
     compileOnly(libs.gson)
     patchListGeneratorClasspath(libs.gson)
     testImplementation(libs.junit)
     testImplementation(libs.json)
+
+    val onnxRuntime = libs.onnxruntime.android.get()
+    add(singRuntimeAar.name, "${onnxRuntime.group}:${onnxRuntime.name}:${onnxRuntime.versionConstraint.requiredVersion}@aar")
 }
+
+val singRuntimeLibraries by tasks.registering(Sync::class) {
+    from(singRuntimeAar.elements.map { zipTree(it.single().asFile) }) {
+        include("jni/arm64-v8a/libonnxruntime.so", "jni/arm64-v8a/libonnxruntime4j_jni.so")
+        into("applemusic/sing-runtime")
+    }
+    into(layout.buildDirectory.dir("generated/singRuntimeResources"))
+}
+sourceSets["main"].resources.srcDir(singRuntimeLibraries)
 
 sourceSets["test"].java.srcDir(project(":extensions:extension").file("src/test/java"))
 tasks.named<JavaCompile>("compileTestJava") {

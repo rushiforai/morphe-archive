@@ -46,6 +46,25 @@ public final class PlayerRefresher {
         PLAYERS.put(player, new WeakReference<>(surface));
     }
 
+    /**
+     * The player of the stream on screen, for the detailed log: one with sound that has a stream loaded (READY,
+     * playing, stalled), playing ones first. Null when none.
+     */
+    public static Player shownPlayer() {
+        Player ready = null;
+        for (Player player : players()) {
+            try {
+                if (player.isMuted()) continue;
+                Player.State state = player.getState();
+                if (state == Player.State.PLAYING || state == Player.State.BUFFERING) return player;
+                if (state == Player.State.READY && ready == null) ready = player;
+            } catch (Throwable ignored) {
+                // A released player: skip it.
+            }
+        }
+        return ready;
+    }
+
     /** The player being watched: playing (or buffering) with sound. Null on the main page. */
     static Player watchedPlayer() {
         for (Player player : players()) {

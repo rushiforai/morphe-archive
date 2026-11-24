@@ -1,3 +1,33 @@
+## [4.15.1](https://github.com/vortexnode/GboardSamsung/compare/v4.15.0...v4.15.1) (2026-11-23)
+
+### 🐛 Bug Fixes
+
+* исправить показ Toast-уведомления в настройках языка и очистить репозиторий от временных файлов ([#32](https://github.com/vortexnode/GboardSamsung/issues/32)) ([d24255f](https://github.com/vortexnode/GboardSamsung/commit/d24255fc238d33f3e4835626c49661a93a1c3614))
+
+## [4.15.0](https://github.com/vortexnode/GboardSamsung/compare/v4.14.0...v4.15.0) (2026-11-23)
+
+### ✨ New Features
+
+* добавить 3 режима свайпа по пробелу (Samsung One UI, Gboard, Свободное переключение) с превью и исправить порядок при 4+ языках ([#31](https://github.com/vortexnode/GboardSamsung/issues/31)) ([26c95ca](https://github.com/vortexnode/GboardSamsung/commit/26c95ca6568afac3b17cabdf3bd8c959d51b2cec))
+
+## [4.14.0](https://github.com/vortexnode/GboardSamsung/compare/v4.13.0...v4.14.0) (2026-11-23)
+
+### ✨ New Features
+
+* перевести экран «Для разработчиков» на русский язык (RU/EN) ([#30](https://github.com/vortexnode/GboardSamsung/issues/30)) ([e09aaf8](https://github.com/vortexnode/GboardSamsung/commit/e09aaf8d6c5d7748bb7ae34123cee95c916987f6))
+
+## [4.13.0](https://github.com/vortexnode/GboardSamsung/compare/v4.12.0...v4.13.0) (2026-11-23)
+
+### ✨ New Features
+
+* локализовать пункт «Патчи» в главном меню настроек Gboard (RU/EN) ([#29](https://github.com/vortexnode/GboardSamsung/issues/29)) ([78ae20a](https://github.com/vortexnode/GboardSamsung/commit/78ae20ad356a5d91724c1c6fa6b186187f4cb65a))
+
+## [4.12.0](https://github.com/vortexnode/GboardSamsung/compare/v4.11.0...v4.12.0) (2026-11-23)
+
+### ✨ New Features
+
+* добавить «Буфер обмена Samsung», поправить иконки приложения и логотип в README ([#25](https://github.com/vortexnode/GboardSamsung/issues/25)) ([c758ace](https://github.com/vortexnode/GboardSamsung/commit/c758acef8ef076b9b168c530a4b7681835cfa624))
+
 ## [4.11.0](https://github.com/vortexnode/GboardSamsung/compare/v4.10.0...v4.11.0) (2026-11-23)
 
 ### ✨ New Features

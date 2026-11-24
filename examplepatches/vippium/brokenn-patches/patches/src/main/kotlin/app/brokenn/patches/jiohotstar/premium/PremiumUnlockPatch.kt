@@ -1,6 +1,6 @@
 package app.brokenn.patches.jiohotstar.premium
 
-import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
+import app.morphe.patcher.util.returnEarly
 import app.morphe.patcher.patch.bytecodePatch
 import app.brokenn.patches.jiohotstar.shared.Constants.COMPATIBILITY_JIOHOTSTAR
 
@@ -12,18 +12,10 @@ val premiumUnlockPatch = bytecodePatch(
     compatibleWith(COMPATIBILITY_JIOHOTSTAR)
 
     execute {
-        IsSubscribedFingerprint.method.addInstructions(0, """
-            const/4 v0, 0x1
-            return v0
-        """)
+        IsSubscribedFingerprint.method.returnEarly(true)
 
-        IsPremiumFingerprint.method.addInstructions(0, """
-            const/4 v0, 0x0
-            return v0
-        """)
+        IsPremiumFingerprint.method.returnEarly(false)
 
-        SubscriptionNudgeFingerprint.method.addInstructions(0, """
-            return-void
-        """)
+        SubscriptionNudgeFingerprint.method.returnEarly()
     }
 }

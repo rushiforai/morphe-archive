@@ -27,6 +27,7 @@ function Assert-Success([string]$step) {
 Require-Tool "git"
 Require-Tool "python"
 Require-Tool "java"
+Require-Tool "javac"
 $javaVersion = (& java -version 2>&1 | Select-Object -First 1)
 Write-Host "Java: $javaVersion"
 if ($javaVersion -notmatch '"21(?:[\."])') { throw "Java JDK 21 required, check JAVA_HOME" }
@@ -43,10 +44,22 @@ $actual = (& git -C $repo rev-parse HEAD).Trim()
 Assert-Success "git rev-parse"
 if ($actual -ne $expected) { throw "Unexpected hxreborn commit: $actual" }
 
+# Restore the pinned clean checkout before each overlay; this is a dedicated build workspace.
+& git -C $repo reset --hard $expected
+Assert-Success "Reset pinned upstream"
+& git -C $repo clean -fdx
+Assert-Success "Clean upstream workspace"
+
+& python (Join-Path $root "tools\test_runtime_java.py")
+Assert-Success "Runtime regression tests"
+& python (Join-Path $root "tools\test_prepare_upstream.py")
+Assert-Success "Overlay retention tests"
+
 foreach ($relative in @(
     "patches/src/main/kotlin/app/morphe/patches/realmelink/modes/ModeMemoryPatches.kt",
     "patches/src/main/kotlin/app/morphe/patches/realmelink/home/CleanHomeScreenPatch.kt",
-    "extensions/extension/src/main/java/app/hxreborn/extension/realmelink/ModeKeeper.java"
+    "extensions/extension/src/main/java/app/hxreborn/extension/realmelink/ModeKeeper.java",
+    "extensions/extension/src/main/java/app/hxreborn/extension/realmelink/ModeSettingsUi.java"
 )) {
     $from = Join-Path $overlay $relative
     if (-not (Test-Path -LiteralPath $from)) { throw "Missing $relative" }
@@ -70,7 +83,10 @@ try {
 $files = @(Get-ChildItem -LiteralPath (Join-Path $repo "patches\build\libs") -Filter "*.mpp" -File)
 if ($files.Count -ne 1) { throw "Expected exactly one .mpp, found $($files.Count)" }
 New-Item -ItemType Directory -Path $dist -Force | Out-Null
-$target = Join-Path $dist "RealmeLink-Plus_build003.mpp"
+$version = if ($env:REALMELINK_RELEASE_VERSION) { $env:REALMELINK_RELEASE_VERSION } else { "0.3.0" }
+if ($version -notmatch '^0\.3\.(\d+)$') { throw "Invalid release version: $version" }
+$build = $Matches[1]
+$target = Join-Path $dist "RealmeLink-Plus_build${build}_local.mpp"
 Copy-Item -LiteralPath $files[0].FullName -Destination $target -Force
 & python (Join-Path $root "tools\verify_bundle.py") $target
 Assert-Success "Validate bundle metadata"

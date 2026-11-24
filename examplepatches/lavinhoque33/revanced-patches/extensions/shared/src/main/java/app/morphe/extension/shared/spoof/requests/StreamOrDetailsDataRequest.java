@@ -724,7 +724,7 @@ public class StreamOrDetailsDataRequest {
                                     + " selection=candidate itag=" + format.getItag()
                                     + " mime=" + format.getMimeType() + " rate=" + format.getAudioSampleRate()
                                     + " channels=" + format.getAudioChannels()
-                                    + " disableDrc=" + BaseSettings.DISABLE_DRC_AUDIO.get()
+                                    + " disableNormalization=" + BaseSettings.DISABLE_DRC_AUDIO.get()
                                     + " drcVariant=unbridged loudnessDb=unbridged");
                         }
                     }

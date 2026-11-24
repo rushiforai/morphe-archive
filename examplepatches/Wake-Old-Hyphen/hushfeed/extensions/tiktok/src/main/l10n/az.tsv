@@ -6,7 +6,6 @@ Burn-in guard	Ekran yanmasından qoruma
 Couldn't add the caption. Saving without it.	Açıqlama əlavə olunmadı. Onsuz saxlanılır.
 Dim when idle	Toxunulmayanda solğunlaşdır
 Dim when idle and shift	Toxunulmayanda solğunlaşdır və sürüşdür
-For OLED screens. After 5 seconds without a touch, the buttons, caption and tabs over the video dim to a quarter, and your next touch brings them back. Shift also moves everything on the feed a few pixels every 2 minutes.	OLED ekranlar üçün. 5 saniyə toxunulmadıqda videonun üzərindəki düymələr, başlıq və tablar dörddə birə qədər solğunlaşır, növbəti toxunuşunuz onları geri qaytarır. Sürüşdürmə həmçinin lentdəki hər şeyi hər 2 dəqiqədən bir bir neçə piksel tərpədir.
 Hashtags	Heşteqlər
 Importing new history ended Undo for the earlier clear. You can clear the imported history.	Yeni tarixçənin idxalı əvvəlki təmizləməni geri qaytarmaq imkanını bitirdi. İdxal olunmuş tarixçəni təmizləyə bilərsiniz.
 %1$d setting in that file can't be restored here and was skipped	Bu fayldakı %1$d ayar burada bərpa edilə bilmir və ötürüldü
@@ -1479,6 +1478,8 @@ One speed from %1$s to %2$s, like 1.8, for the hold and its pull-down lock. It t
 Enter one speed from %1$s to %2$s	%1$s ilə %2$s arasında bir sürət daxil edin
 Slide to change the hold speed	Saxlama sürətini sürüşdürərək dəyiş
 Hold speed bubble style	Saxlama sürəti balonunun üslubu
+Hold speed bubble size	Saxlama sürəti balonunun ölçüsü
+How big the bubble is drawn, from %1$d to %2$d. 100 is the normal size, which already grows with your phone's font size.	Balonun nə qədər böyük çəkildiyi, %1$d ilə %2$d arasında. 100 adi ölçüdür və o, artıq telefonunuzun şrift ölçüsü ilə böyüyür.
 Pill	Kapsul
 Circle	Dairə
 Pill is the wide bubble with a row of dots under the speed. Circle is a small round dial with a notch for each speed around its edge.	Kapsul sürətin altında bir sıra nöqtə olan geniş balondur. Dairə kənarında hər sürət üçün bir çentik olan kiçik dəyirmi siferblatdır.
@@ -3187,3 +3188,32 @@ Skips the part of a video where a caption line has a word from Promo words, like
 Promo words	Reklam sözləri
 Separate words or phrases with commas, like casino, promo code. Capital letters don't matter, and "a" & "b" or "a" !& "b" work as they do for Blocked caption words.	Sözləri və ya ifadələri vergüllə ayırın, məsələn casino, promo code. Böyük hərflərin fərqi yoxdur, "a" & "b" və ya "a" !& "b" isə Bloklanmış başlıq sözlərindəki kimi işləyir.
 Skipped a promo line	Reklam sətri keçildi
+Country and date text size	Ölkə və tarix mətn ölçüsü
+Use 0 to match the post date's size, or %1$d to %2$d. Sizes only the line under the caption and keeps Android's font scaling.	Paylaşım tarixinin ölçüsünə uyğunlaşdırmaq üçün 0, ya da %1$d ilə %2$d arası istifadə edin. Yalnız başlığın altındakı sətrin ölçüsünü dəyişir və Android-in şrift miqyasını saxlayır.
+Post date's size	Paylaşım tarixinin ölçüsü
+Country and date opacity	Ölkə və tarixin qeyri-şəffaflığı
+How solid the line under the caption is drawn, from 10 to 100. Lower lets more of the video show through.	Başlığın altındakı sətrin nə qədər tutqun çəkildiyi, 10-dan 100-ə qədər. Aşağı dəyər videonun daha çox görünməsinə imkan verir.
+Shadow under the country and date	Ölkə və tarixin altında kölgə
+Draws a dark shadow under the line's letters so it stays readable on bright videos.	Sətrin hərflərinin altına tünd kölgə çəkir ki, parlaq videolarda oxunaqlı qalsın.
+Tap brings the controls back	Toxunuş idarəetmələri geri qaytarır
+A tap shows the hidden controls again instead of pausing the video. They hide again after the delay, or after %1$d seconds if the delay is shorter.	Toxunuş videonu dayandırmaq əvəzinə gizlədilmiş idarəetmələri yenidən göstərir. Onlar gecikmədən sonra, gecikmə daha qısadırsa %1$d saniyədən sonra yenidən gizlənir.
+For OLED screens. After 5 seconds without a touch, the buttons, caption and tabs over the video dim to the level below, and your next touch brings them back. Shift also moves everything on the feed a few pixels every 2 minutes.	OLED ekranlar üçün. 5 saniyə toxunulmadıqda videonun üzərindəki düymələr, başlıq və tablar aşağıdakı səviyyəyə qədər solğunlaşır, növbəti toxunuşunuz onları geri qaytarır. Sürüşdürmə həmçinin lentdəki hər şeyi hər 2 dəqiqədən bir bir neçə piksel tərpədir.
+Burn-in guard dim level	Ekran yanmasından qoruma solğunluq səviyyəsi
+How solid the buttons, caption and tabs are while dimmed, from %1$d to %2$d. Lower dims them more.	Solğunlaşmış zaman düymələrin, başlığın və tabların nə qədər tutqun olduğu, %1$d ilə %2$d arası. Aşağı dəyər onları daha çox solğunlaşdırır.
+# context: #501 Fade the controls out, a switch under Automatic Clear display
+Fade the controls out	İdarəetmələri solğunlaşdıraraq gizlət
+The buttons, caption and tabs fade away instead of vanishing at once, and a touch during the fade brings them back. With Android's animations turned off they still vanish at once.	Düymələr, başlıq və tablar birdən yox olmaq əvəzinə yavaş-yavaş solur, solma zamanı toxunuş onları geri qaytarır. Android animasiyaları söndürülübsə, yenə də birdən yox olurlar.
+# context: #461 Date instead of age, a switch under Write the month as a word
+Date instead of age	Yaş əvəzinə tarix
+Recent videos show the date they were posted by the creator's name, like 10-12, in place of an age like 2d ago. Day before month and Write the month as a word change it the same way.	Yeni videolar yaradıcının adı yanında paylaşıldıqları tarixi göstərir, məsələn 10-12, 2 gün əvvəl kimi yaş əvəzinə. Gün aydan əvvəl və Ayı sözlə yaz onu da eyni cür dəyişir.
+# context: #503 Keep your place in chats, an Inbox switch under Show message times; the down arrow is the button that jumps a chat to its newest message
+Keep your place in chats	Söhbətlərdə yerini saxla
+A chat you've scrolled up in stays where you were when you come back from a video or send a reply. Sending a regular message or tapping the down arrow still takes you to the newest.	Yuxarı sürüşdürdüyün söhbət videodan qayıdanda və ya cavab göndərəndə olduğun yerdə qalır. Adi mesaj göndərmək və ya aşağı oxa toxunmaq yenə səni ən yeniyə aparır.
+# context: #505 Fill wide videos too, a Playback switch right under Fill the screen with the video; it crops landscape and square videos to cover a phone held upright, which Fill alone leaves whole
+Fill wide videos too	Geniş videolar da ekranı doldursun
+With the switch above on, landscape and square videos are cropped to cover the screen too, so only their middle shows. Off, they stay whole.	Yuxarıdakı açar açıq olanda üfüqi və kvadrat videolar da ekranı örtmək üçün kəsilir, ona görə yalnız ortaları görünür. Söndürüləndə tam qalırlar.
+# context: Inbox > Streak: a random daily send time (#507)
+Random time each day	Hər gün təsadüfi vaxt
+Sends at a different time each day, somewhere between When to send and Latest time.	Hər gün fərqli vaxtda, Nə vaxt göndərilsin ilə Ən gec vaxt arasında göndərir.
+Latest time	Ən gec vaxt
+The end of the random window, on the same day as When to send. If it isn't later, the message goes at When to send.	Təsadüfi aralığın sonu, Nə vaxt göndərilsin ilə eyni gündə. Ondan gec deyilsə, mesaj Nə vaxt göndərilsin vaxtında gedir.

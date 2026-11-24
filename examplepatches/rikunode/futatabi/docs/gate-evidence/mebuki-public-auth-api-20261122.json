@@ -1,0 +1,182 @@
+{
+  "date": "2026-11-22",
+  "scope": "Public, unauthenticated HTTP GET and publicly served bundled JavaScript; no OAuth login, no mutations",
+  "permission": {
+    "status": "Owner states authorization obtained from administrator and owner involvement in founding/management",
+    "independentlyVerified": false,
+    "technicalDecision": "GO for research and design; scope of authorization must be confirmed before production API writes"
+  },
+  "authentication": {
+    "providers": [
+      "twitter",
+      "google",
+      "discord"
+    ],
+    "framework": "Better Auth compatible client (signIn.social)",
+    "authPath": "/api/auth/*",
+    "loginClientCall": "signIn.social({provider,callbackURL:'/auth/callback',errorCallbackURL:'/?error=failed'})",
+    "serverCallbackRoute": "/auth/callback",
+    "sessionProbe": {
+      "method": "GET",
+      "path": "/api/auth/get-session",
+      "httpStatus": 200,
+      "body": "null",
+      "setCookieCount": 0
+    },
+    "cookieName": null,
+    "cookieAttributes": null,
+    "expiry": null,
+    "reasonUnknown": "No authenticated test session or authorized login operation; static bundled client does not expose server cookie configuration"
+  },
+  "routes": [
+    {
+      "path": "/api/trial/catalog",
+      "methodsObserved": [
+        "GET"
+      ],
+      "result": "200 text/x-script, returned public thread records (React Router serialization)"
+    },
+    {
+      "path": "/api/trial/trending",
+      "methodsObserved": [
+        "GET"
+      ],
+      "result": "200 application/json, returned public trending thread records"
+    },
+    {
+      "path": "/api/thread/categories",
+      "methodsObserved": [
+        "GET"
+      ],
+      "result": "200 application/json, returned public category list"
+    },
+    {
+      "path": "/api/thread/:tslug/messages",
+      "source": "route manifest and client-side use-thread-messages hook",
+      "hasLoader": true,
+      "hasAction": false,
+      "authRequired": "not independently verified"
+    },
+    {
+      "path": "/api/catalog",
+      "source": "route manifest",
+      "hasLoader": true,
+      "hasAction": false,
+      "unauthenticatedGet": "200 text/html (page) rather than JSON; authenticated response unknown"
+    },
+    {
+      "path": "/new",
+      "source": "React Router route manifest and public app._main.new JS",
+      "hasAction": true,
+      "hasLoader": true,
+      "methodFromClient": "POST",
+      "contentTypeFromClient": "multipart/form-data",
+      "turnstile": true
+    },
+    {
+      "path": "/t/:tslug",
+      "source": "React Router route manifest and public app._main.t._tslug JS",
+      "hasAction": true,
+      "hasLoader": true,
+      "methodFromClient": "POST",
+      "contentTypeFromClient": "multipart/form-data",
+      "fieldsObserved": [
+        "replyToId",
+        "showUsername",
+        "showThreadOwner"
+      ],
+      "additionalFields": "Dynamic form schema; full field set not verified"
+    },
+    {
+      "path": "/api/attachment/:id",
+      "source": "Route manifest",
+      "hasAction": true,
+      "hasLoader": false,
+      "method": "not proven from route manifest"
+    },
+    {
+      "path": "/api/attachment/request/:id",
+      "source": "Public thread JS",
+      "methodFromClient": "PUT",
+      "contentTypeFromClient": "FormData",
+      "fieldsFromClient": [
+        "spoiler",
+        "nsfw",
+        "gore",
+        "other"
+      ]
+    },
+    {
+      "path": "/api/message/:id",
+      "source": "Public thread JS",
+      "methodFromClient": "DELETE",
+      "contentTypeFromClient": "FormData",
+      "fieldsFromClient": [
+        "report",
+        "category",
+        "reason"
+      ]
+    },
+    {
+      "path": "/api/thread/:id",
+      "source": "Public thread JS",
+      "methodFromClient": "DELETE"
+    }
+  ],
+  "trial": {
+    "catalogOnly": true,
+    "catalogDelayMinutes": 5,
+    "threadDetails": false,
+    "replies": false,
+    "readTracking": false,
+    "pushNotifications": false
+  },
+  "loggedIn": {
+    "threadDetails": true,
+    "threadCreation": true,
+    "replies": true,
+    "readTracking": true,
+    "notificationSettings": true,
+    "attachments": "new-thread and reply forms use multipart/form-data",
+    "limitsFromFaq": {
+      "replyTextMaxChars": 5000,
+      "replyMaxLines": 100,
+      "maxAttachments": 4,
+      "maxAttachmentBytes": 8388608,
+      "threadTitleMaxChars": 100,
+      "threadAttachmentCount": 1,
+      "threadTagsRequired": true
+    }
+  },
+  "researchAssets": [
+    {
+      "path": "/assets/manifest-1310c429.js",
+      "sha256": "983bee4a65ec606f2742a4a6e0b5a676157e6b23211695d6ba3be9bd8b2a71af"
+    },
+    {
+      "path": "/assets/auth.client-CYPTXNct.js",
+      "sha256": "111e53082ee23a261706e0098aaefee544c5c4133408972d1d33a820998ff599"
+    },
+    {
+      "path": "/assets/_index-BcCyGkio.js",
+      "sha256": "44089d0791451cf935dacf0257d8373c9d0f795e6588a34b500"
+    },
+    {
+      "path": "/assets/app._main.new-DfgTN12t.js",
+      "sha256": "d5d814df342b7de0f59c010d1a928302c88cde9ee77ba4281da398da04c9a476"
+    },
+    {
+      "path": "/assets/app._main.t._tslug-CVcJPhqn.js",
+      "sha256": "90566ad0073717acee327097dd5d801077f56e480dbca588da6d51323640c9fc"
+    }
+  ],
+  "sources": [
+    "https://mebuki.moe/",
+    "https://mebuki.moe/faq",
+    "https://mebuki.moe/trial",
+    "https://mebuki.moe/terms"
+  ],
+  "postsSent": 0,
+  "loginActions": 0,
+  "credentialAccess": 0
+}

@@ -1,0 +1,24 @@
+{
+  "full_catalog": {
+    "ui_node_count": 116,
+    "numeric_46_visible": true,
+    "null_check_error": false
+  },
+  "single_real_cell": {
+    "numeric_46_visible": true,
+    "null_check_error": false
+  },
+  "synthetic_minimal": {
+    "title_visible": true,
+    "numeric_1_visible": true,
+    "null_check_error": false
+  },
+  "invalid_image_name": {
+    "null_check_error": true
+  },
+  "thread": {
+    "no_1449110872_visible": true,
+    "no_1449112008_visible": true,
+    "null_check_error": false
+  }
+}

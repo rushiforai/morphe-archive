@@ -164,7 +164,7 @@ object NuvioStreamPreload {
             val flow = get(model, NuvioNative.PLAYER_STATE_METHOD) as StateFlow<Any>
             // Beta7 ub.q reads controller k8.T for the native request type.
             val controller = field(model, "Y")!!
-            val requestType = field(controller, "T") as? String
+            val requestType = field(controller, NuvioNative.CONTROLLER_MEDIA_TYPE_FIELD) as? String
             synchronized(nextObservers) {
                 if (nextObservers.containsKey(model)) return
                 Log.d(TAG, "Next episode playback observer ready")
@@ -173,7 +173,7 @@ object NuvioStreamPreload {
                     var lastDiagnostic: String? = null
                     fun snapshot() = StreamTargets.player(flow.value, profile(), enabled(NEXT),
                         normalizeType = true, requestType = requestType).copy(
-                            priorityBingeGroup = field(controller, "u3") as? String)
+                            priorityBingeGroup = field(controller, NuvioNative.CONTROLLER_BINGE_GROUP_FIELD) as? String)
                     NextEpisodePreloader(::snapshot, { state ->
                         synchronized(nextPermits) {
                             nextPermits.value = if (state == null) nextPermits.value - token

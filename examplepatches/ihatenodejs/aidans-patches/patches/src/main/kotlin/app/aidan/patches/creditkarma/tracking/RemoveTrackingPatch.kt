@@ -16,7 +16,7 @@ private const val ZEROED_ADVERTISING_ID = "00000000-0000-0000-0000-000000000000"
 @Suppress("unused")
 val removeTrackingPatch = bytecodePatch(
     name = "Remove Tracking",
-    description = "Neutralizes Google Play Advertising ID tracking, Firebase Analytics, Datadog telemetry, Kochava attribution, New Relic, Luciq, root/emulator checks, and integrity attestation.",
+    description = "Neutralizes Google Play Advertising ID tracking, Firebase Analytics, Crashlytics, Datadog telemetry, Kochava attribution, New Relic, Segment, Qualtrics, root/emulator checks, and integrity attestation.",
     default = true
 ) {
     category("Privacy")
@@ -71,11 +71,18 @@ val removeTrackingPatch = bytecodePatch(
         description = "Blocks Credit Karma New Relic event collection and background upload scheduling."
     )
 
-    val disableLuciqTelemetry = booleanOption(
-        key = "disableLuciqTelemetry",
+    val disableSegmentAnalytics = booleanOption(
+        key = "disableSegmentAnalytics",
         default = true,
-        title = "Disable Luciq Telemetry & Session Recording",
-        description = "Neutralizes Luciq APM session updates, auto screen recording, and diagnostic screenshot collection."
+        title = "Disable Segment Analytics",
+        description = "Blocks Segment event, screen, identity, and lifecycle collection used by the Intuit UXFabric clickstream."
+    )
+
+    val disableQualtrics = booleanOption(
+        key = "disableQualtrics",
+        default = true,
+        title = "Disable Qualtrics Feedback Tracking",
+        description = "Blocks Qualtrics project initialization, intercept evaluation, and view-visit tracking."
     )
 
     val neutralizeRootDetection = booleanOption(
@@ -99,19 +106,12 @@ val removeTrackingPatch = bytecodePatch(
 
         if (disableFirebaseAnalytics.value != false) {
             disableOptionalVoidMethods(
-                "Lcom/google/firebase/analytics/FirebaseAnalytics;",
-                "logEvent",
-                "setAnalyticsCollectionEnabled",
-                "setUserId",
-                "setUserProperty",
-                "resetAnalyticsData",
-                "setDefaultEventParameters",
-                "setConsent"
+                "Lcom/google/android/gms/measurement/api/AppMeasurementSdk;",
+                "logEvent"
             )
             disableOptionalVoidMethods(
                 "Lcom/google/android/gms/measurement/AppMeasurement;",
-                "logEventInternal",
-                "setUserPropertyInternal"
+                "logEventInternal"
             )
         }
 
@@ -128,6 +128,7 @@ val removeTrackingPatch = bytecodePatch(
                 "deleteUnsentReports"
             )
             disableOptionalVoidMethods("Lvld;", "b")
+            neutralizeCrashlyticsCollection()
         }
 
         if (disableDatadog.value != false) {
@@ -149,7 +150,7 @@ val removeTrackingPatch = bytecodePatch(
             )
             disableOptionalVoidMethods(
                 "Lio/scribeup/scribeupsdk/util/ScribeUpLog;",
-                "a", "b", "c", "d", "e", "i", "w"
+                "log", "logException"
             )
             neutralizeDatadogUploadWorker()
         }
@@ -186,35 +187,55 @@ val removeTrackingPatch = bytecodePatch(
             )
         }
 
-        if (disableLuciqTelemetry.value != false) {
+        if (disableSegmentAnalytics.value != false) {
             disableOptionalVoidMethods(
-                "Lai/luciq/apm/APMPlugin;",
-                "endSession",
-                "updateCurrentSession"
+                "Lcom/segment/analytics/Analytics;",
+                "track",
+                "screen",
+                "identify",
+                "group",
+                "alias",
+                "flush",
+                "run",
+                "runOnMainThread",
+                "performRun",
+                "fillAndEnqueue",
+                "recordScreenViews",
+                "trackApplicationLifecycleEvents",
+                "reset",
+                "performInitializeIntegrations"
             )
             disableOptionalVoidMethods(
-                "Lai/luciq/bug/BugReporting;",
-                "setAutoScreenRecordingEnabled",
-                "setScreenshotByMediaProjectionEnabled"
+                "Lxpa;",
+                "track",
+                "trackEvent",
+                "flush",
+                "reset"
             )
         }
 
-        if (neutralizeRootDetection.value != false) {
-            returnOptionalBoolean("Lcmy;", "h", false)
-            returnOptionalBoolean("Lfv9;", "t", false)
-            returnOptionalBoolean("Lai/luciq/library/model/State;", "isDeviceRooted", false)
+        if (disableQualtrics.value != false) {
+            disableOptionalVoidMethods(
+                "Lcom/qualtrics/digital/Qualtrics;",
+                "initialize",
+                "initializeProject",
+                "registerViewVisit"
+            )
+            returnOptionalBoolean("Lcom/qualtrics/digital/Qualtrics;", "display", false)
+            returnOptionalBoolean("Lcom/qualtrics/digital/Qualtrics;", "displayIntercept", false)
+            returnOptionalBoolean("Lcom/qualtrics/digital/Qualtrics;", "displayTarget", false)
+        }
 
+        if (neutralizeRootDetection.value != false) {
             returnOptionalBoolean("Lcom/miteksystems/misnap/controller/iad/checker/b;", "c", false)
             returnOptionalBoolean("Lcom/miteksystems/misnap/controller/iad/checker/b;", "a", false)
             returnOptionalBoolean("Lcom/miteksystems/misnap/controller/iad/checker/b;", "b", false)
-            returnOptionalBoolean("Lyfz;", "a", false)
+            returnOptionalBoolean("Lvu10;", "a", false)
+            returnOptionalBoolean("Lop7;", "f", false)
+            returnOptionalBoolean("Lop7;", "g", false)
 
             disableOptionalVoidMethods("Lcom/lexisnexisrisk/threatmetrix/tmxprofiling/bbbbwbw;", "xx0078x0078x0078")
             neutralizeThreatMetrixRootScan()
-
-            returnOptionalBoolean("Lru6;", "g", false)
-            returnOptionalBoolean("Lru6;", "f", false)
-            neutralizeBatteryEnvironmentCheck()
         }
 
         if (neutralizeIntegrityAttestation.value != false) {
@@ -264,16 +285,19 @@ private fun BytecodePatchContext.spoofAdvertisingId() {
 private fun BytecodePatchContext.neutralizeDatadogUploadWorker() {
     val workerClass = mutableClassDefByOrNull("Lcom/datadog/android/core/UploadWorker;") ?: return
     for (method in workerClass.methods) {
-        if (method.name == "doWork" && method.implementation != null) {
-            method.addInstructions(
-                0,
-                """
-                new-instance v0, Landroidx/work/c${'$'}a${'$'}c;
-                invoke-direct {v0}, Landroidx/work/c${'$'}a${'$'}c;-><init>()V
-                return-object v0
-                """.trimIndent()
-            )
-        }
+        val isDoWork = method.name == "doWork"
+        val isMinifiedDoWork =
+            method.name == "a" && method.returnType == "Landroidx/work/c${'$'}a${'$'}c;"
+        if (!isDoWork && !isMinifiedDoWork) continue
+        if (method.implementation == null) continue
+        method.addInstructions(
+            0,
+            """
+            new-instance v0, Landroidx/work/c${'$'}a${'$'}c;
+            invoke-direct {v0}, Landroidx/work/c${'$'}a${'$'}c;-><init>()V
+            return-object v0
+            """.trimIndent()
+        )
     }
 }
 
@@ -293,21 +317,20 @@ private fun BytecodePatchContext.neutralizeThreatMetrixRootScan() {
     }
 }
 
-private fun BytecodePatchContext.neutralizeBatteryEnvironmentCheck() {
-    val ks8Class = mutableClassDefByOrNull("Lks8;") ?: return
-    for (method in ks8Class.methods) {
-        if (method.name == "d" && method.returnType == "Lpxg;" && method.parameterTypes.isEmpty() && method.implementation != null) {
-            method.addInstructions(
-                0,
-                """
-                const/4 v0, 0x1
-                invoke-static {v0}, Lpxg;->b(Z)Lpxg;
-                move-result-object v0
-                return-object v0
-                """.trimIndent()
-            )
+private fun BytecodePatchContext.neutralizeCrashlyticsCollection() {
+    // Minified Crashlytics API: b(Z) is setCrashlyticsCollectionEnabled.
+    val apiClass = mutableClassDefByOrNull("Lxhf;")
+    if (apiClass != null) {
+        for (method in apiClass.methods) {
+            if (method.name != "b" || method.returnType != "V") continue
+            if (method.parameterTypes.size != 1 || method.parameterTypes[0] != "Z") continue
+            if (method.implementation == null) continue
+            method.addInstructions(0, "const/4 p1, 0x0")
         }
     }
+
+    // Minified Crashlytics core: report assembly and upload entry points.
+    disableOptionalVoidMethods("Ltt8;", "b", "c", "d", "g", "h")
 }
 
 private fun BytecodePatchContext.neutralizeNokNokPlayIntegrity() {

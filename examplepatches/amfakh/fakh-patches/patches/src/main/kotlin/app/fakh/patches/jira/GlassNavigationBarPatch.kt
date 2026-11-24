@@ -1,6 +1,16 @@
+/*
+ * Copyright 2026 amfakh
+ * SPDX-License-Identifier: GPL-3.0-only
+ */
+
 package app.fakh.patches.jira
 
+import app.fakh.patches.jira.shared.Constants.BACKGROUND_BLUR
 import app.fakh.patches.jira.shared.Constants.COMPATIBILITY_JIRA
+import app.fakh.patches.jira.shared.Constants.GLASS_NAVBAR
+import app.fakh.patches.jira.shared.Constants.HIDE_TAB_LABELS
+import app.fakh.patches.jira.shared.Constants.TABS
+import app.fakh.patches.shared.register
 import app.morphe.patcher.Fingerprint
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructionsWithLabels
@@ -83,14 +93,7 @@ val glassNavigationBarPatch = patch(
     dependsOn(taller, settingsRowsPatch)
 
     execute {
-        // The extension's switch for the bar only shows where this patch is in.
-        mutableClassDefBy(EXTENSION).methods.first { it.name == "isGlassNavigationBarIncluded" }.addInstructions(
-            0,
-            """
-                const/4 v0, 0x1
-                return v0
-            """,
-        )
+        register(GLASS_NAVBAR, BACKGROUND_BLUR, HIDE_TAB_LABELS, *TABS.toTypedArray())
 
         val insets = homeInsetsFingerprint.method
         if (insets.implementation!!.registerCount < 3) throw PatchException("No free registers in the insets getter")

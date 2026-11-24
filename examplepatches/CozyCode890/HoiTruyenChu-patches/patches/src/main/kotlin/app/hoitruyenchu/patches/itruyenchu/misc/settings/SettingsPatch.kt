@@ -54,7 +54,8 @@ private val settingsActivityPatch = patch {
  * on it, so it is in the app whenever one of them is.
  */
 val settingsPatch = patch(
-    description = "Adds the \"Cài đặt HoiTruyenChu\" screen with the options of all patches.",
+    description = "Adds the \"Cài đặt HoiTruyenChu\" screen with the options of all patches, and a " +
+            "floating settings button (top right, red dot when a new release is out).",
 ) {
     dependsOn(sharedExtensionPatch, settingsActivityPatch)
 

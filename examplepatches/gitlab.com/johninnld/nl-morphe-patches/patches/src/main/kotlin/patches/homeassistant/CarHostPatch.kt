@@ -45,7 +45,7 @@ val carHostPatch = bytecodePatch(
         "whatever its package name or signing key. Google's Android Auto keeps working.",
     default = true,
 ) {
-    compatibleWith(homeAssistant)
+    compatibleWith(homeAssistant, homeAssistantAutomotive)
     dependsOn(originalInput)
     execute {
         check(classDefBy(HOST_VALIDATOR).fields.any {

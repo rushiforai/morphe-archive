@@ -5,74 +5,37 @@
 
 package app.morphe.patches.myooredoo.misc.integrity
 
+import app.morphe.patcher.patch.mutableClassDefByOrNull
+import app.morphe.patcher.patch.patch
+import app.morphe.patcher.patch.retainOriginalV1Signature
+import app.morphe.patcher.patch.retainOriginalV2Signature
+import app.morphe.patcher.util.returnEarly
 import app.morphe.patches.myooredoo.shared.Constants
-import app.morphe.patcher.Fingerprint
-import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
-import app.morphe.patcher.patch.bytecodePatch
+import app.morphe.patches.shared.replyFlutterString
 
-/** Disables integrity checks. */
 @Suppress("unused")
-val disablePlayIntegrityPatch = bytecodePatch(
+val disablePlayIntegrityPatch = patch(
     name = "Disable Play Integrity",
-    description = "Short-circuits the Google Play Integrity attestation request with a " +
-            "\"DISABLED\" response, avoiding failures on modified or non-Play builds.",
+    description = "Short-circuits Google Play Integrity with \"DISABLED\", retains original " +
+            "APK v1/v2 signatures, and spoofs app integrity checksum/signature checks.",
     default = true,
 ) {
+    category("Security")
     compatibleWith(Constants.COMPATIBILITY_MYOOREDOO)
 
     execute {
-        // Only Play.apic contains the IntegrityManagerFactory reference.
-        val apicFingerprint = object : Fingerprint(
-            definingClass = "Lcom/android/sec/utils/Play;",
-            name = "apic",
-            returnType = "V",
-            parameters = listOf("Lio/flutter/plugin/common/MethodChannel\$Result;"),
-        ) {}
+        retainOriginalV1Signature()
+        retainOriginalV2Signature()
 
-        runCatching { apicFingerprint.method }.getOrNull()?.let { method ->
-            method.addInstructions(
-                0,
-                """
-                    const-string v0, "DISABLED"
-                    invoke-interface {p1, v0}, Lio/flutter/plugin/common/MethodChannel${'$'}Result;->success(Ljava/lang/Object;)V
-                    return-void
-                """
-            )
-        }
+        mutableClassDefByOrNull("Lcom/android/sec/utils/Play;")
+            ?.methods?.firstOrNull { it.name == "apic" }
+            ?.replyFlutterString("DISABLED", resultParam = "p1")
 
-        // AppIntegrityCheckerPlugin: returns original classes.dex CRC and Play Store signature
-        val aicChecksumFingerprint = object : Fingerprint(
-            definingClass = "Lcom/emrys/aic/app_integrity_checker/AppIntegrityCheckerPlugin;",
-            name = "getChecksum",
-            returnType = "Ljava/lang/String;",
-            parameters = listOf(),
-        ) {}
-
-        runCatching { aicChecksumFingerprint.method }.getOrNull()?.let { method ->
-            method.addInstructions(
-                0,
-                """
-                    const-string v0, "3138619328"
-                    return-object v0
-                """
-            )
-        }
-
-        val aicSigFingerprint = object : Fingerprint(
-            definingClass = "Lcom/emrys/aic/app_integrity_checker/AppIntegrityCheckerPlugin;",
-            name = "getSignature",
-            returnType = "Ljava/lang/String;",
-            parameters = listOf(),
-        ) {}
-
-        runCatching { aicSigFingerprint.method }.getOrNull()?.let { method ->
-            method.addInstructions(
-                0,
-                """
-                    const-string v0, "iZolMPZ+iE5k+Ps3hGJtLCTCZpchWE/f8yydfZSyfZY=\\n"
-                    return-object v0
-                """
-            )
+        mutableClassDefByOrNull("Lcom/emrys/aic/app_integrity_checker/AppIntegrityCheckerPlugin;")?.methods?.forEach {
+            when (it.name) {
+                "getChecksum" -> it.returnEarly("696691799")
+                "getSignature" -> it.returnEarly("iZolMPZ+iE5k+Ps3hGJtLCTCZpchWE/f8yydfZSyfZY=\\n")
+            }
         }
     }
 }

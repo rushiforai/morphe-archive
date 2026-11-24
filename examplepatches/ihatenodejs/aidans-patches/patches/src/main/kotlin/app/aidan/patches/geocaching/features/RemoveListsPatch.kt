@@ -10,7 +10,7 @@ import org.w3c.dom.Element
 
 private const val ANDROID_NAMESPACE = "http://schemas.android.com/apk/res/android"
 private const val MENU_PATH = "res/menu/bottom_nav_menu.xml"
-private const val LIST_NAV_GRAPH_ID = 0x7f0a02e8
+private const val LIST_NAV_GRAPH_ID = 0x7f0a02de
 
 /**
  * Composite patch that removes the Lists option from the bottom navigation bar and menu.
@@ -61,7 +61,7 @@ private fun BytecodePatchContext.patchOnResumeListBadge() {
         (it as? NarrowLiteralInstruction)?.narrowLiteral == LIST_NAV_GRAPH_ID
     }
     if (constIdx < 0) {
-        throw PatchException("Could not find list_nav_graph literal (0x7f0a02e8) in invokeSuspend")
+        throw PatchException("Could not find list_nav_graph literal (0x7f0a02de) in invokeSuspend")
     }
 
     val prevInst = if (constIdx > 0) instructions[constIdx - 1] else null
@@ -75,7 +75,7 @@ private fun BytecodePatchContext.patchOnResumeListBadge() {
     invokeSuspendMethod.addInstructions(
         constIdx,
         """
-        sget-object p0, Lszb;->a:Lszb;
+        sget-object p0, Lkec;->a:Lkec;
         return-object p0
         """.trimIndent()
     )

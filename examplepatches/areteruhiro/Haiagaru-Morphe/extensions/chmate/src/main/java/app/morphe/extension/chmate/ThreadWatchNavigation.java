@@ -122,6 +122,10 @@ public final class ThreadWatchNavigation {
         try {
             Activity activity=(Activity)fragment.getClass().getMethod("getActivity").invoke(fragment);
             if(activity==null||activity.isFinishing()||activity.isDestroyed()||!list.isAttachedToWindow())return;
+            if(!list.isShown()||!Boolean.TRUE.equals(fragment.getClass().getMethod("isResumed").invoke(fragment))){
+                if(attempt<78)MAIN.postDelayed(()->poll(target,fragment,list,attempt+1),500);
+                return;
+            }
             String version=activity.getPackageManager().getPackageInfo(activity.getPackageName(),0).versionName;
             Object board=NativeThreadContext.board(fragment,version);
             String url=NativeThreadContext.url(board,version,1);

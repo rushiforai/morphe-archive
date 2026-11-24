@@ -1,6 +1,6 @@
-# Smart Life, Tuya Smart and BARDI
+# Smart Life, Tuya Smart, BARDI and SYNC by Krisbow
 
-Patches for three apps built on the Tuya SDK. They share one set of patches, so one bundle covers all
+Patches for four apps built on the Tuya SDK. They share one set of patches, so one bundle covers all
 of them.
 
 | App | Package | Version | Source |
@@ -8,6 +8,7 @@ of them.
 | Smart Life | `com.tuya.smartlife` | `7.12.3-877`, `7.12.6-880` | XAPK from APKPure, APKM from APKMirror ("SmartLife - Smart Living") |
 | Tuya Smart | `com.tuya.smart` | `7.12.3-870`, `7.12.6-872`, `7.13.0-875`, `7.13.3-876` | APKM from APKMirror |
 | BARDI Smart Home | `com.bardi.smart.home` | `1.5.3` | XAPK from APKPure |
+| SYNC by Krisbow | `com.kawanlama.smartklic` | `3.1.2` | XAPK from APKPure |
 
 ## Patches
 
@@ -20,17 +21,20 @@ of them.
 | Layout | Hide Rewards Hub | Smart Life, Tuya Smart | Removes the "Rewards Hub" row and its banner from the Me tab. |
 | Layout | Hide My Orders | Smart Life, Tuya Smart | Removes the "My Orders" row from the Me tab. |
 | Layout | Hide Tuya AI Web Version | Smart Life, Tuya Smart | Removes the "Tuya AI Web Version" row from the Me tab. |
+| Layout | Hide Discovery tab | Krisbow | Removes the Discovery tab from the navigation bar. |
+| Layout | Hide Discovery | Krisbow | Removes the "Discovery" article cards from the Home tab. |
 | Layout | Hide Mall tab | BARDI | Removes the Mall tab from the navigation bar. |
 | Layout | Hide Me banner | BARDI | Removes the "Enjoy Your Smart Life" banner and its ad slot from the Me tab. |
 | Layout | Hide App Mall | BARDI | Removes the "App Mall" row from the Me tab. |
 | Theme | Glass navigation bar | all | Draws the navigation bar as a floating, translucent capsule with a sliding selection pill, in the app's own colors, and the Home page scrolls behind it. The AI ask bar floats above it as glass too. Slide a finger along it to switch tabs. The **Hide tab labels** switch (off by default) removes the text under the icons. |
 | Theme | Glass cards | all | Draws the cards on the Home tab as glass in the app's own colors, and gives the weather card a glass edge over its weather background. |
-| Theme | Dark device panels | Smart Life, Tuya Smart, Bardi | Darkens device control panels that have no dark mode of their own while the phone is in dark mode, using Android's automatic dark theme. On by default in Morphe, but it does nothing until the Dark Device Panels switch on the Fakh Patches page is turned on; turn it off again when a panel looks wrong. |
+| Theme | Hide background image | Krisbow | Removes the picture behind the Home and Scene tabs and leaves the plain theme color. |
+| Theme | Dark device panels | all | Darkens device control panels that have no dark mode of their own while the phone is in dark mode, using Android's automatic dark theme. On by default in Morphe, but it does nothing until the Dark Device Panels switch on the Fakh Patches page is turned on; turn it off again when a panel looks wrong. |
 | Privacy | Hide ads | Smart Life, Tuya Smart | Removes the ad banners and the AdMob ad entry. |
 | Privacy | Disable analytics | Smart Life, Tuya Smart | Stops AppsFlyer from tracking installs and in-app events, and turns off Firebase Analytics, Crashlytics, Performance and Sessions. Tuya's own usage statistics stay on. |
 | Feature | Swipe between tabs | all | Swipe sideways to go to the next or previous tab of the navigation bar, with a slide animation. Where Scene shows Automation and Tap-to-Run as tabs (BARDI), it switches between them first. Does not act where something under the finger can scroll sideways. |
 | Feature | Spoof signature | all | Lets the patched app start. Without it the app's integrity check closes it a few seconds after it opens. |
-| Feature | GmsCore support | all | Makes "Sign in with Google" and location work by signing in through [microG RE](https://github.com/MorpheApp/microg-RE) instead of Google Play services. Needs microG RE installed and signed in to a Google account. Off by default. |
+| Feature | GmsCore support | Smart Life, Tuya Smart, BARDI | Makes "Sign in with Google" and location work by signing in through [microG RE](https://github.com/MorpheApp/microg-RE) instead of Google Play services. Needs microG RE installed and signed in to a Google account. Off by default. |
 
 Settings has a Fakh Patches row above About that opens a page with one switch for each of these patches, in sections by where they act. They are all on until turned off, and a change applies after the app restarts, except Dark Device Panels.
 
@@ -66,5 +70,5 @@ java -jar morphe-desktop-1.19.1-all.jar patch -p patches/build/libs/patches-<ver
 
 ## Getting the APK
 
-Download the XAPK from APKPure by hand (Smart Life, BARDI) or the APKM from APKMirror (Tuya Smart). Morphe Manager's own lookup only knows APKMirror
+Download the XAPK from APKPure by hand (Smart Life, BARDI, SYNC by Krisbow) or the APKM from APKMirror (Tuya Smart). Morphe Manager's own lookup only knows APKMirror
 and Uptodown pages.

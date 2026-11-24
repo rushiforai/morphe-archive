@@ -4,14 +4,16 @@
  */
 package app.morphe.patches.readera.misc.screenlock
 
-import app.morphe.patcher.patch.bytecodePatch
-import app.morphe.patcher.patch.resourcePatch
+import app.morphe.patcher.patch.document
+import app.morphe.patcher.patch.mutableClassDefBy
+import app.morphe.patcher.patch.patch
+import app.morphe.patcher.patch.resourceFile
 import app.morphe.patcher.util.returnEarly
 import app.morphe.patches.readera.misc.background.backgroundListeningPatch
 import app.morphe.patches.readera.misc.chapterspeech.readChapterAloudPatch
 import app.morphe.patches.readera.shared.registerReadEraPatch
 import app.morphe.patches.shared.compat.AppCompatibilities
-import app.morphe.patches.shared.misc.requireArm64
+import app.morphe.patches.shared.misc.requireArm64StandardInstall
 import app.morphe.util.ResourceGroup
 import app.morphe.util.copyResources
 
@@ -20,21 +22,21 @@ private const val PATCH_NAME = "Lock screen on Read chapter aloud"
 private const val ADMIN_RECEIVER = "app.hxreborn.extension.readera.ScreenLockAdmin"
 
 @Suppress("unused")
-val lockScreenOnReadChapterAloudPatch = bytecodePatch(
+val lockScreenOnReadChapterAloudPatch = patch(
     name = PATCH_NAME,
     description = "Locks the phone when Read chapter aloud starts, and the chapter keeps playing. " +
         "Turned on in the patches menu. " +
         "Needs device admin access.",
 ) {
     compatibleWith(AppCompatibilities.READERA)
-    availability(requireArm64)
+    availability(requireArm64StandardInstall)
     dependsOn(
         readChapterAloudPatch,
         backgroundListeningPatch,
-        resourcePatch {
+        patch {
             execute {
                 copyResources("readera", ResourceGroup("drawable", "hx_readera_lock.xml"))
-                get("res/xml/hx_readera_screen_lock_admin.xml").writeText(
+                resourceFile("res/xml/hx_readera_screen_lock_admin.xml").writeText(
                     """<device-admin xmlns:android="http://schemas.android.com/apk/res/android"><uses-policies><force-lock/></uses-policies></device-admin>""",
                 )
                 document("AndroidManifest.xml").use { document ->

@@ -6,8 +6,10 @@ package app.morphe.patches.netanalyzer.shared
 
 import app.morphe.patcher.InstructionFilter
 import app.morphe.patcher.patch.PatchException
-import app.morphe.patcher.patch.rawResourcePatch
+import app.morphe.patcher.patch.patch
+import app.morphe.patcher.patch.resourceFile
 import app.morphe.patcher.util.getReference
+import app.morphe.patches.shared.misc.arm64.Arm64ElfReader
 import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.iface.instruction.Instruction
 import com.android.tools.smali.dexlib2.iface.reference.StringReference
@@ -29,9 +31,9 @@ private const val TRAILING_PLAINTEXT_BYTE = '.'.code
 private var stringKey: ULong? = null
 private val decrypted = HashMap<String, String?>()
 
-internal val stringKeyPatch = rawResourcePatch {
+internal val stringKeyPatch = patch {
     execute {
-        val library = get(STRING_LIBRARY, true)
+        val library = resourceFile(STRING_LIBRARY, true)
         if (!library.exists()) throw PatchException("$STRING_LIBRARY is missing")
 
         val elf = Arm64ElfReader(library.readBytes())

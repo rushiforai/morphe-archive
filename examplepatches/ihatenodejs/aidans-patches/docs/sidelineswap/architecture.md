@@ -2,112 +2,196 @@
 
 ## 1. Overview
 
-| Attribute                   | Specification                                                                          |
-| --------------------------- | -------------------------------------------------------------------------------------- |
-| **Application Name**        | SidelineSwap: Buy & Sell Gear                                                          |
-| **Package Name**            | `com.sidelineswap.android`                                                             |
-| **Supported Version**       | `1.52.0` (Morphe Compatibility: `1.52.0`, `minSdk` 28)                                 |
-| **Analyzed Version Code**   | `222` (Derived from APK analysis; Constants specifies version string)                  |
-| **Target SDK**              | `36` (Android 16; derived from APK analysis)                                           |
-| **Minimum SDK**             | `28` (Android 9.0)                                                                     |
-| **Distribution Format**     | XAPK (`ApkFileType.XAPK`)                                                              |
-| **Architecture**            | Pure Native Android (Kotlin & Java), Material Components, Jetpack Navigation, Dagger 2 |
-| **Package Signing SHA-256** | `e434334ea79d8702a5d023ce7bfae4da9fa5539796cb9e0ba515cb471528697f`                     |
-| **Primary Theme Color**     | `#02c874` (`colorPrimary`) / `#009647` (`colorPrimaryDark`)                            |
+| Attribute                   | Specification                                                                                       |
+| --------------------------- | --------------------------------------------------------------------------------------------------- |
+| **Application**             | SidelineSwap: Buy & Sell Gear (`com.sidelineswap.android`)                                          |
+| **Supported version**       | `2.3.2` (version code `1251`), `minSdk` 24                                                          |
+| **Target SDK**              | `36`                                                                                                |
+| **Distribution format**     | XAPK (base + 18 config splits + arm64)                                                              |
+| **Package signing SHA-256** | `e434334ea79d8702a5d023ce7bfae4da9fa5539796cb9e0ba515cb471528697f`                                  |
+| **Architecture**            | Compose Material 3, Kotlin Multiplatform shared models, Ktor, Dagger/Hilt, R8 full-mode repackaging |
 
-SidelineSwap is a native Android marketplace application designed for buying and selling new and used sports gear. Unlike hybrid applications (e.g. React Native with Hermes bytecode), SidelineSwap is implemented entirely as a standard Dalvik/ART native Android app compiled with R8 shrinking and obfuscation.
+2.3.2 is a rewrite. The previous 1.52.0 release (AppCompat fragments, 80+ XML layouts, Retrofit,
+Jetpack Navigation) shares **no bytecode descriptors** with it and is no longer supported.
 
----
+### 1.1 Repackaging and obfuscation
 
-## 2. Technology Stack & Key Libraries
+- R8 moves the entire program (app + libraries) into the **default package**: 11,660 of 12,314
+  classes are top-level files such as `Lwl2;`, `Luo7;`, `Ljd1;`. Only 12 names survive
+  (`com.sidelineswap.app.{MainActivity,SlsApplication}`, `com.sidelineswap.core.{auth,network,ui/avatar}`,
+  `com.sidelineswap.data.checkout.payments`).
+- Vendor SDK packages keep real names where catalogued: `com/amplitude/**`, `com/iterable/**`,
+  `com/braintreepayments/**`, `com/google/**`, `com/squareup/**`, `com/bumptech/**`.
+  There is **no** `com/facebook/**` in this build.
+- Grep by `androidx.*` class names is unreliable: Compose UI classes are renamed, and only a few
+  Compose exception classes keep their original names.
+- Consequence: patch anchors are build-specific. Every patch verifies `packageMetadata.versionName`
+  against `2.3.2` and fails fast otherwise.
 
-### 2.1 Presentation & UI Layer
+### 1.2 Navigation model
 
-- **Android Jetpack Navigation**: Single-activity architecture hosting nested navigation graphs (`nav_graph.xml`, `AccountGraphXmlDirections`, `ItemGraphNavigationFragment`).
-- **Material Components & Custom Theming**: `AppTheme` extending `Theme.MaterialComponents.Light.NoActionBar` with standard color attributes (`colorPrimary = #02c874`, `colorPrimaryDark = #009647`, `colorAccent = @color/colorPrimary`). SidelineSwap ships exclusively with light-oriented styles (`res/values/styles.xml`), with dark system bar icon flags (`windowLightStatusBar = true`, `windowLightNavigationBar = true`), and lacks app-owned night resources (`res/values-night/` contains only third-party vendor definitions; no app-owned `colors.xml` or dark theme switching exists). The application combines centralized palette resources (`appBarColor = #ffffff`, `itemBackground = #f8f8f8`, `dividerColor = #b7b7b7`) with hardcoded layout and drawable color literals, necessitating a coordinated multi-layer resource transformation across styles, colors, layouts, and drawables to achieve a true AMOLED dark theme.
-- **View Binding**: Android Jetpack ViewBinding across all Fragments and Activities.
-- **Image Loading**: Glide (`com.bumptech.glide`) with custom transformations for product listings and user profile lockers.
+Kotlin Multiplatform shared code declares routes as kotlinx-serializable singletons/classes whose
+FQNs survive as strings (`com.sidelineswap.core.navigation.*`, example: `InviteFriendsRoute`).
+Implementations are obfuscated (`Liy3` for `InviteFriendsRoute`). The serializer registry is `Lzi3`;
+routes are pushed through the navigator facade `Lrz` (`c(route)`). Compose destinations are built in
+`Lf21` (per-tab) with content composables such as `Lw5` for `AccountTab`.
 
-### 2.2 Dependency Injection & Application Scope
+### 1.3 Networking
 
-- **Dagger 2**: Central dependency container configured via `ApplicationComponent` and `ApplicationModule`.
-- `ApplicationModule` constructs singletons including:
-  - `WebService` (Retrofit HTTP client)
-  - `AnalyticsLogger` (Central analytics event dispatcher)
-  - `AccountRepo`, `CartRepo`, `ItemRepo`, `LogRepo`, `SearchRepo`
-
-### 2.3 Networking & Data Serialization
-
-- **Retrofit 2**: REST API interfaces communicating with `https://api.sidelineswap.com/` and first-party backend services.
-- **OkHttp 3**: Core HTTP transport pipeline configured with `AuthenticationInterceptor` (injecting JWT auth headers) and logging interceptors.
-- **Moshi**: JSON serialization and deserialization adapter for data models.
-
-### 2.4 Payments & Checkout Gateway
-
-- **Braintree Android Drop-in SDK**: Facilitates card processing, PayPal checkout, and Venmo integration (`com.braintreepayments.api.DropInActivity`, `BraintreeClient`).
-- **CardinalCommerce 3D-Secure**: Fraud assessment and 3DS verification (`com.cardinalcommerce.shared.userinterfaces.ChallengeNativeView`, `CCInitProvider`).
-- **QuadPay / Zip BNPL**: Installment payment widgets and deep-link flows (`x5.c`).
-
-### 2.5 Diagnostic & Crash Reporting
-
-- **JakeWharton Timber**: Logging abstraction planted in `SidelineSwapApplication.onCreate`.
-- **Firebase Crashlytics**: Custom `CrashlyticsTree` forwards warning and error logs (log priority > 4) to Google Firebase Crashlytics.
+Ktor client against `https://api.sidelineswap.com` and `https://auth.sidelineswap.com`.
+Other first-party endpoints observed: `/platform-tools/analytics/v1/track/event` (analytics),
+`/seel_quote` (checkout insurance), ButterCMS content (`https://api.buttercms.com`).
 
 ---
 
-## 3. Reverse-Engineered Telemetry Architecture
+## 2. Technology Stack
 
-SidelineSwap incorporates a multi-tier analytics and tracking pipeline without third-party display ad networks (no AdMob, AppLovin, Unity, or IronSource). Every user interaction funnels through a central dispatcher before broadcasting to multiple telemetry backends.
+| Layer          | Components                                                                                                                                                              |
+| -------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Presentation   | Compose Material 3 (`androidx.compose.material3`, runtime, foundation, animation) hosted by a single `AbstractComposeView`; no app-owned XML layouts or color resources |
+| Shared logic   | Kotlin Multiplatform with kotlinx.serialization (route + API models); route FQNs survive as strings                                                                     |
+| DI             | Dagger/Hilt graph (`Lv8`, `Lz7`, `Lgxx` component builders)                                                                                                             |
+| Networking     | Ktor client + OkHttp engine, kotlinx.serialization content negotiation                                                                                                  |
+| Images         | Coil 3, Glide                                                                                                                                                           |
+| Payments       | Braintree (drop-in, cards, PayPal, Venmo), Google Pay, Seel insurance quotes, Sezzle                                                                                    |
+| Messaging/push | Firebase Cloud Messaging, Iterable SDK, Ada chat WebView                                                                                                                |
+| Diagnostics    | Firebase Crashlytics, Firebase Analytics/GMS measurement, Firebase Sessions                                                                                             |
+| Analytics      | First-party tracker fan-out, Amplitude (with Compose auto-capture)                                                                                                      |
+| Storage        | Room, DataStore, AndroidX WorkManager                                                                                                                                   |
+| Native         | 3 arm64 libraries from AndroidX graphics (`libsurface_util_jni`, `libimage_processing_util_jni`, `libandroidx.graphics.path`)                                           |
+
+---
+
+## 3. UI stack
+
+- **Compose Material 3 only.** `MainActivity` hosts an `AbstractComposeView` subclass (`Ldi1`) and
+  calls `setContent`; the root composable is `Lcq5;->a`, which calls the theme `Luo7;->a`.
+- The app ships **no app-owned layouts or color resources**; `res/layout` and `res/values/colors.xml`
+  contain library entries only. Dialogs/popups are library Compose hosts (`p15`/`m15`, `x82`/`u82`, `l06`).
+- **WebViews** are the only native view hosts: `Ld9` (Ada chat, JS bridge `AdaAndroid`), `Lec`
+  (Compose `AndroidView` factory for web pages), `Lb24` (in-app web dialog hosting `Lb34`), with the
+  shared client `Lc34`. `androidx.webkit` is not packaged, so dark mode must be applied through
+  reflection/JS (`DarkWebViewBridge`).
+
+### 3.1 Theme pipeline
+
+```text
+Lcq5.a (root composable)
+   └─ Luo7.a(...)                       theme entry
+        ├─ vo7                         custom typography
+        └─ Lod1.d(16 colors, mask)     ColorScheme factory
+             └─ Lmd1                   ColorScheme (48 roles)
+```
+
+`Luo7;->a` supplies 16 roles from app constants and `Lod1;->d` fills the remaining 32 roles from the
+Material light token table `Ljd1`:
+
+| Role                     | Source                  | Shipped value |
+| ------------------------ | ----------------------- | ------------- |
+| primary                  | `Lho7;->a`              | `#253C32`     |
+| onPrimary                | `Lgo7;->e`              | `#FFFFFF`     |
+| secondary                | `Lho7;->b` ← `Lgd3;->b` | `#1DB847`     |
+| onSecondary              | `Lgo7;->e`              | `#FFFFFF`     |
+| tertiary                 | `Lho7;->c` ← `Lid6;->a` | `#7A70FF`     |
+| onTertiary               | `Lgo7;->e`              | `#FFFFFF`     |
+| background / surface     | `Ldo7;->a`              | `#FFFFFF`     |
+| onBackground / onSurface | `Lgo7;->a` ← `Lzg0;->g` | `#242529`     |
+| surfaceVariant           | `Ldo7;->b` ← `Lzg0;->a` | `#F5F5F7`     |
+| onSurfaceVariant         | `Lgo7;->b` ← `Lzg0;->f` | `#78828F`     |
+| error                    | `Lho7;->d` ← `Loh6;->b` | `#FA423C`     |
+| onError                  | `Lgo7;->e`              | `#FFFFFF`     |
+| outline                  | `Leo7;->a` ← `Lzg0;->c` | `#DADEE5`     |
+| outlineVariant           | `Leo7;->b` ← `Lzg0;->b` | `#E6E9F0`     |
+
+Notes:
+
+- `Luo7;->a` also builds typography (`Lvo7`) and provides `MaterialTheme` (`Lex4`).
+- The neutral ramp `Lzg0` backs `Ldo7`/`Lgo7`/`Leo7`; tonal ramps `gd3` (green), `id6` (purple),
+  `oh6` (red), `bj5` (orange), `yg0` (blue) back semantic accents.
+- `Ljd1` is read **only** by `Lod1`, making it a safe central lever for surface tokens.
+- Brand accents are **compile-time constants**; only per-label colors (`ItemLabel.color`,
+  `FacetItemLabel.color`) come from the API.
+- There is no dark scheme and no `values-night` resources.
+- Where the app authors a light surface outside the palette, it is patched separately:
+  promo/free-shipping card `Lbd0` (`#F5FCF8`, border `#BFEBD2`) and selected row `Lbl1` (`#EAF8EE`).
+
+### 3.2 Launch surfaces and system bars
+
+- `Theme.Sls.Launch` (`res/values/styles.xml`, `res/values-v31/styles.xml`) sets a white
+  `windowBackground` and (v31) `windowSplashScreenBackground`.
+- Bars are transparent/edge-to-edge on API 26+. `MainActivity.onCreate` derives icon appearance from
+  the system night flag and calls `Lmj9;->P(statusStyle, navStyle, window, decor, isDark, isDark)`;
+  `Lt09;->c/b` toggle `SYSTEM_UI_FLAG_LIGHT_STATUS_BAR` / `LIGHT_NAVIGATION_BAR`.
+
+---
+
+## 4. Telemetry surface
+
+The 1.52 `AnalyticsLogger`/`SidelineSwapClient`/`LogRepo` dispatcher is gone. 2.3.2 uses one tracker
+interface `Lij;` with `a(String)`, `b(String, Map)` and `reset()`:
 
 ```mermaid
 flowchart TD
-    User([User Action / Navigation / Purchase]) --> AL[AnalyticsLogger.delegateToClients]
-    AL --> SSC[SidelineSwapClient]
-    AL --> AC[AmplitudeClient]
-    AL --> FC[FirebaseClient]
-    AL --> FBC[FacebookClient]
-    AL --> IC[IterableClient]
-    SSC -->|POST /platform-tools/analytics/v1/track/event| SSServer[SidelineSwap Backend]
-    AC -->|HTTP Events Batch| AmpServer[api2.amplitude.com]
-    FC -->|Google Measurement Protocol| FBServer[app-measurement.com]
-    FBC -->|Graph API App Events| MetaServer[graph.facebook.com]
-    IC -->|In-App / Push Telemetry| IterServer[api.iterable.com]
-    BW[Braintree AnalyticsUploadWorker] -->|FPTI Telemetry| PP[b.stats.paypal.com]
-    CT[CrashlyticsTree] -->|Crash & Error Logs| CR[crashlyticsreports-pa.googleapis.com]
+    UI[App UI / ViewModels] -->|Lij.b event, map| MUX[Loi1 fan-out multiplexer]
+    MUX --> FP[Lwl2 first-party client]
+    MUX --> AMP[Lli Amplitude wrapper]
+    FP -->|POST /platform-tools/analytics/v1/track/event| API[api.sidelineswap.com]
+    AMP -->|batch events| AMPAPI[api2.amplitude.com]
 ```
 
-### Telemetry Surface Breakdown
+| Layer              | Implementation                                                                                              | Notes                                                                   |
+| ------------------ | ----------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------- |
+| First-party        | `Lwl2;->b` → `TrackEventBody` → `Lx42` coroutine                                                            | Gated by a DI boolean                                                   |
+| Amplitude          | `Lli` (constructor starts `amplitude-init`) over `Lji`                                                      | Includes Compose frustration/dead-click auto-capture                    |
+| Firebase Analytics | `AppMeasurement;->logEventInternal`; `AppMeasurementReceiver/Service/JobService`, `SessionLifecycleService` | R8 stripped the `FirebaseAnalytics` event API; no app call sites        |
+| Crashlytics        | wrapper `Lyb5` (user id), handler `Lqs1`, controller `dr1`                                                  | Handler delegates to the default handler, so crashes still terminate    |
+| Iterable           | wrapper `Ls24`, SDK `Lb14`, push services                                                                   | App only sets identity/email                                            |
+| Braintree FPTI     | `AnalyticsUploadWorker` / `AnalyticsWriteToDbWorker` (`c()Lin4;`), enqueued from `Lwi0`                     | Result types: `hn4` success, `fn4` failure, `gn4` retry                 |
+| Advertising ID     | `Lie` → `Lhe` (renamed `AdvertisingIdClient`), callers `a6b`/`t8b`                                          | `google_analytics_adid_collection_enabled=false`; no `AD_ID` permission |
+| Install referrer   | GMS `Llab;->S` → `Lc44` → `Lh2b`                                                                            | Play Store referrer service                                             |
 
-| Layer                        | Component / Target               | Class Descriptor                                                                                                                                 | Neutralization Strategy                                                                                                                                                                                                                                                                                     |
-| ---------------------------- | -------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **1. Central Dispatcher**    | `AnalyticsLogger`                | `Lcom/sidelineswap/android/analytics/AnalyticsLogger;`                                                                                           | Inject `return-void` in `delegateToClients`; inject `return-object p0` in `addClient`.                                                                                                                                                                                                                      |
-| **2. First-Party Telemetry** | `SidelineSwapClient` & `LogRepo` | `Lcom/sidelineswap/android/analytics/SidelineSwapClient;`<br>`Lcom/sidelineswap/android/repo/LogRepo;`                                           | Inject `return-void` in `logEvent`; inject `const/4 v0, 0x0 \n return-object v0` in `trackEvent`.                                                                                                                                                                                                           |
-| **3. Amplitude Analytics**   | Amplitude SDK                    | `Lcom/sidelineswap/android/analytics/AmplitudeClient;`<br>`Lj1/d;`                                                                               | Inject `return-void` in client `logEvent`, synthetic `access$logEvent`, and all SDK event, runner, and lifecycle methods (`d`, `e`, `f`, `j`, `k`, `l`, `n`, `o`, `p`, `t`, `u`, `v`, `w`).                                                                                                                 |
-| **4. Firebase Analytics**    | Firebase Measurement & GMS       | `Lcom/sidelineswap/android/analytics/FirebaseClient;`<br>`Lcom/google/android/gms/internal/measurement/r0;`<br>`AndroidManifest.xml`             | Inject `return-void` across all nine client event/transaction methods; inject `return-void` into GMS measurement task queue (`r0;->b`); strip `AppMeasurement` receivers/services, `SessionLifecycleService`, and `AD_SERVICES_CONFIG` from manifest.                                                       |
-| **5. Crashlytics & Timber**  | Timber Tree & Crashlytics        | `Lcom/sidelineswap/android/log/CrashlyticsTree;`<br>`Lcom/google/firebase/crashlytics/FirebaseCrashlytics;`                                      | Inject `return-void` in Timber error bridge and Crashlytics logging, exception, collection, and custom key APIs.                                                                                                                                                                                            |
-| **6. Facebook SDK**          | AppEvents, Core SDK & Providers  | `Lg2/n;`<br>`Lv2/y;`<br>`Lcom/sidelineswap/android/analytics/FacebookClient;`<br>`Lh2/h;`<br>`Lh2/i;`<br>`Lp2/a;`<br>`AndroidManifest.xml`       | Inject `return-void` into `FacebookSdk.sdkInitialize` (`g2/n;->i`), validation helpers (`v2/y`), checkout/interaction methods, `AppEventsLogger` (`h2/h;->a`), `AppEventsLoggerImpl` (`h2/i`), and `ActivityLifecycleTracker` (`p2/a;->c`); strip `FacebookInitProvider` and token receivers from manifest. |
-| **7. Iterable Tracking**     | Iterable In-App & Lifecycle      | `Lcom/sidelineswap/android/analytics/IterableClient;`<br>`Lt5/h;`<br>`Lt5/i;`<br>`Lt5/e;`<br>`AndroidManifest.xml`                               | Inject `return-void` in `visitedLocker`, `IterableApi` methods (`d`, `g`, `h`, `j`, `k`, `l`, `m`), network dispatcher (`t5/i;->d`), and lifecycle tracker (`t5/e;->a`); strip push/messaging services from manifest.                                                                                       |
-| **8. Braintree Gateway**     | FPTI Analytics Workers & Client  | `Lcom/braintreepayments/api/AnalyticsUploadWorker;`<br>`Lcom/braintreepayments/api/AnalyticsWriteToDbWorker;`<br>`Lcom/braintreepayments/api/L;` | Return `ListenableWorker$a$c` (Success) in worker `g` methods to halt network uploads without retry loops; stub `b` and `c` in client `L`.                                                                                                                                                                  |
-| **9. Hardware Identifiers**  | Google Play Advertising ID       | `LY2/a;` (minified `AdvertisingIdClient`)<br>`AdvertisingIdClient$Info`                                                                          | Return spoofed `LY2/a$a` with zeroed UUID and limit tracking `true`; stub direct `getId` to zeroed UUID and `isLimitAdTrackingEnabled` to `true`.                                                                                                                                                           |
-| **10. Install Attribution**  | Google Play Install Referrer     | `Ll1/a;` (`InstallReferrerClientImpl`)<br>`Lv2/b$a;`                                                                                             | Inject `return-void` into `b` (`startConnection`) and Facebook `InstallReferrerUtil.tryConnectReferrerServer`.                                                                                                                                                                                              |
+Absent from this build: Facebook SDK, AdMob/AppLovin/Unity/IronSource/MoPub/Meta Audience, Sentry,
+Datadog, Branch, AppsFlyer, Adjust, Mixpanel, Segment, Play Integrity, and Ktor request logging.
 
 ---
 
-## 4. Application Lifecycle & Startup Sequence
+## 5. Referral / Invite Friends
+
+- Route: `InviteFriendsRoute` → singleton `Liy3`; ViewModel `Lqy3` emits `Visited Invite Friends`.
+- Account page: destination `Lf21` (`AccountTab`), content `Lw5`. The referral/invite row is guarded by
+  `Lu6;->d:Lai6` and labelled with `screens_account_referralAmounts` (`0x7f140318`).
+- In-app entry: navigation callback `Lh5` case `8` pushes `Liy3`.
+- Deep links: `MainActivity.q(Intent)` → `Luz` → parser `Liz` (path `invite` → `Laz`) → `Lrz`.
+  The parser's unmatched-path branch returns `null`.
+- There is **no** account badge model in 2.3.2; only inbox `BadgeData` exists.
+
+---
+
+## 6. Startup sequence
 
 ```text
-1. Application Process Creation
-   ├── CardinalCommerce CCInitProvider.onCreate()
-   └── SidelineSwapApplication.onCreate()
-       ├── Timber.plant(CrashlyticsTree) [Logging redirected]
-       ├── DaggerApplicationComponent initialization
-       │   └── ApplicationModule.provideAnalyticsLogger()
-       │       └── Adds Amplitude, Firebase, Facebook, SidelineSwap, Iterable clients
-       └── Push notification channel configuration
-
-2. MainActivity Launch
-   ├── ViewBinding inflation (activity_main.xml)
-   ├── NavController attached to R.id.nav_host_fragment
-   ├── setupAccountBadge() [Buggy inflation of R.layout.badge_red causing persistent phantom badge]
-   └── Deeplink evaluation and bottom navigation routing
+Application (SlsApplication)
+ ├─ FirebaseInitProvider / androidx.startup
+ ├─ Iterable + Crashlytics registrars
+ └─ Dagger graph (Lv8/Lz7): Ktor clients, `Lij` tracker fan-out, repositories
+MainActivity.onCreate
+ ├─ edge-to-edge system bar setup (`Lmj9.P`, `Lmj9.p`)
+ ├─ `Ldi1` Compose host + `setContent` (`Lcq5.a` root composable)
+ └─ deep-link evaluation (`q(Intent)` → `Luz` → `Liz` → `Lrz`)
 ```
+
+---
+
+## 7. Gated and hidden features (audit result)
+
+- `api_force_staging` is **Google Play services** internals (`DynamiteModule`), not app code.
+- The app has a `STAGING` environment enum but DI hardcodes `PRODUCTION`; the only staging-aware
+  string ("Discover isn't available on staging") is dead code. Switching it would target staging
+  infrastructure, not unlock features.
+- No debug/developer/test screen, no app `BuildConfig`, no hidden diagnostic route.
+- Pro/Pro+, Autopilot, auto-reject and auto-price-drop are **server-authoritative**:
+  `UserConfigurationData` carries `pro_seller`, `pro_plus_seller`, `features`; `kl4` turns them into
+  UI gates, and mutations are sent to the server.
+
+Conclusion: no client-side hidden menu or unlockable feature is viable, so no hidden-feature patch
+exists for this app.

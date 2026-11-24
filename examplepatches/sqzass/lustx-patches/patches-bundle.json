@@ -1,7 +1,7 @@
 {
-  "created_at": "2026-11-23T05:48:06",
-  "description": "## [1.29.0](https://github.com/sqzass/lustx-patches/compare/v1.28.0...v1.29.0) (2026-11-23)\n\n### ✨ New Features\n\n* **Turbo VPN:** add `Unlock Premium` patch for `Turbo VPN` ([90c5ce8](https://github.com/sqzass/lustx-patches/commit/90c5ce8410dd84b2201474b7c92d0ae26683f5b2))\n* **Turbo VPN:** add new patch to properly unlock premium servers ([35bd1b5](https://github.com/sqzass/lustx-patches/commit/35bd1b5df3074bb56faf01376217c172b6624c60))",
-  "download_url": "https://github.com/sqzass/lustx-patches/releases/download/v1.29.0/patches-1.29.0.mpp",
+  "created_at": "2026-11-24T03:49:55",
+  "description": "## [1.30.0](https://github.com/sqzass/lustx-patches/compare/v1.29.1...v1.30.0) (2026-11-24)\n\n### ✨ New Features\n\n* add Patch Request template ([702898a](https://github.com/sqzass/lustx-patches/commit/702898a7e16fd3cfcbfceff231901f892973ff52))\n* **Super VPN:** add `Unlock Premium` patch for Super Unlimted VPN Pro Plus Max SomethingSOmething ([52fb231](https://github.com/sqzass/lustx-patches/commit/52fb23103d0255b1274e2090247ef01478f7ea1b))\n\n### 🐛 Bug Fixes\n\n* **SD Maid SE:** actually unlock premium ([e891eb6](https://github.com/sqzass/lustx-patches/commit/e891eb6d974c602c4d126423b7d86322f7c2f61a))",
+  "download_url": "https://github.com/sqzass/lustx-patches/releases/download/v1.30.0/patches-1.30.0.mpp",
   "signature_download_url": "",
-  "version": "1.29.0"
+  "version": "1.30.0"
 }

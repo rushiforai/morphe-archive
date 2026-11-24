@@ -1,6 +1,6 @@
 # Patchcatalogus
 
-**Patchbundel: 1.101.0**
+**Patchbundel: 1.106.0**
 
 Controleer per patch de ondersteunde app-versies en de standaardinstelling. De app-pagina legt uit wat de patch voor het gebruik verandert.
 
@@ -74,6 +74,32 @@ Controleer per patch de ondersteunde app-versies en de standaardinstelling. De a
 | Remove sponsored items | Aan | 8.180.0, 8.180.1 |
 | Skip splash promotions | Aan | 8.180.0, 8.180.1 |
 | Spoof signature | Aan | 8.180.0, 8.180.1 |
+
+## Angry Birds 2
+
+[Wat veranderen de patches?](../apps/angry-birds-2.md)
+
+`com.rovio.baba`
+
+| Patch | Standaard | App-versies |
+| --- | --- | --- |
+| Disable tracking | Aan | 26.7.3 |
+| Hide ads | Aan | 26.7.3 |
+| Hide paid shop tab | Aan | 26.7.3 |
+| Parked app for Android Auto | Aan | 26.7.3 |
+
+## Angry Birds Friends
+
+[Wat veranderen de patches?](../apps/angry-birds-friends.md)
+
+`com.rovio.angrybirdsfriends`
+
+| Patch | Standaard | App-versies |
+| --- | --- | --- |
+| Disable tracking | Aan | 14.9.0 |
+| Hide ads | Aan | 14.9.0 |
+| Hide paid shop tab | Aan | 14.9.0 |
+| Parked app for Android Auto | Aan | 14.9.0 |
 
 ## Apple Music
 
@@ -175,6 +201,22 @@ Controleer per patch de ondersteunde app-versies en de standaardinstelling. De a
 | Hide ads | Aan | 1.330.1 |
 | Parked app for Android Auto | Aan | 1.330.1 |
 
+## Cronometer
+
+[Wat veranderen de patches?](../apps/cronometer.md)
+
+`com.cronometer.android.gold`
+
+| Patch | Standaard | App-versies |
+| --- | --- | --- |
+| Disable Adjust tracking | Aan | 4.57.2 |
+| Disable Amplitude tracking | Aan | 4.57.2 |
+| Disable Braze tracking | Aan | 4.57.2 |
+| Disable Datadog telemetry | Aan | 4.57.2 |
+| Disable Firebase Analytics | Aan | 4.57.2 |
+| Disable ads | Aan | 4.57.2 |
+| Disable ads, tracking and Gold upsells | Aan | 4.57.2 |
+
 ## De Morgen
 
 [Wat veranderen de patches?](../apps/demorgen.md)
@@ -229,6 +271,17 @@ Controleer per patch de ondersteunde app-versies en de standaardinstelling. De a
 | Remove subscription paywalls | Aan | 9.0.27.3 |
 | Search and sort playlists | Aan | 9.0.27.3 |
 
+## Draw a Stickman: EPIC 3
+
+[Wat veranderen de patches?](../apps/draw-a-stickman-epic-3.md)
+
+`com.hitcents.drawastickmanepic3`
+
+| Patch | Standaard | App-versies |
+| --- | --- | --- |
+| Disable tracking | Aan | 1.13.19873 |
+| Hide ads | Aan | 1.13.19873 |
+
 ## DS Nieuws
 
 [Wat veranderen de patches?](../apps/dsnieuws.md)
@@ -253,6 +306,20 @@ Controleer per patch de ondersteunde app-versies en de standaardinstelling. De a
 | Disable tracking | Aan | 5.8.0 |
 | Hide ads | Aan | 5.8.0 |
 | Skip consent screens | Aan | 5.8.0 |
+
+## dynamicSpot
+
+[Wat veranderen de patches?](../apps/dynamicspot.md)
+
+`com.jamworks.dynamicspot`
+
+| Patch | Standaard | App-versies |
+| --- | --- | --- |
+| AMOLED theme | Aan | 3.02 |
+| Fix PairIP startup | Aan | 3.02 |
+| Remove promotions | Aan | 3.02 |
+| Stop automatic app selection | Aan | 3.02 |
+| Unlock Pro | Aan | 3.02 |
 
 ## EasyPark
 
@@ -344,6 +411,16 @@ Controleer per patch de ondersteunde app-versies en de standaardinstelling. De a
 | Read full articles | Aan | 2.6.8 |
 | Skip consent screens | Aan | 2.6.8 |
 
+## GameSnacks
+
+[Wat veranderen de patches?](../apps/gamesnacks.md)
+
+`com.google.android.apps.automotive.gamesnacks`
+
+| Patch | Standaard | App-versies |
+| --- | --- | --- |
+| Parked app for Android Auto | Aan | 1.40.827663177 |
+
 ## Gboard
 
 [Wat veranderen de patches?](../apps/gboard.md)
@@ -362,6 +439,7 @@ Controleer per patch de ondersteunde app-versies en de standaardinstelling. De a
 | Cursor trackpad mode | Aan | 18.8.0.1022711984-beta-arm64-v8a, 18.8.0.1022711984-beta-armeabi-v7a |
 | Custom Theme | Aan | 18.8.0.1022711984-beta-arm64-v8a, 18.8.0.1022711984-beta-armeabi-v7a |
 | Custom branding | Aan | 18.8.0.1022711984-beta-arm64-v8a, 18.8.0.1022711984-beta-armeabi-v7a |
+| Enable Inline Autofill Suggestions | Aan | 18.8.0.1022711984-beta-arm64-v8a, 18.8.0.1022711984-beta-armeabi-v7a |
 | Enable OCR / Scan Text | Aan | 18.8.0.1022711984-beta-arm64-v8a, 18.8.0.1022711984-beta-armeabi-v7a |
 | Frosted Glass | Aan | 18.8.0.1022711984-beta-arm64-v8a, 18.8.0.1022711984-beta-armeabi-v7a |
 | G Logo on Spacebar | Aan | 18.8.0.1022711984-beta-arm64-v8a, 18.8.0.1022711984-beta-armeabi-v7a |
@@ -381,6 +459,7 @@ Controleer per patch de ondersteunde app-versies en de standaardinstelling. De a
 | Rambler voice typing | Aan | 18.8.0.1022711984-beta-arm64-v8a, 18.8.0.1022711984-beta-armeabi-v7a |
 | Rounded Keyboard Panel | Aan | 18.8.0.1022711984-beta-arm64-v8a, 18.8.0.1022711984-beta-armeabi-v7a |
 | Simple Calculator | Aan | 18.8.0.1022711984-beta-arm64-v8a, 18.8.0.1022711984-beta-armeabi-v7a |
+| Smart Compose | Aan | 18.8.0.1022711984-beta-arm64-v8a, 18.8.0.1022711984-beta-armeabi-v7a |
 | Toolbar Editing Buttons | Aan | 18.8.0.1022711984-beta-arm64-v8a, 18.8.0.1022711984-beta-armeabi-v7a |
 | Use Bluetooth microphone | Aan | 18.8.0.1022711984-beta-arm64-v8a, 18.8.0.1022711984-beta-armeabi-v7a |
 | Web Clipboard | Aan | 18.8.0.1022711984-beta-arm64-v8a, 18.8.0.1022711984-beta-armeabi-v7a |
@@ -502,6 +581,17 @@ Controleer per patch de ondersteunde app-versies en de standaardinstelling. De a
 | Patch | Standaard | App-versies |
 | --- | --- | --- |
 | Allow any Android Auto host | Aan | 2026.10.1-full |
+
+## Home Assistant (Automotive)
+
+[Wat veranderen de patches?](../apps/homeassistant-automotive.md)
+
+`io.homeassistant.companion.android`
+
+| Patch | Standaard | App-versies |
+| --- | --- | --- |
+| Allow any Android Auto host | Aan | 2026.11.2-full |
+| Android Auto | Aan | 2026.11.2-full |
 
 ## Humo
 
@@ -752,6 +842,16 @@ Controleer per patch de ondersteunde app-versies en de standaardinstelling. De a
 | Patch | Standaard | App-versies |
 | --- | --- | --- |
 | Custom branding | Aan | Alle versies |
+
+## PlugShare (Automotive)
+
+[Wat veranderen de patches?](../apps/plugshare.md)
+
+`com.xatori.Plugshare`
+
+| Patch | Standaard | App-versies |
+| --- | --- | --- |
+| Android Auto | Aan | AAOS v1.8.2 |
 
 ## Podimo
 

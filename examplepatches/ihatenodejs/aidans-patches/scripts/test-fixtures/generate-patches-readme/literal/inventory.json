@@ -1,0 +1,19 @@
+{
+  "version": "v\\1.0",
+  "patches": [
+    {
+      "name": "Backslash \\1 and \\g<0>",
+      "description": "literal \\n, \\t, \\\\, \\q, \\1 and \\g<0>",
+      "options": [{ "title": "\\1 literal title" }],
+      "compatiblePackages": [
+        {
+          "packageName": "com.example.literal",
+          "name": "Literal \\g<0> App",
+          "targets": [
+            { "version": "\\1", "description": "target \\q" }
+          ]
+        }
+      ]
+    }
+  ]
+}

@@ -2,6 +2,7 @@ package app.fblite.patches.settings
 
 import app.fblite.patches.font.AttachBaseContextFingerprint
 import app.fblite.patches.shared.Constants.COMPATIBILITY_FACEBOOK_LITE
+import app.fblite.patches.shared.PATCH_VERSION
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
 import app.morphe.patcher.patch.PatchException
 import app.morphe.patcher.patch.bytecodePatch
@@ -100,10 +101,13 @@ val morpheSettingsPatch = bytecodePatch(
     execute {
         // Facebook Lite sends the font scale of its application context to the server, which lays
         // the app out for it, so the base context gets the chosen font scale before anything reads it.
-        // attachBaseContext has 31 locals, so p1 is above v15 and needs the range form.
+        // attachBaseContext has 31 locals, so p1 is above v15 and needs the range form. v0 is free here: nothing
+        // has set the locals yet. The first two lines tell the settings screen the version of these patches.
         AttachBaseContextFingerprint.method.addInstructions(
             0,
             """
+                const-string v0, "$PATCH_VERSION"
+                invoke-static { v0 }, $EXTENSION_CLASS->setPatchVersion(Ljava/lang/String;)V
                 invoke-static/range { p1 .. p1 }, $EXTENSION_CLASS->wrapBaseContext(Landroid/content/Context;)Landroid/content/Context;
                 move-result-object p1
             """

@@ -9,7 +9,7 @@
  * - COOLak (https://github.com/COOLak)
  *
  * Licensed under the GNU General Public License v3.0.
- * Modified by lavinhoque33, 2026-10-29
+ * Modified by lavinhoque33, 2026-11-23
  *
  * ------------------------------------------------------------------------
  * GPLv3 Section 7 – Additional Terms & Attribution Requirements
@@ -53,8 +53,11 @@
 
 package app.morphe.patches.shared.layout.branding
 
+import app.morphe.patcher.patch.Option
+import app.morphe.patcher.patch.PatchBuilder
 import app.morphe.patcher.patch.PatchException
 import app.morphe.patcher.patch.ResourcePatchContext
+import app.morphe.patcher.patch.booleanOption
 import app.morphe.util.DEFAULT_PREFERENCE_ICON_SIZE_DP
 import app.morphe.util.STOCK_PREFERENCE_ICON_SIZE_DP
 import app.morphe.util.FilesCompat
@@ -70,6 +73,7 @@ import org.w3c.dom.Document
 import org.w3c.dom.Element
 import java.io.File
 import java.util.ArrayDeque
+import java.util.UUID
 
 // region generated resource contract
 
@@ -82,6 +86,7 @@ private const val RVX_SETTINGS_ICON_FALLBACK_DRAWABLE_CLASS =
 
 private const val GENERATED_RESOURCE_PREFIX = "morphe_"
 private const val CUSTOM_BRANDING_RESOURCE_PREFIX = "${GENERATED_RESOURCE_PREFIX}custom_branding_"
+private const val ORIGINAL_ICON_KEY = "original"
 private const val CUSTOM_ICON_KEY = "custom"
 private const val CUSTOM_ICON_LABEL = "Custom"
 private const val SYSTEM_SPLASH_ALIAS_SUFFIX = "_system"
@@ -112,7 +117,8 @@ private enum class BrandingResource(key: String) {
     DEFAULT_ICON("default_icon"),
     DEFAULT_NAME_INDEX("default_name_index"),
     MAIN_ACTIVITY("main_activity"),
-    ORIGINAL_LAUNCHER("original_launcher");
+    ORIGINAL_LAUNCHER("original_launcher"),
+    ALIAS_KEY_PREFIX("alias_key_prefix");
 
     val resourceName = "$CUSTOM_BRANDING_RESOURCE_PREFIX$key"
 }
@@ -160,7 +166,20 @@ internal data class BrandingIcon(
     val hasAdaptiveLayers: Boolean,
     val hasMonochromeLayers: Boolean = hasAdaptiveLayers,
     val hasLauncherResource: Boolean = hasAdaptiveLayers,
+    val launcherOnly: Boolean = false,
 )
+
+private val originalBrandingIcon = BrandingIcon(ORIGINAL_ICON_KEY, "Stock", false)
+
+// Manager renders List<String> as editable text, but groups adjacent boolean options as switches.
+internal fun PatchBuilder<*>.addBrandingIconPackOptions(icons: List<BrandingIcon>): Map<String, Option<Boolean>> =
+    (listOf(originalBrandingIcon) + icons).associate { icon ->
+        icon.key to booleanOption(
+            key = "include_${icon.key}",
+            title = "Include icon: ${icon.label}",
+            default = true,
+        )
+    }
 
 /** Application-specific details shared by the YouTube and Music branding wrappers. */
 internal data class CustomBrandingConfig(
@@ -267,14 +286,15 @@ internal val customBrandingIconOptionDescription = """
 /**
  * Applies the common runtime branding resources and manifest aliases.
  *
- * The stock app name remains the fallback application label, while aliases provide every
- * supported app-name and project-icon combination to the in-app selectors.
+ * The stock app name remains the fallback application label. Only bundled icons get resources,
+ * launcher aliases and selector entries.
  */
 internal fun ResourcePatchContext.applyCustomBranding(
     config: CustomBrandingConfig,
-    customName: String? = null,
-    customIconPath: String? = null,
-    appIcon: String = "original",
+    customName: String?,
+    customIconPath: String?,
+    appIcon: String,
+    includedIconKeys: Set<String>,
 ): Boolean {
     require(config.namePresetLabels.size == 4) {
         "Custom branding expects four preset app names."
@@ -285,25 +305,44 @@ internal fun ResourcePatchContext.applyCustomBranding(
         ResourceGroup("layout", "morphe_icon_list_item.xml"),
     )
 
-    config.icons.filter { it.hasAdaptiveLayers }.forEach { icon ->
-        copyAdaptiveLayers(config, icon)
+    val keptPresets = config.icons.filter { it.key == appIcon || it.key in includedIconKeys }
+    keptPresets.forEach { icon ->
+        if (icon.hasAdaptiveLayers) copyAdaptiveLayers(config, icon)
     }
-    // A free-form option value is a custom resource folder. Presets retain every runtime alias.
-    val preset = config.icons.find { it.key == appIcon }
-    val iconPath = if (appIcon == "original" || appIcon == CUSTOM_ICON_KEY || preset != null) {
+
+    val preset = keptPresets.find { it.key == appIcon }
+    // A free-form app icon option value is a custom resource folder.
+    val iconPath = if (appIcon == ORIGINAL_ICON_KEY || appIcon == CUSTOM_ICON_KEY || preset != null) {
         customIconPath
     } else {
         appIcon
     }
     val customIcon = copyCustomIcon(config, iconPath)
     val defaultIcon = when {
-        appIcon == "original" -> "original"
+        appIcon == ORIGINAL_ICON_KEY -> ORIGINAL_ICON_KEY
         preset != null -> preset.key
         customIcon?.hasLauncherResource == true -> CUSTOM_ICON_KEY
         else -> throw PatchException("The selected custom app icon requires a launcher resource")
     }
-    val defaultBrandingIcon = preset.takeIf { defaultIcon != "original" }
+    val defaultBrandingIcon = preset
         ?: customIcon.takeIf { defaultIcon == CUSTOM_ICON_KEY }
+
+    val keepStock = defaultIcon == ORIGINAL_ICON_KEY || ORIGINAL_ICON_KEY in includedIconKeys
+    val keepAllPacks = keepStock && keptPresets.size == config.icons.size
+    val pickerIcons = buildList {
+        if (keepStock) add(originalBrandingIcon)
+        addAll(keptPresets)
+        customIcon?.let(::add)
+    }
+    // Preserve existing alias names and the custom-folder fallback when the full catalog is kept.
+    val runtimeIcons = if (keepAllPacks && customIcon == null) {
+        pickerIcons + BrandingIcon(CUSTOM_ICON_KEY, CUSTOM_ICON_LABEL, false)
+    } else {
+        pickerIcons
+    }
+    val defaultNameIndex = if (customName != null) config.namePresetLabels.size + 1 else 1
+    val aliasKeyPrefix = if (keepAllPacks) "" else launcherAliasKeyPrefix(runtimeIcons, defaultIcon, defaultNameIndex)
+
     customIcon?.takeIf { it.hasLauncherResource }?.let {
         addCustomIconFallbacks(config)
         val notification = IconResource.NOTIFICATION.named(CUSTOM_ICON_KEY)
@@ -312,13 +351,13 @@ internal fun ResourcePatchContext.applyCustomBranding(
             writeBrandingDrawableFallback(notification, "@mipmap/${source.named(CUSTOM_ICON_KEY)}")
         }
     }
-    copyDynamicBrandingResources(config)
+    val splashFallbacks = copyDynamicBrandingResources(config, keptPresets)
 
     var hasRvxSettingsPreference = false
 
     val originalName = findOriginalAppName(config)
     removeStringsElements(config.applicationNameKeys)
-    addBrandingResources(config, originalName, customName, customIcon != null, defaultIcon)
+    addBrandingResources(config, originalName, customName, defaultIcon, pickerIcons, aliasKeyPrefix)
     val aliasNameLabels = config.namePresetLabels + (customName ?: CUSTOM_ICON_LABEL)
 
     config.settingsPreferencePaths.forEach { path ->
@@ -329,9 +368,9 @@ internal fun ResourcePatchContext.applyCustomBranding(
                 document.hasPreference(config.settingsPreferenceKey) || hasRvxSettingsPreference
         }
     }
-    if (hasRvxSettingsPreference) copyRvxSettingsIcons(config)
+    if (hasRvxSettingsPreference) copyRvxSettingsIcons(config, keptPresets, keepStock)
 
-    val systemSplashIconKeys = (config.icons.map { it.key } + CUSTOM_ICON_KEY).distinct()
+    val systemSplashIconKeys = runtimeIcons.mapNotNull { it.key.takeUnless { key -> key == ORIGINAL_ICON_KEY } }
     var launcherTheme: String? = null
     document("AndroidManifest.xml").use { document ->
         val application = document.getElementsByTagName("application").item(0) as Element
@@ -387,18 +426,12 @@ internal fun ResourcePatchContext.applyCustomBranding(
         splashlessActivity.setAttribute("android:noHistory", "true")
         application.appendChild(splashlessActivity)
 
-        // Always retain the custom aliases. Removing an alias that was enabled by a previous
-        // installation can make the application impossible to launch until it is uninstalled.
-        val customAliasIcon = customIcon ?: BrandingIcon(CUSTOM_ICON_KEY, CUSTOM_ICON_LABEL, false)
-        val runtimeIcons =
-            listOf(BrandingIcon("original", "Stock", false)) + config.icons + customAliasIcon
         val nameCount = aliasNameLabels.size
-        val defaultNameIndex = if (customName != null) nameCount else 1
 
         fun addAlias(icon: BrandingIcon, nameIndex: Int, useSystemSplash: Boolean) {
             val alias = document.createElement("activity-alias")
             val suffix = if (useSystemSplash) SYSTEM_SPLASH_ALIAS_SUFFIX else ""
-            alias.setAttribute("android:name", ".morphe_${icon.key}_$nameIndex$suffix")
+            alias.setAttribute("android:name", ".morphe_$aliasKeyPrefix${icon.key}_$nameIndex$suffix")
             alias.setAttribute(
                 "android:enabled",
                 (!useSystemSplash && icon.key == defaultIcon && nameIndex == defaultNameIndex).toString(),
@@ -411,7 +444,7 @@ internal fun ResourcePatchContext.applyCustomBranding(
             )
             alias.setAttribute(
                 "android:targetActivity",
-                if (useSystemSplash || icon.key == "original" || !config.useSplashlessLauncherActivity) {
+                if (useSystemSplash || icon.key == ORIGINAL_ICON_KEY || !config.useSplashlessLauncherActivity) {
                     config.mainActivityName
                 } else {
                     SPLASHLESS_LAUNCHER_ACTIVITY_CLASS_NAME
@@ -438,7 +471,7 @@ internal fun ResourcePatchContext.applyCustomBranding(
         runtimeIcons.forEach { icon ->
             for (nameIndex in 1..nameCount) {
                 addAlias(icon, nameIndex, useSystemSplash = false)
-                if (icon.key != "original") {
+                if (icon.key != ORIGINAL_ICON_KEY) {
                     addAlias(icon, nameIndex, useSystemSplash = true)
                 }
             }
@@ -470,9 +503,19 @@ internal fun ResourcePatchContext.applyCustomBranding(
             }
         }
     }
-    addLauncherSplashStyles(launcherTheme!!, systemSplashIconKeys)
+    addLauncherSplashStyles(launcherTheme!!, systemSplashIconKeys, splashFallbacks)
 
     return hasRvxSettingsPreference
+}
+
+/**
+ * Android preserves enabled/disabled overrides for aliases still present after an update. Use a
+ * different alias set when repatching with fewer icons so those overrides cannot hide the new
+ * startup launcher if the previously enabled launcher was removed.
+ */
+private fun launcherAliasKeyPrefix(icons: List<BrandingIcon>, defaultIcon: String, defaultNameIndex: Int): String {
+    val identity = icons.joinToString(",") { it.key } + ":$defaultIcon:$defaultNameIndex"
+    return UUID.nameUUIDFromBytes(identity.encodeToByteArray()).toString().replace("-", "") + "_"
 }
 
 // endregion
@@ -968,8 +1011,12 @@ $monochromeLayer            </adaptive-icon>
 }
 
 /** Copies icon-specific header and splash resources to stable names consumed by the extension. */
-private fun ResourcePatchContext.copyDynamicBrandingResources(config: CustomBrandingConfig) {
-    val dynamicHeaderIcons = config.icons.filter {
+private fun ResourcePatchContext.copyDynamicBrandingResources(
+    config: CustomBrandingConfig,
+    icons: List<BrandingIcon>,
+): Map<String, String> {
+    val artworkIcons = icons.filterNot(BrandingIcon::launcherOnly)
+    val dynamicHeaderIcons = artworkIcons.filter {
         it.hasAdaptiveLayers && it.key != config.originalSettingsIconKey
     }
 
@@ -999,15 +1046,16 @@ private fun ResourcePatchContext.copyDynamicBrandingResources(config: CustomBran
         }
     }
 
-    val splashResourceName = config.dynamicSplashResourceName ?: return
-    config.icons.forEach { icon ->
-        val brandingDirectory = "${config.resourceRoot}/branding/${icon.key}"
+    val splashResourceName = config.dynamicSplashResourceName ?: return emptyMap()
+
+    fun copySplash(sourceKey: String, targetKey: String) {
+        val brandingDirectory = "${config.resourceRoot}/branding/$sourceKey"
 
         val hasAnimatedVector = runCatching {
             copyAnimatedVectorSplash(
                 brandingDirectory,
-                icon.key,
-                icon.key in config.themedSplashIconKeys,
+                targetKey,
+                sourceKey in config.themedSplashIconKeys,
             )
         }.isSuccess
 
@@ -1016,11 +1064,33 @@ private fun ResourcePatchContext.copyDynamicBrandingResources(config: CustomBran
                 copyBundledResource(
                     "$brandingDirectory/splash",
                     "$directory/$splashResourceName.png",
-                    "$directory/${IconResource.SPLASH.named(icon.key)}.png",
+                    "$directory/${IconResource.SPLASH.named(targetKey)}.png",
                 )
             }
         }
     }
+
+    artworkIcons.forEach { copySplash(it.key, it.key) }
+
+    val launcherOnlyIcons = icons.filter(BrandingIcon::launcherOnly)
+    if (launcherOnlyIcons.isEmpty()) return emptyMap()
+
+    val defaultArtworkKey = config.originalSettingsIconKey
+    val fallbackKey = if (artworkIcons.any { it.key == defaultArtworkKey }) {
+        defaultArtworkKey
+    } else {
+        // Keep one copy of the official splash without bundling the excluded icon pack.
+        "launcher_only_fallback".also { copySplash(defaultArtworkKey, it) }
+    }
+    val fallbackName = IconResource.SPLASH.named(fallbackKey)
+    val splashFallbacks = launcherOnlyIcons.associate { it.key to fallbackName }
+    document("res/values/strings.xml").use { document ->
+        splashFallbacks.forEach { (iconKey, drawableName) ->
+            val resourceName = "${CUSTOM_BRANDING_RESOURCE_PREFIX}splash_fallback_$iconKey"
+            addString(document.documentElement, resourceName, drawableName)
+        }
+    }
+    return splashFallbacks
 }
 
 /**
@@ -1124,6 +1194,7 @@ private fun ResourcePatchContext.copyAnimatedVectorSplash(
 private fun ResourcePatchContext.addLauncherSplashStyles(
     parent: String,
     systemSplashIconKeys: List<String>,
+    splashFallbacks: Map<String, String>,
 ) {
     val styleName = BrandingResource.SPLASHLESS_LAUNCHER_STYLE.resourceName
     ensureValuesFile("values", "styles.xml")
@@ -1181,12 +1252,13 @@ private fun ResourcePatchContext.addLauncherSplashStyles(
 
     document("res/values-v31/styles.xml").use { document ->
         systemSplashIconKeys.forEach { iconKey ->
-            val hasSplashResource = hasSplashResource(iconKey)
+            val splashName = splashFallbacks[iconKey]
+                ?: IconResource.SPLASH.named(iconKey).takeIf { hasSplashResource(iconKey) }
             val style = addStyle(document.documentElement, systemSplashStyleName(iconKey), parent)
             style.appendChild(document.createElement("item").also {
                 it.setAttribute("name", "android:windowSplashScreenAnimatedIcon")
-                it.textContent = if (hasSplashResource) {
-                    "@drawable/${IconResource.SPLASH.named(iconKey)}"
+                it.textContent = if (splashName != null) {
+                    "@drawable/$splashName"
                 } else {
                     "@android:color/transparent"
                 }
@@ -1201,9 +1273,9 @@ private fun ResourcePatchContext.addLauncherSplashStyles(
             })
             style.appendChild(document.createElement("item").also {
                 it.setAttribute("name", "android:windowSplashScreenAnimationDuration")
-                it.textContent = if (hasSplashResource) "1000" else "0"
+                it.textContent = if (splashName != null) "1000" else "0"
             })
-            if (hasSplashResource) {
+            if (splashName != null) {
                 style.appendChild(document.createElement("item").also {
                     it.setAttribute("name", "android:windowSplashScreenBehavior")
                     it.textContent = "icon_preferred"
@@ -1308,7 +1380,11 @@ private fun ResourcePatchContext.hasSplashResource(iconKey: String): Boolean =
     }
 
 /** Copies an optional dedicated settings icon, otherwise uses that preset's launcher at runtime. */
-private fun ResourcePatchContext.copyRvxSettingsIcons(config: CustomBrandingConfig) {
+private fun ResourcePatchContext.copyRvxSettingsIcons(
+    config: CustomBrandingConfig,
+    icons: List<BrandingIcon>,
+    keepStock: Boolean,
+) {
     fun copy(sourceIconKey: String, targetIconKey: String) {
         val sourceDirectory = "${config.resourceRoot}/branding/$sourceIconKey/settings"
         val sourceResource = "drawable/${config.settingsIconFileName}.xml"
@@ -1324,8 +1400,8 @@ private fun ResourcePatchContext.copyRvxSettingsIcons(config: CustomBrandingConf
         source.use { FilesCompat.copy(it, target) }
     }
 
-    copy(config.originalSettingsIconKey, "original")
-    config.icons.forEach { icon -> copy(icon.key, icon.key) }
+    if (keepStock) copy(config.originalSettingsIconKey, ORIGINAL_ICON_KEY)
+    icons.forEach { icon -> copy(icon.key, icon.key) }
 }
 
 /** Writes the runtime wrapper used when a launcher is the only available branding icon. */
@@ -1500,12 +1576,11 @@ private fun ResourcePatchContext.addBrandingResources(
     config: CustomBrandingConfig,
     originalName: String,
     customName: String?,
-    hasCustomIcon: Boolean,
     defaultIcon: String,
+    iconEntries: List<BrandingIcon>,
+    aliasKeyPrefix: String,
 ) {
     val nameLabels = config.namePresetLabels + listOfNotNull(customName?.let { CUSTOM_ICON_LABEL })
-    val iconEntries = listOf(BrandingIcon("original", "Stock", false)) + config.icons +
-        if (hasCustomIcon) listOf(BrandingIcon(CUSTOM_ICON_KEY, CUSTOM_ICON_LABEL, true)) else emptyList()
 
     ensureValuesFile("strings.xml")
     ensureValuesFile("arrays.xml")
@@ -1539,6 +1614,9 @@ private fun ResourcePatchContext.addBrandingResources(
             BrandingResource.ORIGINAL_LAUNCHER.resourceName,
             config.originalLauncherIconName,
         )
+        if (aliasKeyPrefix.isNotEmpty()) {
+            addString(resources, BrandingResource.ALIAS_KEY_PREFIX.resourceName, aliasKeyPrefix)
+        }
 
         config.applicationNameKeys.forEach { key ->
             addString(resources, key, originalName)

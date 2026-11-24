@@ -1,3 +1,8 @@
+/*
+ * Copyright 2026 amfakh
+ * SPDX-License-Identifier: GPL-3.0-only
+ */
+
 package app.fakh.extension.idn;
 
 import android.app.Activity;
@@ -15,27 +20,27 @@ import android.widget.ImageView;
 import android.widget.TextView;
 
 import java.lang.ref.WeakReference;
+import java.util.Map;
+
+import app.fakh.extension.shared.AppRuntime;
+import app.fakh.extension.shared.Features;
 
 /**
- * Feature switches of the IDN patches, stored in their own SharedPreferences and edited on {@link IdnSettingsActivity}.
- *
- * The isXIncluded() methods return false here. Each feature patch rewrites its method to return true, so the settings
- * screen only lists features that were actually patched in.
+ * The hooks of the IDN patches and their switches, which live in {@link Features} and are edited on
+ * {@link IdnSettingsActivity}. A switch is on when the thing it names shows.
  */
 @SuppressWarnings("unused")
 public final class IdnSettings {
     static final String TAG = "FakhIdn";
-    private static final String PREFS = "morphe_idn_settings";
+    /** The settings file of earlier versions, whose switches move to {@link Features} on the first read. */
+    private static final String LEGACY_PREFS = "morphe_idn_settings";
 
-    static final String STOP_AUTOPLAY = "stop_autoplay";
+    static final String AUTOPLAY = "autoplay";
     static final String SHOW_ADS = "show_ads";
     static final String SHOW_PACKAGE_BANNER = "show_package_banner";
     static final String SHOW_CREATE_BUTTON = "show_create_button";
-    private static final String HIDE_TAB_PREFIX = "hide_tab_";
-
-    /** HomeMenu names of the home tabs, in the order the app shows them, with the labels the app uses. */
-    static final String[] TABS = {"SHORT_MOVIE", "LIVE", "NEWS", "QUIZ"};
-    static final String[] TAB_LABELS = {"Nonton", "IDN Live", "Berita", "Quiz"};
+    /** The switch of a home tab is this followed by the tab's HomeMenu name. */
+    static final String SHOW_TAB = "show_tab_";
 
     /** Set by the call sites that bind a "buy a package" banner, read by the next bind; see {@link #takeBuyBanner()}. */
     private static boolean buyNext;
@@ -48,82 +53,61 @@ public final class IdnSettings {
     /** The uiMode of the app's Settings screen when the page was opened; the app's own night mode setting decides it, not the system. */
     static int uiMode = -1;
 
-    private static SharedPreferences prefs;
+    private static boolean migrated;
 
     private IdnSettings() {
     }
 
-    public static boolean isHideTabsIncluded() {
-        return false;
-    }
-
-    public static boolean isStopAutoplayIncluded() {
-        return false;
-    }
-
-    public static boolean isHideAdsIncluded() {
-        return false;
-    }
-
-    public static boolean isHidePackageBannerIncluded() {
-        return false;
-    }
-
-    public static boolean isHideCreateButtonIncluded() {
-        return false;
-    }
-
-    /** The app's SharedPreferences-backed store for these switches; null before the Application exists. */
-    @SuppressWarnings("PrivateApi")
-    static synchronized SharedPreferences prefs() {
-        if (prefs == null) {
-            try {
-                Application app = (Application) Class.forName("android.app.ActivityThread")
-                    .getMethod("currentApplication").invoke(null);
-                prefs = app.getSharedPreferences(PREFS, Context.MODE_PRIVATE);
-            } catch (Throwable t) {
-                Log.w(TAG, "No application for the settings", t);
-            }
+    /**
+     * Moves the switches earlier versions saved in their own file into {@link Features}, once. Those kept the hidden
+     * tabs and a stopped autoplay, the opposite of the switches now.
+     */
+    private static void migrate() {
+        if (migrated) return;
+        Context context = AppRuntime.application();
+        if (context == null) return;
+        migrated = true;
+        SharedPreferences legacy = context.getSharedPreferences(LEGACY_PREFS, Context.MODE_PRIVATE);
+        Map<String, ?> saved = legacy.getAll();
+        if (saved.isEmpty()) return;
+        for (Map.Entry<String, ?> entry : saved.entrySet()) {
+            if (!(entry.getValue() instanceof Boolean)) continue;
+            boolean value = (Boolean) entry.getValue();
+            String key = entry.getKey();
+            if (key.startsWith("hide_tab_")) Features.set(SHOW_TAB + key.substring("hide_tab_".length()), !value);
+            else if (key.equals("stop_autoplay")) Features.set(AUTOPLAY, !value);
+            else Features.set(key, value);
         }
-        return prefs;
+        legacy.edit().clear().commit();
     }
 
+    /** Whether the switch {@code key} is on; off while its patch is not in the app. */
+    static boolean flag(String key) {
+        migrate();
+        return Features.on(key);
+    }
+
+    /** Whether a home tab is hidden: its patch is in and its switch is off. */
     static boolean isTabHidden(String tab) {
-        SharedPreferences p = prefs();
-        return p != null && p.getBoolean(HIDE_TAB_PREFIX + tab, false);
+        migrate();
+        return Features.has(SHOW_TAB + tab) && !Features.saved(SHOW_TAB + tab);
     }
 
-    static void setTabHidden(String tab, boolean hidden) {
-        SharedPreferences p = prefs();
-        if (p != null) p.edit().putBoolean(HIDE_TAB_PREFIX + tab, hidden).apply();
-    }
-
-    /** How many home tabs are hidden right now. */
-    static int hiddenTabCount() {
-        int count = 0;
-        for (String tab : TABS) if (isTabHidden(tab)) count++;
-        return count;
+    /** How many home tabs there are and how many are hidden right now, as {total, hidden}. */
+    static int[] tabCounts() {
+        int total = 0;
+        int hidden = 0;
+        for (Features.Feature feature : Features.all()) {
+            if (!feature.id.startsWith(SHOW_TAB)) continue;
+            total++;
+            if (isTabHidden(feature.id.substring(SHOW_TAB.length()))) hidden++;
+        }
+        return new int[] {total, hidden};
     }
 
     static boolean isStopAutoplay() {
-        SharedPreferences p = prefs();
-        return p != null && p.getBoolean(STOP_AUTOPLAY, false);
-    }
-
-    static void setStopAutoplay(boolean stop) {
-        SharedPreferences p = prefs();
-        if (p != null) p.edit().putBoolean(STOP_AUTOPLAY, stop).apply();
-    }
-
-    /** A switch that is off until the user turns it on, so a patched feature is active by default. */
-    static boolean flag(String key) {
-        SharedPreferences p = prefs();
-        return p != null && p.getBoolean(key, false);
-    }
-
-    static void setFlag(String key, boolean value) {
-        SharedPreferences p = prefs();
-        if (p != null) p.edit().putBoolean(key, value).apply();
+        migrate();
+        return Features.has(AUTOPLAY) && !Features.saved(AUTOPLAY);
     }
 
     /** Whether the ad banners and promo popups are removed: they are, unless the user turned them back on. */
@@ -203,7 +187,9 @@ public final class IdnSettings {
      * already skips. The last visible tab is never hidden, because the home screen needs one page.
      */
     public static String tab(String name) {
-        return isTabHidden(name) && hiddenTabCount() < TABS.length ? "UNKNOWN" : name;
+        if (!isTabHidden(name)) return name;
+        int[] counts = tabCounts();
+        return counts[1] < counts[0] ? "UNKNOWN" : name;
     }
 
     /** Called on the autoPlay value of a carousel: off while autoplay is stopped. */

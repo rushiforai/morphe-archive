@@ -1,0 +1,636 @@
+--- a/com/sauzask/nicoid/NicoidSetting.smali
++++ b/com/sauzask/nicoid/NicoidSetting.smali
+@@ -589,6 +589,8 @@
+     :cond_2
+     invoke-static {p0}, Le/e/a/CacheFolders;->summary(Landroid/preference/PreferenceActivity;)V
+ 
++    invoke-static/range {p0 .. p0}, Le/e/a/TemporaryCache221;->refreshLabels(Landroid/preference/PreferenceActivity;)V
++
+     return-void
+ .end method
+ 
+--- a/com/sauzask/nicoid/NicoidVideoListActivity.smali
++++ b/com/sauzask/nicoid/NicoidVideoListActivity.smali
+@@ -763,5 +763,7 @@
+ 
+     invoke-super {p0, p1}, Lcom/sauzask/nicoid/NicoidActivity;->onSaveInstanceState(Landroid/os/Bundle;)V
+ 
++    invoke-static {p1}, Le/e/a/MultiTabs227;->afterSave(Landroid/os/Bundle;)V
++
+     return-void
+ .end method
+--- a/com/sauzask/nicoid/NicoidVideoListFragment$d$a.smali
++++ b/com/sauzask/nicoid/NicoidVideoListFragment$d$a.smali
+@@ -0,0 +1,200 @@
++.class public Lcom/sauzask/nicoid/NicoidVideoListFragment$d$a;
++.super Ljava/lang/Object;
++.source ""
++
++# interfaces
++.implements Landroid/widget/AdapterView$OnItemSelectedListener;
++
++
++# annotations
++.annotation system Ldalvik/annotation/EnclosingMethod;
++    value = Lcom/sauzask/nicoid/NicoidVideoListFragment$d;->a(Ljava/util/HashMap;)V
++.end annotation
++
++.annotation system Ldalvik/annotation/InnerClass;
++    accessFlags = 0x1
++    name = null
++.end annotation
++
++
++# instance fields
++.field public final synthetic a:Lcom/sauzask/nicoid/NicoidVideoListFragment$d;
++
++
++# direct methods
++.method public constructor <init>(Lcom/sauzask/nicoid/NicoidVideoListFragment$d;)V
++    .registers 2
++
++    iput-object p1, p0, Lcom/sauzask/nicoid/NicoidVideoListFragment$d$a;->a:Lcom/sauzask/nicoid/NicoidVideoListFragment$d;
++
++    invoke-direct {p0}, Ljava/lang/Object;-><init>()V
++
++    return-void
++.end method
++
++
++# virtual methods
++.method public onItemSelected(Landroid/widget/AdapterView;Landroid/view/View;IJ)V
++    .registers 9
++    .annotation system Ldalvik/annotation/Signature;
++        value = {
++            "(",
++            "Landroid/widget/AdapterView<",
++            "*>;",
++            "Landroid/view/View;",
++            "IJ)V"
++        }
++    .end annotation
++
++    invoke-static {p3}, Le/e/a/PlaylistSort219;->remoteId(I)I
++
++    move-result p3
++
++    const/4 p1, 0x6
++
++    const/4 p2, 0x7
++
++    const/4 p4, 0x4
++
++    const/4 p5, 0x5
++
++    const/16 v0, 0x8
++
++    const/16 v1, 0x9
++
++    if-nez p3, :cond_0
++
++    goto :goto_0
++
++    :cond_0
++    const/4 v2, 0x1
++
++    if-ne p3, v2, :cond_1
++
++    const/4 p1, 0x7
++
++    goto :goto_0
++
++    :cond_1
++    const/4 v2, 0x2
++
++    if-ne p3, v2, :cond_2
++
++    const/4 p1, 0x4
++
++    goto :goto_0
++
++    :cond_2
++    const/4 v2, 0x3
++
++    if-ne p3, v2, :cond_3
++
++    const/4 p1, 0x5
++
++    goto :goto_0
++
++    :cond_3
++    if-ne p3, p4, :cond_4
++
++    const/16 p1, 0x8
++
++    goto :goto_0
++
++    :cond_4
++    if-ne p3, p5, :cond_5
++
++    const/16 p1, 0x9
++
++    goto :goto_0
++
++    :cond_5
++    if-ne p3, p1, :cond_6
++
++    const/16 p1, 0xc
++
++    goto :goto_0
++
++    :cond_6
++    if-ne p3, p2, :cond_7
++
++    const/16 p1, 0xd
++
++    goto :goto_0
++
++    :cond_7
++    if-ne p3, v0, :cond_8
++
++    const/16 p1, 0xe
++
++    goto :goto_0
++
++    :cond_8
++    if-ne p3, v1, :cond_9
++
++    const/16 p1, 0xf
++
++    goto :goto_0
++
++    :cond_9
++    const/16 p1, 0xa
++
++    if-ne p3, p1, :cond_a
++
++    const/16 p1, 0x10
++
++    goto :goto_0
++
++    :cond_a
++    const/16 p1, 0xb
++
++    if-ne p3, p1, :cond_b
++
++    const/16 p1, 0x11
++
++    goto :goto_0
++
++    :cond_b
++    add-int/lit8 p1, p3, 0x6
++
++    :goto_0
++    iget-object p2, p0, Lcom/sauzask/nicoid/NicoidVideoListFragment$d$a;->a:Lcom/sauzask/nicoid/NicoidVideoListFragment$d;
++
++    iget-object p2, p2, Lcom/sauzask/nicoid/NicoidVideoListFragment$d;->a:Lcom/sauzask/nicoid/NicoidVideoListFragment;
++
++    invoke-static {p2, p1}, Lcom/sauzask/nicoid/NicoidVideoListFragment;->a(Lcom/sauzask/nicoid/NicoidVideoListFragment;I)V
++
++    iget-object p1, p0, Lcom/sauzask/nicoid/NicoidVideoListFragment$d$a;->a:Lcom/sauzask/nicoid/NicoidVideoListFragment$d;
++
++    iget-object p1, p1, Lcom/sauzask/nicoid/NicoidVideoListFragment$d;->a:Lcom/sauzask/nicoid/NicoidVideoListFragment;
++
++    .line 1
++    iget-object p1, p1, Lcom/sauzask/nicoid/NicoidVideoListFragment;->x0:Landroid/content/SharedPreferences;
++
++    .line 2
++    invoke-interface {p1}, Landroid/content/SharedPreferences;->edit()Landroid/content/SharedPreferences$Editor;
++
++    move-result-object p1
++
++    const-string p2, "sortlast"
++
++    invoke-interface {p1, p2, p3}, Landroid/content/SharedPreferences$Editor;->putInt(Ljava/lang/String;I)Landroid/content/SharedPreferences$Editor;
++
++    move-result-object p1
++
++    invoke-interface {p1}, Landroid/content/SharedPreferences$Editor;->apply()V
++
++    return-void
++.end method
++
++.method public onNothingSelected(Landroid/widget/AdapterView;)V
++    .registers 2
++    .annotation system Ldalvik/annotation/Signature;
++        value = {
++            "(",
++            "Landroid/widget/AdapterView<",
++            "*>;)V"
++        }
++    .end annotation
++
++    return-void
++.end method
+--- a/com/sauzask/nicoid/NicoidVideoListFragment$d.smali
++++ b/com/sauzask/nicoid/NicoidVideoListFragment$d.smali
+@@ -380,171 +380,9 @@
+ 
+     iget-object v0, p0, Lcom/sauzask/nicoid/NicoidVideoListFragment$d;->a:Lcom/sauzask/nicoid/NicoidVideoListFragment;
+ 
+-    .line 14
+     iget-object v0, v0, Lcom/sauzask/nicoid/NicoidVideoListFragment;->o0:Landroid/app/Activity;
+ 
+-    const v2, 0x7f0f01a3
+-
+-    .line 15
+-    invoke-virtual {v0, v2}, Landroid/app/Activity;->getString(I)Ljava/lang/String;
+-
+-    move-result-object v0
+-
+-    invoke-virtual {p1, v0}, Landroid/widget/ArrayAdapter;->add(Ljava/lang/Object;)V
+-
+-    iget-object v0, p0, Lcom/sauzask/nicoid/NicoidVideoListFragment$d;->a:Lcom/sauzask/nicoid/NicoidVideoListFragment;
+-
+-    .line 16
+-    iget-object v0, v0, Lcom/sauzask/nicoid/NicoidVideoListFragment;->o0:Landroid/app/Activity;
+-
+-    const v2, 0x7f0f01a7
+-
+-    .line 17
+-    invoke-virtual {v0, v2}, Landroid/app/Activity;->getString(I)Ljava/lang/String;
+-
+-    move-result-object v0
+-
+-    invoke-virtual {p1, v0}, Landroid/widget/ArrayAdapter;->add(Ljava/lang/Object;)V
+-
+-    iget-object v0, p0, Lcom/sauzask/nicoid/NicoidVideoListFragment$d;->a:Lcom/sauzask/nicoid/NicoidVideoListFragment;
+-
+-    .line 18
+-    iget-object v0, v0, Lcom/sauzask/nicoid/NicoidVideoListFragment;->o0:Landroid/app/Activity;
+-
+-    const v2, 0x7f0f01ab
+-
+-    .line 19
+-    invoke-virtual {v0, v2}, Landroid/app/Activity;->getString(I)Ljava/lang/String;
+-
+-    move-result-object v0
+-
+-    invoke-virtual {p1, v0}, Landroid/widget/ArrayAdapter;->add(Ljava/lang/Object;)V
+-
+-    iget-object v0, p0, Lcom/sauzask/nicoid/NicoidVideoListFragment$d;->a:Lcom/sauzask/nicoid/NicoidVideoListFragment;
+-
+-    .line 20
+-    iget-object v0, v0, Lcom/sauzask/nicoid/NicoidVideoListFragment;->o0:Landroid/app/Activity;
+-
+-    const v2, 0x7f0f01ac
+-
+-    .line 21
+-    invoke-virtual {v0, v2}, Landroid/app/Activity;->getString(I)Ljava/lang/String;
+-
+-    move-result-object v0
+-
+-    invoke-virtual {p1, v0}, Landroid/widget/ArrayAdapter;->add(Ljava/lang/Object;)V
+-
+-    iget-object v0, p0, Lcom/sauzask/nicoid/NicoidVideoListFragment$d;->a:Lcom/sauzask/nicoid/NicoidVideoListFragment;
+-
+-    .line 22
+-    iget-object v0, v0, Lcom/sauzask/nicoid/NicoidVideoListFragment;->o0:Landroid/app/Activity;
+-
+-    const v2, 0x7f0f01a2
+-
+-    .line 23
+-    invoke-virtual {v0, v2}, Landroid/app/Activity;->getString(I)Ljava/lang/String;
+-
+-    move-result-object v0
+-
+-    invoke-virtual {p1, v0}, Landroid/widget/ArrayAdapter;->add(Ljava/lang/Object;)V
+-
+-    iget-object v0, p0, Lcom/sauzask/nicoid/NicoidVideoListFragment$d;->a:Lcom/sauzask/nicoid/NicoidVideoListFragment;
+-
+-    .line 24
+-    iget-object v0, v0, Lcom/sauzask/nicoid/NicoidVideoListFragment;->o0:Landroid/app/Activity;
+-
+-    const v2, 0x7f0f019e
+-
+-    .line 25
+-    invoke-virtual {v0, v2}, Landroid/app/Activity;->getString(I)Ljava/lang/String;
+-
+-    move-result-object v0
+-
+-    invoke-virtual {p1, v0}, Landroid/widget/ArrayAdapter;->add(Ljava/lang/Object;)V
+-
+-    iget-object v0, p0, Lcom/sauzask/nicoid/NicoidVideoListFragment$d;->a:Lcom/sauzask/nicoid/NicoidVideoListFragment;
+-
+-    .line 26
+-    iget-object v0, v0, Lcom/sauzask/nicoid/NicoidVideoListFragment;->o0:Landroid/app/Activity;
+-
+-    const v2, 0x7f0f01a0
+-
+-    .line 27
+-    invoke-virtual {v0, v2}, Landroid/app/Activity;->getString(I)Ljava/lang/String;
+-
+-    move-result-object v0
+-
+-    invoke-virtual {p1, v0}, Landroid/widget/ArrayAdapter;->add(Ljava/lang/Object;)V
+-
+-    iget-object v0, p0, Lcom/sauzask/nicoid/NicoidVideoListFragment$d;->a:Lcom/sauzask/nicoid/NicoidVideoListFragment;
+-
+-    .line 28
+-    iget-object v0, v0, Lcom/sauzask/nicoid/NicoidVideoListFragment;->o0:Landroid/app/Activity;
+-
+-    const v2, 0x7f0f019c
+-
+-    .line 29
+-    invoke-virtual {v0, v2}, Landroid/app/Activity;->getString(I)Ljava/lang/String;
+-
+-    move-result-object v0
+-
+-    invoke-virtual {p1, v0}, Landroid/widget/ArrayAdapter;->add(Ljava/lang/Object;)V
+-
+-    iget-object v0, p0, Lcom/sauzask/nicoid/NicoidVideoListFragment$d;->a:Lcom/sauzask/nicoid/NicoidVideoListFragment;
+-
+-    .line 30
+-    iget-object v0, v0, Lcom/sauzask/nicoid/NicoidVideoListFragment;->o0:Landroid/app/Activity;
+-
+-    const v2, 0x7f0f01a1
+-
+-    .line 31
+-    invoke-virtual {v0, v2}, Landroid/app/Activity;->getString(I)Ljava/lang/String;
+-
+-    move-result-object v0
+-
+-    invoke-virtual {p1, v0}, Landroid/widget/ArrayAdapter;->add(Ljava/lang/Object;)V
+-
+-    iget-object v0, p0, Lcom/sauzask/nicoid/NicoidVideoListFragment$d;->a:Lcom/sauzask/nicoid/NicoidVideoListFragment;
+-
+-    .line 32
+-    iget-object v0, v0, Lcom/sauzask/nicoid/NicoidVideoListFragment;->o0:Landroid/app/Activity;
+-
+-    const v2, 0x7f0f019d
+-
+-    .line 33
+-    invoke-virtual {v0, v2}, Landroid/app/Activity;->getString(I)Ljava/lang/String;
+-
+-    move-result-object v0
+-
+-    invoke-virtual {p1, v0}, Landroid/widget/ArrayAdapter;->add(Ljava/lang/Object;)V
+-
+-    iget-object v0, p0, Lcom/sauzask/nicoid/NicoidVideoListFragment$d;->a:Lcom/sauzask/nicoid/NicoidVideoListFragment;
+-
+-    .line 34
+-    iget-object v0, v0, Lcom/sauzask/nicoid/NicoidVideoListFragment;->o0:Landroid/app/Activity;
+-
+-    const v2, 0x7f0f019f
+-
+-    .line 35
+-    invoke-virtual {v0, v2}, Landroid/app/Activity;->getString(I)Ljava/lang/String;
+-
+-    move-result-object v0
+-
+-    invoke-virtual {p1, v0}, Landroid/widget/ArrayAdapter;->add(Ljava/lang/Object;)V
+-
+-    iget-object v0, p0, Lcom/sauzask/nicoid/NicoidVideoListFragment$d;->a:Lcom/sauzask/nicoid/NicoidVideoListFragment;
+-
+-    .line 36
+-    iget-object v0, v0, Lcom/sauzask/nicoid/NicoidVideoListFragment;->o0:Landroid/app/Activity;
+-
+-    const v2, 0x7f0f01aa
+-
+-    .line 37
+-    invoke-virtual {v0, v2}, Landroid/app/Activity;->getString(I)Ljava/lang/String;
+-
+-    move-result-object v0
+-
+-    invoke-virtual {p1, v0}, Landroid/widget/ArrayAdapter;->add(Ljava/lang/Object;)V
++    invoke-static {p1, v0}, Le/e/a/PlaylistSort219;->remoteLabels(Landroid/widget/ArrayAdapter;Landroid/content/Context;)V
+ 
+     iget-object v0, p0, Lcom/sauzask/nicoid/NicoidVideoListFragment$d;->a:Lcom/sauzask/nicoid/NicoidVideoListFragment;
+ 
+@@ -580,6 +418,10 @@
+ 
+     move-result p1
+ 
++    invoke-static {p1}, Le/e/a/PlaylistSort219;->remotePosition(I)I
++
++    move-result p1
++
+     invoke-virtual {v0, p1}, Landroid/widget/Spinner;->setSelection(I)V
+ 
+     return-void
+--- a/com/sauzask/nicoid/NicoidVideoListFragment.smali
++++ b/com/sauzask/nicoid/NicoidVideoListFragment.smali
+@@ -2014,6 +2014,223 @@
+     return-object v0
+ .end method
+ 
++.method public final f(I)V
++    .registers 9
++
++    const/16 v0, 0x12
++
++    if-lt p1, v0, :cond_1
++
++    const/4 v0, 0x0
++
++    const/16 v1, 0x13
++
++    if-ne p1, v1, :cond_0
++
++    const/4 v0, 0x1
++
++    :cond_0
++    iget-object v1, p0, Lcom/sauzask/nicoid/NicoidVideoListFragment;->a0:Ljava/util/ArrayList;
++
++    invoke-static {v1, v0}, Le/e/a/PlaylistSort219;->sortPosted(Ljava/util/List;Z)V
++
++    iget-object v1, p0, Lcom/sauzask/nicoid/NicoidVideoListFragment;->p0:Le/e/a/b0;
++
++    invoke-virtual {v1}, Le/e/a/b0;->notifyDataSetChanged()V
++
++    return-void
++
++    :cond_1
++    const/4 v0, 0x3
++
++    new-array v0, v0, [Ljava/lang/Object;
++
++    const-string v1, "posttime"
++
++    const/4 v2, 0x1
++
++    invoke-static {v2}, Ljava/lang/Boolean;->valueOf(Z)Ljava/lang/Boolean;
++
++    move-result-object v3
++
++    const/4 v4, 0x0
++
++    invoke-static {v4}, Ljava/lang/Boolean;->valueOf(Z)Ljava/lang/Boolean;
++
++    move-result-object v5
++
++    const/4 v6, 0x6
++
++    if-ne p1, v6, :cond_2
++
++    aput-object v1, v0, v4
++
++    aput-object v3, v0, v2
++
++    goto :goto_0
++
++    :cond_2
++    const/4 v6, 0x7
++
++    if-ne p1, v6, :cond_3
++
++    aput-object v1, v0, v4
++
++    aput-object v5, v0, v2
++
++    goto :goto_0
++
++    :cond_3
++    const/4 v1, 0x4
++
++    const-string v6, "title"
++
++    if-ne p1, v1, :cond_4
++
++    aput-object v6, v0, v4
++
++    aput-object v3, v0, v2
++
++    goto :goto_0
++
++    :cond_4
++    const/4 v1, 0x5
++
++    if-ne p1, v1, :cond_5
++
++    aput-object v6, v0, v4
++
++    aput-object v5, v0, v2
++
++    goto :goto_0
++
++    :cond_5
++    const/16 v1, 0x8
++
++    const-string v6, "rawplay"
++
++    if-ne p1, v1, :cond_6
++
++    aput-object v6, v0, v4
++
++    aput-object v3, v0, v2
++
++    goto :goto_0
++
++    :cond_6
++    const/16 v1, 0x9
++
++    if-ne p1, v1, :cond_7
++
++    aput-object v6, v0, v4
++
++    aput-object v5, v0, v2
++
++    :cond_7
++    :goto_0
++    const/16 v1, 0xc
++
++    const-string v6, "rawres"
++
++    if-ne p1, v1, :cond_8
++
++    aput-object v6, v0, v4
++
++    aput-object v3, v0, v2
++
++    :cond_8
++    const/16 v1, 0xd
++
++    if-ne p1, v1, :cond_9
++
++    aput-object v6, v0, v4
++
++    aput-object v5, v0, v2
++
++    :cond_9
++    const/16 v1, 0xe
++
++    const-string v6, "rawmylis"
++
++    if-ne p1, v1, :cond_a
++
++    aput-object v6, v0, v4
++
++    aput-object v3, v0, v2
++
++    :cond_a
++    const/16 v1, 0xf
++
++    if-ne p1, v1, :cond_b
++
++    aput-object v6, v0, v4
++
++    aput-object v5, v0, v2
++
++    :cond_b
++    const/16 v1, 0x10
++
++    const-string v6, "length"
++
++    if-ne p1, v1, :cond_c
++
++    aput-object v6, v0, v4
++
++    aput-object v3, v0, v2
++
++    goto :goto_1
++
++    :cond_c
++    const/16 v1, 0x11
++
++    if-ne p1, v1, :cond_d
++
++    aput-object v6, v0, v4
++
++    aput-object v5, v0, v2
++
++    :cond_d
++    :goto_1
++    const/4 p1, 0x2
++
++    const-string v1, "0"
++
++    aput-object v1, v0, p1
++
++    aget-object v1, v0, v4
++
++    check-cast v1, Ljava/lang/String;
++
++    const-string v2, "raw"
++
++    invoke-virtual {v1, v2}, Ljava/lang/String;->startsWith(Ljava/lang/String;)Z
++
++    move-result v1
++
++    if-eqz v1, :cond_e
++
++    invoke-static {v4}, Ljava/lang/Integer;->valueOf(I)Ljava/lang/Integer;
++
++    move-result-object v1
++
++    aput-object v1, v0, p1
++
++    :cond_e
++    iget-object p1, p0, Lcom/sauzask/nicoid/NicoidVideoListFragment;->a0:Ljava/util/ArrayList;
++
++    new-instance v1, Lcom/sauzask/nicoid/NicoidVideoListFragment$c;
++
++    invoke-direct {v1, p0, v0}, Lcom/sauzask/nicoid/NicoidVideoListFragment$c;-><init>(Lcom/sauzask/nicoid/NicoidVideoListFragment;[Ljava/lang/Object;)V
++
++    invoke-static {p1, v1}, Ljava/util/Collections;->sort(Ljava/util/List;Ljava/util/Comparator;)V
++
++    iget-object p1, p0, Lcom/sauzask/nicoid/NicoidVideoListFragment;->p0:Le/e/a/b0;
++
++    invoke-virtual {p1}, Le/e/a/b0;->notifyDataSetChanged()V
++
++    return-void
++.end method
++
+ .method public refreshTapAction()V
+     .registers 4
+ 

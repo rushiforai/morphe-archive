@@ -1,9 +1,0 @@
-Samsung Keyboard 5.9.50.10 — quick index
-
-classes.dex: 4183 keyword candidate strings; 8119 classes
-classes2.dex: 6812 keyword candidate strings; 8052 classes
-classes3.dex: 248 keyword candidate strings; 4395 classes
-
-Start with 00_README_AND_LIMITATIONS.txt, then the three KEYWORD_CANDIDATES files.
-For complete DEX string tables, use DEX1/2/3_STRING_TABLE.txt.
-Class descriptors are in DEX1/2/3_CLASS_DESCRIPTORS.txt.

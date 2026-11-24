@@ -8,15 +8,15 @@ Manage host prerequisites, pinned reverse engineering binaries, diagnostics, and
 
 APK Lab orchestrates external tools pinned with immutable SHA-256 digests in `tools/apk-lab/tools.lock.json`. Before running analysis, verify the host environment:
 
-| Requirement | Supported Versions | Resolution / Detection Order |
-|---|---|---|
-| **Python** | `3.12+` | Managed via `uv` (`tools/apk-lab/pyproject.toml`) |
-| **Java / JDK** | `21+` (Eclipse Temurin recommended) | PATH (`java`) |
-| **Android Build Tools** | `36.0.0` (`aapt2`, `apksigner`, `zipalign`, `dexdump`) | `$ANDROID_HOME/build-tools/`, `$ANDROID_SDK_ROOT/build-tools/`, `local.properties` (`sdk.dir`) |
-| **Android Platform Tools** | `adb` | `$ANDROID_HOME/platform-tools/adb`, `$ANDROID_SDK_ROOT/platform-tools/adb`, PATH (runtime only; not probed by `doctor`) |
-| **uv** | Modern | PATH (`uv run --project tools/apk-lab`) |
+| Requirement                | Supported Versions                                     | Resolution / Detection Order                                                                                            |
+| -------------------------- | ------------------------------------------------------ | ----------------------------------------------------------------------------------------------------------------------- |
+| **Rust / Cargo**           | Stable toolchain                                       | `cargo` on PATH; builds `tools/apk-lab`                                                                                 |
+| **Java / JDK**             | `21+` (Eclipse Temurin recommended)                    | PATH (`java`)                                                                                                           |
+| **Android Build Tools**    | `36.0.0` (`aapt2`, `apksigner`, `zipalign`, `dexdump`) | `$ANDROID_HOME/build-tools/`, `$ANDROID_SDK_ROOT/build-tools/`, `local.properties` (`sdk.dir`)                          |
+| **Android Platform Tools** | `adb`                                                  | `$ANDROID_HOME/platform-tools/adb`, `$ANDROID_SDK_ROOT/platform-tools/adb`, PATH (runtime only; not probed by `doctor`) |
 
 External tools cached in `~/.cache/aidans-patches/apk-lab/tools/`:
+
 - **Morphe Desktop**: `1.18.0` (JAR)
 - **JADX**: `1.5.6` (ZIP with bin/jadx)
 - **Apktool**: `3.0.3` (JAR)
@@ -27,20 +27,23 @@ External tools cached in `~/.cache/aidans-patches/apk-lab/tools/`:
 ---
 
 ## 2. CLI Reference
+
 Global options (e.g. `--workspace-root PATH`, default: `.apk-lab`) precede the subcommand:
+
 ```bash
-uv run --project tools/apk-lab apk-lab [--workspace-root PATH] <subcommand> [flags]
+cargo run --locked --quiet --manifest-path tools/apk-lab/Cargo.toml --bin apk-lab -- [--workspace-root PATH] <subcommand> [flags]
 ```
+
 ### `setup` — Toolchain Download & Verification
 
 Downloads and verifies all pinned tools for the specified profile using SHA-256 checksums from `tools.lock.json`.
 
 ```bash
 # Install analysis tools (Morphe Desktop, JADX, Apktool, baksmali, smali)
-uv run --project tools/apk-lab apk-lab setup --profile analysis
+cargo run --locked --quiet --manifest-path tools/apk-lab/Cargo.toml --bin apk-lab -- setup --profile analysis
 
 # Install CI tools (analysis profile + apkeep on Linux x86_64)
-uv run --project tools/apk-lab apk-lab setup --profile ci
+cargo run --locked --quiet --manifest-path tools/apk-lab/Cargo.toml --bin apk-lab -- setup --profile ci
 ```
 
 - **Arguments**:
@@ -55,13 +58,13 @@ Validates host tools, cache status, workspace write access, and optional CI cred
 
 ```bash
 # Check host readiness and cached tool status
-uv run --project tools/apk-lab apk-lab doctor
+cargo run --locked --quiet --manifest-path tools/apk-lab/Cargo.toml --bin apk-lab -- doctor
 
 # Check in CI mode with JSON output to stdout
-uv run --project tools/apk-lab apk-lab doctor --ci --json -
+cargo run --locked --quiet --manifest-path tools/apk-lab/Cargo.toml --bin apk-lab -- doctor --ci --json -
 
 # Save diagnostic report to file
-uv run --project tools/apk-lab apk-lab doctor --json report.json
+cargo run --locked --quiet --manifest-path tools/apk-lab/Cargo.toml --bin apk-lab -- doctor --json report.json
 ```
 
 - **Arguments**:
@@ -79,16 +82,16 @@ Safely removes run directories created under `.apk-lab/`. **NEVER** use raw `rm 
 
 ```bash
 # Clean a specific run directory
-uv run --project tools/apk-lab apk-lab clean --run .apk-lab/com.example.app/100-abc123456789/def987654321
+cargo run --locked --quiet --manifest-path tools/apk-lab/Cargo.toml --bin apk-lab -- clean --run .apk-lab/com.example.app/100-abc123456789/def987654321
 
 # Clean all runs for a specific package
-uv run --project tools/apk-lab apk-lab clean --package com.example.app
+cargo run --locked --quiet --manifest-path tools/apk-lab/Cargo.toml --bin apk-lab -- clean --package com.example.app
 
 # Clean all runs older than 7 days
-uv run --project tools/apk-lab apk-lab clean --stale 7
+cargo run --locked --quiet --manifest-path tools/apk-lab/Cargo.toml --bin apk-lab -- clean --stale 7
 
 # Dry-run preview of what would be removed
-uv run --project tools/apk-lab apk-lab clean --package com.example.app --dry-run
+cargo run --locked --quiet --manifest-path tools/apk-lab/Cargo.toml --bin apk-lab -- clean --package com.example.app --dry-run
 ```
 
 - **Arguments**:
@@ -112,6 +115,7 @@ uv run --project tools/apk-lab apk-lab clean --package com.example.app --dry-run
 ## 3. Workspace Structure & Marker Contract
 
 Analysis runs create isolated, reproducible workspaces under `.apk-lab/`:
+
 ```text
 .apk-lab/
   └── <package_name>/
@@ -125,6 +129,7 @@ Analysis runs create isolated, reproducible workspaces under `.apk-lab/`:
 ```
 
 ### Marker Format (`.marker.json`)
+
 ```json
 {
   "schemaVersion": 1,
@@ -142,46 +147,8 @@ Analysis runs create isolated, reproducible workspaces under `.apk-lab/`:
 
 ---
 
-## 4. Python API Reference
+## 4. Native Library and Test References
 
-```python
-from pathlib import Path
-from apk_lab.tools import ToolManager, check_host_prerequisites
-from apk_lab.workspace import WorkspaceManager
-
-# Toolchain Management
-tool_mgr = ToolManager()
-is_ready = tool_mgr.is_tool_installed("baksmali")
-baksmali_path = tool_mgr.get_executable_path("baksmali")
-res = tool_mgr.run_tool_cmd("baksmali", ["--version"])
-
-# Host Diagnostics
-doctor_report = check_host_prerequisites(ci_mode=False, workspace_root=".apk-lab")
-print(f"All ready: {doctor_report.all_ready}")
-
-# Workspace Management
-ws_mgr = WorkspaceManager(root=Path(".apk-lab"))
-run_dir = ws_mgr.create_run_dir(
-    package_name="com.example.app",
-    version_code=100,
-    input_sha256="abc...",
-    input_path="app.apk",
-    command="custom_task",
-    config={"flag": True},
-    tool_versions={"morphe": "1.18.0"},
-)
-
-# Safe ephemeral workspace context manager
-with ws_mgr.ephemeral_run(
-    package_name="com.example.app",
-    version_code=100,
-    input_sha256="abc...",
-    input_path="app.apk",
-    command="task",
-    config={},
-    tool_versions={},
-    keep_workspace=False,
-) as temp_run_dir:
-    # Process files inside temp_run_dir; deleted automatically on exit
-    pass
-```
+There is no supported Python API. The CLI is the stable contract; Rust modules
+(`tools.rs`, `workspace.rs`, `process.rs`) back the commands above and are covered by
+`cargo test --locked --manifest-path tools/apk-lab/Cargo.toml`.

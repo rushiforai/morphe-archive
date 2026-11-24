@@ -19,15 +19,15 @@ private const val NAVIGATION_VIEW_MODEL = "Lcom/groundspeak/geocaching/intro/nav
 private const val MAP_TYPE = "Lcom/groundspeak/geocaching/intro/map/type/MapType;"
 private const val MAP_TYPE_SELECTION_FRAGMENT = "Lcom/groundspeak/geocaching/intro/map/type/MapTypeSelectionFragment;"
 private const val ORIGINAL_STYLE_URL = "https://maptiles.geocaching.com/vector/style.json"
-private const val FTUE_SUGGESTION_FLOW_STATE = "Li14;"
+private const val FTUE_SUGGESTION_FLOW_STATE = "Lm64;"
 private const val FTUE_NAMESPACE_STRING = "FtueSuggestionFlowState.NAMESPACE"
 private const val ONBOARDING_MAP_ACTIVITY = "Lcom/groundspeak/geocaching/intro/onboarding/OnboardingMapActivity;"
 private const val MAIN_ACTIVITY = "Lcom/groundspeak/geocaching/intro/main/MainActivity;"
 private const val OSM_STYLE_BRIDGE = "Lapp/aidan/extension/geocaching/OsmStyleBridge;"
 private const val GOOGLE_MAP_FRAGMENT = "Lcom/groundspeak/geocaching/intro/mainmap/map/GoogleMapFragment;"
 private const val MAP_LIBRE_FRAGMENT = "Lcom/groundspeak/geocaching/intro/mainmap/map/MapLibreFragment;"
-private const val USER_MAP_PREFS = "Lk4c;"
-private const val MAP_SLIVER_VIEW = "Ly07;"
+private const val USER_MAP_PREFS = "Lcom/groundspeak/geocaching/intro/sharedprefs/a;"
+private const val MAP_SLIVER_VIEW = "Lva7;"
 private const val NAVIGATION_MAP_ACTIVITY = "Lcom/groundspeak/geocaching/intro/navigationmap/NavigationMapActivity;"
 private const val NAVIGATION_MAP_ACTIVITY_SETUP_MAP = "Lcom/groundspeak/geocaching/intro/navigationmap/NavigationMapActivity\$setUpMap\$2;"
 
@@ -128,7 +128,7 @@ val openStreetMapPatch = compositeFeaturePatch(
         // 7. Rewire MapTypeSelectionFragment to handle style selection via OsmStyleBridge
         patchMapTypeSelectionFragment()
 
-        // 7b. Rewire MapLibreFragment's experimental bottom sheet style callback (ky6) to OsmStyleBridge
+        // 7b. Rewire MapLibreFragment's experimental bottom sheet style callback (t77) to OsmStyleBridge
         patchMapLibreSheetStyleSelection()
 
         // 8. Prevent MapLibreFragment listener from redirecting to GoogleMap on non-Trails selection
@@ -143,10 +143,9 @@ val openStreetMapPatch = compositeFeaturePatch(
         // 11. Remove green Premium badge from Bright style (MapType.M / TRAILS)
         patchMapTypeFree()
 
-        // 12. Enable Better Events toggle on the map screen (BETTER_EVENTS_MAP flag)
-        patchBetterEventsMapFlag()
+        // 12. Better Events map toggle is unconditional in 10.24.0 (BETTER_EVENTS_MAP flag removed)
 
-        // 13. Force details overview map (Ly07) to use MapLibre unconditionally
+        // 13. Force details overview map (Lva7) to use MapLibre unconditionally
         patchDetailsOverviewMap()
 
         // 14. Force NavigationMapActivity to always display MapLibre and suppress GoogleMap setup
@@ -235,7 +234,7 @@ private fun BytecodePatchContext.patchDynamicStyleUrls() {
 }
 
 /**
- * In FtueSuggestionFlowState (i14), forces d()Z and e()Z to always return false.
+ * In FtueSuggestionFlowState (m64), forces d()Z and e()Z to always return false.
  * This prevents MainActivity from intercepting cold start and redirecting to OnboardingMapActivity.
  */
 private fun BytecodePatchContext.patchFtueSuggestionFlowState() {
@@ -335,73 +334,78 @@ private fun BytecodePatchContext.patchMainActivitySuggestionBypass() {
 }
 
 /**
- * Rewires MapTypeSelectionFragment.z to invoke OsmStyleBridge.onStyleSelected(this, mapTypeId)
+ * Rewires MapTypeSelectionFragment.A to invoke OsmStyleBridge.onStyleSelected(this, mapTypeId)
  * whenever a map style is selected, bypassing Premium upsells and updating the style immediately.
  */
 private fun BytecodePatchContext.patchMapTypeSelectionFragment() {
     val fragmentClass = mutableClassDefByOrNull(MAP_TYPE_SELECTION_FRAGMENT)
         ?: throw PatchException("Class $MAP_TYPE_SELECTION_FRAGMENT not found")
 
-    val zMethod = fragmentClass.methods.firstOrNull { it.name == "z" && it.implementation != null }
-        ?: throw PatchException("Method z not found in $MAP_TYPE_SELECTION_FRAGMENT")
+    val aMethod = fragmentClass.methods.firstOrNull { it.name == "A" && it.implementation != null }
+        ?: throw PatchException("Method A not found in $MAP_TYPE_SELECTION_FRAGMENT")
 
-    val impl = zMethod.implementation ?: throw PatchException("Missing implementation in $MAP_TYPE_SELECTION_FRAGMENT.z")
+    val impl = aMethod.implementation ?: throw PatchException("Missing implementation in $MAP_TYPE_SELECTION_FRAGMENT.A")
     val instructions = impl.instructions.toList()
 
-    // Find instance-of check for l07 (MapType click)
-    val l07Index = instructions.indexOfFirst { inst ->
-        inst.opcode == Opcode.INSTANCE_OF && (inst as? ReferenceInstruction)?.reference?.toString()?.contains("l07") == true
+    // Find instance-of check for ga7 (MapType click)
+    val ga7Index = instructions.indexOfFirst { inst ->
+        inst.opcode == Opcode.INSTANCE_OF &&
+            (inst as? ReferenceInstruction)?.reference?.toString() == "Lga7;"
     }
-    if (l07Index >= 0) {
+    if (ga7Index >= 0) {
         val targetBlock = """
-            check-cast p1, Ll07;
-            iget-object v0, p1, Ll07;->a:$MAP_TYPE
-            iget v0, v0, $MAP_TYPE->A:I
+            check-cast p1, Lga7;
+            iget-object v0, p1, Lga7;->a:$MAP_TYPE
+            iget-byte v0, v0, $MAP_TYPE->A:B
             invoke-static {p0, v0}, $OSM_STYLE_BRIDGE->onStyleSelected(Ljava/lang/Object;I)V
             return-void
         """.trimIndent()
-        zMethod.addInstructions(l07Index + 2, targetBlock)
+        aMethod.addInstructions(ga7Index + 2, targetBlock)
     }
 }
 
 /**
- * Rewires MapLibreFragment's map settings bottom sheet callback (ky6, case 6) — used when
+ * Rewires MapLibreFragment's map settings bottom sheet callback (t77) — used when
  * Experimental "Adjustable Highly Favorited" is enabled — to invoke
  * OsmStyleBridge.onStyleSelected(fragment, mapTypeId) instead of navigating back to Google Maps.
  */
 private fun BytecodePatchContext.patchMapLibreSheetStyleSelection() {
-    val ky6Class = mutableClassDefByOrNull("Lky6;")
-        ?: throw PatchException("Class Lky6; not found")
-    val invokeMethod = ky6Class.methods.firstOrNull { it.name == "invoke" && it.implementation != null }
-        ?: throw PatchException("Method invoke not found in Lky6;")
+    val t77Class = mutableClassDefByOrNull("Lt77;")
+        ?: throw PatchException("Class Lt77; not found")
+    val invokeMethod = t77Class.methods.firstOrNull { it.name == "invoke" && it.implementation != null }
+        ?: throw PatchException("Method invoke not found in Lt77;")
 
     val instructions = invokeMethod.implementation?.instructions?.toList() ?: emptyList()
     for ((index, inst) in instructions.withIndex()) {
         if (inst.opcode == Opcode.INVOKE_STATIC &&
-            (inst as? ReferenceInstruction)?.reference?.toString() == "Lw05;->G($MAP_TYPE)Z"
+            (inst as? ReferenceInstruction)?.reference?.toString() == "Lf56;->C($MAP_TYPE)Z"
         ) {
+            // t77.invoke reassigns p0 to the captured MapLibreFragment at method entry and
+            // check-casts p1 to MapType in this switch branch, so both parameters are already
+            // typed for the bridge call. Re-reading t77.B here would read the field off the
+            // fragment and fail DEX verification.
             invokeMethod.addInstructions(
                 index,
                 """
-                    iget v0, p1, $MAP_TYPE->A:I
+                    iget-byte v0, p1, $MAP_TYPE->A:B
                     invoke-static {p0, v0}, $OSM_STYLE_BRIDGE->onStyleSelected(Ljava/lang/Object;I)V
-                    sget-object p0, Lszb;->a:Lszb;
+                    sget-object p0, Lkec;->a:Lkec;
                     return-object p0
                 """.trimIndent()
             )
             return
         }
     }
-    throw PatchException("Could not find Lw05;->G($MAP_TYPE)Z in Lky6;.invoke")
+    throw PatchException("Could not find Lf56;->C($MAP_TYPE)Z in Lt77;.invoke")
 }
 
 /**
- * Patches MapLibreFragment's fragment result listener (hy6) to prevent it from navigating
+ * Patches MapLibreFragment's fragment result listener (r77) to prevent it from navigating
  * back to Google Maps when any map style is selected.
  */
 private fun BytecodePatchContext.patchMapLibreFragmentResultListener() {
-    val hy6Class = mutableClassDefByOrNull("Lhy6;") ?: return
-    val invokeMethod = hy6Class.methods.firstOrNull { it.name == "invoke" && it.implementation != null } ?: return
+    val r77Class = mutableClassDefByOrNull("Lr77;") ?: return
+    val invokeMethod = r77Class.methods.firstOrNull { it.name == "invoke" && it.implementation != null } ?: return
 
     val instructions = invokeMethod.implementation?.instructions?.toList() ?: emptyList()
 
@@ -425,40 +429,7 @@ private fun BytecodePatchContext.patchMapLibreFragmentResultListener() {
 }
 
 /**
- * Enables Better Events on the map screen (LaunchDarkly BETTER_EVENTS_MAP = O)
- * so the Event Dates option appears on the Map settings sheet.
- */
-private fun BytecodePatchContext.patchBetterEventsMapFlag() {
-    for (className in listOf("Lle7;", "Lr07;")) {
-        val targetClass = mutableClassDefByOrNull(className)
-            ?: throw PatchException("Class $className not found")
-        var patched = false
-        for (method in targetClass.methods) {
-            val insts = method.implementation?.instructions?.toList() ?: continue
-            for ((index, inst) in insts.withIndex()) {
-                if (inst.opcode == Opcode.SGET_OBJECT &&
-                    (inst as? ReferenceInstruction)?.reference?.toString()?.contains("LaunchDarklyFlag;->O") == true
-                ) {
-                    val next = insts.getOrNull(index + 2)
-                    if (next is OneRegisterInstruction && next.opcode == Opcode.MOVE_RESULT) {
-                        val reg = next.registerA
-                        val constInsn = if (reg < 16) "const/4 v$reg, 0x1" else "const/16 v$reg, 0x1"
-                        method.addInstructions(index + 3, constInsn)
-                        patched = true
-                        break
-                    }
-                }
-            }
-            if (patched) break
-        }
-        if (!patched) {
-            throw PatchException("Could not find LaunchDarklyFlag.O check in $className")
-        }
-    }
-}
-
-/**
- * In MapLibreFragment.onResume, forces the k4c.e() result to MapType.M (TRAILS),
+ * In MapLibreFragment.onResume, forces the sharedprefs.a.f() result to MapType.M (TRAILS),
  * preventing it from ever navigating to Google Maps (0x7f0a0567).
  */
 private fun BytecodePatchContext.patchMapLibreFragmentOnResume() {
@@ -470,7 +441,7 @@ private fun BytecodePatchContext.patchMapLibreFragmentOnResume() {
     for ((index, instruction) in instructions.withIndex()) {
         if (instruction is ReferenceInstruction) {
             val methodRef = instruction.reference as? MethodReference
-            if (methodRef?.name == "e" && methodRef.definingClass == USER_MAP_PREFS) {
+            if (methodRef?.name == "f" && methodRef.definingClass == USER_MAP_PREFS) {
                 val next = instructions.getOrNull(index + 1)
                 if (next is OneRegisterInstruction && next.opcode == Opcode.MOVE_RESULT_OBJECT) {
                     val reg = next.registerA
@@ -488,7 +459,7 @@ private fun BytecodePatchContext.patchMapLibreFragmentOnResume() {
 }
 
 /**
- * In GoogleMapFragment.onResume, forces the k4c.e() result to MapType.M (TRAILS),
+ * In GoogleMapFragment.onResume, forces the sharedprefs.a.f() result to MapType.M (TRAILS),
  * ensuring that if GoogleMapFragment is ever opened, it immediately navigates to MapLibre (0x7f0a0579).
  */
 private fun BytecodePatchContext.patchGoogleMapFragmentOnResume() {
@@ -500,7 +471,7 @@ private fun BytecodePatchContext.patchGoogleMapFragmentOnResume() {
     for ((index, instruction) in instructions.withIndex()) {
         if (instruction is ReferenceInstruction) {
             val methodRef = instruction.reference as? MethodReference
-            if (methodRef?.name == "e" && methodRef.definingClass == USER_MAP_PREFS) {
+            if (methodRef?.name == "f" && methodRef.definingClass == USER_MAP_PREFS) {
                 val next = instructions.getOrNull(index + 1)
                 if (next is OneRegisterInstruction && next.opcode == Opcode.MOVE_RESULT_OBJECT) {
                     val reg = next.registerA
@@ -537,18 +508,18 @@ private fun BytecodePatchContext.patchMapTypeFree() {
 }
 
 /**
- * In details overview map (Ly07.g), forces the map type check to always succeed
- * and routes directly to h() (MapLibre overview map) rather than Google Maps f().
+ * In details overview map (Lva7.d), forces the map type check to always succeed
+ * and routes directly to e() (MapLibre overview map) rather than Google Maps c().
  */
 private fun BytecodePatchContext.patchDetailsOverviewMap() {
     val sliverClass = mutableClassDefByOrNull(MAP_SLIVER_VIEW)
         ?: throw PatchException("Class $MAP_SLIVER_VIEW not found")
 
-    val gMethod = sliverClass.methods.firstOrNull {
-        it.name == "g" && it.implementation != null
-    } ?: throw PatchException("Method g not found in $MAP_SLIVER_VIEW")
+    val dMethod = sliverClass.methods.firstOrNull {
+        it.name == "d" && it.implementation != null
+    } ?: throw PatchException("Method d not found in $MAP_SLIVER_VIEW")
 
-    val instructions = gMethod.implementation?.instructions?.toList() ?: emptyList()
+    val instructions = dMethod.implementation?.instructions?.toList() ?: emptyList()
     for ((index, instruction) in instructions.withIndex()) {
         if (instruction is ReferenceInstruction) {
             val methodRef = instruction.reference as? MethodReference
@@ -556,7 +527,7 @@ private fun BytecodePatchContext.patchDetailsOverviewMap() {
                 val moveResult = instructions.getOrNull(index + 1)
                 if (moveResult is OneRegisterInstruction) {
                     val reg = moveResult.registerA
-                    gMethod.addInstructions(
+                    dMethod.addInstructions(
                         index + 2,
                         """
                             const/4 v$reg, 0x1
@@ -605,7 +576,7 @@ private fun BytecodePatchContext.patchNavigationMapActivity() {
                     """
                         const/4 v1, 0x1
                         invoke-virtual {p0, v1}, $NAVIGATION_MAP_ACTIVITY->L(Z)V
-                        sget-object p0, Lszb;->a:Lszb;
+                        sget-object p0, Lkec;->a:Lkec;
                         return-object p0
                     """.trimIndent()
                 )

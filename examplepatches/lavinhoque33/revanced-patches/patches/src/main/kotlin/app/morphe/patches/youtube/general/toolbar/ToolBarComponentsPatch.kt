@@ -9,7 +9,7 @@
  * - inotia00 (https://github.com/inotia00)
  *
  * Licensed under the GNU General Public License v3.0.
- * Modified by lavinhoque33, 2026-11-20.
+ * Modified by lavinhoque33, 2026-11-23.
  *
  * ------------------------------------------------------------------------
  * GPLv3 Section 7 – Additional Terms & Attribution Requirements
@@ -75,7 +75,6 @@ import app.morphe.patches.shared.misc.fix.proto.fixProtoLibraryPatch
 import app.morphe.patches.shared.misc.fix.proto.immutableMethodRef
 import app.morphe.patches.shared.misc.fix.proto.mutableCopyMethodRef
 import app.morphe.patches.shared.misc.fix.proto.parseByteArrayMethodRef
-import app.morphe.patches.youtube.utils.castbutton.castButtonPatch
 import app.morphe.patches.youtube.utils.castbutton.hookToolBarCastButton
 import app.morphe.patches.youtube.utils.compatibility.Constants.COMPATIBILITY_YOUTUBE
 import app.morphe.patches.youtube.utils.extension.Constants.GENERAL_CLASS_DESCRIPTOR
@@ -213,7 +212,6 @@ val toolBarComponentsPatch = bytecodePatch(
     compatibleWith(COMPATIBILITY_YOUTUBE)
 
     dependsOn(
-        castButtonPatch,
         fixProtoLibraryPatch,
         playerTypeHookPatch,
         resourceMappingPatch,
@@ -296,11 +294,9 @@ val toolBarComponentsPatch = bytecodePatch(
 
         // endregion
 
-        // region patch for hide cast button
-
-        hookToolBarCastButton()
-
-        // endregion
+        if (hookToolBarCastButton()) {
+            settingArray += "SETTINGS: HIDE_TOOLBAR_COMPANION"
+        }
 
         // region patch for hide create button
 

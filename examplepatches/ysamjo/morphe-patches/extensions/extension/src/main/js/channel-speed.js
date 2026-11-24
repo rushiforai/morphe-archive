@@ -6,7 +6,7 @@
 }(typeof window !== 'undefined' ? window : null, function () {
     'use strict';
     var KEY = 'ysamjo-tv-channel-speeds';
-    var SETTINGS_VERSION = 4;
+    var SETTINGS_VERSION = 5;
     var RTL_SPORT = { id: 'UC8WYi3XQXsf-6FNvqoEvxag', handle: '@RTLSport', name: 'RTL Sport', speed: 1 };
     var DEFAULT_CHANNELS = [
         { id: 'UCE0RhriywrL8XhXbo87tMKQ', handle: '@sportstudio', name: 'sportstudio', speed: 1 },
@@ -31,7 +31,37 @@
         { id: 'UCB_qr75-ydFVKSF9Dmo6izg', handle: '@formula1', name: 'Formula 1', speed: 1 },
         { id: 'UC6UL29enLNe4mqwTfAyeNuw', handle: '@bundesliga', name: 'Bundesliga', speed: 1 },
         { id: 'UCfMo0xj-sbdzHuzxvKdu1hw', handle: '@dfb', name: 'DFB', speed: 1 },
-        { id: 'UCyGa1YEx9ST66rYrJTGIKOw', handle: '@uefa', name: 'UEFA', speed: 1 }
+        { id: 'UCyGa1YEx9ST66rYrJTGIKOw', handle: '@uefa', name: 'UEFA', speed: 1 },
+        { id: 'UC88p9kEf5mpvTeqmKU1_ENQ', handle: '@hbl', name: 'HBL', speed: 1 },
+        { id: 'UCg4YgrMEO4Y5hg9FJce6Jag', handle: '@basketballbundesliga', name: 'easyCredit Basketball Bundesliga', speed: 1 },
+        { id: 'UCvXPupYUxWt5KeFgK1z0e3A', handle: '@pennydel', name: 'PENNY DEL', speed: 1 },
+        { id: 'UC-7qscJH_SncZvCm9Ty014Q', handle: '@servustv', name: 'ServusTV On', speed: 1 },
+        { id: 'UCRvCwDp_1DwOlOpnlJf9iYw', handle: '@officialpdc', name: 'Professional Darts Corporation', speed: 1 },
+        { id: 'UCG5qGWdu8nIRZqJ_GgDwQ-w', handle: '@premierleague', name: 'Premier League', speed: 1 },
+        { id: 'UCTv-XvfzLX3i4IGWAm4sbmA', handle: '@laliga', name: 'LALIGA EA SPORTS', speed: 1 },
+        { id: 'UCBJeMCIeLQos7wacox4hmLQ', handle: '@seriea', name: 'Serie A', speed: 1 },
+        { id: 'UCQsH5XtIc9hONE1BQjucM0g', handle: '@ligue1', name: 'Ligue 1', speed: 1 },
+        { id: 'UCTU_wC79Dgi9rh4e9-baTqA', handle: '@skysports', name: 'Sky Sports', speed: 1 },
+        { id: 'UClhp9g6TPiqCTOlcw0ROfNg', handle: '@tntsports', name: 'TNT Sports', speed: 1 },
+        { id: 'UCiWLfSweyRNmLpgEHekhoAg', handle: '@espn', name: 'ESPN', speed: 1 },
+        { id: 'UCpcTrCXblq78GZrTUTLWeBw', handle: '@fifa', name: 'FIFA', speed: 1 },
+        { id: 'UCTl3QQTvqHFjurroKxexy2Q', handle: '@olympics', name: 'Olympic Games', speed: 1 },
+        { id: 'UCvFDH2FJfTn1Fqaz2gUYWVg', handle: '@teamdeutschland', name: 'Team Deutschland', speed: 1 },
+        { id: 'UCY_5h5zaSwN7Or4kIJDYNXA', handle: '@atptour', name: 'ATP Tour', speed: 1 },
+        { id: 'UCNa8NxMgSm7m4Ii9d4QGk1Q', handle: '@wimbledon', name: 'Wimbledon', speed: 1 },
+        { id: 'UCXbboag48Qlr78zzz6SkzkQ', handle: '@usopen', name: 'US Open Tennis Championships', speed: 1 },
+        { id: 'UCF3K1Jf8hjFW8qliei8fQ3A', handle: '@rolandgarros', name: 'Roland-Garros', speed: 1 },
+        { id: 'UCeTKJSW1NTAkf27nNmjWt5A', handle: '@australianopen', name: 'Australian Open', speed: 1 },
+        { id: 'UCoLrcjPV5PbUrUyXq5mjc_A', handle: '@mlb', name: 'MLB', speed: 1 },
+        { id: 'UCqFMzb-4AUf6WAIbl132QKA', handle: '@nhl', name: 'NHL', speed: 1 },
+        { id: 'UCvgfXK4nTYKudb0rFR6noLA', handle: '@ufc', name: 'UFC', speed: 1 },
+        { id: 'UCuN9hYw2RpoAW8rZ3VK3isA', handle: '@nascar', name: 'NASCAR', speed: 1 },
+        { id: 'UCy1F61QvUUQXAXi2Voa_fUw', handle: '@indycar', name: 'NTT INDYCAR SERIES', speed: 1 },
+        { id: 'UC5G6kTnHXDz0WIBC2VGBOqg', handle: '@wrc', name: 'FIA World Rally Championship', speed: 1 },
+        { id: 'UCSpycUnuU0IVF7gGIhGojhg', handle: '@letourdefrance', name: 'Tour de France', speed: 1 },
+        { id: 'UCe10BxbsFg9Kbmkg-ean_Dg', handle: '@giroditalia', name: 'Giro d\'Italia', speed: 1 },
+        { id: 'UCgl60be0ucr6WdpHqG6EA7A', handle: '@sportbuzzer', name: 'Sportbuzzer', speed: 1 },
+        { id: 'UCRfs7Y0wWMjl4pmdvEQgjVA', handle: '@transfermarkt', name: 'Transfermarkt', speed: 1 }
     ];
     function copy(value) { return JSON.parse(JSON.stringify(value)); }
     // Regelsätze, die unveränderte Installationen bis Version 3 gespeichert hatten.
@@ -52,6 +82,31 @@
             { id: RTL_SPORT.id, speed: 1 },
             { id: 'UCDVYQ4Zhbm3S2dlz7P1GBDg', speed: 1 },
             { id: 'UCWJ2lWNubArHWmf3FIHbfcQ', speed: 1 }
+        ],
+        [
+            { id: 'UCE0RhriywrL8XhXbo87tMKQ', speed: 1 },
+            { id: 'UCRFsyeKu07-LnHDG44O6uCA', speed: 1 },
+            { id: 'UCAvNr5DMVncoJnJAotXOjOQ', speed: 1 },
+            { id: 'UCuOwl-VgqBHOzR8hWnonBcA', speed: 1 },
+            { id: 'UC5dCegXiWjE57wKrhWnCo0g', speed: 1 },
+            { id: 'UC_VsQmcsFWUhGn3DTwiO8bg', speed: 1 },
+            { id: 'UCdi3n18zcIZeTk_x9qvSgZw', speed: 1 },
+            { id: 'UC-XArLCeEw91r9gmaDi-Ajw', speed: 1 },
+            { id: 'UClBFnQJMlinWDCvfSXj60CA', speed: 1 },
+            { id: 'UC8WYi3XQXsf-6FNvqoEvxag', speed: 1 },
+            { id: 'UCK2izXoHvraUFaPMU5B7vMQ', speed: 1 },
+            { id: 'UCk452F_ypT9Q8b1S38-Ok8A', speed: 1 },
+            { id: 'UCPj_Vtw0hKnhJapQuATBUrA', speed: 1 },
+            { id: 'UCiMAc_TN1kSO3ErMtxUXfMA', speed: 1 },
+            { id: 'UCQEHrmmI8kKJ6kAiQdQUjgg', speed: 1 },
+            { id: 'UChr7ZXDFiPOEl543HM4Aj8g', speed: 1 },
+            { id: 'UCDVYQ4Zhbm3S2dlz7P1GBDg', speed: 1 },
+            { id: 'UCWJ2lWNubArHWmf3FIHbfcQ', speed: 1 },
+            { id: 'UC8pYaQzbBBXg9GIOHRvTmDQ', speed: 1 },
+            { id: 'UCB_qr75-ydFVKSF9Dmo6izg', speed: 1 },
+            { id: 'UC6UL29enLNe4mqwTfAyeNuw', speed: 1 },
+            { id: 'UCfMo0xj-sbdzHuzxvKdu1hw', speed: 1 },
+            { id: 'UCyGa1YEx9ST66rYrJTGIKOw', speed: 1 }
         ]
     ];
     function isLegacyDefault(channels) {
@@ -81,7 +136,7 @@
             if (globalSpeed === 1 && validSpeed(nativeConfig.videoSpeed) !== null) globalSpeed = Number(nativeConfig.videoSpeed);
         }
         // Unveränderte Altinstallationen erhalten den erweiterten Sport-Kanalsatz; eigene Regeln bleiben unangetastet.
-        if (saved && version < 4 && isLegacyDefault(channels)) channels = copy(DEFAULT_CHANNELS);
+        if (saved && version < 5 && isLegacyDefault(channels)) channels = copy(DEFAULT_CHANNELS);
         return { version: SETTINGS_VERSION, globalSpeed: globalSpeed, kidsNormalSpeed: !saved || saved.kidsNormalSpeed !== false, channels: channels };
     }
 

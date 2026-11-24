@@ -67,7 +67,7 @@ Export settings	Exportar configuración
 Facebook crashed or froze within a minute of starting three times in a row, so Hushfacebook paused itself.	Tres veces seguidas, Facebook falló o se congeló durante el primer minuto tras iniciarse, así que Hushfacebook se pausó solo.
 Facebook no longer downloads ads, or the data it uses to pick them, in the background.	Facebook ya no descarga en segundo plano anuncios ni los datos que usa para elegirlos.
 Facebook doesn't show its ads inside other apps on this phone.	Facebook no muestra sus anuncios dentro de otras apps de este teléfono.
-Dark mode and this screen use colors from your wallpaper (blue on Android 11). Turn on dark mode in Facebook to see it.	El modo oscuro y esta pantalla usan colores de tu fondo de pantalla (azul en Android 11). Activa el modo oscuro en Facebook para verlo.
+Dark mode and this screen use colors from your wallpaper (blue on Android 11). Turn it off to go back to the old colors without patching again. Restart Facebook to see the change.	El modo oscuro y esta pantalla usan colores de tu fondo de pantalla (azul en Android 11). Desactívalo para volver a los colores de antes sin volver a parchear. Reinicia Facebook para ver el cambio.
 Hide Stories between posts	Ocultar historias entre publicaciones
 Joining the picture and sound	Uniendo la imagen y el sonido
 # context: summary of the Pause Hushfacebook switch; Debug logging and Lock Facebook are the two switches a pause leaves working
@@ -310,7 +310,7 @@ The Follow button next to the reel's author. You can still follow them from thei
 Hide comment and reaction previews	Ocultar las vistas previas de comentarios y reacciones
 The comment Facebook previews under a reel and the bubbles of friends who reacted. Open the comments to see them all.	El comentario que Facebook muestra como vista previa debajo de un reel y las burbujas de los amigos que reaccionaron. Abre los comentarios para verlos todos.
 Hide Threads cards between reels	Ocultar las tarjetas de Threads entre reels
-Hides the "Threads you might like" card between reels. Off by default, since it hasn't been tried on a real account yet.	Oculta la tarjeta «Threads que quizá te gusten» entre reels. Apagado por defecto, porque aún no se ha probado en una cuenta real.
+Hides the "Threads you might like" card and other Meta promotions between reels. Off by default, since it hasn't been tried on a real account yet.	Oculta la tarjeta «Threads que quizá te gusten» y otras promociones de Meta entre reels. Apagado por defecto, porque aún no se ha probado en una cuenta real.
 Hide post cards between reels	Ocultar las tarjetas de publicaciones entre reels
 Hides the carousels of posts Facebook puts between reels, like "Catch up on conversations" from your groups. Off by default.	Oculta los carruseles de publicaciones que Facebook pone entre reels, como «Ponte al día con las conversaciones» de tus grupos. Apagado por defecto.
 Only reels from accounts I follow	Solo reels de cuentas que sigo
@@ -590,6 +590,7 @@ Hide Repost under posts	Ocultar Republicar debajo de las publicaciones
 Hide Share under posts	Ocultar Compartir debajo de las publicaciones
 # context: switch title under News feed; Send is Facebook's own button under a post that sends it in a chat
 Hide Send under posts	Ocultar Enviar debajo de las publicaciones
+Hide Save under posts	Ocultar Guardar debajo de las publicaciones
 # context: summary shared by those five switches
 Takes this button out of the row under posts in the feed. The other buttons stay, and a post with all of its buttons hidden shows no row.	Quita este botón de la fila debajo de las publicaciones del feed. Los demás botones se quedan, y una publicación con todos sus botones ocultos no muestra la fila.
 # context: switch title under News feed; the buttons are Like, Comment, Share and the others in the row under a post
@@ -1084,6 +1085,11 @@ Fold long posts will fold posts where Facebook does.	Contraer publicaciones larg
 Fold long posts will show %1$s before See more.	Contraer publicaciones largas mostrará %1$s antes de Ver más.
 Fold long comments will fold comments where Facebook does.	Contraer comentarios largos contraerá los comentarios donde lo hace Facebook.
 Fold long comments will show %1$s before See more.	Contraer comentarios largos mostrará %1$s antes de Ver más.
+Fold reel captions	Contraer descripciones de reels
+Long reel captions fold where Facebook folds them.	Las descripciones largas de reels se contraen donde lo decide Facebook.
+A long reel caption shows %1$s before more.	Una descripción larga de reel muestra %1$s antes de más.
+Fold reel captions will fold captions where Facebook does.	Contraer descripciones de reels contraerá las descripciones donde lo hace Facebook.
+Fold reel captions will show %1$s before more.	Contraer descripciones de reels mostrará %1$s antes de más.
 Show full reel captions	Mostrar las descripciones completas de los reels
 Long captions on reels show all of their text right away. Tap the caption to fold it back. A change shows from the next reel.	Las descripciones largas de los reels muestran todo su texto desde el principio. Toca la descripción para volver a contraerla. El cambio se aplica desde el siguiente reel.
 # context: switch title under Reels and Watch, below Show full reel captions; once a reel's caption is opened, a dark see-through box sits behind its text, like movie subtitles
@@ -1095,7 +1101,7 @@ A folded reel caption, the short one with more at the end, sits on the same dark
 # context: switch title under Reels and Watch, below the caption boxes; the name of who posted a reel, at its bottom, gets the same dark see-through box
 Dark box behind reel names	Fondo oscuro detrás de los nombres de reels
 # context: summary of that switch
-The name at the bottom of a reel sits on the same dark box, so it's easy to read over a bright video. A change shows from the next reel.	El nombre en la parte inferior de un reel aparece sobre el mismo recuadro oscuro, para que se lea bien sobre un video brillante. El cambio se aplica desde el siguiente reel.
+The name at the bottom of a reel, with the date and details under it, sits on the same dark box, so it's easy to read over a bright video. A change shows from the next reel.	El nombre en la parte inferior de un reel, con la fecha y los detalles debajo, aparece sobre el mismo recuadro oscuro, para que se lea bien sobre un video brillante. El cambio se aplica desde el siguiente reel.
 # context: row title under Reels and Watch and its dialog title; how dark every box behind captions and names is, as a percent of black
 Box darkness	Oscuridad de los recuadros
 # context: the message in that row's dialog; %1$s and %2$s are the lowest and highest percent, %3$s the percent a blank row gives
@@ -1458,7 +1464,7 @@ Adds an eye button to the top of each story while you view anonymously. Tap it t
 # context: what TalkBack reads for the eye button over a story while that story is still hidden from its viewer list
 Mark as seen	Marcar como vista
 # context: what TalkBack reads for the eye button once the story is marked and waiting to be sent; a second tap takes the mark back
-Marked as seen. Tap again to undo.	Marcada como vista. Toca de nuevo para deshacer.
+Marked as seen	Marcada como vista
 # context: what TalkBack reads for the eye button once the marked story was sent as seen
 Marked as seen and sent	Marcada como vista y enviada
 # context: the word lists' dialogs, after their first paragraph: a line between slashes is a regular expression; %1$d is how many a list holds, %2$d the most characters each
@@ -1860,7 +1866,7 @@ Shows a small button at the left edge of a reel or video that has the window rea
 # context: switch title under Playback; on, a video you started keeps its sound after you leave Facebook; also the label of a headphones button in the picture-in-picture window
 Keep playing in the background	Seguir reproduciendo en segundo plano
 Next reel in the background	Siguiente reel en segundo plano
-When a reel playing in the background ends, the next reel plays instead of the same one again. It goes through the reels Reels had loaded when you left. Works with Keep playing in the background on.	Cuando termina un reel que se reproduce en segundo plano, se reproduce el siguiente en lugar del mismo otra vez. Recorre los reels que Reels tenía cargados cuando saliste. Funciona con Seguir reproduciendo en segundo plano activado.
+When a reel playing in the background ends, the next reel plays instead of the same one again, and Reels keeps loading more as it goes. Works with Keep playing in the background on.	Cuando termina un reel que se reproduce en segundo plano, se reproduce el siguiente en lugar del mismo otra vez, y Reels sigue cargando más mientras tanto. Funciona con Seguir reproduciendo en segundo plano activado.
 # context: summary of that switch; the notification is the one Facebook shows with the video's play and pause buttons
 A video you started with a tap, or a reel you swiped to in Reels, keeps its sound after you leave Facebook, and its notification can pause it. Swiping the notification away or taking a call stops it.	Un video que iniciaste con un toque, o un reel al que llegaste deslizando en Reels, sigue sonando cuando sales de Facebook, y su notificación permite pausarlo. Deslizar la notificación o atender una llamada lo detiene.
 # context: title of that notification when the video has none of its own
@@ -2098,6 +2104,10 @@ A video you open from Saved goes on to the next one in Saved when it ends or whe
 Stay on a saved video when it ends	Quedarse en un video guardado cuando termina
 # context: summary of that switch
 A saved video that ends stays on screen instead of opening the next one. Swipe up when you want the next.	Un video guardado que termina se queda en pantalla en lugar de abrir el siguiente. Desliza hacia arriba cuando quieras el siguiente.
+# context: switch title under Play saved videos in a row; on, a saved post the row reaches stays on screen instead of being skipped, and a swipe past its end moves on
+Show saved posts in the row	Mostrar publicaciones guardadas en la fila
+# context: summary of that switch
+A saved post in the row stays on screen instead of being skipped. Swipe up past its end for the next saved video, or down past its top for the one before.	Una publicación guardada en la fila se queda en pantalla en vez de saltarse. Desliza hacia arriba al final para el siguiente video guardado, o hacia abajo al principio para el anterior.
 # context: switch title under Reels and Watch; on, Facebook stops pausing reels and videos to ask "Are you still watching?", which is Facebook's own prompt, so use the wording Facebook shows in this language
 Skip "Are you still watching?"	Omitir «¿Sigues viendo?»
 # context: summary of that switch; reels and videos go on to the next one by themselves
@@ -2418,6 +2428,10 @@ Show Comment when comments are off	Mostrar Comentar cuando los comentarios está
 Show the post date on reels	Mostrar la fecha de publicación en los reels
 Shows when a reel or a video you open full screen was posted, under the name of who posted it. A change shows from the next reel.	Muestra cuándo se publicó un reel o un video que abres en pantalla completa, bajo el nombre de quien lo publicó. El cambio se ve desde el siguiente reel.
 Keeps the Comment button on reels whose comments are turned off, so you can still read the ones already there. A change shows from the next reel.	Mantiene el botón Comentar en los reels con los comentarios desactivados, para que puedas seguir leyendo los que ya hay. El cambio se ve desde el siguiente reel.
+# context: switch title under Reels; on, a long video in the Reels viewer (a film or a live replay) gets Facebook's Like, Comment, Share and Save buttons down its right side, which Facebook leaves off
+Side buttons on long videos	Botones laterales en videos largos
+# context: summary of that switch; Like, Comment, Share and Save are Facebook's own button names
+Brings back Like, Comment, Share and Save down the side of a long video in the Reels viewer, where Facebook leaves them off. A change shows from the next video.	Recupera Me gusta, Comentar, Compartir y Guardar en el lateral de un video largo en el visor de Reels, donde Facebook los quita. El cambio se aplica a partir del siguiente video.
 Select part of a post's text	Seleccionar parte del texto de una publicación
 Holding a post's text opens it in a box where you can select just the part you want and copy that, or copy all of it. The hold itself copies nothing.	Mantener pulsado el texto de una publicación lo abre en un cuadro donde puedes seleccionar solo la parte que quieras y copiarla, o copiarlo todo. Mantenerlo pulsado ya no copia nada por sí solo.
 Hold a feed photo to react	Mantener una foto del feed para reaccionar
@@ -2640,6 +2654,8 @@ After %1$d seconds	Después de %1$d segundos
 # context: Reels: Burn-in guard's switch that keeps the faded buttons faded while you tap
 Stay dim when I tap	Seguir atenuado al tocar
 Once Burn-in guard fades the buttons, they stay faded on Reels whatever you tap or swipe, the next reel too. They still work. Leaving Reels brings them back.	Cuando la Protección contra quemado atenúa los botones, siguen atenuados en Reels toques o deslices lo que sea, también en el siguiente reel. Siguen funcionando. Al salir de Reels vuelven.
+Tap the video to bring them back	Tocar el video para que vuelvan
+Once Burn-in guard fades the buttons, a tap on the video brings them back without pausing it. The next tap pauses as usual.	Cuando la Protección contra quemado atenúa los botones, un toque en el video los hace volver sin pausarlo. El siguiente toque lo pausa como siempre.
 # context: Reels: Burn-in guard's row for how much of the dimmed buttons, caption and bars still shows, a percent typed in
 Dim to	Atenuar al
 How much of the buttons, caption and bars still shows once they dim, in percent, from %1$s to %2$s. Leave it blank for %3$s.	Cuánto se siguen viendo los botones, la descripción y las barras al atenuarse, en porcentaje, de %1$s a %2$s. Déjalo vacío para %3$s.
@@ -2725,6 +2741,10 @@ Hide friends' reactions on photos and videos	Ocultar las reacciones de amigos en
 Takes away the friend's picture with a reaction on it that Facebook puts on a photo or video when a friend reacted. A change shows on the posts drawn after it.	Quita la foto de un amigo con su reacción que Facebook pone sobre una foto o un video cuando un amigo reaccionó. Un cambio se ve en las publicaciones que se carguen después.
 Hide who reacted under posts	Ocultar quién reaccionó en las publicaciones
 Takes away the line under a post that names who reacted, like "Name and others reacted". A change shows on the posts drawn after it.	Quita la línea debajo de una publicación que dice quién reaccionó, como "Nombre y otras personas reaccionaron". Un cambio se ve en las publicaciones que se carguen después.
+# context: switch title under News feed; on, a post whose author turned comments off or limited who can comment keeps Facebook's Comment button, so its comments can still be read
+Show Comment on posts with comments off	Mostrar Comentar en publicaciones con los comentarios desactivados
+# context: summary of that switch; Comment is Facebook's own button name
+Keeps the Comment button on posts whose author turned comments off or limited who can comment, so you can still read the ones already there. A change shows on the posts drawn after it.	Mantiene el botón Comentar en las publicaciones cuyo autor desactivó los comentarios o limitó quién puede comentar, para que puedas seguir leyendo los que ya hay. Un cambio se ve en las publicaciones que se carguen después.
 Hide the Reels title	Ocultar el título Reels
 Takes the word Reels off the top of the Reels tab. The buttons beside it stay.	Quita la palabra Reels de la parte de arriba de la pestaña Reels. Los botones de al lado se quedan.
 Hide Back on opened videos	Ocultar Atrás en los videos abiertos
@@ -2802,12 +2822,16 @@ Shows a thin bar along the bottom of a story that fills as it plays, like the on
 Seek bar on stories	Barra de progreso en historias
 Plain slide between people	Deslizamiento simple entre personas
 Swiping to the next or previous person's stories slides them across instead of turning them like a cube. Applies from your next swipe.	Al deslizar a las historias de la persona siguiente o anterior, se desplazan de lado en lugar de girar como un cubo. Se aplica desde tu próximo deslizamiento.
+Show the time on every story	Mostrar la hora en todas las historias
+Stories that leave out how long ago they were posted, like a Page's, show it next to the name the way a friend's story does. Applies from the next story you open.	Las historias que no indican hace cuánto se publicaron, como las de una página, lo muestran junto al nombre, igual que la historia de un amigo. Se aplica desde la próxima historia que abras.
 Fade the story seek bar	Atenuar la barra de progreso de las historias
 Story position	Posición de la historia
 Shows a bar along the bottom of a video story that you drag to move through it. The story waits while you drag. Progress bar at the bottom makes way for it on video stories.	Muestra una barra en la parte inferior de una historia de video que puedes arrastrar para moverte por ella. La historia espera mientras arrastras. “Barra de progreso abajo” le deja su lugar en las historias de video.
 With Seek bar on stories on, the bar fades a few seconds after the story starts or you last touched it. A touch or a pause brings it back.	Con “Barra de progreso en historias” activado, la barra se atenúa unos segundos después de que empieza la historia o de que la tocas por última vez. Un toque o una pausa la hacen volver.
 Clean mode	Modo limpio
 Clean mode button on reels	Botón de modo limpio en reels
+Faint Clean mode button	Botón de modo limpio tenue
+Facebook's button for leaving Clean mode shows faint, so the text in the video under it stays readable. It still works when you tap it.	El botón de Facebook para salir del modo limpio se ve tenue, así el texto del video que tiene debajo se sigue leyendo. Sigue funcionando al tocarlo.
 Adds a Clean mode button to the buttons down the side of a reel. Tap it to hide them, and Clean mode stays on as you swipe. Facebook's own Clean mode button brings them back.	Añade un botón de modo limpio a los botones del lateral de un reel. Tócalo para ocultarlos, y el modo limpio sigue activo mientras deslizas. El propio botón de modo limpio de Facebook los vuelve a mostrar.
 Open chats in Messenger	Abrir los chats en Messenger
 Opens chats in the Messenger app instead of inside Facebook, the Message button on a profile included, while Messenger is installed and enabled. Without Messenger, chats stay in Facebook. Restart Facebook after changing it.	Abre los chats en la app Messenger en lugar de dentro de Facebook, también desde el botón Mensaje de un perfil, mientras Messenger esté instalado y activado. Sin Messenger, los chats siguen en Facebook. Reinicia Facebook después de cambiarlo.
@@ -3129,7 +3153,7 @@ The time or date under the poster's name is bold, like the name.	La hora o la fe
 Show full names	Mostrar nombres completos
 A long name at the top of a post wraps onto the next line instead of ending in "...". A name that fits still takes one line.	Un nombre largo en la parte superior de una publicación sigue en la línea siguiente en lugar de terminar en "...". Un nombre que cabe sigue ocupando una sola línea.
 Dark box behind feed video names	Recuadro oscuro detrás de los nombres en videos del feed
-When a video in your feed has the poster's name on top of the video, that name sits on the same dark box. A change shows on the posts drawn after it.	Cuando un video de tu feed muestra el nombre de quien publica encima del video, ese nombre aparece sobre el mismo recuadro oscuro. El cambio se ve en las publicaciones que se cargan después.
+When a video in your feed has the poster's name on top of the video, that name and the date under it sit on the same dark box. A change shows on the posts drawn after it.	Cuando un video de tu feed muestra el nombre de quien publica encima del video, ese nombre y la fecha debajo aparecen sobre el mismo recuadro oscuro. El cambio se ve en las publicaciones que se cargan después.
 Quality settings	Configuración de calidad
 Request community note	Solicitar nota de la comunidad
 Something went wrong	Algo salió mal

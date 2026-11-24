@@ -254,6 +254,20 @@ final class LiquidGlassDrawable extends Drawable {
         invalidateSelf();
     }
 
+    /**
+     * Over Reels, iOS's bar is much clearer glass than over the feed: the video shows plainly
+     * through it. The tint eases there and back like any other change.
+     */
+    void setOverMedia(boolean overMedia) {
+        if (this.overMedia == overMedia) return;
+        this.overMedia = overMedia;
+        invalidateSelf();
+    }
+
+    private boolean overMedia;
+    /** Over Reels the Opacity setting is scaled down by this much. */
+    private static final float MEDIA_TINT_SCALE = 0.4f;
+
     void setHostColorHint(Integer color) {
         hostColorHint = color;
     }
@@ -276,8 +290,8 @@ final class LiquidGlassDrawable extends Drawable {
         // Measured from iOS Instagram screenshots: the bar is mostly material, ~86% near black
         // in dark mode and ~85% white in light mode, with what's behind it only showing faintly.
         // The Opacity setting is the base (86% by default).
-        float base = style.opacity;
-        if (backdropLuminance < 0f) return base;
+        float base = style.opacity * (overMedia ? MEDIA_TINT_SCALE : 1f);
+        if (backdropLuminance < 0f || overMedia) return base;
         float extra = dark ? 0.06f * smoothstep(0.45f, 0.85f, backdropLuminance)
                 : 0.05f * (1f - smoothstep(0.22f, 0.62f, backdropLuminance));
         return Math.min(1f, base + extra * (1f - base) / 0.14f);
@@ -386,13 +400,30 @@ final class LiquidGlassDrawable extends Drawable {
         getPill();
         if (pill.width() <= 0 || pill.height() <= 0) return;
         float radius = cornerRadius();
+        if (style.solid) {
+            // Nothing behind the bar is recorded: an opaque pill, then the same glow and rim.
+            if (backdrop != null) {
+                // Let go of the last recording; made again if the glass comes back.
+                backdrop.discardDisplayList();
+                refracted.discardDisplayList();
+                clipped.discardDisplayList();
+                backdrop = refracted = clipped = null;
+                effectsValid = false;
+            }
+            tintPaint.setColor(materialColor(255));
+            canvas.drawRoundRect(pill, radius, radius, tintPaint);
+            drawGlow(canvas, radius);
+            drawRim(canvas, radius);
+            return;
+        }
         stepTint();
 
         boolean glassDrawn = false;
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S && canvas.isHardwareAccelerated()) {
             glassDrawn = drawBackdrop(canvas, radius);
         }
-        if (!glassDrawn || Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU || style.refraction <= 0f) {
+        if (!glassDrawn || Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU || style.refraction <= 0f
+                || style.demoVideoHole) {
             // The shader tints on its own; every other path needs a tint layer.
             int alpha = glassDrawn ? Math.round(255 * Math.min(0.9f, 0.22f + tint)) : (dark ? 0xD9 : 0xD0);
             tintPaint.setColor(materialColor(alpha));
@@ -444,8 +475,10 @@ final class LiquidGlassDrawable extends Drawable {
         if (hostIndex <= 0) return false;
 
         float refraction = style.refraction;
-        int blurRadiusPx = Math.round(style.blurDp * density);
-        boolean refract = Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU && refraction > 0f;
+        // A demo of a video the glass can't see: it shows through as it is, neither blurred nor bent.
+        int blurRadiusPx = style.demoVideoHole ? 0 : Math.round(style.blurDp * density);
+        boolean refract = Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU && refraction > 0f
+                && !style.demoVideoHole;
         // iOS Instagram bends only a thin band at the rim, outward. The southstar21 style pulls
         // 28dp inward at the default strength (60%), the negative sign samples inside the pill.
         float strength = !refract ? 0f
@@ -623,7 +656,7 @@ final class LiquidGlassDrawable extends Drawable {
 
     /** The tilt the glint follows: the phone's, or 0 when the setting is off. */
     private float glintTilt() {
-        return style.tiltLight ? TiltLight.angle() : 0f;
+        return style.tiltLight ? style.tilt() : 0f;
     }
 
     /** Peak of the glint added in the rim band: a little lower in dark mode. */

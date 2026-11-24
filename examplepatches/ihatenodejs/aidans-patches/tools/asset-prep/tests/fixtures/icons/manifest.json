@@ -1,0 +1,859 @@
+{
+  "schemaVersion": 1,
+  "requiredCoverage": [
+    "alpha:binary-edge",
+    "alpha:hidden-rgb",
+    "alpha:opaque",
+    "alpha:partial",
+    "alpha:zero",
+    "behavior:malformed",
+    "behavior:orientation",
+    "behavior:profile",
+    "behavior:same-size",
+    "behavior:truncated",
+    "behavior:unsupported",
+    "edge:hard",
+    "format:jpeg",
+    "format:png",
+    "format:webp",
+    "mode:cmyk",
+    "mode:i16",
+    "mode:l",
+    "mode:la",
+    "mode:palette",
+    "mode:rgb",
+    "mode:rgba",
+    "mode:trns",
+    "size:128x128",
+    "size:anisotropic",
+    "size:downscale",
+    "size:nonsquare",
+    "size:odd",
+    "size:one-axis",
+    "size:tiny",
+    "size:upscale"
+  ],
+  "reference": {
+    "pythonVersion": "3.12.14",
+    "pillowVersion": "11.3.0",
+    "sourceSha256": "98ad930850144ec826e696be5f878694bcd8f7baa94f532e79a4e1803bc4278c",
+    "sourcePath": ".github/scripts/sync_app_icons.py",
+    "environment": {
+      "pythonImplementation": "CPython",
+      "pythonVersion": "3.12.14",
+      "pythonCompiler": "Clang 22.1.3 ",
+      "pillowVersion": "11.3.0",
+      "platform": "macOS-26.7.1-arm64-arm-64bit",
+      "system": "Darwin",
+      "release": "25.6.0",
+      "machine": "arm64",
+      "architecture": "64bit",
+      "wheelFilename": "pillow-11.3.0-cp312-cp312-macosx_11_0_arm64.whl",
+      "wheelSha256": "921bd305b10e82b4d1f5e802b6850677f965d8394203d182f078873851dada69",
+      "distributionSource": "https://pypi.org/pypi/Pillow/11.3.0/json",
+      "installedRecordSha256": "abd5180a39b0a2fd888b5bc7f58501ae412031827fa2b1dc3a44f00c3e99af9e",
+      "installedRecordVerified": true,
+      "jpgCodecVersion": "6.2",
+      "webpCodecVersion": "1.5.0",
+      "zlibVersion": "1.3.1.zlib-ng",
+      "libjpegTurboVersion": "3.1.1",
+      "littlecmsVersion": "2.17",
+      "freetypeVersion": "2.13.3",
+      "supportedFeatures": "pil,tkinter,freetype2,littlecms2,webp,avif,webp_anim,webp_mux,transp_webp,libjpeg_turbo,zlib_ng,xcb,jpg,jpg_2000,zlib,libtiff",
+      "sourcePath": ".github/scripts/sync_app_icons.py"
+    }
+  },
+  "cases": [
+    {
+      "id": "rgb-opaque-png",
+      "coverage": [
+        "format:png",
+        "mode:rgb",
+        "alpha:opaque",
+        "size:upscale",
+        "size:odd",
+        "size:nonsquare"
+      ],
+      "visibility": "public",
+      "inputPath": "inputs/rgb-opaque-png.png",
+      "inputSha256": "9bdbbb550350f2d1cfaf07b7ae6a1188972aa57dcc26a6938a51d99c928d9465",
+      "expectedOutcome": "success",
+      "referenceRgbaPath": "reference/rgb-opaque-png.rgba",
+      "referenceRgbaSha256": "df1c938d2a9a492fade32042c8b6467a38e0efe6c68ffcb376d940a97d34fec0",
+      "referencePngPath": "reference/rgb-opaque-png.png",
+      "width": 128,
+      "height": 128
+    },
+    {
+      "id": "rgb-downscale-png",
+      "coverage": [
+        "format:png",
+        "mode:rgb",
+        "alpha:opaque",
+        "size:downscale"
+      ],
+      "visibility": "public",
+      "inputPath": "inputs/rgb-downscale-png.png",
+      "inputSha256": "c5c97fb62866f7adc61be1b0b30e491ca80a201f4089ca9f248cc2744b599693",
+      "expectedOutcome": "success",
+      "referenceRgbaPath": "reference/rgb-downscale-png.rgba",
+      "referenceRgbaSha256": "f49e215a44d93b7711dfbea73f330abb20b9c1f2979efb403b4ef51c8147a988",
+      "referencePngPath": "reference/rgb-downscale-png.png",
+      "width": 128,
+      "height": 128
+    },
+    {
+      "id": "rgba-opaque-png",
+      "coverage": [
+        "format:png",
+        "mode:rgba",
+        "alpha:opaque",
+        "size:upscale"
+      ],
+      "visibility": "public",
+      "inputPath": "inputs/rgba-opaque-png.png",
+      "inputSha256": "1ad8fb0bf72e34cdd8f8430dc609786a5b5b3fb5106803ed936b7f3fe72a91a1",
+      "expectedOutcome": "success",
+      "referenceRgbaPath": "reference/rgba-opaque-png.rgba",
+      "referenceRgbaSha256": "7d8c0eb006a7f6941f64d1bcd31b209f07c8d281610489be1c9276a08ef7e682",
+      "referencePngPath": "reference/rgba-opaque-png.png",
+      "width": 128,
+      "height": 128
+    },
+    {
+      "id": "rgba-partial-alpha-png",
+      "coverage": [
+        "format:png",
+        "mode:rgba",
+        "alpha:partial",
+        "alpha:hidden-rgb",
+        "size:upscale",
+        "size:nonsquare"
+      ],
+      "visibility": "public",
+      "inputPath": "inputs/rgba-partial-alpha-png.png",
+      "inputSha256": "98823870a00cb594f8b8bb92c8ccf3fd6026e84416a1dd39286524dfaa1ea53f",
+      "expectedOutcome": "success",
+      "referenceRgbaPath": "reference/rgba-partial-alpha-png.rgba",
+      "referenceRgbaSha256": "7c3ada195044cb0be1991df2e15be9865e4a00cff966ae7bdbec8c71b5d490d7",
+      "referencePngPath": "reference/rgba-partial-alpha-png.png",
+      "width": 128,
+      "height": 128
+    },
+    {
+      "id": "rgba-zero-alpha-png",
+      "coverage": [
+        "format:png",
+        "mode:rgba",
+        "alpha:zero",
+        "alpha:hidden-rgb",
+        "size:upscale"
+      ],
+      "visibility": "public",
+      "inputPath": "inputs/rgba-zero-alpha-png.png",
+      "inputSha256": "1fd934c4397c7dd24c3ba89a22c4beeedbfe35c61a4b4cc756f3d542c1877551",
+      "expectedOutcome": "success",
+      "referenceRgbaPath": "reference/rgba-zero-alpha-png.rgba",
+      "referenceRgbaSha256": "de2f256064a0af797747c2b97505dc0b9f3df0de4f489eac731c23ae9ca9cc31",
+      "referencePngPath": "reference/rgba-zero-alpha-png.png",
+      "width": 128,
+      "height": 128
+    },
+    {
+      "id": "rgba-hard-edges-png",
+      "coverage": [
+        "format:png",
+        "mode:rgba",
+        "edge:hard",
+        "alpha:binary-edge",
+        "size:downscale"
+      ],
+      "visibility": "public",
+      "inputPath": "inputs/rgba-hard-edges-png.png",
+      "inputSha256": "5c4fe785cdd91191e7a6f6143fec728dec6010c0cc03e094204fd11ce10f8970",
+      "expectedOutcome": "success",
+      "referenceRgbaPath": "reference/rgba-hard-edges-png.rgba",
+      "referenceRgbaSha256": "a9667fd37e7d4bf269ce6c92aeaa1f8b265559f7797c7f28aae55d77ec460004",
+      "referencePngPath": "reference/rgba-hard-edges-png.png",
+      "width": 128,
+      "height": 128
+    },
+    {
+      "id": "palette-trns-png",
+      "coverage": [
+        "format:png",
+        "mode:palette",
+        "mode:trns",
+        "alpha:binary-edge"
+      ],
+      "visibility": "public",
+      "inputPath": "inputs/palette-trns-png.png",
+      "inputSha256": "7d07604cc4babff6a11b19196dcca6715a81557cc2911f069f4f4b6c40e6124d",
+      "expectedOutcome": "success",
+      "referenceRgbaPath": "reference/palette-trns-png.rgba",
+      "referenceRgbaSha256": "806a964889b5931ac928763cddbfe9b249983fda7394ea8308fa7cb0254659b7",
+      "referencePngPath": "reference/palette-trns-png.png",
+      "width": 128,
+      "height": 128
+    },
+    {
+      "id": "grayscale-png",
+      "coverage": [
+        "format:png",
+        "mode:l",
+        "size:upscale"
+      ],
+      "visibility": "public",
+      "inputPath": "inputs/grayscale-png.png",
+      "inputSha256": "e4d8235842fd43481f957180b6787dcd5094223c8e2b4bb1ae0a878c4c80db6d",
+      "expectedOutcome": "success",
+      "referenceRgbaPath": "reference/grayscale-png.rgba",
+      "referenceRgbaSha256": "8f1aebb84fe7a328d2d06a33dbb4e008ed4dcba63f195a5ebc706bd0c66a29a0",
+      "referencePngPath": "reference/grayscale-png.png",
+      "width": 128,
+      "height": 128
+    },
+    {
+      "id": "grayscale-alpha-png",
+      "coverage": [
+        "format:png",
+        "mode:la",
+        "alpha:partial",
+        "size:nonsquare"
+      ],
+      "visibility": "public",
+      "inputPath": "inputs/grayscale-alpha-png.png",
+      "inputSha256": "03b549bd6ef620a656c0d571b2e880a8093542e51023b70d893c79c4c39be5c5",
+      "expectedOutcome": "success",
+      "referenceRgbaPath": "reference/grayscale-alpha-png.rgba",
+      "referenceRgbaSha256": "d5f2b37ea1731fbd9babb77386220267626bad76d9bf2e8750451472a1c685f0",
+      "referencePngPath": "reference/grayscale-alpha-png.png",
+      "width": 128,
+      "height": 128
+    },
+    {
+      "id": "png-odd-upscale",
+      "coverage": [
+        "format:png",
+        "mode:rgb",
+        "size:odd",
+        "size:nonsquare",
+        "size:upscale"
+      ],
+      "visibility": "public",
+      "inputPath": "inputs/png-odd-upscale.png",
+      "inputSha256": "57610b7678c2aca5016549498a2d691ef14fdd1212f475d5e23dffaded944333",
+      "expectedOutcome": "success",
+      "referenceRgbaPath": "reference/png-odd-upscale.rgba",
+      "referenceRgbaSha256": "c824f22af245bc81f447d6a0efa98c928dab7400af4194dc89077346ec678704",
+      "referencePngPath": "reference/png-odd-upscale.png",
+      "width": 128,
+      "height": 128
+    },
+    {
+      "id": "png-one-axis-width-upscale",
+      "coverage": [
+        "format:png",
+        "mode:rgb",
+        "size:one-axis",
+        "size:upscale",
+        "size:nonsquare"
+      ],
+      "visibility": "public",
+      "inputPath": "inputs/png-one-axis-width-upscale.png",
+      "inputSha256": "9f061238ccd2007e662494ee5f2a1271dbc687b4ee2efa4da0bdb629b34cc0c7",
+      "expectedOutcome": "success",
+      "referenceRgbaPath": "reference/png-one-axis-width-upscale.rgba",
+      "referenceRgbaSha256": "383b73cb9f83adc352d3ff982a4b366f99a608f61cda2fcc9b8bc197a56d0619",
+      "referencePngPath": "reference/png-one-axis-width-upscale.png",
+      "width": 128,
+      "height": 128
+    },
+    {
+      "id": "png-one-axis-width-downscale",
+      "coverage": [
+        "format:png",
+        "mode:rgb",
+        "size:one-axis",
+        "size:downscale",
+        "size:nonsquare"
+      ],
+      "visibility": "public",
+      "inputPath": "inputs/png-one-axis-width-downscale.png",
+      "inputSha256": "b69e33b169b4274d74faa819366a60df7200f61786d228f3e4a588ccbb68fff6",
+      "expectedOutcome": "success",
+      "referenceRgbaPath": "reference/png-one-axis-width-downscale.rgba",
+      "referenceRgbaSha256": "194c2c028f56f3d12fd85c334a3310cee5dd316a2f31c4d1e9cd601ce7f78b4c",
+      "referencePngPath": "reference/png-one-axis-width-downscale.png",
+      "width": 128,
+      "height": 128
+    },
+    {
+      "id": "png-anisotropic-wide",
+      "coverage": [
+        "format:png",
+        "mode:rgb",
+        "size:anisotropic",
+        "size:downscale"
+      ],
+      "visibility": "public",
+      "inputPath": "inputs/png-anisotropic-wide.png",
+      "inputSha256": "79df8b6e69ca7fc48fbed427dd8ddd7ad48e2071bde69edd259fb51890cc145f",
+      "expectedOutcome": "success",
+      "referenceRgbaPath": "reference/png-anisotropic-wide.rgba",
+      "referenceRgbaSha256": "b75d3dec171d29f59c65d840a7d4ca79f25dfebc5407713a36646087b2094a9a",
+      "referencePngPath": "reference/png-anisotropic-wide.png",
+      "width": 128,
+      "height": 128
+    },
+    {
+      "id": "png-anisotropic-tall",
+      "coverage": [
+        "format:png",
+        "mode:rgb",
+        "size:anisotropic",
+        "size:downscale"
+      ],
+      "visibility": "public",
+      "inputPath": "inputs/png-anisotropic-tall.png",
+      "inputSha256": "2a4f1ddda0115a8beb72d5b23d1e07c92c152651eb403506fc5337f3f4e378a1",
+      "expectedOutcome": "success",
+      "referenceRgbaPath": "reference/png-anisotropic-tall.rgba",
+      "referenceRgbaSha256": "92489e08f8fad83e8f7504e509b03e049a41e0121b710d04404621ba1e0e84b3",
+      "referencePngPath": "reference/png-anisotropic-tall.png",
+      "width": 128,
+      "height": 128
+    },
+    {
+      "id": "png-tiny-1x1",
+      "coverage": [
+        "format:png",
+        "mode:rgba",
+        "size:tiny",
+        "size:upscale",
+        "alpha:partial"
+      ],
+      "visibility": "public",
+      "inputPath": "inputs/png-tiny-1x1.png",
+      "inputSha256": "e25e9a9953ae97114287c009f471c4a8c570b7e1b335d322e0741643306eaad4",
+      "expectedOutcome": "success",
+      "referenceRgbaPath": "reference/png-tiny-1x1.rgba",
+      "referenceRgbaSha256": "ba2fbd97b5d11beaaaee567452994efd5d7fc280ea97c1f38c84456b1e8e7f21",
+      "referencePngPath": "reference/png-tiny-1x1.png",
+      "width": 128,
+      "height": 128
+    },
+    {
+      "id": "png-tiny-nonsquare",
+      "coverage": [
+        "format:png",
+        "mode:rgb",
+        "size:tiny",
+        "size:nonsquare",
+        "size:upscale"
+      ],
+      "visibility": "public",
+      "inputPath": "inputs/png-tiny-nonsquare.png",
+      "inputSha256": "2412fb06c28260fa16461c1db02ba67e89a184aa9166f9c50d515362a11e9bef",
+      "expectedOutcome": "success",
+      "referenceRgbaPath": "reference/png-tiny-nonsquare.rgba",
+      "referenceRgbaSha256": "f2a4e250b50a8991052a3aaba27033bb67309bfa325120ff3e8c9471e36a3b98",
+      "referencePngPath": "reference/png-tiny-nonsquare.png",
+      "width": 128,
+      "height": 128
+    },
+    {
+      "id": "png-128-exact-hidden-rgb",
+      "coverage": [
+        "format:png",
+        "mode:rgba",
+        "size:128x128",
+        "alpha:zero",
+        "alpha:hidden-rgb",
+        "behavior:same-size"
+      ],
+      "visibility": "public",
+      "inputPath": "inputs/png-128-exact-hidden-rgb.png",
+      "inputSha256": "afdd07010f3c77dcaafedf707fae360a5c5618a8fee2d6439e69300a24ebda41",
+      "expectedOutcome": "success",
+      "referenceRgbaPath": "reference/png-128-exact-hidden-rgb.rgba",
+      "referenceRgbaSha256": "49539bf7e0aa620b6aa81baf2f4bcfa023e4260f82ea0612328c6ca48b0fc934",
+      "referencePngPath": "reference/png-128-exact-hidden-rgb.png",
+      "width": 128,
+      "height": 128
+    },
+    {
+      "id": "png-16bit-grayscale",
+      "coverage": [
+        "format:png",
+        "mode:i16",
+        "size:upscale"
+      ],
+      "visibility": "public",
+      "inputPath": "inputs/png-16bit-grayscale.png",
+      "inputSha256": "cc0d44e8a49e0d738cb7019b3709c0803d3834672a99606d2abb419b050596e7",
+      "expectedOutcome": "success",
+      "referenceRgbaPath": "reference/png-16bit-grayscale.rgba",
+      "referenceRgbaSha256": "c53705abf6bbda6b27fe65db0ef7c56b51704602c2de7190170095d2e64e2799",
+      "referencePngPath": "reference/png-16bit-grayscale.png",
+      "width": 128,
+      "height": 128
+    },
+    {
+      "id": "png-exif-orientation",
+      "coverage": [
+        "format:png",
+        "mode:rgb",
+        "behavior:orientation",
+        "size:nonsquare"
+      ],
+      "visibility": "public",
+      "inputPath": "inputs/png-exif-orientation.png",
+      "inputSha256": "e5f5e618e81ac5115addaed857bd86aadd51cc1f6a173df9431edfb5f2063332",
+      "expectedOutcome": "success",
+      "referenceRgbaPath": "reference/png-exif-orientation.rgba",
+      "referenceRgbaSha256": "69b4ad4d68321b7a4804ac8ea73713da3d1d3d1f021cc9a6e9a6ec8571ed1c59",
+      "referencePngPath": "reference/png-exif-orientation.png",
+      "width": 128,
+      "height": 128
+    },
+    {
+      "id": "png-icc-profile",
+      "coverage": [
+        "format:png",
+        "mode:rgb",
+        "behavior:profile",
+        "size:upscale"
+      ],
+      "visibility": "public",
+      "inputPath": "inputs/png-icc-profile.png",
+      "inputSha256": "0228d794169b948ed0d79bd7f36f733409c794ee3ae5c227d90a0fd27ddb5034",
+      "expectedOutcome": "success",
+      "referenceRgbaPath": "reference/png-icc-profile.rgba",
+      "referenceRgbaSha256": "d175673e6f586cc86a2ff22fb89c41732d8ad0a7a3b3a15007bf09a7115f7993",
+      "referencePngPath": "reference/png-icc-profile.png",
+      "width": 128,
+      "height": 128
+    },
+    {
+      "id": "jpeg-rgb-opaque",
+      "coverage": [
+        "format:jpeg",
+        "mode:rgb",
+        "alpha:opaque",
+        "size:upscale"
+      ],
+      "visibility": "public",
+      "inputPath": "inputs/jpeg-rgb-opaque.jpg",
+      "inputSha256": "d2478886e9c67013c2032a7b7cc0d9bebc6651febc8168943cbd833850deea4e",
+      "expectedOutcome": "success",
+      "referenceRgbaPath": "reference/jpeg-rgb-opaque.rgba",
+      "referenceRgbaSha256": "268a0d9e018b1b2532ee9f7ea4591b8f9d7f2a5be3aa0fca2b70f36b96e169b9",
+      "referencePngPath": "reference/jpeg-rgb-opaque.png",
+      "width": 128,
+      "height": 128
+    },
+    {
+      "id": "jpeg-grayscale",
+      "coverage": [
+        "format:jpeg",
+        "mode:l",
+        "size:nonsquare"
+      ],
+      "visibility": "public",
+      "inputPath": "inputs/jpeg-grayscale.jpg",
+      "inputSha256": "df838040c621e0e6fe6dd3b90a5a1f86c7d0a798dcd21111aee1f973d029460c",
+      "expectedOutcome": "success",
+      "referenceRgbaPath": "reference/jpeg-grayscale.rgba",
+      "referenceRgbaSha256": "d930454a878ad221742bf7ef9570e082eb2b48fdb146eb6113ccefd4854ce1e2",
+      "referencePngPath": "reference/jpeg-grayscale.png",
+      "width": 128,
+      "height": 128
+    },
+    {
+      "id": "jpeg-cmyk",
+      "coverage": [
+        "format:jpeg",
+        "mode:cmyk",
+        "size:upscale"
+      ],
+      "visibility": "public",
+      "inputPath": "inputs/jpeg-cmyk.jpg",
+      "inputSha256": "37ff71719a72168d01396a05b5da80a868f29aca74544dea3c900d4766314e7d",
+      "expectedOutcome": "success",
+      "referenceRgbaPath": "reference/jpeg-cmyk.rgba",
+      "referenceRgbaSha256": "52c61b6459d67152c87703664ad625ea254dc718d157a18bc9ea694164728be0",
+      "referencePngPath": "reference/jpeg-cmyk.png",
+      "width": 128,
+      "height": 128
+    },
+    {
+      "id": "jpeg-exif-orientation",
+      "coverage": [
+        "format:jpeg",
+        "mode:rgb",
+        "behavior:orientation",
+        "size:nonsquare"
+      ],
+      "visibility": "public",
+      "inputPath": "inputs/jpeg-exif-orientation.jpg",
+      "inputSha256": "0c178ca474462e8c33c293fcf0234bf4fecb61f9f885b3120d00bc6e300620e1",
+      "expectedOutcome": "success",
+      "referenceRgbaPath": "reference/jpeg-exif-orientation.rgba",
+      "referenceRgbaSha256": "7514f648dd262445620025ca21c8648ba358a222a7c3031e14012c6c5db2e078",
+      "referencePngPath": "reference/jpeg-exif-orientation.png",
+      "width": 128,
+      "height": 128
+    },
+    {
+      "id": "webp-rgb-lossless",
+      "coverage": [
+        "format:webp",
+        "mode:rgb",
+        "alpha:opaque",
+        "size:upscale"
+      ],
+      "visibility": "public",
+      "inputPath": "inputs/webp-rgb-lossless.webp",
+      "inputSha256": "19f9baa811eec55f4a5be6c5d8c4c29cd83a9c790ec5db29b68fff71dcc5ac47",
+      "expectedOutcome": "success",
+      "referenceRgbaPath": "reference/webp-rgb-lossless.rgba",
+      "referenceRgbaSha256": "42bf750a04f1348644119b219568fc02fcca79fe9fcb8758e7f4d669865fe386",
+      "referencePngPath": "reference/webp-rgb-lossless.png",
+      "width": 128,
+      "height": 128
+    },
+    {
+      "id": "webp-rgba-lossless",
+      "coverage": [
+        "format:webp",
+        "mode:rgba",
+        "alpha:partial",
+        "size:upscale"
+      ],
+      "visibility": "public",
+      "inputPath": "inputs/webp-rgba-lossless.webp",
+      "inputSha256": "60f928314e6e13b20c16eed3527cdba13e134ef60653a12a9d259e0bc940165c",
+      "expectedOutcome": "success",
+      "referenceRgbaPath": "reference/webp-rgba-lossless.rgba",
+      "referenceRgbaSha256": "cd61b4b0ccf6933d22fedcff770bb7577ddf6b108ad744b1b755dfcae105a0a2",
+      "referencePngPath": "reference/webp-rgba-lossless.png",
+      "width": 128,
+      "height": 128
+    },
+    {
+      "id": "webp-lossy-rgb",
+      "coverage": [
+        "format:webp",
+        "mode:rgb",
+        "alpha:opaque",
+        "size:upscale"
+      ],
+      "visibility": "public",
+      "inputPath": "inputs/webp-lossy-rgb.webp",
+      "inputSha256": "47a1ddc9f30cb00f87beb45de40c0b84d4c9ed68d2af14a37a2ce705a496c9af",
+      "expectedOutcome": "success",
+      "referenceRgbaPath": "reference/webp-lossy-rgb.rgba",
+      "referenceRgbaSha256": "9807a4beca71deaf37c01ff7c1f963c716bb3213a6e0ee9c8c1affcd067faafa",
+      "referencePngPath": "reference/webp-lossy-rgb.png",
+      "width": 128,
+      "height": 128
+    },
+    {
+      "id": "webp-lossy-rgba",
+      "coverage": [
+        "format:webp",
+        "mode:rgba",
+        "alpha:partial",
+        "size:nonsquare"
+      ],
+      "visibility": "public",
+      "inputPath": "inputs/webp-lossy-rgba.webp",
+      "inputSha256": "9d3861d9dffdad2ed2a35c8997edac5cd7d3d07ce981f6040beffc8b78ea5b46",
+      "expectedOutcome": "success",
+      "referenceRgbaPath": "reference/webp-lossy-rgba.rgba",
+      "referenceRgbaSha256": "c9266c19d8dc45d90c797bfb7602e22521cb9b950713930ca6d801bea29da52b",
+      "referencePngPath": "reference/webp-lossy-rgba.png",
+      "width": 128,
+      "height": 128
+    },
+    {
+      "id": "malformed-corrupt-png",
+      "coverage": [
+        "format:png",
+        "behavior:malformed"
+      ],
+      "visibility": "public",
+      "inputPath": "inputs/malformed-corrupt-png.png",
+      "inputSha256": "4c790853b72b67b65eadf7135308c47e4429db8490bd2e38bee450f0e641c451",
+      "expectedOutcome": "error",
+      "referenceRgbaPath": null,
+      "referenceRgbaSha256": null,
+      "referencePngPath": null,
+      "width": null,
+      "height": null
+    },
+    {
+      "id": "png-truncated",
+      "coverage": [
+        "format:png",
+        "behavior:truncated"
+      ],
+      "visibility": "public",
+      "inputPath": "inputs/png-truncated.png",
+      "inputSha256": "ffb5a5b3c8d64a5c49c82676d74e95dc6a543ede289f814e1be840cbaeef8c4e",
+      "expectedOutcome": "error",
+      "referenceRgbaPath": null,
+      "referenceRgbaSha256": null,
+      "referencePngPath": null,
+      "width": null,
+      "height": null
+    },
+    {
+      "id": "jpeg-truncated",
+      "coverage": [
+        "format:jpeg",
+        "behavior:truncated"
+      ],
+      "visibility": "public",
+      "inputPath": "inputs/jpeg-truncated.jpg",
+      "inputSha256": "386c813ec998d3f4ae112b607bead5715029d0a2088e818b3ad283273d58dd8a",
+      "expectedOutcome": "error",
+      "referenceRgbaPath": null,
+      "referenceRgbaSha256": null,
+      "referencePngPath": null,
+      "width": null,
+      "height": null
+    },
+    {
+      "id": "unsupported-svg",
+      "coverage": [
+        "behavior:unsupported"
+      ],
+      "visibility": "public",
+      "inputPath": "inputs/unsupported-svg.svg",
+      "inputSha256": "94cce56c2c4bc1d0fb5b8e5ddf05d1cf4c15ce425e6c35b0b8932486cf25455c",
+      "expectedOutcome": "error",
+      "referenceRgbaPath": null,
+      "referenceRgbaSha256": null,
+      "referencePngPath": null,
+      "width": null,
+      "height": null
+    },
+    {
+      "id": "unsupported-empty",
+      "coverage": [
+        "behavior:unsupported"
+      ],
+      "visibility": "public",
+      "inputPath": "inputs/unsupported-empty.bin",
+      "inputSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "expectedOutcome": "error",
+      "referenceRgbaPath": null,
+      "referenceRgbaSha256": null,
+      "referencePngPath": null,
+      "width": null,
+      "height": null
+    }
+  ],
+  "decodedInputs": {
+    "rgb-opaque-png": {
+      "path": "decoded/rgb-opaque-png.rgba",
+      "sha256": "3965cd8d05e2a1a474b6abde420c585318475cb60a69c428a6b2d9b1bbb50c1c",
+      "width": 73,
+      "height": 41,
+      "mode": "RGB"
+    },
+    "rgb-downscale-png": {
+      "path": "decoded/rgb-downscale-png.rgba.zlib",
+      "sha256": "cbb5a1f0e3aee1e720dd0317385f0bca8d5121eebd21f004ec850333371c0f46",
+      "encoding": "zlib",
+      "storedSha256": "e131f916c84c984bbb8e62651808b452a5761efb62c1531156874371fe2902c9",
+      "width": 1024,
+      "height": 768,
+      "mode": "RGB"
+    },
+    "rgba-opaque-png": {
+      "path": "decoded/rgba-opaque-png.rgba",
+      "sha256": "105cd022c79d1433bc7dce137528a7d2b0edb4fa2718753914d2059707191220",
+      "width": 96,
+      "height": 96,
+      "mode": "RGBA"
+    },
+    "rgba-partial-alpha-png": {
+      "path": "decoded/rgba-partial-alpha-png.rgba",
+      "sha256": "4db88e959dbb3b517a46bff04643a1e33be724cbee6bf771cb9d98ec80236564",
+      "width": 80,
+      "height": 60,
+      "mode": "RGBA"
+    },
+    "rgba-zero-alpha-png": {
+      "path": "decoded/rgba-zero-alpha-png.rgba",
+      "sha256": "1ebc0a9477d39547e79788a7719e04c9dd0815e52090492b755ae6ee200a5d39",
+      "width": 32,
+      "height": 32,
+      "mode": "RGBA"
+    },
+    "rgba-hard-edges-png": {
+      "path": "decoded/rgba-hard-edges-png.rgba",
+      "sha256": "79557836dd1458eea0bd9ba8e162efa4e31ec233de3711a1d71181fe712b076a",
+      "width": 200,
+      "height": 200,
+      "mode": "RGBA"
+    },
+    "palette-trns-png": {
+      "path": "decoded/palette-trns-png.rgba",
+      "sha256": "842bb9c0c3896d6d98f115bbbfdb5b2d1603032ce0186edebdd84342c7dc963f",
+      "width": 40,
+      "height": 33,
+      "mode": "P"
+    },
+    "grayscale-png": {
+      "path": "decoded/grayscale-png.rgba",
+      "sha256": "20f63f6643db6403c4012dece06381ea425fa3777a1198a9a603f78f470969b5",
+      "width": 41,
+      "height": 41,
+      "mode": "L"
+    },
+    "grayscale-alpha-png": {
+      "path": "decoded/grayscale-alpha-png.rgba",
+      "sha256": "b196488de9b7cf16c4b8aa23c5fc8de159a232529773befe0491be75dc2b66ab",
+      "width": 48,
+      "height": 32,
+      "mode": "LA"
+    },
+    "png-odd-upscale": {
+      "path": "decoded/png-odd-upscale.rgba",
+      "sha256": "25a2df988c3d7b604498d1356275372f83114e94ea06f285cb813beb25109878",
+      "width": 37,
+      "height": 53,
+      "mode": "RGB"
+    },
+    "png-one-axis-width-upscale": {
+      "path": "decoded/png-one-axis-width-upscale.rgba",
+      "sha256": "24bf2b9f911dc05dcfd4b7c1868460bd9a53c5c188e5a2e7ad0a6b5958a6d2d5",
+      "width": 64,
+      "height": 128,
+      "mode": "RGB"
+    },
+    "png-one-axis-width-downscale": {
+      "path": "decoded/png-one-axis-width-downscale.rgba",
+      "sha256": "27c60154a1f17e61f1e118c635a1265f70503a3deefac44f1dbc974172e5e0cf",
+      "width": 256,
+      "height": 128,
+      "mode": "RGB"
+    },
+    "png-anisotropic-wide": {
+      "path": "decoded/png-anisotropic-wide.rgba",
+      "sha256": "38de7da1983fbcca8b512ccb9767e813f7f02c0decf13f71ae365d09a66bb7a8",
+      "width": 800,
+      "height": 200,
+      "mode": "RGB"
+    },
+    "png-anisotropic-tall": {
+      "path": "decoded/png-anisotropic-tall.rgba",
+      "sha256": "b95b41b15c2fbba616e9fd2a5d582fc226e71f7579295ecfe3cf7e15257d767e",
+      "width": 200,
+      "height": 800,
+      "mode": "RGB"
+    },
+    "png-tiny-1x1": {
+      "path": "decoded/png-tiny-1x1.rgba",
+      "sha256": "6dc9c20de6edf9b65f9379045ecbf163f687f2bce776ff3755b501194a4c3262",
+      "width": 1,
+      "height": 1,
+      "mode": "RGBA"
+    },
+    "png-tiny-nonsquare": {
+      "path": "decoded/png-tiny-nonsquare.rgba",
+      "sha256": "423bf8c8ad10929c5dfeedd81eb01fbf77a8f185431ffe5ddd3a5c0367cfe698",
+      "width": 3,
+      "height": 7,
+      "mode": "RGB"
+    },
+    "png-128-exact-hidden-rgb": {
+      "path": "decoded/png-128-exact-hidden-rgb.rgba",
+      "sha256": "49539bf7e0aa620b6aa81baf2f4bcfa023e4260f82ea0612328c6ca48b0fc934",
+      "width": 128,
+      "height": 128,
+      "mode": "RGBA"
+    },
+    "png-16bit-grayscale": {
+      "path": "decoded/png-16bit-grayscale.rgba",
+      "sha256": "43956e3b7148ee3ebc659afe27cbc71d9570e5a98b95ce2548a3b7be01dcb712",
+      "width": 64,
+      "height": 64,
+      "mode": "I;16"
+    },
+    "png-exif-orientation": {
+      "path": "decoded/png-exif-orientation.rgba",
+      "sha256": "ff620780dd1a847181f6f3d6492ae886873c5b1912d1b26e38971d8e39094299",
+      "width": 90,
+      "height": 40,
+      "mode": "RGB"
+    },
+    "png-icc-profile": {
+      "path": "decoded/png-icc-profile.rgba",
+      "sha256": "e270a3ddf892cb442162fe051a430aeed43570b20a5e19f4b14a75bba4037131",
+      "width": 64,
+      "height": 64,
+      "mode": "RGB"
+    },
+    "jpeg-rgb-opaque": {
+      "path": "decoded/jpeg-rgb-opaque.rgba",
+      "sha256": "c4812b59ccd9bdc22f6558196be3266333434c803ddb90125b4b1aa0b8b8ff7b",
+      "width": 120,
+      "height": 120,
+      "mode": "RGB"
+    },
+    "jpeg-grayscale": {
+      "path": "decoded/jpeg-grayscale.rgba",
+      "sha256": "19662fe4b9237991f0372b325c3161ff847bbb01e2038cefda94037343d49bb2",
+      "width": 90,
+      "height": 140,
+      "mode": "L"
+    },
+    "jpeg-cmyk": {
+      "path": "decoded/jpeg-cmyk.rgba",
+      "sha256": "5881f9f1e5ea75d833b67b00b91cd47d11026fdf3214e9b71689891701252832",
+      "width": 80,
+      "height": 80,
+      "mode": "CMYK"
+    },
+    "jpeg-exif-orientation": {
+      "path": "decoded/jpeg-exif-orientation.rgba",
+      "sha256": "df144535c4204b3d8d9e894f0792b0fa919984e0086d7cd11c226d1e01827aed",
+      "width": 120,
+      "height": 50,
+      "mode": "RGB"
+    },
+    "webp-rgb-lossless": {
+      "path": "decoded/webp-rgb-lossless.rgba",
+      "sha256": "6cdb36a3b85ea775287efcdacf2b80f93d3ff8f9f23ffa13e5d26e8cceadd448",
+      "width": 100,
+      "height": 80,
+      "mode": "RGB"
+    },
+    "webp-rgba-lossless": {
+      "path": "decoded/webp-rgba-lossless.rgba",
+      "sha256": "faf42c450513a7fc3eb0b3cb8a34e4c23701b09510d09cee0ef672332b681fee",
+      "width": 96,
+      "height": 96,
+      "mode": "RGBA"
+    },
+    "webp-lossy-rgb": {
+      "path": "decoded/webp-lossy-rgb.rgba",
+      "sha256": "20b38b5add00e2d99a43c617d3126d4eff735e1676d28e2c069e730de45dea39",
+      "width": 120,
+      "height": 120,
+      "mode": "RGB"
+    },
+    "webp-lossy-rgba": {
+      "path": "decoded/webp-lossy-rgba.rgba",
+      "sha256": "a9a61c92310a351fff5d1c43740fd47618ac3c258ed37d6a78bfa70b8fbba162",
+      "width": 110,
+      "height": 90,
+      "mode": "RGBA"
+    }
+  }
+}

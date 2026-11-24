@@ -40,6 +40,13 @@ final class NavbarStyle {
     final float dropScale = 1.30f;
     final float shrunkScale = 0.83f;
     final boolean southstar21 = LiquidGlassNavBarPatch.southstar21Style();
+    /**
+     * One blur and plain shading: no refraction shader, no edge blur (see LiquidGlassDrawable).
+     * The settings menu's choice, so it can change at any time.
+     */
+    boolean lightweight() {
+        return app.southstar21.extension.youtubemusic.settings.Settings.lightweightGlass();
+    }
     final boolean glassyPill = false;
     /** iOS style: the capsule turns into clear glass while pressed (off: stays grey, like iOS). */
     final boolean glassWhileDragging = false;

@@ -1,16 +1,70 @@
-# Publication Status — 2026-11-23
+# Publication Status — 2026-11-24
 
-## Latest release (`v0.1.12-dev`)
+## Latest release (`v0.1.18-dev`)
 
 * **Repository**: https://github.com/gomjirak0803/line-notification-patches
-* **Release**: https://github.com/gomjirak0803/line-notification-patches/releases/tag/v0.1.12-dev
+* **Release**: https://github.com/gomjirak0803/line-notification-patches/releases/tag/v0.1.18-dev
 * **Add in Morphe Manager**: https://morphe.software/add-source?github=gomjirak0803/line-notification-patches
-* **GitHub Actions run**: https://github.com/gomjirak0803/line-notification-patches/actions/runs/45045235396 (success)
-* **Source commit**: `8a6fad2` (metadata commit: `c8fd0c5`)
+* **GitHub Actions run**: https://github.com/gomjirak0803/line-notification-patches/actions/runs/45352102840 (success, 56s; `Build patch-only assets` + `Run full Python test suite` gated before publish)
+* **Source commit**: `a6917d7` (metadata commit: `2fc15e3`)
 
-The published `line-notification-patches-0.1.12-dev.mpp` is `150,358` bytes with SHA-256 `645ac1a650f5ec37888ca3309b92aa3816183a2c935cfb6c7813585b398f8860`, matching `SHA256SUMS.txt` and the directly downloaded asset. Comparing all 18 ZIP entries against the local build (`061d3091dce1aa0c53610272e13bbd911434a282a9ebbeef0e3f210e9d28a54c`, the bundle used for the S10e-tested APK) confirmed byte-for-byte parity across every executable class, DEX, extension, resource, and manifest entry (differing only in `THIRD_PARTY_NOTICES.md` CRLF/LF line endings). The source archive SHA-256 is `b867db725da3d4dff1327608b60852ff6729cb096897d84d26e196e1c247552c`. `main/patches-bundle.json` was updated to `"created_at": "2026-11-22T16:42:24"` and `"version": "0.1.12-dev"`, passing all 18 Python tests (including `tests/test_bundle_metadata.py`).
+Protects queued `PendingPost` slots (`hasPendingSlotLocked`) during trailing `refreshActive()` updates without evicting waiting pushes, tracks per-item monotonic `deadlineMillis` (`NotificationPolicy.remainingHoldMillis`) so unrelated same-room saves retain unready pushes until their 1.2s deadline, rechecks account/privacy/`snapshotConsistent`/`Settings.INFO`/`mediaPreviewAllowed` after `NativeLine.senderIcons()` in all paths, requires `NotificationPolicy.sameAccount` in `cancelChatNotifications()` (with `!Settings.silentIncluded()` account stamping in `transform()`) and `Settings.pruneHiddenNotifications()`, moves "Hide completely" notification cancellation into `ChatNotifications.change` on `success`, and adds generation-guarded `NativeLine.invalidateChatListPreviewCache()` called from `Notifications.onMessageStored()` (verified with 224 `NotificationPolicy` assertions, 40 `ExtensionRuntimeTest` JVM behavioral checks, 26 Python tests, 2,244 ARM64/Universal and 2,182 `Mark as read`-only APK contracts, and live Galaxy S10e burst checks). The published `line-notification-patches-0.1.18-dev.mpp` is `193,941` bytes with SHA-256 `307c347b333918e187add9685555ad9f3f3ab2f23420bff13960c6ee8420a8d7`, matching `SHA256SUMS.txt` and the directly downloaded asset. Comparing all 18 ZIP entries against the local build (`66ef29a6e97b4c6125e02a425d72f38f982a0516f3fb3b034d1b15e6595582b2`) confirmed byte-for-byte parity across every executable class, DEX, extension, resource, and manifest entry (differing only in `THIRD_PARTY_NOTICES.md` CRLF/LF line endings). The source archive (`331,815` bytes, 133 files) SHA-256 is `f327d1a2f658ba3b62609b46584176154a77c102ce5fc53c3c797081396391fa`. `main/patches-bundle.json` was updated to `"created_at": "2026-11-24T07:58:56"` and `"version": "0.1.18-dev"`, passing all 26 Python tests.
 
 ## Previous releases
+
+### `v0.1.17-dev` (2026-11-24)
+
+* **Release**: https://github.com/gomjirak0803/line-notification-patches/releases/tag/v0.1.17-dev
+* **GitHub Actions run**: https://github.com/gomjirak0803/line-notification-patches/actions/runs/45344792353 (success, 52s; `Run full Python test suite` gated before publish)
+* **Source commit**: `3f47d0f` (metadata commit: `71d5ad9`)
+* **Published MPP** (`192,962` bytes): `7b32494555c54e44b3fdb296c8c71efc6ec9b2e3683bcb2bb099e536b155efa7` (ZIP entry parity across all 18 entries with local build `28498d47f29f80e8b3fc2bd6226639b8f3f7b05599e3365871fb794b478d0775`, differing only in `THIRD_PARTY_NOTICES.md` CRLF/LF line endings).
+* **Source ZIP SHA-256**: `65d59e47e9367d4d4576c74874b45acc054cebbdf52f4c6d291548146b50b1b3`.
+* `main/patches-bundle.json`: `"created_at": "2026-11-24T07:02:12"`, `"version": "0.1.17-dev"`.
+
+### `v0.1.16-dev` (2026-11-24)
+
+* **Release**: https://github.com/gomjirak0803/line-notification-patches/releases/tag/v0.1.16-dev
+* **GitHub Actions run**: https://github.com/gomjirak0803/line-notification-patches/actions/runs/45332528762 (success, 1m 11s)
+* **Source commit**: `c52ba2a` (metadata commit: `854660c`)
+* **Published MPP** (`191,406` bytes): `2a917519d45a88917e6336111b7cb29c03cb3891352541b0a79f6afa2e88fd35` (ZIP entry parity across all 18 entries with local build `3874871e12eee720b78fbf9d3c71b2eb063afff081327da68e314f70301485fa`, differing only in `THIRD_PARTY_NOTICES.md` CRLF/LF line endings).
+* **Source ZIP SHA-256**: `dff4079e9bef27b7c727c5faa695451183f8e9df4b596be65cb49e3d4aaa428f`.
+* `main/patches-bundle.json`: `"created_at": "2026-11-24T05:20:43"`, `"version": "0.1.16-dev"`.
+
+### `v0.1.15-dev` (2026-11-23)
+
+* **Release**: https://github.com/gomjirak0803/line-notification-patches/releases/tag/v0.1.15-dev
+* **GitHub Actions run**: https://github.com/gomjirak0803/line-notification-patches/actions/runs/45179405588 (success, 56s)
+* **Source commit**: `24b8d4f` (metadata commit: `fc2c525`)
+* **Published MPP** (`188,803` bytes): `fc8819928de86094aedf815cbff4281e3a0a572b58ee1bc720269257d2d1fe1f` (ZIP entry parity across all 18 entries with local build `a34d8102b3e08a415d79026dc167705c01df6f5f01b51e39151c699d54220c3a`, differing only in `THIRD_PARTY_NOTICES.md` CRLF/LF line endings).
+* **Source ZIP SHA-256**: `ab40f3ccbed4cf2aec0ac762c820d9b37d975bfcde1ebec28fc16df7a62fb365`.
+* `main/patches-bundle.json`: `"created_at": "2026-11-23T12:59:43"`, `"version": "0.1.15-dev"`.
+
+### `v0.1.14-dev` (2026-11-23)
+
+* **Release**: https://github.com/gomjirak0803/line-notification-patches/releases/tag/v0.1.14-dev
+* **GitHub Actions run**: https://github.com/gomjirak0803/line-notification-patches/actions/runs/45176712044 (success)
+* **Source commit**: `d52cf9b` (metadata commit: `661ed16`)
+* **Published MPP** (`188,826` bytes): `af28222772b6554ecff45ca09e1778b407d9a86d8475608264cd7aa6b1d48ece` (ZIP entry parity across all 18 entries with local build `9238891cbaee2ca1a27045c1d73e115804ae539f73a3469fde2ee349d36441aa`, differing only in `THIRD_PARTY_NOTICES.md` CRLF/LF line endings).
+* **Source ZIP SHA-256**: `f5c97b5baa60c41aec74945e680155beeff12a755fe8c1ce65f3037f7825de65`.
+* `main/patches-bundle.json`: `"created_at": "2026-11-23T12:42:36"`, `"version": "0.1.14-dev"`.
+
+### `v0.1.13-dev` (2026-11-23)
+
+* **Release**: https://github.com/gomjirak0803/line-notification-patches/releases/tag/v0.1.13-dev
+* **GitHub Actions run**: https://github.com/gomjirak0803/line-notification-patches/actions/runs/45126406640 (success)
+* **Source commit**: `45aafdb` (metadata commit: `885ab30`)
+* **Published MPP** (`153,623` bytes): `a1a9e4111f23a0f3991af17cc90658be99f02b77e4718e8d2e380b8a6dbfbddf` (ZIP entry parity across all 18 entries with local build `6bd69dc56b516d282f394492848af2b4aac7ea8c32c5c23bc865978805eaeb7d`, differing only in `THIRD_PARTY_NOTICES.md` CRLF/LF line endings).
+* **Source ZIP SHA-256**: `b5a7cf94ddd5cc6544bc1b6d7ec75d0bdb3aff54cf282ffa58d90ded5cbb62a6`.
+* `main/patches-bundle.json`: `"created_at": "2026-11-23T06:47:33"`, `"version": "0.1.13-dev"`.
+
+### `v0.1.12-dev` (2026-11-23)
+
+* **Release**: https://github.com/gomjirak0803/line-notification-patches/releases/tag/v0.1.12-dev
+* **GitHub Actions run**: https://github.com/gomjirak0803/line-notification-patches/actions/runs/45045235396 (success)
+* **Source commit**: `8a6fad2` (metadata commit: `c8fd0c5`, doc update: `4a6d97c`)
+* **Published MPP** (`150,358` bytes): `645ac1a650f5ec37888ca3309b92aa3816183a2c935cfb6c7813585b398f8860` (ZIP entry parity across all 18 entries with local build `061d3091dce1aa0c53610272e13bbd911434a282a9ebbeef0e3f210e9d28a54c`, differing only in `THIRD_PARTY_NOTICES.md` CRLF/LF line endings).
+* **Source ZIP SHA-256**: `b867db725da3d4dff1327608b60852ff6729cb096897d84d26e196e1c247552c`.
+* `main/patches-bundle.json`: `"created_at": "2026-11-22T16:42:24"`, `"version": "0.1.12-dev"`.
 
 ### `v0.1.11-dev` (2026-11-20)
 

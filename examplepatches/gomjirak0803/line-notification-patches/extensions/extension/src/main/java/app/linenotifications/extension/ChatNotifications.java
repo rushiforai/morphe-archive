@@ -1,5 +1,6 @@
 package app.linenotifications.extension;
 
+import android.app.NotificationManager;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.os.Handler;
@@ -65,7 +66,8 @@ final class ChatNotifications {
         } catch (ReflectiveOperationException | RuntimeException ignored) { }
     }
 
-    static void change(Context context, String chat, int mode, Object nativeCallback, Runnable completed) {
+    static void change(Context context, String chat, int mode, Object nativeCallback,
+                       java.util.function.Consumer<Boolean> completed) {
         try {
             if (!NativeLine.regularChat(chat)) return;
             String account = NativeLine.account();
@@ -88,6 +90,13 @@ final class ChatNotifications {
                     trace(success ? "setting: completed" : "setting: failed");
                     try {
                         if (!account.equals(NativeLine.account())) return;
+                        if (success) {
+                            Settings.clearSnooze(account, chat);
+                            if (mode == HIDDEN) {
+                                NotificationManager manager = Settings.context().getSystemService(NotificationManager.class);
+                                Notifications.cancelChatNotifications(manager, account, chat);
+                            }
+                        }
                         if (!success) toast(context, Strings.get(context, "line_notify_toast_change_failed",
                                 "Could not update notification setting. Please try again."));
                         else if (nativeCallback != null) {
@@ -103,7 +112,7 @@ final class ChatNotifications {
                                 "Setting updated. Please reopen the chat menu."));
                     }
                     if (success) refreshChatList();
-                    if (completed != null) completed.run();
+                    if (completed != null) completed.accept(success);
                 });
             };
             WORKER.execute(() -> {

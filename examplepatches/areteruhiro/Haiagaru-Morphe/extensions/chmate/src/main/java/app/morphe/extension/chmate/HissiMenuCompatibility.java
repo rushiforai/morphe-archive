@@ -159,7 +159,7 @@ public final class HissiMenuCompatibility {
         if (!"http".equalsIgnoreCase(scheme) && !"https".equalsIgnoreCase(scheme)
                 && !"haiagaru-hissi".equalsIgnoreCase(scheme)
                 && !"haiagaru-hissis".equalsIgnoreCase(scheme)) return;
-        if (Haiagaru.dedicatedCheckerViewerAvailable()) {
+        if (Haiagaru.dedicatedViewerEnabled() && Haiagaru.dedicatedCheckerViewerAvailable()) {
             Context context = Haiagaru.applicationContextForExtension();
             if (context != null) {
                 intent.setClassName(context, HissiMenuActivity.class.getName());
@@ -167,15 +167,15 @@ public final class HissiMenuCompatibility {
             }
         }
 
-        // With the optional viewer disabled, do not pin the URL to ChMate's
-        // WebViewActivity. Let Android resolve the ordinary http(s) URL so the
-        // user's browser choice is respected. Convert legacy custom schemes
-        // that may remain in an already-expanded or saved menu entry.
+        // Runtime OFF opens the ordinary URL in ChMate's Web view. Convert
+        // custom schemes stored by earlier versions first.
         if ("haiagaru-hissi".equalsIgnoreCase(scheme)
                 || "haiagaru-hissis".equalsIgnoreCase(scheme)) {
             intent.setData(uri.buildUpon().scheme("haiagaru-hissis".equalsIgnoreCase(scheme)
                     ? "https" : "http").build());
         }
+        Context context = Haiagaru.applicationContextForExtension();
+        if (context != null) intent.setClassName(context, "jp.syoboi.a2chMate.activity.WebViewActivity");
     }
 
     public static boolean prepareTaisakuIntent(Intent intent) {

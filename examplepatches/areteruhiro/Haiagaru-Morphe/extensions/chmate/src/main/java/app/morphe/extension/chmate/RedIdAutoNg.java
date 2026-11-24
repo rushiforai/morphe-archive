@@ -143,7 +143,7 @@ public final class RedIdAutoNg {
     @SuppressWarnings({"rawtypes", "unchecked"})
     static Map modernFlags(Object source, Map original) {
         Context context=Haiagaru.applicationContextForExtension();
-        if(original==null||context==null||!prefs(context).getBoolean(KEY,false))return original;
+        if(context==null||!prefs(context).getBoolean(KEY,false))return original;
         try {
             List<?> rows = PopularReplies.fullList(source);
             Map result = null;
@@ -152,7 +152,7 @@ public final class RedIdAutoNg {
                 if (extra == 0) continue;
                 int number = ((Number)ResponseArchiveEntry.field(row, "o")).intValue();
                 if (number <= 0) continue;
-                if (result == null) result = new LinkedHashMap(original);
+                if (result == null) result = original==null?new LinkedHashMap():new LinkedHashMap(original);
                 Object old = result.get(number);
                 result.put(number, (old instanceof Number ? ((Number)old).intValue() : 0) | extra);
             }

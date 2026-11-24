@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 """Add newly released app versions to the patches' supported versions.
 
-For each tracked app, read its release source (an APKMirror feed or the
-project's GitHub releases). If the newest stable
+For each tracked app, read its release source (an APKMirror feed, Uptodown's
+versions page, or the project's GitHub releases). If the newest stable
 version is newer than every version listed in that app's Compatibility block
 in Constants.kt, add it as a supported AppTarget. Morphe Manager then shows
 "App update available" for the patched app once the next release is published.
@@ -14,6 +14,8 @@ import os
 import re
 import sys
 import json
+import urllib.error
+import urllib.parse
 import urllib.request
 
 CONSTANTS = os.environ.get(
@@ -34,6 +36,19 @@ APPS = [
         "constant": "COMPATIBILITY_KVAESITSO",
         "source": "github",
         "repo": "MM2-0/Kvaesitso",
+    },
+    {
+        # APKMirror's Spotify pages answer scripts with a Cloudflare challenge (403), and its list mixes in
+        # unlabeled test builds. Uptodown lists only regular releases, but from the first day of a staged rollout.
+        # So: read versions from Uptodown, and add one only once Morphe Manager's download button for it leads to
+        # APKMirror (where the APK is signature-checked).
+        "name": "Spotify",
+        "scope": "spotify",
+        "constant": "COMPATIBILITY_SPOTIFY",
+        "source": "uptodown",
+        "page": "https://spotify.en.uptodown.com/android/versions",
+        "package": "com.spotify.music",
+        "require_apkmirror": True,
     },
 ]
 
@@ -64,9 +79,63 @@ def latest_github_version(app):
     return max(versions, key=vkey)
 
 
-def latest_version(app):
+MORPHE_SEARCH_URL = "https://api.morphe.software/v2/web-search/"
+
+
+class _NoRedirect(urllib.request.HTTPRedirectHandler):
+    def redirect_request(self, *args, **kwargs):
+        return None
+
+
+def manager_download_url(package, version):
+    """Where Morphe Manager's download button leads for this version.
+
+    Asks the same Morphe API that Manager asks and follows its redirects until they leave api.morphe.software
+    (the page itself is never fetched)."""
+    opener = urllib.request.build_opener(_NoRedirect)
+    url = MORPHE_SEARCH_URL + urllib.parse.quote(f"{package}~{version}~arm64-v8a")
+    for _ in range(5):
+        req = urllib.request.Request(url, headers={"User-Agent": "bump-app-versions"})
+        try:
+            opener.open(req, timeout=30).close()
+            return url
+        except urllib.error.HTTPError as e:
+            if e.code not in (301, 302, 303, 307, 308) or not e.headers.get("Location"):
+                raise
+            url = urllib.parse.urljoin(url, e.headers["Location"])
+        if urllib.parse.urlparse(url).hostname != "api.morphe.software":
+            return url
+    raise RuntimeError(f"Morphe API kept redirecting for {package} {version}")
+
+
+def latest_uptodown_version(app, newest_listed):
+    """Newest version on Uptodown's versions page; with require_apkmirror, the newest one that Morphe Manager
+    would download from APKMirror. Returns None when there is nothing newer than newest_listed to add."""
+    req = urllib.request.Request(app["page"], headers={"User-Agent": "Mozilla/5.0"})
+    with urllib.request.urlopen(req, timeout=30) as r:
+        html = r.read().decode("utf-8", "replace")
+    # Each entry looks like <... class="version">9.2.4.2644</...>.
+    versions = {v.strip() for v in re.findall(r'class="version"[^>]*>([^<]*)<', html)}
+    versions = sorted((v for v in versions if VERSION_RE.match(v)), key=vkey, reverse=True)
+    if not versions:
+        raise RuntimeError(f"{app['name']}: no versions found on {app['page']}")
+    for v in versions:
+        if newest_listed and vkey(v) <= vkey(newest_listed):
+            break
+        if not app.get("require_apkmirror"):
+            return v
+        host = urllib.parse.urlparse(manager_download_url(app["package"], v)).hostname or ""
+        if host == "apkmirror.com" or host.endswith(".apkmirror.com"):
+            return v
+        print(f"{app['name']}: {v} is out, but Morphe Manager would download it from {host}; waiting for APKMirror")
+    return None
+
+
+def latest_version(app, newest_listed):
     if app["source"] == "github":
         return latest_github_version(app)
+    if app["source"] == "uptodown":
+        return latest_uptodown_version(app, newest_listed)
     return latest_feed_version(app)
 
 
@@ -95,8 +164,11 @@ def main():
         end = src.index("\n    )", start)
         block = src[start:end]
         listed = re.findall(r'AppTarget\(version = "([^"]+)"', block)
-        latest = latest_version(app)
         newest_listed = max(listed, key=vkey) if listed else None
+        latest = latest_version(app, newest_listed)
+        if latest is None:
+            print(f"{app['name']}: nothing to add, newest supported {newest_listed}")
+            continue
         print(f"{app['name']}: feed {latest}, newest supported {newest_listed}")
         if newest_listed and vkey(latest) <= vkey(newest_listed):
             continue
@@ -105,7 +177,7 @@ def main():
         if anchor is None:
             raise RuntimeError(f"{app['name']}: no `targets = listOf(` in {app['constant']}")
         indent = anchor.group(1)
-        line = (f"// Added automatically when released on APKMirror (not hand-tested).\n"
+        line = (f"// Added automatically when a new release appeared (not hand-tested).\n"
                 f'{indent}AppTarget(version = "{latest}"),\n{indent}')
         block = block[:anchor.end()] + line + block[anchor.end():]
         src = src[:start] + block + src[end:]

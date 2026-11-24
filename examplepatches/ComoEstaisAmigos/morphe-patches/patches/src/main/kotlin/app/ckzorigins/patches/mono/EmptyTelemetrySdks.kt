@@ -1,9 +1,11 @@
 package app.ckzorigins.patches.mono
 
-import app.ckzombies.patches.compat.emptyClasses
+import app.adebisi.patches.shared.CONSTRUCTOR
+import app.adebisi.patches.shared.PUBLIC
+import app.adebisi.patches.shared.addStub
+import app.adebisi.patches.shared.emptySdkPrefixes
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
 import app.morphe.patcher.patch.PatchException
-import app.morphe.patcher.patch.classDefForEach
 import app.morphe.patcher.patch.mutableClassDefBy
 import app.morphe.patcher.util.proxy.mutableTypes.MutableClass
 import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod
@@ -56,19 +58,7 @@ internal fun stubTelemetryWrappers() {
 }
 
 internal fun emptyTelemetrySdks() {
-    val toEmpty = ArrayList<String>()
-    for ((prefix, expected) in TELEMETRY_SDK_PREFIXES) {
-        val found = buildList {
-            classDefForEach {
-                if (it.type.startsWith(prefix) && it.type !in TELEMETRY_SDK_KEEP) add(it.type)
-            }
-        }
-        if (found.size != expected) {
-            throw PatchException("Expected $expected classes under $prefix, found ${found.size}")
-        }
-        toEmpty.addAll(found)
-    }
-    emptyClasses(toEmpty.map { mutableClassDefBy(it) })
+    emptySdkPrefixes(TELEMETRY_SDK_PREFIXES, TELEMETRY_SDK_KEEP)
     stubNotificationReceiver()
     stubMobileAppTrackerDeviceIds()
 }
@@ -99,41 +89,21 @@ private fun stubReturn(method: MutableMethod, type: String) {
  */
 private fun stubNotificationReceiver() {
     val c = mutableClassDefBy(NOTIFICATION_RECEIVER)
-    val constructor = ImmutableMethod(
-        c.type,
-        "<init>",
-        emptyList(),
-        "V",
-        AccessFlags.PUBLIC.value or AccessFlags.CONSTRUCTOR.value,
-        null,
-        null,
-        MutableMethodImplementation(1),
-    ).toMutable()
-    constructor.addInstructions(
-        0,
-        """
+    c.addStub(
+        name = "<init>",
+        access = PUBLIC or CONSTRUCTOR,
+        registerCount = 1,
+        smali = """
             invoke-direct {p0}, Landroid/content/BroadcastReceiver;-><init>()V
             return-void
         """,
     )
-    val onReceive = ImmutableMethod(
-        c.type,
-        "onReceive",
-        listOf(
-            ImmutableMethodParameter("Landroid/content/Context;", null, null),
-            ImmutableMethodParameter("Landroid/content/Intent;", null, null),
-        ),
-        "V",
-        AccessFlags.PUBLIC.value,
-        null,
-        null,
-        MutableMethodImplementation(3),
-    ).toMutable()
-    onReceive.addInstructions(0, "return-void")
-    c.methods.add(constructor)
-    c.directMethods.add(constructor)
-    c.methods.add(onReceive)
-    c.virtualMethods.add(onReceive)
+    c.addStub(
+        name = "onReceive",
+        parameters = listOf("Landroid/content/Context;", "Landroid/content/Intent;"),
+        registerCount = 3,
+        smali = "return-void",
+    )
 }
 
 private const val MOBILE_APP_TRACKER = "Lcom/mobileapptracker/MobileAppTracker;"

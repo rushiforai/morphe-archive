@@ -71,7 +71,12 @@ public final class QualityUnlock {
 
     /** Each stream's decision: true when it plays through the VPN. */
     private static final Map<String, Boolean> DECIDED = new ConcurrentHashMap<>();
-    private static final Set<String> TUNNEL_ADDRESSES = Collections.newSetFromMap(new ConcurrentHashMap<>());
+    /**
+     * The unlocked stream's addresses: its playlists (kept for the whole stream: they're named once, by its master
+     * playlist) and its video pieces (new ones every few seconds, so forgotten in batches).
+     */
+    private static final Set<String> TUNNEL_PLAYLISTS = Collections.newSetFromMap(new ConcurrentHashMap<>());
+    private static final Set<String> TUNNEL_PIECES = Collections.newSetFromMap(new ConcurrentHashMap<>());
     private static final CopyOnWriteArrayList<StatusListener> LISTENERS = new CopyOnWriteArrayList<>();
     private static final UnlockFetcher FETCHER = new UnlockFetcher();
     private static final Object TUNNEL_LOCK = new Object(); // only swaps the reference: no I/O under it
@@ -94,7 +99,7 @@ public final class QualityUnlock {
             if (!PatchSettings.QUALITY_UNLOCK.equals(key)) return;
             if (!on) {
                 DECIDED.clear();
-                TUNNEL_ADDRESSES.clear();
+                forgetAddresses();
                 BACKGROUND.execute(QualityUnlock::closeTunnel); // (closing sends packets: never on the main thread)
                 publish(new Status(null, false));
             } else {
@@ -152,14 +157,21 @@ public final class QualityUnlock {
      * was unlocked (named by its playlists from the tunnel); nothing else, previews included.
      */
     public static boolean routes(String url) {
-        if (TUNNEL_ADDRESSES.isEmpty() || !Included.qualityUnlock() || !PatchSettings.qualityUnlock()
-                || url.contains("usher.ttvnw.net")) return false;
-        return TUNNEL_ADDRESSES.contains(UrlKey.of(url));
+        if ((TUNNEL_PLAYLISTS.isEmpty() && TUNNEL_PIECES.isEmpty()) || !Included.qualityUnlock()
+                || !PatchSettings.qualityUnlock() || url.contains("usher.ttvnw.net")) return false;
+        return knows(url);
     }
 
     /** Whether this address is one of the unlocked stream's (for tests: routes() also asks the switches). */
     static boolean knows(String url) {
-        return TUNNEL_ADDRESSES.contains(UrlKey.of(url));
+        String key = UrlKey.of(url);
+        return TUNNEL_PLAYLISTS.contains(key) || TUNNEL_PIECES.contains(key);
+    }
+
+    /** The unlocked stream's addresses forgotten: it's over, or its tunnel is. */
+    private static void forgetAddresses() {
+        TUNNEL_PLAYLISTS.clear();
+        TUNNEL_PIECES.clear();
     }
 
     /** The tunnel's HTTP client for routed requests, or null when the tunnel is down. */
@@ -173,21 +185,40 @@ public final class QualityUnlock {
 
     /** The tunnel failed a routed request: the stream goes on over the normal connection, and that is told. */
     public static void tunnelFailed(String why) {
-        if (!status.problem) publish(new Status("The VPN stopped answering, the stream plays without the unlock", true));
         DebugLog.log("Quality unlock: the VPN failed a request: " + why);
+        if (!TUNNEL_FAILURE_TOLD.compareAndSet(false, true)) return; // (told once for each unlocked stream)
+        String text = "The VPN stopped answering, the stream plays without the unlock";
+        publish(new Status(text, true));
+        // Said on screen too: the player's quality drops, and Options isn't where anyone looks then.
+        App.onMain(() -> {
+            Context context = App.application();
+            if (context != null) android.widget.Toast.makeText(context, "Quality unlock: " + text + " (" + why + ")",
+                    android.widget.Toast.LENGTH_LONG).show();
+        });
     }
+
+    /** Whether the unlocked stream's VPN failure was told (once for each unlocked stream). */
+    static final java.util.concurrent.atomic.AtomicBoolean TUNNEL_FAILURE_TOLD = new java.util.concurrent.atomic.AtomicBoolean();
 
     private static final Pattern ADDRESS = Pattern.compile("https?://[^\\s\"]+");
     private static final int MAX_ADDRESSES = 4000;
 
     /** The addresses a playlist from the tunnel names (playlists, video pieces): they go through the tunnel too. */
     public static void learnAddresses(String playlist) {
-        if (TUNNEL_ADDRESSES.size() > MAX_ADDRESSES) TUNNEL_ADDRESSES.clear(); // old pieces; the current ones come again
+        // Old pieces only; the current ones come again with the next playlist. The playlists are kept: nothing
+        // names them again, and without them the stream would quietly leave the tunnel.
+        if (TUNNEL_PIECES.size() > MAX_ADDRESSES) TUNNEL_PIECES.clear();
         Matcher address = ADDRESS.matcher(playlist);
         while (address.find()) {
             String url = address.group();
-            if (!url.contains("usher.")) TUNNEL_ADDRESSES.add(UrlKey.of(url));
+            if (url.contains("usher.")) continue;
+            String key = UrlKey.of(url);
+            (isPlaylist(key) ? TUNNEL_PLAYLISTS : TUNNEL_PIECES).add(key);
         }
+    }
+
+    static boolean isPlaylist(String key) {
+        return key.endsWith(".m3u8");
     }
 
     /**
@@ -211,7 +242,7 @@ public final class QualityUnlock {
     private static String decide(String channel, String direct) {
         if (!channel.equals(lastChannel)) { // a new stream: the previous one's routing is done with
             lastChannel = channel;
-            TUNNEL_ADDRESSES.clear();
+            forgetAddresses();
             for (String decided : new ArrayList<>(DECIDED.keySet())) if (!decided.equals(channel)) DECIDED.remove(decided);
         }
         Boolean decision = DECIDED.get(channel);
@@ -279,6 +310,7 @@ public final class QualityUnlock {
         }
         VpnTunnel current = tunnel;
         DECIDED.put(channel, true);
+        TUNNEL_FAILURE_TOLD.set(false); // a new unlocked stream: its failure is told again
         learnAddresses(result.master);
         publish(new Status("Unlocked " + String.join(", ", extra)
                 + (current != null ? " through " + current.config.name : ""), false));
@@ -327,7 +359,7 @@ public final class QualityUnlock {
             }
         }
         if (closing == null) return;
-        TUNNEL_ADDRESSES.clear();
+        forgetAddresses();
         DECIDED.clear();
         VpnTunnel old = closing;
         BACKGROUND.execute(old::close);
@@ -350,7 +382,7 @@ public final class QualityUnlock {
             if (System.currentTimeMillis() - lastUsedAt >= IDLE_CLOSE_MS) {
                 DebugLog.log("Quality unlock: tunnel idle, closed");
                 closeTunnel();
-                TUNNEL_ADDRESSES.clear();
+                forgetAddresses();
                 // Only the streams that went through it are decided again; "nothing locked" stays decided.
                 DECIDED.values().removeIf(viaVpn -> viaVpn);
             } else {

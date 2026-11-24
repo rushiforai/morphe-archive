@@ -2,6 +2,7 @@ package app.jofslash.patches.quora.app
 
 import app.jofslash.patches.quora.ads.PageFinishedFingerprint
 import app.jofslash.patches.quora.shared.Constants.COMPATIBILITY_QUORA
+import app.jofslash.patches.quora.shared.PATCHES_VERSION
 import app.jofslash.patches.quora.shared.registerSetting
 import app.jofslash.patches.quora.video.InitWebViewFingerprint
 import app.jofslash.patches.quora.tabs.SetupTabsFingerprint
@@ -22,7 +23,8 @@ private const val TAB_BAR = "Lcom/quora/android/controls/QTabBar;"
 val patchSettingsPatch = bytecodePatch(
     name = "Patch settings",
     description = "Long-press the Home tab, or open Settings > Morphe > Quora patches, to switch the page patches on and off and edit the filters, " +
-            "without patching again. It also tells you when Quora changes its pages so that some patches stop working.",
+            "without patching again. It also tells you when Quora changes its pages so that some patches stop working, " +
+            "and how many ads and other items the patches hid in the last 7 days (counted only on your phone).",
     default = true
 ) {
     category("App")
@@ -51,6 +53,11 @@ val patchSettingsPatch = bytecodePatch(
         PageFinishedFingerprint.method.addInstruction(
             0,
             "invoke-static { p1 }, Lapp/jofslash/extension/quora/PageCheck;->onPageFinished(Landroid/webkit/WebView;)V"
+        )
+        // Counts what the patches hid, for a line in Patch settings.
+        PageFinishedFingerprint.method.addInstruction(
+            0,
+            "invoke-static { p1 }, Lapp/jofslash/extension/quora/HiddenStats;->onPageFinished(Landroid/webkit/WebView;)V"
         )
         // A "Morphe" section with a "Quora patches" entry on Quora's settings page opens the same dialog.
         PageFinishedFingerprint.method.addInstruction(
@@ -81,6 +88,34 @@ val filterUpdatesPatch = bytecodePatch(
 
     execute {
         registerSetting("filterUpdates", "Filter updates")
+    }
+}
+
+@Suppress("unused")
+val updateNoticePatch = bytecodePatch(
+    name = "Update notice",
+    description = "Shows in Patch settings when newer patches are out, since a patched app doesn't update from Google Play: " +
+            "once a day the app reads the newest version number from this project's GitHub repository. Nothing pops up. " +
+            "The check sends nothing but a normal web request.",
+    default = false
+) {
+    category("App")
+    compatibleWith(COMPATIBILITY_QUORA)
+
+    extendWith("extensions/quora.mpe")
+    // The check starts where Patch settings hooks the tab bar, and the switch is on its page.
+    dependsOn(patchSettingsPatch)
+
+    execute {
+        // v0 is free at the start of setupTabs.
+        SetupTabsFingerprint.method.addInstructions(
+            0,
+            """
+                const-string v0, "$PATCHES_VERSION"
+                invoke-static { v0 }, Lapp/jofslash/extension/quora/UpdateCheck;->setVersion(Ljava/lang/String;)V
+            """
+        )
+        registerSetting("updateNotice", "Update notice")
     }
 }
 

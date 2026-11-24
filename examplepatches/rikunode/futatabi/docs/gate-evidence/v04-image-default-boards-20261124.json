@@ -1,0 +1,89 @@
+{
+  "date": "2026-11-24",
+  "scope": "v0.4.0 tasks 2 and 3 only, partial delivery; no v0.4 release",
+  "environment": {
+    "app": "com.Nanasaki.ftutter.morphe",
+    "device": "emulator-5554",
+    "fixture": "tests/v04_animanch_image_fixture.py, 127.0.0.1:18766",
+    "appUid": 10222,
+    "externalEgressBlockedDuringTest": true,
+    "fixtureOnly": true
+  },
+  "images": {
+    "catalogCells": 12,
+    "virtualUrlPattern": "/animanch/thumb/{13-digit}s.jpg",
+    "firstConcurrentWave": {
+      "elapsedMs": 1015,
+      "responses": 12,
+      "jpegsValid": 12
+    },
+    "warmMemoryWave": {
+      "elapsedMs": 94,
+      "responses": 12,
+      "jpegsValid": 12
+    },
+    "afterProcessRestartDiskWave": {
+      "elapsedMs": 125,
+      "responses": 12,
+      "upstreamReFetches": 0
+    },
+    "upstreamThumbnailGetObserved": 10,
+    "fixtureArtificialDelayMs": 250,
+    "implementation": [
+      "Separate thumbnail/fullsize size caps 240/960 pixels",
+      "In-memory LRU cap 10 MiB",
+      "On-disk cache cap 48 MiB, TTL 24h",
+      "Images bypass 1250ms HTML/post throttle, max 4 upstream image requests in parallel",
+      "Bridge request workers 2→6",
+      "HTTP GET response close enables connection reuse"
+    ],
+    "limits": [
+      "Synthetic local image source, device performance in owner's real environment unverified",
+      "Cold first-wave timing depends on network and cache; reported observed result is not a universal guarantee"
+    ]
+  },
+  "boards": {
+    "initialOnlyMigrationFlag": "futatabi.v04.default_boards_done",
+    "pristineNekoFixture": [
+      "https://may.2chan.net/27/"
+    ],
+    "observedAfterFirstLaunch": [
+      "https://img.2chan.net/b/",
+      "https://may.2chan.net/b/",
+      "http://127.0.0.1:18765/aimoge/",
+      "http://127.0.0.1:18765/animanch/"
+    ],
+    "pristineTransition": "PASS",
+    "flagPersisted": true,
+    "editedListRetention": "NOT VERIFIED IN RUNTIME: test XML malformed before app could parse; source now guards custom/without stock neko, requires focused rerun if requested"
+  },
+  "otherScope": {
+    "adWidgetCollapse": "NOT IMPLEMENTED: Flutter AOT fixed-height widget location not identified; native ad-load interception cannot remove parent layout",
+    "mebuki": "NOT IMPLEMENTED: authenticated thread response/schema, server action form contracts, and cookie lifetime unresolved; reading mock alone would not prove compatibility"
+  },
+  "build": {
+    "productionSourceRestored": true,
+    "offlineGradle": "PASS",
+    "localCurrentVersion": "0.3.0 (no version bump yet)",
+    "temporaryTestMpp": {
+      "bytes": 741903,
+      "sha256": "0a4596b42a1b3e861a3e3640328ce664ac10b7acb07bbbdba6f29a17b836a09d"
+    },
+    "productionLocalMpp": {
+      "bytes": 742121,
+      "sha256": "b42f19700c9bbcc7ac81220a2866fb3b830141823f7c7dce42dd0597d66dde9b"
+    },
+    "releaseCreated": false
+  },
+  "restoration": {
+    "originalDebugApkReinstalled": true,
+    "originalFlutterPrefsSHAIdentical": true,
+    "ipv4IsolationRemoved": true,
+    "ipv6IsolationRemoved": true,
+    "adbForward18767Removed": true,
+    "original18766FixtureRestored": true,
+    "adbReversePreserved": true
+  },
+  "externalPosts": 0,
+  "externalLogins": 0
+}

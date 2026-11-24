@@ -13,7 +13,13 @@ Select the complete split APKS bundle for this exact version in Morphe Manager.
 | Patch | Default | What it does |
 | --- | --- | --- |
 | **Allow custom Android Auto hosts** | On | Accepts any car app host during the Android Auto handshake, so the app also starts on third-party head units and projection bridges. |
-| **Unlock Premium** | On | Treats the app as the car build that ABRP ships without a purchase flow, which unlocks the Premium switches in the app. |
+| **Unlock Premium** | On | Treats the app as the car build that ABRP ships without a purchase flow, which unlocks the Premium switches in the app. Includes the GPS and Android Auto location fix. |
+
+## GPS fix
+
+The GPS issue with Premium enabled is fixed. ABRP now requests the phone's location permission and uses its GPS for the map and Android Auto. The vehicle telemetry permission screen no longer blocks the car map. Downloaded JavaScript updates cannot replace the patched location code.
+
+Repatch ABRP with the latest bundle to receive this fix. Allow precise location when Android asks. Keep **Allow custom Android Auto hosts** selected when using DriveDeck or another custom host.
 
 ## Premium
 

@@ -1,8 +1,16 @@
+/*
+ * Copyright 2026 amfakh
+ * SPDX-License-Identifier: GPL-3.0-only
+ */
+
 package app.fakh.patches.smartlife
 
+import app.fakh.patches.shared.register
 import app.fakh.patches.smartlife.shared.Constants.COMPATIBILITY_BARDI
+import app.fakh.patches.smartlife.shared.Constants.COMPATIBILITY_KRISBOW
 import app.fakh.patches.smartlife.shared.Constants.COMPATIBILITY_SMARTLIFE
 import app.fakh.patches.smartlife.shared.Constants.COMPATIBILITY_TUYA_SMART
+import app.fakh.patches.smartlife.shared.Constants.DARK_PANELS
 import app.morphe.patcher.Fingerprint
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
 import app.morphe.patcher.patch.patch
@@ -16,7 +24,7 @@ import app.morphe.patcher.patch.resourceFile
  */
 private val forceDarkThemePatch = patch {
     execute {
-        addSettingsSwitch("fakh_dark_panels")
+        register(DARK_PANELS)
 
         // Android only darkens a window whose theme is light and allows it; the app's DayNight theme is neither at
         // night, and its base theme turns force dark off.
@@ -50,7 +58,7 @@ val darkPanelsPatch = patch(
         "mode, using Android's automatic dark theme. It stays off until its switch in Settings is turned on.",
     default = true,
 ) {
-    compatibleWith(COMPATIBILITY_SMARTLIFE, COMPATIBILITY_TUYA_SMART, COMPATIBILITY_BARDI)
+    compatibleWith(COMPATIBILITY_SMARTLIFE, COMPATIBILITY_TUYA_SMART, COMPATIBILITY_BARDI, COMPATIBILITY_KRISBOW)
     category("Theme")
     extendWith("extensions/extension.mpe")
     dependsOn(forceDarkThemePatch, settingsSwitchesPatch)

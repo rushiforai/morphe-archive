@@ -209,3 +209,185 @@ internal object BannerLoadFingerprint : Fingerprint(
         methodCall(definingClass = AD_VIEW, name = "loadAd"),
     ),
 )
+
+private const val SHOULD_SHOW_ADS =
+    "Leu/smartpatient/mytherapy/multiplatform/feature/appmonetization/infrastructure/usecase/ShouldShowAdsUseCaseImpl;"
+private const val ARE_ADS_ENABLED =
+    "Leu/smartpatient/mytherapy/multiplatform/feature/appmonetization/api/usecase/AreAdsEnabledUseCase;"
+private const val GET_ADS_FREE_API =
+    "Leu/smartpatient/mytherapy/multiplatform/feature/appmonetization/api/usecase/GetAdsFreeProductPurchaseStatusUseCase;"
+private const val INIT_MOBILE_ADS =
+    "Leu/smartpatient/mytherapy/multiplatform/feature/appmonetization/infrastructure/usecase/InitMobileAdsUseCaseImpl;"
+private const val UPDATE_ADS_CONSENT =
+    "Leu/smartpatient/mytherapy/multiplatform/feature/appmonetization/infrastructure/usecase/UpdateAdsConsentInfoUseCaseImpl;"
+private const val INTERSTITIAL_AD_MANAGER =
+    "Leu/smartpatient/mytherapy/multiplatform/feature/appmonetization/infrastructure/interstatial/AndroidInterstitialAdManagerImpl;"
+private const val REWARDED_AD_MANAGER =
+    "Leu/smartpatient/mytherapy/multiplatform/feature/appmonetization/infrastructure/rewarder/RewardedAdManagerImpl;"
+private const val SESSION_SCOPE =
+    "Leu/smartpatient/mytherapy/multiplatform/lib/core/async/SessionScope;"
+
+/** Árbitro central de exibição de anúncios consumido pela UI (banners, nativos, intersticial e recompensado). */
+internal object ShouldShowAdsFingerprint : Fingerprint(
+    definingClass = SHOULD_SHOW_ADS,
+    name = "invoke",
+    returnType = "Ljava/lang/Object;",
+    parameters = listOf("Lkotlin/coroutines/Continuation;"),
+    filters = listOf(
+        methodCall(definingClass = ARE_ADS_ENABLED, name = "invoke"),
+        methodCall(definingClass = GET_ADS_FREE_API, name = "invoke"),
+    ),
+)
+
+/** Ponto único de inicialização do Google Mobile Ads SDK e adaptadores de mediação. */
+internal object InitMobileAdsFingerprint : Fingerprint(
+    definingClass = INIT_MOBILE_ADS,
+    name = "invoke",
+    returnType = "Ljava/lang/Object;",
+    parameters = listOf("Lkotlin/coroutines/Continuation;"),
+    filters = listOf(
+        fieldAccess(
+            definingClass = INIT_MOBILE_ADS,
+            name = "g",
+            type = "Ljava/util/concurrent/atomic/AtomicBoolean;",
+        ),
+        methodCall(definingClass = "Ljava/util/concurrent/atomic/AtomicBoolean;", name = "getAndSet"),
+    ),
+)
+
+/** Atualização de consentimento publicitário via Google UMP. */
+internal object UpdateAdsConsentInfoFingerprint : Fingerprint(
+    definingClass = UPDATE_ADS_CONSENT,
+    name = "invoke",
+    returnType = "Ljava/lang/Object;",
+    parameters = listOf("Landroid/app/Activity;", "Lkotlin/coroutines/Continuation;"),
+    filters = listOf(
+        methodCall(definingClass = "Lcom/google/android/ump/UserMessagingPlatform;", name = "getConsentInformation"),
+        methodCall(definingClass = "Lcom/google/android/ump/ConsentInformation;", name = "requestConsentInfoUpdate"),
+    ),
+)
+
+/** Carga de anúncios intersticiais (tela cheia). */
+internal object InterstitialAdRequestFingerprint : Fingerprint(
+    definingClass = INTERSTITIAL_AD_MANAGER,
+    name = "request",
+    returnType = "V",
+    parameters = listOf(AD_PLACEMENT),
+    filters = listOf(
+        fieldAccess(definingClass = INTERSTITIAL_AD_MANAGER, name = "e", type = "Ljava/util/Map;"),
+        methodCall(definingClass = SESSION_SCOPE, name = "launch\$default"),
+    ),
+)
+
+/** Carga de anúncios recompensados. */
+internal object RewardedAdRequestFingerprint : Fingerprint(
+    definingClass = REWARDED_AD_MANAGER,
+    name = "request",
+    returnType = "V",
+    parameters = listOf(AD_PLACEMENT),
+    filters = listOf(
+        fieldAccess(definingClass = REWARDED_AD_MANAGER, name = "e", type = "Ljava/util/Map;"),
+        methodCall(definingClass = SESSION_SCOPE, name = "launch\$default"),
+    ),
+)
+
+private const val MY_APPLICATION = "Leu/smartpatient/mytherapy/MyApplication;"
+private const val INITIALIZE_CLEVERTAP = "Leu/smartpatient/mytherapy/pushcampaign/InitializeCleverTapKt;"
+private const val ANDROID_ENTRY_POINT_KT =
+    "Leu/smartpatient/mytherapy/multiplatform/umbrella/AndroidEntryPointKt;"
+private const val RUN_APP_INITIALIZERS =
+    "Leu/smartpatient/mytherapy/multiplatform/lib/lifecycle/RunAppInitializersUseCase;"
+private const val GET_SETTINGS_ITEMS =
+    "Leu/smartpatient/mytherapy/multiplatform/feature/settingssectionmanagement/usecase/GetSettingsItemsUseCase;"
+private const val ROOT_ACTIVITY =
+    "Leu/smartpatient/mytherapy/multiplatform/feature/root/RootActivity;"
+private const val BASE_ACTIVITY =
+    "Leu/smartpatient/mytherapy/multiplatform/feature/presentation/BaseActivity;"
+private const val REFRESH_REMINDERS_FACTORY =
+    "Leu/smartpatient/mytherapy/multiplatform/feature/dailytodolist/domain/usecase/RefreshRemindersUseCaseImpl\$MetroFactory;"
+private const val METRO_PROVIDER = "Ldev/zacsweers/metro/Provider;"
+private const val USER_SESSION_INITIALIZER =
+    "Leu/smartpatient/mytherapy/multiplatform/feature/account/infrastructure/UserSessionInitializer;"
+private const val IS_USER_LOGGED_IN =
+    "Leu/smartpatient/mytherapy/multiplatform/feature/account/api/usecase/IsUserLoggedInUseCase;"
+private const val USER_SESSION =
+    "Leu/smartpatient/mytherapy/multiplatform/lib/lifecycle/UserSession;"
+
+/**
+ * Entrada da Application antes da criação do grafo Metro e da abertura dos bancos Room3.
+ * Usada para aplicar restaurações a frio, importações de CSV e rollbacks pendentes.
+ */
+internal object MyApplicationOnCreateFingerprint : Fingerprint(
+    definingClass = MY_APPLICATION,
+    name = "onCreate",
+    returnType = "V",
+    parameters = emptyList(),
+    filters = listOf(
+        methodCall(definingClass = INITIALIZE_CLEVERTAP, name = "initializeCleverTap"),
+        methodCall(definingClass = ANDROID_ENTRY_POINT_KT, name = "createAndroidEntryPoint"),
+        methodCall(definingClass = RUN_APP_INITIALIZERS, name = "invoke"),
+    ),
+)
+
+/**
+ * Construtor do agregador de itens de Configurações. O conjunto injetado pelo Metro é estendido
+ * com o provider de "Backup e Restauração Local".
+ */
+internal object GetSettingsItemsInitFingerprint : Fingerprint(
+    definingClass = GET_SETTINGS_ITEMS,
+    name = "<init>",
+    returnType = "V",
+    parameters = listOf("Ljava/util/Set;"),
+    filters = listOf(
+        fieldAccess(definingClass = GET_SETTINGS_ITEMS, name = "a", type = "Ljava/util/Set;"),
+    ),
+)
+
+/**
+ * Activity principal do app. Logo após super.onCreate(Bundle), registramos os launchers SAF
+ * (ACTION_CREATE_DOCUMENT / ACTION_OPEN_DOCUMENT) no ActivityResultRegistry.
+ */
+internal object RootActivityOnCreateFingerprint : Fingerprint(
+    definingClass = ROOT_ACTIVITY,
+    name = "onCreate",
+    returnType = "V",
+    parameters = listOf("Landroid/os/Bundle;"),
+    filters = listOf(
+        methodCall(
+            definingClass = "Landroidx/core/splashscreen/SplashScreen\$Companion;",
+            name = "installSplashScreen",
+        ),
+        methodCall(definingClass = BASE_ACTIVITY, name = "onCreate"),
+        methodCall(definingClass = BASE_ACTIVITY, name = "setMyTherapyContent\$default"),
+    ),
+)
+
+/**
+ * Fábrica Metro do RefreshRemindersUseCaseImpl, sempre construída em AndroidEntryPoint$Impl.<init>.
+ * Permite disparar o recálculo de lembretes após restauração ou importação de CSV.
+ */
+internal object RefreshRemindersFactoryInitFingerprint : Fingerprint(
+    definingClass = REFRESH_REMINDERS_FACTORY,
+    name = "<init>",
+    returnType = "V",
+    parameters = listOf(METRO_PROVIDER, METRO_PROVIDER, METRO_PROVIDER, METRO_PROVIDER),
+    filters = listOf(
+        fieldAccess(definingClass = REFRESH_REMINDERS_FACTORY, name = "b", type = METRO_PROVIDER),
+        fieldAccess(definingClass = REFRESH_REMINDERS_FACTORY, name = "e", type = METRO_PROVIDER),
+    ),
+)
+
+/**
+ * Inicializador de sessão de usuário. O retorno bem-sucedido após UserSession.onUserSessionStart
+ * sinaliza o momento seguro para reconstruir alarmes/notificações locais.
+ */
+internal object UserSessionInitializerFingerprint : Fingerprint(
+    definingClass = USER_SESSION_INITIALIZER,
+    name = "initialize",
+    returnType = "Ljava/lang/Object;",
+    parameters = listOf("Lkotlin/coroutines/Continuation;"),
+    filters = listOf(
+        methodCall(definingClass = IS_USER_LOGGED_IN, name = "invoke"),
+        methodCall(definingClass = USER_SESSION, name = "onUserSessionStart"),
+    ),
+)

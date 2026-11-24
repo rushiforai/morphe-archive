@@ -198,7 +198,7 @@ private val notificationIntegrationPatch = bytecodePatch {
 val noReplyPatch = bytecodePatch(
     name = "No reply",
     description = "Hides suggested replies while keeping manual inline reply. Enable in LINE notification patch settings.",
-    default = false,
+    default = true,
 ) {
     compatibleWith(COMPATIBILITY_LINE)
     dependsOn(notificationIntegrationPatch)
@@ -209,7 +209,7 @@ val noReplyPatch = bytecodePatch(
 val markAsReadPatch = bytecodePatch(
     name = "Mark as read",
     description = "Replaces mute with a button that marks the whole chat as read and clears its notification using LINE's native chat-list path. Enable in LINE settings.",
-    default = false,
+    default = true,
 ) {
     compatibleWith(COMPATIBILITY_LINE)
     dependsOn(notificationIntegrationPatch, nativeReadActionResourcesPatch)
@@ -247,16 +247,71 @@ private fun BytecodePatchContext.requireAvatarCacheBindings() {
     method("Le80/l0;", "<init>", listOf("Ljava/lang/String;", "Ljava/lang/String;", "Z"), "V")
 }
 
+private fun BytecodePatchContext.requireMediaPreviewBindings() {
+    fun method(owner: String, name: String, parameters: List<String>, result: String): com.android.tools.smali.dexlib2.iface.Method =
+        classDefBy(owner).methods.singleOrNull {
+            it.name == name && it.parameterTypes.map(CharSequence::toString) == parameters && it.returnType == result
+                && AccessFlags.PUBLIC.isSet(it.accessFlags)
+        } ?: throw PatchException("Native media preview method changed: $owner->$name")
+    fun field(owner: String, name: String, type: String) {
+        if (classDefBy(owner).fields.none { it.name == name && it.type == type && AccessFlags.PUBLIC.isSet(it.accessFlags) })
+            throw PatchException("Native media preview field changed: $owner->$name")
+    }
+    field("Ljp/naver/line/android/common/LineCommonFileProvider;", "g",
+        "Ljp/naver/line/android/common/LineCommonFileProvider\$a;")
+    method("Ljp/naver/line/android/common/LineCommonFileProvider\$a;", "d",
+        listOf("Landroid/content/Context;", "Ljava/io/File;"), "Landroid/net/Uri;")
+    field("Lj31/a;", "I4", "Lj31/a\$b;")
+    method("Lj31/a;", "e", listOf("Lj31/c;"), "Ljava/io/File;")
+    method("Lj31/a;", "k", listOf("Lj31/c;", "Lj31/e;"), "Ljava/io/File;")
+    method("Lj31/c;", "<init>", listOf("Ljava/lang/String;", "J"), "V")
+    field("Lj31/e;", "IMAGE_STANDARD", "Lj31/e;")
+    field("Lj31/e;", "IMAGE_ORIGINAL", "Lj31/e;")
+    method("Le80/d;", "<init>",
+        listOf("Ljava/lang/String;", "Ljava/lang/String;", "J", "Ljava/lang/String;",
+            "Llg1/a\$c;", "Ljava/lang/String;", "Z"), "V")
+    field("Lkn/l;", "d", "Lkn/l\$e;")
+    field("Lsu5/d;", "sa", "Lsu5/d\$a;")
+    method("Lsu5/d;", "n", listOf("J", "J"), "Ljava/io/File;")
+    method("Lsu5/d;", "k", listOf("J", "J"), "Ljava/io/File;")
+    method("Lsu5/d;", "m", listOf("J", "J"), "Ljava/io/File;")
+    field("Lsu5/o;", "va", "Lsu5/o\$a;")
+    method("Lsu5/o;", "h", listOf("Lzu5/d;"), "Ljava/lang/String;")
+    method("Lzu5/d;", "<init>", listOf("J", "J", "J", "Lzu5/e;", "Ljava/lang/String;"), "V")
+    method("Llg1/a\$c;", "<init>", listOf("Ljava/lang/String;", "Ljava/lang/String;", "Ljava/util/List;"), "V")
+}
+
 @Suppress("unused")
 val moreChatInfoPatch = bytecodePatch(
     name = "More Chat Info",
-    description = "Shows unread messages with Android's conversation template and the native total unread count. Enable in LINE settings.",
-    default = false,
+    description = "Shows configurable recent unread messages (1–25) in conversation style with total unread count, sender profile avatars (local cache only), optional inline photo/video/sticker thumbnail previews (loaded via LINE's image loader when enabled), and typed attachment labels ([Photo], [Video], [Sticker], [File] filename, [Location] place) across notifications, popups, and the chat list. Enable in LINE settings.",
+    default = true,
 ) {
     compatibleWith(COMPATIBILITY_LINE)
     dependsOn(notificationIntegrationPatch)
     execute {
         requireAvatarCacheBindings()
+        requireMediaPreviewBindings()
+        val chatListItem = mutableClassDefBy("Lf22/i;").methods.single {
+            it.name == "<init>" && it.parameterTypes.map(CharSequence::toString) == listOf(
+                "Ljava/lang/String;", "Ljava/lang/String;", "Z", "Z", "Z", "Z",
+                "Ljp/naver/line/android/model/ChatData\$c;", "Ljava/lang/String;", "Lyk8/z;",
+                "Ljava/lang/Long;", "I", "Z", "Z", "Z", "Z", "Z"
+            )
+        }
+        val chatListLastMessage = chatListItem.implementation!!.instructions.withIndex().single { (_, instruction) ->
+            val field = (instruction as? ReferenceInstruction)?.reference as? FieldReference
+            instruction.opcode == Opcode.IPUT_OBJECT && field?.definingClass == "Lf22/i;" && field.name == "h"
+        }
+        val lastMsgAssign = chatListLastMessage.value as TwoRegisterInstruction
+        if (chatListItem.implementation!!.registerCount != 17
+            || lastMsgAssign.registerA != 8 || lastMsgAssign.registerB != 0) {
+            throw PatchException("Native chat-list last-message presentation layout changed")
+        }
+        chatListItem.addInstructions(chatListLastMessage.index, """
+            invoke-static {v1, v8, v10, v15}, $LINE_SETTINGS->chatListLastMessage(Ljava/lang/String;Ljava/lang/String;Ljava/lang/Long;Z)Ljava/lang/String;
+            move-result-object v8
+        """)
         markIncluded("infoIncluded")
     }
 }
@@ -264,8 +319,8 @@ val moreChatInfoPatch = bytecodePatch(
 @Suppress("unused")
 val notTooMuchSilentPatch = bytecodePatch(
     name = "Not Too Much Silent",
-    description = "Shows muted regular chats silently; adds a completely-hidden chat menu option. Delivery still depends on LINE receiving the message.",
-    default = false,
+    description = "Turns chat-menu, chat-list, and notification mute into local silent mode with optional @mention and keyword alert bypass; adds a completely-hidden chat menu option.",
+    default = true,
 ) {
     compatibleWith(COMPATIBILITY_LINE)
     dependsOn(notificationIntegrationPatch)
@@ -362,7 +417,7 @@ val notTooMuchSilentPatch = bytecodePatch(
             instruction.opcode == Opcode.IPUT_BOOLEAN && field?.definingClass == "Lf22/i;" && field.name == "f"
         }
         val chatListAssign = chatListNotifiable.value as TwoRegisterInstruction
-        if (chatListItem.implementation!!.registerCount != 17 || chatListNotifiable.index != 10
+        if (chatListItem.implementation!!.registerCount != 17
             || chatListAssign.registerA != 6 || chatListAssign.registerB != 0) {
             throw PatchException("Native chat-list notification presentation layout changed")
         }

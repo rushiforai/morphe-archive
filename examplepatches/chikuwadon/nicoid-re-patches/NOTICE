@@ -19,3 +19,8 @@ provided that such references:
 - Are accurate, factual, and non-misleading;
 - Do not suggest authorship by the Morphe project; and
 - Appear only in a secondary or descriptive context, not as part of the product or project name.
+
+Third-party runtime components
+------------------------------
+The additional runtime component notices and Apache License 2.0 are included in
+porting/revisions/v2.1.9-dev.7/licenses/.

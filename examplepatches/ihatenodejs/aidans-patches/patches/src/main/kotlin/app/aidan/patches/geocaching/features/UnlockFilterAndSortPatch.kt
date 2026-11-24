@@ -1,18 +1,19 @@
 package app.aidan.patches.geocaching.features
 
 import app.aidan.patches.geocaching.shared.COMPATIBILITY_GEOCACHING
-import app.aidan.patches.geocaching.shared.patchAllL3cChecksToValue
-import app.aidan.patches.geocaching.shared.patchCz9OmitAllCacheTypes
+import app.aidan.patches.geocaching.shared.patchAllPremiumChecksToValue
 import app.aidan.patches.geocaching.shared.patchIncludeOwnedDisabledCachesToNull
-import app.aidan.patches.geocaching.shared.patchSanitizeFilterModel
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
 import app.morphe.patcher.patch.BytecodePatchContext
 import app.morphe.patcher.patch.PatchException
 import app.morphe.patcher.patch.bytecodePatch
+import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod
 import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.iface.instruction.FiveRegisterInstruction
+import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.RegisterRangeInstruction
+import com.android.tools.smali.dexlib2.iface.reference.StringReference
 val unlockFilterAndSortPatch = bytecodePatch(
     name = "Unlock Cache Filter and Sorting Tools",
     description = "Unlocks advanced cache search filters and sorting options without prompting for Geocaching Premium.",
@@ -28,6 +29,7 @@ val unlockFilterAndSortPatch = bytecodePatch(
         patchFilterScreenDialog()
         patchSortingTools()
         patchFilterPreferences()
+        patchCacheTypesOmission()
         patchMapRenderingFilter()
         patchSharedMapViewModel()
         patchMapLibreFragmentOnResume()
@@ -47,7 +49,7 @@ private fun BytecodePatchContext.patchMapFilterButtons() {
         it.name == "c" && it.implementation != null && it.parameterTypes == listOf("Landroid/view/MenuItem;")
     } ?: throw PatchException("GoogleMapFragment menu handler c(MenuItem) not found")
 
-    patchAllL3cChecksToValue(googleMapMenuMethod, "GoogleMapFragment menu handler (e.c)", value = true)
+    patchAllPremiumChecksToValue(googleMapMenuMethod, "GoogleMapFragment menu handler (e.c)", value = true)
 
     // 2. MapLibreFragment menu selection handler (k.smali)
     val mapLibreMenuClass = mutableClassDefByOrNull("Lcom/groundspeak/geocaching/intro/mainmap/map/k;")
@@ -57,7 +59,7 @@ private fun BytecodePatchContext.patchMapFilterButtons() {
         it.name == "c" && it.implementation != null && it.parameterTypes == listOf("Landroid/view/MenuItem;")
     } ?: throw PatchException("MapLibreFragment menu handler c(MenuItem) not found")
 
-    patchAllL3cChecksToValue(mapLibreMenuMethod, "MapLibreFragment menu handler (k.c)", value = true)
+    patchAllPremiumChecksToValue(mapLibreMenuMethod, "MapLibreFragment menu handler (k.c)", value = true)
 }
 
 /**
@@ -72,7 +74,7 @@ private fun BytecodePatchContext.patchFilterViewModel() {
         it.name == "e" && it.implementation != null && it.returnType == "Ljava/util/ArrayList;"
     } ?: throw PatchException("FilterViewModel.e not found")
 
-    patchAllL3cChecksToValue(eMethod, "FilterViewModel.e", value = true)
+    patchAllPremiumChecksToValue(eMethod, "FilterViewModel.e", value = true)
 
     // PopulatePrefs coroutine flow
     val populatePrefsClass = mutableClassDefByOrNull("Lcom/groundspeak/geocaching/intro/geocachefilter/FilterViewModel\$populatePrefs\$1;")
@@ -81,7 +83,7 @@ private fun BytecodePatchContext.patchFilterViewModel() {
             it.name == "invokeSuspend" && it.implementation != null
         }
         if (invokeSuspendMethod != null) {
-            patchAllL3cChecksToValue(invokeSuspendMethod, "FilterViewModel\$populatePrefs\$1.invokeSuspend", value = true)
+            patchAllPremiumChecksToValue(invokeSuspendMethod, "FilterViewModel\$populatePrefs\$1.invokeSuspend", value = true)
         }
     }
 }
@@ -90,7 +92,22 @@ private fun BytecodePatchContext.patchFilterViewModel() {
  * Neutralizes any remaining upsell dialog clicks in FilterScreen.
  */
 private fun BytecodePatchContext.patchFilterScreenDialog() {
-    val dialogListenerClass = mutableClassDefByOrNull("Ljk3;") ?: return
+    // The click handler is an anonymous DialogInterface.OnClickListener in the filter surface that
+    // launches PremiumUpsellActivity with source "Filter" (was Ljk3; in 10.21.0, now Lap3;).
+    val dialogListenerClass = mutableClassDefByOrNull("Lap3;")
+        ?: getAllClassesWithString("Filter")
+            .map { mutableClassDefBy(it) }
+            .firstOrNull { cls ->
+                cls.interfaces.any { it == "Landroid/content/DialogInterface\$OnClickListener;" } &&
+                    cls.methods.any { method ->
+                        method.name == "onClick" &&
+                            method.implementation?.instructions?.any { inst ->
+                                (inst as? ReferenceInstruction)?.reference?.toString()
+                                    ?.contains("premium/upsell/PremiumUpsellActivity") == true
+                            } == true
+                    }
+            }
+        ?: return
     val onClickMethod = dialogListenerClass.methods.firstOrNull {
         it.name == "onClick" && it.implementation != null && it.parameterTypes == listOf("Landroid/content/DialogInterface;", "I")
     } ?: return
@@ -109,76 +126,130 @@ private fun BytecodePatchContext.patchFilterScreenDialog() {
  * prompting for Geocaching Premium.
  */
 private fun BytecodePatchContext.patchSortingTools() {
-    // 1. GeocacheListFragment sorting listener (kb4.smali)
-    val listSortClass = mutableClassDefByOrNull("Lkb4;")
-        ?: throw PatchException("GeocacheListFragment sort listener (kb4) not found")
+    // 1. GeocacheListFragment sorting listener (was Lkb4;, now Llg4;)
+    val listSortClass = mutableClassDefByOrNull("Llg4;")
+        ?: throw PatchException("GeocacheListFragment sort listener (Llg4;) not found")
 
     val invokeMethod = listSortClass.methods.firstOrNull {
         it.name == "invoke" && it.implementation != null && it.parameterTypes.isEmpty()
     } ?: throw PatchException("GeocacheListFragment sort listener invoke() not found")
 
-    patchAllL3cChecksToValue(invokeMethod, "GeocacheListFragment sort listener (kb4.invoke)", value = true)
+    patchAllPremiumChecksToValue(invokeMethod, "GeocacheListFragment sort listener (Llg4;.invoke)", value = true)
 
-    // 2. GeoTour sorting presenter (hf4.smali)
-    val geoTourSortClass = mutableClassDefByOrNull("Lhf4;")
+    // 2. GeoTour sorting presenter (was Lhf4;.p()Lszb;, now Ldk4;.p()Lkec;)
+    val geoTourSortClass = mutableClassDefByOrNull("Ldk4;")
     if (geoTourSortClass != null) {
         val pMethod = geoTourSortClass.methods.firstOrNull {
-            it.name == "p" && it.implementation != null && it.returnType == "Lszb;"
+            it.name == "p" && it.implementation != null && it.returnType == "Lkec;"
         }
         if (pMethod != null) {
-            patchAllL3cChecksToValue(pMethod, "GeoTour sort presenter (hf4.p)", value = true)
+            patchAllPremiumChecksToValue(pMethod, "GeoTour sort presenter (Ldk4;.p)", value = true)
         }
     }
 }
 
 /**
- * Unlocks FilterPreferences (dk3) and ak3 so that saved user filter criteria (cache types, sizes,
- * difficulty, terrain, attributes, favorite points, found, owned, etc.) are actually loaded into
- * FilterModel (ck3) and applied to the map, while nulling out `includeOwnedDisabledCaches` to avoid
- * HTTP 403 Forbidden on the server.
+ * Unlocks FilterPreferences (Lto3;) so that saved user filter criteria (cache types, sizes,
+ * difficulty, terrain, attributes, favorite points, found, owned, etc.) are actually loaded into the
+ * filter-preference value object (Lso3;) and applied to the map, while nulling out
+ * `includeOwnedDisabledCaches` to avoid HTTP 403 Forbidden on the server.
  */
 private fun BytecodePatchContext.patchFilterPreferences() {
-    // 1. FilterPreferences (dk3)
-    val filterPrefsClass = mutableClassDefByOrNull("Ldk3;")
-        ?: throw PatchException("FilterPreferences (dk3) not found")
+    // 1. FilterPreferences (was Ldk3;, now Lto3;)
+    val filterPrefsClass = mutableClassDefByOrNull("Lto3;")
+        ?: throw PatchException("FilterPreferences (Lto3;) not found")
 
-    // Force l3c.d() in dk3.h to true so saved preferences are loaded instead of empty defaults
+    // Force the premium check in h() so saved preferences are loaded instead of empty defaults
     val hMethod = filterPrefsClass.methods.firstOrNull {
-        it.name == "h" && it.returnType == "Lck3;" && it.parameterTypes.isEmpty() && it.implementation != null
-    } ?: throw PatchException("FilterPreferences.h not found")
-    patchAllL3cChecksToValue(hMethod, "FilterPreferences.h", value = true)
+        it.name == "h" && it.returnType == "Lso3;" && it.parameterTypes.isEmpty() && it.implementation != null
+    } ?: throw PatchException("FilterPreferences.h()Lso3; not found")
+    patchAllPremiumChecksToValue(hMethod, "FilterPreferences.h", value = true)
 
     // Null out includeOwnedDisabledCaches so map search avoids HTTP 403 Forbidden
     patchIncludeOwnedDisabledCachesToNull(hMethod)
-    patchSanitizeFilterModel(hMethod)
+    sanitizeFilterModelInPlace(hMethod)
 
-    // Force l3c.d() in dk3.b to true so saved attributes are loaded instead of EmptyList
+    // Force the premium check in b() so saved attributes are loaded instead of EmptyList
     val bMethod = filterPrefsClass.methods.firstOrNull {
         it.name == "b" && it.returnType == "Ljava/util/List;" && it.parameterTypes.isEmpty() && it.implementation != null
     } ?: throw PatchException("FilterPreferences.b not found")
-    patchAllL3cChecksToValue(bMethod, "FilterPreferences.b", value = true)
+    patchAllPremiumChecksToValue(bMethod, "FilterPreferences.b", value = true)
+}
 
-    // 2. ak3 (difficulty & terrain filter parser)
-    val ak3Class = mutableClassDefByOrNull("Lak3;")
-    if (ak3Class != null) {
-        val invokeMethod = ak3Class.methods.firstOrNull {
-            it.name == "invoke" && it.implementation != null
-        }
-        if (invokeMethod != null) {
-            patchAllL3cChecksToValue(invokeMethod, "ak3.invoke", value = true)
-        }
-    }
+/**
+ * In the map/list search query-parameter builder (Lwk0;.invoke), drops the `cacheTypes` value so
+ * the parameter is omitted. `Lwa4;->a(List, String, Object)` skips null values.
+ *
+ * This is the 10.24.0 equivalent of the old cz9.a cacheTypes omission and prevents the Geocaching
+ * server from rejecting basic-account searches that include premium cache types.
+ */
+private fun BytecodePatchContext.patchCacheTypesOmission() {
+    val paramBuilder = mutableClassDefByOrNull("Lwk0;")
+        ?: getAllClassesWithString("cacheTypes")
+            .map { mutableClassDefBy(it) }
+            .firstOrNull { cls ->
+                cls.methods.any { method ->
+                    method.name == "invoke" &&
+                        method.implementation?.instructions?.any { inst ->
+                            (inst as? ReferenceInstruction)?.reference
+                                ?.toString()?.contains("Laj4;->b:Ljava/util/List;") == true
+                        } == true
+                }
+            }
+        ?: return
 
-    // 3. Search parameter builder (cz9.a) - omit cacheTypes if all cache types are selected
-    val cz9Class = mutableClassDefByOrNull("Lcz9;")
-    if (cz9Class != null) {
-        val aMethod = cz9Class.methods.firstOrNull {
-            it.name == "a" && it.returnType == "Lce4;" && it.implementation != null
-        }
-        if (aMethod != null) {
-            patchCz9OmitAllCacheTypes(aMethod)
-        }
+    val invokeMethod = paramBuilder.methods.firstOrNull {
+        it.name == "invoke" && it.implementation != null
+    } ?: return
+
+    val instructions = invokeMethod.implementation!!.instructions.toList()
+    val cacheTypesIdx = instructions.indexOfFirst { inst ->
+        inst.opcode == Opcode.CONST_STRING &&
+            ((inst as? ReferenceInstruction)?.reference as? StringReference)?.string == "cacheTypes"
     }
+    if (cacheTypesIdx == -1) return
+
+    val addCallIdx = cacheTypesIdx + 1
+    val addCall = instructions.getOrNull(addCallIdx) as? FiveRegisterInstruction ?: return
+    val valueReg = addCall.registerE
+    val alreadyPatched = instructions.getOrNull(addCallIdx - 2)?.opcode == Opcode.CONST_16 &&
+        (instructions.getOrNull(addCallIdx - 2) as? OneRegisterInstruction)?.registerA == valueReg
+    if (!alreadyPatched) {
+        invokeMethod.addInstructions(addCallIdx, "const/16 v$valueReg, 0x0")
+    }
+}
+
+/**
+ * Injects `GeocacheFilterBridge.sanitizeFilterModel` before the filter preferences value object is
+ * returned, nulling inactive toggles that make basic-account map searches fail with HTTP 403.
+ */
+private fun BytecodePatchContext.sanitizeFilterModelInPlace(method: MutableMethod) {
+    val impl = method.implementation ?: return
+    val instructions = impl.instructions.toList()
+    val alreadyPatched = instructions.any { inst ->
+        (inst as? ReferenceInstruction)?.reference?.toString()?.contains("sanitizeFilterModel") == true
+    }
+    if (alreadyPatched) return
+
+    val returnIdx = (0 until instructions.size).firstOrNull { i ->
+        val inst = instructions[i]
+        inst.opcode == Opcode.RETURN_OBJECT &&
+            (
+                instructions.getOrNull(i - 1)?.opcode == Opcode.INVOKE_DIRECT_RANGE ||
+                    instructions.getOrNull(i - 1)?.opcode == Opcode.INVOKE_DIRECT
+                )
+    } ?: -1
+    if (returnIdx == -1) return
+
+    val reg = (instructions[returnIdx] as OneRegisterInstruction).registerA
+    method.addInstructions(
+        returnIdx,
+        """
+        invoke-static {v$reg}, Lapp/aidan/extension/geocaching/GeocacheFilterBridge;->sanitizeFilterModel(Ljava/lang/Object;)Ljava/lang/Object;
+        move-result-object v$reg
+        check-cast v$reg, Lso3;
+        """.trimIndent()
+    )
 }
 
 /**
@@ -190,8 +261,11 @@ private fun BytecodePatchContext.patchMapRenderingFilter() {
         ?: throw PatchException("Map rendering class (a) not found")
 
     val eMethod = mapRenderingClass.methods.firstOrNull {
-        it.name == "e" && it.implementation != null && it.parameterTypes == listOf("Ljava/util/List;", "Ll3c;")
-    } ?: throw PatchException("a.e(List, l3c) not found")
+        it.name == "e" &&
+            it.implementation != null &&
+            it.parameterTypes.firstOrNull() == "Ljava/util/List;" &&
+            it.parameterTypes.getOrNull(1) == "Ldic;"
+    } ?: throw PatchException("a.e(List, dic, ...) not found")
 
     eMethod.addInstructions(
         0,
@@ -204,79 +278,23 @@ private fun BytecodePatchContext.patchMapRenderingFilter() {
 
 /**
  * In SharedMapViewModel:
- * 1. trySearching$1: updates master list and filters map items loaded from Room DB.
- * 2. trySearching$2: updates master list and filters map items loaded after network search.
- * 3. reloadPins$1: reapplies active filters to master list on filter change.
- * 4. refreshFilteredState$1: triggers reloadPins() whenever filter state is refreshed.
+ * 1. trySearching$1 / trySearching$2: filters map items emitted to the `s0` pin flow loaded from
+ *    the Room database and after network search.
+ * 2. reloadPins$1: reapplies active filters on filter change.
+ * 3. refreshFilteredState$1: triggers reloadPins (`v()`) whenever filter state is refreshed.
  */
 private fun BytecodePatchContext.patchSharedMapViewModel() {
-    // 1. trySearching$1
-    val trySearching1Class = mutableClassDefByOrNull("Lcom/groundspeak/geocaching/intro/mainmap/map/SharedMapViewModel\$trySearching\$1;")
-    if (trySearching1Class != null) {
-        val invokeSuspendMethod = trySearching1Class.methods.firstOrNull {
-            it.name == "invokeSuspend" && it.implementation != null
-        }
-        if (invokeSuspendMethod != null) {
-            val instructions = invokeSuspendMethod.implementation!!.instructions.toList()
-            for ((idx, inst) in instructions.withIndex()) {
-                if (inst.opcode == Opcode.INVOKE_VIRTUAL) {
-                    val ref = (inst as? ReferenceInstruction)?.reference?.toString() ?: ""
-                    if (ref.contains("Lkotlinx/coroutines/flow/m;->n(Ljava/lang/Object;)V")) {
-                        val prev = instructions.getOrNull(idx - 1)
-                        val prevRef = (prev as? ReferenceInstruction)?.reference?.toString() ?: ""
-                        if (prevRef.contains("SharedMapViewModel;->p0")) {
-                            val reg = (inst as? FiveRegisterInstruction)?.registerD
-                                ?: (inst as? RegisterRangeInstruction)?.let { it.startRegister + 1 }
-                                ?: 4
-                            invokeSuspendMethod.addInstructions(
-                                idx,
-                                """
-                                invoke-static {v$reg}, Lapp/aidan/extension/geocaching/GeocacheFilterBridge;->updateAndFilterMapItems(Ljava/util/List;)Ljava/util/List;
-                                move-result-object v$reg
-                                """.trimIndent()
-                            )
-                            break
-                        }
-                    }
-                }
-            }
-        }
-    }
+    // 1. trySearching$1 / trySearching$2: filter the list emitted to SharedMapViewModel.s0
+    patchFilteredEmission(
+        "Lcom/groundspeak/geocaching/intro/mainmap/map/SharedMapViewModel\$trySearching\$1;",
+        "updateAndFilterMapItems"
+    )
+    patchFilteredEmission(
+        "Lcom/groundspeak/geocaching/intro/mainmap/map/SharedMapViewModel\$trySearching\$2;",
+        "updateAndFilterMapItems"
+    )
 
-    // 2. trySearching$2
-    val trySearching2Class = mutableClassDefByOrNull("Lcom/groundspeak/geocaching/intro/mainmap/map/SharedMapViewModel\$trySearching\$2;")
-    if (trySearching2Class != null) {
-        val invokeSuspendMethod = trySearching2Class.methods.firstOrNull {
-            it.name == "invokeSuspend" && it.implementation != null
-        }
-        if (invokeSuspendMethod != null) {
-            val instructions = invokeSuspendMethod.implementation!!.instructions.toList()
-            for ((idx, inst) in instructions.withIndex()) {
-                if (inst.opcode == Opcode.INVOKE_VIRTUAL) {
-                    val ref = (inst as? ReferenceInstruction)?.reference?.toString() ?: ""
-                    if (ref.contains("Lkotlinx/coroutines/flow/m;->n(Ljava/lang/Object;)V")) {
-                        val prev = instructions.getOrNull(idx - 1)
-                        val prevRef = (prev as? ReferenceInstruction)?.reference?.toString() ?: ""
-                        if (prevRef.contains("SharedMapViewModel;->p0")) {
-                            val reg = (inst as? FiveRegisterInstruction)?.registerD
-                                ?: (inst as? RegisterRangeInstruction)?.let { it.startRegister + 1 }
-                                ?: 0
-                            invokeSuspendMethod.addInstructions(
-                                idx,
-                                """
-                                invoke-static {v$reg}, Lapp/aidan/extension/geocaching/GeocacheFilterBridge;->updateAndFilterMapItems(Ljava/util/List;)Ljava/util/List;
-                                move-result-object v$reg
-                                """.trimIndent()
-                            )
-                            break
-                        }
-                    }
-                }
-            }
-        }
-    }
-
-    // 3. reloadPins$1
+    // 2. reloadPins$1
     val reloadPinsClass = mutableClassDefByOrNull("Lcom/groundspeak/geocaching/intro/mainmap/map/SharedMapViewModel\$reloadPins\$1;")
     if (reloadPinsClass != null) {
         val invokeSuspendMethod = reloadPinsClass.methods.firstOrNull {
@@ -287,7 +305,7 @@ private fun BytecodePatchContext.patchSharedMapViewModel() {
             val nCalls = instructions.indices.filter { idx ->
                 val inst = instructions[idx]
                 inst.opcode == Opcode.INVOKE_VIRTUAL &&
-                    (inst as? ReferenceInstruction)?.reference?.toString()?.contains("Lkotlinx/coroutines/flow/m;->n(Ljava/lang/Object;)V") == true
+                    (inst as? ReferenceInstruction)?.reference?.toString()?.contains("Lkotlinx/coroutines/flow/n;->n(Ljava/lang/Object;)V") == true
             }
             if (nCalls.size >= 2) {
                 val secondCallIdx = nCalls[1]
@@ -316,12 +334,12 @@ private fun BytecodePatchContext.patchSharedMapViewModel() {
             for ((idx, inst) in instructions.withIndex()) {
                 if (inst.opcode == Opcode.INVOKE_VIRTUAL) {
                     val ref = (inst as? ReferenceInstruction)?.reference?.toString() ?: ""
-                    if (ref.contains("Lkotlinx/coroutines/flow/m;->o(Ljava/lang/Object;Ljava/lang/Object;)Z")) {
+                    if (ref.contains("Lkotlinx/coroutines/flow/n;->o(Ljava/lang/Object;Ljava/lang/Object;)Z")) {
                         invokeSuspendMethod.addInstructions(
                             idx + 1,
                             """
                             iget-object p1, p0, Lcom/groundspeak/geocaching/intro/mainmap/map/SharedMapViewModel${'$'}refreshFilteredState${'$'}1;->D:Lcom/groundspeak/geocaching/intro/mainmap/map/SharedMapViewModel;
-                            invoke-virtual {p1}, Lcom/groundspeak/geocaching/intro/mainmap/map/SharedMapViewModel;->p()V
+                            invoke-virtual {p1}, Lcom/groundspeak/geocaching/intro/mainmap/map/SharedMapViewModel;->v()V
                             """.trimIndent()
                         )
                         break
@@ -333,7 +351,42 @@ private fun BytecodePatchContext.patchSharedMapViewModel() {
 }
 
 /**
- * In MapLibreFragment.onResume, triggers SharedMapViewModel.p() (reloadPins)
+ * Filters the map-item list that a SharedMapViewModel coroutine emits to its `s0` state flow.
+ * In 10.24.0 the view model publishes pins through `s0` (`flow.n.n`) instead of the old `p0` flow.
+ */
+private fun BytecodePatchContext.patchFilteredEmission(className: String, bridgeMethod: String) {
+    val lambdaClass = mutableClassDefByOrNull(className) ?: return
+    val invokeSuspendMethod = lambdaClass.methods.firstOrNull {
+        it.name == "invokeSuspend" && it.implementation != null
+    } ?: return
+
+    val instructions = invokeSuspendMethod.implementation!!.instructions.toList()
+    for (idx in instructions.indices) {
+        val inst = instructions[idx]
+        if (inst.opcode != Opcode.INVOKE_VIRTUAL) continue
+
+        val ref = (inst as? ReferenceInstruction)?.reference?.toString() ?: ""
+        if (!ref.contains("Lkotlinx/coroutines/flow/n;->n(Ljava/lang/Object;)V")) continue
+
+        val prevRef = (instructions.getOrNull(idx - 1) as? ReferenceInstruction)?.reference?.toString() ?: ""
+        if (!prevRef.contains("SharedMapViewModel;->s0:")) continue
+
+        val reg = (inst as? FiveRegisterInstruction)?.registerD
+            ?: (inst as? RegisterRangeInstruction)?.let { it.startRegister + 1 }
+            ?: return
+        invokeSuspendMethod.addInstructions(
+            idx,
+            """
+            invoke-static {v$reg}, Lapp/aidan/extension/geocaching/GeocacheFilterBridge;->$bridgeMethod(Ljava/util/List;)Ljava/util/List;
+            move-result-object v$reg
+            """.trimIndent()
+        )
+        return
+    }
+}
+
+/**
+ * In MapLibreFragment.onResume, triggers SharedMapViewModel.v() (reloadPins)
  * so that when returning from FilterNavHostActivity, MapLibre reloads pins with newly applied filters.
  */
 private fun BytecodePatchContext.patchMapLibreFragmentOnResume() {
@@ -353,9 +406,9 @@ private fun BytecodePatchContext.patchMapLibreFragmentOnResume() {
         onResumeMethod.addInstructions(
             superCallIdx + 1,
             """
-            invoke-virtual {p0}, Lcom/groundspeak/geocaching/intro/mainmap/map/MapLibreFragment;->v()Lcom/groundspeak/geocaching/intro/mainmap/map/SharedMapViewModel;
+            invoke-virtual {p0}, Lcom/groundspeak/geocaching/intro/mainmap/map/MapLibreFragment;->w()Lcom/groundspeak/geocaching/intro/mainmap/map/SharedMapViewModel;
             move-result-object v0
-            invoke-virtual {v0}, Lcom/groundspeak/geocaching/intro/mainmap/map/SharedMapViewModel;->p()V
+            invoke-virtual {v0}, Lcom/groundspeak/geocaching/intro/mainmap/map/SharedMapViewModel;->v()V
             """.trimIndent()
         )
     }

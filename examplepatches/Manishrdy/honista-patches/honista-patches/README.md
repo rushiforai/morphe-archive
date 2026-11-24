@@ -6,11 +6,11 @@ A local Morphe `.mpp` bundle implementing the retained changes in the workspace'
 
 Use the **original** `Honista_v13.1__x64.apk`, package `cc.honista.app`, version `426.0.0.37.70`, version code `383207254`. It contains ARM64 native libraries despite its filename.
 
-The patch checks package/version/code and canonical DEX fingerprints of all 17 original classes it modifies. It rejects modified inputs and existing local helper classes. Future Honista versions require a port; do not force compatibility. No original APK or signing key is included in the source archive.
+The patch checks package/version/code and compares the nine protected original classes against trusted reference classes, serializing both with the same runtime DEX writer. It does not compare runtime output against hashes produced by a different build-time writer. It rejects modified inputs and existing local helper classes. Future Honista versions require a port; do not force compatibility. No original APK or signing key is included in the source archive.
 
 ## Apply using Morphe Manager
 
-1. Add `https://github.com/Manishrdy/honista-patches` as a Remote patch source, or copy `honista-patches-1.1.0.mpp` and the original APK to your phone for local import.
+1. Add `https://github.com/Manishrdy/honista-patches` as a Remote patch source, or copy `honista-patches-1.1.2.mpp` and the original APK to your phone for local import.
 2. In Manager, open **Add patch source → Local → Select patch source files** and select the `.mpp`. The exact entry point can vary by Manager release.
 3. Select Honista's original APK from storage. Select **Honista v13 complete local fixes** from **Honista Local Patches**.
 4. Patch with Manager's default settings, then install the result using the signing-key instructions below.
@@ -51,14 +51,24 @@ Requirements: JDK 17+, Python 3 for optional helper regeneration, Android SDK pl
 
 ```sh
 ./gradlew :patches:buildAndroid
-# Result: patches/build/libs/patches-1.0.0.mpp
+# Result: patches/build/libs/patches-1.1.2.mpp
 ```
 
 `buildAndroid` is required: `build`/`jar` alone produce JVM classes without the root Android patch-loader DEX. Re-run `buildAndroid` after any task that recreates the jar. GitHub Packages dependencies may require a token with read-package access on a fresh computer. Override the offline placeholders with `-Pgpr.user="$GITHUB_ACTOR" -Pgpr.key="$GITHUB_TOKEN"`; do not commit credentials. This workspace builds offline using its cached dependencies.
 
 To edit filtering logic, change `helper-src/X/LocalSponsoredFilter.java`, run `python3 tools/rebuild_helpers.py`, then rebuild the bundle. The startup module is the frozen tested asset, matching `analysis/integrity/startup-module-patched.dex` in the parent workspace. Its original capture and rebuild scripts are documented in `action_items.md`; changing that asset also requires updating the replacement hash in `LocalModuleOverride.java`. Do not re-export baseline fingerprints from a modified APK.
 
-For the exact local workspace, verification tasks are:
+For input-guard regressions and patching/compiling the available original APK:
+
+```sh
+./gradlew :patches:verifyInput :patches:verifyOriginal
+```
+
+These check all nine protected target classes, acceptance after DEX reserialization, rejection of missing/modified classes and existing helpers, and full patch execution/DEX compilation. They do not replace testing Manager on Android.
+
+`baseline.dex` is a tracked reference, not an extension merged into the app. To regenerate it, run `./gradlew :patches:exportBaseline`; this first verifies the APK against the frozen `baseline.tsv` and refuses changed inputs. Rebuild afterward to package the updated resource.
+
+For the older workspace with its separately tested patched APK, additional verification tasks are:
 
 ```sh
 ./gradlew :patches:verifyBundle :patches:verifyRejection
@@ -70,7 +80,7 @@ These use the parent's original/tested APKs, compare all 17 changed/added output
 
 ```sh
 java -Xmx6g -jar morphe-desktop-1.18.1-all.jar patch \
-  --unsigned -p honista-patches-1.1.0.mpp \
+  --unsigned -p patches-1.1.2.mpp \
   -o Honista-morphe-unsigned.apk Honista_v13.1__x64.apk
 ```
 
@@ -82,4 +92,4 @@ Built using Morphe patches plugin 1.3.2 and patcher API 1.5.0, then successfully
 
 Android bundle loading was prepared using the official Manager 1.34.0 runtime, but could not execute because ADB reported no connected device. Manager UI import/patch/install is therefore not claimed as device-tested. No app was installed or removed during bundle creation. Earlier Android filtering tests and live observations belong to the installed build documented in section 23 of the action log.
 
-The public repository now includes `patches-bundle.json`, which resolves the remote source to the hosted v1.0.0 MPP asset. Update that descriptor when publishing future bundle versions. Local MPP import remains available.
+The public repository now includes `patches-bundle.json`, which resolves the remote source to the hosted v1.1.2 MPP asset. Update that descriptor when publishing future bundle versions. Local MPP import remains available.

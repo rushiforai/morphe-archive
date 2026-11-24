@@ -1,3 +1,8 @@
+/*
+ * Copyright 2026 amfakh
+ * SPDX-License-Identifier: GPL-3.0-only
+ */
+
 package app.fakh.extension.linkedin;
 
 import android.app.Activity;
@@ -286,8 +291,7 @@ final class PostMenu {
                 kept.add(field);
             }
         }
-        MenuIconIds.Result icons = new MenuIconIds.Result();
-        byte[] built = MenuIconIds.swap(ProtoEdit.write(kept), icon, icons);
+        byte[] built = MenuIconIds.swap(ProtoEdit.write(kept), icon);
         row.data = relabel(built, label, viewName, template);
         return row;
     }

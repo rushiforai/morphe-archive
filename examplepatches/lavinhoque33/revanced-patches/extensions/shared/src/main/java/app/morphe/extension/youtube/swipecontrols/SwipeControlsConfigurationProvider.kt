@@ -8,6 +8,7 @@ import app.morphe.extension.shared.utils.Utils.validateValue
 import app.morphe.extension.youtube.settings.Settings
 import app.morphe.extension.youtube.shared.LockModeState
 import app.morphe.extension.youtube.shared.PlayerType
+import app.morphe.extension.youtube.swipecontrols.controller.gesture.core.SwipeDetector.SwipeDirection
 
 /**
  * Provides configuration settings for edge-assigned swipe controls in the YouTube player.
@@ -81,13 +82,20 @@ class SwipeControlsConfigurationProvider {
 
     // region swipe enable
 
-    /**
-     * Indicates whether swipe controls are enabled globally.
-     * Returns true if either volume or brightness controls are enabled and the video is in fullscreen mode.
-     */
+    /** Whether any assigned edge can handle swipes in the current player mode. */
     val enableSwipeControls: Boolean
-        get() = (enableVolumeControls || enableBrightnessControl || enableSpeedControl || enableSeekControl) &&
-                isFullscreenVideo
+        get() = hasAssignedZones() && (isFullscreenVideo || enablePortraitSwipeControls)
+
+    internal fun hasAssignedZones(): Boolean =
+        leftZoneAction != SwipeZoneAction.OFF || rightZoneAction != SwipeZoneAction.OFF ||
+            topZoneAction != SwipeZoneAction.OFF || bottomZoneAction != SwipeZoneAction.OFF
+
+    internal val portraitSwipeEnabled: Boolean
+        get() = Settings.SWIPE_PORTRAIT.get()
+
+    /** Orientation and the visible player bounds are checked by the host before accepting a touch. */
+    val enablePortraitSwipeControls: Boolean
+        get() = portraitSwipeEnabled && PlayerType.current == PlayerType.WATCH_WHILE_MAXIMIZED
 
     /**
      * The action assigned to the left swipe zone.
@@ -267,12 +275,11 @@ class SwipeControlsConfigurationProvider {
      */
     val overlayShowTimeoutMillis = Settings.SWIPE_OVERLAY_TIMEOUT.get()
 
-    /**
-     * The background opacity of the overlay, converted from a percentage (0-100) to an alpha value (0-255).
-     */
-    val overlayBackgroundOpacity: Int by lazy {
+    /** The color picker controls RGB; the existing opacity slider is the only source of alpha. */
+    val overlayBackgroundColor: Int by lazy {
         val opacity = SeekBarPreference.clampToRange(Settings.SWIPE_OVERLAY_OPACITY) * 255 / 100
-        Color.argb(opacity, 0, 0, 0)
+        val color = validateColor(Settings.SWIPE_OVERLAY_BACKGROUND_COLOR)
+        Color.argb(opacity, Color.red(color), Color.green(color), Color.blue(color))
     }
 
     /**
@@ -352,7 +359,7 @@ class SwipeControlsConfigurationProvider {
      * Defines the style of the swipe controls overlay, determining its layout and appearance.
      *
      * @property isMinimal Indicates whether the style is minimalistic, omitting detailed progress indicators.
-     * @property isHorizontalMinimalCenter Indicates whether the style is a minimal horizontal bar centered vertically.
+     * @property isHorizontalCenter Indicates whether the horizontal bar is centered vertically.
      * @property isCircular Indicates whether the style uses a circular progress bar.
      * @property isVertical Indicates whether the style uses a vertical progress bar.
      */
@@ -360,7 +367,7 @@ class SwipeControlsConfigurationProvider {
     enum class SwipeOverlayStyle(
         val isLegacy: Boolean = false,
         val isMinimal: Boolean = false,
-        val isHorizontalMinimalCenter: Boolean = false,
+        val isHorizontalCenter: Boolean = false,
         val isCircular: Boolean = false,
         val isVertical: Boolean = false
     ) {
@@ -374,6 +381,8 @@ class SwipeControlsConfigurationProvider {
          */
         HORIZONTAL,
 
+        HORIZONTAL_CENTER(isHorizontalCenter = true),
+
         /**
          * A minimal horizontal progress bar positioned at the top.
          */
@@ -382,7 +391,7 @@ class SwipeControlsConfigurationProvider {
         /**
          * A minimal horizontal progress bar centered vertically.
          */
-        HORIZONTAL_MINIMAL_CENTER(isMinimal = true, isHorizontalMinimalCenter = true),
+        HORIZONTAL_MINIMAL_CENTER(isMinimal = true, isHorizontalCenter = true),
 
         /**
          * A full circular progress bar with detailed indicators.
@@ -402,13 +411,23 @@ class SwipeControlsConfigurationProvider {
         /**
          * A minimal vertical progress bar.
          */
-        VERTICAL_MINIMAL(isMinimal = true, isVertical = true)
+        VERTICAL_MINIMAL(isMinimal = true, isVertical = true),
+
+        FOLLOW_DEFAULT,
     }
 
-    /**
-     * The current style of the overlay, determining its layout and appearance.
-     */
-    val overlayStyle = Settings.SWIPE_OVERLAY_STYLE.get()
+    fun overlayStyle(direction: SwipeDirection): SwipeOverlayStyle {
+        val style = when (direction) {
+            SwipeDirection.VERTICAL -> Settings.SWIPE_SIDE_OVERLAY_STYLE.get()
+            SwipeDirection.HORIZONTAL -> Settings.SWIPE_TOP_BOTTOM_OVERLAY_STYLE.get()
+            SwipeDirection.NONE -> SwipeOverlayStyle.FOLLOW_DEFAULT
+        }
+        if (style != SwipeOverlayStyle.FOLLOW_DEFAULT) return style
+
+        return Settings.SWIPE_OVERLAY_STYLE.get().let {
+            if (it == SwipeOverlayStyle.FOLLOW_DEFAULT) SwipeOverlayStyle.HORIZONTAL else it
+        }
+    }
 
     // endregion
 

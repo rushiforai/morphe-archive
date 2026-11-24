@@ -175,7 +175,7 @@ public final class ResponseArchive {
             SharedNgResponseExclusion.appendSheet(builder, response, board);
             PosterHighlight.appendSheet(builder, response, board);
             ResponseArchiveEntry entry = snapshot(response, board);
-            if(ResponseMenuSettings.visible(ResponseNotes.MENU))appendSheetAction(builder,"メモ",android.R.drawable.ic_menu_edit,()->ResponseNotes.open(Haiagaru.toolbarActivity(null),entry));
+            if(ResponseMenuSettings.visible(ResponseNotes.MENU))appendSheetAction(builder,"メモ",ToolbarIcons.noteResource(Haiagaru.applicationContextForExtension()),()->ResponseNotes.open(Haiagaru.toolbarActivity(null),entry));
             appendSheetAction(builder, "このレスをアーカイブに保存", archiveIcon(true), () -> {
                 Activity a = Haiagaru.toolbarActivity(null);
                 if (a != null) confirm(a, entry);

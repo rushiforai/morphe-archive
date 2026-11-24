@@ -5,40 +5,57 @@
 package app.morphe.patches.keepa.misc.accounts
 
 import app.morphe.patcher.patch.PatchException
-import app.morphe.patcher.patch.resourcePatch
+import app.morphe.patcher.patch.document
+import app.morphe.patcher.patch.patch
+import app.morphe.patcher.patch.mutableClassDefBy
+import app.morphe.patcher.patch.resourceFile
+import app.morphe.patcher.resource.ResourceType
 import app.morphe.patches.shared.compat.AppCompatibilities
+import app.morphe.patches.shared.misc.hostedcomponents.CORE_COMPONENT_FACTORY
+import app.morphe.patches.shared.misc.hostedcomponents.HostedComponents
+import app.morphe.patches.shared.misc.hostedcomponents.licenseCheckActivityHost
 import app.morphe.patches.shared.misc.pairip.removePairipProtectionPatch
+import app.morphe.patches.shared.misc.smali.replaceResourceIdStubs
 import app.morphe.util.inputStreamFromBundledResource
 import org.w3c.dom.Element
 import app.morphe.patches.shared.misc.extension.keepaMultipleAccountsExtensionPatch
 import app.morphe.patches.shared.misc.extension.sharedNightModeExtensionPatch
 
 private const val ACCOUNTS_ACTIVITY_CLASS = "app.hxreborn.extension.keepa.AccountsActivity"
-private const val ACCOUNTS_ACTIVITY_THEME = "@style/AppTheme"
+private const val ACCOUNTS_ACTIVITY_TYPE = "Lapp/hxreborn/extension/keepa/AccountsActivity;"
+private const val ACCOUNTS_ACTIVITY_THEME_NAME = "AppTheme"
+private const val ACCOUNTS_ACTIVITY_THEME = "@style/$ACCOUNTS_ACTIVITY_THEME_NAME"
 private const val BUNDLE = "assets/app/bundle.mjs"
 private const val VENDOR = "assets/app/vendor.mjs"
 private const val SETTINGS_CHUNK = "assets/app/src_app_features_settings_settings_component_ts.mjs"
 private const val MANAGE_CHUNK = "assets/app/src_app_features_manage_manage_routes_ts.mjs"
 
+private val hostedComponents = HostedComponents(CORE_COMPONENT_FACTORY)
+
 @Suppress("unused")
-val multipleAccountsPatch = resourcePatch(
+val multipleAccountsPatch = patch(
     name = "Multiple accounts",
     description = "Signs in to several Keepa accounts at once and lists their price watches together. " +
         "Accounts are added and removed in Settings > Accounts.",
 ) {
     dependsOn(keepaMultipleAccountsExtensionPatch, sharedNightModeExtensionPatch)
     compatibleWith(AppCompatibilities.KEEPA)
-    dependsOn(removePairipProtectionPatch)
+    dependsOn(removePairipProtectionPatch, hostedComponents.patch)
 
     execute {
+        hostedComponents.host(ACCOUNTS_ACTIVITY_CLASS, licenseCheckActivityHost)
+        mutableClassDefBy(ACCOUNTS_ACTIVITY_TYPE).replaceResourceIdStubs(
+            ResourceType.STYLE,
+            mapOf("appTheme" to ACCOUNTS_ACTIVITY_THEME_NAME),
+        )
         val runtime = inputStreamFromBundledResource("keepa", "accounts.js")
             ?.bufferedReader()?.use { it.readText() }
             ?: throw PatchException("Runtime resource keepa/accounts.js is unavailable")
 
-        val bundle = get(BUNDLE)
-        val settings = get(SETTINGS_CHUNK)
-        val manage = get(MANAGE_CHUNK)
-        requireRuntimeDependencies(runtime, bundle.readText() + get(VENDOR).readText())
+        val bundle = resourceFile(BUNDLE)
+        val settings = resourceFile(SETTINGS_CHUNK)
+        val manage = resourceFile(MANAGE_CHUNK)
+        requireRuntimeDependencies(runtime, bundle.readText() + resourceFile(VENDOR).readText())
         val editedBundle = applyNetworkEdits(bundle.readText(), runtime)
         val editedSettings = applySettingsEdits(settings.readText())
         val editedManage = applyManageEdits(manage.readText())

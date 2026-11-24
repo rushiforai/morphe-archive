@@ -53,7 +53,7 @@ public final class PlayerOptionsSection {
 
     /** Looks for an open Options sheet in this window and adds the section once. */
     public static void scan(Activity activity, View root) {
-        if (!Included.adBlock() && !Included.songRemoval() && !Included.qualityUnlock()) return;
+        if (!Included.adBlock() && !Included.songRemoval() && !Included.qualityUnlock() && !Included.highestQuality()) return;
         if (testIdKey == 0) {
             testIdKey = activity.getResources().getIdentifier("react_test_id", "id", activity.getPackageName());
             if (testIdKey == 0) testIdKey = -1;
@@ -129,9 +129,14 @@ public final class PlayerOptionsSection {
         // (from where the list's own padding ends: that's where the section starts)
         int side = sideOf(shown, titleAt[0], listAt[0] + content.getPaddingLeft(), shown ? title.getPaddingLeft() : 0,
                 new Theme(activity).dp(16));
-        // In the look of the sheet's own section titles and rows ("Chat Only" is one, its text the first in it).
+        // In the look of the sheet's own section titles and switch rows ("Pop Out"; else "Chat Only").
+        View switchRow = nativeIds.switchRow == 0 ? null : content.findViewById(nativeIds.switchRow);
         View row = nativeIds.row == 0 ? null : content.findViewById(nativeIds.row);
-        View section = build(activity, side, title instanceof TextView ? (TextView) title : null, firstText(row));
+        TextView rowLook = firstText(switchRow);
+        if (rowLook == null) rowLook = firstText(row);
+        View section = build(activity, side, title instanceof TextView ? (TextView) title : null, rowLook);
+        // (the sheet's sections follow each other without a gap of their own above their titles)
+        section.setPadding(0, 0, 0, section.getPaddingBottom());
         section.setTag(NATIVE_SECTION_TAG);
         content.addView(section, new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT,
                 ViewGroup.LayoutParams.WRAP_CONTENT));
@@ -151,19 +156,21 @@ public final class PlayerOptionsSection {
         static final String LIST = "options_scrollview";
         static final String TITLE = "viewing_options_header";
         static final String ROW = "chat_only_toggle";
-        final int list, title, row;
+        static final String SWITCH_ROW = "pip_wrapper";
+        final int list, title, row, switchRow;
 
-        NativeSheetIds(int list, int title, int row) {
+        NativeSheetIds(int list, int title, int row, int switchRow) {
             this.list = list;
             this.title = title;
             this.row = row;
+            this.switchRow = switchRow;
         }
 
         static NativeSheetIds of(Activity activity) {
             android.content.res.Resources resources = activity.getResources();
             String app = activity.getPackageName();
             return new NativeSheetIds(resources.getIdentifier(LIST, "id", app), resources.getIdentifier(TITLE, "id", app),
-                    resources.getIdentifier(ROW, "id", app));
+                    resources.getIdentifier(ROW, "id", app), resources.getIdentifier(SWITCH_ROW, "id", app));
         }
     }
 
@@ -341,6 +348,9 @@ public final class PlayerOptionsSection {
         if (Included.qualityUnlock()) {
             section.addView(row(activity, theme, side, "Quality unlock", PatchSettings.QUALITY_UNLOCK, unlockStatus, rowLook));
         }
+        if (Included.highestQuality()) {
+            section.addView(row(activity, theme, side, "Highest quality", PatchSettings.HIGHEST_QUALITY, null, rowLook));
+        }
 
         Runnable[] tick = new Runnable[1];
         boolean[] ticking = {false}; // only a countdown's number changed: no need to lay the sheet out again
@@ -490,6 +500,11 @@ public final class PlayerOptionsSection {
         name.setTextSize(15);
         name.setTypeface(TwitchFonts.semiBold(context)); // as the sheet's own row titles
         lookOf(look, name);
+        // As tall as the sheet's own row it takes its look from (its text's row), not taller.
+        if (look != null && look.getParent() instanceof View && ((View) look.getParent()).getHeight() > 0) {
+            row.setMinimumHeight(((View) look.getParent()).getHeight());
+            row.setPadding(side, theme.dp(4), side, theme.dp(4));
+        }
         texts.addView(name);
         if (status != null) texts.addView(status);
         LinearLayout.LayoutParams textArea = new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1);
@@ -510,6 +525,10 @@ public final class PlayerOptionsSection {
             DebugLog.log("Player Options: " + title + (on ? " on" : " off"));
         });
         row.addView(toggle);
+        // Only a tap on the row switches it: the switch itself takes no touches (it would also switch on a sideways
+        // drag, which a swipe scrolling the sheet can start on it).
+        toggle.setClickable(false);
+        toggle.setFocusable(false);
         row.setOnClickListener(v -> toggle.toggle());
         PatchSettings.Listener sync = (changed, on) -> {
             if (!changed.equals(key)) return;

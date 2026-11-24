@@ -20,7 +20,11 @@ internal const val EXPAND_CAPTIONS_STATUS = "expandCaptions"
  * takes the line count to stop at, one or two lines depending on the feed. The patch asks the
  * extension for that count right before the cut, with the surface the post shows on, so the feeds
  * get the count picked in settings, reels the whole caption on their own switch (#752), and stories
- * keep Instagram's (see [findCaptionTrim]).
+ * keep Instagram's (see [findCaptionTrim]). The Reels tab's own caption, which Instagram 456 draws
+ * without that builder, asks the same reels switch where it settles its line count, and whether its
+ * caption is open wherever it reads that, so it draws the caption open on the reel rather than cut
+ * short with a "..." that opens the caption sheet (#821, see [findReelCaptionLines] and
+ * [findReelCaptionOpens]).
  * The patch switches the status method on, and the settings screen then offers the switch. In the
  * default selection with its switch off.
  */
@@ -37,7 +41,12 @@ val expandCaptionsPatch = bytecodePatch(
 
     execute {
         requireStatusMethod(EXPAND_CAPTIONS_STATUS)
+        val reels = findReelCaptionLines()
+        val opens = findReelCaptionOpens()
         findCaptionTrim().write(this)
+        reels.forEach { it.write(this) }
+        // After the line counts: their hook is found by the flag's read right before its branch.
+        opens.forEach { it.write(this) }
         enableStatus(EXPAND_CAPTIONS_STATUS)
     }
 }

@@ -15,7 +15,7 @@ val microgRuntimePermissionsPatch = bytecodePatch(
     description = "Explains microG account permissions before requesting them and respects Not now.",
     default = true
 ) {
-    compatibleWith("com.google.android.googlequicksearchbox")
+    compatibleWith(*VersionHookRegistry.compatibility("com.google.android.googlequicksearchbox"))
     dependsOn(googleAppManifestPatch)
     extendWith(java.util.function.Supplier {
         checkNotNull(VersionHookRegistry::class.java.classLoader.getResourceAsStream("extensions/microg-permissions.bin")) {

@@ -12,7 +12,7 @@ import com.android.tools.smali.dexlib2.iface.Method
 private const val DIAG_TAG = "VTPatch"
 private const val VERIFICATION_RESULT_FQN = "Lcom/revenuecat/purchases/VerificationResult;"
 
-// Diagnostic only; logs RevenueCat channel calls and entitlement build steps.
+// Diagnostic only: logs RevenueCat channel calls and entitlement build steps.
 @Suppress("unused")
 val channelCallLogPatch = bytecodePatch(
     name = "Logs",
@@ -43,8 +43,7 @@ val channelCallLogPatch = bytecodePatch(
             }
         if (builders.size != 1) {
             throw PatchException(
-                "expected exactly 1 buildEntitlementInfo(JSONObject, String, JSONObject, Date, " +
-                    "VerificationResult), found ${builders.size}"
+                "expected exactly 1 buildEntitlementInfo, found ${builders.size}"
             )
         }
         builders.single().logEntry("buildEntitlementInfo entered")

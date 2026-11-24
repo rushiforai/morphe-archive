@@ -266,6 +266,9 @@ final class FeedCategory {
             feed.addPreference(toggle(context, Settings.FEED_TAPS_STAY_IN_FEED, L10n.t("Taps on feed videos stay in the feed"),
                     L10n.t("A tap on a feed video, or on the screen it shows when it ends, no longer opens it full screen "
                             + "in Reels. Tap a feed video to pause it still pauses it, and the buttons on that screen still work.")));
+            feed.addPreference(toggle(context, Settings.FEED_TAP_MIDDLE_ONLY, L10n.t("Only the middle pauses it"),
+                    L10n.t("Only a tap in the middle of the video, where Instagram puts its play button, pauses or plays "
+                            + "it. A tap anywhere else opens it in Reels, unless Taps on feed videos stay in the feed is on.")));
         }
         if (watchAgain) {
             feed.addPreference(toggle(context, Settings.WATCH_AGAIN_IN_FEED, L10n.t("Watch again in the feed"),
@@ -286,6 +289,11 @@ final class FeedCategory {
             feed.addPreference(toggle(context, Settings.HOLD_FEED_VIDEO_KEEP_NAME, L10n.t("Keep the name while you hold"),
                     L10n.t("The name over a feed video stays while you hold it for 2x. Instagram's 2x and time labels "
                             + "don't show then.")));
+            if (feedTapPause) {
+                feed.addPreference(toggle(context, Settings.HOLD_FEED_VIDEO_MIDDLE_PAUSES, L10n.t("Hold the middle to pause it"),
+                        L10n.t("Holding the middle of a feed video pauses it until you let go. Hold its left or right "
+                                + "side for 2x.")));
+            }
         }
         if (feedSeekBar) {
             feed.addPreference(toggle(context, Settings.FEED_SEEK_BAR, L10n.t("Seek bar on feed videos"),
@@ -309,6 +317,8 @@ final class FeedCategory {
             feed.addPreference(toggle(context, Settings.FEED_SEEK_TIME_LEFT, L10n.t("Show the time left"),
                     L10n.t("The time on the seek bar counts down what's left of the video, like -0:33 / 0:45. "
                             + "A tap on the time switches back.")));
+            feed.addPreference(toggle(context, Settings.FEED_SEEK_TIME_UNDER_TAGS, L10n.t("Time under the tags button"),
+                    L10n.t("Puts the time in the corner under the tags button instead of the middle of the bar.")));
             feed.addPreference(toggle(context, Settings.FEED_DOUBLE_TAP_SKIP, L10n.t("Double tap to skip on feed videos"),
                     L10n.t("Double tap the left side of the video playing in a feed to go back, or the right side to go "
                             + "ahead, as far as Skip length says. A double tap in the middle works as before.")));

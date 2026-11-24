@@ -108,6 +108,29 @@ public class UnlockTest {
     }
 
     @Test
+    public void aLongStreamKeepsItsPlaylistsInTheTunnel() {
+        QualityUnlock.learnAddresses(UNLOCKED);
+        // hours of video pieces: past the limit, the old pieces are forgotten
+        StringBuilder pieces = new StringBuilder();
+        for (int i = 0; i < 4100; i++) pieces.append("https://edge-1.abs.hls.ttvnw.net/v1/segment/L").append(i).append(".ts\n");
+        QualityUnlock.learnAddresses(pieces.toString());
+        QualityUnlock.learnAddresses("https://edge-1.abs.hls.ttvnw.net/v1/segment/NEW.ts\n");
+        assertTrue("the playlist is still the stream's", QualityUnlock.knows("https://b.playlist.ttvnw.net/v1/1440.m3u8?p=3"));
+        assertTrue(QualityUnlock.knows("https://edge-1.abs.hls.ttvnw.net/v1/segment/NEW.ts"));
+        assertTrue("old pieces forgotten", !QualityUnlock.knows("https://edge-1.abs.hls.ttvnw.net/v1/segment/L0.ts"));
+    }
+
+    @Test
+    public void aVpnFailureIsToldOnceForEachUnlockedStream() {
+        QualityUnlock.TUNNEL_FAILURE_TOLD.set(false);
+        QualityUnlock.tunnelFailed("timed out");
+        assertTrue(QualityUnlock.status().problem);
+        assertTrue(QualityUnlock.TUNNEL_FAILURE_TOLD.get());
+        QualityUnlock.tunnelFailed("timed out again"); // the next pieces: not told again
+        assertTrue(QualityUnlock.TUNNEL_FAILURE_TOLD.get());
+    }
+
+    @Test
     public void findsTheChannelOfALivePlaylistRequest() {
         assertEquals("streamer", QualityUnlock.channelOf("https://usher.ttvnw.net/api/v2/channel/hls/Streamer.m3u8?token=x"));
         assertEquals("streamer", QualityUnlock.channelOf("https://usher.ttvnw.net/api/channel/hls/streamer.m3u8"));

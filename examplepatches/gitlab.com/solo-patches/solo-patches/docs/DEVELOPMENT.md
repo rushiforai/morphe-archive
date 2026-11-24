@@ -9,7 +9,7 @@ Solo Patches targets only WebNovel `com.qidian.Int.reader` **8.24.2 APKM**. Publ
 - `scripts/`: offline regression checks, opt-in device probes, release preparation and the relocated `generate_patches_readme.py` catalog generator. The Kotlin patch-list generator lives under `patches/src/main/kotlin/util/`.
 - JDK 21, Android SDK with `ANDROID_HOME` configured, Python 3, and the pinned Morphe Desktop CLI 2.1.1 for the recorded patching flow. Gradle's upstream plugin needs GitHub Packages read access through `GITHUB_ACTOR` and `GITHUB_TOKEN`; supply them privately in the process environment, never in tracked files or reports.
 
-Run **one heavy job at a time**. Do not overlap Gradle, jadx or patching; the local workstation has previously exhausted memory. The current release version is `1.0.7` (the default in `build.gradle.kts`). A release tag must match the actual bundle manifest and generated patch list, not merely a renamed file.
+Run **one heavy job at a time**. Do not overlap Gradle, jadx or patching; the local workstation has previously exhausted memory. The current release version is `1.0.9` (the default in `build.gradle.kts`). A release tag must match the actual bundle manifest and generated patch list, not merely a renamed file.
 
 The historical lab has this repository inside a `morphe-work` directory, with sibling `tools/`, `apk/` and `out/` directories. Those paths below describe that layout, not files shipped by this repository. Configure Java and Android SDK in your shell; the private lab environment file is not a prerequisite to share or source from unreviewed instructions. Never check in app APK/APKM inputs, patched APKs, signing private keys, credentials or device/account dumps.
 
@@ -32,7 +32,7 @@ This single-bundle command selects the local controls and optional Firebase Anal
 ```sh
 tools/jdk21/bin/java -Xmx3g -XX:ActiveProcessorCount=2 \
   -jar tools/morphe-desktop-2.1.1-all.jar patch --validate --exclusive \
-  -p solo-patches-publish/patches/build/libs/patches-1.0.7.mpp \
+  -p solo-patches-publish/patches/build/libs/patches-1.0.9.mpp \
   -e 'Hide ads' -e 'Hide popups' -e 'WebNovel GmsCore compatibility' \
   -e 'Material You colors' -e 'AMOLED dark theme' -e 'Main navigation controls' \
   -e 'Disable reader reward timer' -e 'Disable Firebase Analytics' -e 'Copy and translate' \
@@ -176,7 +176,7 @@ The optional catalog command is `python3 scripts/generate_patches_readme.py solo
 The patch-list generator requires exactly one non-source/non-javadoc `.mpp` in `patches/build/libs/`, reads its real manifest, and rejects ambiguity or a missing `Version` before replacing metadata. After building, its isolated regression check needs the actual bundle, CLI and a Gson JAR on the JVM classpath:
 
 ```sh
-python3 scripts/check_patch_list_generator.py 'patches/build/libs/patches-1.0.7.mpp:../tools/morphe-desktop-2.1.1-all.jar:/path/to/gson.jar'
+python3 scripts/check_patch_list_generator.py 'patches/build/libs/patches-1.0.9.mpp:../tools/morphe-desktop-2.1.1-all.jar:/path/to/gson.jar'
 ```
 
 Both generator checks use temporary directories and neither publish nor modify the repository's generated metadata.

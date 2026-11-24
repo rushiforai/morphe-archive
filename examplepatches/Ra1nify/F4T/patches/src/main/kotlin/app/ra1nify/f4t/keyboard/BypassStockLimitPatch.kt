@@ -39,13 +39,11 @@ private const val THEMES_PACKAGE_PREFIX = "Lcom/oplus/keyboard/lib_themes/"
 private const val TRANSLATION_PACKAGE_PREFIX = "Lcom/oplus/keyboard/input/translation/"
 
 /**
- * Restores what the stock keyboard only allows to the privileged, stock-signed build.
+ * Spoofs the stock package name in the cloud request signers and reroutes the AI writing key.
  *
- * - Cloud requests are signed with the stock package name, and the SecKit white-box identity of the
- *   configuration sync points at the installed stock package, so the backend accepts the requests of
- *   the AI, voice, translation, theme and dictionary features.
- * - The AI writing key opens the AI writer through its unprotected text selection entrance instead of
- *   the "com.oplus.permission.safe.SAU" protected service that a re-signed copy can never start.
+ * Cloud requests are signed with the stock package name so the backend accepts the AI, voice,
+ * translation, theme and dictionary features. The AI writing key opens the AI writer through its
+ * unprotected text selection entrance instead of the `com.oplus.permission.safe.SAU` service.
  */
 @Suppress("unused")
 val bypassStockLimitPatch = bytecodePatch(
@@ -59,14 +57,11 @@ val bypassStockLimitPatch = bytecodePatch(
 ) {
     compatibleWith(OPLUS_KEYBOARD)
 
-    // The notice is mandatory, and both bypasses only make sense on a package that was renamed away
-    // from the stock one.
     dependsOn(keyboardAntiResalePatch, changeIdentityPatch)
 
     execute {
-        // The class that holds the SecKit client accessor is obfuscated and its name changes between
-        // host builds (`security/d` in 1.9.18.17, `security/e` in 1.9.25.17), so it is resolved by its
-        // signature instead of being hardcoded.
+        // The SecKit accessor lives in an obfuscated class whose name differs between host builds
+        // (`security/d` in 1.9.18.17, `security/e` in 1.9.25.17), so it is resolved by signature.
         var kitCandidates = 0
         var kitClass: String? = null
         var kitName: String? = null
@@ -83,8 +78,7 @@ val bypassStockLimitPatch = bytecodePatch(
         if (kitCandidates != 1) {
             throw PatchException(
                 "found $kitCandidates method(s) returning \"$SECURITY_KIT_RETURN\" in " +
-                    "$KEYBOARD_PACKAGE_PREFIX, expected exactly 1. The SecKit accessor moved in this " +
-                    "host build, so the configuration sync could not be identified."
+                    "$KEYBOARD_PACKAGE_PREFIX, expected exactly 1"
             )
         }
         val securityKitClass = kitClass!!
@@ -101,8 +95,8 @@ val bypassStockLimitPatch = bytecodePatch(
             signingClasses += 1
 
             val methods = mutableClassDefBy(classDef).methods.filterIsInstance<MutableMethod>()
-            // The helper is rewritten first: the direct lookup it contains must be intact while it is
-            // being detected, and once it returns the constant it has nothing left to replace.
+            // The helper goes first: the direct lookup it contains must be intact while it is being
+            // detected.
             methods.filter { method -> method.isPackageNameHelper() }.forEach { method ->
                 method.forceStockPackageName()
                 helperBodies += 1
@@ -129,9 +123,6 @@ val bypassStockLimitPatch = bytecodePatch(
                 }
         }
 
-        // The white-box identity used to sign the configuration sync is derived from the package name
-        // and the certificate of the APK. Pointing it at the installed stock package makes the SecKit
-        // client authenticate as that package, with the stock certificate, and the sync succeeds.
         var omkmsIdentitySites = 0
         classDefForEach { classDef ->
             if (classDef.methods.none { method -> method.isOmkmsIdentityMethod() }) return@classDefForEach
@@ -144,12 +135,8 @@ val bypassStockLimitPatch = bytecodePatch(
                 }
         }
 
-        // The translation and theme cloud features also embed the package name in their requests, as
-        // a normal request parameter instead of a signature field.
-        //
-        // These two packages are feature modules whose class names are readable and stable (only the
-        // SDK-internal packages are renamed between builds), so the prefix is the reliable signal
-        // here: matching every `getPackageName()` caller in the app would rewrite unrelated code.
+        // Translation and theme are feature modules whose class names are readable and stable (only
+        // the SDK-internal packages are renamed), so the prefix is the signal here.
         var cloudFeatureSites = 0
         classDefForEach { classDef ->
             val isCloudFeatureClass = classDef.type.startsWith(TRANSLATION_PACKAGE_PREFIX) ||
@@ -167,39 +154,28 @@ val bypassStockLimitPatch = bytecodePatch(
         if (signingClasses < MIN_SIGNING_CLASSES) {
             throw PatchException(
                 "found $signingClasses class(es) with the request signing anchor, expected at least " +
-                    "$MIN_SIGNING_CLASSES. The signing code moved in this host build, so the cloud " +
-                    "features would stay broken."
+                    "$MIN_SIGNING_CLASSES"
             )
         }
         if (signingSites < MIN_SIGNING_SITES) {
             throw PatchException(
-                "patched $signingSites direct package-name lookup(s) in the request signers, expected " +
-                    "at least $MIN_SIGNING_SITES. The package name is obtained differently in this build."
+                "patched $signingSites package-name lookup(s) in the request signers, expected at " +
+                    "least $MIN_SIGNING_SITES"
             )
         }
         if (helperBodies < 1) {
-            throw PatchException(
-                "the private package-name helper of the voice ASR signer was not found; the voice " +
-                    "request signatures would keep the renamed package"
-            )
+            throw PatchException("the private package-name helper of the voice ASR signer was not found")
         }
         if (configSyncSites < 1) {
-            throw PatchException(
-                "the cloud configuration sync was not found; it fetches the HMAC keys, so the " +
-                    "signed requests would all use an invalid key"
-            )
+            throw PatchException("the cloud configuration sync was not found")
         }
         if (omkmsIdentitySites < 1) {
-            throw PatchException(
-                "the SecKit white-box identity was not found; the configuration sync would fail its " +
-                    "identity verification and the HMAC keys would never be fetched"
-            )
+            throw PatchException("the SecKit white-box identity was not found")
         }
         if (cloudFeatureSites < MIN_CLOUD_FEATURE_SITES) {
             throw PatchException(
                 "patched $cloudFeatureSites package-name lookup(s) in the translation and theme " +
-                    "requests, expected at least $MIN_CLOUD_FEATURE_SITES. Those requests would embed " +
-                    "the renamed package and get rejected."
+                    "requests, expected at least $MIN_CLOUD_FEATURE_SITES"
             )
         }
 
@@ -239,8 +215,7 @@ val bypassStockLimitPatch = bytecodePatch(
 
         if (patchedMethods != 1) {
             throw PatchException(
-                "found $patchedMethods AI writing entry method(s), expected exactly 1. The entry " +
-                    "moved in this host build, so the key would keep failing to start the AI writer."
+                "found $patchedMethods AI writing entry method(s), expected exactly 1"
             )
         }
 
@@ -262,12 +237,7 @@ private fun Method.callsContextPackageName(): Boolean =
         reference != null && reference.isContextPackageGetter()
     } == true
 
-/**
- * A method that asks the SecKit client for a signed payload, as the cloud configuration sync does.
- *
- * The accessor lives in an obfuscated class whose name differs between host builds, so the resolved
- * class and method names are passed in instead of being compared against a constant.
- */
+/** A method that asks the SecKit client for a signed payload. */
 private fun Method.callsSecurityKit(kitClass: String, kitName: String): Boolean =
     implementation?.instructions?.any { instruction ->
         val reference = (instruction as? ReferenceInstruction)?.reference as? MethodReference
@@ -277,29 +247,19 @@ private fun Method.callsSecurityKit(kitClass: String, kitName: String): Boolean 
             reference.returnType == SECURITY_KIT_RETURN
     } == true
 
-/**
- * The cloud configuration sync fetches the HMAC keys. It is the only method that both obtains the
- * package name and talks to the SecKit client, and it has to sign with the stock name as well.
- */
+/** The cloud configuration sync: reads the package name and calls the SecKit client. */
 private fun Method.isConfigSyncRequest(kitClass: String, kitName: String): Boolean =
     callsSecurityKit(kitClass, kitName) && callsContextPackageName()
 
-/**
- * The SecKit white-box identity helper. It derives the identity of the app from the package name and
- * the certificate of the APK: `context.getPackageName() + "^" + signatureHash(context, packageName)`.
- *
- * Both halves are structural: a call to the package-name getter plus a call to the SDK helper that
- * turns `(Context, String)` into the certificate hash. The owning class is not matched by name, so a
- * re-obfuscated SDK package cannot break the detection.
- */
+/** The SecKit white-box identity helper: package name plus certificate hash. */
 private fun Method.isOmkmsIdentityMethod(): Boolean =
     callsContextPackageName() && callsPackageSignatureHash()
 
 /**
  * A call of the SDK helper that returns the certificate hash of a package as a string.
  *
- * `(Context, String) -> String` alone is far too common (accounts, feedback, cipher helpers all match
- * it), so the callee is required to live in the SDK package the identity is derived from.
+ * `(Context, String) -> String` alone is too common, so the callee is required to live in the SDK
+ * package the identity is derived from.
  */
 private fun Method.callsPackageSignatureHash(): Boolean =
     implementation?.instructions?.any { instruction ->
@@ -326,10 +286,10 @@ private fun MethodReference.isContextPackageGetter(): Boolean =
         parameterTypes.isEmpty()
 
 /**
- * Replaces every `Context.getPackageName()` in the method with the stock package name.
+ * Replaces every `Context.getPackageName()` with the stock package name.
  *
- * The getter is always followed by `move-result-object`, which is turned into `nop` to keep the
- * instruction indices and the labels attached to them stable.
+ * The getter is followed by `move-result-object`, which becomes `nop` to keep instruction indices
+ * and their labels stable.
  *
  * @return How many lookups were replaced.
  */
@@ -375,14 +335,14 @@ private fun Instruction.anchorString(): String? =
     ((this as? ReferenceInstruction)?.reference as? StringReference)?.string
 
 
-/** The helper that starts the AI writer. It is the only method that logs this failure. */
+/** The helper that starts the AI writer: the only method that logs this failure. */
 private fun Method.isAiWritingEntry(): Boolean =
     implementation?.instructions?.any { instruction ->
         instruction.stringConstant()?.startsWith(AI_WRITE_ANCHOR) == true
     } == true
 
 /**
- * Rewrites the privileged start into a start of the unprotected text selection entrance:
+ * Rewrites the privileged start into a launch of the unprotected text selection entrance:
  * `Intent(PROCESS_TEXT).setClassName(com.oplus.aiwriter, TextSelectorEntrance).addFlags(NEW_TASK)`.
  */
 private fun MutableMethod.rerouteAiWritingEntry() {

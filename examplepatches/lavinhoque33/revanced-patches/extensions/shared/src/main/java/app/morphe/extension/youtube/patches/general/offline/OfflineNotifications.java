@@ -5,6 +5,7 @@
  * https://github.com/anddea/revanced-patches
  *
  * Licensed under the GNU General Public License v3.0.
+ * Modified by lavinhoque33, 2026-11-24.
  * Written by lavinhoque33, 2026-10-10.
  * Modified by lavinhoque33, 2026-10-24.
  */
@@ -177,8 +178,7 @@ final class OfflineNotifications {
     }
 
     static Notification buildPlayback(Context context, MediaSession.Token token, String title,
-                                      String author, @Nullable Bitmap artwork, boolean playing,
-                                      @Nullable String key) {
+                                      String author, @Nullable Bitmap artwork, boolean playing) {
         createChannels(context);
         final String service = OfflineServiceHooks.BACKGROUND_SERVICE;
         Notification.Builder builder = new Notification.Builder(context, PLAYBACK_CHANNEL)
@@ -191,7 +191,7 @@ final class OfflineNotifications {
                 .setVisibility(Notification.VISIBILITY_PUBLIC)
                 .setOngoing(playing)
                 .setCategory(Notification.CATEGORY_TRANSPORT)
-                .setContentIntent(activityIntent(context, OfflineScreens.playerIntent(context, key), 2))
+                .setContentIntent(activityIntent(context, OfflineScreens.playerIntent(context, null), 2))
                 .setDeleteIntent(serviceIntent(context, service, OfflineServiceHooks.ACTION_PLAYBACK_CLOSE, null, 13))
                 .addAction(action(context, android.R.drawable.ic_media_previous, str("revanced_offline_previous"),
                         serviceIntent(context, service, OfflineServiceHooks.ACTION_PLAYBACK_PREVIOUS, null, 10)))

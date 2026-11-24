@@ -1,0 +1,18 @@
+# Morphe analysis and generated artifacts
+/analysis/
+/.morphe/
+/.gradle/
+/.kotlin/
+**/build/
+/morphe-data/
+/morphe-cli.jar
+*.apk
+*.apkm
+*.apks
+*.xapk
+*.mpp
+*.mpe
+*.keystore
+*.jks
+*.bks
+/patches/src/main/resources/TomteInitHelper.dex

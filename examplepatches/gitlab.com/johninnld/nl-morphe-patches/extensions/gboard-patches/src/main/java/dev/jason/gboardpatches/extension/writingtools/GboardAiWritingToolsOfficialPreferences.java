@@ -1,9 +1,12 @@
 package dev.jason.gboardpatches.extension.writingtools;
 
 public final class GboardAiWritingToolsOfficialPreferences {
-    public static final int PROOFREAD_PREF_KEY = 0x7f1409b3;
-    public static final int WRITING_TOOLS_PREF_KEY = 0x7f140abd;
-    public static final int WRITING_TOOLS_CATEGORY_KEY = 0x7f140cb1;
+    // 18.8 string ids of the keys the stock writing-tools settings controller (kar) removes:
+    // "show_fix_it_button" (proofread), "writing_tools_cooperative_mode" and
+    // "setting_writing_tools_category_key".
+    public static final int PROOFREAD_PREF_KEY = 0x7f1409b2;
+    public static final int WRITING_TOOLS_PREF_KEY = 0x7f140ab4;
+    public static final int WRITING_TOOLS_CATEGORY_KEY = 0x7f140cc9;
 
     private static final Object LOCK = new Object();
     private static volatile Snapshot observedSnapshot = new Snapshot(null, null);

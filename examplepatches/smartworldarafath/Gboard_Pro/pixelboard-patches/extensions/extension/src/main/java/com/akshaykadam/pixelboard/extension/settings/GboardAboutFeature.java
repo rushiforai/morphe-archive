@@ -7,6 +7,7 @@ import android.net.Uri;
 import com.akshaykadam.pixelboard.extension.BuildConfig;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 public final class GboardAboutFeature implements GboardPatchesSettingsContract.Feature {
@@ -42,124 +43,70 @@ public final class GboardAboutFeature implements GboardPatchesSettingsContract.F
 
         List<GboardPatchesSettingsContract.Section> sections = new ArrayList<>();
 
-        // 1. Maintainer & Developer Section
+        // 1. DEVELOPER & COMMUNITY
         List<GboardPatchesSettingsContract.Row> devRows = new ArrayList<>();
-        devRows.add(new GboardPatchesSettingsContract.CommandRow(
-                "Arafath Rahman (@smartworldarafath)",
-                "Project Creator, Maintainer & Lead Android Engineer",
+        devRows.add(new GboardPatchesSettingsContract.NavigationRow(
+                "Developer",
+                "Arafath Rahman",
+                null,
                 true,
-                () -> openUrl(ctx, "https://github.com/smartworldarafath")
+                () -> openUrl(ctx, "https://github.com/smartworldarafath"),
+                false
         ));
-        devRows.add(new GboardPatchesSettingsContract.CommandRow(
-                "Telegram Community & Support",
-                "Direct chat & updates @smartworldarafath",
+        devRows.add(new GboardPatchesSettingsContract.NavigationRow(
+                "Community",
+                "Telegram Community & Support\nJoin for updates, help and discussions",
                 true,
                 () -> openUrl(ctx, "https://t.me/smartworldarafath")
         ));
-        devRows.add(new GboardPatchesSettingsContract.CommandRow(
-                "Issue Tracker & Feedback",
-                "Submit bug reports and feature requests on GitHub",
+        devRows.add(new GboardPatchesSettingsContract.NavigationRow(
+                "Source Code",
+                "GitHub Repository\nView the source code and contribute",
                 true,
-                () -> openUrl(ctx, "https://github.com/smartworldarafath/Gboard_Pro/issues")
+                () -> openUrl(ctx, "https://github.com/smartworldarafath/Gboard_Pro")
         ));
         sections.add(new GboardPatchesSettingsContract.Section(
-                "MAINTAINER & COMMUNITY",
+                "DEVELOPER & COMMUNITY",
                 devRows
         ));
 
-        // 2. Application & System Section
+        // 2. APPLICATION & SYSTEM
         List<GboardPatchesSettingsContract.Row> infoRows = new ArrayList<>();
-        infoRows.add(new GboardPatchesSettingsContract.DetailRow(
+        infoRows.add(new GboardPatchesSettingsContract.NavigationRow(
                 "Release Version",
-                "v" + BuildConfig.PATCH_VERSION + " (Beta)",
-                false
+                "v" + BuildConfig.PATCH_VERSION,
+                true,
+                () -> openUrl(ctx, "https://github.com/smartworldarafath/Gboard_Pro/releases")
         ));
-        infoRows.add(new GboardPatchesSettingsContract.DetailRow(
+        infoRows.add(new GboardPatchesSettingsContract.NavigationRow(
                 "Base Gboard",
-                "18.4.1.985164140-release-arm64-v8a",
-                false
-        ));
-        infoRows.add(new GboardPatchesSettingsContract.DetailRow(
-                "Display Engine",
-                "144Hz / 120Hz Ultra Smooth Refresh Rate",
-                false
-        ));
-        infoRows.add(new GboardPatchesSettingsContract.DetailRow(
-                "License",
-                "GNU General Public License v3.0 (GPLv3)",
-                false
+                "18.6.3.1002251336-release-arm64-v8a",
+                true,
+                () -> openUrl(ctx, "https://github.com/smartworldarafath/Gboard_Pro/releases")
         ));
         sections.add(new GboardPatchesSettingsContract.Section(
                 "APPLICATION & SYSTEM",
                 infoRows
         ));
 
-        // 3. Core Highlights Section
-        List<GboardPatchesSettingsContract.Row> highlightRows = new ArrayList<>();
-        highlightRows.add(new GboardPatchesSettingsContract.DetailRow(
-                "Material 3 Expressive",
-                "Blush Lilac, Cotton Candy, Sunset Peach & Fresh Mint dynamic palettes",
-                false
-        ));
-        highlightRows.add(new GboardPatchesSettingsContract.DetailRow(
-                "AI Voice Dictation",
-                "Gemini neural dictation model integration with smart punctuation",
-                false
-        ));
-        highlightRows.add(new GboardPatchesSettingsContract.DetailRow(
-                "Clipboard System",
-                "Dual standard & custom hourly retention with Samsung/Vivo sync",
-                false
-        ));
-        highlightRows.add(new GboardPatchesSettingsContract.DetailRow(
-                "Zero-Telemetry Privacy",
-                "100% on-device processing with zero data transmission",
-                false
-        ));
-        sections.add(new GboardPatchesSettingsContract.Section(
-                "CORE HIGHLIGHTS",
-                highlightRows
-        ));
-
-        // 4. Open Source & Legal Section
-        List<GboardPatchesSettingsContract.Row> linkRows = new ArrayList<>();
-        linkRows.add(new GboardPatchesSettingsContract.CommandRow(
-                "GitHub Repository",
-                "smartworldarafath/Gboard_Pro",
-                true,
-                () -> openUrl(ctx, "https://github.com/smartworldarafath/Gboard_Pro")
-        ));
-        linkRows.add(new GboardPatchesSettingsContract.CommandRow(
-                "Release Notes & Changelog",
-                "View full changelog history on GitHub Releases",
-                true,
-                () -> openUrl(ctx, "https://github.com/smartworldarafath/Gboard_Pro/releases")
-        ));
-        linkRows.add(new GboardPatchesSettingsContract.CommandRow(
-                "Privacy Policy & Terms",
-                "Zero-telemetry guarantee and open-source terms",
-                true,
-                () -> openUrl(ctx, "https://github.com/smartworldarafath/Gboard_Pro#readme")
-        ));
-        sections.add(new GboardPatchesSettingsContract.Section(
-                "OPEN SOURCE & LEGAL",
-                linkRows
-        ));
-
         List<GboardPatchesSettingsContract.StatusBlock> statusBlocks = new ArrayList<>();
         statusBlocks.add(new GboardPatchesSettingsContract.StatusBlock(
                 "Gboard Pro",
-                "Next-generation Gboard enhancement with Material 3 Expressive styling, 144Hz high refresh rate, Gemini Voice, and dual clipboard retention.",
+                "Gboard From Google Pixel 11 series with Pixel exclusive features with Gemini",
                 GboardPatchesSettingsContract.StatusTone.INFO
         ));
 
         return new GboardPatchesSettingsContract.Screen(
                 "About",
-                "v" + BuildConfig.PATCH_VERSION,
+                null,
                 "About",
                 "Developer & project details",
                 statusBlocks,
-                sections
+                sections,
+                GboardPatchesSettingsContract.RefreshPolicy.none(),
+                GboardPatchesSettingsContract.PanelStyle.FLAT,
+                null,
+                false
         );
     }
 

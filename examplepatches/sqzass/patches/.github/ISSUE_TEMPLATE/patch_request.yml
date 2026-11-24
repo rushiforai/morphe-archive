@@ -1,0 +1,95 @@
+name: 🧩 Patch request
+description: Request a new patch or a new patched behavior for an app.
+title: "patch: "
+labels: ["patch-request"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        # Lustx Patches patch request
+
+        Use this template if you want a **new patch** or a **new patched behavior** for an app (not a bug in an existing patch, and not a generic feature request).
+
+        Before submitting:
+        - **Search first**: Check open and closed issues and discussions for the same request.
+        - Patches are community-maintained. A request is not a guarantee it will be implemented.
+
+  - type: input
+    id: target-app
+    attributes:
+      label: Target app
+      description: Which app should the new patch target? (e.g. Pawxy, PortDroid, Postparty, SD Maid 2/SE, or a new app)
+    validations:
+      required: true
+
+  - type: input
+    id: app-version
+    attributes:
+      label: App version
+      description: The version of the app you want patched. Patches are version-specific. If you don't know or don't have it, I'll assume latest version available.
+    validations:
+      required: true
+
+  - type: textarea
+    id: patch-description
+    attributes:
+      label: What should the patch do?
+      description: |
+        Describe the exact behavior you want the patch to enable or change.
+        Be concrete: "Remove the subscription check on the export screen" is better than "unlock premium".
+    validations:
+      required: true
+
+  - type: textarea
+    id: use-case
+    attributes:
+      label: Use case / motivation
+      description: |
+        Why is this patch needed?
+        - What are you trying to accomplish that the unpatched app does not allow?
+        - Who else would benefit (too niche of uses might get dismissed as bloat)?
+    validations:
+      required: true
+
+  - type: textarea
+    id: current-limitation
+    attributes:
+      label: Current behavior / limitation
+      description: What does the app currently do instead? If you can, describe where in the UI the relevant screen or action lives.
+    validations:
+      required: false
+
+  - type: dropdown
+    id: apk-source
+    attributes:
+      label: APK source
+      description: If you already have an APK you want patched, where did it come from?
+      options:
+        - GitHub (official)
+        - APKMirror
+        - APKPure
+        - Play Store (split APK)
+        - Not sure / no APK yet
+    validations:
+      required: false
+
+  - type: textarea
+    id: additional-context
+    attributes:
+      label: Additional context
+      description: Screenshots, decompiled snippets, references to similar patches in other repos, or anything that helps evaluate feasibility.
+    validations:
+      required: false
+
+  - type: checkboxes
+    id: acknowledgements
+    attributes:
+      label: Acknowledgements
+      description: Your request may be closed if you don't follow the checklist below.
+      options:
+        - label: I have searched open and closed issues and discussions for the same request.
+          required: true
+        - label: I understand that patches are community-maintained and this request may not be implemented.
+          required: true
+        - label: This is a request for a patch in Lustx Patches, not for the original app developer.
+          required: true

@@ -177,6 +177,8 @@ public class FeedScreenCoverageTest {
         // Day first rewrites TikTok's own date by the creator's name, so it reaches where that row does (#438).
         put("publish_date_day_first", YES, YES, NONE);
         put("publish_date_month_name", YES, YES, NONE);
+        // The same row's age written as a date, so it reaches where that row does (#461).
+        put("publish_date_instead_of_age", YES, YES, NONE);
         // Profile grids only.
         put("publish_date_on_grid", NONE, NONE, NONE);
         put("video_length_on_grid", NONE, NONE, NONE);
@@ -202,6 +204,10 @@ public class FeedScreenCoverageTest {
         put("region_as_flag", YES, YES, NONE);
         // The same row's country and date, moved under the caption beside it (#410).
         put("country_date_under_caption", YES, YES, NONE);
+        // How that line looks, so it reaches where the line does (#500).
+        put("country_date_text_size", YES, YES, NONE);
+        put("country_date_opacity", YES, YES, NONE);
+        put("country_date_shadow", YES, YES, NONE);
         put("show_author_handle", YES, YES, NONE);
         put("show_engagement_rate", YES, YES, NONE);
         put("hide_feed_caption", YES, YES, NONE);
@@ -279,6 +285,11 @@ public class FeedScreenCoverageTest {
         // Clear display follows TikTok's own mode in either window (#84).
         put("automatic_clear_display", YES, YES, NONE);
         put("automatic_clear_display_delay", YES, YES, NONE);
+        // The tap comes through the list panel's message handler, which the opened post's panel
+        // inherits (#501).
+        put("tap_shows_cleared_controls", YES, YES, NONE);
+        // The fade runs where the automatic clear does, in the window of the video it clears (#501).
+        put("clear_display_fade_out", YES, YES, NONE);
         put("remember_clear_display_on_scroll", YES, YES, NONE);
         put("hide_clear_display_controls", YES, YES, NONE);
         put("keep_clear_display_seek_bar", YES, YES, NONE);
@@ -317,6 +328,7 @@ public class FeedScreenCoverageTest {
         put("status_bar_shade", YES, YES, NONE);
         // The guard runs with the overlay pass, which walks both windows and no LIVE room.
         put("burn_in_guard", YES, YES, NONE);
+        put("burn_in_guard_level", YES, YES, NONE);
 
         // Gestures.
         put("swipe_levels", YES, YES, NONE);

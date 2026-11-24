@@ -5,12 +5,15 @@
  * https://github.com/anddea/revanced-patches
  *
  * Licensed under the GNU General Public License v3.0.
+ * Modified by lavinhoque33, 2026-11-24.
  * Modified by lavinhoque33, 2026-11-05.
  * Written by lavinhoque33, 2026-10-10.
  * Modified by lavinhoque33, 2026-10-24.
  */
 
 package app.morphe.extension.youtube.patches.general.offline;
+
+import static app.morphe.extension.shared.utils.StringRef.str;
 
 import android.annotation.SuppressLint;
 import android.app.Notification;
@@ -45,10 +48,12 @@ import java.util.concurrent.CopyOnWriteArrayList;
 
 import app.morphe.extension.shared.utils.Logger;
 import app.morphe.extension.shared.utils.Utils;
+import app.morphe.extension.youtube.patches.video.PlaybackSpeedValues;
 import app.morphe.extension.youtube.settings.Settings;
 import app.morphe.extension.youtube.sponsorblock.objects.SegmentCategory;
 import app.morphe.extension.youtube.shared.PlayerType;
 import app.morphe.extension.youtube.shared.VideoInformation;
+import app.morphe.extension.youtube.whitelist.Whitelist;
 
 /**
  * Process-wide offline player. It outlives the player screen, which only attaches and detaches
@@ -67,6 +72,8 @@ public final class OfflinePlayer {
     /** Notified of every state change, on the main thread. */
     interface Listener {
         void onPlayerStateChanged();
+
+        void onPlaybackEnded();
     }
 
     private static final Handler handler = new Handler(Looper.getMainLooper());
@@ -89,6 +96,8 @@ public final class OfflinePlayer {
     private static boolean resumeOnFocusGain;
     private static boolean noisyReceiverRegistered;
     private static float speed = 1.0f;
+    @Nullable
+    private static OfflinePlaybackOptions.Completion completion;
     private static int videoWidth;
     private static int videoHeight;
     @Nullable
@@ -187,6 +196,10 @@ public final class OfflinePlayer {
         return prepared;
     }
 
+    static boolean hasPlaybackEnded() {
+        return current != null && completion == OfflinePlaybackOptions.Completion.NEXT_OR_STOP;
+    }
+
     @Nullable
     static OfflineVideo getCurrent() {
         return current;
@@ -262,6 +275,10 @@ public final class OfflinePlayer {
         releasePlayer();
         Context context = Utils.getContext();
         current = video;
+        speed = 1f;
+        completion = null;
+        final float defaultSpeed = OfflinePlaybackOptions.defaultSpeed(Settings.DEFAULT_PLAYBACK_SPEED.get(),
+                !video.channelId.isEmpty() && Whitelist.isChannelWhitelistedPlaybackSpeed(video.channelId));
         skippedOnce.clear();
         manualSegment = null;
         lastSponsorSkip = 0;
@@ -294,8 +311,8 @@ public final class OfflinePlayer {
             if (resume > 0 && resume < mp.getDuration() - RESUME_END_MARGIN_MS) {
                 mp.seekTo((int) resume);
             }
-            applySpeed();
             Logger.printInfo(() -> "Prepared " + video.key() + " (" + mp.getDuration() + " ms), resume at " + resume);
+            if (defaultSpeed != 1f) applySpeed(mp, defaultSpeed);
             if (playWhenPrepared) resume();
             else onStateChanged();
         });
@@ -310,14 +327,7 @@ public final class OfflinePlayer {
         mediaPlayer.setOnCompletionListener(mp -> {
             if (mp != player) return;
             Logger.printInfo(() -> "Completed " + video.key());
-            OfflineIndex.savePosition(video.key(), 0);
-            video.lastPositionMs = 0;
-            if (hasNext()) {
-                skip(1);
-            } else {
-                abandonFocus();
-                onStateChanged();
-            }
+            onCompletion(video);
         });
         mediaPlayer.setOnErrorListener((mp, what, extra) -> {
             Logger.printException(() -> "Playback error " + what + "/" + extra + " for " + video.key());
@@ -341,6 +351,34 @@ public final class OfflinePlayer {
         onStateChanged();
     }
 
+    private static void onCompletion(OfflineVideo video) {
+        OfflinePlaybackOptions.Completion decision = OfflinePlaybackOptions.completion(
+                Settings.ALWAYS_REPEAT.get(), Settings.ALWAYS_REPEAT_PAUSE.get());
+        completion = decision;
+        persistPosition(video, 0);
+
+        Logger.printDebug(() -> "Repeat completion: decision=" + decision + " video=" + video.key());
+        switch (decision) {
+            case REPLAY -> {
+                seekTo(0, false);
+                resume();
+            }
+            case PAUSE_AT_START -> {
+                unregisterNoisyReceiver();
+                abandonFocus();
+                seekTo(0, false);
+            }
+            case NEXT_OR_STOP -> {
+                if (moveToAdjacent(1)) return;
+
+                unregisterNoisyReceiver();
+                abandonFocus();
+                onStateChanged();
+                for (Listener listener : listeners) listener.onPlaybackEnded();
+            }
+        }
+    }
+
     static void resume() {
         MediaPlayer mediaPlayer = player;
         if (mediaPlayer == null) return;
@@ -356,6 +394,7 @@ public final class OfflinePlayer {
         pauseMainPlayer();
         try {
             mediaPlayer.start();
+            completion = null;
         } catch (IllegalStateException ex) {
             Logger.printException(() -> "Could not start playback", ex);
             return;
@@ -409,6 +448,10 @@ public final class OfflinePlayer {
     }
 
     static void seekTo(long positionMs) {
+        seekTo(positionMs, true);
+    }
+
+    private static void seekTo(long positionMs, boolean clearCompletion) {
         MediaPlayer mediaPlayer = player;
         if (mediaPlayer == null || !prepared) return;
         long target = Math.max(0, Math.min(positionMs, getDuration()));
@@ -418,6 +461,7 @@ public final class OfflinePlayer {
         } else {
             mediaPlayer.seekTo((int) target);
         }
+        if (clearCompletion) completion = null;
         onStateChanged();
     }
 
@@ -433,23 +477,57 @@ public final class OfflinePlayer {
         seekBy(-SEEK_STEP_MS);
     }
 
-    static void setSpeed(float newSpeed) {
-        speed = newSpeed;
-        applySpeed();
+    /** Applies an explicit choice. The caller commits once per selection or completed gesture. */
+    static boolean setSpeed(float newSpeed) {
+        MediaPlayer mediaPlayer = player;
+        if (mediaPlayer == null || !prepared || newSpeed == speed) return false;
+        if (!applySpeed(mediaPlayer, newSpeed)) return false;
+
         onStateChanged();
+        return true;
     }
 
-    private static void applySpeed() {
-        MediaPlayer mediaPlayer = player;
-        if (mediaPlayer == null || !prepared) return;
+    private static final Runnable rememberedSpeedToast = () -> {
+        if (Settings.REMEMBER_PLAYBACK_SPEED_LAST_SELECTED.get()
+                && Settings.REMEMBER_PLAYBACK_SPEED_LAST_SELECTED_TOAST.get()) {
+            String rate = Settings.DEFAULT_PLAYBACK_SPEED.get() + "x";
+            Utils.showToastShort(str("revanced_remember_playback_speed_toast", rate));
+        }
+    };
+
+    static void rememberSpeed() {
+        if (!OfflinePlaybackOptions.shouldRememberSpeed(
+                Settings.REMEMBER_PLAYBACK_SPEED_LAST_SELECTED.get(), Settings.DEFAULT_PLAYBACK_SPEED.get(), speed)) {
+            return;
+        }
+
+        Settings.DEFAULT_PLAYBACK_SPEED.save(speed);
+        if (Settings.REMEMBER_PLAYBACK_SPEED_LAST_SELECTED_TOAST.get()) {
+            handler.removeCallbacks(rememberedSpeedToast);
+            handler.postDelayed(rememberedSpeedToast, 500);
+        }
+    }
+
+    private static boolean applySpeed(MediaPlayer mediaPlayer, float requested) {
         try {
+            if (!PlaybackSpeedValues.isPlayable(requested)) throw new IllegalArgumentException("Invalid speed");
+
             final boolean wasPlaying = mediaPlayer.isPlaying();
-            PlaybackParams params = mediaPlayer.getPlaybackParams().setSpeed(speed);
-            mediaPlayer.setPlaybackParams(params);
-            // Setting the params of a paused player starts it.
-            if (!wasPlaying && mediaPlayer.isPlaying()) mediaPlayer.pause();
-        } catch (Exception ex) {
-            Logger.printException(() -> "Could not set the speed to " + speed, ex);
+            try {
+                PlaybackParams params = mediaPlayer.getPlaybackParams()
+                        .setAudioFallbackMode(PlaybackParams.AUDIO_FALLBACK_MODE_FAIL)
+                        .setSpeed(requested);
+                mediaPlayer.setPlaybackParams(params);
+            } finally {
+                // Applying nonzero PlaybackParams also starts a paused MediaPlayer.
+                if (!wasPlaying && mediaPlayer.isPlaying()) mediaPlayer.pause();
+            }
+            speed = requested;
+            return true;
+        } catch (RuntimeException ex) {
+            Logger.printInfo(() -> "Offline playback could not set speed to " + requested, ex);
+            Utils.showToastShort(str("revanced_offline_player_speed_unsupported", requested + "x"));
+            return false;
         }
     }
 
@@ -460,15 +538,21 @@ public final class OfflinePlayer {
             seekTo(0);
             return;
         }
+        moveToAdjacent(direction);
+    }
+
+    private static boolean moveToAdjacent(int direction) {
+        if (current == null) return false;
         int index = queue.indexOf(current.key()) + direction;
         while (index >= 0 && index < queue.size()) {
             OfflineVideo next = OfflineIndex.get(queue.get(index));
             if (next != null) {
                 open(next, true);
-                return;
+                return true;
             }
             index += direction;
         }
+        return false;
     }
 
     /** Ends the session: stops playback, the notification and the foreground service. */
@@ -591,11 +675,13 @@ public final class OfflinePlayer {
 
     private static void savePosition() {
         OfflineVideo video = current;
-        if (video == null || player == null || !prepared) return;
-        long position = getPosition();
-        video.lastPositionMs = position;
-        final String key = video.key();
-        Utils.runOnBackgroundThread(() -> OfflineIndex.savePosition(key, position));
+        if (video == null || player == null || !prepared || completion != null) return;
+        persistPosition(video, getPosition());
+    }
+
+    private static void persistPosition(OfflineVideo video, long positionMs) {
+        video.lastPositionMs = positionMs;
+        Utils.runOnBackgroundThread(() -> OfflineIndex.saveUpdatedPosition(video));
     }
 
     // endregion
@@ -769,7 +855,7 @@ public final class OfflinePlayer {
         OfflineVideo video = current;
         if (video == null || player == null) return null;
         return OfflineNotifications.buildPlayback(context, ensureSession().getSessionToken(),
-                video.title, video.author, artwork, isPlaying(), video.key());
+                video.title, video.author, artwork, isPlaying());
     }
 
     private static void onStateChanged() {

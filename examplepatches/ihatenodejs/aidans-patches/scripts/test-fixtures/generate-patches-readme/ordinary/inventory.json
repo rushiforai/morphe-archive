@@ -1,0 +1,155 @@
+{
+  "NOTE": "Sanitized characterization fixture; not production metadata.",
+  "version": "vv1.2.3",
+  "apps": [],
+  "patches": [
+    {
+      "name": "Zeta Patch",
+      "description": "Universal first line\nsecond line | pipe & <tag>",
+      "options": [
+        { "key": "mode", "title": "Mode" },
+        { "key": "keyOnly", "title": null },
+        { "key": "emptyTitle", "title": "" }
+      ]
+    },
+    {
+      "name": "Zeta Patch",
+      "description": "duplicate universal must lose",
+      "options": [{ "title": "Ignored" }]
+    },
+    {
+      "name": "A Patch",
+      "description": "Alpha and beta patch",
+      "compatiblePackages": [
+        {
+          "packageName": "com.example.beta",
+          "name": null,
+          "targets": [
+            { "version": "10", "isExperimental": false, "description": null },
+            {
+              "version": "2",
+              "isExperimental": true,
+              "description": "Beta two\nline"
+            },
+            { "version": null, "description": "null version description" }
+          ]
+        },
+        {
+          "packageName": "com.example.alpha",
+          "name": "Alpha App",
+          "targets": [
+            { "version": "1", "isExperimental": false, "description": null },
+            { "version": "10", "isExperimental": false, "description": null },
+            {
+              "version": "2",
+              "isExperimental": true,
+              "description": "two"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Shared Patch",
+      "description": "Shared across packages",
+      "compatiblePackages": [
+        { "packageName": "com.example.beta", "targets": [] },
+        { "packageName": "com.example.alpha" }
+      ]
+    },
+    {
+      "name": "__proto__ Patch",
+      "description": "Numeric-looking and prototype names stay literal",
+      "options": [{ "key": "proto" }, { "title": "Proto title" }],
+      "compatiblePackages": [
+        {
+          "packageName": "com.example.alpha",
+          "name": "IGNORED LATER LABEL",
+          "targets": [{ "version": "9" }]
+        }
+      ]
+    },
+    {
+      "name": "10 Patch",
+      "description": "Sorts before letters by code point",
+      "compatiblePackages": [{ "packageName": "com.example.alpha" }]
+    },
+    {
+      "name": "é Patch",
+      "description": "Combining: e\u0301 and precomposed é",
+      "compatiblePackages": [{ "packageName": "com.example.alpha" }]
+    },
+    {
+      "name": "\ue000 Patch",
+      "description": "Private use code point",
+      "compatiblePackages": [{ "packageName": "com.example.alpha" }]
+    },
+    {
+      "name": "\ud800\udc00 Patch",
+      "description": "Astral code point",
+      "compatiblePackages": [{ "packageName": "com.example.alpha" }]
+    },
+    {
+      "name": "Only Beta",
+      "description": "Appendix package label and targets are first wins",
+      "compatiblePackages": [{ "packageName": "com.example.beta" }]
+    },
+    {
+      "name": "All Null",
+      "description": "Descriptions but no version cells",
+      "compatiblePackages": [
+        {
+          "packageName": "com.example.gamma",
+          "name": "Gamma",
+          "targets": [
+            { "version": null, "description": "first null" },
+            { "version": null, "description": null }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "No Targets",
+      "description": null,
+      "options": null,
+      "compatiblePackages": [
+        {
+          "packageName": "com.example.delta",
+          "name": "",
+          "targets": null
+        }
+      ]
+    },
+    {
+      "name": "Sorted? b",
+      "description": "Lowercase after uppercase",
+      "compatiblePackages": [{ "packageName": "com.example.alpha" }]
+    },
+    {
+      "name": "sorted? B",
+      "description": "Uppercase before lowercase",
+      "compatiblePackages": [{ "packageName": "com.example.alpha" }]
+    },
+    {
+      "name": "CRLF Desc",
+      "description": "line one\r\nline two",
+      "compatiblePackages": [{ "packageName": "com.example.alpha" }]
+    },
+    {
+      "name": "Null Desc",
+      "description": null,
+      "compatiblePackages": null
+    },
+    {
+      "name": "Empty CP",
+      "description": "Empty compatible package list is universal",
+      "options": [],
+      "compatiblePackages": []
+    },
+    {
+      "name": "Empty CP",
+      "description": "Empty CP duplicate loses",
+      "compatiblePackages": []
+    }
+  ]
+}

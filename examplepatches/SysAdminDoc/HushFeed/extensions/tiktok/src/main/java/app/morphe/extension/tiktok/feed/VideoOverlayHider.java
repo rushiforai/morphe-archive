@@ -10,6 +10,7 @@ import android.app.Activity;
 import android.app.Application;
 import android.content.Context;
 import android.graphics.Color;
+import android.graphics.Rect;
 import android.graphics.drawable.ColorDrawable;
 import android.graphics.drawable.Drawable;
 import android.os.Build;
@@ -308,6 +309,11 @@ public final class VideoOverlayHider {
     private static final int RAIL_SLOT_DEPTH = 3;
     /** Wrappers collapseWrappers hid, so the pass keeps looking them up until they're back. */
     private static final Map<View, Boolean> RAIL_WRAPPERS_HIDDEN = new WeakHashMap<>();
+    /**
+     * Music-line wrappers whose vertical margins squeezeMusicWrapper took to 0, with the top and
+     * bottom margins TikTok last gave them.
+     */
+    private static final Map<View, int[]> MUSIC_WRAPPERS_SQUEEZED = new WeakHashMap<>();
     /** Whether the last pass left the rail buttons scaled, so the next one can put them back. */
     private static boolean scaledLastPass;
     /** The index of the music row in {@link #RAIL_BUTTON_IDS}; it spans the width and is not scaled. */
@@ -445,6 +451,12 @@ public final class VideoOverlayHider {
      * that. The pre-draw pass reads them to fade a value TikTok wrote again.
      */
     private static final Map<View, float[]> FADED_TO = new WeakHashMap<>();
+    /**
+     * Views Fade the controls out (#501) is taking down ahead of the automatic Clear display, until
+     * it gives each its opacity back. The passes here leave them alone meanwhile: they read a value
+     * they didn't write as TikTok's and fade it again, and the two fades compound.
+     */
+    private static final Map<View, Boolean> CLEAR_FADING = new WeakHashMap<>();
     /**
      * When each view still held at the whole level stopped being asked for it. A control TikTok
      * rests below full opacity after Clear display (or hides by opacity) never reaches 1, so the
@@ -805,6 +817,7 @@ public final class VideoOverlayHider {
                     || seeThroughBar || lensBarNow || fillUnderBar || SeeThroughBottomBar.holdsBackground()
                     || openedBar != null || VideoUnderGestureBar.holdsAny()
                     || anyRail || !HIDDEN_HERE.isEmpty() || !FADED_HERE.isEmpty() || !WIDGETS_LIFTED.isEmpty()
+                    || !MUSIC_WRAPPERS_SQUEEZED.isEmpty()
                     || !SEEK_BARS_LIFTED.isEmpty()
                     || !LIVE_CAPTIONS_LIFTED.isEmpty()
                     || fadeLevel != 100 || anchorLevel != 100 || !FADED_TO.isEmpty() || !BAR_ROWS_MOVED.isEmpty()
@@ -916,6 +929,11 @@ public final class VideoOverlayHider {
                     View tabs = floatingBarNow ? bottomTabs : null;
                     int rise = tabs != null && tabs.isShown() ? SeeThroughBottomBar.riseOver(tabs) : 0;
                     pillRiseNow = rise;
+                    // Over a page that stops at the bar's top, Home's Community grid or another
+                    // tab's, the strip the pill stands in is painted, so the pill stays inside the
+                    // bottom area (#436). Over the feed's video it stays clear.
+                    SeeThroughBottomBar.paintRiseStrip(tabs, rise > 0 && !(seeThroughBar
+                            && FeedVisibility.isOnFeed(activity) && feedCellOnScreen(root, cellId)));
                     // The feed goes on under the gesture bar too, while it's the page in front: the
                     // tab host's other pages keep the room TikTok gives them (#408).
                     VideoUnderGestureBar.FEED.apply(activity, bottomTabs,
@@ -1140,7 +1158,7 @@ public final class VideoOverlayHider {
         int corrected = 0;
         for (Map.Entry<View, Float> entry : FADED_HERE.entrySet()) {
             View view = entry.getKey();
-            if (view == null || !view.isAttachedToWindow()) continue;
+            if (view == null || !view.isAttachedToWindow() || CLEAR_FADING.containsKey(view)) continue;
             float nativeAlpha = view.getAlpha();
             if (nativeAlpha == 0f) continue;
             entry.setValue(nativeAlpha);
@@ -1150,7 +1168,7 @@ public final class VideoOverlayHider {
         for (Map.Entry<View, float[]> entry : FADED_TO.entrySet()) {
             View view = entry.getKey();
             float[] held = entry.getValue();
-            if (view == null || !view.isAttachedToWindow()) continue;
+            if (view == null || !view.isAttachedToWindow() || CLEAR_FADING.containsKey(view)) continue;
             // A hold past its time is let go here too, though TikTok wrote nothing since.
             boolean holding = held[3] != 0f && held[4] == 0f;
             if (view.getAlpha() == held[1] && !holding) continue;
@@ -1811,6 +1829,58 @@ public final class VideoOverlayHider {
         return barId != 0 ? root.findViewById(barId) : null;
     }
 
+    /**
+     * What Fade the controls out (#501) takes down in {@code activity}'s window before the
+     * automatic Clear display: the widget layer of the cell its pager has settled on (TikTok's
+     * InteractAreaRootLayout, which stays VISIBLE in Clear display while TikTok hides what's in
+     * it), the top tab strip, the bottom tabs, and an opened video's comment or message bar, each
+     * only while it's on screen. A view inside one already taken goes with it. An opened video's
+     * search box and Back button stay: Clear display leaves their bar up (see TOP_SEARCH_BAR_IDS),
+     * so faded to nothing they'd only pop back.
+     */
+    public static List<View> clearFadeTargets(@Nullable Activity activity) {
+        List<View> out = new ArrayList<>();
+        Window window = activity == null ? null : activity.getWindow();
+        View root = window == null ? null : window.peekDecorView();
+        if (root == null) return out;
+        String packageName = activity.getPackageName();
+        int cellId = identifier(activity, packageName, CELL_ROOT_ID);
+        int layerId = identifier(activity, packageName, WIDGET_LAYER_ID);
+        int[] barIds = {firstIdentifier(activity, TAB_STRIP_IDS), firstIdentifier(activity, BOTTOM_TABS_IDS),
+                firstIdentifier(activity, DETAIL_COMMENT_BAR_IDS), firstIdentifier(activity, DETAIL_MESSAGE_BAR_IDS)};
+        collectClearFadeTargets(root, cellId, layerId, barIds, new Rect(), out);
+        return out;
+    }
+
+    private static void collectClearFadeTargets(View view, int cellId, int layerId, int[] barIds, Rect shown,
+                                                List<View> out) {
+        if (view.getVisibility() != View.VISIBLE) return;
+        int id = view.getId();
+        boolean wanted = false;
+        if (id != View.NO_ID && id != 0) {
+            if (id == layerId) {
+                wanted = inSettledCell(view, cellId);
+            } else {
+                for (int barId : barIds) {
+                    if (barId == id) {
+                        wanted = true;
+                        break;
+                    }
+                }
+            }
+        }
+        if (wanted && view.getAlpha() > 0f && view.isShown() && view.getGlobalVisibleRect(shown)
+                && shown.width() > 0 && shown.height() > 0) {
+            out.add(view);
+            return;
+        }
+        if (!(view instanceof ViewGroup)) return;
+        ViewGroup group = (ViewGroup) view;
+        for (int i = 0; i < group.getChildCount(); i++) {
+            collectClearFadeTargets(group.getChildAt(i), cellId, layerId, barIds, shown, out);
+        }
+    }
+
     /** The id of the widget layer each cell holds, 0 where this build has none. */
     public static int widgetLayerId(Context context) {
         return RESOURCE_IDS.resolve(context.getResources(), context.getPackageName(), WIDGET_LAYER_ID, false);
@@ -1924,6 +1994,25 @@ public final class VideoOverlayHider {
         for (View block : new ArrayList<>(LIVE_CAPTIONS_LIFTED.keySet())) {
             if (!lifts.containsKey(block)) offsetOwned(LIVE_CAPTIONS_LIFTED, block, 0f);
         }
+    }
+
+    /**
+     * Whether a feed cell is on screen at least half the window wide. Home's Community grid is a
+     * page of the same top-tab pager, so the feed is still the selected tab there, but its cells
+     * sit off screen beside it (#436). With no cell id resolved, the answer is yes, as before.
+     */
+    static boolean feedCellOnScreen(View root, int cellId) {
+        if (cellId == 0) return true;
+        List<View> cells = new ArrayList<>();
+        collectCells(root, cellId, 0, cells);
+        Rect shown = new Rect();
+        for (View cell : cells) {
+            if (cell.isShown() && cell.getGlobalVisibleRect(shown) && shown.height() > 0
+                    && shown.width() * 2 >= root.getWidth()) {
+                return true;
+            }
+        }
+        return false;
     }
 
     /** The feed's cells under [view], looked for a few levels down as the widget layers are. */
@@ -2056,6 +2145,38 @@ public final class VideoOverlayHider {
             setHidden(wrapper, hidden);
             if (hidden) RAIL_WRAPPERS_HIDDEN.put(wrapper, Boolean.TRUE);
             else RAIL_WRAPPERS_HIDDEN.remove(wrapper);
+        }
+    }
+
+    /**
+     * The music line sits alone in a wrapper of its own, and the wrapper keeps the margin TikTok
+     * gives it under the line, so with the line hidden a video with a music line had its caption
+     * that much higher above the progress bar than a video without one (#512). While this class
+     * hides the line and nothing else in the wrapper shows, the wrapper's vertical margins go to
+     * 0; they come back once the line does. TikTok sets them again for each video it binds into
+     * the cell, so each pass keeps the latest values it finds. The wrapper's own visibility is
+     * left alone: TikTok takes it away itself for a video with no music line, and a wrapper put
+     * back by this class would then show its margin under a caption that has no line.
+     */
+    static void squeezeMusicWrapper(View line, boolean hidden) {
+        if (!(line.getParent() instanceof ViewGroup)) return;
+        ViewGroup wrapper = (ViewGroup) line.getParent();
+        if (!(wrapper.getLayoutParams() instanceof ViewGroup.MarginLayoutParams)) return;
+        ViewGroup.MarginLayoutParams margins = (ViewGroup.MarginLayoutParams) wrapper.getLayoutParams();
+        if (hidden && HIDDEN_HERE.containsKey(line) && allChildrenGone(wrapper)) {
+            if (margins.topMargin != 0 || margins.bottomMargin != 0) {
+                MUSIC_WRAPPERS_SQUEEZED.put(wrapper, new int[]{margins.topMargin, margins.bottomMargin});
+                margins.topMargin = 0;
+                margins.bottomMargin = 0;
+                wrapper.setLayoutParams(margins);
+            }
+            return;
+        }
+        int[] before = MUSIC_WRAPPERS_SQUEEZED.remove(wrapper);
+        if (before != null && margins.topMargin == 0 && margins.bottomMargin == 0) {
+            margins.topMargin = before[0];
+            margins.bottomMargin = before[1];
+            wrapper.setLayoutParams(margins);
         }
     }
 
@@ -2550,6 +2671,9 @@ public final class VideoOverlayHider {
                         if (target == FOLLOWING_STORY_TARGET) StoriesPillGlass.apply(view, storiesGlassNow);
                         setFaded(view, wanted ? 100 : ghostNow ? 0 : Math.max(NAVIGATION_FADE_FLOOR, fadeLevel));
                         setHidden(view, wanted);
+                    } else if (target == MUSIC_TARGET) {
+                        setHidden(view, wanted);
+                        squeezeMusicWrapper(view, wanted);
                     } else setHidden(view, wanted);
                 }
             // A survey is content TikTok inserts only on selected posts. Its absence from an
@@ -3006,6 +3130,8 @@ public final class VideoOverlayHider {
         if (view == null) {
             return;
         }
+        // Fade the controls out is taking it down: the value now is the clear fade's, not TikTok's.
+        if (CLEAR_FADING.containsKey(view)) return;
         float[] held = FADED_TO.get(view);
         if (percent >= 100) {
             if (held != null) {
@@ -3060,11 +3186,29 @@ public final class VideoOverlayHider {
      * in. Asked on every finger down, so it reads the live state rather than the last pass's.
      */
     static boolean tapsGoThroughNow() {
+        return keepsControlsInClearDisplay() && (RememberClearDisplayPatch.isClearDisplayNow()
+                || RememberClearDisplayPatch.isCarryingClear());
+    }
+
+    /**
+     * Whether Clear display keeps the controls in sight at the fade's level (#84) rather than taking
+     * them away: Keep faded controls in Clear display on, the fade between 0 and 100, not paused,
+     * and the overlay patch in. Fade the controls out (#501) has nothing to take down then.
+     */
+    public static boolean keepsControlsInClearDisplay() {
         if (HushfeedPause.isPaused() || !SettingsStatus.videoOverlaysEnabled) return false;
         if (!Settings.FADE_IN_CLEAR_DISPLAY.get()) return false;
         int level = Settings.FADE_CONTROLS_OPACITY.get();
-        return level > 0 && level < 100 && (RememberClearDisplayPatch.isClearDisplayNow()
-                || RememberClearDisplayPatch.isCarryingClear());
+        return level > 0 && level < 100;
+    }
+
+    /** Leaves {@code view} to Fade the controls out (#501) until {@link #releaseFromClearFade}. */
+    static void holdForClearFade(View view) {
+        CLEAR_FADING.put(view, Boolean.TRUE);
+    }
+
+    static void releaseFromClearFade(View view) {
+        CLEAR_FADING.remove(view);
     }
 
     /** TikTok's Clear display, live or carried across a swipe, whatever Pause says. */

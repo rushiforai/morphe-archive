@@ -100,7 +100,7 @@ public final class LiquidGlassNavBarPatch {
             contentBehindBar = true;
             View layout = findView(activity, "watch_while_layout");
             if (layout != null) layout.requestLayout();
-            installMiniPlayer(activity);
+            installMiniPlayer(activity, bar, controller.lens());
             Log.d(TAG, "Installed on " + bar);
         } catch (Throwable t) {
             // Never take the app down over a cosmetic patch.
@@ -109,22 +109,45 @@ public final class LiquidGlassNavBarPatch {
     }
 
     /** The mini player above the bar gets the same glass. */
-    private static void installMiniPlayer(Activity activity) {
+    private static void installMiniPlayer(Activity activity, View bar, View lens) {
         try {
             View page = findView(activity, "player_page");
             int miniPlayerId = id(activity, "mini_player");
             if (!(page instanceof ViewGroup) || miniPlayerId == 0) return;
-            new MiniPlayerGlass(activity, (ViewGroup) page, miniPlayerId, id(activity, "watch_fragment_container")).install();
+            new MiniPlayerGlass(activity, (ViewGroup) page, miniPlayerId, id(activity, "watch_fragment_container")).install(bar, lens);
         } catch (Throwable t) {
             Log.e(TAG, "Failed to install mini player glass", t);
         }
     }
 
-    static int id(Activity activity, String name) {
+    public static int id(Activity activity, String name) {
         Resources res = activity.getResources();
         // Resources keep the original package name even if the app was renamed (GmsCore support).
         int id = res.getIdentifier(name, "id", "com.google.android.apps.youtube.music");
         return id != 0 ? id : res.getIdentifier(name, "id", activity.getPackageName());
+    }
+
+    /**
+     * The settings menu switched between lightweight and full glass: every view is drawn again
+     * (the glass reads the setting as it draws), and the bar's cast shadow follows.
+     */
+    public static void onGlassModeChanged(Activity activity) {
+        try {
+            View bar = glassBar == null ? null : glassBar.get();
+            if (bar != null) bar.invalidateOutline();
+            invalidateAll(activity.getWindow().getDecorView());
+        } catch (Throwable t) {
+            Log.e(TAG, "Glass mode change", t);
+        }
+    }
+
+    private static void invalidateAll(View view) {
+        view.invalidate();
+        if (view.getBackground() != null) view.getBackground().invalidateSelf();
+        if (view instanceof ViewGroup) {
+            ViewGroup group = (ViewGroup) view;
+            for (int i = 0; i < group.getChildCount(); i++) invalidateAll(group.getChildAt(i));
+        }
     }
 
     static View findView(Activity activity, String name) {

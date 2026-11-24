@@ -153,6 +153,7 @@ A LIVE room shows how many people are watching as a rounded number like 1.2K. Th
 "A LIVE you swipe to comes back with its chat, gifts and buttons showing. This keeps clear screen on from room to room until you turn it off.","A LIVE you swipe to comes back with its chat, gifts and buttons showing. This keeps clear screen on from room to room until you turn it off."
 A Lab change is already running,A Lab change is already running
 "A change that makes your budget looser waits until the day starts over, and a stricter one applies at once. Looser means a higher or no budget, a shorter hold, more times to open the feed anyway, a new start hour, or turning this off. A restored backup follows the same rule, and Start today over is off while this is on.","A change that makes your budget looser waits until the day starts over, and a stricter one applies at once. Looser means a higher or no budget, a shorter hold, more times to open the feed anyway, a new start hour, or turning this off. A restored backup follows the same rule, and Start today over is off while this is on."
+A chat you've scrolled up in stays where you were when you come back from a video or send a reply. Sending a regular message or tapping the down arrow still takes you to the newest.,A chat you've scrolled up in stays where you were when you come back from a video or send a reply. Sending a regular message or tapping the down arrow still takes you to the newest.
 A comment poll shows how many picked each answer before you vote. Tapping an answer still votes.,A comment poll shows how many picked each answer before you vote. Tapping an answer still votes.
 A diagnostic report is already being saved,A diagnostic report is already being saved
 "A different account is signed in. Switch back to the one you set this up on, or enter who to message again.","A different account is signed in. Switch back to the one you set this up on, or enter who to message again."
@@ -184,6 +185,7 @@ A removal is already running,A removal is already running
 "A small label on the feed shows the minutes or videos left of today's budget, whichever is closer to running out.","A small label on the feed shows the minutes or videos left of today's budget, whichever is closer to running out."
 "A soft dark fade behind the clock and status icons, so they stay easy to read over a bright video. Needs See-through status bar.","A soft dark fade behind the clock and status icons, so they stay easy to read over a bright video. Needs See-through status bar."
 A tap on Home or on the For You tab while For You is showing no longer reloads it. The video you're on stays.,A tap on Home or on the For You tab while For You is showing no longer reloads it. The video you're on stays.
+"A tap shows the hidden controls again instead of pausing the video. They hide again after the delay, or after %1$d seconds if the delay is shorter.","A tap shows the hidden controls again instead of pausing the video. They hide again after the delay, or after %1$d seconds if the delay is shorter."
 "A tap still pauses and plays the video, but the big play icon doesn't show over it.","A tap still pauses and plays the video, but the big play icon doesn't show over it."
 "A video heavier than this plays a lighter version. If none fits, it plays its lightest one.","A video heavier than this plays a lighter version. If none fits, it plays its lightest one."
 A video you paused stays paused when you come back to the app instead of starting again. One you left playing starts as usual. It works on Android 10 and newer.,A video you paused stays paused when you come back to the app instead of starting again. One you left playing starts as usual. It works on Android 10 and newer.
@@ -412,6 +414,7 @@ Build details,Build details
 Build details copied to the clipboard,Build details copied to the clipboard
 Bulletin board,Bulletin board
 Burn-in guard,Burn-in guard
+Burn-in guard dim level,Burn-in guard dim level
 Buttons on videos,Buttons on videos
 Camera and microphone in use,Camera and microphone in use
 Camera in use,Camera in use
@@ -610,6 +613,8 @@ Couldn't undo the clear. Try again.,Couldn't undo the clear. Try again.
 Couldn't undo the last change. Try again.,Couldn't undo the last change. Try again.
 Couldn't write the details file. Save the post again.,Couldn't write the details file. Save the post again.
 Count a video as seen after,Count a video as seen after
+Country and date opacity,Country and date opacity
+Country and date text size,Country and date text size
 Country and network preferences,Country and network preferences
 Country code,Country code
 Country filters,Country filters
@@ -645,6 +650,7 @@ Dark Favorites popup,Dark Favorites popup
 Dark LIVE panels in dark mode,Dark LIVE panels in dark mode
 Dark gray,Dark gray
 Data Saver,Data Saver
+Date instead of age,Date instead of age
 Day before month,Day before month
 Days to remember a video. Zero removes the age limit. History keeps at most %1$s videos.,Days to remember a video. Zero removes the age limit. History keeps at most %1$s videos.
 "Days. Zero keeps every age. Posts without a usable timestamp, including future posts, stay visible.","Days. Zero keeps every age. Posts without a usable timestamp, including future posts, stay visible."
@@ -708,6 +714,7 @@ Drag up or down along the left or right edge of a video to change what that edge
 Drama and Series,Drama and Series
 "Draw a larger handle and a slightly thicker line on the progress bar, so it's easier to see where you are.","Draw a larger handle and a slightly thicker line on the progress bar, so it's easier to see where you are."
 "Draw the main feed's floating pill as glass, lighter and more see-through, with a bright rim along its top edge. Needs Floating bottom bar.","Draw the main feed's floating pill as glass, lighter and more see-through, with a bright rim along its top edge. Needs Floating bottom bar."
+Draws a dark shadow under the line's letters so it stays readable on bright videos.,Draws a dark shadow under the line's letters so it stays readable on bright videos.
 "Draws the creator's name, the date, the caption and the music line over the video at this level, and they still take taps. At 100 they follow Fade the video controls. At 0 they're hidden.","Draws the creator's name, the date, the caption and the music line over the video at this level, and they still take taps. At 100 they follow Fade the video controls. At 0 they're hidden."
 Each area shows how many of the things Hushfeed looks for were found in this TikTok and how many are missing.,Each area shows how many of the things Hushfeed looks for were found in this TikTok and how many are missing.
 "Each time TikTok starts, deletes the offline videos you've already watched, so the next download fills their places with new ones. A video counts as watched once it's been on screen.","Each time TikTok starts, deletes the offline videos you've already watched, so the next download fills their places with new ones. A video counts as watched once it's been on screen."
@@ -760,6 +767,7 @@ Exported %1$d loaded values,Exported %1$d loaded values
 Exported 1 loaded value,Exported 1 loaded value
 Extra bold,Extra bold
 "Fade the buttons, caption and tabs over the video to this level instead of hiding them. 100 leaves them as TikTok draws them. Faded controls still take taps. At 0 the buttons and caption are hidden, and the tabs stay at 10.","Fade the buttons, caption and tabs over the video to this level instead of hiding them. 100 leaves them as TikTok draws them. Faded controls still take taps. At 0 the buttons and caption are hidden, and the tabs stay at 10."
+Fade the controls out,Fade the controls out
 Fade the feed out before the hold,Fade the feed out before the hold
 "Fade the name, date and caption","Fade the name, date and caption"
 Fade the video controls,Fade the video controls
@@ -788,6 +796,7 @@ Field edits weren't saved,Field edits weren't saved
 Files,Files
 Fill a tall screen instead,Fill a tall screen instead
 Fill the screen with the video,Fill the screen with the video
+Fill wide videos too,Fill wide videos too
 "Fills dark mode with the color picked while patching, pure black unless another was chosen. Turn it off for TikTok's own dark grays. Light mode doesn't change. Restart TikTok to see the change.","Fills dark mode with the color picked while patching, pure black unless another was chosen. Turn it off for TikTok's own dark grays. Light mode doesn't change. Restart TikTok to see the change."
 Filter TikTok's offline videos,Filter TikTok's offline videos
 Filter bottom tabs,Filter bottom tabs
@@ -818,7 +827,7 @@ Following,Following
 Following list,Following list
 Follows you,Follows you
 For Hushfeed's settings and messages. TikTok keeps its own language.,For Hushfeed's settings and messages. TikTok keeps its own language.
-"For OLED screens. After 5 seconds without a touch, the buttons, caption and tabs over the video dim to a quarter, and your next touch brings them back. Shift also moves everything on the feed a few pixels every 2 minutes.","For OLED screens. After 5 seconds without a touch, the buttons, caption and tabs over the video dim to a quarter, and your next touch brings them back. Shift also moves everything on the feed a few pixels every 2 minutes."
+"For OLED screens. After 5 seconds without a touch, the buttons, caption and tabs over the video dim to the level below, and your next touch brings them back. Shift also moves everything on the feed a few pixels every 2 minutes.","For OLED screens. After 5 seconds without a touch, the buttons, caption and tabs over the video dim to the level below, and your next touch brings them back. Shift also moves everything on the feed a few pixels every 2 minutes."
 For You,For You
 "For You, Following and the other feed tabs stay behind a calm panel and won't swipe. Messages, profiles and search work as usual, a link to one video still opens that video, and the app opens on Inbox instead of the feed.","For You, Following and the other feed tabs stay behind a calm panel and won't swipe. Messages, profiles and search work as usual, a link to one video still opens that video, and the app opens on Inbox instead of the feed."
 "For accounts TikTok took translation away from. Brings back See translation under video descriptions and in captions, and the translation rows on the Language page in Settings and privacy. Restart TikTok to see it on videos.","For accounts TikTok took translation away from. Brings back See translation under video descriptions and in captions, and the translation rows on the Language page in Settings and privacy. Restart TikTok to see it on videos."
@@ -1141,6 +1150,7 @@ Historical values,Historical values
 Hold TikTok's save button to download,Hold TikTok's save button to download
 Hold a gate to choose several,Hold a gate to choose several
 Hold a photo story,Hold a photo story
+Hold speed bubble size,Hold speed bubble size
 Hold speed bubble style,Hold speed bubble style
 Hold speed on Comment,Hold speed on Comment
 Hold speed on Favorites,Hold speed on Favorites
@@ -1152,6 +1162,7 @@ Home,Home
 Home screen shortcuts,Home screen shortcuts
 Home tab name,Home tab name
 Hook status,Hook status
+"How big the bubble is drawn, from %1$d to %2$d. 100 is the normal size, which already grows with your phone's font size.","How big the bubble is drawn, from %1$d to %2$d. 100 is the normal size, which already grows with your phone's font size."
 How far each edge press moves the video.,How far each edge press moves the video.
 How long each photo stays on screen in a video made from a photo post. A post with just one photo runs as long as its sound. A story's video runs as long as the story does.,How long each photo stays on screen in a video made from a photo post. A post with just one photo runs as long as its sound. A story's video runs as long as the story does.
 How many lines of a long comment show before more.,How many lines of a long comment show before more.
@@ -1160,6 +1171,8 @@ How much of a video you watch before it's hidden next time. Zero counts it after
 How much of the video shows through the glass pill on the main feed. Most see-through shows the most and Frosted the least.,How much of the video shows through the glass pill on the main feed. Most see-through shows the most and Frosted the least.
 How much the video behind the glass pill on the main feed is blurred.,How much the video behind the glass pill on the main feed is blurred.
 How round the main feed's floating pill and its glass lens are. Fully round gives them half circle ends.,How round the main feed's floating pill and its glass lens are. Fully round gives them half circle ends.
+"How solid the buttons, caption and tabs are while dimmed, from %1$d to %2$d. Lower dims them more.","How solid the buttons, caption and tabs are while dimmed, from %1$d to %2$d. Lower dims them more."
+"How solid the line under the caption is drawn, from 10 to 100. Lower lets more of the video show through.","How solid the line under the caption is drawn, from 10 to 100. Lower lets more of the video show through."
 How tall the main feed's floating pill is inside the bar. Compact leaves more of the video showing around it. The tabs keep their size and their taps.,How tall the main feed's floating pill is inside the bar. Compact leaves more of the video showing around it. The tabs keep their size and their taps.
 "How wide each edge strip is, as a percent of the screen width.","How wide each edge strip is, as a percent of the screen width."
 Hushfeed,Hushfeed
@@ -1258,6 +1271,7 @@ Keep unsent messages,Keep unsent messages
 Keep videos out of Watch history,Keep videos out of Watch history
 Keep watching in a small window,Keep watching in a small window
 "Keep what you search for out of the search history TikTok saves on this phone. Searches already there stay until you delete them, and TikTok's servers may still keep their own record.","Keep what you search for out of the search history TikTok saves on this phone. Searches already there stay until you delete them, and TikTok's servers may still keep their own record."
+Keep your place in chats,Keep your place in chats
 "Keeps logging until you turn it off, even after a restart. TikTok can feel slower while it's on.","Keeps logging until you turn it off, even after a restart. TikTok can feel slower while it's on."
 Kept an interrupted change. Restart TikTok to apply.,Kept an interrupted change. Restart TikTok to apply.
 Kept so far: %1$d,Kept so far: %1$d
@@ -1299,6 +1313,7 @@ Last recording: 1 gate.,Last recording: 1 gate.
 Latency %1$s s,Latency %1$s s
 Later,Later
 Latest first on Following,Latest first on Following
+Latest time,Latest time
 Layout,Layout
 Layout not recorded. Try again from Diagnostics.,Layout not recorded. Try again from Diagnostics.
 Layout recorded. Export the report to send it.,Layout recorded. Export the report to send it.
@@ -1759,6 +1774,7 @@ Popular,Popular
 Popups,Popups
 Português (Brasil),Português (Brasil)
 Post age,Post age
+Post date's size,Post date's size
 Post dates in the feed,Post dates in the feed
 Post every video as if you'd turned on TikTok's own HD upload on the post page. A clip TikTok doesn't count as high quality posts as before.,Post every video as if you'd turned on TikTok's own HD upload on the post page. A clip TikTok doesn't count as high quality posts as before.
 Posting,Posting
@@ -1835,6 +1851,7 @@ QR code,QR code
 Quality,Quality
 "Quality, files, subtitles and hand-off","Quality, files, subtitles and hand-off"
 "Quality, speed and auto-advance","Quality, speed and auto-advance"
+Random time each day,Random time each day
 Read receipts hidden,Read receipts hidden
 Read receipts shown,Read receipts shown
 Read-only list. Accounts won't be opened or unblocked.,Read-only list. Accounts won't be opened or unblocked.
@@ -1849,6 +1866,7 @@ Rebuild message search,Rebuild message search
 Rebuilding message search,Rebuilding message search
 Received message translation,Received message translation
 Recent searches,Recent searches
+"Recent videos show the date they were posted by the creator's name, like 10-12, in place of an age like 2d ago. Day before month and Write the month as a word change it the same way.","Recent videos show the date they were posted by the creator's name, like 10-12, in place of an age like 2d ago. Day before month and Write the month as a word change it the same way."
 Recently used,Recently used
 Record,Record
 Record LIVEs you watch,Record LIVEs you watch
@@ -2121,6 +2139,7 @@ Send links to another app,Send links to another app
 Sending feedback,Sending feedback
 Sending the message,Sending the message
 "Sends TikTok's feed, search, comments and other app traffic through the proxy below. Videos and LIVE streams still connect directly. Saves and short-link lookups from Hushfeed also connect directly, after their own address checks. Other apps aren't affected.","Sends TikTok's feed, search, comments and other app traffic through the proxy below. Videos and LIVE streams still connect directly. Saves and short-link lookups from Hushfeed also connect directly, after their own address checks. Other apps aren't affected."
+"Sends at a different time each day, somewhere between When to send and Latest time.","Sends at a different time each day, somewhere between When to send and Latest time."
 "Sends one message a day to each person below at the time below, so your streaks keep going on days you don't open TikTok.","Sends one message a day to each person below at the time below, so your streaks keep going on days you don't open TikTok."
 Sends today's message right away. The daily one then waits for tomorrow.,Sends today's message right away. The daily one then waits for tomorrow.
 Sent to %1$d/%2$d chats. The rest still need a message.,Sent to %1$d/%2$d chats. The rest still need a message.
@@ -2153,6 +2172,7 @@ Settings restored. The Feature Gate Lab rules were for another TikTok version an
 Settings theme,Settings theme
 Several photos in one comment,Several photos in one comment
 Shade behind the status bar,Shade behind the status bar
+Shadow under the country and date,Shadow under the country and date
 Shake to report,Shake to report
 Share,Share
 Share a comment or send it in a chat even when TikTok says it can't be shared.,Share a comment or send it in a chat even when TikTok says it can't be shared.
@@ -2474,6 +2494,7 @@ Tap a video to remove it,Tap a video to remove it
 Tap again to follow,Tap again to follow
 Tap again to like,Tap again to like
 Tap again to repost,Tap again to repost
+Tap brings the controls back,Tap brings the controls back
 Tap the feed Follow button twice within %1$d seconds.,Tap the feed Follow button twice within %1$d seconds.
 Tap the like heart twice within %1$d seconds. Removing a like stays immediate.,Tap the like heart twice within %1$d seconds. Removing a like stays immediate.
 Tap to see the order now,Tap to see the order now
@@ -2550,11 +2571,13 @@ The already-saved check failed. Try again.,The already-saved check failed. Try a
 The backup didn't start and its partial file couldn't be removed. Delete it from the folder you chose.,The backup didn't start and its partial file couldn't be removed. Delete it from the folder you chose.
 The backup wasn't saved. Back up again when the file app is ready.,The backup wasn't saved. Back up again when the file app is ready.
 The banner at the top of the Inbox that invites you to start a group chat stops showing. Groups you're already in are unchanged.,The banner at the top of the Inbox that invites you to start a group chat stops showing. Groups you're already in are unchanged.
+"The buttons, caption and tabs fade away instead of vanishing at once, and a touch during the fade brings them back. With Android's animations turned off they still vanish at once.","The buttons, caption and tabs fade away instead of vanishing at once, and a touch during the fade brings them back. With Android's animations turned off they still vanish at once."
 The catalog says this key is %1$s and this override is %2$s. Reset the override and make a new one.,The catalog says this key is %1$s and this override is %2$s. Reset the override and make a new one.
 The comment button also opens a video's comments with its caption at the top. The caption over the video goes away while this is on.,The comment button also opens a video's comments with its caption at the top. The caption over the video goes away while this is on.
 The cover couldn't be saved. Try again.,The cover couldn't be saved. Try again.
 The diagnostic report couldn't be saved yet. Try again in a moment.,The diagnostic report couldn't be saved yet. Try again in a moment.
 The diagnostic report couldn't be saved. Try again.,The diagnostic report couldn't be saved. Try again.
+"The end of the random window, on the same day as When to send. If it isn't later, the message goes at When to send.","The end of the random window, on the same day as When to send. If it isn't later, the message goes at When to send."
 The export wasn't saved. Try again.,The export wasn't saved. Try again.
 The feed capture is still being saved,The feed capture is still being saved
 The feed doesn't end. This is a fine time to leave it.,The feed doesn't end. This is a fine time to leave it.
@@ -2835,6 +2858,7 @@ Update,Update
 "Use 0 for TikTok's size, or %1$d to %2$d. Applies to the next caption.","Use 0 for TikTok's size, or %1$d to %2$d. Applies to the next caption."
 "Use 0 for TikTok's size, or %1$d to %2$d. Sizes the author's name and the post date next to it, and keeps Android's font scaling.","Use 0 for TikTok's size, or %1$d to %2$d. Sizes the author's name and the post date next to it, and keeps Android's font scaling."
 "Use 0 for TikTok's size, or %1$d to %2$d. Sizes the description below the author's name and keeps Android's font scaling.","Use 0 for TikTok's size, or %1$d to %2$d. Sizes the description below the author's name and keeps Android's font scaling."
+"Use 0 to match the post date's size, or %1$d to %2$d. Sizes only the line under the caption and keeps Android's font scaling.","Use 0 to match the post date's size, or %1$d to %2$d. Sizes only the line under the caption and keeps Android's font scaling."
 Use Save report for this large report,Use Save report for this large report
 Use TikTok for a while. A popup shows up here after TikTok first tries to show it.,Use TikTok for a while. A popup shows up here after TikTok first tries to show it.
 "Use TikTok's own hold, pull down and release gesture to keep playing at the hold speed, 2x unless Playback sets another.","Use TikTok's own hold, pull down and release gesture to keep playing at the hold speed, 2x unless Playback sets another."
@@ -2955,6 +2979,7 @@ Window width needed to enable the layout. Restart TikTok to apply this.,Window w
 "With the SIM changed, TikTok can keep showing videos you've already watched. Turn this on to stop that. Sticker search and the rest of TikTok still see the SIM above, while For You asks for videos with your phone's own SIM country and carrier. Your IP address and account history still count.","With the SIM changed, TikTok can keep showing videos you've already watched. Turn this on to stop that. Sticker search and the rest of TikTok still see the SIM above, while For You asks for videos with your phone's own SIM country and carrier. Your IP address and account history still count."
 "With the fade below 100, the buttons and caption stay on screen at that level in Clear display, and taps go through them to the video. Off, Clear display hides them the way it does at 100.","With the fade below 100, the buttons and caption stay on screen at that level in Clear display, and taps go through them to the video. Off, Clear display hides them the way it does at 100."
 "With the long press save on, holding a profile picture opens it full screen at full size, with a Save button under it.","With the long press save on, holding a profile picture opens it full screen at full size, with a Save button under it."
+"With the switch above on, landscape and square videos are cropped to cover the screen too, so only their middle shows. Off, they stay whole.","With the switch above on, landscape and square videos are cropped to cover the screen too, so only their middle shows. Off, they stay whole."
 "With the switch above on, the video is cropped to fill a tall screen like a folding phone's front screen. A squarer one, like the big screen opened up, still shows the whole video.","With the switch above on, the video is cropped to fill a tall screen like a folding phone's front screen. A squarer one, like the big screen opened up, still shows the whole video."
 "Word rules only, not every feed filter:","Word rules only, not every feed filter:"
 "Words, countries and languages","Words, countries and languages"

@@ -657,7 +657,7 @@ final class ArchivedThreadImporter {
             JSONArray comment = comments.getJSONArray(index);
             dat.append(sanitizeField(comment.optString(1, ""))).append("<>")
                     .append(sanitizeField(comment.optString(2, ""))).append("<>")
-                    .append(sanitizeField(comment.optString(3, "")));
+                    .append(sanitizeField(archiveDate(comment.optString(3, ""))));
             String uid = comment.optString(4, "");
             if (!uid.isEmpty()) dat.append(uid.contains("ID:") ? " " : " ID:").append(uid);
             String be = comment.optString(5, "");
@@ -668,6 +668,16 @@ final class ArchivedThreadImporter {
         }
         if (comments.length() == 0) throw new IOException("itest returned no posts");
         return TalkDatEncoding.encode(dat.toString());
+    }
+
+    private static String archiveDate(String value){
+        if(value==null||!value.matches("[0-9]{10}|[0-9]{13}"))return value;
+        try{
+            long time=Long.parseLong(value);if(value.length()==10)time*=1000L;
+            SimpleDateFormat format=new SimpleDateFormat("yyyy/MM/dd(E) HH:mm:ss.SSS",Locale.JAPAN);
+            format.setTimeZone(java.util.TimeZone.getTimeZone("Asia/Tokyo"));
+            return format.format(new Date(time));
+        }catch(RuntimeException invalid){return value;}
     }
 
     private static byte[] convertTalkJson(ThreadInfo info, String body) throws Exception {

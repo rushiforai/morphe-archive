@@ -53,7 +53,7 @@ class ScrollDistanceHelper(
             callback.invoke(
                 oldDistance,
                 scrolledDistance,
-                sign(scrolledDistance).toInt(),
+                sign(oldDistance).toInt(),
             )
         }
     }

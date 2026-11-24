@@ -25,6 +25,9 @@ val copyPromptPatch = bytecodePatch(
             requireRegisters(mediaIndex, 1, 2)
             // After first three move-objects: v0/v1/v2 live, v5/v6 not yet live.
             // Both non-Copy branch and original code preserve p0..p3.
+            // The menu item is built only for finished, non-moderated media, but the media can become
+            // moderated or unfinished before the tap: recheck here and consume the action as a no-op
+            // (falling through would make the original handler run it as a Download).
             addInstructionsWithLabels(
                 mediaIndex,
                 """
@@ -38,8 +41,15 @@ val copyPromptPatch = bytecodePatch(
                     move-result-object v5
                     if-eqz v5, :d2_copy_handler_original
                     iget-object v6, v5, ${GrokNames.CURRENT_PROMPT}
+                    invoke-static {v5}, ${GrokNames.COMPLETED_MEDIA}
+                    move-result-object v5
+                    if-eqz v5, :d2_copy_handler_skip
+                    invoke-interface {v5}, ${GrokNames.MEDIA_MODERATED}
+                    move-result v5
+                    if-nez v5, :d2_copy_handler_skip
                     iget-object v5, v1, ${GrokNames.POST_CONTEXT}
                     invoke-static {v5, v6}, Lio/github/xxlc/extension/grok/ClipboardHelper;->copyPrompt(Landroid/content/Context;Ljava/lang/String;)V
+                    :d2_copy_handler_skip
                     sget-object v0, Lkotlin/Unit;->a:Lkotlin/Unit;
                     return-object v0
                     :d2_copy_handler_original

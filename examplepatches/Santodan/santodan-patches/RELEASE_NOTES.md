@@ -1,4 +1,23 @@
-## Pending changes since v0.18.1
+## Pending changes since v0.21.0
+
+- **reddit:** Move **Content filters (Experimental)** and **Show flairs in home feed (Experimental)** to Reddit **2026.47.0 (2647001)**, replacing 2026.45.0. All native hooks and runtime bindings were remapped again, including the post-preview element (flairs at `q`, content at `G`, children `k`–`z`), the posts-by-ID source constructor and the subreddit feed screen name getter. **Start as guest** still targets 2026.37.0. Original-DEX contract checks, a Morphe CLI patch of the 2026.47.0 base APK and an audit of the delivered APK passed; device confirmation remains pending.
+
+## Released in v0.21.0
+
+- **reddit:** Update **Content filters (Experimental)** and **Show flairs in home feed (Experimental)** for Reddit **2026.45.0 (2645001)**. All native hooks and runtime bindings were remapped, including the moved post-preview, classic-post and by-ID fetch fields. **Start as guest** still targets 2026.37.0. Original-DEX contract checks, a Morphe CLI patch of the 2026.45.0 base APK and an audit of the delivered APK passed; device confirmation remains pending.
+
+- **nuviotv:** Keep Customize labels usable when many different badges appear. Discovered labels are capped at 128; when full, the oldest discovered label without saved settings is dropped instead of refusing new badges. Built-in and customized labels are kept. Badge text is classified once instead of on every redraw, and nothing is written while the feature is disabled. Runtime and standalone/combined bundle checks passed; TV confirmation remains pending.
+
+- **nuviotv:** Add date-label and Continue Watching remaining-count entries to the shared label editor, remove the separate date appearance entry, and make Customize labels a required dependency of count/date patches. Preserve live values and existing date styles.
+
+- **nuviotv:** Add optional **Customize labels** for 1.1.1. Edit each badge's caption, colors, opacity, size and position; copy Text, Label or All from another badge, or reset the selected label. Keep drafts until Apply and include saved settings in export/import. The fixed header places Text/Label beside the dropdown, customization scrolls below it, and the enlarged preview fills the right panel while preserving aspect ratio. Size the dialog from the active landscape screen. Native/runtime, backup, standalone/combined bundle and unsigned-APK checks passed; final TV layout, keyboard and focus confirmation remain pending.
+- **nuviotv:** Fix Sync now calling an obsolete dialog method on 1.1.1 and isolate each patch's settings Compose state. The delivered-APK audit rejects the obsolete sync binding and passes its replacement.
+
+- **nuviotv:** Make Date label appearance open one editor directly. Use a horizontal Text/Label button row at the top; the color picker and sliders update for the selected part. Place the opacity/size sliders below the color picker, outside the preview, with position and reset also inside the menu. Keep both drafts while switching; one Apply saves everything and Cancel discards the whole draft. Native/runtime, standalone/combined bundle and delivered unsigned-APK checks passed; TV layout and focus still need device confirmation.
+- **nuviotv:** Update all seventeen patches for **1.1.1 (1081)**, including player fields, current-stream rendering, icon helpers, artwork and updater bindings. Original-DEX, runtime, standalone/combined bundle and unsigned-APK audits passed; device confirmation remains pending.
+- **nuviotv:** Update Continue Watching locally during playback and resolve the next episode in the background, independently of tracker sync. Coalesce repeated completion writes and prevent cached cards from overwriting local updates. Runtime, native/bundle and delivered-APK checks passed; Mi Box timing/performance remains unverified.
+
+## Released in v0.20.0
 
 - **nuviotv:** Add **Metadata add-on selection** for NuvioTV **1.1.0 / 1077**, with a per-profile provider picker and independent switches for Continue Watching metadata/artwork and library poster artwork. Preserve native fetching, caching, cancellation and fallback artwork; include the new settings in export/import. The picker lists enabled add-ons declaring `meta` support, including add-ons that also provide streams or catalogs. Original-DEX, runtime/settings, standalone/combined bundle and rebuilt unsigned-APK checks passed; device interaction remains unverified.
 

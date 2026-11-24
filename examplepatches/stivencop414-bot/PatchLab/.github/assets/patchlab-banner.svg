@@ -1,0 +1,36 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1400" height="560" viewBox="0 0 1400 560" role="img" aria-labelledby="title desc">
+  <title id="title">PatchLab</title>
+  <desc id="desc">Community patches for a more personal app experience.</desc>
+  <defs>
+    <linearGradient id="background" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#101726"/><stop offset="1" stop-color="#090d18"/></linearGradient>
+    <linearGradient id="accent" x1="0" y1="1" x2="1" y2="0"><stop stop-color="#7269ff"/><stop offset="1" stop-color="#5de4cc"/></linearGradient>
+    <radialGradient id="glow"><stop stop-color="#7369ff" stop-opacity=".28"/><stop offset="1" stop-color="#7369ff" stop-opacity="0"/></radialGradient>
+  </defs>
+  <rect width="1400" height="560" rx="24" fill="url(#background)"/>
+  <circle cx="1060" cy="245" r="350" fill="url(#glow)"/>
+  <path d="M0 465C195 416 338 478 524 444S875 360 1062 406 1297 449 1400 412v148H0z" fill="#151b2f" opacity=".6"/>
+  <rect x="80" y="70" width="56" height="56" rx="17" fill="url(#accent)"/>
+  <path d="M108 83v30M93 98h30" stroke="#111a29" stroke-width="8" stroke-linecap="round"/>
+  <text x="154" y="109" fill="#f5f8ff" font-family="Arial, sans-serif" font-size="32" font-weight="700" letter-spacing="1">PatchLab</text>
+  <text x="80" y="222" fill="#a9b8d4" font-family="Arial, sans-serif" font-size="21" font-weight="700" letter-spacing="3">COMMUNITY PATCHES</text>
+  <text x="78" y="292" fill="#f6f8ff" font-family="Arial, sans-serif" font-size="58" font-weight="700">Make your apps</text>
+  <text x="78" y="360" fill="#f6f8ff" font-family="Arial, sans-serif" font-size="58" font-weight="700">feel more yours.</text>
+  <text x="80" y="414" fill="#b0bdd4" font-family="Arial, sans-serif" font-size="25">Privacy, personalization and less clutter.</text>
+  <rect x="80" y="460" width="70" height="5" rx="2.5" fill="url(#accent)"/>
+  <text x="80" y="510" fill="#7e8da9" font-family="Arial, sans-serif" font-size="19">BUILT FOR MORPHE</text>
+  <g transform="translate(835 81)">
+    <rect x="14" y="16" width="452" height="382" rx="28" fill="#050711" opacity=".45"/>
+    <rect width="452" height="382" rx="28" fill="#151d30" stroke="#36425c" stroke-width="2"/>
+    <circle cx="34" cy="34" r="6" fill="#ff7f9c"/><circle cx="55" cy="34" r="6" fill="#ffce77"/><circle cx="76" cy="34" r="6" fill="#69dcc5"/>
+    <path d="M0 67h452" stroke="#344057"/>
+    <text x="30" y="111" fill="#f6f8ff" font-family="Arial, sans-serif" font-size="23" font-weight="700">Your patch collection</text>
+    <text x="30" y="139" fill="#93a4c2" font-family="Arial, sans-serif" font-size="16">Choose the changes you want.</text>
+    <g transform="translate(25 163)">
+      <rect width="402" height="62" rx="14" fill="#202c43"/><rect x="14" y="13" width="36" height="36" rx="11" fill="#5150a8"/><path d="M32 21v20M22 31h20" stroke="#d8d7ff" stroke-width="4" stroke-linecap="round"/><text x="64" y="37" fill="#e9eeff" font-family="Arial, sans-serif" font-size="18" font-weight="700">More privacy</text><rect x="340" y="20" width="43" height="23" rx="11.5" fill="#72e4ce"/><circle cx="371" cy="31.5" r="8" fill="#12283a"/>
+    </g>
+    <g transform="translate(25 238)">
+      <rect width="402" height="62" rx="14" fill="#202c43"/><rect x="14" y="13" width="36" height="36" rx="11" fill="#395f78"/><path d="M24 31h16M32 23v16" stroke="#a4f0df" stroke-width="4" stroke-linecap="round"/><text x="64" y="37" fill="#e9eeff" font-family="Arial, sans-serif" font-size="18" font-weight="700">Less clutter</text><rect x="340" y="20" width="43" height="23" rx="11.5" fill="#72e4ce"/><circle cx="371" cy="31.5" r="8" fill="#12283a"/>
+    </g>
+    <text x="30" y="347" fill="#7f91ae" font-family="Arial, sans-serif" font-size="15">ONE COLLECTION  /  MANY APPS</text>
+  </g>
+</svg>

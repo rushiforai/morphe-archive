@@ -1,0 +1,54 @@
+{
+  "date": "2026-11-22",
+  "scope": "unmodified futatter 3.1.1 on emulator-5554, local-only 127.0.0.1:18766",
+  "adb_reverse": "tcp:18766 tcp:18766",
+  "fixture_POST_request_count": 0,
+  "attempts": {
+    "reply_text_submit": 2,
+    "new_thread_text_submit": 1,
+    "image_attachment_picker_open": 1,
+    "image_file_part_capture": 0
+  },
+  "observed_local_GET_paths": [
+    "/aimoge/futaba.php?mode=cat",
+    "/aimoge/res/1449110872.htm",
+    "/aimoge/src/1795265158529.jpg",
+    "/aimoge/thumb/1795262042972s.jpg",
+    "/aimoge/thumb/1795263454186s.jpg",
+    "/aimoge/thumb/1795264510308s.jpg",
+    "/aimoge/thumb/1795265158529s.jpg",
+    "/aimoge/thumb/1795265449925s.jpg",
+    "/aimoge/thumb/1795265732288s.jpg",
+    "/aimoge/thumb/1795265805455s.jpg",
+    "/aimoge/thumb/1795265837582s.jpg",
+    "/aimoge/thumb/1795265993399s.jpg",
+    "/aimoge/thumb/1795268336910s.jpg",
+    "/aimoge/thumb/1795269220146s.jpg",
+    "/aimoge/thumb/1795269993195s.jpg"
+  ],
+  "board_post_draft": {
+    "field_names": [
+      "title",
+      "name",
+      "mail",
+      "comment",
+      "upFile"
+    ],
+    "field_types": {
+      "title": "str",
+      "name": "str",
+      "mail": "str",
+      "comment": "str",
+      "upFile": "str"
+    },
+    "title_matches_test_input": true,
+    "comment_matches_test_input": true,
+    "file_empty": true,
+    "thread_count": 0,
+    "reply_count": 0
+  },
+  "app_success_and_failure_response_matching": "NOT_VERIFIED: no POST reached fixture, so HTTP 200, 302 or 403 were never assessed by app",
+  "delete_request": "NOT_OBSERVED",
+  "attachment": "Android file picker opened; chooser displayed. No selected attachment upload captured",
+  "privacy": "Test strings only. No tokens, cookies or private image bytes retained in repository."
+}

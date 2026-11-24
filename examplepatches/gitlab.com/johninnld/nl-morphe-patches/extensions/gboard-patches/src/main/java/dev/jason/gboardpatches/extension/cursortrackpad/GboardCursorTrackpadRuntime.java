@@ -13,9 +13,30 @@ public final class GboardCursorTrackpadRuntime {
         return isEnabledOrStock(stock);
     }
 
+    // 18.8.0.1022711984-beta R.string id whose value is the "enable_scrub_move" preference key
+    // (18.6.3: 0x7f140952). The earlier 0x7f14096b came from an older build and is
+    // "float_keyboard_in_multi_window" in 18.6.3. The id is confirmed once by its value.
+    static final int SCRUB_MOVE_KEY_RESOURCE_ID = 0x7f14096a;
+    private static volatile int scrubMoveKeyState; // 0 unknown, 1 confirmed, -1 mismatch
+
     public static boolean applyResourceBooleanPreference(int key, boolean stock) {
-        if (key != 0x7f14096b || stock) return stock;
+        if (key != SCRUB_MOVE_KEY_RESOURCE_ID || stock || !scrubMoveKeyConfirmed()) return stock;
         return isEnabledOrStock(stock);
+    }
+
+    private static boolean scrubMoveKeyConfirmed() {
+        int state = scrubMoveKeyState;
+        if (state != 0) return state > 0;
+        try {
+            android.content.Context context = GboardFlagRuntimeContext.resolveContext();
+            if (context == null) return false;
+            state = "enable_scrub_move".equals(context.getString(SCRUB_MOVE_KEY_RESOURCE_ID))
+                    ? 1 : -1;
+        } catch (Throwable ignored) {
+            state = -1;
+        }
+        scrubMoveKeyState = state;
+        return state > 0;
     }
 
     private static boolean isEnabledOrStock(boolean stock) {

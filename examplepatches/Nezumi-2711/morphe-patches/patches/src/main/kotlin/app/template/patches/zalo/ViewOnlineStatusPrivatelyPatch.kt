@@ -55,7 +55,6 @@ private object FriendListResponse : Fingerprint(
     filters = listOf(string("onlines"), string("userId"), string("ownerStatus")),
 )
 
-private const val SETTINGS_CLASS = "Lapp/template/extension/extension/NezumiSettings;"
 
 private object ChatOnlineListRefresh : Fingerprint(
     returnType = "V",
@@ -74,7 +73,7 @@ private object ChatOnlineListRefresh : Fingerprint(
 val viewOnlineStatusPrivatelyPatch = bytecodePatch(
     name = "View online status privately",
     description = "Hide your activity and show confirmed current-online status in the individual chat header when available.",
-    default = false,
+    default = true,
 ) {
     compatibleWith(Compatibility(
         name = "Zalo",
@@ -126,7 +125,7 @@ val viewOnlineStatusPrivatelyPatch = bytecodePatch(
             }
         }
         check(incomingMethods.size == 5) { "Expected five incoming online-status gates, found ${incomingMethods.size}" }
-        val originalSharing = mutableClassDefBy("Lapp/template/extension/extension/NezumiSettings;")
+        val originalSharing = mutableClassDefBy(ONLINE_STATUS)
             .methods.single { it.name == "originalOnlineSharing" }
         val implementation = originalSharing.implementation!!
         repeat(implementation.instructions.size) { implementation.removeInstruction(0) }
@@ -136,7 +135,7 @@ val viewOnlineStatusPrivatelyPatch = bytecodePatch(
             return v0
         """.trimIndent())
         incomingMethods.forEach { (method, index) ->
-            method.replaceInstruction(index, "invoke-static {}, Lapp/template/extension/extension/NezumiSettings;->shouldFetchOnlineStatus()Z")
+            method.replaceInstruction(index, "invoke-static {}, $ONLINE_STATUS->shouldFetchOnlineStatus()Z")
         }
         check(OnlineListResponse.matchAll(1..1).size == 1)
         val response = OnlineListResponse.method
@@ -156,7 +155,7 @@ val viewOnlineStatusPrivatelyPatch = bytecodePatch(
         val dataRegister = (responseInstructions[dataIndex + 1] as OneRegisterInstruction).registerA
         check(dataRegister <= 15)
         response.addInstructions(dataIndex + 2,
-            "invoke-static {v$dataRegister}, Lapp/template/extension/extension/NezumiSettings;->traceOnlineResponse(Lorg/json/JSONObject;)V")
+            "invoke-static {v$dataRegister}, $ONLINE_STATUS->traceOnlineResponse(Lorg/json/JSONObject;)V")
         check(FriendListResponse.matchAll(1..1).size == 1)
         val friendResponse = FriendListResponse.method
         val friendInstructions = friendResponse.implementation!!.instructions.toList()
@@ -170,9 +169,9 @@ val viewOnlineStatusPrivatelyPatch = bytecodePatch(
         val onlineArrayCall = friendInstructions[onlineArrayIndex] as FiveRegisterInstruction
         check(onlineArrayCall.registerCount == 2)
         friendResponse.replaceInstruction(onlineArrayIndex,
-            "invoke-static {v${onlineArrayCall.registerC}}, $SETTINGS_CLASS->traceFriendListResponse(Lorg/json/JSONObject;)V")
+            "invoke-static {v${onlineArrayCall.registerC}}, $ONLINE_STATUS->traceFriendListResponse(Lorg/json/JSONObject;)V")
         friendResponse.addInstructions(onlineArrayIndex + 1,
-            "invoke-static {v${onlineArrayCall.registerC}}, $SETTINGS_CLASS->updateChatOnlineUsers(Lorg/json/JSONObject;)V\n" +
+            "invoke-static {v${onlineArrayCall.registerC}}, $ONLINE_STATUS->updateChatOnlineUsers(Lorg/json/JSONObject;)V\n" +
                 "invoke-virtual {v${onlineArrayCall.registerC}, v${onlineArrayCall.registerD}}, Lorg/json/JSONObject;->isNull(Ljava/lang/String;)Z")
         check(LastSeenResponse.matchAll(1..1).size == 1)
         val lastSeen = LastSeenResponse.method
@@ -186,7 +185,7 @@ val viewOnlineStatusPrivatelyPatch = bytecodePatch(
         check(timestampReference.definingClass == "Lorg/json/JSONObject;" && timestampReference.name == "optLong")
         check(timestampCall.registerCount == 2 && timestampCall.registerC <= 15)
         lastSeen.replaceInstruction(timestampIndex,
-            "invoke-static {v${timestampCall.registerC}}, Lapp/template/extension/extension/NezumiSettings;->traceLastSeenResponse(Lorg/json/JSONObject;)V")
+            "invoke-static {v${timestampCall.registerC}}, $ONLINE_STATUS->traceLastSeenResponse(Lorg/json/JSONObject;)V")
         lastSeen.addInstructions(timestampIndex + 1,
             "const-string v${timestampInstruction.registerA}, \"timestamp\"")
         val socketType = "Lcom/zing/zalocore/connection/socket/NativeSocket;"
@@ -223,25 +222,25 @@ val viewOnlineStatusPrivatelyPatch = bytecodePatch(
                     "invoke-static {v$register}, $socketType->nativeChangedStateApplication(I)V"
                 }
                 method.replaceInstruction(index,
-                    "invoke-static {v$register}, Lapp/template/extension/extension/NezumiSettings;->mapOnlineState(I)I")
+                    "invoke-static {v$register}, $ONLINE_STATUS->mapOnlineState(I)I")
                 method.addInstructions(index + 1, "move-result v$register\n$originalCall")
                 stateHooks++
             }
         }
         check(stateHooks == 2) { "Expected two socket activity hooks, found $stateHooks" }
-        val publishState = mutableClassDefBy("Lapp/template/extension/extension/NezumiSettings;")
+        val publishState = mutableClassDefBy(ONLINE_STATUS)
             .methods.single { it.name == "publishOnlineState" }
         repeat(publishState.implementation!!.instructions.size) {
             publishState.implementation!!.removeInstruction(0)
         }
         publishState.addInstructions(0, "invoke-static {p0}, $socketType->${stateBridge.name}(I)V\nreturn-void")
-        val applySharing = mutableClassDefBy("Lapp/template/extension/extension/NezumiSettings;")
+        val applySharing = mutableClassDefBy(ONLINE_STATUS)
             .methods.single { it.name == "applyOriginalOnlineSharing" }
         repeat(applySharing.implementation!!.instructions.size) {
             applySharing.implementation!!.removeInstruction(0)
         }
         applySharing.addInstructions(0, "const/16 v0, 0x1b\ninvoke-static {v0, p0}, ${sharingSetter.definingClass}->${sharingSetter.name}(II)V\nreturn-void")
-        val available = mutableClassDefBy("Lapp/template/extension/extension/NezumiSettings;")
+        val available = mutableClassDefBy(ONLINE_STATUS)
             .methods.single { it.name == "isOnlinePatchAvailable" }
         repeat(available.implementation!!.instructions.size) {
             available.implementation!!.removeInstruction(0)
@@ -271,9 +270,9 @@ val viewOnlineStatusPrivatelyPatch = bytecodePatch(
         }
         check(dispatchIndex > networkIndex)
         refresh.addInstructions(dispatchIndex,
-            "invoke-static {}, $SETTINGS_CLASS->traceChatOnlineDispatch()V")
+            "invoke-static {}, $ONLINE_STATUS->traceChatOnlineDispatch()V")
         refresh.addInstructionsWithLabels(tabIndex, """
-            invoke-static {}, $SETTINGS_CLASS->isChatOnlineRefresh()Z
+            invoke-static {}, $ONLINE_STATUS->isChatOnlineRefresh()Z
             move-result v0
             if-nez v0, :nezumi_chat_network
         """.trimIndent(), ExternalLabel("nezumi_chat_network", refreshInstructions[networkIndex]))
@@ -284,11 +283,11 @@ val viewOnlineStatusPrivatelyPatch = bytecodePatch(
         check(throttleIndex < tabIndex)
         val throttleRegister = (refreshInstructions[throttleIndex] as OneRegisterInstruction).registerA
         refresh.replaceInstruction(throttleIndex,
-            "invoke-static {}, $SETTINGS_CLASS->onlineRefreshInterval()J")
+            "invoke-static {}, $ONLINE_STATUS->onlineRefreshInterval()J")
         refresh.addInstructions(throttleIndex + 1, "move-result-wide v$throttleRegister")
         refresh.addInstructions(0,
-            "invoke-static {p0}, $SETTINGS_CLASS->traceChatOnlineGate(Ljava/lang/Object;)V")
-        val requestBridge = mutableClassDefBy(SETTINGS_CLASS).methods.single { it.name == "requestChatOnlineList" }
+            "invoke-static {p0}, $ONLINE_STATUS->traceChatOnlineGate(Ljava/lang/Object;)V")
+        val requestBridge = mutableClassDefBy(ONLINE_STATUS).methods.single { it.name == "requestChatOnlineList" }
         check(requestBridge.implementation!!.registerCount >= 1)
         repeat(requestBridge.implementation!!.instructions.size) { requestBridge.implementation!!.removeInstruction(0) }
         requestBridge.addInstructions(0, """
@@ -306,7 +305,7 @@ val viewOnlineStatusPrivatelyPatch = bytecodePatch(
         }
         check(chatArguments.implementation!!.registerCount >= 4)
         chatArguments.addInstructions(0,
-            "invoke-static {p0, p1}, $SETTINGS_CLASS->setChatPresenceTarget(Ljava/lang/Object;Landroid/os/Bundle;)V")
+            "invoke-static {p0, p1}, $ONLINE_STATUS->setChatPresenceTarget(Ljava/lang/Object;Landroid/os/Bundle;)V")
         val subtitleMethod = chatView.methods.single {
             it.parameterTypes.isEmpty() &&
                 it.returnType == "Lcom/zing/zalo/ui/widget/RobotoTextView;" &&
@@ -325,7 +324,7 @@ val viewOnlineStatusPrivatelyPatch = bytecodePatch(
         val subtitleRegister = (subtitleInstructions[subtitleGetterIndex + 1] as OneRegisterInstruction).registerA
         check(subtitleRegister <= 15)
         subtitleMethod.addInstructions(subtitleGetterIndex + 2,
-            "invoke-static {p0, v$subtitleRegister}, $SETTINGS_CLASS->bindChatSubtitle(Ljava/lang/Object;Landroid/widget/TextView;)V")
+            "invoke-static {p0, v$subtitleRegister}, $ONLINE_STATUS->bindChatSubtitle(Ljava/lang/Object;Landroid/widget/TextView;)V")
         val subtitleSetter = chatView.methods.single { method ->
             method.parameterTypes.size == 2 && method.parameterTypes.first() == "Ljava/lang/CharSequence;" &&
                 method.returnType == "V" && method.implementation?.instructions?.any {
@@ -344,7 +343,7 @@ val viewOnlineStatusPrivatelyPatch = bytecodePatch(
         check(hideReference.name == "setVisibility" && hideCall.registerD == clearValue)
         check(setterInstructions[clearIndex + 4].opcode == Opcode.RETURN_VOID)
         subtitleSetter.replaceInstruction(clearIndex,
-            "invoke-static {v${hideCall.registerC}}, $SETTINGS_CLASS->retainChatOnlineSubtitle(Landroid/widget/TextView;)Z")
+            "invoke-static {v${hideCall.registerC}}, $ONLINE_STATUS->retainChatOnlineSubtitle(Landroid/widget/TextView;)Z")
         subtitleSetter.addInstructionsWithLabels(clearIndex + 1, """
             move-result v$clearValue
             if-nez v$clearValue, :nezumi_subtitle_retained
@@ -352,4 +351,4 @@ val viewOnlineStatusPrivatelyPatch = bytecodePatch(
         """.trimIndent(), ExternalLabel("nezumi_subtitle_retained", setterInstructions[clearIndex + 4]))
         attachNezumiSettings("attachOnlineStatus")
     }
-}
+}

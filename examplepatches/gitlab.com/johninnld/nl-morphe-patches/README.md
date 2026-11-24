@@ -48,7 +48,7 @@ through Shizuku-Next, KingInstaller and Android Auto's app list.
 ## App overview
 
 <!-- PATCHES_START SUMMARY -->
-**Patch bundle [v1.101.0](https://gitlab.com/johninnld/nl-morphe-patches/-/releases/v1.101.0)** · 82 apps · 406 patches
+**Patch bundle [v1.106.0](https://gitlab.com/johninnld/nl-morphe-patches/-/releases/v1.106.0)** · 90 apps · 434 patches
 
 ### Weather
 
@@ -109,12 +109,16 @@ through Shizuku-Next, KingInstaller and Android Auto's app list.
 
 | App | Changes | Target app versions | Input | Patches |
 | --- | --- | --- | --- | --- |
+| [Angry Birds 2](docs/site/en/apps/angry-birds-2.md) | Ads · Tracking | 26.7.3 | APKS | 4 |
+| [Angry Birds Friends](docs/site/en/apps/angry-birds-friends.md) | Ads · Tracking | 14.9.0 | APKS | 4 |
 | [Apple Music](docs/site/en/apps/apple-music.md) | See guide | 7.0.0 | APKM | 1 |
 | [Beach Buggy Racing](docs/site/en/apps/beach-buggy-racing.md) | Ads · Tracking | 2026.11.02 | APKM | 3 |
 | [Candy Crush Soda Saga](docs/site/en/apps/candy-crush-soda-saga.md) | Ads · Tracking | 1.330.1 | APKM | 3 |
 | [Deezer](docs/site/en/apps/deezer.md) | Tracking | 9.0.27.3 | APKM | 13 |
+| [Draw a Stickman: EPIC 3](docs/site/en/apps/draw-a-stickman-epic-3.md) | Ads · Tracking | 1.13.19873 | APKS | 2 |
 | [Dumpert](docs/site/en/apps/dumpert.md) | Ads · Tracking · Prompts | 5.8.0 | APKS | 3 |
 | [Eclipse Music](docs/site/en/apps/eclipse-music.md) | See guide | 0.6.75 | APK | 2 |
+| [GameSnacks](docs/site/en/apps/gamesnacks.md) | See guide | 1.40.827663177 | APK | 1 |
 | [KIJK Android](docs/site/en/apps/kijk.md) | Ads · Tracking · Prompts | 9.8.0 | APK | 3 |
 | [KIJK Android TV](docs/site/en/apps/kijk-android-tv.md) | Ads · Tracking | 7.2.7 | APKS | 3 |
 | [Myspoti](docs/site/en/apps/myspoti.md) | See guide | 2.3.0, 2.4.0, 2.4.1, Any | APK | 3 |
@@ -142,14 +146,18 @@ through Shizuku-Next, KingInstaller and Android Auto's app list.
 | [AliExpress](docs/site/en/apps/aliexpress.md) | Compatibility | 8.180.0, 8.180.1 | APK | 10 |
 | [AT4K Launcher](docs/site/en/apps/at4k.md) | Plus/Pro | 1.3 | APK | 1 |
 | [bol](docs/site/en/apps/bol.md) | Tracking | 2026.23.1 | APKS | 5 |
+| [Cronometer](docs/site/en/apps/cronometer.md) | Tracking | 4.57.2 | APKM | 7 |
+| [dynamicSpot](docs/site/en/apps/dynamicspot.md) | Plus/Pro · Compatibility | 3.02 | APKM | 5 |
 | [Fennec](docs/site/en/apps/fennec.md) | See guide | Any | APK | 1 |
-| [Gboard](docs/site/en/apps/gboard.md) | See guide | 18.8.0.1022711984-beta-arm64-v8a, 18.8.0.1022711984-beta-armeabi-v7a | APK | 32 |
+| [Gboard](docs/site/en/apps/gboard.md) | See guide | 18.8.0.1022711984-beta-arm64-v8a, 18.8.0.1022711984-beta-armeabi-v7a | APK | 34 |
 | [GridCraft](docs/site/en/apps/gridcraft.md) | See guide | Any | APK | 1 |
 | [Home Assistant](docs/site/en/apps/homeassistant.md) | See guide | 2026.10.1-full | APKS | 1 |
+| [Home Assistant (Automotive)](docs/site/en/apps/homeassistant-automotive.md) | See guide | 2026.11.2-full | APK | 2 |
 | [LightCraft](docs/site/en/apps/lightcraft.md) | See guide | Any | APK | 1 |
 | [Marktplaats](docs/site/en/apps/marktplaats.md) | Ads · Tracking · Prompts | 16.19.0 | APKS | 5 |
 | [Monet Android TV](docs/site/en/apps/monet.md) | Plus/Pro | 1.1.1 | APK | 4 |
 | [PdfCraft](docs/site/en/apps/pdfcraft.md) | See guide | Any | APK | 1 |
+| [PlugShare (Automotive)](docs/site/en/apps/plugshare.md) | See guide | AAOS v1.8.2 | APK | 1 |
 | [Projectivy Launcher](docs/site/en/apps/projectivy.md) | Tracking · Plus/Pro | 4.73 | APK | 2 |
 | [Reolink](docs/site/en/apps/reolink.md) | Compatibility | 4.64.3.20261023 | APKM | 6 |
 | [Titanium Browser](docs/site/en/apps/titanium.md) | See guide | Any | APK | 1 |

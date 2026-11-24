@@ -35,10 +35,10 @@ public final class AdBlocker {
     private static final long SESSION_MAX_IDLE_MS = 30 * 60 * 1000;
     private static final long REASSIGNMENT_WINDOW_MS = 30 * 1000;
     /**
-     * A playing stream refreshes its playlist about every 2 seconds. Only when it has been quiet
-     * longer than that can a new playlist URL be the same stream moved to another server.
+     * A stream moved to another playlist server polls there a poll's time (~2 s) after its last poll at the old
+     * URL; a playlist polled closer than this to the stream's own poll is another player's.
      */
-    private static final long MOVED_GAP_MS = 2_500;
+    private static final long CONCURRENT_POLL_MS = 1_000;
     /** A watched stream polls every ~2 seconds; quiet this long means no stream is open. */
     private static final long WATCHING_MS = 6_000;
     private static final int MAX_PREVIEW_VARIANTS = 500;
@@ -199,10 +199,9 @@ public final class AdBlocker {
             problems.report(Problem.UNRECOGNIZED_PLAYLIST, UrlKey.of(url));
             return body;
         }
-        if (now - latest.lastSeen < MOVED_GAP_MS) {
-            // That stream is still being polled at its own URL, so this playlist belongs to another
-            // player (for example a preview): leave it alone.
-            if (logger.detailed()) logger.log("Leaving unrelated playlist alone: " + UrlKey.of(url));
+        if (now - latest.lastSeen < CONCURRENT_POLL_MS) {
+            // Polled together with the stream at its own URL: another player of it, not the stream moving.
+            if (logger.detailed()) logger.log("Leaving another player's playlist alone: " + UrlKey.of(url));
             return body;
         }
         // Only the same stream shares segments with it; anything else (picture-by-picture, a preview

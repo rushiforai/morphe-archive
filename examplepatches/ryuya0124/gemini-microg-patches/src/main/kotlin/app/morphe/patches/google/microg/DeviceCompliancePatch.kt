@@ -15,10 +15,10 @@ val deviceComplianceRedirectPatch = bytecodePatch(
     description = "microG利用時にGoogleアプリ内の未認定警告へ転送するローカル分岐を抑止します。端末認定は変更しません。",
     default = true
 ) {
-    compatibleWith("com.google.android.googlequicksearchbox")
+    compatibleWith(*VersionHookRegistry.compatibility("com.google.android.googlequicksearchbox"))
     execute {
         val feature = VersionHookRegistry.target(HookId.DEVICE_COMPLIANCE_FEATURE, packageMetadata)
-        val featureClass = getAllClassesWithString(feature.anchorStrings[0]).single()
+        val featureClass = classDefByStrings(feature.anchorStrings[0]).single()
         check(featureClass.type == feature.className)
         val featureMethod = mutableClassDefBy(featureClass).methods.single { feature.matches(it) }
         val featureIns = featureMethod.instructions.toList()
@@ -37,7 +37,7 @@ val deviceComplianceRedirectPatch = bytecodePatch(
         // The original feature-disabled path performs native restoration when reset is pending.
         // Do not fake service binding success: that would only hide a broken endpoint.
         val spec = VersionHookRegistry.target(HookId.DEVICE_COMPLIANCE_REDIRECT, packageMetadata)
-        val clazz = getAllClassesWithString(spec.anchorStrings.single()).single()
+        val clazz = classDefByStrings(spec.anchorStrings.single()).single()
         check(clazz.type == spec.className)
         val method = mutableClassDefBy(clazz).methods.single { spec.matches(it) }
         val ins = method.instructions.toList()

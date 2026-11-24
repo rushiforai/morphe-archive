@@ -55,7 +55,7 @@ jobs:
     needs: check
     if: needs.check.outputs.version != ''
     permissions:
-      contents: read
+      contents: write
       packages: read
     uses: ./.github/workflows/emulator.yml
     secrets: inherit

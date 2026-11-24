@@ -78,9 +78,9 @@ public enum PatchFamily {
     FEED_SOUND(FamilyNames.FEED_SOUND, "feedSound", null, Settings.START_FEED_VIDEOS_WITH_SOUND,
             Settings.START_FEED_VIDEOS_ON_SILENT, Settings.START_FEED_VIDEOS_MUTED),
     FEED_TAP_PAUSE(FamilyNames.FEED_TAP_PAUSE, "feedTapPause", null, Settings.TAP_FEED_VIDEO_TO_PAUSE,
-            Settings.FEED_TAPS_STAY_IN_FEED),
+            Settings.FEED_TAPS_STAY_IN_FEED, Settings.FEED_TAP_MIDDLE_ONLY),
     FEED_HOLD_FAST(FamilyNames.FEED_HOLD_FAST, "feedHoldFast", null, Settings.HOLD_FEED_VIDEO_FAST, Settings.HOLD_FEED_VIDEO_KEEP,
-            Settings.HOLD_FEED_VIDEO_KEEP_LONG, Settings.HOLD_FEED_VIDEO_KEEP_NAME),
+            Settings.HOLD_FEED_VIDEO_KEEP_LONG, Settings.HOLD_FEED_VIDEO_KEEP_NAME, Settings.HOLD_FEED_VIDEO_MIDDLE_PAUSES),
     FEED_SEEK_BAR(FamilyNames.FEED_SEEK_BAR, "feedSeekBar", null, Settings.FEED_SEEK_BAR, Settings.FEED_SEEK_BUTTON,
             Settings.FEED_DOUBLE_TAP_SKIP),
     LONG_PRESS_ZOOM(FamilyNames.LONG_PRESS_ZOOM, "longPressZoom", null, Settings.LONG_PRESS_TO_ZOOM,
@@ -108,7 +108,7 @@ public enum PatchFamily {
     LAST_ACTIVE(FamilyNames.LAST_ACTIVE, "lastActive", null, Settings.SHOW_LAST_ACTIVE),
     SHORT_ACTIVE_NOW(FamilyNames.SHORT_ACTIVE_NOW, "shortActiveNow", null, Settings.SHORT_ACTIVE_NOW),
     MESSAGES_LOCK(FamilyNames.MESSAGES_LOCK, "messagesLock", null, Settings.LOCK_MESSAGES, Settings.LOCK_APP,
-            Settings.LOCK_SAVED, Settings.LOCK_EACH_CHAT, Settings.DOUBLE_TAP_HIDDEN_CHATS),
+            Settings.LOCK_SAVED, Settings.LOCK_EACH_CHAT, Settings.DOUBLE_TAP_HIDDEN_CHATS, Settings.CHAT_GROUPS),
     SCREENSHOT_REPORTS(FamilyNames.SCREENSHOT_REPORTS, "screenshotReports", null, Settings.HIDE_SCREENSHOTS),
     BLEND_VISITS(FamilyNames.BLEND_VISITS, "blendVisits", null, Settings.HIDE_BLEND_VISITS),
     SCREENSHOT_BLOCK(FamilyNames.SCREENSHOT_BLOCK, "screenshotBlock", null, Settings.ALLOW_SCREENSHOTS),
@@ -174,7 +174,8 @@ public enum PatchFamily {
     NEW_MESSAGE(FamilyNames.NEW_MESSAGE, "newMessage", null, Settings.HIDE_NEW_MESSAGE_BUTTON,
             Settings.HIDE_NEW_MESSAGE_SUGGESTIONS),
     INSTANTS(FamilyNames.INSTANTS, "instants", null, Settings.HIDE_INSTANTS),
-    SHARE_SHEET(FamilyNames.SHARE_SHEET, "shareSheet", null, Settings.HIDE_SHARE_SHEET_GROUP, Settings.HIDE_SHARE_SHEET_SEARCH),
+    SHARE_SHEET(FamilyNames.SHARE_SHEET, "shareSheet", null, Settings.HIDE_SHARE_SHEET_GROUP, Settings.HIDE_SHARE_SHEET_SEARCH,
+            Settings.MORE_QUICK_SEND_PEOPLE),
     REPOST_BUTTON(FamilyNames.REPOST_BUTTON, "repostButton", null, Settings.HIDE_REPOST_BUTTON),
     HIDE_SHARE_BUTTON(FamilyNames.HIDE_SHARE_BUTTON, "hideShareButton", null, Settings.HIDE_SHARE_BUTTON),
     BOTTOM_SPACE(FamilyNames.BOTTOM_SPACE, "bottomSpace", null, Settings.REMOVE_BOTTOM_SPACE),
@@ -196,8 +197,8 @@ public enum PatchFamily {
     REFRESH_RATE(FamilyNames.REFRESH_RATE, "refreshRate", null, Settings.HIGHEST_REFRESH_RATE),
     EMOJI_STYLE(FamilyNames.EMOJI_STYLE, "emojiStyle", null, Settings.NOTO_EMOJI),
     ACCENT_COLOR(FamilyNames.ACCENT_COLOR, "accentColor", null, Settings.ACCENT_COLOR, Settings.ACCENT_BADGES,
-            Settings.ACCENT_ICONS, Settings.ACCENT_RINGS, Settings.ACCENT_RINGS_SOLID, Settings.ACCENT_BACKGROUNDS,
-            Settings.CLASSIC_COLORS),
+            Settings.ACCENT_ICONS, Settings.ACCENT_REELS, Settings.ACCENT_RINGS, Settings.ACCENT_RINGS_SOLID,
+            Settings.ACCENT_BACKGROUNDS, Settings.CLASSIC_COLORS),
     LAUNCH_SCREEN(FamilyNames.LAUNCH_SCREEN, "launchScreen", null, Settings.LAUNCH_SCREEN, Settings.LAUNCH_SCREEN_ACCENT),
     HEADER_TEXT(FamilyNames.HEADER_TEXT, "headerText", null),
     APP_ICON(FamilyNames.APP_ICON, "appIcon", "the home screen icon you picked"),
@@ -211,7 +212,7 @@ public enum PatchFamily {
     MEDIA_CACHE(FamilyNames.MEDIA_CACHE, "mediaCache", null, Settings.CLEAR_MEDIA_CACHE),
     FRIENDSHIP_STATUS(FamilyNames.FRIENDSHIP_STATUS, "friendshipStatus", null, Settings.SHOW_FRIENDSHIP_STATUS,
             Settings.MARK_FOLLOWING_LIST, Settings.FOLLOW_MARK_ON_PICTURE, Settings.FRIENDSHIP_STATUS_CHIP,
-            Settings.FOLLOWING_NOT_BACK_FIRST,
+            Settings.FOLLOW_ICON_AT_TOP, Settings.FOLLOWING_NOT_BACK_FIRST,
             Settings.TRACK_UNFOLLOWERS, Settings.NOTIFY_UNFOLLOWS),
     PROFILE_SUGGESTIONS(FamilyNames.PROFILE_SUGGESTIONS, "profileSuggestions", null, Settings.HIDE_PROFILE_SUGGESTIONS,
             Settings.HIDE_FOLLOW_LIST_SUGGESTIONS, Settings.HIDE_PROFILE_COMPLETION, Settings.HIDE_FOLLOW_BACK_SUGGESTIONS,
@@ -242,7 +243,7 @@ public enum PatchFamily {
             Settings.SAVED_PROFILES, Settings.PROFILE_PICTURE_LONG_PRESS),
     VOICE_MESSAGE(FamilyNames.VOICE_MESSAGE, "voiceMessage", null, Settings.DOWNLOAD_VOICE_MESSAGES),
     HIDE_COMMENTS(FamilyNames.HIDE_COMMENTS, "hideComments", null, Settings.HIDE_COMMENTS, Settings.HIDE_COMMENT_REPLY,
-            Settings.HIDE_COMMENT_LIKES, Settings.HIDE_COMMENT_BOX),
+            Settings.HIDE_COMMENT_LIKES, Settings.HIDE_COMMENT_AI_LABELS, Settings.HIDE_COMMENT_BOX),
     COMMENT_EMOJI_ROW(FamilyNames.COMMENT_EMOJI_ROW, "commentEmojiRow", null, Settings.HIDE_COMMENT_EMOJI_ROW),
     COMMENT_KEYBOARD(FamilyNames.COMMENT_KEYBOARD, "commentKeyboard", null, Settings.COMMENT_KEYBOARD_DOWN),
     COMMENT_GIFS(FamilyNames.COMMENT_GIFS, "commentGifs", null, Settings.HIDE_COMMENT_GIFS),
@@ -304,6 +305,8 @@ public enum PatchFamily {
     CAPTION_WORD_REELS(FamilyNames.CAPTION_WORD_REELS, "captionWordReels", null, Settings.HIDE_CAPTION_WORD_REELS,
             Settings.HIDE_OTHER_LANGUAGE_REELS),
     LOW_VIEW_REELS(FamilyNames.LOW_VIEW_REELS, "lowViewReels", null, Settings.HIDE_LOW_VIEW_REELS),
+    SEEN_REELS(FamilyNames.SEEN_REELS, "seenReels", null, Settings.HIDE_SEEN_REELS),
+    SAVED_STORY_RINGS(FamilyNames.SAVED_STORY_RINGS, "savedStoryRings", null, Settings.SAVED_STORY_RINGS),
     KEEP_REEL_SPEED(FamilyNames.KEEP_REEL_SPEED, "keepReelSpeed", null, Settings.KEEP_REEL_SPEED),
     REEL_ABOVE_COMMENTS(FamilyNames.REEL_ABOVE_COMMENTS, "reelAboveComments", null, Settings.REEL_ABOVE_COMMENTS),
     REEL_LINKS(FamilyNames.REEL_LINKS, "reelLinks", null, Settings.OPEN_REEL_LINKS_FIRST),
@@ -545,6 +548,22 @@ public enum PatchFamily {
         return HIDE_COMMENTS.inBuild() && SettingsStatus.commentLikes();
     }
 
+    /** Whether a test says this build takes the AI label off comments, instead of asking {@link SettingsStatus}. */
+    @Nullable
+    static volatile Boolean commentAiLabelForTests;
+
+    /**
+     * Whether this build takes the AI label off the line with a comment's name. Hide comments goes in
+     * without it when that line's label has moved, so that switch isn't offered then.
+     */
+    public static boolean commentAiLabelInBuild() {
+        Boolean forced = commentAiLabelForTests;
+        if (forced != null) return forced;
+        Set<PatchFamily> families = inBuildForTests;
+        if (families != null) return families.contains(HIDE_COMMENTS);
+        return HIDE_COMMENTS.inBuild() && SettingsStatus.commentAiLabel();
+    }
+
     /** Whether a test says this build filters Home by a post's type, instead of asking {@link SettingsStatus}. */
     @Nullable
     static volatile Boolean feedTypesForTests;
@@ -747,6 +766,9 @@ public enum PatchFamily {
                 }
                 if (family == HIDE_COMMENTS && !commentLikesInBuild()) {
                     lines.add("  Hide likes on comments: not in this build (the comment row's heart didn't match)");
+                }
+                if (family == HIDE_COMMENTS && !commentAiLabelInBuild()) {
+                    lines.add("  Hide AI labels on comments: not in this build (the AI label on a comment's name line didn't match)");
                 }
                 if (family == FOLLOWING_FEED && !followingMixInBuild()) {
                     lines.add("  Mix in Following: not in this build (Home's paging didn't match)");

@@ -4,6 +4,39 @@ Every HushGram release, newest first.
 
 ## Unreleased
 
+* With `Hold the Friends tab to pick friends` on, the Friends tab no longer stops on a gray loading screen when a page has none of your picks. It asks Instagram for the next page instead. Reported in #503.
+* A saved profile's menu now names its folders under `Your saved profiles`, and tapping that row opens the folder picker with them ticked. Rows in the saved list show their folders too. Asked for in #629.
+* Holding a row in the viewing history now also offers `Open`, `Copy username`, `Show all from this account` and `Remove all from this account`. Asked for in #228.
+* `Hide AI labels on comments` is new under `Hide comments` in Comments. It takes AI-generated profile and similar AI labels off the line with a commenter's name. Starts off. Asked for in #787.
+* `Double-tap Messages for hidden chats` now shows every hidden chat after Instagram restarts, not only the ones on your inbox's first page. It loads more of the inbox until they're all there. Reported in #661.
+* `Buttons on the share sheet` can leave off Meta AI now, along with the other round buttons under the people. Asked for in #846.
+* `Reel buttons in the accent color` is new under `Accent color` in Layout. The like, comment, share and other buttons beside a reel, and their counts, take your accent color instead of white. Starts off. Asked for in #187.
+* `Chat groups` is new under Messages. Long press a chat to file it in a group you name, off your main inbox. Long press the Messages button to show one group. Starts off. Asked for in discussion #838.
+* With `Swipe through a chat's reels` on, the reply bar and quick reactions keep working on reels you swipe to past the chat's loaded messages. They went dead there, so nothing went out. Reported in #804 and #844.
+* `Story rings on saved posts` is new under Stories. Posts you saved show the story ring around the author's picture, and tapping it opens their story, like on Home. Starts off. Asked for in #790.
+* `Hide reels you've seen` is new under Reels. Reels you've already watched stay out of the Reels tab when Instagram serves them again, and the last 3000 are remembered on your phone. Starts off. Asked for in #830.
+* `Hide suggested accounts in Messages` now also takes More suggestions out of search in your messages, its heading included. Asked for in #826.
+* `Details in a post's menu` now has `Copy hashtags`, which copies just the caption's tags, and `Translate caption`, which opens the caption in a translator app on your phone. Asked for in #839.
+* `More people when you hold Share` is new under `Sharing`. Holding a post's Share button then shows five people instead of four, as many as Instagram's popup has room for. Starts off. Asked for in discussion #811.
+* With `Blur the chat behind a held message` on, a message the menu would cover now slides into view, or shrinks to fit, so you can see which one you're reacting to. Asked for in #828.
+* HushGram's settings are now in Arabic, thanks to hamedhani1998 in #817. It's a first draft, so if you read Arabic and a line sounds off, open an issue with the better wording.
+* `Loop this video` is back in the three-dot menu in the Reels tab, and reels stop at their end again once auto scroll is off. An auto scroll choice remembered from earlier kept both away. Reported in #829.
+* `Pure black dark mode` now covers the share sheet and other pop up sheets on installs where Instagram uses its older dark colors, like a clone. They stayed dark grey there. Reported in #835.
+* The glass tab bar keeps up with every reel now, not about half of them. A reel that was still loading when it reached the bar left its blur lagging until you scrolled away and back. Reported in #583.
+* `Also on Home` is new under `Hide reels by sound` in Reels. Posts on Home that use a sound you hid are left out too. Starts off. Asked for in #822.
+* If starting a call recording closes Instagram, `Record calls` turns itself off the next time Instagram opens and says so, so a call doesn't close it again. Reported in #831.
+* Going back to Home from Messages with the floating glass tab bar no longer flashes a black band under the pill for a frame. Reported in #835.
+* A reel's seek bar sits under the video again with the glass tab bar on. It was lifted onto the video's bottom edge, leaving a strip of the video showing under it. Reported in #827.
+* HushGram now patches Instagram 456.1.0.56.78 instead of 456.0.0.53.78. Get APKMirror's (arm64-v8a) (480-640dpi) (Android 9.0+) bundle, build 386215122. Its armeabi-v7a (386215121), x86 (386215123) and x86_64 (386215124) builds work too.
+* HushGram now builds on Morphe patcher 2.5.0, so patching needs Morphe Manager 2.7.0 or newer. On a computer, use Morphe Desktop 2.3.0 or newer.
+* `Expand captions on reels` now opens the caption right on the reel in the Reels tab. On Instagram 456 those captions stayed at a line or two, and the "..." opened the caption sheet. Reported in #821.
+* The time on a story's seek bar sits right over the bar whenever there's room for it, instead of up over the reply row. Reported in #784.
+* `Pinch for clear mode` works when you spread two fingers apart now, not only when you pinch them together. Fingers that started close together were taken as a scroll. Reported in #744.
+* `Time under the tags button` is new under `Time on the seek bar` in Feed. It moves the time from the middle of the bar to the corner under the tags button. Starts off. Asked for in #711.
+* `Show it as an icon at the top`, new under `Show if a profile follows you`, puts a green check or red cross by the menu, or on HushGram's button when the bar's full. Starts off. Asked for in #842.
+* `Hold the middle to pause it`, new under `Hold for 2x on feed videos`, pauses a feed video while you hold its middle and plays it as you let go. Either side plays 2x. Starts off. Asked for in #639.
+* `Only the middle pauses it` is new under `Tap a feed video to pause it` in Feed. A tap off the video's middle opens Reels instead of pausing. Starts off. Asked for in #706.
+
 ## 0.0.22 (2026-11-22)
 
 ### Improvements

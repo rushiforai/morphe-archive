@@ -15,8 +15,12 @@ val tapToSeekPatch = patch(
     name = "Tap a line to listen from it",
     description = "Tapping a line of the chapter (vertical reading) moves the voice reading there: while " +
             "reading it continues from that line, while stopped the line is highlighted and play starts " +
-            "from it, with the voice bar closed the bar opens and the line is highlighted. Scrolling by " +
-            "hand while listening stops the automatic scrolling and shows a \"Về dòng đang đọc\" button.",
+            "from it, with the voice bar closed the bar opens and the line is highlighted. What a tap does " +
+            "while reading can be set (tapped line being read: nothing / pause / read again; another line: " +
+            "jump / stop and mark / nothing). Scrolling by hand while listening stops the automatic " +
+            "scrolling and shows a \"Về dòng đang đọc\" button. Also: where the line being read stays when " +
+            "the reader follows the voice (bottom / top / middle / page), highlight of the word being read and " +
+            "reading from a tapped word (settings).",
     default = true,
 ) {
     compatibleWith(COMPATIBILITY_ITRUYENCHU)

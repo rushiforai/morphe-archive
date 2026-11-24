@@ -1,8 +1,11 @@
 package app.brokenn.patches.jiohotstar.player
 
+import app.brokenn.patches.jiohotstar.settings.openBrokennSettingsPatch
+import app.brokenn.patches.jiohotstar.shared.Constants
 import app.brokenn.patches.jiohotstar.shared.Constants.COMPATIBILITY_JIOHOTSTAR
 import app.brokenn.patches.jiohotstar.shared.Constants.TAB_WIDGET
 import app.brokenn.patches.jiohotstar.shared.Constants.TAB_WIDGET_DATA
+import app.brokenn.patches.jiohotstar.shared.enableStatus
 import app.brokenn.patches.jiohotstar.watchpage.AdaptiveTabConverterFingerprint
 import app.brokenn.patches.shared.instrs
 import app.brokenn.patches.shared.instructionIndices
@@ -10,55 +13,26 @@ import app.brokenn.patches.shared.prevInstructionIndex
 import app.brokenn.patches.shared.referenceText
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructionsWithLabels
 import app.morphe.patcher.extensions.InstructionExtensions.getInstruction
-import app.morphe.patcher.patch.booleanOption
+import app.morphe.patcher.extensions.InstructionExtensions.replaceInstruction
 import app.morphe.patcher.patch.bytecodePatch
 import app.morphe.patcher.util.smali.ExternalLabel
 import com.android.tools.smali.dexlib2.Opcode
+import com.android.tools.smali.dexlib2.iface.instruction.FiveRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
 
 @Suppress("unused")
 val hidePlayerButtonsPatch = bytecodePatch(
     name = "Hide player buttons",
-    description = "Hides selected buttons from the fullscreen player's bottom bar."
+    description = "Hides selected buttons from the video player."
 ) {
     compatibleWith(COMPATIBILITY_JIOHOTSTAR)
 
-    val hideWatchNext by booleanOption(
-        key = "hide_watch_next", title = "Hide Watch Next",
-        description = "Hides the Watch Next button.", default = false
-    )
-    val hideEpisodes by booleanOption(
-        key = "hide_episodes", title = "Hide Episodes",
-        description = "Hides the Episodes button.", default = false
-    )
-    val hideShop by booleanOption(
-        key = "hide_shop", title = "Hide Shop",
-        description = "Hides the Shop / Order Food button.", default = false
-    )
-    val hideSpeed by booleanOption(
-        key = "hide_speed", title = "Hide Speed",
-        description = "Hides the Speed button.", default = false
-    )
-    val hideRate by booleanOption(
-        key = "hide_rate", title = "Hide Rate",
-        description = "Hides the Rate button.", default = false
-    )
-    val hideNextEpisode by booleanOption(
-        key = "hide_next_episode", title = "Hide Next Episode",
-        description = "Hides the Next Episode button.", default = false
-    )
+    dependsOn(openBrokennSettingsPatch)
 
     execute {
-        val titles = buildList {
-            if (hideWatchNext == true) add("Watch Next")
-            if (hideEpisodes == true) add("Episodes")
-            if (hideShop == true) add("Shop")
-            if (hideSpeed == true) add("Speed")
-            if (hideRate == true) add("Rate")
-            if (hideNextEpisode == true) add("Next Episode")
-        }
-        if (titles.isEmpty()) return@execute
+        enableStatus("hidePlayerButtons")
 
+        // BrokennPrefs controls which buttons hide at runtime — no re-patch needed.
         // Filters control-menu items by title. Reverse-order patching keeps indices
         // stable for safe register reassignment.
         val dConv = PlayerWidgetConverterFingerprint.method
@@ -85,18 +59,9 @@ val hidePlayerButtonsPatch = bytecodePatch(
             val block = buildString {
                 append("invoke-interface {v${site.elemReg}}, ${site.itemType}->getTitle()Ljava/lang/String;\n")
                 append("move-result-object v13\n")
-                titles.forEachIndexed { i, title ->
-                    append("const-string v15, \"$title\"\n")
-                    append("invoke-virtual {v13, v15}, Ljava/lang/String;->equals(Ljava/lang/Object;)Z\n")
-                    append("move-result v15\n")
-                    append("if-nez v15, :pi_hidden_$i\n")
-                }
+                append(Constants.prefsStringCall("isPlayerButtonHidden", "13", "15"))
+                append("if-nez v15, :pi_skip\n")
                 // nop pins the trailing label to a real instruction
-                append("goto/16 :pi_keep\n")
-                titles.forEachIndexed { i, _ ->
-                    append(":pi_hidden_$i\n")
-                    append("goto/16 :pi_skip\n")
-                }
                 append(":pi_keep\n")
                 append("nop\n")
             }
@@ -125,26 +90,13 @@ val hidePlayerButtonsPatch = bytecodePatch(
         // Snapshot before the insert below shifts indices; the label anchors to the object.
         val tabImpl = tabContainer.instrs()
 
-        // The row's swiggy tab is titled "Order Food"
-        val landscapeTitles = titles.toMutableList()
-        if (hideShop == true && !landscapeTitles.contains("Order Food")) landscapeTitles.add("Order Food")
-
         val landscapeBlock = buildString {
             append("invoke-virtual {v$itemReg}, ${TAB_WIDGET}->getData()${TAB_WIDGET_DATA}\n")
             append("move-result-object v5\n")
             append("invoke-virtual {v5}, Lcom/hotstar/ui/model/widget/TabWidget${'$'}Data;->getTitle()Ljava/lang/String;\n")
             append("move-result-object v5\n")
-            landscapeTitles.forEachIndexed { i, title ->
-                append("const-string v6, \"$title\"\n")
-                append("invoke-virtual {v5, v6}, Ljava/lang/String;->equals(Ljava/lang/Object;)Z\n")
-                append("move-result v6\n")
-                append("if-nez v6, :pl_hidden_$i\n")
-            }
-            append("goto/16 :pl_keep\n")
-            landscapeTitles.forEachIndexed { i, _ ->
-                append(":pl_hidden_$i\n")
-                append("goto/16 :pl_skip\n")
-            }
+            append(Constants.prefsStringCall("isPlayerButtonHidden", "5", "6"))
+            append("if-nez v6, :pl_skip\n")
             append(":pl_keep\n")
             append("nop\n")
         }
@@ -152,6 +104,40 @@ val hidePlayerButtonsPatch = bytecodePatch(
             landscapeSite + 1,
             landscapeBlock,
             ExternalLabel("pl_skip", tabImpl[landscapeHead])
+        )
+
+        val topBar = PlayerTopBarFingerprint.method
+        val appends = topBar.instructionIndices { ins ->
+            ins.opcode == Opcode.INVOKE_VIRTUAL &&
+                ins.referenceText()?.let { it.contains("->add(Ljava/lang/Object;)Z") && !it.contains("ArrayList") } == true
+        }
+        require(appends.size >= 4) { "PlayerTopBar: button append sites not found (${appends.size})" }
+        for (idx in appends.sortedDescending()) {
+            val ins = topBar.getInstruction<FiveRegisterInstruction>(idx)
+            val listReg = ins.registerC
+            val itemReg = ins.registerD
+            require(listReg < 16 && itemReg < 16) { "PlayerTopBar: append registers exceed the 4-bit form" }
+            topBar.replaceInstruction(
+                idx,
+                "invoke-static {v$listReg, v$itemReg}, ${Constants.BROKENN_PREFS_CLASS}->" +
+                    "addTopBarItem(Ljava/lang/Object;Ljava/lang/Object;)V"
+            )
+        }
+
+        val backArrow = PlayerBackButtonFingerprint.method
+        val backImpl = backArrow.instrs()
+        val backParamRegisters = backArrow.parameterTypes.sumOf { if (it == "J" || it == "D") 2 else 1 }
+        val backRegisterCount = backArrow.implementation!!.registerCount
+        require(backRegisterCount > backParamRegisters) { "PlayerBackButton: no local register free" }
+        backArrow.addInstructionsWithLabels(
+            0,
+            buildString {
+                append("invoke-static {}, ${Constants.BROKENN_PREFS_CLASS}->isPlayerBackHidden()Z\n")
+                append("move-result v0\n")
+                append("if-eqz v0, :pb_keep\n")
+                append("return-void\n")
+            },
+            ExternalLabel("pb_keep", backImpl[0])
         )
     }
 }

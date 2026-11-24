@@ -58,11 +58,12 @@ def clean_other_sources(project: Path) -> None:
 
     # Keep one runtime extension, drop all other app-specific Java sources.
     java = project / "extensions/extension/src/main/java"
-    keeper = java / "app/hxreborn/extension/realmelink/ModeKeeper.java"
-    if not keeper.is_file():
-        raise RuntimeError("ModeKeeper.java missing; overlay step was skipped")
+    runtime = java / "app/hxreborn/extension/realmelink"
+    for required in ("ModeKeeper.java", "ModeSettingsUi.java"):
+        if not (runtime / required).is_file():
+            raise RuntimeError(f"{required} missing; overlay step was skipped")
     for file in list(java.rglob("*.java")):
-        if file != keeper:
+        if not file.is_relative_to(runtime):
             file.unlink()
 
 

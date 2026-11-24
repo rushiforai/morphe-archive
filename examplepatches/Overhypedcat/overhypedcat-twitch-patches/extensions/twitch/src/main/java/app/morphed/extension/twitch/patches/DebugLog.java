@@ -44,7 +44,7 @@ public final class DebugLog {
     private static final String TAG = "TwitchMorphed";
     private static final String PREFERENCES = "twitch_morphed";
     private static final String KEY_ENABLED = "detailed_log";
-    private static final long HEARTBEAT_SECONDS = 30;
+    private static final long HEARTBEAT_SECONDS = 10;
     private static final DateTimeFormatter TIME = DateTimeFormatter.ofPattern("HH:mm:ss.SSS", Locale.US);
 
     private static final ExecutorService IO = Executors.newSingleThreadExecutor(runnable -> {
@@ -211,7 +211,15 @@ public final class DebugLog {
         }
         log("Log started. Android " + Build.VERSION.RELEASE + " (SDK " + Build.VERSION.SDK_INT + "), "
                 + Build.MANUFACTURER + " " + Build.MODEL + ", app " + appVersion(context));
+        try {
+            log(app.morphed.extension.twitch.diag.Resources.device(context));
+        } catch (Throwable t) {
+            log("Device: couldn't be read (" + t + ")");
+        }
         heartbeat = HEARTBEAT.scheduleWithFixedDelay(DebugLog::heartbeat, HEARTBEAT_SECONDS, HEARTBEAT_SECONDS, TimeUnit.SECONDS);
+        // The video and the screen, watched while the log runs.
+        app.morphed.extension.twitch.diag.VideoWatch.start();
+        app.morphed.extension.twitch.diag.MainWatch.start();
     }
 
     private static void stop() {
@@ -222,6 +230,8 @@ public final class DebugLog {
     private static synchronized void stop(boolean tellFailure) {
         if (heartbeat != null) heartbeat.cancel(false);
         heartbeat = null;
+        app.morphed.extension.twitch.diag.VideoWatch.stop();
+        app.morphed.extension.twitch.diag.MainWatch.stop();
         Writer current = writer;
         if (current == null) return;
         if (tellFailure) log("Log stopped.");
@@ -240,10 +250,14 @@ public final class DebugLog {
     }
 
     private static void heartbeat() {
-        Runtime runtime = Runtime.getRuntime();
-        long usedMb = (runtime.totalMemory() - runtime.freeMemory()) / (1024 * 1024);
-        log("Status: threads=" + Thread.activeCount() + ", memory=" + usedMb + "/" + runtime.maxMemory() / (1024 * 1024)
-                + "MB, " + RequestStats.summaryAndReset());
+        String resources;
+        try {
+            Context context = AdBreakIndicator.currentApplication();
+            resources = context == null ? "resources unknown (no app yet)" : app.morphed.extension.twitch.diag.Resources.now(context);
+        } catch (Throwable t) {
+            resources = "resources couldn't be read (" + t + ")";
+        }
+        log("Status: " + resources + ", threads " + Thread.activeCount() + ", " + RequestStats.summaryAndReset());
     }
 
     /** Where the log files go, as the user finds them in a file manager. */

@@ -19,20 +19,20 @@ public final class AdBlockSettingsSection {
     public static void render(Context context, Object composer, int changed) {
         if (context == null || composer == null) return;
         try {
-            Class<?> composerClass = Class.forName("pn3");
+            Class<?> composerClass = Class.forName("bu3");
             Class<?> functionClass = Class.forName("kotlin.Function");
             Class<?> function0Class = Class.forName("kotlin.jvm.functions.Function0");
             Class<?> function2Class = Class.forName("kotlin.jvm.functions.Function2");
-            Class<?> ptqClass = Class.forName("ptq");
-            Class<?> mq8Class = Class.forName("mq8");
-            Class<?> bj8Class = Class.forName("bj8");
-            Class<?> qtbClass = Class.forName("qtb");
-            Class<?> wtaClass = Class.forName("wta");
+            Class<?> lambdaFactoryClass = Class.forName("mqp");
+            Class<?> sectionClass = Class.forName("oo9");
+            Class<?> rowClass = Class.forName("zg9");
+            Class<?> stringModelBaseClass = Class.forName("igc");
+            Class<?> stringModelClass = Class.forName("hgb");
 
             // Build native String models
-            Constructor<?> wtaCtor = wtaClass.getConstructor(String.class);
-            Object headerTitleQtb = wtaCtor.newInstance("Aidan's Patches");
-            Object rowTitleQtb = wtaCtor.newInstance("Ad Blocker");
+            Constructor<?> stringModelCtor = stringModelClass.getConstructor(String.class);
+            Object headerTitle = stringModelCtor.newInstance("Aidan's Patches");
+            Object rowTitle = stringModelCtor.newInstance("Ad Blocker");
 
             // Click callback
             Object clickProxy = Proxy.newProxyInstance(
@@ -55,10 +55,10 @@ public final class AdBlockSettingsSection {
                     }
             );
 
-            // Native Settings Row composable: Lbj8;->h(qtb, onClick, trailing, composer, changed, default)
-            Method rowMethod = bj8Class.getMethod(
+            // Native Settings Row composable: Lzg9;->h(igc, onClick, trailing, composer, changed, default)
+            Method rowMethod = rowClass.getMethod(
                     "h",
-                    qtbClass,
+                    stringModelBaseClass,
                     function0Class,
                     function2Class,
                     composerClass,
@@ -81,7 +81,7 @@ public final class AdBlockSettingsSection {
                         }
                         if ("invoke".equals(method.getName()) && args != null && args.length >= 2) {
                             try {
-                                rowMethod.invoke(null, rowTitleQtb, clickProxy, null, args[0], 6, 4);
+                                rowMethod.invoke(null, rowTitle, clickProxy, null, args[0], 6, 4);
                             } catch (Throwable t) {
                                 Log.e(TAG, "Failed to invoke row composable", t);
                             }
@@ -90,16 +90,16 @@ public final class AdBlockSettingsSection {
                     }
             );
 
-            // Wrap in ComposableLambda sf3: ptq.k0(-0x3a102, rowProxy, composer)
-            Method k0Method = ptqClass.getMethod("k0", int.class, functionClass, composerClass);
-            Object rowSf3 = k0Method.invoke(null, -0x3a102, rowProxy, composer);
+            // Wrap in ComposableLambda dm3: mqp.P(-0x3a102, rowProxy, composer)
+            Method lambdaMethod = lambdaFactoryClass.getMethod("P", int.class, functionClass, composerClass);
+            Object rowSf3 = lambdaMethod.invoke(null, -0x3a102, rowProxy, composer);
 
             Object rowArray = Array.newInstance(function2Class, 1);
             Array.set(rowArray, 0, rowSf3);
 
-            // Native Section & Card Container: Lmq8;->g(Lqtb;[Lkotlin/jvm/functions/Function2;Lpn3;I)V
-            Method gMethod = mq8Class.getMethod("g", qtbClass, rowArray.getClass(), composerClass, int.class);
-            gMethod.invoke(null, headerTitleQtb, rowArray, composer, 6);
+            // Native Section & Card Container: Loo9;->d(Ligc;[Lkotlin/jvm/functions/Function2;Lbu3;I)V
+            Method dMethod = sectionClass.getMethod("d", stringModelBaseClass, rowArray.getClass(), composerClass, int.class);
+            dMethod.invoke(null, headerTitle, rowArray, composer, 6);
         } catch (Throwable t) {
             Log.w(TAG, "Failed to render section via Compose reflection", t);
         }

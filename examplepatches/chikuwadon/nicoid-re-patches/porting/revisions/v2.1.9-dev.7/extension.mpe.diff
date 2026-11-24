@@ -1,0 +1,29 @@
+--- a/e/e/a/ModernShorts.smali
++++ b/e/e/a/ModernShorts.smali
+@@ -42,7 +42,7 @@
+ 
+ .field private static final MODE:Ljava/lang/String; = "nicoid_re_shorts"
+ 
+-.field private static final PATCH_VERSION:Ljava/lang/String; = "v2.1.8 @chikuwadon"
++.field private static final PATCH_VERSION:Ljava/lang/String; = "v2.1.9-dev.7 @chikuwadon"
+ 
+ .field private static final PLAYER:Ljava/lang/String; = "com.sauzask.nicoid.NicoidVideoActivity"
+ 
+@@ -4908,7 +4908,7 @@
+ 
+     aput p3, p1, p3
+ 
+-    invoke-static {p2}, Le/e/a/BikeRun;->open(Landroid/app/Activity;)V
++    invoke-static {p2}, Le/e/a/GameLauncher219;->unlock(Landroid/preference/PreferenceActivity;)V
+ 
+     :cond_1
+     return v0
+@@ -6826,7 +6826,7 @@
+ 
+     .line 252
+     :cond_2
+-    const-string v1, "v2.1.8 @chikuwadon"
++    const-string v1, "v2.1.9-dev.7 @chikuwadon"
+ 
+     invoke-static {p0, v1}, Le/e/a/PatchInfo;->ensure(Landroid/preference/PreferenceActivity;Ljava/lang/String;)Landroid/preference/Preference;
+ 

@@ -1,3 +1,9 @@
+## [1.4.0](https://github.com/neoKushan/smortthings/compare/v1.3.1...v1.4.0) (2026-11-23)
+
+### ✨ New Features
+
+* support SmartThings 1.8.54.23 and allow testing any build ([34261e6](https://github.com/neoKushan/smortthings/commit/34261e682fbd43d343a5cb5ffc222770720160e0))
+
 ## [1.3.1](https://github.com/neoKushan/smortthings/compare/v1.3.0...v1.3.1) (2026-11-22)
 
 ### 🐛 Bug Fixes

@@ -11,14 +11,16 @@ name: Release
 # Nothing new on dev: no pre-release. An urgent fix can be released right away by running this
 # workflow by hand on main (or on dev for a pre-release).
 #
-# Before releasing, the bundle has to pass the emulator tests (emulator.yml for Quora: every patch
-# applies and the app starts on Android 15, 16 and 17; emulator-google-health.yml for Google Health:
-# the same on Android 12L to 17, also for the clone; emulator-booking.yml for Booking.com: the
-# same on Android 12L to 17) and the feed test (feed-test.yml: the page patches work
-# on the signed-in feed and on an answer). A skipped feed test counts as not passed. When either
+# Before releasing, every app in .github/apps has to have passed its emulator test with its current
+# code (emulator-app.yml: every patch applies and the app starts on the Android versions in the app's
+# settings). emulator-tests.yml usually did that right after the merge into dev; the release tests
+# only the apps that didn't (see .github/scripts/tested.py). It also needs the feed test
+# (feed-test.yml: the page patches work on the signed-in feed and on an answer), unless it passed for
+# the current Quora code in the last few days (it runs on dev when Quora's patches change). A skipped feed test counts as not passed. When either
 # doesn't pass, nothing is released and the issue "Weekly release stopped" says why; the next
 # release that goes through closes it. When the feed test can't run (for example while its saved
 # session is being renewed), an urgent fix can still go out by hand with "Skip the feed test".
+# When only emulator tests failed, release-retry.yml runs the failed jobs once more by itself.
 on:
   schedule:
     # Keep these two strings in sync with the job "Start this week's release" below.
@@ -75,14 +77,14 @@ jobs:
           if ! git merge --ff-only "$tag"; then
             # main has commits dev doesn't (an urgent fix released by hand this week). Both
             # releases rewrote the files semantic-release generates, so conflicts there are
-            # expected: keep main's (the stable release regenerates them; the READMEs in docs/ take
-            # dev's text, as their generated parts are regenerated too). A conflict anywhere else
+            # expected: keep main's (the stable release regenerates them; the READMEs in docs/ and the
+            # issue forms take dev's text, as their generated parts are regenerated too). A conflict anywhere else
             # stops here.
             if ! git merge --no-ff "$tag" -m "chore: Merge $tag into main for the stable release"; then
               for f in $(git diff --name-only --diff-filter=U); do
                 case "$f" in
                   CHANGELOG.md|gradle.properties|patches-bundle.json|patches-list.json) git checkout --ours -- "$f" ;;
-                  docs/*/README.md) git checkout --theirs -- "$f" ;;
+                  docs/*/README.md|.github/ISSUE_TEMPLATE/*.yml) git checkout --theirs -- "$f" ;;
                   *) echo "::error::$tag conflicts with main in $f: merge it into main by hand, then run this workflow on main."; exit 1 ;;
                 esac
                 git add -- "$f"
@@ -111,38 +113,89 @@ jobs:
             gh issue create --title "$title" --label bug --body "$body"
           fi
 
+  # The apps to test: those in .github/apps without a passed emulator test for their current code.
+  # emulator-tests.yml usually tested them right after they were merged into dev, so this is often
+  # none (see .github/scripts/tested.py).
+  apps:
+    name: Find the apps to test
+    if: github.event_name != 'schedule'
+    runs-on: ubuntu-latest
+    outputs:
+      apps: ${{ steps.plan.outputs.apps }}
+      feed: ${{ steps.plan.outputs.feed }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Find the apps to test
+        id: plan
+        run: |
+          apps=$(python3 .github/scripts/tested.py plan)
+          echo "To test: $apps"
+          echo "apps=$apps" >> "$GITHUB_OUTPUT"
+          # "passed" when the feed test passed for this code in the last few days.
+          echo "feed=$(python3 .github/scripts/tested.py feed-plan)" >> "$GITHUB_OUTPUT"
+
+  # The patches, built once for every app's emulator test (one build instead of one per emulator
+  # keeps GitHub Packages, where the Gradle plugin comes from, from being asked dozens of times at once).
+  bundle:
+    name: Build the patches
+    needs: apps
+    if: github.event_name != 'schedule' && needs.apps.outputs.apps != '[]'
+    permissions:
+      contents: read
+      packages: read
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Setup Java
+        uses: actions/setup-java@v6
+        with:
+          distribution: 'temurin'
+          java-version: '21'
+          cache: 'gradle'
+
+      - name: Build
+        env:
+          GITHUB_ACTOR: ${{ github.actor }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GRADLE_ATTEMPTS: 5
+        run: bash .github/scripts/gradle-retry.sh :patches:buildAndroid --no-daemon
+
+      - name: Keep the bundle for the emulators
+        uses: actions/upload-artifact@v4
+        with:
+          name: patches-bundle
+          path: patches/build/libs/*.mpp
+          if-no-files-found: error
+          retention-days: 1
+
   emulator:
-    name: Emulator test
-    if: github.event_name != 'schedule'
+    name: Emulator test (${{ matrix.app }})
+    needs: [apps, bundle]
+    if: github.event_name != 'schedule' && needs.apps.outputs.apps != '[]'
+    strategy:
+      fail-fast: false
+      matrix:
+        app: ${{ fromJSON(needs.apps.outputs.apps) }}
     permissions:
-      contents: read
+      contents: write
       packages: read
-    uses: ./.github/workflows/emulator.yml
+    uses: ./.github/workflows/emulator-app.yml
     secrets: inherit
-
-  emulator-google-health:
-    name: Google Health emulator test
-    if: github.event_name != 'schedule'
-    permissions:
-      contents: read
-      packages: read
-    uses: ./.github/workflows/emulator-google-health.yml
-    secrets: inherit
-
-  emulator-booking:
-    name: Booking.com emulator test
-    if: github.event_name != 'schedule'
-    permissions:
-      contents: read
-      packages: read
-    uses: ./.github/workflows/emulator-booking.yml
-    secrets: inherit
+    with:
+      app: ${{ matrix.app }}
+      bundle: patches-bundle
+      record: true
 
   feed:
     name: Feed test
-    if: ${{ github.event_name != 'schedule' && !inputs.skip-feed-test }}
+    needs: apps
+    if: ${{ github.event_name != 'schedule' && !inputs.skip-feed-test && needs.apps.outputs.feed != 'passed' }}
     permissions:
-      contents: read
+      contents: write
       packages: read
       issues: write
     uses: ./.github/workflows/feed-test.yml
@@ -150,13 +203,12 @@ jobs:
 
   release:
     name: Release
-    needs: [emulator, emulator-google-health, emulator-booking, feed]
+    needs: [apps, emulator, feed]
     if: >-
       !cancelled()
-      && needs.emulator.result == 'success'
-      && needs.emulator-google-health.result == 'success'
-      && needs.emulator-booking.result == 'success'
-      && (needs.feed.outputs.result == 'passed' || (github.event_name == 'workflow_dispatch' && inputs.skip-feed-test))
+      && needs.apps.result == 'success'
+      && (needs.emulator.result == 'success' || (needs.emulator.result == 'skipped' && needs.apps.outputs.apps == '[]'))
+      && (needs.feed.outputs.result == 'passed' || needs.apps.outputs.feed == 'passed' || (github.event_name == 'workflow_dispatch' && inputs.skip-feed-test))
     permissions:
       contents: write
       packages: write
@@ -170,10 +222,12 @@ jobs:
           fetch-depth: 0
 
       - name: Setup Java
+        id: java
         uses: actions/setup-java@v6
         with:
           distribution: 'temurin'
           java-version: '21'
+          cache: 'gradle'
 
       - name: Setup Node.js
         uses: actions/setup-node@v7
@@ -196,8 +250,10 @@ jobs:
 
       # Downloads the Gradle plugins and dependencies with retries, so the build semantic-release
       # runs below finds them in the cache instead of failing on a network hiccup. "clean" removes
-      # this build's .mpp again, so only the released one is uploaded.
+      # this build's .mpp again, so only the released one is uploaded. Not needed when setup-java
+      # restored the Gradle cache.
       - name: Download Gradle dependencies
+        if: steps.java.outputs.cache-hit != 'true'
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: bash .github/scripts/gradle-retry.sh :patches:buildAndroid clean --no-daemon
@@ -241,7 +297,7 @@ jobs:
   # Says on GitHub when a release didn't go out, so a red run on a release morning isn't missed.
   report:
     name: Open or close the issue
-    needs: [emulator, emulator-google-health, emulator-booking, feed, release]
+    needs: [apps, emulator, feed, release]
     if: ${{ !cancelled() && github.event_name != 'schedule' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/dev') }}
     permissions:
       issues: write
@@ -251,9 +307,8 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
           GH_REPO: ${{ github.repository }}
+          APPS: ${{ needs.apps.result }}
           EMULATOR: ${{ needs.emulator.result }}
-          EMULATOR_GOOGLE_HEALTH: ${{ needs.emulator-google-health.result }}
-          EMULATOR_BOOKING: ${{ needs.emulator-booking.result }}
           FEED: ${{ needs.feed.outputs.result || needs.feed.result }}
           RELEASE: ${{ needs.release.result }}
           RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
@@ -266,12 +321,10 @@ jobs:
             fi
             exit 0
           fi
-          if [ "$EMULATOR" != "success" ]; then
-            why="The Quora emulator test didn't pass ($EMULATOR): a patch doesn't apply, or the patched app doesn't start."
-          elif [ "$EMULATOR_GOOGLE_HEALTH" != "success" ]; then
-            why="The Google Health emulator test didn't pass ($EMULATOR_GOOGLE_HEALTH): a patch doesn't apply, or the patched app or the clone doesn't start."
-          elif [ "$EMULATOR_BOOKING" != "success" ]; then
-            why="The Booking.com emulator test didn't pass ($EMULATOR_BOOKING): a patch doesn't apply, or the patched app doesn't start."
+          if [ "$APPS" != "success" ]; then
+            why="Finding the apps to test failed ($APPS)."
+          elif [ "$EMULATOR" != "success" ] && [ "$EMULATOR" != "skipped" ]; then
+            why="An emulator test didn't pass ($EMULATOR): a patch doesn't apply, or a patched app doesn't start. The run shows which app."
           elif [ "$RELEASE" = "skipped" ]; then
             why="The feed test didn't pass ($FEED). The issue \"Feed test needs attention\" says why."
           else

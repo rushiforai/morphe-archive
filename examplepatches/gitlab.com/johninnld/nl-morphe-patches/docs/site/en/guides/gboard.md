@@ -132,6 +132,18 @@ Apply **AMOLED dark keyboard** in Morphe, then choose **Gboard Settings → Them
 
 ## Writing, capture and editing
 
+### Enable Inline Autofill Suggestions
+
+Apply this patch in Morphe and select the patched Gboard as your keyboard. It enables Gboard's existing Android inline autofill module. On Android 11 or later, open **Bitwarden → Settings → Autofill**, enable the autofill service, select Bitwarden as Android's provider and choose **Inline** under **Display autofill suggestions** (older clients call this **Use inline autofill**). Keep Gboard's **Text correction → Show suggestion strip** on. A Vaultwarden account uses this same Bitwarden-client setup; Gboard does not connect directly to your vault server.
+
+Open a supported login form for a saved test login. A Bitwarden suggestion or unlock action should appear above the keys; select it and check that the expected fields fill. Android, the target app and Bitwarden still decide whether a field is eligible. The patch does not bypass vault unlocking or domain matching. If no chip appears, compare Bitwarden's popup mode and check its [Android autofill setup](https://bitwarden.com/help/auto-fill-android/).
+
+### Smart Compose
+
+This is the upstream **Inline Suggestions** patch, published here as **Smart Compose** to distinguish it from password autofill. Apply it in Morphe, then open **Gboard → Text correction → Smart Compose** and enable the stock switch. Start an English sentence in a supported app and look for a suggested continuation; swipe right to accept it. Switch Smart Compose off to compare.
+
+The patch opens the client-side rollout gate and exposes the setting; it does not supply a language model or remove the remaining locale, app and model checks. Google's [Smart Compose guidance](https://support.google.com/gboard/answer/7068415?co=GENIE.Platform%3DAndroid&hl=en) describes English/US availability. Dutch completions are not guaranteed. Smart Compose and inline autofill can be selected independently.
+
 ### AI Writing Tools
 
 Open **Patches → AI & Voice → AI Writing Tools** and turn on **Enable AI Writing Tools** if needed. In a normal editable field, select a sentence, open the Writing tools chip and try a rewrite or tone change. Review Google’s result before replacing the selection. Availability depends on the language, editor and Google backend. **Proofread / Auto Fix** is outside this 18.8 port. A visible Proofread entry does not establish that it works. Use sample text when testing a service that may process it remotely.

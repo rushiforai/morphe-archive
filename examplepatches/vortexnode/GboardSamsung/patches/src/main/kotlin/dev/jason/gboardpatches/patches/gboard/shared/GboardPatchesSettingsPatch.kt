@@ -2,6 +2,7 @@ package dev.jason.gboardpatches.patches.gboard.shared
 
 import app.morphe.patcher.patch.ResourcePatchContext
 import app.morphe.patcher.patch.resourcePatch
+import app.morphe.patcher.resource.PublicXmlManager
 import dev.jason.gboardpatches.patches.shared.Constants.COMPATIBILITY_GBOARD
 import org.w3c.dom.Document
 import org.w3c.dom.Element
@@ -24,21 +25,77 @@ internal val gboardPatchesSettingsPatch = resourcePatch(
 
 context(context: ResourcePatchContext)
 private fun applyPatchesSettingsPatch() = with(context) {
+    ensureLocalizedPatchesEntryTitleResources()
     document("AndroidManifest.xml").use { manifestDocument ->
         document(GBOARD_SETTINGS_XML_PATHS[0]).use { settingsDocument ->
             document(GBOARD_SETTINGS_XML_PATHS[1]).use { legacySettingsDocument ->
                 applyGboardPatchesSettings(
                     manifestDocument = manifestDocument,
                     settingsDocuments = listOf(settingsDocument, legacySettingsDocument),
+                    entryTitle = PATCHES_SETTINGS_ENTRY_TITLE_REF,
                 )
             }
         }
     }
 }
 
+context(context: ResourcePatchContext)
+private fun ensureLocalizedPatchesEntryTitleResources() = with(context) {
+    runCatching { decode(VALUES_STRINGS_PATH) }
+    runCatching { decode(VALUES_RU_STRINGS_PATH) }
+
+    document(VALUES_STRINGS_PATH).use { defaultStrings ->
+        upsertStringResource(
+            document = defaultStrings,
+            name = PATCHES_SETTINGS_ENTRY_TITLE_RESOURCE,
+            value = PATCHES_SETTINGS_ENTRY_TITLE,
+        )
+    }
+
+    val ruStringsFile = this[VALUES_RU_STRINGS_PATH, false]
+    if (!ruStringsFile.isFile) {
+        val parent = ruStringsFile.parentFile
+        check(parent != null && (parent.isDirectory || parent.mkdirs())) {
+            "Could not create resource directory for ${ruStringsFile.path}"
+        }
+        ruStringsFile.writeText(EMPTY_RESOURCES_XML, Charsets.UTF_8)
+    }
+    document(VALUES_RU_STRINGS_PATH).use { ruStrings ->
+        upsertStringResource(
+            document = ruStrings,
+            name = PATCHES_SETTINGS_ENTRY_TITLE_RESOURCE,
+            value = PATCHES_SETTINGS_ENTRY_TITLE_RU,
+        )
+    }
+
+    PublicXmlManager(this["res/values/public.xml"]).use { publicIds ->
+        publicIds.createPublicId("string", PATCHES_SETTINGS_ENTRY_TITLE_RESOURCE)
+    }
+}
+
+internal fun upsertStringResource(
+    document: Document,
+    name: String,
+    value: String,
+) {
+    val resources = document.documentElement
+    check(resources != null && resources.tagName == "resources") {
+        "Expected <resources> root element in strings.xml"
+    }
+    val existing = resources.childElements("string").firstOrNull { element ->
+        element.getAttribute("name") == name
+    }
+    val stringElement = existing ?: document.createElement("string").also { created ->
+        created.setAttribute("name", name)
+        resources.appendChild(created)
+    }
+    stringElement.textContent = value
+}
+
 internal fun applyGboardPatchesSettings(
     manifestDocument: Document,
     settingsDocuments: List<Document>,
+    entryTitle: String = PATCHES_SETTINGS_ENTRY_TITLE,
 ) {
     require(settingsDocuments.size == GBOARD_SETTINGS_XML_PATHS.size) {
         "Expected both Gboard settings documents"
@@ -109,7 +166,7 @@ internal fun applyGboardPatchesSettings(
             }
 
         patchesEntry.setAndroidAttribute("persistent", "false")
-        patchesEntry.setAndroidAttribute("title", PATCHES_SETTINGS_ENTRY_TITLE)
+        patchesEntry.setAndroidAttribute("title", entryTitle)
         patchesEntry.setAndroidAttribute("selectable", "true")
         patchesEntry.setAndroidAttribute("key", PATCHES_SETTINGS_ENTRY_KEY)
         patchesEntry.removeAndroidAttribute("summary")
@@ -161,6 +218,13 @@ internal const val GBOARD_PATCHES_SETTINGS_PROVIDER_CLASS =
 internal const val GBOARD_PATCHES_SETTINGS_PROVIDER_AUTHORITY_SUFFIX = ".gboard_patches"
 private const val PATCHES_SETTINGS_ENTRY_KEY = "gboard_patches_entry"
 private const val PATCHES_SETTINGS_ENTRY_TITLE = "Patches"
+private const val PATCHES_SETTINGS_ENTRY_TITLE_RU = "Патчи"
+internal const val PATCHES_SETTINGS_ENTRY_TITLE_RESOURCE = "gboard_patches_settings_entry_title"
+internal const val PATCHES_SETTINGS_ENTRY_TITLE_REF = "@string/$PATCHES_SETTINGS_ENTRY_TITLE_RESOURCE"
+private const val VALUES_STRINGS_PATH = "res/values/strings.xml"
+private const val VALUES_RU_STRINGS_PATH = "res/values-ru/strings.xml"
+private const val EMPTY_RESOURCES_XML =
+    "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n<resources/>\n"
 private const val HEADER_PREFERENCE_TAG =
     "com.google.android.libraries.inputmethod.settings.widget.HeaderPreference"
 private const val RATE_US_PREFERENCE_TAG =

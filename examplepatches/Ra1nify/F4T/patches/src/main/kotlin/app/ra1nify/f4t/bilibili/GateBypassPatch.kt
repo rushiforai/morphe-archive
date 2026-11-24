@@ -23,8 +23,6 @@ val gateBypassPatch = bytecodePatch(
 ) {
     compatibleWith(BILIBILI)
 
-    // The anti-resale notice is not optional, so every host patch pulls it in. A patch is executed
-    // once per object, so selecting several host patches still installs a single notice call.
     dependsOn(bilibiliAntiResalePatch)
 
     execute {
@@ -42,8 +40,7 @@ val gateBypassPatch = bytecodePatch(
 
         if (flags.isEmpty()) {
             throw PatchException(
-                "${gateClass.type} declares no static zero-argument boolean gate flags; " +
-                    "the gate moved in this host build"
+                "${gateClass.type} declares no static zero-argument boolean gate flag"
             )
         }
 
@@ -51,7 +48,7 @@ val gateBypassPatch = bytecodePatch(
             flag.forceReturnTrue()
             println("[bi1i] gate flag forced true: ${gateClass.type}->${flag.name}")
         }
-        println("[bi1i] level/VIP gates unlocked (${flags.size} flag(s))")
+        println("[bi1i] ${flags.size} gate flag(s) unlocked")
     }
 }
 

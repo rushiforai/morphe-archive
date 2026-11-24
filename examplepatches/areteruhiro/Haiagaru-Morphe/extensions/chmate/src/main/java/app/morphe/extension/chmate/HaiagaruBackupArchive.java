@@ -294,6 +294,9 @@ final class HaiagaruBackupArchive {
                 if (entry.getTime() > 0) target.setLastModified(entry.getTime());
             }
         }
+        if (backup.zipped && (selected & HaiagaruSyncSnapshot.KAKIKOMI) != 0) {
+            ResponseNotesBackup.restore(context, backup.snapshot.optJSONArray(ResponseNotesBackup.KEY), merge);
+        }
         HaiagaruBackupSecrets.restore(context, backup.snapshot, selected, merge);
         if ((selected & HaiagaruSyncSnapshot.BOOKMARKS) != 0)
             RestoredThreadCache.reconcile(context, backup.snapshot.optJSONArray("bookmarks"));

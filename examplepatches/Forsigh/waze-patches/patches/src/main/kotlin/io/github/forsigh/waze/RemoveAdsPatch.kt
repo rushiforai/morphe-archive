@@ -54,6 +54,13 @@ val removeAdsPatch = bytecodePatch(
             )
         // The promotional splash screens Waze's server can switch on at start.
         recordString("ads", "CONFIG_VALUE_APP_LAUNCH_DYNAMIC_SPLASH_SCREEN_SHOW_FREQUENCY" to "OFF")
+        // Search results carry their own ad gates, read by com.waze.search.v2.* ; without these the
+        // first search page still shows sponsored results.
+        recordBoolean(
+            "ads", false,
+            "CONFIG_VALUE_SEARCH_ADS_FEATURE_ENABLED",
+            "CONFIG_VALUE_SEARCH_ADS_IN_CAR_FEATURE_ENABLED",
+        )
         println("removeAdsPatch: map, in-car and takeover ads forced off")
     }
 }

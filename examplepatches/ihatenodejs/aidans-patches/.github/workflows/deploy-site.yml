@@ -6,6 +6,8 @@ on:
       - main
     paths:
       - 'site/**'
+      - 'tools/asset-prep/**'
+      - 'scripts/asset-prep.ts'
       - '.github/workflows/deploy-site.yml'
   workflow_call:
   workflow_dispatch:
@@ -29,6 +31,14 @@ jobs:
         uses: oven-sh/setup-bun@v2
         with:
           bun-version: latest
+
+      - name: Setup Rust
+        uses: dtolnay/rust-toolchain@1.97.1
+
+      - name: Rust cache
+        uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: tools/asset-prep -> tools/asset-prep/target
 
       - name: Install Site Dependencies
         working-directory: site

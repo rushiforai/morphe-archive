@@ -37,8 +37,6 @@ val proEntitlementPatch = bytecodePatch(
 ) {
     compatibleWith(VIRTUAL_TABLET)
 
-    // The anti-resale notice is not optional, so every host patch pulls it in. A patch is executed
-    // once per object, so selecting several host patches still installs a single notice call.
     dependsOn(virtualTabletAntiResalePatch)
 
     execute {
@@ -47,8 +45,7 @@ val proEntitlementPatch = bytecodePatch(
             mutableClassDefBy { it.usesString(ANCHOR) }
         } catch (t: Throwable) {
             throw PatchException(
-                "no unique class references \"$ANCHOR\"; this host build is not supported " +
-                    "(${t.message})"
+                "no unique class references \"$ANCHOR\" (${t.message})"
             )
         }
 

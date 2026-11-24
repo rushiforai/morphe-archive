@@ -368,6 +368,16 @@ public class Settings extends BaseSettings {
             new BooleanSetting("hushgram_keep_stories_playing_on_zoom", FALSE);
 
     /**
+     * A post you saved shows the ring around its author's picture while they have a story up, and a
+     * tap on it opens the story, the way Home does
+     * ({@link app.hushgram.extension.instagram.stories.SavedStoryRings}). It only uses the stories
+     * Instagram already holds. Read as each post's top row is drawn, so it needs no restart. Off to
+     * start (#790).
+     */
+    public static final BooleanSetting SAVED_STORY_RINGS =
+            new BooleanSetting("hushgram_saved_story_rings", FALSE);
+
+    /**
      * Accounts on {@link #STORY_PRIORITY_ACCOUNTS} that have a story not watched yet go first in the
      * stories row at the top of Home, in the list's order
      * ({@link app.hushgram.extension.instagram.stories.StoryPriority}). Off to start (#451).
@@ -542,6 +552,15 @@ public class Settings extends BaseSettings {
             new BooleanSetting("hushgram_feed_taps_stay_in_feed", FALSE);
 
     /**
+     * With {@link #TAP_FEED_VIDEO_TO_PAUSE} on, only a tap in the middle of a feed video, where Instagram draws its play
+     * button, pauses or plays it, and a tap anywhere else goes to Instagram, which opens Reels unless
+     * {@link #FEED_TAPS_STAY_IN_FEED} keeps it in the feed (#706,
+     * {@link app.hushgram.extension.instagram.feed.FeedTapPause}). Off to start.
+     */
+    public static final BooleanSetting FEED_TAP_MIDDLE_ONLY =
+            new BooleanSetting("hushgram_feed_tap_middle_only", FALSE, parent(TAP_FEED_VIDEO_TO_PAUSE));
+
+    /**
      * A press held on a video in a feed plays it at 2x until the finger lifts, with Instagram's own
      * speed-up ({@link app.hushgram.extension.instagram.feed.FeedHoldSpeed}). Off to start.
      */
@@ -573,6 +592,15 @@ public class Settings extends BaseSettings {
      */
     public static final BooleanSetting HOLD_FEED_VIDEO_KEEP_NAME =
             new BooleanSetting("hushgram_hold_feed_video_keep_name", FALSE, parent(HOLD_FEED_VIDEO_FAST));
+
+    /**
+     * With {@link #HOLD_FEED_VIDEO_FAST} on, a hold on the middle third of a feed video pauses it until the finger
+     * lifts, and only a hold on its left or right third plays it at 2x (#639,
+     * {@link app.hushgram.extension.instagram.feed.FeedHoldSpeed#middlePauses}). Read on every press, so it needs no
+     * restart. Off to start.
+     */
+    public static final BooleanSetting HOLD_FEED_VIDEO_MIDDLE_PAUSES =
+            new BooleanSetting("hushgram_hold_feed_video_middle_pauses", FALSE, parent(HOLD_FEED_VIDEO_FAST));
 
     /**
      * A seek bar along the bottom of the video playing in a feed, which moves the video to where a
@@ -618,6 +646,13 @@ public class Settings extends BaseSettings {
      */
     public static final BooleanSetting FEED_SEEK_TIME_LEFT =
             new BooleanSetting("hushgram_feed_seek_bar_time_left", FALSE, parent(FEED_SEEK_TIME));
+
+    /**
+     * The time over the feed seek bar sits in the bottom start corner, under Instagram's tags button,
+     * instead of over the bar's middle (#711). Read as the bar updates. Off to start.
+     */
+    public static final BooleanSetting FEED_SEEK_TIME_UNDER_TAGS =
+            new BooleanSetting("hushgram_feed_seek_bar_time_under_tags", FALSE, parent(FEED_SEEK_TIME));
 
     /**
      * A double tap on the left or right third of the video playing in a feed moves it back or ahead
@@ -1019,6 +1054,22 @@ public class Settings extends BaseSettings {
      */
     public static final BooleanSetting DOUBLE_TAP_HIDDEN_CHATS =
             new BooleanSetting("hushgram_double_tap_hidden_chats", FALSE);
+
+    /**
+     * Groups of chats you name yourself, kept on the phone
+     * ({@link app.hushgram.extension.instagram.direct.ChatGroups}, discussion #838): a chat's long
+     * press menu files it in one, a chat in a group leaves the main inbox, and a long press on
+     * Messages' button shows one group by itself. Off to start.
+     */
+    public static final BooleanSetting CHAT_GROUPS =
+            new BooleanSetting("hushgram_chat_groups", FALSE);
+
+    /**
+     * The chats in {@link #CHAT_GROUPS}' groups, one line each. It isn't kept while HushGram is
+     * paused, and a backup leaves it out like the hidden chats.
+     */
+    public static final StringSetting GROUPED_CHATS =
+            new StringSetting("hushgram_grouped_chats", "", false, false);
 
     /**
      * What unlocks the messages: the phone's lock, a HushGram PIN
@@ -1968,6 +2019,14 @@ public class Settings extends BaseSettings {
             new StringSetting("hushgram_hidden_share_sheet_buttons", "");
 
     /**
+     * As many people as fit in the popup's box in the row a long press on Share opens, where
+     * Instagram shows four (discussion #811, {@link app.hushgram.extension.instagram.share.QuickSend}).
+     * Off to start.
+     */
+    public static final BooleanSetting MORE_QUICK_SEND_PEOPLE =
+            new BooleanSetting("hushgram_more_quick_send_people", FALSE);
+
+    /**
      * The Repost button under posts and beside reels, with its count: every post and reel reads as
      * one that can't be reposted ({@link app.hushgram.extension.instagram.share.RepostButton}).
      * Nothing Instagram stores is written, so off or paused, Repost is back on the next post drawn.
@@ -2463,6 +2522,14 @@ public class Settings extends BaseSettings {
             new BooleanSetting("hushgram_accent_icons", FALSE, true, parent(ACCENT_COLOR));
 
     /**
+     * Under {@link #ACCENT_COLOR}: the buttons beside a reel and their counts, white over the video,
+     * take the picked color too (#187, {@link app.hushgram.extension.instagram.misc.AccentTheme#reelButtons(int)}).
+     * A change shows after a restart. Off to start.
+     */
+    public static final BooleanSetting ACCENT_REELS =
+            new BooleanSetting("hushgram_accent_reels", FALSE, true, parent(ACCENT_COLOR));
+
+    /**
      * Under {@link #ACCENT_COLOR}: the gradient on story rings runs through the picked color instead
      * of Instagram's (#187, {@link app.hushgram.extension.instagram.misc.AccentTheme}). A few other
      * things read that gradient and change with it. A change shows after a restart. Off to start.
@@ -2654,6 +2721,15 @@ public class Settings extends BaseSettings {
     public static final EnumSetting<app.hushgram.extension.instagram.profile.FollowLabelPlace> FOLLOW_LABEL_PLACE =
             new EnumSetting<>("hushgram_follow_label_place",
                     app.hushgram.extension.instagram.profile.FollowLabelPlace.UNDER_COUNTS, parent(FRIENDSHIP_STATUS_CHIP));
+
+    /**
+     * Show if a profile follows you as an icon in the profile's top bar, just before its menu (#842):
+     * a green check when the account follows you and a red cross when it doesn't, instead of the label
+     * by the name or the chip. Off to start, and greyed while {@link #SHOW_FRIENDSHIP_STATUS} is off.
+     * Read each time Instagram binds a profile's name.
+     */
+    public static final BooleanSetting FOLLOW_ICON_AT_TOP =
+            new BooleanSetting("hushgram_follow_icon_at_top", FALSE, parent(SHOW_FRIENDSHIP_STATUS));
 
     /**
      * Doesn't follow you on the rows of your own Following list
@@ -3127,6 +3203,15 @@ public class Settings extends BaseSettings {
             new BooleanSetting("hushgram_hide_low_view_reels", FALSE);
 
     /**
+     * Reels already watched, left out of the Reels tab when Instagram shows them again
+     * ({@link app.hushgram.extension.instagram.reels.SeenReels}). Reels are only remembered while
+     * it's on. Read as each reel is reached and each page of reels arrives, so it needs no restart.
+     * Off to start (#830).
+     */
+    public static final BooleanSetting HIDE_SEEN_REELS =
+            new BooleanSetting("hushgram_hide_seen_reels", FALSE);
+
+    /**
      * Under {@link #HIDE_LOW_VIEW_REELS}: the view count a reel needs to stay, typed as a number,
      * and 0 to leave views alone. Starts at 1,000. A value control, not a switch.
      */
@@ -3336,6 +3421,15 @@ public class Settings extends BaseSettings {
      */
     public static final BooleanSetting HIDE_COMMENT_LIKES =
             new BooleanSetting("hushgram_hide_comment_likes", FALSE);
+
+    /**
+     * A comment in a post's or reel's comments leaves the AI label, "AI-generated profile" or "AI
+     * creator", out of the line with its name, and the dot before it (#787,
+     * {@link app.hushgram.extension.instagram.feed.CommentAiLabel}). Read as each comment row is
+     * built, so comments already on screen change the next time they're built. Off to start.
+     */
+    public static final BooleanSetting HIDE_COMMENT_AI_LABELS =
+            new BooleanSetting("hushgram_hide_comment_ai_labels", FALSE);
 
     /**
      * A post's or reel's comments leave out the comment box at the bottom (#762,
@@ -4648,6 +4742,13 @@ public class Settings extends BaseSettings {
      * the tab stay Instagram's own.
      */
     public static final BooleanSetting HIDE_SOUND_REELS = new BooleanSetting("hushgram_hide_sound_reels", FALSE);
+
+    /**
+     * Under {@link #HIDE_SOUND_REELS}: Home's posts using a hidden sound go too, through the same
+     * per-item filter as the post type switches (#822). Off to start.
+     */
+    public static final BooleanSetting HIDE_SOUND_HOME =
+            new BooleanSetting("hushgram_hide_sound_home", FALSE, parent(HIDE_SOUND_REELS));
 
     /**
      * A Lens icon in the column beside a reel that sends what the reel shows to Google Lens, so its

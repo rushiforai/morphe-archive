@@ -2,6 +2,7 @@ package io.github.forsigh.waze
 
 import app.morphe.patcher.Fingerprint
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
+import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
 import app.morphe.patcher.extensions.InstructionExtensions.removeInstructions
 import app.morphe.patcher.patch.PatchException
 import app.morphe.patcher.patch.bytecodePatch
@@ -118,14 +119,19 @@ val noRecentDestinationsPatch = bytecodePatch(
             )
         }
 
+        // The register the switch case returns is NOT always v1: on 5.28.4.900 the removed
+        // move-result-object writes v3, so hard-coding v1 built the empty array where nothing looks
+        // and the callers got null. Take the destination register from the instruction we remove.
+        val dest = (next as? OneRegisterInstruction)?.registerA
+            ?: throw PatchException("noRecentDestinations: the recents read has no destination register")
         method.removeInstructions(site, 2)
         method.addInstructions(
             site,
             """
-                const/4 v1, 0x0
-                new-array v1, v1, [B
+                const/4 v$dest, 0x0
+                new-array v$dest, v$dest, [B
             """.trimIndent(),
         )
-        println("noRecentDestinations: recent-history read returns an empty list at instruction $site")
+        println("noRecentDestinations: recent-history read returns an empty byte[] in v$dest at instruction $site")
     }
 }

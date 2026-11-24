@@ -43,7 +43,7 @@ class I18nResourcesTest(unittest.TestCase):
         locales = parse_notification_strings()
         self.assertEqual(sorted(locales.keys()), sorted(EXPECTED_QUALIFIERS))
         base = locales["values"]
-        self.assertEqual(len(base), 39)
+        self.assertEqual(len(base), 77)
         for qualifier, entries in locales.items():
             self.assertEqual(set(entries.keys()), set(base.keys()), f"Key mismatch in {qualifier}")
             for key, value in entries.items():

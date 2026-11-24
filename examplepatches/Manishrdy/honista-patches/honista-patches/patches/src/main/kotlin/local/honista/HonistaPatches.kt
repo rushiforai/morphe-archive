@@ -30,7 +30,8 @@ private val target = Compatibility(
     appIconColor = 0x862DDE,
     targets = listOf(AppTarget(version = "426.0.0.37.70"))
 )
-// Fingerprint every original class we modify, before any extension is merged.
+// DEX serialization is not a portable fingerprint format across dexlib/runtime
+// versions. Serialize both the trusted reference and input with the same writer.
 internal fun classDigest(def: ClassDef): String {
     val store = MemoryDataStore()
     val pool = DexPool(Opcodes.getDefault())
@@ -38,22 +39,26 @@ internal fun classDigest(def: ClassDef): String {
     pool.writeTo(store)
     return store.data.copyOf(store.size).inputStream().sha256()
 }
+internal fun validateOriginalClasses(findClass: (String) -> ClassDef?) {
+    if (findClass("LX/LocalSponsoredFilter;") != null || findClass("LX/LocalModuleOverride;") != null)
+        throw PatchException("Unsupported input: already patched. Select the original APK.")
+    val baseline = Payload.open("baseline.dex").use {
+        DexBackedDexFile.fromInputStream(Opcodes.getDefault(), it.buffered())
+    }
+    baseline.classes.forEach { reference ->
+        val actual = findClass(reference.type)
+            ?: throw PatchException("Unsupported input: required class ${reference.type} is missing. Select the original Honista v13 ARM64 APK.")
+        if (classDigest(actual) != classDigest(reference))
+            throw PatchException("Unsupported input: ${reference.type} differs from the tested original APK. Select the original Honista v13 ARM64 APK; modified APKs are not supported.")
+    }
+}
 private val validatedInput = bytecodePatch {
     execute {
         if (packageMetadata.packageName != "cc.honista.app" ||
             packageMetadata.versionName != "426.0.0.37.70" ||
             packageMetadata.versionCode != "383207254")
             throw PatchException("Unsupported input: select the original Honista v13 ARM64 APK.")
-        if (classDefByOrNull("LX/LocalSponsoredFilter;") != null || classDefByOrNull("LX/LocalModuleOverride;") != null)
-            throw PatchException("Unsupported input: already patched. Select the original APK.")
-        Payload.open("baseline.tsv").bufferedReader().useLines { lines ->
-            lines.filter { it.isNotBlank() }.forEach { line ->
-                val (type, expected) = line.split('\t')
-                val actual = classDefByOrNull(type)
-                if (actual == null || classDigest(actual) != expected)
-                    throw PatchException("Unsupported input: $type differs from the tested original APK.")
-            }
-        }
+        validateOriginalClasses { classDefByOrNull(it) }
     }
 }
 // Raw-resource dependency copies only the patched dynamic module asset.
@@ -81,14 +86,17 @@ val completeHonistaPatch = bytecodePatch(
             DexBackedDexFile.fromInputStream(Opcodes.getDefault(), it.buffered())
         }
         // First check every signature before altering any method.
+        val missing = mutableListOf<String>()
         replacements.classes.forEach { replacement ->
             val original = classDefByOrNull(replacement.type)
-                ?: throw PatchException("Required class missing: ${replacement.type}")
-            replacement.methods.forEach { method ->
+            if (original == null) {
+                missing += "Required class missing: ${replacement.type}"
+            } else replacement.methods.forEach { method ->
                 if (original.methods.none { it.signature() == method.signature() })
-                    throw PatchException("Required method missing: ${replacement.type}->${method.signature()}")
+                    missing += "Required method missing: ${replacement.type}->${method.signature()}"
             }
         }
+        if (missing.isNotEmpty()) throw PatchException(missing.joinToString("\n"))
         replacements.classes.forEach { replacement ->
             val original = mutableClassDefBy(replacement.type)
             replacement.methods.forEach { method ->

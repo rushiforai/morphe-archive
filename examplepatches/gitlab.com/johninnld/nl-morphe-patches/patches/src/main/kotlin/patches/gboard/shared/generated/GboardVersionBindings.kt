@@ -873,7 +873,7 @@ internal object GboardVersionBindings {
     )
     val `manualIncognitoClipboard` = GboardMethodTarget(
         classType = "Lljp;",
-        name = "n",
+        name = "onPrimaryClipChanged",
         parameterTypes = emptyList(),
         returnType = "V",
     )
@@ -891,7 +891,7 @@ internal object GboardVersionBindings {
     )
     val `manualIncognitoPredicate` = GboardMethodTarget(
         classType = "Lihw;",
-        name = "K",
+        name = "I",
         parameterTypes = emptyList(),
         returnType = "Z",
     )

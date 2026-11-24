@@ -33,4 +33,22 @@ internal object AppCompatibilities {
             targets = listOf(AppTarget(version = "2.8.1", versionCode = 4731)),
         ),
     )
+
+    const val MEITU_NAME = "Meitu"
+    const val MEITU_PACKAGE = "com.mt.mtxx.mtxx"
+    const val MEITU_COLOR = 0xF01C48
+    const val MEITU_SIGNER_SHA256 = "7b1a6d25e5e8711a6e79283df10c648b47a420c4e5413c2c51351a8ca508de25"
+
+    fun meitu(): Array<Compatibility> = arrayOf(
+        Compatibility(
+            name = MEITU_NAME,
+            packageName = MEITU_PACKAGE,
+            apkFileType = ApkFileType.APKM,
+            appIconColor = MEITU_COLOR,
+            signatures = setOf(MEITU_SIGNER_SHA256),
+            targets = listOf(
+                AppTarget(version = "12.23.3", versionCode = 122303),
+            ),
+        ),
+    )
 }

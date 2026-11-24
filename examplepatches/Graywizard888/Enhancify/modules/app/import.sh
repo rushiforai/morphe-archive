@@ -68,10 +68,14 @@ selectFile() {
 
 extractMeta() {
     local APP_INFO
+    resolveAapt2 || {
+        notify msg "aapt2 cannot run on this device.\nRun: pkg install aapt2\nthen restart Enhancify."
+        return 1
+    }
     FILE_PATH="$SELECTED_FILE"
     if [[ "${FILE_PATH,,}" == *.apk ]]; then
         notify info "Please Wait !!\nExtracting data from \"$(basename "$FILE_PATH")\""
-        if ! APP_INFO=$(./bin/aapt2 dump badging "$FILE_PATH" 2>/dev/null); then
+        if ! APP_INFO=$("$AAPT2_BIN" dump badging "$FILE_PATH" 2>/dev/null); then
             notify msg "The APK you selected is not valid. Download again and retry."
             return 1
         fi
@@ -106,7 +110,7 @@ extractMeta() {
                 return 1
             fi
             
-            if ! APP_INFO=$(./bin/aapt2 dump badging "tmp/base.apk" 2>/dev/null); then
+            if ! APP_INFO=$("$AAPT2_BIN" dump badging "tmp/base.apk" 2>/dev/null); then
                 notify msg "Failed to extract metadata from APKS bundle."
                 rm -rf "tmp" &>/dev/null
                 return 1

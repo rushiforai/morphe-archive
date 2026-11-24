@@ -16,8 +16,7 @@ object Constants {
     )
 
     // Stable (non-renamed) app classes referenced by fingerprints and emitted smali.
-    // [Implementation] inner-class types are built from a semicolon-free base so the
-    // outer type's ';' never lands inside the composed name (TabWidget$Data, not TabWidget;$Data).
+    // [Implementation] inner-class types build from a semicolon-free base (TabWidget$Data).
     private const val TAB_WIDGET_BASE = "Lcom/hotstar/ui/model/widget/TabWidget"
     private const val ILLUSTRATION_PILL_BASE = "Lcom/hotstar/ui/model/widget/IllustrationPillWidget"
     const val TAB_WIDGET = "$TAB_WIDGET_BASE;"
@@ -34,4 +33,14 @@ object Constants {
     // The obfuscated Compose tween factory every nav/top-bar animation goes through.
     const val TWEEN_FACTORY_CLASS = "LA/n;"
     const val TWEEN_FACTORY_METHOD = "c"
+
+    // Extension classes, merged from extensions/brokenn-settings.mpe.
+    const val SETTINGS_PACKAGE = "Lapp/brokenn/extension/jiohotstar/settings"
+    const val BROKENN_PREFS_CLASS = "$SETTINGS_PACKAGE/BrokennPrefs;"
+    const val BROKENN_STATUS_CLASS = "$SETTINGS_PACKAGE/BrokennStatus;"
+
+    /** invoke-static {vArgReg}, BrokennPrefs->method(String)Z / move-result vResultReg */
+    fun prefsStringCall(method: String, argReg: String, resultReg: String) =
+        "invoke-static {v$argReg}, $BROKENN_PREFS_CLASS->$method(Ljava/lang/String;)Z\n" +
+            "move-result v$resultReg\n"
 }

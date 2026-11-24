@@ -2,6 +2,7 @@ import * as crypto from 'node:crypto';
 import * as fs from 'node:fs';
 import * as path from 'node:path';
 import { TOML } from 'bun';
+import { RUST_PROJECTS } from '../rust-projects';
 import type { DependencyItem, DependencyPolicy, ProposalInput } from './model';
 
 export interface InventoryResult {
@@ -12,18 +13,6 @@ export interface InventoryResult {
 export function computeFileSha256(filePath: string): string {
   const content = fs.readFileSync(filePath);
   return crypto.createHash('sha256').update(content).digest('hex');
-}
-
-export function parsePythonRequirement(reqStr: string): {
-  name: string;
-  constraint: string;
-} {
-  const cleaned = reqStr.trim();
-  const match = cleaned.match(/^([a-zA-Z0-9_.-]+)(.*)$/);
-  if (!match) {
-    return { name: cleaned, constraint: '' };
-  }
-  return { name: match[1], constraint: match[2].trim() };
 }
 
 export function parseBunLock(lockText: string): {
@@ -145,115 +134,8 @@ export function collectInventory(
     }
   }
 
-  // 2. Python manifest (tools/apk-lab/pyproject.toml)
-  const pyprojectRel = 'tools/apk-lab/pyproject.toml';
-  const pyprojectAbs = path.resolve(repoRoot, pyprojectRel);
-  const uvLockRel = 'tools/apk-lab/uv.lock';
-  const uvLockAbs = path.resolve(repoRoot, uvLockRel);
-
-  if (fs.existsSync(pyprojectAbs)) {
-    registerInput(pyprojectRel);
-    registerInput(uvLockRel);
-
-    const pyprojectText = fs.readFileSync(pyprojectAbs, 'utf8');
-    const pyprojectToml = TOML.parse(pyprojectText) as {
-      project?: { dependencies?: string[] };
-      'dependency-groups'?: { dev?: string[] };
-      'build-system'?: { requires?: string[] };
-    };
-
-    const uvLockPackages: Record<string, string> = {};
-    if (fs.existsSync(uvLockAbs)) {
-      try {
-        const uvLockText = fs.readFileSync(uvLockAbs, 'utf8');
-        const uvToml = TOML.parse(uvLockText) as {
-          package?: Array<{ name: string; version: string }>;
-        };
-        if (Array.isArray(uvToml.package)) {
-          for (const pkg of uvToml.package) {
-            if (pkg.name && pkg.version) {
-              uvLockPackages[pkg.name] = pkg.version;
-            }
-          }
-        }
-      } catch {
-        // uv.lock parse error handled
-      }
-    }
-
-    // project.dependencies
-    const projectDeps = pyprojectToml.project?.dependencies;
-    if (Array.isArray(projectDeps)) {
-      for (const req of projectDeps) {
-        if (typeof req !== 'string') continue;
-        const { name, constraint } = parsePythonRequirement(req);
-        const resolved = uvLockPackages[name] || null;
-        items.push({
-          id: `pypi:${pyprojectRel}#dependencies/${name}`,
-          ecosystem: 'pypi',
-          name,
-          locations: [`${pyprojectRel} ([project].dependencies)`],
-          declared: constraint,
-          resolved,
-          latest: null,
-          status: 'current',
-        });
-      }
-    }
-
-    // dependency-groups.dev
-    const devDeps = pyprojectToml['dependency-groups']?.dev;
-    if (Array.isArray(devDeps)) {
-      for (const req of devDeps) {
-        if (typeof req !== 'string') continue;
-        const { name, constraint } = parsePythonRequirement(req);
-        const resolved = uvLockPackages[name] || null;
-        items.push({
-          id: `pypi:${pyprojectRel}#dependency-groups.dev/${name}`,
-          ecosystem: 'pypi',
-          name,
-          locations: [`${pyprojectRel} ([dependency-groups].dev)`],
-          declared: constraint,
-          resolved,
-          latest: null,
-          status: 'current',
-        });
-      }
-    }
-
-    // build-system.requires
-    const buildRequires = pyprojectToml['build-system']?.requires;
-    if (Array.isArray(buildRequires)) {
-      for (const req of buildRequires) {
-        if (typeof req !== 'string') continue;
-        const { name, constraint } = parsePythonRequirement(req);
-        items.push({
-          id: `pypi:${pyprojectRel}#build-system.requires/${name}`,
-          ecosystem: 'pypi',
-          name,
-          locations: [`${pyprojectRel} ([build-system].requires)`],
-          declared: constraint || 'unbounded',
-          resolved: null,
-          latest: null,
-          status: 'current',
-        });
-      }
-    }
-  }
-
-  // 3. Rust manifests (tools/play-metadata/Cargo.toml, extensions/nhl-adblock-native/Cargo.toml)
-  const cargoManifests = [
-    {
-      manifest: 'tools/play-metadata/Cargo.toml',
-      lock: 'tools/play-metadata/Cargo.lock',
-    },
-    {
-      manifest: 'extensions/nhl-adblock-native/Cargo.toml',
-      lock: 'extensions/nhl-adblock-native/Cargo.lock',
-    },
-  ];
-
-  for (const { manifest, lock } of cargoManifests) {
+  // 2. Registered Rust projects
+  for (const { manifest, lockfile: lock } of RUST_PROJECTS) {
     const manifestAbs = path.resolve(repoRoot, manifest);
     if (!fs.existsSync(manifestAbs)) continue;
     registerInput(manifest);
@@ -316,7 +198,7 @@ export function collectInventory(
     }
   }
 
-  // 4. Gradle settings and catalog
+  // 3. Gradle settings and catalog
   const settingsRel = 'settings.gradle.kts';
   const settingsAbs = path.resolve(repoRoot, settingsRel);
   if (fs.existsSync(settingsAbs)) {
@@ -406,7 +288,7 @@ export function collectInventory(
     }
   }
 
-  // 5. Gradle wrapper
+  // 4. Gradle wrapper
   const wrapperPropsRel = 'gradle/wrapper/gradle-wrapper.properties';
   const wrapperPropsAbs = path.resolve(repoRoot, wrapperPropsRel);
   if (fs.existsSync(wrapperPropsAbs)) {
@@ -436,7 +318,7 @@ export function collectInventory(
     });
   }
 
-  // 6. APK Lab Tools (tools/apk-lab/tools.lock.json)
+  // 5. APK Lab Tools (tools/apk-lab/tools.lock.json)
   const toolLockRel = 'tools/apk-lab/tools.lock.json';
   const toolLockAbs = path.resolve(repoRoot, toolLockRel);
   if (fs.existsSync(toolLockAbs)) {
@@ -460,7 +342,7 @@ export function collectInventory(
     }
   }
 
-  // 7. ktlint in scripts/audit.ts
+  // 6. ktlint in scripts/audit.ts
   const auditScriptRel = 'scripts/audit.ts';
   const auditScriptAbs = path.resolve(repoRoot, auditScriptRel);
   if (fs.existsSync(auditScriptAbs)) {
@@ -485,7 +367,7 @@ export function collectInventory(
     });
   }
 
-  // 8. Workflows external actions and pre-commit hooks
+  // 7. Workflows external actions
   const workflowsDir = path.resolve(repoRoot, '.github/workflows');
   const actionLocations: Record<
     string,
@@ -538,16 +420,6 @@ export function collectInventory(
             val: javaMatch[1],
           });
         }
-        const pyMatch = line.match(/python-version:\s*['"]?([0-9.]+)['"]?/);
-        if (pyMatch) {
-          if (!workflowInputs['tool:python'])
-            workflowInputs['tool:python'] = [];
-          workflowInputs['tool:python'].push({
-            file: relWorkflow,
-            line: i + 1,
-            val: pyMatch[1],
-          });
-        }
         const bunMatch = line.match(
           /bun-version:\s*['"]?([a-zA-Z0-9_-]+)['"]?/,
         );
@@ -558,13 +430,6 @@ export function collectInventory(
             line: i + 1,
             val: bunMatch[1],
           });
-        }
-        if (
-          line.includes('setup-uv') ||
-          (line.includes('version:') &&
-            lines[Math.max(0, i - 1)].includes('setup-uv'))
-        ) {
-          // Handled via action or tool:uv
         }
         const nodeMatch = line.match(/node-version:\s*['"]?([^'"]+)['"]?/);
         if (nodeMatch) {
@@ -589,38 +454,6 @@ export function collectInventory(
     }
   }
 
-  // Pre-commit hooks (.pre-commit-config.yaml)
-  const preCommitRel = '.pre-commit-config.yaml';
-  const preCommitAbs = path.resolve(repoRoot, preCommitRel);
-  if (fs.existsSync(preCommitAbs)) {
-    registerInput(preCommitRel);
-    const pcText = fs.readFileSync(preCommitAbs, 'utf8');
-    const pcTomlOrYaml = pcText.split('\n');
-    let currentRepo = '';
-    for (let i = 0; i < pcTomlOrYaml.length; i++) {
-      const line = pcTomlOrYaml[i];
-      const repoMatch = line.match(/^\s*-\s+repo:\s*(\S+)/);
-      if (repoMatch) {
-        currentRepo = repoMatch[1];
-      }
-      const revMatch = line.match(/^\s*rev:\s*(\S+)/);
-      if (revMatch && currentRepo && currentRepo !== 'local') {
-        const repoClean = currentRepo.replace(/^https:\/\/github\.com\//, '');
-        items.push({
-          id: `hook:${repoClean}`,
-          ecosystem: 'hook',
-          name: repoClean,
-          locations: [`${preCommitRel}:${i + 1}`],
-          declared: revMatch[1],
-          resolved: revMatch[1],
-          latest: null,
-          status: 'current',
-        });
-        currentRepo = '';
-      }
-    }
-  }
-
   // Create items for GitHub Actions
   for (const [actionName, locs] of Object.entries(actionLocations)) {
     if (actionName === 'dtolnay/rust-toolchain') {
@@ -641,7 +474,7 @@ export function collectInventory(
     });
   }
 
-  // 9. Coupled toolchain pins
+  // 8. Coupled toolchain pins
   // Rust Native Toolchain
   const nhlToolchainRel = 'extensions/nhl-adblock-native/rust-toolchain.toml';
   const nhlToolchainAbs = path.resolve(repoRoot, nhlToolchainRel);
@@ -716,19 +549,21 @@ export function collectInventory(
       status: 'current',
     });
   }
-  // Android build-tools in apk_lab/inspection.py
-  const inspectionRel = 'tools/apk-lab/apk_lab/inspection.py';
-  const inspectionAbs = path.resolve(repoRoot, inspectionRel);
-  if (fs.existsSync(inspectionAbs)) {
-    registerInput(inspectionRel);
-    const inspText = fs.readFileSync(inspectionAbs, 'utf8');
-    const btMatch = inspText.match(/"build-tools"\s*\/\s*"([0-9.]+)"/);
+  // Android build-tools in the native APK Lab tool locator
+  const toolLocatorRel = 'tools/apk-lab/src/tools.rs';
+  const toolLocatorAbs = path.resolve(repoRoot, toolLocatorRel);
+  if (fs.existsSync(toolLocatorAbs)) {
+    registerInput(toolLocatorRel);
+    const locatorText = fs.readFileSync(toolLocatorAbs, 'utf8');
+    const btMatch = locatorText.match(
+      /build_tools\.join\("([0-9.]+)"\)\.join\(bin_name\)/,
+    );
     const btVersion = btMatch ? btMatch[1] : '36.0.0';
     items.push({
       id: 'tool:android-build-tools',
       ecosystem: 'tool',
       name: 'android-build-tools',
-      locations: [`${inspectionRel} (find_build_tools_bin)`],
+      locations: [`${toolLocatorRel} (find_build_tools_bin)`],
       declared: btVersion,
       resolved: btVersion,
       latest: null,
@@ -736,7 +571,7 @@ export function collectInventory(
     });
   }
 
-  // Workflow language versions: tool:java, tool:python, tool:node, tool:bun
+  // Workflow language versions: tool:java, tool:node, tool:bun
   if (workflowInputs['tool:java']?.length) {
     items.push({
       id: 'tool:java',
@@ -745,20 +580,6 @@ export function collectInventory(
       locations: workflowInputs['tool:java'].map((l) => `${l.file}:${l.line}`),
       declared: workflowInputs['tool:java'][0].val,
       resolved: workflowInputs['tool:java'][0].val,
-      latest: null,
-      status: 'current',
-    });
-  }
-  if (workflowInputs['tool:python']?.length) {
-    items.push({
-      id: 'tool:python',
-      ecosystem: 'tool',
-      name: 'cpython',
-      locations: workflowInputs['tool:python'].map(
-        (l) => `${l.file}:${l.line}`,
-      ),
-      declared: workflowInputs['tool:python'][0].val,
-      resolved: workflowInputs['tool:python'][0].val,
       latest: null,
       status: 'current',
     });
@@ -790,7 +611,7 @@ export function collectInventory(
     });
   }
 
-  // 10. Embedded CDN Leaflet in OsmMapView.java
+  // 9. Embedded CDN Leaflet in OsmMapView.java
   const osmMapRel =
     'extensions/extension/src/main/java/app/aidan/extension/aftership/OsmMapView.java';
   const osmMapAbs = path.resolve(repoRoot, osmMapRel);
@@ -811,23 +632,6 @@ export function collectInventory(
     });
   }
 
-  // 11. Workflow moving package installs
-  const syncIconsRel = '.github/workflows/sync-app-icons.yml';
-  if (fs.existsSync(path.resolve(repoRoot, syncIconsRel))) {
-    registerInput(syncIconsRel);
-    items.push({
-      id: `pypi:${syncIconsRel}#pip/Pillow`,
-      ecosystem: 'pypi',
-      name: 'Pillow',
-      locations: [`${syncIconsRel}:50`],
-      declared: 'latest',
-      resolved: 'latest',
-      latest: null,
-      status: 'moving',
-      reason: 'Unversioned pip install in sync-app-icons workflow',
-    });
-  }
-
   const releaseWorkflowRel = '.github/workflows/release.yml';
   if (fs.existsSync(path.resolve(repoRoot, releaseWorkflowRel))) {
     registerInput(releaseWorkflowRel);
@@ -844,7 +648,7 @@ export function collectInventory(
     });
   }
 
-  // 12. C++ Native CMake FetchContent
+  // 10. C++ Native CMake FetchContent
   const cmakeListsRel = 'extensions/adobescan-pdf-native/CMakeLists.txt';
   const cmakeListsAbs = path.resolve(repoRoot, cmakeListsRel);
   if (fs.existsSync(cmakeListsAbs)) {

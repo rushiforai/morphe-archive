@@ -1,9 +1,16 @@
+/*
+ * Copyright 2026 amfakh
+ * SPDX-License-Identifier: GPL-3.0-only
+ */
+
 package app.fakh.patches.linkedin.navigation
 
 import app.fakh.patches.linkedin.shared.Constants.COMPATIBILITY_LINKEDIN
 import app.fakh.patches.linkedin.shared.Constants.EXTENSION_PACKAGE
-import app.fakh.patches.linkedin.shared.markIncluded
+import app.fakh.patches.linkedin.shared.Constants.GAMES_SHORTCUT
+import app.fakh.patches.linkedin.shared.Constants.MOVE_MORE_ITEMS
 import app.fakh.patches.linkedin.shared.sduiComponentFilterPatch
+import app.fakh.patches.shared.register
 import app.morphe.patcher.Fingerprint
 import app.morphe.patcher.extensions.InstructionExtensions.addInstruction
 import app.morphe.patcher.extensions.InstructionExtensions.getInstruction
@@ -53,7 +60,7 @@ val moreMenuPatch = patch(
     dependsOn(sduiComponentFilterPatch)
 
     execute {
-        markIncluded("isMoreMenuIncluded")
+        register(MOVE_MORE_ITEMS, GAMES_SHORTCUT)
 
         // Right after the divider goes into the footer list, so the items are added above it.
         NavPanelFooterFingerprint.let {

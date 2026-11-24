@@ -5,87 +5,46 @@
 
 package app.morphe.patches.webetu.misc.pairip
 
-import app.morphe.patcher.Fingerprint
-import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
-import app.morphe.patcher.patch.bytecodePatch
-import app.morphe.patcher.patch.resourcePatch
+import app.morphe.patcher.patch.InstallerType
+import app.morphe.patcher.patch.PatchAvailability
+import app.morphe.patcher.patch.mutableClassDefBy
+import app.morphe.patcher.patch.patch
+import app.morphe.patcher.patch.resourceXml
+import app.morphe.patches.shared.removeElements
+import app.morphe.patches.shared.returnEarlyVoidAll
 import app.morphe.patches.webetu.shared.WebetuConstants
-import org.w3c.dom.Element
 
 private const val PAIRIP_APPLICATION = "Lcom/pairip/application/Application;"
-private const val PAIRIP_PREFIX = "com.pairip."
+private val PAIRIP_TAGS = listOf("activity", "activity-alias", "service", "receiver", "provider", "meta-data")
 
-/** Extracted original Application class, shared between the two patches. */
-internal var pairipOriginalApplication: String? = null
-    private set
-
-/** Prepares the application for protection removal. */
 @Suppress("unused")
-private val removePairIpProtectionBytecodePatch = bytecodePatch {
-    execute {
-        // PairIP's wrapper subclasses the app's original Application class.
-        val pairipApplicationFingerprint = object : Fingerprint(
-            definingClass = PAIRIP_APPLICATION,
-        ) {}
-
-        pairipOriginalApplication = requireNotNull(pairipApplicationFingerprint.classDef.superclass) {
-            "Could not determine the original Application superclass in PairIP wrapper"
-        }
-
-        // Neuter the license client: attachBaseContext returns immediately
-        //    so the wrapper never runs its license check.
-        val attachBaseContextFingerprint = object : Fingerprint(
-            definingClass = PAIRIP_APPLICATION,
-            name = "attachBaseContext",
-            returnType = "V",
-            parameters = listOf("Landroid/content/Context;"),
-        ) {}
-
-        attachBaseContextFingerprint.method?.let { method ->
-            method.addInstructions(
-                0,
-                """
-                    return-void
-                """,
-            )
-        }
-    }
-}
-
-/** Removes application protection checks. */
-@Suppress("unused")
-val removePairIpProtectionPatch = resourcePatch(
+val removePairIpProtectionPatch = patch(
     name = "Remove PairIP protection",
-    description = "Removes Google Play's PairIP anti-tamper wrapper so the app runs without license checks. Restores the original Application class in the manifest, removes all injected com.pairip.* components, and neuters PairIP's license client.",
+    description = "Removes Google Play's PairIP anti-tamper wrapper, restores the original Application " +
+            "class, strips com.pairip.* components and CHECK_LICENSE, and neuters the license client.",
     default = true,
 ) {
+    category("Security")
     compatibleWith(WebetuConstants.COMPATIBILITY_WEBETU)
-    dependsOn(removePairIpProtectionBytecodePatch)
+    availability { installer, _ ->
+        if (installer == InstallerType.MOUNT) PatchAvailability.DISABLED else PatchAvailability.REQUIRED
+    }
 
     execute {
-        document("AndroidManifest.xml").use { document ->
-            val applicationElement = document.getElementsByTagName("application").item(0) as? Element
-                ?: return@execute
+        val pairipApp = mutableClassDefBy(PAIRIP_APPLICATION)
+        val originalApp = requireNotNull(pairipApp.superclass) {
+            "Could not determine original Application superclass in PairIP wrapper"
+        }.removePrefix("L").removeSuffix(";").replace('/', '.')
 
-            val originalApplication = requireNotNull(pairipOriginalApplication) {
-                "PairIP bytecode half did not extract the original Application class"
+        pairipApp.returnEarlyVoidAll { it.name == "attachBaseContext" }
+
+        resourceXml("AndroidManifest.xml").use { manifest ->
+            manifest.elements("application").firstOrNull()?.setAttribute("android:name", originalApp)
+            manifest.removeElements(PAIRIP_TAGS) {
+                it.attribute("android:name")?.startsWith("com.pairip.") == true
             }
-                .removePrefix("L")
-                .removeSuffix(";")
-                .replace('/', '.')
-
-            applicationElement.setAttribute("android:name", originalApplication)
-
-            listOf(
-                "activity", "activity-alias", "service", "receiver", "provider", "meta-data",
-            ).forEach { tag ->
-                val nodes = document.getElementsByTagName(tag)
-                for (i in nodes.length - 1 downTo 0) {
-                    val node = nodes.item(i)
-                    if (node is Element && node.getAttribute("android:name").startsWith(PAIRIP_PREFIX)) {
-                        node.parentNode?.removeChild(node)
-                    }
-                }
+            manifest.removeElements(listOf("uses-permission")) {
+                it.attribute("android:name") == "com.android.vending.CHECK_LICENSE"
             }
         }
     }

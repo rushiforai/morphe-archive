@@ -509,6 +509,11 @@ public class SheetBottomDialog {
             }
         }
 
+        /** Removes the window immediately, including if a dismiss animation is already running. */
+        public void dismissWithoutAnimation() {
+            finishDismiss();
+        }
+
         /**
          * Cancels the dialog, triggering a dismissal animation.
          */

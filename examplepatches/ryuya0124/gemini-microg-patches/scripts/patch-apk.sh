@@ -13,7 +13,8 @@ cp "$staging/result.json" "$result"
 python3 - "$staging/result.json" "$staging/output.apk" <<'PY'
 import json, pathlib, sys
 d = json.loads(pathlib.Path(sys.argv[1]).read_text())
-steps = d.get('patchingSteps', [])
+# Desktop 2.x writes stepResults; 1.x wrote patchingSteps.
+steps = d.get('stepResults') or d.get('patchingSteps') or []
 if d.get('success') is False or d.get('failedPatches') or not steps or not all(s.get('success') is True for s in steps):
     raise SystemExit('Patching failed; inspect the result JSON. Previous APK output was not replaced.')
 if not pathlib.Path(sys.argv[2]).is_file():

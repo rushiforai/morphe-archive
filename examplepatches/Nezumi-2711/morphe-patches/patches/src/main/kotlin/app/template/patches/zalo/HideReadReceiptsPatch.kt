@@ -15,8 +15,6 @@ import com.android.tools.smali.dexlib2.AccessFlags
 import com.android.tools.smali.dexlib2.Opcode
 
 private const val REQUEST_PACKET_CLASS = "Lcom/zing/zalocore/connection/socket/RequestPacket;"
-private const val MARK_AS_READ = "Lapp/template/extension/extension/MarkAsRead;"
-private const val READ_SETTINGS = "Lapp/template/extension/extension/NezumiSettings;"
 
 private object SeenAckFingerprint : Fingerprint(
     returnType = "V",
@@ -45,7 +43,7 @@ val hideReadReceiptsPatch = bytecodePatch(
     name = "Hide read receipts",
     description = "Keep outgoing read receipts private while retaining delivery ACKs when enabled in Nezumi Settings. " +
         "Adds a Mark as read button to the chat toolbar for sending a read receipt on demand.",
-    default = false,
+    default = true,
 ) {
     compatibleWith(Compatibility(
         name = "Zalo",
@@ -78,7 +76,7 @@ val hideReadReceiptsPatch = bytecodePatch(
             if-nez v0, :nezumi_original_ack
             invoke-static {}, Lcom/zing/zalo/MainApplication;->getAppContext()Landroid/content/Context;
             move-result-object v0
-            invoke-static {v0}, $READ_SETTINGS->isReadReceiptsHidden(Landroid/content/Context;)Z
+            invoke-static {v0}, $CHAT_OPTIONS->isReadReceiptsHidden(Landroid/content/Context;)Z
             move-result v0
             if-eqz v0, :nezumi_original_ack
             const/16 v0, 0x6b

@@ -146,6 +146,11 @@ public final class PlaybackPreferenceCategory extends ConditionalPreferenceCateg
                     "Adds a small line to LIVE rooms with how long the host has been live, counted from "
                             + "when the room started. With the room ID on too, it goes under that.",
                     Settings.LIVE_RUNNING_TIME));
+            addPreference(new TogglePreference(context, "Swipe LIVEs in your Following row's order",
+                    "After a LIVE you open from the row at the top of Following, swiping takes you "
+                            + "through the row's other LIVEs in the order they sit there, starting with the "
+                            + "next one. TikTok's own picks come after them.",
+                    Settings.LIVE_FOLLOWING_ROW_ORDER));
             addPreference(new TogglePreference(context, "Offer LIVE quality in more rooms",
                     "TikTok lets you pick a LIVE's quality only in some rooms. This adds Video "
                             + "quality to the menu in most of the others, and the next room opens at the quality "
@@ -427,6 +432,11 @@ public final class PlaybackPreferenceCategory extends ConditionalPreferenceCateg
                             + "opened up, still shows the whole video.",
                     Settings.FIT_FILLS_TALL_SCREEN));
             addPreference(fill);
+            // #505: Fill leaves wide and square videos whole (#394); this crops them too.
+            addPreference(new TogglePreference(context, "Fill wide videos too",
+                    "With the switch above on, landscape and square videos are cropped to cover "
+                            + "the screen too, so only their middle shows. Off, they stay whole.",
+                    Settings.FILL_WIDE_VIDEOS));
             addPreference(stretch);
             addPreference(blend);
             if (middle != null) addPreference(middle);
@@ -552,6 +562,11 @@ public final class PlaybackPreferenceCategory extends ConditionalPreferenceCateg
                                     + "With Up and down, slide up for faster and down for slower, and slide to the side "
                                     + "to lock it, so a hold near the edge still reaches every speed."));
                 }
+                addPreference(new NumberInputPreference(context, "Hold speed bubble size",
+                        L10n.f(context, "How big the bubble is drawn, from %1$d to %2$d. 100 is the normal size, "
+                                        + "which already grows with your phone's font size.",
+                                Settings.HOLD_SPEED_HUD_SIZE.minimum(), Settings.HOLD_SPEED_HUD_SIZE.maximum()),
+                        Settings.HOLD_SPEED_HUD_SIZE, "%1$s%%"));
             }
             if (SettingsStatus.hideSpeedToastsEnabled) {
                 addPreference(new TogglePreference(context, "Hide speed messages",

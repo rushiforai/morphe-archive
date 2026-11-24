@@ -38,9 +38,12 @@
     "tools/apk-lab/**/*.md",
     "worker/**/*.md",
     "site/**/*.md",
+    ".agents/**/*.md",
     ".github/**/*.md"
   ],
   "ignores": [
+    // Frozen renderer inputs/goldens intentionally contain malformed Markdown.
+    "scripts/test-fixtures/**",
     "**/node_modules/**",
     "**/.apk-lab/**",
     "**/.venv/**",

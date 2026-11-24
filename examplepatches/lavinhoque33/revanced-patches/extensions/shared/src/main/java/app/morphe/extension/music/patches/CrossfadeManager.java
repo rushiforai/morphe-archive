@@ -43,6 +43,7 @@ import app.morphe.extension.music.patches.crossfade.CrossfadeEngine;
 import app.morphe.extension.music.patches.crossfade.ModeSwitchRequest;
 import app.morphe.extension.music.patches.crossfade.CrossfadeEngine.NextAvailability;
 import app.morphe.extension.music.patches.crossfade.QueueAdvanceBridge;
+import app.morphe.extension.music.patches.loop.RepeatSection;
 import app.morphe.extension.shared.utils.Logger;
 import app.morphe.extension.shared.utils.Utils;
 
@@ -616,6 +617,7 @@ public class CrossfadeManager {
         long duration = player.patch_getDuration();
         long remaining = duration - player.patch_getCurrentPosition();
         if (duration <= getCrossfadeDurationMs() || remaining <= 0 || remaining > getCrossfadeDurationMs()) return;
+        if (RepeatSection.holdsAutomaticAdvance()) return;
         NextAvailability availability = QueueAdvanceBridge.availability();
         engine.nextAvailability(availability);
         if (!engine.canAutoAdvance()) {

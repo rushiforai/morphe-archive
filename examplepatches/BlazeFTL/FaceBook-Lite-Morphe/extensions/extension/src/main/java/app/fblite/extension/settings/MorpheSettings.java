@@ -46,7 +46,22 @@ public final class MorpheSettings {
             REELS_HIDE_ADS, STORIES_HIDE_ADS, PROFILE_WHEN_NO_REELS, PROFILE_ALWAYS
     };
 
+    private static volatile String patchVersion = "";
+
     private MorpheSettings() {
+    }
+
+    /** Called by the patch at the start of Application.attachBaseContext, with the version of the patches that made this app. */
+    @SuppressWarnings("unused")
+    public static void setPatchVersion(String version) {
+        patchVersion = version == null ? "" : version;
+    }
+
+    /** Version of the patches, like "v1.6.11". Empty when unknown. */
+    static String patchVersionLabel() {
+        String version = patchVersion.trim();
+        if (version.isEmpty()) return "";
+        return version.startsWith("v") ? version : "v" + version;
     }
 
     static SharedPreferences preferences(Context context) {

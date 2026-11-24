@@ -127,6 +127,20 @@ public final class GboardClipboardSettingsFeature
                 generalRows.add(new GboardPatchesSettingsContract.ToggleRow(
                         GboardSettingsText.get(
                                 context,
+                                R.string.gboard_patches_clipboard_samsung_mode_title),
+                        GboardSettingsText.get(
+                                context,
+                                R.string.gboard_patches_clipboard_samsung_mode_summary),
+                        clipboardEnabled,
+                        GboardClipboardSettings.readClipboardSamsungMode(preferences),
+                        value -> preferences.edit()
+                                .putBoolean(
+                                        GboardClipboardSettings.PREF_KEY_CLIPBOARD_SAMSUNG_MODE,
+                                        value)
+                                .apply()));
+                generalRows.add(new GboardPatchesSettingsContract.ToggleRow(
+                        GboardSettingsText.get(
+                                context,
                                 R.string.gboard_patches_clipboard_show_sensitive_content_title),
                         GboardSettingsText.get(
                                 context,

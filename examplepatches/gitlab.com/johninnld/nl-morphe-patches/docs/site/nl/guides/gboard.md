@@ -132,6 +132,18 @@ Pas **AMOLED dark keyboard** toe in Morphe. Kies daarna in Gboard **Instellingen
 
 ## Schrijven, scannen en bewerken
 
+### Enable Inline Autofill Suggestions
+
+Pas deze patch toe in Morphe en kies de gepatchte Gboard als toetsenbord. De patch activeert Gboard's bestaande Android-module voor inline automatisch invullen. Open op Android 11 of nieuwer **Bitwarden → Instellingen → Automatisch invullen**, schakel de service in, kies Bitwarden als Android-provider en kies **Inline** bij de weergave van suggesties (oudere clients noemen dit **Use inline autofill**). Laat Gboard's **Tekstcorrectie → Suggestiestrook tonen** aan staan. Een Vaultwarden-account gebruikt dezelfde Bitwarden-clientinstellingen; Gboard maakt zelf geen verbinding met de kluisserver.
+
+Open een ondersteund aanmeldformulier waarvoor een testlogin is opgeslagen. Boven de toetsen hoort een Bitwarden-suggestie of ontgrendelactie te verschijnen. Kies deze en controleer de ingevulde velden. Android, de app en Bitwarden bepalen nog steeds welke velden in aanmerking komen. De patch omzeilt de kluisontgrendeling en domeincontrole niet. Verschijnt er geen suggestie, vergelijk dan de popupmodus en controleer [Bitwarden's Android-instellingen](https://bitwarden.com/help/auto-fill-android/).
+
+### Smart Compose
+
+Dit is de upstream-patch **Inline Suggestions**, hier gepubliceerd als **Smart Compose** om verwarring met wachtwoorden invullen te voorkomen. Pas de patch toe in Morphe en schakel daarna de standaardschakelaar onder **Gboard → Tekstcorrectie → Smart Compose** in. Begin een Engelse zin in een ondersteunde app en kijk of een tekstaanvulling verschijnt. Veeg naar rechts om die in te voegen. Vergelijk met Smart Compose uitgeschakeld.
+
+De patch opent de client-side rolloutvoorwaarde en toont de instelling. Hij levert geen taalmodel en verwijdert de overige taal-, app- en modelvoorwaarden niet. Google's [Smart Compose-uitleg](https://support.google.com/gboard/answer/7068415?co=GENIE.Platform%3DAndroid&hl=en) noemt beschikbaarheid voor Engels in de VS. Nederlandse aanvullingen zijn niet gegarandeerd. Smart Compose en inline automatisch invullen zijn onafhankelijk te selecteren.
+
 ### AI Writing Tools
 
 Open **Patches → AI & Voice → AI Writing Tools** en zet zo nodig **Enable AI Writing Tools** aan. Selecteer een zin in een gewoon tekstveld en open de chip voor schrijfhulpmiddelen. Probeer de tekst te herschrijven of van toon te veranderen. Lees het resultaat voordat je het overneemt. De beschikbaarheid hangt af van de taal, het tekstveld en de backend van Google. **Proofread / Auto Fix** valt buiten de 18.8-port. Een zichtbare proefleesoptie bewijst niet dat die werkt. Gebruik voorbeeldtekst als de dienst tekst op een server kan verwerken.

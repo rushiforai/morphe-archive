@@ -34,6 +34,7 @@ import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.zip.GZIPInputStream;
 
+import app.hoitruyenchu.extension.itruyenchu.patches.shared.AppInfo;
 import app.hoitruyenchu.extension.itruyenchu.patches.shared.HtcSettings;
 import okhttp3.OkHttpClient;
 
@@ -69,7 +70,7 @@ import okhttp3.OkHttpClient;
 public final class AutoSyncPatch {
     private static final String TAG = "HTC-Sync";
 
-    private static final String API_URL = "https://api.tienphu.top";
+    // API host: AppInfo.apiUrl() (3.0.0 moved it from api.tienphu.top to api.hoitruyenchu.org).
     /** Returns the progress recorded by the server as {slug: chapter}. */
     private static final String PULL_PATH = "/users/sync-books-new";
 
@@ -200,12 +201,15 @@ public final class AutoSyncPatch {
      * books this device has read further than the server knows are recorded on the server, then the
      * two histories are merged.
      *
-     * @param local  the history posted by the button
-     * @param pulled answer of POST /users/sync-books-new
-     * @return {"recentReads": [...], "message": ".."} for the button: it clears the history and adds
-     *         the entries one by one, each in front, so the list is sent oldest first.
+     * @param local       the history posted by the button
+     * @param pulled      answer of POST /users/sync-books-new
+     * @param newestFirst order of the answer: app 3.0.0's button stores the list as it is (newest
+     *                    first, like the history); 2.1.0's button (and SyncScript) clears the history and
+     *                    adds the entries one by one, each in front, so they need it oldest first.
+     * @return {"recentReads": [...], "message": ".."} for the button.
      */
-    static String onSyncButton(JSONArray local, String pulled, String authorization) throws Exception {
+    static String onSyncButton(JSONArray local, String pulled, String authorization, boolean newestFirst)
+            throws Exception {
         if (token == null && authorization != null && authorization.startsWith("Bearer ")) {
             token = authorization.substring("Bearer ".length()).trim();
         }
@@ -217,14 +221,17 @@ public final class AutoSyncPatch {
         JSONArray merged = merge(new JSONArray(local.toString()), remote);
         fillBookInfo(merged);
 
-        JSONArray oldestFirst = new JSONArray();
-        for (int i = merged.length() - 1; i >= 0; i--) oldestFirst.put(merged.get(i));
+        JSONArray ordered = merged;
+        if (!newestFirst) {
+            ordered = new JSONArray();
+            for (int i = merged.length() - 1; i >= 0; i--) ordered.put(merged.get(i));
+        }
         int added = merged.length() - local.length();
         String message = "Đồng bộ truyện thành công";
         if (added > 0) message += " (+" + added + " truyện)";
         Log.i(TAG, "sync button: local=" + local.length() + " server=" + remote.length()
                 + " pushed=" + pushed + " merged=" + merged.length());
-        return new JSONObject().put("recentReads", oldestFirst).put("message", message).toString();
+        return new JSONObject().put("recentReads", ordered).put("message", message).toString();
     }
 
     /** Records on the server the books read further on this device. @return number recorded. */
@@ -278,8 +285,8 @@ public final class AutoSyncPatch {
     private static boolean recordChapter(String slug, int chapter) {
         String currentToken = token;
         if (currentToken == null) return false;
-        String url = API_URL + "/chapters/" + Uri.encode(slug) + "/content/" + chapter;
-        int code = request("GET", url, null, currentToken, TIMEOUT_MS, null);
+        String path = "/chapters/" + Uri.encode(slug) + "/content/" + chapter;
+        int code = apiRequest("GET", path, null, currentToken, TIMEOUT_MS, null);
         if (code >= 200 && code < 300) {
             Log.i(TAG, "recorded chapter " + chapter + " of " + slug);
             return true;
@@ -617,7 +624,7 @@ public final class AutoSyncPatch {
         String currentToken = token;
         if (currentToken == null) return null;
         ByteArrayOutputStream response = new ByteArrayOutputStream();
-        int code = request("POST", API_URL + path, body == null ? "" : body.toString(), currentToken, timeoutMs, response);
+        int code = apiRequest("POST", path, body == null ? "" : body.toString(), currentToken, timeoutMs, response);
         if (code < 200 || code >= 300) {
             Log.w(TAG, "POST " + path + " -> HTTP " + code);
             return null;
@@ -629,6 +636,15 @@ public final class AutoSyncPatch {
             Log.w(TAG, "POST " + path + ": unexpected answer");
             return null;
         }
+    }
+
+    /** {@link #request} on the app's API host; the other known host is tried when it cannot be reached. */
+    private static int apiRequest(String method, String path, String body, String token, int timeoutMs,
+                                  ByteArrayOutputStream response) {
+        int code = request(method, AppInfo.apiUrl() + path, body, token, timeoutMs, response);
+        if (code != -1) return code;
+        if (response != null) response.reset();
+        return request(method, AppInfo.otherApiUrl() + path, body, token, timeoutMs, response);
     }
 
     /**

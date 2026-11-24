@@ -10,7 +10,6 @@ export type DependencyStatus =
   | 'ahead'
   | 'unused'
   | 'not-checked'
-  | 'blocked'
   | 'unsupported'
   | 'error';
 
@@ -64,7 +63,6 @@ export interface DependencySummary {
   ahead: number;
   unused: number;
   notChecked: number;
-  blocked: number;
   unsupported: number;
   error: number;
   durationMs: number;

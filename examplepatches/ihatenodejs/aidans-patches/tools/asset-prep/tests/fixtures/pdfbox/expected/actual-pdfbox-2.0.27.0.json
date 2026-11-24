@@ -1,0 +1,806 @@
+{
+  "args": [
+    "--gradle-home",
+    "/Users/aidan/Projects/aidans-patches/tools/asset-prep/tests/fixtures/pdfbox/gradle-home/single",
+    "--aar",
+    "/Users/aidan/.gradle/caches/modules-2/files-2.1/com.tom-roush/pdfbox-android/2.0.27.0/65a2f2b106b3d4ee37c5044cfc72384138bd60d4/pdfbox-android-2.0.27.0.aar",
+    "--output",
+    "/var/folders/q_/8vvtb5m90p95bxyjx1dw609r0000gn/T/asset-pdfbox-capture-ytqouz1z/actual.zip"
+  ],
+  "exit": 0,
+  "stdout": "Packaged 112 PDFBox assets into /var/folders/q_/8vvtb5m90p95bxyjx1dw609r0000gn/T/asset-pdfbox-capture-ytqouz1z/actual.zip\n",
+  "stderr": "",
+  "outputExists": true,
+  "output": {
+    "entries": [
+      {
+        "name": "com/tom_roush/fontbox/resources/cmap/83pv-RKSJ-H",
+        "size": 7149,
+        "sha256": "8a4d60015eb64baa6a73646a9983e7c6b987c0ab06e7c8b4b7e35a32a9ef1449",
+        "method": 8,
+        "directory": false
+      },
+      {
+        "name": "com/tom_roush/fontbox/resources/cmap/90ms-RKSJ-H",
+        "size": 6139,
+        "sha256": "3e591fe1447fee58a8df9c4dcc52f42a134f014dc7884ebcf3cd64f5e02fcfe1",
+        "method": 8,
+        "directory": false
+      },
+      {
+        "name": "com/tom_roush/fontbox/resources/cmap/90ms-RKSJ-V",
+        "size": 4298,
+        "sha256": "f61fb56f9360bcd43850cfa094f83e933d274bba5894d5edb6b4c5f42abefe63",
+        "method": 8,
+        "directory": false
+      },
+      {
+        "name": "com/tom_roush/fontbox/resources/cmap/90msp-RKSJ-H",
+        "size": 6070,
+        "sha256": "824e53249249ebb3b67762cec9b814975b42d8311fa40795548ddf4fa79e4bec",
+        "method": 8,
+        "directory": false
+      },
+      {
+        "name": "com/tom_roush/fontbox/resources/cmap/90msp-RKSJ-V",
+        "size": 4281,
+        "sha256": "603f62a6aef8d2af13b6107734f43ecc4e3973d635b16bcf4677798fbd5cf60d",
+        "method": 8,
+        "directory": false
+      },
+      {
+        "name": "com/tom_roush/fontbox/resources/cmap/90pv-RKSJ-H",
+        "size": 7884,
+        "sha256": "560f4ee82591d5d3f818e094a15a9fd50a9285b11e5ae8735c6e07f10e2d0d24",
+        "method": 8,
+        "directory": false
+      },
+      {
+        "name": "com/tom_roush/fontbox/resources/cmap/90pv-RKSJ-V",
+        "size": 3784,
+        "sha256": "f635a43f916d59c40f4f22d03f6a9f986ecfbe06e40de0bdb59eb52279f1c382",
+        "method": 8,
+        "directory": false
+      },
+      {
+        "name": "com/tom_roush/fontbox/resources/cmap/Add-RKSJ-H",
+        "size": 15107,
+        "sha256": "633343db1a48217594859e4beaac76958cff002b533bfbe03c5aa6280d7bffce",
+        "method": 8,
+        "directory": false
+      },
+      {
+        "name": "com/tom_roush/fontbox/resources/cmap/Add-RKSJ-V",
+        "size": 3892,
+        "sha256": "28ee457da75ee57462428e5aceb6a3b36f8e4a76da5ffcb809b02dfba1059600",
+        "method": 8,
+        "directory": false
+      },
+      {
+        "name": "com/tom_roush/fontbox/resources/cmap/Adobe-CNS1-0",
+        "size": 3898,
+        "sha256": "4d0fbf58240e829be555656c69ff5035df3c9b96e65ace4b88a36da25cfb1cc5",
+        "method": 8,
+        "directory": false
+      },
+      {
+        "name": "com/tom_roush/fontbox/resources/cmap/Adobe-CNS1-1",
+        "size": 4071,
+        "sha256": "def350b60edc58bd83eae5f0fd4042c5ee396c6439243a5694ee72aaa3a64350",
+        "method": 8,
+        "directory": false
+      },
+      {
+        "name": "com/tom_roush/fontbox/resources/cmap/Adobe-CNS1-2",
+        "size": 4091,
+        "sha256": "5508dc9163640b54e5ccac4c27ce7c5c41517d4527f05b19598fe021e50883ba",
+        "method": 8,
+        "directory": false
+      },
+      {
+        "name": "com/tom_roush/fontbox/resources/cmap/Adobe-CNS1-3",
+        "size": 4191,
+        "sha256": "81a5ea00f07f4a7b4d9889e2b5eba58b457e9abb894d8ae5e2a3de6e5ed189f7",
+        "method": 8,
+        "directory": false
+      },
+      {
+        "name": "com/tom_roush/fontbox/resources/cmap/Adobe-CNS1-4",
+        "size": 4211,
+        "sha256": "e0baf6d32584ac942075cc56bea708bbe2472a78083c5fc3bca8b42c79afd237",
+        "method": 8,
+        "directory": false
+      },
+      {
+        "name": "com/tom_roush/fontbox/resources/cmap/Adobe-CNS1-5",
+        "size": 4211,
+        "sha256": "552cac06aafa81418c70f0c5f2c9f9ed4d59152a72e981d20b7d51fdbef494e4",
+        "method": 8,
+        "directory": false
+      },
+      {
+        "name": "com/tom_roush/fontbox/resources/cmap/Adobe-CNS1-6",
+        "size": 4211,
+        "sha256": "9190f32e01d5aed99dbaf5db9ee325b83eb8ab2fce4c336f821e2d9061994fc6",
+        "method": 8,
+        "directory": false
+      },
+      {
+        "name": "com/tom_roush/fontbox/resources/cmap/Adobe-CNS1-UCS2",
+        "size": 265146,
+        "sha256": "27eae250f6ce060b1d144c645d4176411b29cb2ef188d83cbe66811eb7997539",
+        "method": 8,
+        "directory": false
+      },
+      {
+        "name": "com/tom_roush/fontbox/resources/cmap/Adobe-GB1-0",
+        "size": 3361,
+        "sha256": "dccee80c8763a28653e932953f55fb61a1b0776773855d63a286bc11a8c10128",
+        "method": 8,
+        "directory": false
+      },
+      {
+        "name": "com/tom_roush/fontbox/resources/cmap/Adobe-GB1-1",
+        "size": 3515,
+        "sha256": "7b2530073fe760ff0bbd08938ca199a224caeb574d3f7d14be84ec32649a17d7",
+        "method": 8,
+        "directory": false
+      },
+      {
+        "name": "com/tom_roush/fontbox/resources/cmap/Adobe-GB1-2",
+        "size": 4469,
+        "sha256": "d94c753cfdac8a00b9934306a26e4f139a4286d5ffc83d773561e3878d0273b9",
+        "method": 8,
+        "directory": false
+      },
+      {
+        "name": "com/tom_roush/fontbox/resources/cmap/Adobe-GB1-3",
+        "size": 4468,
+        "sha256": "b86dfcca26dd1de22e57efa4a6f331c571e572fe172644318d1bc573dfa10b90",
+        "method": 8,
+        "directory": false
+      },
+      {
+        "name": "com/tom_roush/fontbox/resources/cmap/Adobe-GB1-4",
+        "size": 5020,
+        "sha256": "eda6981ec7fb1df6e85b9c3ad85cab4a95997c012166356e7083e23ec755ec36",
+        "method": 8,
+        "directory": false
+      },
+      {
+        "name": "com/tom_roush/fontbox/resources/cmap/Adobe-GB1-5",
+        "size": 5120,
+        "sha256": "c33f09da6fafc29259b853ad73177e8e2161b099621127690a7643038b6047d2",
+        "method": 8,
+        "directory": false
+      },
+      {
+        "name": "com/tom_roush/fontbox/resources/cmap/Adobe-GB1-UCS2",
+        "size": 231913,
+        "sha256": "039bec9e3e378ba479b5fe458aed57743d2d469d037ea5489a9f86c40c09e997",
+        "method": 8,
+        "directory": false
+      },
+      {
+        "name": "com/tom_roush/fontbox/resources/cmap/Adobe-Japan1-0",
+        "size": 3410,
+        "sha256": "c63388ab8d18d5cbbf9911b10329d057d60e1e9295b5644941e00fc8f8489452",
+        "method": 8,
+        "directory": false
+      },
+      {
+        "name": "com/tom_roush/fontbox/resources/cmap/Adobe-Japan1-1",
+        "size": 3411,
+        "sha256": "9c93b77ac7de09ab1510e3d3b36c2ea64ab98d4b95938e5b5b83f1bf061ba391",
+        "method": 8,
+        "directory": false
+      },
+      {
+        "name": "com/tom_roush/fontbox/resources/cmap/Adobe-Japan1-2",
+        "size": 3449,
+        "sha256": "51abc4a77a662306a66a1fadcb0d0e7526dbee73533b5aed266471177ee26076",
+        "method": 8,
+        "directory": false
+      },
+      {
+        "name": "com/tom_roush/fontbox/resources/cmap/Adobe-Japan1-3",
+        "size": 3459,
+        "sha256": "b9241616bb96a3e76993787f986da7dcacf5e381ab79293e607864621ee1df16",
+        "method": 8,
+        "directory": false
+      },
+      {
+        "name": "com/tom_roush/fontbox/resources/cmap/Adobe-Japan1-4",
+        "size": 3937,
+        "sha256": "43a9cdb72943d9522cd7d8a75a9b5f6674e3fa4e076b1df3792957619f089dd9",
+        "method": 8,
+        "directory": false
+      },
+      {
+        "name": "com/tom_roush/fontbox/resources/cmap/Adobe-Japan1-5",
+        "size": 4317,
+        "sha256": "bb027d172491e320104b4d5ba8e4e9a80e3cadc15cc1cac97dc64de741ed202e",
+        "method": 8,
+        "directory": false
+      },
+      {
+        "name": "com/tom_roush/fontbox/resources/cmap/Adobe-Japan1-6",
+        "size": 4537,
+        "sha256": "284f546fd6a6d41a4df764b00ccae5a62f4bd7c5f156140d45e23abc581f3acd",
+        "method": 8,
+        "directory": false
+      },
+      {
+        "name": "com/tom_roush/fontbox/resources/cmap/Adobe-Japan1-7",
+        "size": 4444,
+        "sha256": "7290cf1ef3c5f4c1d2efd7c6ef32c18fafc33ded7154b99b37386aa8b3b7ccdd",
+        "method": 8,
+        "directory": false
+      },
+      {
+        "name": "com/tom_roush/fontbox/resources/cmap/Adobe-Japan1-UCS2",
+        "size": 284124,
+        "sha256": "0e392f53d43bfb3e26ee459bd198e133faf61f97ddcc980e433a8965632c3671",
+        "method": 8,
+        "directory": false
+      },
+      {
+        "name": "com/tom_roush/fontbox/resources/cmap/Adobe-Japan2-0",
+        "size": 3237,
+        "sha256": "e7c0a1a9eed5971c2b7cbfa9684d578a82facb14eb00e904e4fe2b885df417d1",
+        "method": 8,
+        "directory": false
+      },
+      {
+        "name": "com/tom_roush/fontbox/resources/cmap/Adobe-Korea1-0",
+        "size": 3502,
+        "sha256": "6ef218726585b71e563a23d9978d47df58c40ca6fe7e77954af4c2ea5b28fd26",
+        "method": 8,
+        "directory": false
+      },
+      {
+        "name": "com/tom_roush/fontbox/resources/cmap/Adobe-Korea1-1",
+        "size": 4158,
+        "sha256": "d1e84a360208a70d1eb50e2d751bfd9eaca7f2806365831839505744eb7ea096",
+        "method": 8,
+        "directory": false
+      },
+      {
+        "name": "com/tom_roush/fontbox/resources/cmap/Adobe-Korea1-2",
+        "size": 4157,
+        "sha256": "b9ca3d49b1d36eb883fb878aecc88120ebb227f01a463866e2fc0b2aa6ca9ef0",
+        "method": 8,
+        "directory": false
+      },
+      {
+        "name": "com/tom_roush/fontbox/resources/cmap/Adobe-Korea1-UCS2",
+        "size": 146880,
+        "sha256": "aa7cfb680fdafa53e9d9ec054309d56611eb0e568c99e1c1895efb3c94743f6d",
+        "method": 8,
+        "directory": false
+      },
+      {
+        "name": "com/tom_roush/fontbox/resources/cmap/B5pc-H",
+        "size": 7616,
+        "sha256": "bdd5f880359612ec71fd3bee930ab4ee2a550fbe7193ae1a0cba727f3b37314b",
+        "method": 8,
+        "directory": false
+      },
+      {
+        "name": "com/tom_roush/fontbox/resources/cmap/B5pc-V",
+        "size": 3005,
+        "sha256": "6ea096eb62f99ca54fdefc036bfb21058ba1664fc263411f5f7d3d3307e3c690",
+        "method": 8,
+        "directory": false
+      },
+      {
+        "name": "com/tom_roush/fontbox/resources/cmap/CNS-EUC-H",
+        "size": 12315,
+        "sha256": "5bcb99e1829ce797c246462cf79c1e484223449355b4f91070046c7c804ef0eb",
+        "method": 8,
+        "directory": false
+      },
+      {
+        "name": "com/tom_roush/fontbox/resources/cmap/CNS-EUC-V",
+        "size": 13347,
+        "sha256": "4e9dd5c2bac3283d7d582dc69c5b2fc1de612ae5d2ed2d257bf48a69c1b06bb5",
+        "method": 8,
+        "directory": false
+      },
+      {
+        "name": "com/tom_roush/fontbox/resources/cmap/ETen-B5-H",
+        "size": 7772,
+        "sha256": "b885a24a86a0adee73c724b636facce5b33351155bc26adb320a797afee1effa",
+        "method": 8,
+        "directory": false
+      },
+      {
+        "name": "com/tom_roush/fontbox/resources/cmap/ETen-B5-V",
+        "size": 3043,
+        "sha256": "c8ec6c4af760c07e3b46ed0d586f87a28278518f3adab17bbf78180e16c0bee9",
+        "method": 8,
+        "directory": false
+      },
+      {
+        "name": "com/tom_roush/fontbox/resources/cmap/ETenms-B5-H",
+        "size": 2798,
+        "sha256": "98f7bc74c7accb0341398d2d949a4953528f25d38d070ba51d028da1bc3df40c",
+        "method": 8,
+        "directory": false
+      },
+      {
+        "name": "com/tom_roush/fontbox/resources/cmap/ETenms-B5-V",
+        "size": 3110,
+        "sha256": "283856f9060d23ad6006cd84dbc22213ac70e83674d96288e3f35e8f2ba8bee9",
+        "method": 8,
+        "directory": false
+      },
+      {
+        "name": "com/tom_roush/fontbox/resources/cmap/EUC-H",
+        "size": 5144,
+        "sha256": "02fc3b4034a9550084439ecf24a9cb2a057840cd4c20ff377a8245f0d7fa2f58",
+        "method": 8,
+        "directory": false
+      },
+      {
+        "name": "com/tom_roush/fontbox/resources/cmap/EUC-V",
+        "size": 3292,
+        "sha256": "beaf35ca3bc2ad1bbe3d87a295f80393425c347bca7ad33e68958908f04079a9",
+        "method": 8,
+        "directory": false
+      },
+      {
+        "name": "com/tom_roush/fontbox/resources/cmap/Ext-RKSJ-H",
+        "size": 15676,
+        "sha256": "ea4cbe2526a53486e48ab7acbb075e29fd8cdee2b056133610854af1510962ab",
+        "method": 8,
+        "directory": false
+      },
+      {
+        "name": "com/tom_roush/fontbox/resources/cmap/Ext-RKSJ-V",
+        "size": 3550,
+        "sha256": "d943e0ae518c2bc1eea6b39dfcfab69c396bbdbdbf913c3c070f1cf3d83d54ae",
+        "method": 8,
+        "directory": false
+      },
+      {
+        "name": "com/tom_roush/fontbox/resources/cmap/GB-EUC-H",
+        "size": 4496,
+        "sha256": "fa25c5791620ed8dae9d7f199c2c415d4d4b84971f85069ba9802efc2fb054bf",
+        "method": 8,
+        "directory": false
+      },
+      {
+        "name": "com/tom_roush/fontbox/resources/cmap/GB-EUC-V",
+        "size": 3169,
+        "sha256": "714c9658f04d00c2ecf40a8c61765fada60122b3ea42cc77698f971d5b5d6cb1",
+        "method": 8,
+        "directory": false
+      },
+      {
+        "name": "com/tom_roush/fontbox/resources/cmap/GBK-EUC-H",
+        "size": 83171,
+        "sha256": "9a5dd798943b1a022cc04569c9b219d89b1f2dc11ae3346433d8e5dd55fa518b",
+        "method": 8,
+        "directory": false
+      },
+      {
+        "name": "com/tom_roush/fontbox/resources/cmap/GBK-EUC-V",
+        "size": 3158,
+        "sha256": "3f517d357c3aa087361728eddc09f099673eb50896610a56efe5aae400a1d8c6",
+        "method": 8,
+        "directory": false
+      },
+      {
+        "name": "com/tom_roush/fontbox/resources/cmap/GBK2K-H",
+        "size": 90995,
+        "sha256": "94b54de60a7949d1ad6d7eafd5fa27f71c9adb5178854fa51a0e4453b7c86381",
+        "method": 8,
+        "directory": false
+      },
+      {
+        "name": "com/tom_roush/fontbox/resources/cmap/GBK2K-V",
+        "size": 3551,
+        "sha256": "a78c093fd20cd6518259803c83981308e11d2a6755e2b0b354a85ae67c2251a3",
+        "method": 8,
+        "directory": false
+      },
+      {
+        "name": "com/tom_roush/fontbox/resources/cmap/GBKp-EUC-H",
+        "size": 83152,
+        "sha256": "6d69b495381489ee27ce375c4874177e96a20e106331d8d90429d27140e77e16",
+        "method": 8,
+        "directory": false
+      },
+      {
+        "name": "com/tom_roush/fontbox/resources/cmap/GBKp-EUC-V",
+        "size": 3164,
+        "sha256": "18ac591fe2129fbbcfcef9b8bbd485e97e5348c492aefc31c2472018a14cb3a7",
+        "method": 8,
+        "directory": false
+      },
+      {
+        "name": "com/tom_roush/fontbox/resources/cmap/GBpc-EUC-H",
+        "size": 4524,
+        "sha256": "bb641407340acf3d86ef6c32938799c7b6785e10dcdd539d159d88992fc6c935",
+        "method": 8,
+        "directory": false
+      },
+      {
+        "name": "com/tom_roush/fontbox/resources/cmap/GBpc-EUC-V",
+        "size": 3181,
+        "sha256": "80545181928392bcfac425cf3badb115f9b5ede9fbf3ca894e8a2e54a6c0a84b",
+        "method": 8,
+        "directory": false
+      },
+      {
+        "name": "com/tom_roush/fontbox/resources/cmap/H",
+        "size": 5010,
+        "sha256": "6a9a490592a6a014b61b8e778da66f27f837558e4de8b40081c821909afd88cf",
+        "method": 8,
+        "directory": false
+      },
+      {
+        "name": "com/tom_roush/fontbox/resources/cmap/HKscs-B5-H",
+        "size": 23322,
+        "sha256": "a9d484d9038eebfe056cab89af9304537b94cbe2c56031dbb64c1578391bc8d0",
+        "method": 8,
+        "directory": false
+      },
+      {
+        "name": "com/tom_roush/fontbox/resources/cmap/HKscs-B5-V",
+        "size": 3030,
+        "sha256": "fc31fafb887a9af37eed4d1170d1ca6067140c2665b3214e95516a7ccbc7f1ac",
+        "method": 8,
+        "directory": false
+      },
+      {
+        "name": "com/tom_roush/fontbox/resources/cmap/Identity-H",
+        "size": 7889,
+        "sha256": "866c40836b501ddc098d4077d8d31e8ab8f4b9f9842db91ea9acf87488e6d7c1",
+        "method": 8,
+        "directory": false
+      },
+      {
+        "name": "com/tom_roush/fontbox/resources/cmap/Identity-V",
+        "size": 2688,
+        "sha256": "1c5ae69b98af36325cc8539f4cbe4d041f8b55b497b1e9ea45b3a75c484ed5c2",
+        "method": 8,
+        "directory": false
+      },
+      {
+        "name": "com/tom_roush/fontbox/resources/cmap/KSC-EUC-H",
+        "size": 11797,
+        "sha256": "4aa1c382cc5c291e9af14db1a35f8e1a5ddc8507420fdcc16dfb8bd0d9537184",
+        "method": 8,
+        "directory": false
+      },
+      {
+        "name": "com/tom_roush/fontbox/resources/cmap/KSC-EUC-V",
+        "size": 3105,
+        "sha256": "963ae7419ae0c87e2d9b56bda40446af4e46453f27a4384bc8b3e8106fee51b4",
+        "method": 8,
+        "directory": false
+      },
+      {
+        "name": "com/tom_roush/fontbox/resources/cmap/KSCms-UHC-H",
+        "size": 16009,
+        "sha256": "94ea4aeb4aff7b75dea32fa5425fef6f9a2859d99d001e874fb7948f672ffbb2",
+        "method": 8,
+        "directory": false
+      },
+      {
+        "name": "com/tom_roush/fontbox/resources/cmap/KSCms-UHC-HW-H",
+        "size": 16005,
+        "sha256": "317ddb148acf62c396f9610ddabcccb7fb4d8035af247c60184ae8dcaa969eff",
+        "method": 8,
+        "directory": false
+      },
+      {
+        "name": "com/tom_roush/fontbox/resources/cmap/KSCms-UHC-HW-V",
+        "size": 3118,
+        "sha256": "d3628080a1e9ea9ba388fc65c3d2ebd80e7f297b3916495ecc57e977dfdbd10f",
+        "method": 8,
+        "directory": false
+      },
+      {
+        "name": "com/tom_roush/fontbox/resources/cmap/KSCms-UHC-V",
+        "size": 3119,
+        "sha256": "eb999e7aedff28d89a21c6c3f57d4450dd68054a1f40fa39e0259afad3a6e5cc",
+        "method": 8,
+        "directory": false
+      },
+      {
+        "name": "com/tom_roush/fontbox/resources/cmap/KSCpc-EUC-H",
+        "size": 12624,
+        "sha256": "43f20e1fc1b09caf46e0756ace2ac4ee8fb9380c32ab83f18dc2eb608c84c92b",
+        "method": 8,
+        "directory": false
+      },
+      {
+        "name": "com/tom_roush/fontbox/resources/cmap/KSCpc-EUC-V",
+        "size": 3117,
+        "sha256": "4fbf738a8f5a2509d576b76b1c0f4a025ee30ceb0918f318098ae55e4aa8870a",
+        "method": 8,
+        "directory": false
+      },
+      {
+        "name": "com/tom_roush/fontbox/resources/cmap/UniCNS-UCS2-H",
+        "size": 326418,
+        "sha256": "66d61241fc5753ad3552a323cb9a19df13d7fe8f20d93b4ff3ffdbd612f95c66",
+        "method": 8,
+        "directory": false
+      },
+      {
+        "name": "com/tom_roush/fontbox/resources/cmap/UniCNS-UCS2-V",
+        "size": 3040,
+        "sha256": "bcab0409b46fbe543702385af21fcb157a3a48dfdf1c8339b9c207cd475c749a",
+        "method": 8,
+        "directory": false
+      },
+      {
+        "name": "com/tom_roush/fontbox/resources/cmap/UniCNS-UTF16-H",
+        "size": 252742,
+        "sha256": "72ca52e339289db8d99f0efec1deda556a21c8aa24ca90b2b286542f1791a3c6",
+        "method": 8,
+        "directory": false
+      },
+      {
+        "name": "com/tom_roush/fontbox/resources/cmap/UniCNS-UTF16-V",
+        "size": 3029,
+        "sha256": "9a569876c221587c192ba1051747dddc31025b295380a69e75d7c43652eb336e",
+        "method": 8,
+        "directory": false
+      },
+      {
+        "name": "com/tom_roush/fontbox/resources/cmap/UniGB-UCS2-H",
+        "size": 274452,
+        "sha256": "4603049c11199a18eadde1bb868cb9e8fb77b48f9f94cc1a8479dc575dfbe7d7",
+        "method": 8,
+        "directory": false
+      },
+      {
+        "name": "com/tom_roush/fontbox/resources/cmap/UniGB-UCS2-V",
+        "size": 3236,
+        "sha256": "2c244746379aab24392bc55faba4970fa536ee3c2c116c9126f4e8f97cd5b59b",
+        "method": 8,
+        "directory": false
+      },
+      {
+        "name": "com/tom_roush/fontbox/resources/cmap/UniGB-UTF16-H",
+        "size": 199956,
+        "sha256": "5bd239e20b678428318efb1ba3085c5ff19ea3c82dc4d9ea790efe46aa6bff81",
+        "method": 8,
+        "directory": false
+      },
+      {
+        "name": "com/tom_roush/fontbox/resources/cmap/UniGB-UTF16-V",
+        "size": 3130,
+        "sha256": "d5f7dd7c6ddd6b5d39a971a728c5d721fc1786227b3f1725bf8d26ce6dd530a4",
+        "method": 8,
+        "directory": false
+      },
+      {
+        "name": "com/tom_roush/fontbox/resources/cmap/UniJIS-UCS2-H",
+        "size": 168666,
+        "sha256": "25a5fa588b689c13501498d08d34866b77c42582e6299a4e223849db9281e86b",
+        "method": 8,
+        "directory": false
+      },
+      {
+        "name": "com/tom_roush/fontbox/resources/cmap/UniJIS-UCS2-HW-H",
+        "size": 2889,
+        "sha256": "3008e520b23f8d3838f2463efb1a9842f66adca29cbecf15cd6bda1955788e57",
+        "method": 8,
+        "directory": false
+      },
+      {
+        "name": "com/tom_roush/fontbox/resources/cmap/UniJIS-UCS2-HW-V",
+        "size": 6660,
+        "sha256": "45d7bd6e0cbf31853e3b517d5b6d2939e0831d86ca4318887a059967b9512545",
+        "method": 8,
+        "directory": false
+      },
+      {
+        "name": "com/tom_roush/fontbox/resources/cmap/UniJIS-UCS2-V",
+        "size": 6578,
+        "sha256": "cf815152be6bee432087f63fba26345b581d718c7ce5ba4560fd6ebde8f2ad2a",
+        "method": 8,
+        "directory": false
+      },
+      {
+        "name": "com/tom_roush/fontbox/resources/cmap/UniJIS-UTF16-H",
+        "size": 187728,
+        "sha256": "d2fd8b3c6001ea398c04e0f910e0bc63819405e5ae63a167d93d2a2160466afa",
+        "method": 8,
+        "directory": false
+      },
+      {
+        "name": "com/tom_roush/fontbox/resources/cmap/UniJIS-UTF16-V",
+        "size": 5762,
+        "sha256": "f18385a7fdf57183091f9cadc8fbfbf27712284934f04ae44f3a4d3bdefa032f",
+        "method": 8,
+        "directory": false
+      },
+      {
+        "name": "com/tom_roush/fontbox/resources/cmap/UniKS-UCS2-H",
+        "size": 166078,
+        "sha256": "bd4277d5ae23f3a92252cc54e6449c240d25c918c3b91f6abbccb1a2be4b9acf",
+        "method": 8,
+        "directory": false
+      },
+      {
+        "name": "com/tom_roush/fontbox/resources/cmap/UniKS-UCS2-V",
+        "size": 3145,
+        "sha256": "904f9c063ab89075b09bf2c471cfc2ac4db6604c3a2ae29a08c9c37761a353e4",
+        "method": 8,
+        "directory": false
+      },
+      {
+        "name": "com/tom_roush/fontbox/resources/cmap/UniKS-UTF16-H",
+        "size": 122974,
+        "sha256": "ddd37676e3ae5ced89062cd2c8c859dda4363f5a835c16aca989855f47b1f70c",
+        "method": 8,
+        "directory": false
+      },
+      {
+        "name": "com/tom_roush/fontbox/resources/cmap/UniKS-UTF16-V",
+        "size": 3099,
+        "sha256": "334ae271967e8bc786efd35283c615e99c23052b43e15039cc656b8954ee2a18",
+        "method": 8,
+        "directory": false
+      },
+      {
+        "name": "com/tom_roush/fontbox/resources/cmap/V",
+        "size": 3268,
+        "sha256": "8eea3990962a4c5dd9565fcdfd30497747b6004940bb8d71fa2e0b0669eb9237",
+        "method": 8,
+        "directory": false
+      },
+      {
+        "name": "com/tom_roush/fontbox/resources/unicode/Scripts.txt",
+        "size": 166719,
+        "sha256": "47744a58fa24e82df8258ea1e866a058ae87f9f78304964cf1ddad0a3657bfd8",
+        "method": 8,
+        "directory": false
+      },
+      {
+        "name": "com/tom_roush/pdfbox/resources/afm/Courier-Bold.afm",
+        "size": 15675,
+        "sha256": "1e86f0a949e316c08df32adc2fc2e2a92ed9902ffd54e3516e5a66a32db856da",
+        "method": 8,
+        "directory": false
+      },
+      {
+        "name": "com/tom_roush/pdfbox/resources/afm/Courier-BoldOblique.afm",
+        "size": 15741,
+        "sha256": "e1349f5f306b16338972eaf7f43d7913535cc075a15189b5f3efc841aee3d02e",
+        "method": 8,
+        "directory": false
+      },
+      {
+        "name": "com/tom_roush/pdfbox/resources/afm/Courier-Oblique.afm",
+        "size": 15783,
+        "sha256": "9e3494b4abb127a6586c095a377924514dd6956973f8f3b0bd7d6d00fcc89ea6",
+        "method": 8,
+        "directory": false
+      },
+      {
+        "name": "com/tom_roush/pdfbox/resources/afm/Courier.afm",
+        "size": 15677,
+        "sha256": "e72833dda79161e3aaf385adfeb59c61c89a4a3e184f27d21c178056eea30e17",
+        "method": 8,
+        "directory": false
+      },
+      {
+        "name": "com/tom_roush/pdfbox/resources/afm/Helvetica-Bold.afm",
+        "size": 72096,
+        "sha256": "59ac93091bc7e76eb6baf60210526a4df88fe107dd5e13eb0ae70c9fc6d91fb9",
+        "method": 8,
+        "directory": false
+      },
+      {
+        "name": "com/tom_roush/pdfbox/resources/afm/Helvetica-BoldOblique.afm",
+        "size": 72192,
+        "sha256": "1f848276efd76c0e5020ef98ccb459005f5a022f56cb8579e52c98e33ffab03b",
+        "method": 8,
+        "directory": false
+      },
+      {
+        "name": "com/tom_roush/pdfbox/resources/afm/Helvetica-Oblique.afm",
+        "size": 77443,
+        "sha256": "8c00ac46ca5963df22d4fc1153ea1246c8778475820378640c8d54d4fd3a46fe",
+        "method": 8,
+        "directory": false
+      },
+      {
+        "name": "com/tom_roush/pdfbox/resources/afm/Helvetica.afm",
+        "size": 77343,
+        "sha256": "5654761eab868ccb3080122accf13b4fb79edf37af09e1c57a881c35c334ee03",
+        "method": 8,
+        "directory": false
+      },
+      {
+        "name": "com/tom_roush/pdfbox/resources/afm/Symbol.afm",
+        "size": 9953,
+        "sha256": "13eeef80def2f9a8d3a31a980731376823e8b48340ff3891ffc1cc0299c0b4fe",
+        "method": 8,
+        "directory": false
+      },
+      {
+        "name": "com/tom_roush/pdfbox/resources/afm/Times-Bold.afm",
+        "size": 66839,
+        "sha256": "37efa084183acfb06f45ad73bd75f6dd09b20d1e498c66ce1b9aa72b00db4ac7",
+        "method": 8,
+        "directory": false
+      },
+      {
+        "name": "com/tom_roush/pdfbox/resources/afm/Times-BoldItalic.afm",
+        "size": 62026,
+        "sha256": "1bf83cee5300d4de1ce90681a2a2d70fd1876c664e91c1c4c6b6b5b12873b6da",
+        "method": 8,
+        "directory": false
+      },
+      {
+        "name": "com/tom_roush/pdfbox/resources/afm/Times-Italic.afm",
+        "size": 68995,
+        "sha256": "2f34d3bc49530532daa690aec165b68368162d4c27d24fbe6a3fb24aae49a74a",
+        "method": 8,
+        "directory": false
+      },
+      {
+        "name": "com/tom_roush/pdfbox/resources/afm/Times-Roman.afm",
+        "size": 62879,
+        "sha256": "b6dbde33196ff61f051f8468fb81a0dece63997a80b7fba058e8295f49480026",
+        "method": 8,
+        "directory": false
+      },
+      {
+        "name": "com/tom_roush/pdfbox/resources/afm/ZapfDingbats.afm",
+        "size": 9752,
+        "sha256": "d3e7b9f6366ab0df06acbb217c8586c5962ff2efbd4e1b5566c7eaf5b745dd41",
+        "method": 8,
+        "directory": false
+      },
+      {
+        "name": "com/tom_roush/pdfbox/resources/glyphlist/additional.txt",
+        "size": 3472,
+        "sha256": "b4329742fc6c6d35ecf66fb7ae23099b2a8274f43a7a96fd8b5a6b79090cd9de",
+        "method": 8,
+        "directory": false
+      },
+      {
+        "name": "com/tom_roush/pdfbox/resources/glyphlist/glyphlist.txt",
+        "size": 78111,
+        "sha256": "4f71046e46ced81d1e636d595a372fcb63d4696444c497ef1c59224478745351",
+        "method": 8,
+        "directory": false
+      },
+      {
+        "name": "com/tom_roush/pdfbox/resources/glyphlist/zapfdingbats.txt",
+        "size": 3923,
+        "sha256": "e1afd7b8676d20a5b25a92342ad59e209ee6722708d1f7892353fa4e0fd879c7",
+        "method": 8,
+        "directory": false
+      },
+      {
+        "name": "com/tom_roush/pdfbox/resources/text/BidiMirroring.txt",
+        "size": 24691,
+        "sha256": "350d1302116194b0b21def287434b55c5088098fbc726e879f7420a391965643",
+        "method": 8,
+        "directory": false
+      },
+      {
+        "name": "com/tom_roush/pdfbox/resources/ttf/LiberationSans-Regular.ttf",
+        "size": 410712,
+        "sha256": "76d04c18ea243f426b7de1f3ad208e927008f961dc5945e5aad352d0dfde8ee8",
+        "method": 8,
+        "directory": false
+      }
+    ],
+    "count": 112
+  },
+  "outputSha256": "dcc57416201ae1ba8754849729d69b32ef732961f5cbfba3d0f4146bf31d1272",
+  "aarPath": "~/.gradle/caches/modules-2/files-2.1/com.tom-roush/pdfbox-android/2.0.27.0/65a2f2b106b3d4ee37c5044cfc72384138bd60d4/pdfbox-android-2.0.27.0.aar",
+  "aarSha256": "30277f879cfd571db2a137582c95516a0d4ea6778e945519bc58ca93d57d88c7"
+}

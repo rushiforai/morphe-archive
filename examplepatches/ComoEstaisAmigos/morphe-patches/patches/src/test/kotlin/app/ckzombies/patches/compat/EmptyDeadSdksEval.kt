@@ -9,8 +9,10 @@ import kotlin.test.assertTrue
  * URL constants in classes.dex.
  *
  * After [deadServersPatch] the wrappers return before they touch these packages,
- * and [emptyDeadSdks] drops the method/field string constants. A later scan that
- * still lists these hosts is a class the empty set missed.
+ * and [emptyDeadSdks] drops the method/field string constants.
+ * [rewriteOriginalDexThroughDexPool] drops the original DEX so emptied hosts
+ * are not left in its string pool. A later scan that still lists these hosts
+ * is a class the empty set missed.
  */
 class EmptyDeadSdksEval {
     @Test

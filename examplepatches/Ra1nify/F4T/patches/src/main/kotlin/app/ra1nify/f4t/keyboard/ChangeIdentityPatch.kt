@@ -29,22 +29,10 @@ private const val MANIFEST = "AndroidManifest.xml"
 private const val CONTENT_URI_PREFIX = "content://$STOCK_PACKAGE."
 
 /**
- * Moves the patched keyboard out of the stock identity so the privileged, stock-signed build stays
- * untouched.
+ * Renames the patched keyboard to its own package and label.
  *
- * The stock keyboard ships as a system component: it cannot be replaced in place, and a re-signed
- * rebuild under the same package would either fail to install or lose the privileged checks. The
- * patched build therefore installs under its own package and its own label, which is what the rest
- * of the bundle relies on.
- *
- * Renaming the manifest alone is not enough, because the app keeps pointing at resources of the
- * stock package. The rename is therefore completed here as well:
- * - the provider authorities and the `content://` authorities hardcoded in the bytecode,
- * - the dynamic receiver permission declared and referenced by the manifest,
- * - the IME service, which has to be exported because the input method manager does not bind a
- *   service of a non-system package that is not exported,
- * - a `<queries>` entry for the stock package, so the cloud configuration sync can still read its
- *   version code.
+ * Renames the manifest package, the provider authorities, the hardcoded `content://` authorities in
+ * bytecode, the dynamic receiver permission, the IME service (exported) and the app_name resource.
  */
 @Suppress("unused")
 val changeIdentityPatch = resourcePatch(
@@ -59,7 +47,6 @@ val changeIdentityPatch = resourcePatch(
 ) {
     compatibleWith(OPLUS_KEYBOARD)
 
-    // The anti-resale notice is not optional: every keyboard patch pulls it in.
     dependsOn(keyboardAntiResalePatch)
 
     execute {
@@ -94,9 +81,7 @@ private fun renameManifest() {
         }
         root.setAttribute("package", TARGET_PACKAGE)
 
-        // The cloud configuration sync reads the version code of the stock package. Package visibility
-        // hides an installed package from a renamed and re-signed APK, so without this entry the sync
-        // throws NameNotFoundException and the HMAC keys are never fetched (all X-Sign requests fail).
+        // Package visibility for the stock package; the config sync reads its version code.
         val queries = manifest.elements("queries").firstOrNull() ?: root.appendChild("queries")
         if (queries.elements("package").none { element -> element.attribute("android:name") == STOCK_PACKAGE }) {
             queries.appendChild("package") { setAttribute("android:name", STOCK_PACKAGE) }
@@ -201,13 +186,9 @@ private fun renameHardcodedAuthorities() {
 private fun receiverPermission() = "$TARGET_PACKAGE.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION"
 
 /**
- * The label is a resource of every locale, so it is changed where it is declared. Without it the
- * patched build and the stock keyboard are indistinguishable in the launcher and in the input method
- * picker.
- *
- * The locale is taken from the resource directory name, not from the resource itself: `values` is the
- * default (English here), `values-zh-rCN` and the other simplified Chinese configurations use the
- * simplified name, and `values-zh-rHK` / `values-zh-rTW` / `values-zh-rMO` use the traditional one.
+ * Replaces `app_name` in every locale, taking the locale from the resource directory name:
+ * `values` is English, `values-zh-rCN` and the other simplified Chinese configurations use the
+ * simplified name, `values-zh-rHK` / `values-zh-rTW` / `values-zh-rMO` the traditional one.
  */
 private fun renameAppName() {
     val valuesFiles = listDecodableFiles("res/values*/strings.xml")

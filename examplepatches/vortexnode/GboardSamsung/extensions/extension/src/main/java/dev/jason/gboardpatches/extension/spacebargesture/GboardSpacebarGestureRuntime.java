@@ -26,6 +26,8 @@ import java.util.WeakHashMap;
 public final class GboardSpacebarGestureRuntime {
     private static final String HEADER_ID_NAME = "keyboard_header_view_holder";
     private static final Map<View, HolderSession> SESSIONS = new WeakHashMap<>();
+    private static final GboardSpacebarSwipeDirectionResolver SWIPE_DIRECTION_RESOLVER =
+            new GboardSpacebarSwipeDirectionResolver();
     private static final ThreadLocal<Boolean> CANCELLING = ThreadLocal.withInitial(() -> false);
     private static WeakReference<HolderSession> activeSessionRef;
     private static volatile int headerId;
@@ -168,11 +170,17 @@ public final class GboardSpacebarGestureRuntime {
         if (result.languageDirection != GboardSpacebarGestureState.LanguageDirection.NONE) {
             InputMethodService service =
                     activeService != null ? activeService : resolveInputMethodService(holder);
-            if (result.languageDirection == GboardSpacebarGestureState.LanguageDirection.NEXT) {
-                GboardSpacebarLanguageNavigator.switchNext(service);
-            } else if (result.languageDirection
-                    == GboardSpacebarGestureState.LanguageDirection.PREVIOUS) {
-                GboardSpacebarLanguageNavigator.switchPrevious(service);
+            String swipeMode = GboardSpacebarGestureSettings.getSpacebarLanguageSwipeMode(
+                    holder.getContext());
+            int step = SWIPE_DIRECTION_RESOLVER.resolveStep(
+                    swipeMode,
+                    result.languageDirection,
+                    currentElapsedRealtimeMs(),
+                    session.editorSignature());
+            if (step != 0) {
+                boolean useRecentOrder =
+                        GboardSpacebarGestureSettings.SWIPE_MODE_GBOARD.equals(swipeMode);
+                GboardSpacebarLanguageNavigator.switchByStep(service, step, useRecentOrder);
             }
         }
 
@@ -196,6 +204,7 @@ public final class GboardSpacebarGestureRuntime {
             }
         }
         SESSIONS.clear();
+        SWIPE_DIRECTION_RESOLVER.reset();
         activeSessionRef = null;
         headerId = 0;
     }
@@ -408,6 +417,14 @@ public final class GboardSpacebarGestureRuntime {
         return !equalsNullable(current.packageName, session.capturedPackageName);
     }
 
+    private static long currentElapsedRealtimeMs() {
+        try {
+            return SystemClock.elapsedRealtime();
+        } catch (Throwable ignored) {
+            return System.nanoTime() / 1_000_000L;
+        }
+    }
+
     private static boolean equalsNullable(String first, String second) {
         return first == null ? second == null : first.equals(second);
     }
@@ -434,6 +451,13 @@ public final class GboardSpacebarGestureRuntime {
             capturedFieldId = editorInfo.fieldId;
             capturedInputType = editorInfo.inputType;
             capturedPackageName = editorInfo.packageName;
+        }
+
+        String editorSignature() {
+            if (!hasCapturedEditor) {
+                return null;
+            }
+            return capturedPackageName + ":" + capturedFieldId + ":" + capturedInputType;
         }
 
         void clearActiveEditor() {

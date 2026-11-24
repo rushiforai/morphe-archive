@@ -1,7 +1,7 @@
 {
-  "created_at": "2026-11-22T10:50:11",
-  "description": "## [1.13.0](https://github.com/0x11DFE/morphe-patches/compare/v1.12.9...v1.13.0) (2026-11-22)\n\n### New Features\n\n* **scene:** locate the daemon gate by instruction signature ([579bc79](https://github.com/0x11DFE/morphe-patches/commit/579bc7906493e7ddce42cfaee506cb05715dadf6)), closes [#1](https://github.com/0x11DFE/morphe-patches/issues/1)",
-  "download_url": "https://github.com/0x11DFE/morphe-patches/releases/download/v1.13.0/patches-1.13.0.mpp",
+  "created_at": "2026-11-23T22:43:09",
+  "description": "## [1.18.2](https://github.com/0x11DFE/morphe-patches/compare/v1.18.1...v1.18.2) (2026-11-23)\n\n### Bug Fixes\n\n* **galaxymaxhz:** escape the JSON quotes for the smali assembler ([2da8e84](https://github.com/0x11DFE/morphe-patches/commit/2da8e848121a4e4f1b6a057374537ed0a36914c6))",
+  "download_url": "https://github.com/0x11DFE/morphe-patches/releases/download/v1.18.2/patches-1.18.2.mpp",
   "signature_download_url": "",
-  "version": "1.13.0"
+  "version": "1.18.2"
 }

@@ -15,7 +15,7 @@ https://morphe.software/add-source?github=ZoomSass/Mighty-Morphing
 - <span style="color:#d85a45">**Dismiss without tearing:**</span> Swiping a photo away to close it looks smooth instead of tearing.
 - <span style="color:#d85a45">**Editor image and GIF upload:**</span> Uploads images and GIFs to Reddit directly when adding comments. Both can be uploaded via the image button. Also adds keyboard gif auto upload to reddit (click markdown in editor (far left icon) to enable keyboard gif support). Also works when editing a comment, and explains when a subreddit doesn't allow images or GIFs in comments.
 - <span style="color:#d85a45">**Fix adaptive icon:**</span> Fixes the inverted colours in Joey's themed launcher icon. Fix by IchinichiQ.
-- <span style="color:#d85a45">**Fix collapsed replies:**</span> Loads replies that stay hidden when Reddit will not open them. Based on the Patcheddit fix.
+- <span style="color:#d85a45">**Fix collapsed replies:**</span> [v1.6.1: Further fixes, and expanded comment issue logging in Report a problem.] Loads replies that stay hidden when Reddit will not open them. Based on the Patcheddit fix.
 - <span style="color:#d85a45">**Fix login page:**</span> Makes Reddit's login page load and work properly inside Joey, and clears the cookie banner out of the way.
 - <span style="color:#d85a45">**Inline comment media:**</span> Shows GIFs, pictures, subreddit emojis and Reddit videos in comments instead of links. Tap to open, drag left or right to resize, and scroll past them as normal. YouTube links use a 16:9 preview with the title. Extra settings in Joey Settings - Morphe Settings.
 - <span style="color:#d85a45">**Log in with your own client ID:**</span> Lets Joey log in with another app's client ID, for when Joey's own login stops working. Normal option here is to sign in to RedReader once, then paste the App ID from Reddit's "you authorized an app" email into this patch's settings in expert mode.
@@ -49,6 +49,9 @@ https://morphe.software/add-source?github=ZoomSass/Mighty-Morphing
 - **Patcheddit:** The collapsed replies fix and the login page fix are based on its patches.
 - **Infinity for Reddit:** Inline comment media reads Reddit's gallery and emoji data the same way it does.
 - **Arctic Shift** by Arthur Heitmann: Added restore functionality using Arctic Shift. https://github.com/ArthurHeitmann/arctic_shift
+
+## Support
+If you'd like to support the project (mostly cat treats for my coding buddy): https://ko-fi.com/zoomsass
 
 ## License
 

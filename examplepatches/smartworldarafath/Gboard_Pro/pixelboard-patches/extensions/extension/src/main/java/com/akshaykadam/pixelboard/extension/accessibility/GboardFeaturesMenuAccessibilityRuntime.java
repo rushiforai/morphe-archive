@@ -22,6 +22,10 @@ public final class GboardFeaturesMenuAccessibilityRuntime {
             return;
         }
         try {
+            com.akshaykadam.pixelboard.extension.keyboard.GboardKeyboardLiquidGlassRuntime.styleAccessPointsPanel(view);
+        } catch (Throwable ignored) {
+        }
+        try {
             if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.P) {
                 view.setAccessibilityPaneTitle(resolvePaneTitle(view));
             }
@@ -33,6 +37,10 @@ public final class GboardFeaturesMenuAccessibilityRuntime {
     public static void onAccessPointsPanelVisibilityChanged(final View view) {
         if (view == null || !isVisible(view)) {
             return;
+        }
+        try {
+            com.akshaykadam.pixelboard.extension.keyboard.GboardKeyboardLiquidGlassRuntime.styleAccessPointsPanel(view);
+        } catch (Throwable ignored) {
         }
         try {
             if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.P) {

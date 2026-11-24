@@ -16,7 +16,7 @@ public class DrcAudioPatch {
     public static void traceLoudness(Object format, float loudnessDb) {
         if (!CrossfadeTrace.isTransitionObserved()) return;
         CrossfadeTrace.event("FORMAT_LOUDNESS", null, () -> "format=" + CrossfadeTrace.id(format)
-                + " selection=model loudnessDb=" + loudnessDb + " disableDrc=" + DISABLE_DRC_AUDIO
+                + " selection=model loudnessDb=" + loudnessDb + " disableNormalization=" + DISABLE_DRC_AUDIO
                 + " resultingLoudnessDb=" + (DISABLE_DRC_AUDIO ? 0.0f : loudnessDb));
     }
 

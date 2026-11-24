@@ -1,3 +1,11 @@
+/*
+ * Based on Michii Patches by heyymichii, GPLv3:
+ * https://github.com/heyymichii/michii-patches
+ *
+ * Modifications copyright 2026 amfakh
+ * SPDX-License-Identifier: GPL-3.0-only
+ */
+
 package app.fakh.extension.linkedin;
 
 import java.lang.reflect.Method;

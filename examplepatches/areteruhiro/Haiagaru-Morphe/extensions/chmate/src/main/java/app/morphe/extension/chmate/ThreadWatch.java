@@ -21,6 +21,20 @@ public final class ThreadWatch {
     private static final String CHANNEL="haiagaru_thread_updates";
     static final Object LOCK=new Object();
     static SharedPreferences prefs(Context c){return c.getSharedPreferences(PREFS,0);}
+    private static SharedPreferences options(Context c){return c.getSharedPreferences(PREFS+"_options",0);}
+    static boolean manuallyStopped(Context c,String url){
+        ThreadWatchRules.Target target=ThreadWatchRules.target(url);
+        return target!=null&&options(c).getStringSet("manuallyStopped",Collections.emptySet()).contains(target.url);
+    }
+    static void setManuallyStopped(Context c,String url,boolean stopped){
+        ThreadWatchRules.Target target=ThreadWatchRules.target(url);if(target==null)return;
+        synchronized(LOCK){
+            Set<String> urls=new HashSet<>(options(c).getStringSet("manuallyStopped",Collections.emptySet()));
+            if(stopped)urls.add(target.url);else urls.remove(target.url);
+            options(c).edit().putStringSet("manuallyStopped",urls).commit();
+            if(stopped){NotificationManager manager=(NotificationManager)c.getSystemService(Context.NOTIFICATION_SERVICE);if(manager!=null)manager.cancel(target.url,JOB);}
+        }
+    }
     static int interval(Context c){return Math.max(1,Math.min(10080,c.getSharedPreferences(PREFS+"_options",0).getInt("minutes",15)));}
     static String intervalLabel(int minutes){
         StringBuilder text=new StringBuilder();
@@ -137,11 +151,12 @@ public final class ThreadWatch {
                             .put("repliesOnly",replies.isChecked()).put("stopAfterReply",stop.isChecked());
                         ThreadWatchManagement.renew(item,duration[0]);
                         prefs(a).edit().putString(t.url,item.toString()).commit();
+                        setManuallyStopped(a,t.url,false);
                     }catch(Exception error){return;}}
                     schedule(a);permission(a);
                 }).setNegativeButton(registered?"登録を解除":"閉じる",(d,w)->{
                     if(!registered)return;
-                    synchronized(LOCK){prefs(a).edit().remove(t.url).commit();}
+                    synchronized(LOCK){setManuallyStopped(a,t.url,true);prefs(a).edit().remove(t.url).commit();}
                     ((NotificationManager)a.getSystemService(Context.NOTIFICATION_SERVICE)).cancel(t.url,JOB);schedule(a);
                 });HaiagaruDialog parent=dialog.create();keepParentForInterval(parent,a,()->parent.setMessage(watchMessage(a,registered,saved)));parent.show();
         }catch(Exception error){Toast.makeText(a,"通知設定を開けません",Toast.LENGTH_LONG).show();}
@@ -157,6 +172,7 @@ public final class ThreadWatch {
             if(!tail.matches("[0-9]{1,7}/?"))return;
             int number=Integer.parseInt(tail.replace("/",""));if(number<1)return;
             synchronized(LOCK){
+                if(manuallyStopped(c,t.url))return;
                 if(!prefs(c).contains(t.url)&&prefs(c).getAll().size()>=100)return;
                 JSONObject item=new JSONObject(prefs(c).getString(t.url,"{}"));
                 org.json.JSONArray own=item.optJSONArray("own");if(own==null)own=new org.json.JSONArray();
@@ -173,7 +189,7 @@ public final class ThreadWatch {
     }
     static boolean hasActive(Context c){
         for(String url:prefs(c).getAll().keySet())try{
-            if(ThreadWatchRules.target(url)!=null&&ThreadWatchManagement.active(new JSONObject(prefs(c).getString(url,"{}")),System.currentTimeMillis()))return true;
+            if(ThreadWatchRules.target(url)!=null&&!manuallyStopped(c,url)&&ThreadWatchManagement.active(new JSONObject(prefs(c).getString(url,"{}")),System.currentTimeMillis()))return true;
         }catch(Exception ignored){}
         return false;
     }
@@ -204,8 +220,8 @@ public final class ThreadWatch {
         }
     }
     static void check(Context c,AtomicBoolean stopped){
+        if(stopped.get())return;
         Map<String,List<String>> groups=new LinkedHashMap<>();
-        Set<String> notified=new LinkedHashSet<>();
         for(String key:prefs(c).getAll().keySet()){
             ThreadWatchRules.Target t=ThreadWatchRules.target(key);
             try{if(t!=null&&ThreadWatchManagement.active(new JSONObject(prefs(c).getString(key,"{}")),System.currentTimeMillis()))groups.computeIfAbsent(t.subject,k->new ArrayList<>()).add(key);}catch(Exception ignored){}
@@ -217,6 +233,7 @@ public final class ThreadWatch {
             synchronized(LOCK){for(String key:group.getValue())try{tokens.put(key,new JSONObject(prefs(c).getString(key,"{}")).optString("token"));}catch(Exception ignored){}}
             try{
                 String subject=fetch(group.getKey(),stopped);
+                if(stopped.get())return;
                 Map<String,Integer> counts=ThreadWatchRules.counts(subject);
                 Map<String,String> titles=ThreadWatchRules.titles(subject);
                 for(String key:group.getValue()){
@@ -295,7 +312,6 @@ public final class ThreadWatch {
                             int delivered=repliesOnly||NotificationNg.enabled(c)?matching:Math.max(0,delta-unique);
                             if(delivered==0){item.put("count",Math.max(before,count));prefs(c).edit().putString(key,item.toString()).commit();continue;}
                             if(!notify(c,t,delivered,count,titles.get(t.id),preview,firstMatch>0?firstMatch:Math.max(1,count-delta+1),repliesOnly))continue;
-                            notified.add(t.url);
                             if(candidates.isEmpty())ThreadWatchNative.recordRange(item,before+1,count);else ThreadWatchNative.record(item,candidates.keySet());
                             if(stopAfter&&!Collections.disjoint(candidates.keySet(),directReplies))item.put("paused",true).put("pauseReason","reply");
                         }
@@ -304,9 +320,10 @@ public final class ThreadWatch {
                 }
             }catch(Exception error){android.util.Log.w("Haiagaru","Thread notification check unavailable ("+error.getClass().getSimpleName()+")");}
         }
-        // The polling DAT is only a preview. Ask the host's worker to persist
-        // the notified threads so tapping a notification can find the reply.
-        if(!stopped.get())OpenTabsRefresh.downloadWatched(c,notified);
+        // Notification polling only checks for new replies. It must not enqueue
+        // a native DAT update for every unread/hidden registered thread.
+        // ThreadWatchOpenActivity fetches the exact thread when its notification
+        // is opened; ordinary thread opening keeps ChMate's own load behavior.
     }
     private static void missing(Context c,ThreadWatchRules.Target t,String token,AtomicBoolean stopped)throws Exception{
         JSONObject snapshot;
@@ -355,6 +372,7 @@ public final class ThreadWatch {
         return plain.substring(0,end)+(end<plain.length()?"…":"");
     }
     private static boolean notify(Context c,ThreadWatchRules.Target t,int delta,int count,String title,String preview,int first,boolean repliesOnly){
+        if(manuallyStopped(c,t.url))return false;
         NotificationManager manager=(NotificationManager)c.getSystemService(Context.NOTIFICATION_SERVICE);
         if(Build.VERSION.SDK_INT>=33&&c.checkSelfPermission("android.permission.POST_NOTIFICATIONS")!=PackageManager.PERMISSION_GRANTED)return false;
         if(Build.VERSION.SDK_INT>=24&&!manager.areNotificationsEnabled())return false;

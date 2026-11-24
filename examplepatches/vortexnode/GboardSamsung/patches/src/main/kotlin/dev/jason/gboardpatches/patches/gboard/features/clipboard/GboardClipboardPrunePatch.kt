@@ -17,6 +17,8 @@ import dev.jason.gboardpatches.patches.gboard.shared.runtimeabi.RuntimeCallEmitt
 import dev.jason.gboardpatches.patches.gboard.shared.runtimeabi.RuntimeCallId
 
 private val PRUNE_RUNTIME_CALL = RuntimeCallId.CLIPBOARD_RUNTIME_HANDLE_CUSTOM_PRUNE
+private val SAMSUNG_WHOLE_BLOCK_RUNTIME_CALL =
+    RuntimeCallId.CLIPBOARD_RUNTIME_SHOULD_KEEP_WHOLE_BLOCK
 
 internal val gboardClipboardPrunePatch = bytecodePatch(
     description = "調整 clipboard DB prune 策略"
@@ -31,6 +33,13 @@ internal val gboardClipboardPrunePatch = bytecodePatch(
             parameterTypes = emptyList()
         )
         mutableMethod.applyClipboardPruneDelegate()
+        val entityExtractMethod = findMutableMethodOrThrow(
+            classType = CLIPBOARD_PRUNE_CALLABLE_CLASS,
+            name = "c",
+            returnType = "Lxqp;",
+            parameterTypes = listOf("Lfpk;", "Lxqs;")
+        )
+        entityExtractMethod.applyClipboardSamsungWholeBlockGuard()
     }
 }
 
@@ -89,3 +98,71 @@ private val PRUNE_DELEGATE = """
 """.trimIndent()
 
 private val PRUNE_METHOD_DESCRIPTOR = RuntimeAbiCatalog.abi(PRUNE_RUNTIME_CALL).reference
+
+internal fun MutableMethod.applyClipboardSamsungWholeBlockGuard() {
+    requireExactClipboardTarget(
+        CLIPBOARD_PRUNE_CALLABLE_CLASS,
+        "c",
+        "Lxqp;",
+        listOf("Lfpk;", "Lxqs;"),
+    )
+    applyVerified(
+        VerifiedTransformationPlan(
+            targetName = "$CLIPBOARD_PRUNE_CALLABLE_CLASS->c(Lfpk;Lxqs;)Lxqp;",
+            classify = MutableMethod::classifyClipboardSamsungWholeBlockGuard,
+            mutate = { method ->
+                method.addInstructions(0, SAMSUNG_WHOLE_BLOCK_DELEGATE)
+                method
+            },
+        ),
+    )
+}
+
+private fun MutableMethod.classifyClipboardSamsungWholeBlockGuard(): VerifiedTransformationState {
+    val instructions = implementation?.instructions
+        ?: error("No instructions in $definingClass->$name")
+    val delegateCount = instructions.count {
+        it.isMethodReference(SAMSUNG_WHOLE_BLOCK_METHOD_DESCRIPTOR)
+    }
+    val completed = instructions.size >= 5 &&
+        instructions[0].isExactRangeInvoke(
+            SAMSUNG_WHOLE_BLOCK_METHOD_DESCRIPTOR,
+            p0Register(),
+            1,
+        ) &&
+        instructions[1].isOpcode("MOVE_RESULT") &&
+        (instructions[1] as? OneRegisterInstruction)?.registerA == 0 &&
+        instructions[2].isOpcode("IF_EQZ") &&
+        (instructions[2] as? OneRegisterInstruction)?.registerA == 0 &&
+        instructions.hasExactBranchTarget(2, 5) &&
+        instructions[3].isOpcode("CONST_4") &&
+        (instructions[3] as? OneRegisterInstruction)?.registerA == 0 &&
+        instructions[4].isOpcode("RETURN_OBJECT") &&
+        (instructions[4] as? OneRegisterInstruction)?.registerA == 0
+    return when (instructions.clipboardRuntimeReferenceCount()) {
+        0 -> VerifiedTransformationState.STOCK
+        1 -> if (delegateCount == 1 && completed) {
+            VerifiedTransformationState.PATCHED
+        } else {
+            VerifiedTransformationState.MALFORMED
+        }
+        else -> VerifiedTransformationState.MALFORMED
+    }
+}
+
+private val SAMSUNG_WHOLE_BLOCK_DELEGATE = """
+    ${RuntimeCallEmitter.invoke(SAMSUNG_WHOLE_BLOCK_RUNTIME_CALL, "p0 .. p0")}
+
+    move-result v0
+
+    if-eqz v0, :jasondev_samsung_clipboard_continue
+
+    const/4 v0, 0x0
+
+    return-object v0
+
+    :jasondev_samsung_clipboard_continue
+""".trimIndent()
+
+private val SAMSUNG_WHOLE_BLOCK_METHOD_DESCRIPTOR =
+    RuntimeAbiCatalog.abi(SAMSUNG_WHOLE_BLOCK_RUNTIME_CALL).reference

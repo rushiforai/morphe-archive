@@ -47,5 +47,5 @@ jobs:
           sha256sum "patches/build/libs/patches-${VERSION}.mpp"
       - uses: actions/upload-artifact@v4
         with:
-          name: hatena-morphe-patches-0.4.5
-          path: patches/build/libs/patches-0.4.5.mpp
+          name: hatena-morphe-patches-0.5.0
+          path: patches/build/libs/patches-0.5.0.mpp

@@ -87,7 +87,7 @@ https://2chmate.jp.uptodown.com/android/dw/1024004246
 
 - 広告と余白の非表示、MonaKey削除、ChMate+互換設定（単発ID・コピペ・荒らしの省略）。[ChMate+互換機能](docs/chmate-plus-compat.md)
 - 画像キャッシュ上限の拡張（最大256GB）、任意のHTTP→HTTPS切り替え。[キャッシュ](docs/image-cache-size.md) ／ [HTTPS](docs/https-switching.md)
-- 必死チェッカー、ワッチョイ検索、取得済みスレ検索、外部検索。必死チェッカー専用ビューアを使わない場合は、パッチオプション`dedicatedCheckerViewer=false`を指定します。[専用ビューア](docs/id-search-viewer.md)
+- 必死チェッカー、ワッチョイ検索、取得済みスレ検索、外部検索。必死チェッカーは専用ビューアで開きます。[専用ビューア](docs/id-search-viewer.md)
 - DAT落ちスレの取得、任意のHTTPS取得経路、SS速報VIPの過去ログ、保存レス・保存用スレ。[DAT経路](docs/dat-routes.md) ／ [レスアーカイブ](docs/response-archive.md)
 - レス本文の直接選択・コピー、投稿者の強調、X投稿の本文プレビュー。[直接選択](docs/direct-body-selection.md) ／ [投稿者の強調](docs/poster-highlight.md) ／ [Xプレビュー](docs/x-post-preview.md)
 - 表示本文をTXTのルールで置換（正規表現対応）。投稿内容・保存DAT・元のNG判定は変更しません。[本文の文字列置換](docs/replace-str.md)
@@ -187,7 +187,7 @@ https://github.com/areteruhiro/Haiagaru-Morphe/
 さらにご支援いただける場合は、以下から寄付を受け付けています。
 
 - [Amazon Gift Card](https://www.amazon.co.jp/gp/product/B004N3APGO) Send to (areteruhiro@gmail.com)
-- [PayPay](https://qr.paypay.ne.jp/p2p01_oFitCfHYy04vRHVc)
+- [PayPay](https://qr.paypay.ne.jp/p2p01_FSEj08sDQx0enogO)
 
 ## 謝辞
 

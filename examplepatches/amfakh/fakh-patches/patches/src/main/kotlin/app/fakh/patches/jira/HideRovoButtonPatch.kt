@@ -1,6 +1,13 @@
+/*
+ * Copyright 2026 amfakh
+ * SPDX-License-Identifier: GPL-3.0-only
+ */
+
 package app.fakh.patches.jira
 
 import app.fakh.patches.jira.shared.Constants.COMPATIBILITY_JIRA
+import app.fakh.patches.jira.shared.Constants.HIDE_ROVO
+import app.fakh.patches.shared.register
 import app.morphe.patcher.Fingerprint
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructionsWithLabels
 import app.morphe.patcher.patch.PatchException
@@ -73,6 +80,7 @@ val hideRovoButtonPatch = patch(
     dependsOn(settingsRowsPatch)
 
     execute {
+        register(HIDE_ROVO)
         val composables = mutableClassDefBy(rovoFabFingerprint.classDef.type).methods.filter {
             it.returnType in setOf("V", "Lkotlin/Unit;") && it.parameterTypes.size in setOf(3, 5, 7, 8, 9) &&
                 it.parameterTypes.firstOrNull()?.toString() != "Z"

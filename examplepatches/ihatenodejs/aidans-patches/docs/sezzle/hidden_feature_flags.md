@@ -1,7 +1,7 @@
 # Sezzle Android App Hidden Feature Flags & Cohort Catalog
 
 **Target Package:** `com.sezzle.sezzlemobile`
-**Analyzed Version:** `5.3.9` (VersionCode: `1889`)
+**Analyzed Version:** `5.3.24` (VersionCode: `2106`)
 **Target Runtime:** React Native Fabric / Hermes Bytecode v98 (`assets/index.android.bundle`) & Dalvik (`base.apk`)
 
 ---
@@ -377,4 +377,4 @@ The Morphe patches developed in this repository directly target several of the f
 | **Sezzle Mobile Cellular**     | `useIsSezzleMobilePlanEnabled`                      | [Hide Sezzle Mobile](patches.md#patch-hide-sezzle-mobile)                               | `patches/.../navigation/HideSezzleMobilePatch.kt`              |
 | **Deals & Popovers**           | `useSelectPopupOffers` / `useRoktGiveawaysEnabled`  | [Remove Promos & Giveaways](patches.md#patch-remove-promos--giveaways)                  | `patches/.../navigation/RemovePromosAndGiveawaysPatch.kt`      |
 | **Rewards Navigation**         | `useIsShowEarnTabEnabled`                           | [Remove Rewards](patches.md#patch-remove-rewards)                                       | `patches/.../navigation/RemoveRewardsPatch.kt`                 |
-| **Personal Finance Dashboard** | `StoreRoot` children composition                    | [Replace Shop with Home](patches.md#patch-replace-shop-with-home)                       | `patches/.../navigation/ReplaceShopWithHomePatch.kt`           |
+| **Personal Finance Dashboard** | `StoreRoot` children composition                    | [Rename Shop to Home](patches.md#patch-rename-shop-to-home)                             | `patches/.../navigation/ReplaceShopWithHomePatch.kt`           |

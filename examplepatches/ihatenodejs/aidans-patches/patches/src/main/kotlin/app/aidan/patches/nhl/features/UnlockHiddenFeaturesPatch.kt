@@ -53,16 +53,16 @@ val unlockHiddenFeaturesPatch = bytecodePatch(
 }
 
 private fun BytecodePatchContext.forceDeveloperSettingsEnabled() {
-    val gateClass = mutableClassDefByOrNull("Llpk;")
+    val gateClass = mutableClassDefByOrNull("Lpnl;")
     val gateMethod = gateClass?.methods?.singleOrNull { method ->
         AccessFlags.STATIC.isSet(method.accessFlags) &&
             method.name == "a" &&
             method.parameterTypes.isEmpty() &&
             method.returnType == "Z"
-    } ?: throw PatchException("Missing required method Llpk.a()Z (developer mode gate)")
+    } ?: throw PatchException("Missing required method Lpnl.a()Z (developer mode gate)")
 
     val implementation = gateMethod.implementation
-        ?: throw PatchException("Missing required method Llpk.a()Z (developer mode gate)")
+        ?: throw PatchException("Missing required method Lpnl.a()Z (developer mode gate)")
 
     gateMethod.addInstructions(
         0,
@@ -74,21 +74,21 @@ private fun BytecodePatchContext.forceDeveloperSettingsEnabled() {
 }
 
 private fun BytecodePatchContext.forceDraftMiniTrackerEnabled() {
-    val draftClass = mutableClassDefByOrNull("Loi5;")
-        ?: throw PatchException("Missing required class Loi5 (DraftConfigResponse)")
+    val draftClass = mutableClassDefByOrNull("Lsq5;")
+        ?: throw PatchException("Missing required class Lsq5 (DraftConfigResponse)")
 
     val hasField = draftClass.fields.any { field ->
         field.name == "a" && field.type == "Z"
     }
     if (!hasField) {
-        throw PatchException("Missing required field Loi5.a:Z (isMiniTrackerActive)")
+        throw PatchException("Missing required field Lsq5.a:Z (isMiniTrackerActive)")
     }
 
     val constructor = draftClass.methods.singleOrNull { method ->
         method.name == "<init>" &&
-            method.parameterTypes == listOf("I", "Z", "Lfva;", "Lfva;", "Lfva;") &&
+            method.parameterTypes == listOf("I", "Z", "Lshb;", "Lshb;", "Lshb;") &&
             method.returnType == "V"
-    } ?: throw PatchException("Missing required constructor Loi5.<init>(IZLfva;Lfva;Lfva;)V")
+    } ?: throw PatchException("Missing required constructor Lsq5.<init>(IZLshb;Lshb;Lshb;)V")
 
     val implementation = constructor.implementation
         ?: throw PatchException("DraftConfigResponse constructor has no implementation")
@@ -104,28 +104,28 @@ private fun BytecodePatchContext.forceDraftMiniTrackerEnabled() {
             returnIndex,
             """
             const/4 v0, 0x1
-            iput-boolean v0, p0, Loi5;->a:Z
+            iput-boolean v0, p0, Lsq5;->a:Z
             """.trimIndent()
         )
     }
 }
 
 private fun BytecodePatchContext.forceGameZoneShownOnHome() {
-    val gameZoneClass = mutableClassDefByOrNull("Lhv7;")
-        ?: throw PatchException("Missing required class Lhv7 (GameZoneConfigResponse)")
+    val gameZoneClass = mutableClassDefByOrNull("Lc78;")
+        ?: throw PatchException("Missing required class Lc78 (GameZoneConfigResponse)")
 
     val hasField = gameZoneClass.fields.any { field ->
         field.name == "a" && field.type == "Ljava/lang/Boolean;"
     }
     if (!hasField) {
-        throw PatchException("Missing required field Lhv7.a:Ljava/lang/Boolean; (showOnHome)")
+        throw PatchException("Missing required field Lc78.a:Ljava/lang/Boolean; (showOnHome)")
     }
 
     val constructor = gameZoneClass.methods.singleOrNull { method ->
         method.name == "<init>" &&
             method.parameterTypes == listOf("I", "Ljava/lang/Boolean;", "Ljava/lang/String;") &&
             method.returnType == "V"
-    } ?: throw PatchException("Missing required constructor Lhv7.<init>(ILjava/lang/Boolean;Ljava/lang/String;)V")
+    } ?: throw PatchException("Missing required constructor Lc78.<init>(ILjava/lang/Boolean;Ljava/lang/String;)V")
 
     val implementation = constructor.implementation
         ?: throw PatchException("GameZoneConfigResponse constructor has no implementation")
@@ -144,7 +144,7 @@ private fun BytecodePatchContext.forceGameZoneShownOnHome() {
             returnIdx,
             """
             sget-object v0, Ljava/lang/Boolean;->TRUE:Ljava/lang/Boolean;
-            iput-object v0, p0, Lhv7;->a:Ljava/lang/Boolean;
+            iput-object v0, p0, Lc78;->a:Ljava/lang/Boolean;
             """.trimIndent()
         )
     }

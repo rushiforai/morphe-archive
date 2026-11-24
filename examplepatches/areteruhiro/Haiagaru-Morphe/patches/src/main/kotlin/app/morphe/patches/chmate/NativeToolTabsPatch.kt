@@ -2,7 +2,10 @@ package app.morphe.patches.chmate
 
 import app.morphe.patcher.patch.BytecodePatchContext
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
+import app.morphe.patcher.extensions.InstructionExtensions.addInstructionsWithLabels
 import app.morphe.patcher.extensions.InstructionExtensions.replaceInstruction
+import app.morphe.patcher.util.smali.ExternalLabel
+import app.morphe.util.findFreeRegister
 import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
@@ -81,6 +84,39 @@ internal fun BytecodePatchContext.patchNativeToolTabs(version: String) {
     ready.replaceInstruction(0,"const/4 v${(readyCode.last() as OneRegisterInstruction).registerA}, 0x1")
     // Intercept at the Activity boundary: a non-focusable tool pane does not receive BACK keys.
     val tablet=mutableClassDefBy("Ljp/syoboi/a2chMate/activity/TabletHomeActivity;")
+    val legacyGesture=version=="0.8.10.191 dev"
+    val middleGesture=version=="0.8.10.226 dev"
+    val gestureType=when {
+        legacyGesture -> "Lo/qgExternalSyntheticLambda1\$write;"
+        middleGesture -> "Lo/TTVideoLandingPageActivity\$RemoteActionCompatParcelizer;"
+        else -> "Lo/zzbfh\$RemoteActionCompatParcelizer;"
+    }
+    val selectCall=when {
+        legacyGesture -> "Ljp/syoboi/a2chMate/activity/TabletHomeActivity\$read;->d(I)Z"
+        middleGesture -> "Lo/GNk;->c(I)V"
+        else -> "Lo/zzev;->e(I)V"
+    }
+    run {
+        for(name in listOf("b",if(legacyGesture)"e" else if(middleGesture)"c" else "d")){
+            val gesture=tablet.methods.single{
+                it.name==name&&it.returnType=="Z"&&it.parameterTypes.map(CharSequence::toString)==
+                    listOf("Landroidx/fragment/app/Fragment;",gestureType)
+            }
+            val calls=gesture.implementation!!.instructions.withIndex().filter{(_,ins)->
+                (ins as? ReferenceInstruction)?.reference.toString()==selectCall
+            }
+            check(calls.size==(if(name=="b"||legacyGesture)2 else 4))
+            for((index,ins) in calls.take(2).asReversed()){
+                val call=ins as com.android.tools.smali.dexlib2.iface.instruction.FiveRegisterInstruction
+                val ownerRegister=call.registerC
+                val indexRegister=call.registerD
+                gesture.addInstructions(index,"""
+                    invoke-static {v$ownerRegister, v$indexRegister}, Lapp/morphe/extension/chmate/NativeTabGroups;->gestureTarget(Ljava/lang/Object;I)I
+                    move-result v$indexRegister
+                """.trimIndent())
+            }
+        }
+    }
     val dispatch=tablet.methods.singleOrNull{it.name=="dispatchKeyEvent"&&it.parameterTypes.map(CharSequence::toString)==listOf("Landroid/view/KeyEvent;")}
     val delegate=dispatch?.let{MutableMethod(ImmutableMethod(tablet.type,"haiagaruNativeDispatchKeyEvent",it.parameters,it.returnType,it.accessFlags,it.annotations,it.hiddenApiRestrictions,it.implementation))}
     val wrapper=MutableMethod(ImmutableMethod(tablet.type,"dispatchKeyEvent",
@@ -100,7 +136,108 @@ internal fun BytecodePatchContext.patchNativeToolTabs(version: String) {
     if(dispatch!=null)tablet.methods.remove(dispatch)
     if(delegate!=null)tablet.methods.add(delegate)
     tablet.methods.add(wrapper)
+    // Keep native selection mapped to the group header when its members are collapsed.
+    // No locals or original instructions are replaced.
+    val tabStripTypes = mutableSetOf<String>()
+    classDefForEach { cls ->
+        if(cls.methods.any { it.name == "setAdapter" && it.parameterTypes.map(CharSequence::toString) == listOf("Landroid/widget/ListAdapter;") } && cls.methods.any { it.name == "setTabMode" } && cls.methods.any { it.name == "setSelection" })
+            tabStripTypes.add(cls.type)
+    }
+    check(tabStripTypes.size == 1) { "Native group tab strip anchor changed: $tabStripTypes" }
+    val nativeStrip = mutableClassDefBy(tabStripTypes.single())
+    val nativeSelection = nativeStrip.methods.single { it.name == "setSelection" && it.parameterTypes.map(CharSequence::toString) == listOf("Ljava/lang/Object;") }
+    nativeSelection.addInstructions(0, """
+        invoke-static/range {p0 .. p1}, Lapp/morphe/extension/chmate/NativeTabGroups;->nativeSelection(Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;
+        move-result-object p1
+    """.trimIndent())
+    // Add the grouping action to the native thread-tab long-press menu (the menu
+    // that already contains Close and Board). Locate the Activity's call to its
+    // native Menu/Fragment builder by descriptor so obfuscated method names can
+    // differ between 191, 226 and 242 without changing the selected menu.
+    val menuParam = "Landroid/view/Menu;"
+    data class PopupMenuCall(val method: MutableMethod, val index: Int, val menuRegister: Int, val fragmentRegister: Int)
+    val popupCalls = mutableListOf<PopupMenuCall>()
+    tablet.methods.forEach { method ->
+        // The tab callback has the native strip, selected position and page descriptor
+        // as parameters. Other Activity menu preparation methods also call the same
+        // Menu/Fragment helper, but do not have this tab callback shape.
+        if (method.parameterTypes.size < 3 || "I" !in method.parameterTypes) return@forEach
+        method.implementation?.instructions?.forEachIndexed { index, instruction ->
+            val ref = (instruction as? ReferenceInstruction)?.reference as? MethodReference ?: return@forEachIndexed
+            val parameters = ref.parameterTypes.map(CharSequence::toString)
+            if (parameters.size != 2 || parameters[0] != menuParam || !parameters[1].endsWith("Fragment;") || ref.returnType != "V") return@forEachIndexed
+            if (ref.definingClass == "Landroid/view/Menu;" || ref.definingClass == "Landroidx/fragment/app/Fragment;") return@forEachIndexed
+            val isStatic = instruction.opcode == Opcode.INVOKE_STATIC || instruction.opcode == Opcode.INVOKE_STATIC_RANGE
+            val passed = when (instruction) {
+                is FiveRegisterInstruction -> listOf(instruction.registerC, instruction.registerD, instruction.registerE, instruction.registerF, instruction.registerG).take(instruction.registerCount)
+                is RegisterRangeInstruction -> (instruction.startRegister until instruction.startRegister + instruction.registerCount).toList()
+                else -> emptyList()
+            }
+            val firstParameter = if (isStatic) 0 else 1
+            if (passed.size != parameters.size + firstParameter) return@forEachIndexed
+            popupCalls += PopupMenuCall(method, index, passed[firstParameter], passed[firstParameter + 1])
+        }
+    }
+    if (popupCalls.isEmpty()) {
+        // In 191 the long-press callback is emitted as a separate listener class.
+        // Resolve that call site by the same native tab callback shape rather than
+        // changing or replacing the listener itself.
+        data class RawPopupMenuCall(val owner: String, val name: String, val parameters: List<String>, val index: Int, val menuRegister: Int, val fragmentRegister: Int)
+        val rawCalls = mutableListOf<RawPopupMenuCall>()
+        classDefForEach { cls ->
+            if (!cls.type.startsWith("Ljp/syoboi/a2chMate/activity/TabletHomeActivity$")) return@classDefForEach
+            cls.methods.forEach { sourceMethod ->
+                if (sourceMethod.parameterTypes.size != 2 || sourceMethod.parameterTypes[0] != nativeStrip.type || sourceMethod.parameterTypes[1] != "Ljava/lang/Object;") return@forEach
+                sourceMethod.implementation?.instructions?.forEachIndexed { index, instruction ->
+                    val ref = (instruction as? ReferenceInstruction)?.reference as? MethodReference ?: return@forEachIndexed
+                    val parameters = ref.parameterTypes.map(CharSequence::toString)
+                    if (parameters.size != 2 || parameters[0] != menuParam || !parameters[1].endsWith("Fragment;") || ref.returnType != "V") return@forEachIndexed
+                    val isStatic = instruction.opcode == Opcode.INVOKE_STATIC || instruction.opcode == Opcode.INVOKE_STATIC_RANGE
+                    val passed = when (instruction) {
+                        is FiveRegisterInstruction -> listOf(instruction.registerC, instruction.registerD, instruction.registerE, instruction.registerF, instruction.registerG).take(instruction.registerCount)
+                        is RegisterRangeInstruction -> (instruction.startRegister until instruction.startRegister + instruction.registerCount).toList()
+                        else -> emptyList()
+                    }
+                    val firstParameter = if (isStatic) 0 else 1
+                    if (passed.size == parameters.size + firstParameter)
+                        rawCalls += RawPopupMenuCall(cls.type, sourceMethod.name, sourceMethod.parameterTypes.map(CharSequence::toString), index, passed[firstParameter], passed[firstParameter + 1])
+                }
+            }
+        }
+        for (raw in rawCalls) {
+            val method = mutableClassDefBy(raw.owner).methods.single { it.name == raw.name && it.parameterTypes.map(CharSequence::toString) == raw.parameters }
+            popupCalls += PopupMenuCall(method, raw.index, raw.menuRegister, raw.fragmentRegister)
+        }
+    }
+    check(popupCalls.size == 1) {
+        "Expected one native thread-tab popup builder, found ${popupCalls.map { "${it.method}" }}"
+    }
+    val popupCall = popupCalls.single()
+    check(popupCall.menuRegister < 16 && popupCall.fragmentRegister < 16) {
+        "Native thread-tab popup arguments need low registers: $popupCall"
+    }
+    popupCall.method.addInstructions(popupCall.index + 1, """
+        invoke-static {v${popupCall.menuRegister}, v${popupCall.fragmentRegister}}, Lapp/morphe/extension/chmate/NativeTabGroups;->addThreadGroupAction(Landroid/view/Menu;Ljava/lang/Object;)V
+    """.trimIndent())
+    // TabletHomeActivity's native popup sends custom tile selections through
+    // onOptionsItemSelected instead of invoking MenuItem.OnMenuItemClickListener.
+    // Route only our stable item ID through the extension before native dispatch.
+    val itemDispatch = tablet.methods.single {
+        it.name == "onOptionsItemSelected"
+            && it.returnType == "Z"
+            && it.parameterTypes.map(CharSequence::toString) == listOf("Landroid/view/MenuItem;")
+    }
+    val dispatchFirst = itemDispatch.implementation!!.instructions.first()
+    val dispatchResult = itemDispatch.findFreeRegister(0)
+    check(dispatchResult < 16) { "Native tab action dispatch requires low registers: $dispatchResult" }
+    itemDispatch.addInstructionsWithLabels(0, """
+        invoke-static/range {p0 .. p1}, Lapp/morphe/extension/chmate/NativeTabGroups;->dispatchThreadGroupAction(Ljava/lang/Object;Ljava/lang/Object;)Z
+        move-result v$dispatchResult
+        if-eqz v$dispatchResult, :haiagaru_native_tab_action
+        const/4 v$dispatchResult, 0x1
+        return v$dispatchResult
+    """.trimIndent(), ExternalLabel("haiagaru_native_tab_action", dispatchFirst))
     // Leave ChMate's blank/new-tab screen completely untouched. The chooser lives
     // in Haiagaru's existing settings instead of an independent button above it.
-    println("Native tool tabs: $version -> $owner, optional/default off, native Fragment base $base")
+    println("Native tool tabs: $version -> $owner, optional/default off, native Fragment base $base; group action at ${popupCall.method.name}, click dispatch at ${itemDispatch.name}")
 }

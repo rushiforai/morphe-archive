@@ -4,10 +4,10 @@
 
 - **Application Name:** NHL
 - **Package Name:** `com.nhl.gc1112.free`
-- **Target Version:** `17.0.0` (Morphe Compatibility: `17.0.0`, `minSdk` 29)
-- **Analyzed Version Code:** `17000026`
+- **Target Version:** `17.2.0` (Morphe Compatibility: `17.2.0`, `minSdk` 32)
+- **Analyzed Version Code:** `17020008`
 - **Target SDK:** 37
-- **Minimum SDK:** 29 (Android 10)
+- **Minimum SDK:** 32 (Android 12L)
 - **Distribution Format:** Android App Bundle / Split APKM (`ApkFileType.APKM`)
 - **Supported Native ABIs:** `arm64-v8a`
 - **Signer SHA-256:** `2309209340875f6f8a008ea25dbd98d8a03e482704d43211933d2b9a91923aff`
@@ -45,7 +45,7 @@ The official NHL application is built using modern Android Jetpack libraries, Co
 
 ### Consent & Privacy Control
 
-- **OneTrust Headless SDK:** `com.onetrust.otpublishers.headless.Public.OTPublishersHeadlessSDK` integrated through `Lgce;` to manage IAB TCF 2.2 consent strings and purpose grants (`IAB2V2_1`, `sm2.Functional`, `sm2.Performance`).
+- **OneTrust Headless SDK:** `com.onetrust.otpublishers.headless.Public.OTPublishersHeadlessSDK` integrated through `Lc2f;` (ConsentManager) and the consent enum `Lhlk;` to manage IAB TCF 2.2 consent strings and purpose grants (`IAB2V2_1`, `sm2.Functional`, `sm2.Performance`).
 - **Consented SDKs (`Lqoj;`):** Enum categorizing third-party modules subject to user consent (`GoogleAds`, `Brightcove`, `UrbanAirshipCore`, `UrbanAirshipFcm`, `BlazePushSdk`, `TicketmasterTickets`, `TicketmasterAuthentication`, `OneTrust`).
 
 ### Push Notifications & Live Activities Infrastructure
@@ -57,12 +57,12 @@ The official NHL application is built using modern Android Jetpack libraries, Co
 ### Analytics, Advertising & Telemetry Systems
 
 - **Google Mobile Ads (GMS Ads):** `AdManagerAdView`, `AdService`, `MobileAdsInitProvider`, and `MobileAds`.
-- **Google Play Advertising ID (AAID):** Minified `AdvertisingIdClient` (`Ljj;` returning `Lij;`) collecting hardware advertising identifiers.
-- **Firebase Analytics / AppMeasurement:** Global analytics dispatcher via `Ljxd;->x()Lcom/google/firebase/analytics/FirebaseAnalytics;` backed by Google Play Services `Lg3q;` task execution.
+- **Google Play Advertising ID (AAID):** Minified `AdvertisingIdClient` (`Lyi;` returning `Lxi;`) collecting hardware advertising identifiers.
+- **Firebase Analytics / AppMeasurement:** Global analytics dispatcher via `Ljxd;->x()Lcom/google/firebase/analytics/FirebaseAnalytics;` backed by Google Play Services `Luuq;` task execution.
 - **UrbanAirship Telemetry:** Install referrer capture (`InstallReceiver`), AAID collection (`AdIdModuleFactory`), and analytics database syncing.
 - **Blaze SDK Telemetry:** Event bulk dispatcher (`com.blaze.blazesdk.analytics.AnalyticsApi`).
 - **Brightcove Video Analytics:** Video playback metric events dispatched via `com.brightcove.player.analytics.AnalyticsClient`.
-- **Firebase Crashlytics & Sessions:** Real-time crash diagnostics (`Lbn6;`) and session lifecycle monitoring (`SessionLifecycleService`).
+- **Firebase Crashlytics & Sessions:** Real-time crash diagnostics (`Luy6;`) and session lifecycle monitoring (`SessionLifecycleService`).
 
 ---
 
@@ -81,17 +81,17 @@ Baseline snapshot in `assets/config.json`:
 
 Bytecode mappings and consumers:
 
-- **Draft Configuration:** Deserialized via `Lmi5;` into `Loi5;` where field `a:Z` represents `isMiniTrackerActive`.
-- **GameZone Configuration:** Deserialized via `Lhv7$a;` into `Lhv7;` where field `a:Ljava/lang/Boolean;` represents `showOnHome` and field `b:Ljava/lang/String;` contains the target URL (`https://s3.foreverflow.click/api/gameZone/index.html?...`).
+- **Draft Configuration:** Deserialized into `Lsq5;` where field `a:Z` represents `isMiniTrackerActive`.
+- **GameZone Configuration:** Deserialized via `Lc78$a;` into `Lc78;` where field `a:Ljava/lang/Boolean;` represents `showOnHome` and field `b:Ljava/lang/String;` contains the target URL (`https://s3.foreverflow.click/api/gameZone/index.html?...`).
 - **Central Consumer:** `Lcdr;->U(Ljg0;)Lg24;` is the sole consumer mapping both deserialized config responses into active UI state.
 - **Dependencies & Constraints:** While client-side bytecode renders the `DraftMiniTracker` and GameZone WebView host surfaces, active tracker content depends on live NHL draft feeds, and GameZone relies on server authentication and host web availability.
 
 ### Developer Settings & Diagnostic Subsystem
 
-The application includes an internal diagnostic and developer configuration suite gated by the static boolean method `Llpk;->a()Z`. In standard release builds, `Llpk;->a()Z` delegates to `!Lftd;->a`, which resolves to `true` (production mode). When forced to return `false` (developer/non-prod mode), the following subsystems activate:
+The application includes an internal diagnostic and developer configuration suite gated by the static boolean method `Lpnl;->a()Z`. In standard release builds, `Lpnl;->a()Z` delegates to `!Lphe;->a`, which resolves to `true` (production mode). When forced to return `false` (developer/non-prod mode), the following subsystems activate:
 
 1. **Settings Screen Developer Section:**
-   - Rendered by composable `Ldq8;k(...)` / `Lmrd;` and driven by `DeveloperSettingsViewModel` (`Lbnh;`).
+   - Rendered by composable `Ltc9;k(...)` / `Lmrd;` and driven by `DeveloperSettingsViewModel` (`Lbnh;`).
    - **API Environment Switcher (`Lw26;`):** Allows selecting between:
      - `PROD` (`https://api-mobile.nhle.com/`)
      - `STAGING` (`https://api-mobile-stage.nhle.com/`)
@@ -128,36 +128,36 @@ The application includes an internal diagnostic and developer configuration suit
 
 ## 4. Native Ad & WebView Interception Target Inventory
 
-Analysis of `com.nhl.gc1112.free` version 17.0.0 (version code `17000026`) established exact smali descriptors, signatures, semantic anchors, registers, and match counts for native ad presentation collapse, settings injection, and article WebView interception.
+Analysis of `com.nhl.gc1112.free` version 17.2.0 (version code `17020008`) established exact smali descriptors, signatures, semantic anchors, registers, and match counts for native ad presentation collapse, settings injection, and article WebView interception.
 
 ### 4.1 Native Ad Presentation & Container Targets
 
-| Target Class & Method | Signature                                                                          | Semantic Anchor / String                                                                                                | Expected Matches | Register Constraints                    | Owning Surface                                     |
-| --------------------- | ---------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------- | ---------------- | --------------------------------------- | -------------------------------------------------- |
-| `Lcdr;->h`            | `(Ltyk;Leyk;Lm5j;Ljava/lang/String;Lpn3;I)V`                                       | `playlist-ad-unit-item`, `sget-object Lccb;->c`, `La6i;->Vertical`                                                      | 1                | Neutralized via `Lnu3;->a` backstop     | News / Video playlist ad item                      |
-| `Lxy;->p`             | `(Lff0;Lbvi;Lgce;Lpn3;I)V`                                                         | `-medium-rectangle-ad-unit-item-`, `sget-object Lccb;->c`, `La6i;->Vertical`                                            | 1                | `v11` (composer), `v3..v13` (nu3 args)  | Content feed medium rectangle / banner             |
-| `Lwai;->c`            | `(Ln0j;ILpn3;I)V`                                                                  | `-inline-banner-ad-unit-item-`, `standings-`, `sget-object Lccb;->c`                                                    | 1                | `v8` (composer), `v0..v10` (nu3 args)   | Standings inline banner (WildCard/Division/League) |
-| `Lg68;->invoke`       | `(Ljava/lang/Object;Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;`       | `playbyplay-medium-rectangle-ad-unit-item` (`:pswitch_4e7`), `playbyplay-banner-ad-unit-item` (`:pswitch_588`)          | 2                | `v2` (composer), `v13..v23` (nu3 args)  | Game Center Play-by-Play feed                      |
-| `Lq9a;->a`            | `(Ljava/lang/Object;Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;`       | `summary-...-ad-unit-item`, `instance-of Lxri`                                                                          | 1                | `v11` (composer), `v14..v24` (nu3 args) | Game Summary feed                                  |
-| `Lse8;->invoke`       | `(Ljava/lang/Object;Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;`       | `pregame-...-ad-unit-item` (`:pswitch_1a0`, model `Llef;`), `boxscore-...-ad-unit-item` (`:pswitch_6f0`, model `Luy1;`) | 2                | `v3` (composer), `v15..v25` (nu3 args)  | Pregame & Boxscore feeds                           |
-| `Lnu3;->a`            | `(Ljava/lang/String;Lqtb;Ljava/lang/String;ILwg;Ljava/lang/String;ZLftd;Lpn3;II)V` | `-holder`, `-label`, `AdPos:`, `Luat;->a`                                                                               | 1                | `v14` (composer), common ad composable  | Shared Ad Renderer Composable Backstop             |
-| `Lccb;->c`            | `Lccb;`                                                                            | `nhl.advertisementTitle`                                                                                                | 8 call sites     | Static singleton instance of `Lccb;`    | Localized "Advertisement" title key                |
+| Target Class & Method | Signature                                                                    | Semantic Anchor / String                                                      | Expected Matches | Register Constraints                | Owning Surface                         |
+| --------------------- | ---------------------------------------------------------------------------- | ----------------------------------------------------------------------------- | ---------------- | ----------------------------------- | -------------------------------------- |
+| `Lbme;->a`            | `(Ljava/lang/String;Ljava/lang/String;ILlg;Ljava/lang/String;ZLbu3;II)V`     | `-holder`, `-label`                                                           | 1                | Shared Compose ad renderer backstop | All native ad placements               |
+| `Lh05;->m`            | `(Lvg0;Lyqj;Lc2f;Lbu3;I)V`                                                   | `-medium-rectangle-ad-unit-item-`, `-inline-banner-ad-unit-item-`, `300x250`  | 1                | `m` wraps `Lbme;->a`                | Content feed medium rectangle / banner |
+| `Lr6j;->c`            | `(Luwj;ILbu3;I)V`                                                            | `-inline-banner-ad-unit-item-`, `standings-`                                  | 1                | `c` wraps `Lbme;->a`                | Standings inline banner                |
+| `Lm38;->invoke`       | `(Ljava/lang/Object;Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;` | `playbyplay-medium-rectangle-ad-unit-item` / `playbyplay-banner-ad-unit-item` | 2                | Play-by-play merged lambda          | Game Center Play-by-Play feed          |
+| `Lxwf;->invoke`       | `(Ljava/lang/Object;)Ljava/lang/Object;`                                     | Field gate `Lixf;->b:Lwi;` followed by `if-eqz`                               | 1                | `Lzwf;->e:Lwi;` banner item         | Play-by-play list builder              |
+| `Ltsa;->invoke`       | `(Ljava/lang/Object;Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;` | `instance-of Lsnj`, `summary-...-ad-unit-item`                                | 1                | Game summary merged lambda          | Game Summary feed                      |
+| `Lps8;->invoke`       | `(Ljava/lang/Object;Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;` | `pregame-...-ad-unit-item` (`Lv5g;`), `boxscore-...-ad-unit-item` (`Lv32;`)   | 2                | Game feeds merged lambda            | Pregame & Boxscore feeds               |
+| `Lbb8` / `Laa8`       | Flow collectors                                                              | `new-instance Lv5g` / `Lv32` then `List.add`                                  | 1 each           | Insertion skipped via `nop`         | Pregame & Boxscore item insertion      |
 
 ### 4.2 Settings Section Injection Targets
 
-| Target Class & Method | Signature                                                      | Semantic Anchor / Call Pattern                 | Expected Matches | Register Constraints                             | Owning Surface                  |
-| --------------------- | -------------------------------------------------------------- | ---------------------------------------------- | ---------------- | ------------------------------------------------ | ------------------------------- |
-| `Ldq8;->k`            | `(Llmh;Lkotlin/jvm/functions/Function1;Lpn3;I)V`               | Immediately before `Lbg8;->d(...)V` invocation | 1                | `v3` (composer), `v1` (nav callback `Function1`) | Main Settings Screen Scaffold   |
-| `Lbg8;->d`            | `(ZLjava/lang/String;Lkotlin/jvm/functions/Function1;Lpn3;I)V` | Calls `Lmq8;->g(Lqtb;[Function2;Composer;I)`   | 1                | `p3` (composer), Preferences card builder        | Preferences Section Composable  |
-| `Lbg8;->b`            | `(Ljava/lang/String;Lpn3;I)V`                                  | Section title composable (`d0(-0x211db726)`)   | 1                | `p1` (composer), literal string header           | Settings Section Header Text    |
-| `Lmq8;->h`            | `(Lsf3;[Lkotlin/jvm/functions/Function2;Lpn3;I)V`              | Section container with header lambda `sf3`     | 1                | `p2` (composer), `p1` (row array)                | Composable Section Card Builder |
-| `Ldq8;->b`            | `(Lkotlin/jvm/functions/Function0;Lpn3;I)V`                    | `Lae8;->P(pn3, id)` string lookup + row click  | 1                | `v7` (composer), `p0` (`Function0` onClick)      | Settings Row Pattern Reference  |
+| Target Class & Method | Signature                                                                     | Semantic Anchor / Call Pattern                 | Expected Matches | Register Constraints                             | Owning Surface                  |
+| --------------------- | ----------------------------------------------------------------------------- | ---------------------------------------------- | ---------------- | ------------------------------------------------ | ------------------------------- |
+| `Ltc9;->k`            | `(Lihi;Lkotlin/jvm/functions/Function1;Lbu3;I)V`                              | Immediately before `Lse9;->k(...)V` invocation | 1                | `v12` (Context), `v7` (composer), `v0` (changed) | Main Settings Screen Scaffold   |
+| `Lse9;->k`            | `(ZLjava/lang/String;Lkotlin/jvm/functions/Function1;Lbu3;I)V`                | Privacy Settings row key `-0x3635e702`         | 1                | `p-` regs; preferences card builder              | Preferences Section Composable  |
+| `Ligc;`               | Abstract localized string model                                               | Base class for section/row title models        | —                | `Lhgb;` is the hardcoded-string subclass         | Settings string model           |
+| `Loo9;->d`            | `(Ligc;[Lkotlin/jvm/functions/Function2;Lbu3;I)V`                             | Section card container with header + rows      | —                | `p2` (composer), `p1` (row array)                | Composable Section Card Builder |
+| `Lzg9;->h`            | `(Ligc;Lkotlin/functions/Function0;Lkotlin/jvm/functions/Function2;Lbu3;II)V` | Settings row with click + trailing composable  | —                | `p3` (composer), `p1` (`Function0` onClick)      | Composable Settings Row         |
+| `Lmqp;->P`            | `(ILkotlin/Function;Lbu3;)Ldm3;`                                              | Composable lambda factory                      | —                | Returns `dm3` implementor of `Function2`         | Composable Lambda Factory       |
 
 ### 4.3 WebView Factories & Interception Targets
 
 | Target Class & Method | Signature                                | Semantic Anchor / Behavior                                                                 | Expected Matches | Interception Role                                | Owning Surface                    |
 | --------------------- | ---------------------------------------- | ------------------------------------------------------------------------------------------ | ---------------- | ------------------------------------------------ | --------------------------------- |
-| `Li9l;->invoke`       | `(Ljava/lang/Object;)Ljava/lang/Object;` | `NHLNativeAnalytics`, `MobileAds.b(WebView)`                                               | 1                | Factory creating Article WebView                 | Article / Story Detail Composable |
-| `Ltv7;->invoke`       | `(Ljava/lang/Object;)Ljava/lang/Object;` | `nhlApp`, `MobileAds.b(WebView)`, `loadUrl`                                                | 1                | Factory creating GameZone WebView                | Embedded Web Hub Composable       |
-| `Lkhd;`               | `Landroid/webkit/WebViewClient;`         | Overrides `onPageStarted`, `onPageFinished`, `onReceivedError`, `shouldOverrideUrlLoading` | 1 class          | Injected with `shouldInterceptRequest` overrides | Common NHL WebViewClient Subclass |
-| `Lowk;->invoke`       | `(Ljava/lang/Object;)Ljava/lang/Object;` | `pswitch_583`, calls `loadUrl(String,Map)`                                                 | 1                | Article AndroidView update lambda                | Article Navigation Dispatch       |
+| `Lqam;->invoke`       | `(Ljava/lang/Object;)Ljava/lang/Object;` | `NHLNativeAnalytics`, `ALGORITHMIC_DARKENING`, `setWebViewClient(Lk5e;)`                   | 1                | Factory creating Article/GameZone WebView        | Embedded Web Hub Composable       |
+| `Lk5e;`               | `Landroid/webkit/WebViewClient;`         | Overrides `onPageStarted`, `onPageFinished`, `onReceivedError`, `shouldOverrideUrlLoading` | 1 class          | Injected with `shouldInterceptRequest` overrides | Common NHL WebViewClient Subclass |
+| `Lme;->invoke`        | `(Ljava/lang/Object;)Ljava/lang/Object;` | Calls `loadUrl(String,Map)` after `Loo9;->z(String,List,Context)`                          | 1                | Article navigation dispatch lambda               | Article Navigation Dispatch       |

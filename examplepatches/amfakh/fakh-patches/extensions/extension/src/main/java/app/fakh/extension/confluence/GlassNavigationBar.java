@@ -1,3 +1,8 @@
+/*
+ * Copyright 2026 amfakh
+ * SPDX-License-Identifier: GPL-3.0-only
+ */
+
 package app.fakh.extension.confluence;
 
 import android.app.Activity;
@@ -20,6 +25,7 @@ import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 import java.util.List;
 
+import app.fakh.extension.shared.Features;
 import app.fakh.extension.shared.GlassCapsule;
 import app.fakh.extension.shared.TabSlide;
 
@@ -92,14 +98,9 @@ public final class GlassNavigationBar {
         testId = activity.getResources().getIdentifier("react_test_id", "id", activity.getPackageName());
     }
 
-    /** Whether the Glass navigation bar patch is in; the patch makes this return true. */
-    static boolean isIncluded() {
-        return false;
-    }
-
     /** Whether the bar is glass: its patch is in and its switch is on. */
     static boolean enabled(Context context) {
-        return isIncluded() && MaterialYou.prefs(context).getBoolean(MaterialYou.GLASS, true);
+        return Features.on(MaterialYou.GLASS);
     }
 
     /**
@@ -371,7 +372,7 @@ public final class GlassNavigationBar {
             }
         }, FILL_ALPHA);
         capsule.setBevel(true);
-        capsule.setLiquid(MaterialYou.prefs(activity).getBoolean(MaterialYou.LIQUID_GLASS, false));
+        capsule.setLiquid(Features.on(MaterialYou.LIQUID_GLASS));
         GlassCapsule.clearSystemBar(activity);
         // The capsule's shadow reaches past the bar, so the screen must not clip it to the bar's bounds.
         for (View v = row; v.getParent() instanceof ViewGroup && v != row.getRootView(); v = (View) v.getParent()) {
@@ -455,7 +456,7 @@ public final class GlassNavigationBar {
             }
         });
         glass.setBevel(true);
-        glass.setLiquid(MaterialYou.prefs(activity).getBoolean(MaterialYou.LIQUID_GLASS, false));
+        glass.setLiquid(Features.on(MaterialYou.LIQUID_GLASS));
         button.setOutlineProvider(null);
         button.setElevation(0);
         button.setBackground(glass);
@@ -487,7 +488,7 @@ public final class GlassNavigationBar {
                 }
             }, FILL_ALPHA);
             glass.setBevel(true);
-            glass.setLiquid(MaterialYou.prefs(activity).getBoolean(MaterialYou.LIQUID_GLASS, false));
+            glass.setLiquid(Features.on(MaterialYou.LIQUID_GLASS));
             view.setOutlineProvider(null);
             for (View v = view; v.getParent() instanceof ViewGroup && v != view.getRootView(); v = (View) v.getParent()) {
                 ((ViewGroup) v.getParent()).setClipChildren(false);

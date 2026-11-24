@@ -1,0 +1,6 @@
+a: !custom value
+b: !foo [1, 2]
+---
+c: !<tag:example.com,2000:bar> baz
+d: &anchor { e: 1 }
+f: *anchor

@@ -17,60 +17,61 @@ val twinePremiumPatch = bytecodePatch(
     compatibleWith(COMPATIBILITY_TWINE)
 
     execute {
-        // --- Patch 1: v70.a(Lv81;)Ljava/lang/Object; → return me8.a (Subscribed) ---
-        // --- Patch 1: v70.a(Lv81;)Ljava/lang/Object; → return me8.a (Subscribed) ---
-        val methodA = mutableClassDefBy("Lv70;")
-            .methods.first { it.name == "a" && it.parameters == listOf("Lv81;") }
+        // --- Patch 1: rf0.a(Lfr1;)Ljava/lang/Object; → forced premium ---
+        val methodA = mutableClassDefBy("Lrf0;")
+            .methods.first { it.name == "a" && it.parameters == listOf("Lfr1;") }
 
-        // Find the index of the original return-object instruction
-        val returnIndex = methodA.instructions.indexOfFirst {
-            it.opcode == Opcode.RETURN_OBJECT
-        }
+        // Insert early return to avoid try/catch issues entirely
+        methodA.addInstructions(
+            0,
+            """
+            sget-object v0, Lwga;->a:Lwga;
+            return-object v0
+            """.trimIndent()
+        )
 
-        if (returnIndex != -1) {
-            // Replace ONLY the return instruction to preserve the try/catch exception table
-            methodA.replaceInstructions(
-                returnIndex,
-                """
-                sget-object v0, Lme8;->a:Lme8;
-                return-object v0
-                """.trimIndent()
-            )
-        }
+        // --- Patch 1.2: rf0.c(Ler1;)Ljava/lang/Object; → return Boolean.TRUE ---
+        val methodC = mutableClassDefBy("Lrf0;")
+            .methods.first { it.name == "c" && it.parameters == listOf("Ler1;") }
 
-        // --- Patch 1: v70.c(Lu81;)Ljava/lang/Object; → return Boolean.TRUE ---
-        mutableClassDefBy("Lv70;")
-            .methods.first { it.name == "c" && it.parameters == listOf("Lu81;") }
-            .forceReturnObject("Ljava/lang/Boolean;->TRUE:Ljava/lang/Boolean;")
+        methodC.addInstructions(
+            0,
+            """
+            sget-object v0, Ljava/lang/Boolean;->TRUE:Ljava/lang/Boolean;
+            return-object v0
+            """.trimIndent()
+        )
 
         // --- Patch 2: provider g()Z → false ---
-        listOf("Lkz2;", "Lv55;", "Lv60;", "Lx43;").forEach { classType ->
+        listOf("Lzw3;", "Lfc6;", "Lse0;", "Lp24;").forEach { classType ->
             mutableClassDefBy(classType)
                 .methods.first { it.name == "g" && it.returnType == "Z" }
                 .forceReturnBoolean(false)
         }
 
-        // --- Patch 3: Package_androidKt.toPackageType → LIFETIME ---
-        mutableClassDefBy("Lcom/revenuecat/purchases/kmp/mappings/Package_androidKt;")
-            .methods.first { it.name == "toPackageType" }
-            .forceReturnObject(
-                "Lcom/revenuecat/purchases/kmp/models/PackageType;->LIFETIME:Lcom/revenuecat/purchases/kmp/models/PackageType;"
+        // --- Patch 3: rf0.b() LIFETIME reporting ---
+        val methodB = mutableClassDefBy("Lrf0;")
+            .methods.first { it.name == "b" }
+
+        // Find the instruction "aget p1, v1, p1"
+        val targetIndex = methodB.instructions.indexOfFirst {
+            it.opcode == Opcode.AGET && it.toString().contains("p1, v1, p1")
+        }
+
+        if (targetIndex != -1) {
+            // We need to insert the override right after the aget instruction.
+            // Since we can't easily find the exact :goto_3 label, we inject the LIFETIME override 
+            // and a goto to skip the rest of the mapping logic.
+            methodB.addInstructions(
+                targetIndex + 1,
+                """
+                sget-object p1, Lb47;->p:Lb47;
+                goto :goto_3
+                """.trimIndent()
             )
+        }
     }
 }
-
-/** Clear the method body and force return the specified static field. */
-private fun MutableMethod.forceReturnObject(fieldRef: String) {
-    val count = instructions.count()
-    if (count > 0) {
-        removeInstructions(0, count)
-    }
-    addInstructions(0, """
-        sget-object v0, $fieldRef
-        return-object v0
-    """.trimIndent())
-}
-
 
 /** Clear the method body and force return the specified boolean constant. */
 private fun MutableMethod.forceReturnBoolean(value: Boolean) {

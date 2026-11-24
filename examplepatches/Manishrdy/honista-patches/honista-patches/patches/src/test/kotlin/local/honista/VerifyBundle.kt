@@ -40,6 +40,23 @@ fun main(args: Array<String>) = runBlocking {
             return@use
         }
         check(failures.isEmpty()) { failures.joinToString("\n") }
+        if (args.getOrNull(4) == "apply") {
+            val result = patcher.get()
+            var dexCount = 0
+            result.dexFiles.forEach { dex ->
+                dex.stream.use { stream ->
+                    File(destination, dex.name).outputStream().use { stream.copyTo(it) }
+                }
+                dexCount++
+            }
+            check(dexCount > 0)
+            val asset = File(result.resources!!.otherResources!!, "assets/local-startup-module.dex")
+            check(asset.readBytes().contentEquals(java.util.zip.ZipFile(bundle).use {
+                it.getInputStream(it.getEntry("honista/startup-module.dex")).readBytes()
+            }))
+            println("PASS: Original APK patched and $dexCount DEX files compiled; module asset matches bundle")
+            return@use
+        }
         val container = DexFileFactory.loadDexContainer(expected, Opcodes.getDefault())
         val targets = File(args[5]).readLines().filter { it.isNotBlank() }.toSet()
         val expectedHashes = mutableMapOf<String, String>()

@@ -10,6 +10,14 @@
   <a href="https://morphe.software/add-source?github=XBadFellaX/BadFella-Patches"><img src="https://img.shields.io/badge/Add_to-Morphe-00AFAA?style=for-the-badge" alt="Add to Morphe"></a>
 </p>
 
+## Ultimate USB development preview
+
+Enable pre-releases in Morphe Manager and refresh BadFella Patches for
+**Ultimate USB local Pro**, supporting **12.5.0 build 1205000 ARM64 APKS**.
+Select the complete original APKS so its native drivers are included.
+The patch changes local entitlement decisions; it does not create a Play purchase.
+Startup integrity checks, Pro screen labels and physical USB operations are unverified.
+
 ## Get started
 
 1. Install [Morphe Manager](https://github.com/MorpheApp/morphe-manager/releases/latest) **2.2.0 or later**.
@@ -56,7 +64,7 @@ app data. Upstream attribution is in `NOTICE`.
 ## Patches
 
 <!-- PATCHES_START EXPANDED -->
-> **[v1.6.0](https://github.com/XBadFellaX/BadFella-Patches/releases/tag/v1.6.0)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;58 patches total
+> **[v1.7.0](https://github.com/XBadFellaX/BadFella-Patches/releases/tag/v1.7.0)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;59 patches total
 <details open>
 <summary>📦 Ultimea&nbsp;&nbsp;•&nbsp;&nbsp;6 patches</summary>
 <br>
@@ -242,6 +250,21 @@ app data. Upstream attribution is in `NOTICE`.
 | 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
 |----------|----------------|-----------|
 | [Torrent Search Revolution local Pro](#torrent-search-revolution-local-pro) | Enables the local Pro/ad-free branches, including search, native and banner ads and Pro settings. Preserves startup callbacks. Reviewed on 2.3.5; changed app bytecode requires review. Does not grant a Pro Key subscription or server entitlement. |  |
+
+</details>
+
+<details open>
+<summary>📦 Ultimate USB&nbsp;&nbsp;•&nbsp;&nbsp;1 patch</summary>
+<br>
+
+**🎯 Supported versions:**
+
+| 12.5.0 |
+| :---: |
+
+| 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
+|----------|----------------|-----------|
+| [Ultimate USB local Pro](#ultimate-usb-local-pro) | Enables local Pro checks, skips the cached-purchase validator and permits local bytecode/signing changes in the native integrity state. Retains operation confirmations and USB/filesystem operations. Reviewed on 12.5.0 build 1205000 ARM64; changed bytecode or native drivers require review. Does not create a Google Play purchase. |  |
 
 </details>
 

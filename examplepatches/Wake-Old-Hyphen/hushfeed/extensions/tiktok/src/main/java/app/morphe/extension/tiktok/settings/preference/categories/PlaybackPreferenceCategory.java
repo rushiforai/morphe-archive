@@ -427,6 +427,11 @@ public final class PlaybackPreferenceCategory extends ConditionalPreferenceCateg
                             + "opened up, still shows the whole video.",
                     Settings.FIT_FILLS_TALL_SCREEN));
             addPreference(fill);
+            // #505: Fill leaves wide and square videos whole (#394); this crops them too.
+            addPreference(new TogglePreference(context, "Fill wide videos too",
+                    "With the switch above on, landscape and square videos are cropped to cover "
+                            + "the screen too, so only their middle shows. Off, they stay whole.",
+                    Settings.FILL_WIDE_VIDEOS));
             addPreference(stretch);
             addPreference(blend);
             if (middle != null) addPreference(middle);
@@ -552,6 +557,11 @@ public final class PlaybackPreferenceCategory extends ConditionalPreferenceCateg
                                     + "With Up and down, slide up for faster and down for slower, and slide to the side "
                                     + "to lock it, so a hold near the edge still reaches every speed."));
                 }
+                addPreference(new NumberInputPreference(context, "Hold speed bubble size",
+                        L10n.f(context, "How big the bubble is drawn, from %1$d to %2$d. 100 is the normal size, "
+                                        + "which already grows with your phone's font size.",
+                                Settings.HOLD_SPEED_HUD_SIZE.minimum(), Settings.HOLD_SPEED_HUD_SIZE.maximum()),
+                        Settings.HOLD_SPEED_HUD_SIZE, "%1$s%%"));
             }
             if (SettingsStatus.hideSpeedToastsEnabled) {
                 addPreference(new TogglePreference(context, "Hide speed messages",

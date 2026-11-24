@@ -1,166 +1,157 @@
 package app.aidan.patches.sidelineswap.features
 
-import app.aidan.patches.shared.compositeFeaturePatch
 import app.aidan.patches.sidelineswap.shared.COMPATIBILITY_SIDELINESWAP
+import app.aidan.patches.sidelineswap.shared.requireSidelineSwapCompose
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
+import app.morphe.patcher.extensions.InstructionExtensions.replaceInstruction
 import app.morphe.patcher.patch.BytecodePatchContext
 import app.morphe.patcher.patch.PatchException
+import app.morphe.patcher.patch.bytecodePatch
 import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
-import org.w3c.dom.Element
+import com.android.tools.smali.dexlib2.iface.instruction.formats.Instruction11x
+import com.android.tools.smali.dexlib2.iface.instruction.formats.Instruction21c
+import com.android.tools.smali.dexlib2.iface.reference.FieldReference
 
-private const val ANDROID_NS = "http://schemas.android.com/apk/res/android"
-private const val ACCOUNT_DETAILS_LAYOUT = "res/layout/fragment_account_details.xml"
-private const val BADGE_RED_LAYOUT = "res/layout/badge_red.xml"
-
-private const val MAIN_ACTIVITY = "Lcom/sidelineswap/android/MainActivity;"
-private const val DEEP_LINK_INVITE_TARGET = "Lcom/sidelineswap/android/MainActivity\$processDeepLink\$target\$7;"
-private const val ACCOUNT_DETAILS_FRAGMENT = "Lcom/sidelineswap/android/account/AccountDetailsFragment;"
+private const val ACCOUNT_CONTENT_CLASS = "Lw5;"
+private const val ACCOUNT_STATE_FIELD = "Lu6;->d:Lai6;"
+private const val NAV_CALLBACK_CLASS = "Lh5;"
+private const val INVITE_ROUTE_INSTANCE = "Liy3;->INSTANCE:Liy3;"
+private const val URL_PARSER_CLASS = "Liz;"
+private const val INVITE_PATH_ROUTE = "Laz;->a:Laz;"
 
 /**
- * Composite patch that removes the Invite Friends option and eliminates the phantom
- * orange dot on the Account navbar icon caused by a non-functional badge setup.
+ * 2.3.2 renders the account page in Compose. The referral/invite entry is one row built in
+ * `Lw5`, pushed through navigation callback `Lh5` case 8, and reachable from deep links
+ * through the URL parser `Liz`.
  */
 @Suppress("unused")
-val removeInviteFriendsPatch = compositeFeaturePatch(
+val removeInviteFriendsPatch = bytecodePatch(
     name = "Remove Invite Friends",
-    description = "Removes the Invite Friends option from the Account screen and eliminates the non-functional orange dot notification badge from the Account navigation icon.",
+    description = "Removes the Invite Friends entry from the Account screen and blocks direct and deep-link navigation to the referral screen.",
     default = true
 ) {
     category("Interface")
     compatibleWith(COMPATIBILITY_SIDELINESWAP)
 
-    resources {
-        document(ACCOUNT_DETAILS_LAYOUT).use { doc ->
-            val allElements = doc.getElementsByTagName("*")
-            var foundInviteFriends = false
-            var foundDivider = false
-
-            for (i in 0 until allElements.length) {
-                val elem = allElements.item(i) as? Element ?: continue
-                val id = elem.getAttributeNS(ANDROID_NS, "id")
-                    .ifEmpty { elem.getAttribute("android:id") }
-                    .trim()
-
-                if (id == "@id/inviteFriends" || id == "@+id/inviteFriends" || id.endsWith("inviteFriends")) {
-                    elem.setAttribute("android:visibility", "gone")
-                    foundInviteFriends = true
-
-                    // Find the trailing divider View directly following inviteFriends
-                    var next = elem.nextSibling
-                    while (next != null && next !is Element) {
-                        next = next.nextSibling
-                    }
-                    if (next is Element && next.tagName == "View") {
-                        next.setAttribute("android:visibility", "gone")
-                        foundDivider = true
-                    }
-                    break
-                }
-            }
-
-            if (!foundInviteFriends) {
-                throw PatchException("[$ACCOUNT_DETAILS_LAYOUT] Could not find @id/inviteFriends element")
-            }
-            if (!foundDivider) {
-                throw PatchException("[$ACCOUNT_DETAILS_LAYOUT] Could not find divider View following @id/inviteFriends")
-            }
-        }
-
-        runCatching {
-            document(BADGE_RED_LAYOUT).use { doc ->
-                val images = doc.getElementsByTagName("ImageView")
-                for (i in 0 until images.length) {
-                    val elem = images.item(i) as? Element ?: continue
-                    elem.setAttribute("android:visibility", "gone")
-                }
-            }
-        }
-
-        runCatching {
-            document("AndroidManifest.xml").use { doc ->
-                val manifest = doc.documentElement
-                if (manifest.hasAttribute("android:requiredSplitTypes")) {
-                    manifest.removeAttribute("android:requiredSplitTypes")
-                }
-                if (manifest.hasAttributeNS(ANDROID_NS, "requiredSplitTypes")) {
-                    manifest.removeAttributeNS(ANDROID_NS, "requiredSplitTypes")
-                }
-                if (manifest.hasAttribute("android:splitTypes")) {
-                    manifest.removeAttribute("android:splitTypes")
-                }
-                if (manifest.hasAttributeNS(ANDROID_NS, "splitTypes")) {
-                    manifest.removeAttributeNS(ANDROID_NS, "splitTypes")
-                }
-
-                val metaDataNodes = doc.getElementsByTagName("meta-data")
-                val toRemove = mutableListOf<Element>()
-                for (i in 0 until metaDataNodes.length) {
-                    val elem = metaDataNodes.item(i) as? Element ?: continue
-                    val name = elem.getAttributeNS(ANDROID_NS, "name")
-                        .ifEmpty { elem.getAttribute("android:name") }
-                    if (name == "com.android.vending.splits.required" || name == "com.android.vending.splits") {
-                        toRemove.add(elem)
-                    }
-                }
-                for (elem in toRemove) {
-                    elem.parentNode?.removeChild(elem)
-                }
-            }
-        }
-    }
-
-    bytecode {
-        patchMainActivityAccountBadge()
-        patchDeepLinkTarget()
-        patchAccountDetailsFragment()
+    execute {
+        packageMetadata.requireSidelineSwapCompose()
+        hideReferralRow()
+        blockInviteRoutePush()
+        blockInviteDeepLink()
     }
 }
 
 /**
- * Neutralizes setupAccountBadge in MainActivity so badge_red is never inflated,
- * avoiding the ClassCastException and eliminating the non-functional orange dot.
+ * The account page renders its referral/invite row only when the referral earning state is
+ * absent. The guard is neutralized so neither branch renders the row, while every other
+ * account row keeps its own rendering block.
  */
-private fun BytecodePatchContext.patchMainActivityAccountBadge() {
-    val mainActivityClass = classDefByOrNull(MAIN_ACTIVITY)
-        ?: throw PatchException("Class $MAIN_ACTIVITY not found")
-    val mutableClass = mutableClassDefBy(mainActivityClass)
-    val setupAccountBadgeMethod = mutableClass.methods.firstOrNull {
-        it.name == "setupAccountBadge" && it.returnType == "V" && it.implementation != null
-    } ?: throw PatchException("Method setupAccountBadge not found in $MAIN_ACTIVITY")
+private fun BytecodePatchContext.hideReferralRow() {
+    val classDef = mutableClassDefByOrNull(ACCOUNT_CONTENT_CLASS)
+        ?: throw PatchException("Required policy failed: missing $ACCOUNT_CONTENT_CLASS")
 
-    setupAccountBadgeMethod.addInstructions(0, "return-void")
+    var matches = 0
+    for (method in classDef.methods) {
+        val impl = method.implementation ?: continue
+        val instructions = impl.instructions.toList()
+        for ((index, instruction) in instructions.withIndex()) {
+            if (instruction.opcode != Opcode.IGET_OBJECT) continue
+            val field = (instruction as? ReferenceInstruction)?.reference as? FieldReference ?: continue
+            if (field.definingClass + "->" + field.name + ":" + field.type != ACCOUNT_STATE_FIELD) continue
+
+            val guardIndex = index + 1
+            if (guardIndex >= instructions.size) continue
+            val guard = instructions[guardIndex]
+            if (guard.opcode != Opcode.IF_NEZ) continue
+
+            method.replaceInstruction(guardIndex, "nop")
+            matches++
+        }
+    }
+
+    if (matches != 1) {
+        throw PatchException(
+            "Required policy failed: expected 1 referral-row guard in $ACCOUNT_CONTENT_CLASS, matched $matches"
+        )
+    }
 }
 
 /**
- * Neutralizes the deep link target navigating to Invite Friends if present.
+ * The account page pushes InviteFriendsRoute directly from one navigation callback. The
+ * callback body returns Unit early instead of pushing the route.
  */
-private fun BytecodePatchContext.patchDeepLinkTarget() {
-    val deepLinkClass = classDefByOrNull(DEEP_LINK_INVITE_TARGET) ?: return
-    val mutableClass = mutableClassDefBy(deepLinkClass)
-    val invokeMethod = mutableClass.methods.firstOrNull {
-        it.name == "invoke" && it.returnType == "V" && it.implementation != null
-    } ?: return
+private fun BytecodePatchContext.blockInviteRoutePush() {
+    val classDef = mutableClassDefByOrNull(NAV_CALLBACK_CLASS)
+        ?: throw PatchException("Required policy failed: missing $NAV_CALLBACK_CLASS")
 
-    invokeMethod.addInstructions(0, "return-void")
+    var matches = 0
+    for (method in classDef.methods) {
+        val impl = method.implementation ?: continue
+        val instructions = impl.instructions.toList()
+
+        val inviteIndex = instructions.indexOfFirst { instruction ->
+            if (instruction.opcode != Opcode.SGET_OBJECT) return@indexOfFirst false
+            val field = (instruction as? ReferenceInstruction)?.reference as? FieldReference
+            field != null && field.definingClass + "->" + field.name + ":" + field.type == INVITE_ROUTE_INSTANCE
+        }
+        if (inviteIndex < 0) continue
+
+        val unitRegisters = instructions
+            .filter { it.opcode == Opcode.RETURN_OBJECT }
+            .map { (it as Instruction11x).registerA }
+            .distinct()
+        if (unitRegisters.size != 1) {
+            throw PatchException(
+                "Required policy failed: expected a single Unit return register in " +
+                    "$NAV_CALLBACK_CLASS->${method.name}, found $unitRegisters"
+            )
+        }
+
+        method.addInstructions(inviteIndex, "return-object v${unitRegisters.first()}")
+        matches++
+    }
+
+    if (matches != 1) {
+        throw PatchException(
+            "Required policy failed: expected 1 InviteFriendsRoute push in $NAV_CALLBACK_CLASS, matched $matches"
+        )
+    }
 }
 
 /**
- * Neutralizes navigation in the Invite Friends click handler within AccountDetailsFragment.
+ * Deep links resolve `invite` to a dedicated business action. Returning the parser's
+ * unmatched-path result (null) blocks external invite links while every other deep link
+ * keeps resolving.
  */
-private fun BytecodePatchContext.patchAccountDetailsFragment() {
-    val fragmentClass = classDefByOrNull(ACCOUNT_DETAILS_FRAGMENT)
-        ?: throw PatchException("Class $ACCOUNT_DETAILS_FRAGMENT not found")
-    val mutableClass = mutableClassDefBy(fragmentClass)
+private fun BytecodePatchContext.blockInviteDeepLink() {
+    val classDef = mutableClassDefByOrNull(URL_PARSER_CLASS)
+        ?: throw PatchException("Required policy failed: missing $URL_PARSER_CLASS")
 
-    for (method in mutableClass.methods.filter { it.implementation != null }) {
-        val instructions = method.implementation?.instructions?.toList().orEmpty()
-        val callsInviteFriends = instructions.any {
-            it.opcode == Opcode.INVOKE_VIRTUAL &&
-                (it as? ReferenceInstruction)?.reference?.toString()?.contains("inviteFriends") == true
+    var matches = 0
+    for (method in classDef.methods) {
+        val impl = method.implementation ?: continue
+        val instructions = impl.instructions.toList()
+        val index = instructions.indexOfFirst { instruction ->
+            if (instruction.opcode != Opcode.SGET_OBJECT) return@indexOfFirst false
+            val field = (instruction as? ReferenceInstruction)?.reference as? FieldReference
+            field != null && field.definingClass + "->" + field.name + ":" + field.type == INVITE_PATH_ROUTE
         }
-        if (callsInviteFriends && method.returnType == "V") {
-            method.addInstructions(0, "return-void")
+        if (index < 0) continue
+
+        val register = (instructions[index] as Instruction21c).registerA
+        if (register > 15) {
+            throw PatchException(
+                "Required policy failed: invite deep-link result uses wide register v$register in $URL_PARSER_CLASS"
+            )
         }
+        method.replaceInstruction(index, "const/4 v$register, 0x0")
+        matches++
+    }
+
+    if (matches != 1) {
+        throw PatchException(
+            "Required policy failed: expected 1 invite deep-link mapping in $URL_PARSER_CLASS, matched $matches"
+        )
     }
 }

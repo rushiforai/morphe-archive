@@ -134,6 +134,10 @@ final class Strings {
                 "Marcar los videos ocultos como no me gusta");
         put("auto_dislike_summary", "Each video the filters hide gets Not interested > Tell us why > I don't like the video",
                 "Cada video que ocultan los filtros recibe No me interesa > Dinos el motivo > No me gusta el video");
+        put("auto_reason", "Give the reason after Not interested",
+                "Dar el motivo después de No me interesa");
+        put("auto_reason_summary", "When you choose Not interested on a video and pick no reason within 5 seconds, the app sends Tell us why > I don't like the video",
+                "Cuando eliges No me interesa en un video y no indicas el motivo en 5 segundos, la app envía Dinos el motivo > No me gusta el video");
         put("auto_watched", "Mark watched videos", "Marcar videos vistos");
         put("auto_watched_summary", "Videos with the red progress bar get Not interested > Tell us why > I've already watched the video",
                 "Los videos con la barra roja de progreso reciben No me interesa > Dinos el motivo > Ya miré el video");

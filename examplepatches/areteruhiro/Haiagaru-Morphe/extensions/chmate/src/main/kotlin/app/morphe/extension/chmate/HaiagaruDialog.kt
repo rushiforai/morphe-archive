@@ -213,7 +213,9 @@ class HaiagaruDialog private constructor(private val spec: Builder) :
                     val model = remember(drawable) { ImageView(context).apply { setImageDrawable(drawable) } }
                     ModelContent(model, version)
                 }
-                if (heading.isNotBlank()) Text(heading, style = MaterialTheme.typography.headlineSmall)
+                if (heading.isNotBlank()) Text(heading, style =
+                    if (spec.view?.tag == "haiagaru.thread-group-selection") MaterialTheme.typography.titleMedium
+                    else MaterialTheme.typography.headlineSmall)
                 val browser = spec.view?.takeIf { weightedSurface(it) != null } as? android.widget.LinearLayout
                 if (browser != null) {
                     BrowserModel(browser, version, Modifier.fillMaxWidth()

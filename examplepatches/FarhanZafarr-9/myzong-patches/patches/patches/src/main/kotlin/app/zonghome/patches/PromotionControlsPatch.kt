@@ -12,12 +12,13 @@ import com.android.tools.smali.dexlib2.iface.reference.MethodReference
 private const val CONTROLS = "Lapp/zonghome/extension/PromotionControls;"
 
 val hideWhatsAppChannelPatch = bytecodePatch(
-    name = "Hide WhatsApp channel dialog",
+    name = null,
     description = "Hide the dialog promoting the Zong 5G WhatsApp channel.", default = true
 ) {
     compatibleWith(myZongCompatibility)
     dependsOn(sharedExtensionPatch, dialogWindowThemePatch)
     execute {
+        if (!CustomizationSettings.enabled("hideWhatsAppChannel")) return@execute
         Fingerprint(definingClass = CONTROLS, name = "hideWhatsAppChannel", returnType = "Z", parameters = emptyList())
             .method.addInstructions(0, "const/4 v0, 0x1\nreturn v0")
     }
@@ -27,6 +28,7 @@ val materialUsageStarPatch = bytecodePatch(
     name = "Material usage favorite star",
     description = "Use the Material accent for selected Usage and Bundles stars.", default = true
 ) {
+    category("Appearance")
     compatibleWith(myZongCompatibility)
     dependsOn(sharedExtensionPatch)
     execute {

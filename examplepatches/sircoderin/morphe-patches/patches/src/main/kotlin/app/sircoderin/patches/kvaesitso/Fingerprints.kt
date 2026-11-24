@@ -32,3 +32,31 @@ internal object SharedLauncherActivityOnNewIntentFingerprint : Fingerprint(
     returnType = "V",
     parameters = listOf("Landroid/content/Intent;"),
 )
+
+/**
+ * `LauncherScaffoldState.reset()` (suspend): clears search bar focus, snaps back to the home page and, only if a
+ * secondary page is open, re-runs the home component's `onPreActivate`. Called when the window resumes after
+ * more than 5 s in the background.
+ */
+internal object LauncherScaffoldStateResetFingerprint : Fingerprint(
+    definingClass = "Lde/mm20/launcher2/ui/launcher/scaffold/LauncherScaffoldState;",
+    name = "reset",
+    returnType = "Ljava/lang/Object;",
+    parameters = listOf("Lkotlin/coroutines/Continuation;"),
+)
+
+/** `SharedLauncherActivity.onPause()`: `super.onPause()`, then clears `isNewIntent`. */
+internal object SharedLauncherActivityOnPauseFingerprint : Fingerprint(
+    definingClass = "Lde/mm20/launcher2/ui/launcher/SharedLauncherActivity;",
+    name = "onPause",
+    returnType = "V",
+    parameters = listOf(),
+)
+
+/** `BaseActivity.onResume()`: runs before ON_RESUME is dispatched, so before the scaffold's resume check. */
+internal object BaseActivityOnResumeFingerprint : Fingerprint(
+    definingClass = "Lde/mm20/launcher2/ui/base/BaseActivity;",
+    name = "onResume",
+    returnType = "V",
+    parameters = listOf(),
+)

@@ -34,7 +34,9 @@ val youTubeMusicLiquidGlassNavBarPatch = bytecodePatch(
     description = "Turns the bottom tab bar into floating iOS 26 style Liquid Glass with live background blur " +
         "and edge refraction, with the mini player docked beside it as round album art with a progress ring, " +
         "a glass playback bar above, and the content scrolling on behind them. " +
-        "Refraction needs Android 13+, blur needs Android 12+, older versions get a tinted pill. " +
+        "Lightweight glass (the default, switchable to the full effect in the southstar21 Patches menu " +
+        "in the top bar) blurs on Android 14+ and gets a solid pill before that; the full effect adds " +
+        "refraction on Android 13+ and blur on Android 12+. " +
         "Requires Morphe Patches with GmsCore support, applied together in Expert mode.",
     default = true,
 ) {

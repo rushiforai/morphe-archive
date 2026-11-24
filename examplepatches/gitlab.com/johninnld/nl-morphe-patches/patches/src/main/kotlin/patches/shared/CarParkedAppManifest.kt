@@ -16,6 +16,27 @@ private const val CAR_LAUNCHER = "android.intent.category.CAR_LAUNCHER"
  * received the category; fails when nothing was declared, so a changed or already patched
  * manifest never produces a silently unlisted app.
  */
+/**
+ * Makes android.hardware.type.automotive optional so an automotive-only build can be installed on
+ * the phone that runs the car host. Games published for Android Automotive OS declare that feature
+ * as required, which keeps them off the phone that projects Android Auto or runs DriveDeck. Apps
+ * that never declare the feature are left untouched. Returns the number of feature declarations
+ * that were changed.
+ */
+internal fun allowInstallOutsideAutomotive(manifest: Document): Int {
+    val features = manifest.getElementsByTagName("uses-feature")
+    var changed = 0
+    for (i in 0 until features.length) {
+        val feature = features.item(i) as Element
+        if (feature.getAttributeNS(ANDROID, "name") != "android.hardware.type.automotive") continue
+        if (feature.getAttributeNS(ANDROID, "required") != "false") {
+            feature.setAttributeNS(ANDROID, "android:required", "false")
+            changed++
+        }
+    }
+    return changed
+}
+
 internal fun ensureCarParkedAppDeclaration(manifest: Document, appCategory: String): Int {
     fun Element.children(tag: String) = (0 until childNodes.length)
         .map { childNodes.item(it) }.filterIsInstance<Element>().filter { it.tagName == tag }

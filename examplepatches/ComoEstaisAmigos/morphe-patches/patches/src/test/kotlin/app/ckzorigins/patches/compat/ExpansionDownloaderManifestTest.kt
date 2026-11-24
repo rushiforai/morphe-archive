@@ -1,8 +1,8 @@
 package app.ckzorigins.patches.compat
 
-import org.w3c.dom.Document
+import app.adebisi.patches.shared.namedElements
+import app.adebisi.patches.shared.parseManifestXml
 import org.w3c.dom.Element
-import javax.xml.parsers.DocumentBuilderFactory
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
@@ -12,31 +12,31 @@ import kotlin.test.assertTrue
 class ExpansionDownloaderManifestTest {
     @Test
     fun `the launcher moves to Unity and the downloader components are gone`() {
-        val document = parse(STOCK)
+        val document = parseManifestXml(STOCK)
         ExpansionDownloaderManifest.strip(document)
 
-        assertEquals(0, named(document, "activity", ExpansionDownloaderManifest.DOWNLOADER_ACTIVITY).size)
-        assertEquals(0, named(document, "service", ExpansionDownloaderManifest.DOWNLOADER_SERVICE).size)
-        assertEquals(0, named(document, "receiver", ExpansionDownloaderManifest.ALARM_RECEIVER).size)
+        assertEquals(0, namedElements(document, "activity", listOf(ExpansionDownloaderManifest.DOWNLOADER_ACTIVITY)).size)
+        assertEquals(0, namedElements(document, "service", listOf(ExpansionDownloaderManifest.DOWNLOADER_SERVICE)).size)
+        assertEquals(0, namedElements(document, "receiver", listOf(ExpansionDownloaderManifest.ALARM_RECEIVER)).size)
 
-        val launcher = named(document, "activity", ExpansionDownloaderManifest.UNITY_LAUNCHER).single()
+        val launcher = namedElements(document, "activity", listOf(ExpansionDownloaderManifest.UNITY_LAUNCHER)).single()
         assertTrue(hasLauncher(launcher))
         assertEquals("2", launcher.getAttribute("android:launchMode"))
-        assertEquals(1, named(document, "activity", "com.unity3d.player.VideoPlayer").size)
-        assertEquals(1, named(document, "receiver", "com.flurry.android.InstallReceiver").size)
+        assertEquals(1, namedElements(document, "activity", listOf("com.unity3d.player.VideoPlayer")).size)
+        assertEquals(1, namedElements(document, "receiver", listOf("com.flurry.android.InstallReceiver")).size)
     }
 
     @Test
     fun `a manifest without the downloader activity is refused`() {
         assertFailsWith<app.morphe.patcher.patch.PatchException> {
-            ExpansionDownloaderManifest.strip(parse(NO_DOWNLOADER))
+            ExpansionDownloaderManifest.strip(parseManifestXml(NO_DOWNLOADER))
         }
     }
 
     @Test
     fun `a Unity launcher that already has MAIN is refused`() {
         assertFailsWith<app.morphe.patcher.patch.PatchException> {
-            ExpansionDownloaderManifest.strip(parse(ALREADY_LAUNCHER))
+            ExpansionDownloaderManifest.strip(parseManifestXml(ALREADY_LAUNCHER))
         }
     }
 
@@ -51,12 +51,6 @@ class ExpansionDownloaderManifestTest {
         )
         assertEquals(64, EMPTIED_EXPANSION_CLASSES)
         assertTrue(KEPT_EXPANSION_TYPES.all { it.startsWith(EXPANSION_PREFIX) })
-    }
-
-    private fun named(document: Document, tag: String, name: String): List<Element> {
-        val list = document.getElementsByTagName(tag)
-        return (0 until list.length).map { list.item(it) as Element }
-            .filter { it.getAttribute("android:name") == name }
     }
 
     private fun hasLauncher(activity: Element): Boolean {
@@ -78,12 +72,6 @@ class ExpansionDownloaderManifestTest {
             val node = list.item(i)
             if (node is Element && node.tagName == tag) node.getAttribute("android:name") else null
         }
-    }
-
-    private fun parse(xml: String): Document {
-        val factory = DocumentBuilderFactory.newInstance()
-        factory.isNamespaceAware = false
-        return factory.newDocumentBuilder().parse(xml.byteInputStream())
     }
 
     private companion object {

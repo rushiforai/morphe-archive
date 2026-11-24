@@ -83,7 +83,7 @@ public final class GboardOcrBundledBridge {
     public static String recognizeText(Bitmap bitmap) {
         try {
             ClassLoader cl = GboardOcrBundledBridge.class.getClassLoader();
-            Object imageHolder = Class.forName("aaat", false, cl)
+            Object imageHolder = Class.forName("bail", false, cl)
                     .getDeclaredConstructor(Bitmap.class).newInstance(bitmap);
             Object optional = createOptional();
             Object recognizer = optional.getClass().getMethod("get").invoke(optional);
@@ -98,8 +98,8 @@ public final class GboardOcrBundledBridge {
                 return "";
             }
             Object task = process.invoke(recognizer, imageHolder);
-            // lxp.e() completes to Gboard's zxo text object; its a() blocks each carry b() text.
-            Object text = Class.forName("lxp", false, cl).getMethod("e").invoke(task);
+            // zee.e() completes to Gboard's bajd text object; its a() blocks each carry b() text.
+            Object text = Class.forName("zee", false, cl).getMethod("e").invoke(task);
             if (text == null) {
                 return "";
             }
@@ -227,17 +227,17 @@ public final class GboardOcrBundledBridge {
         }
 
         /**
-         * Builds Gboard's Text graph from the pipeline payload: zxo(blocks) -> aaba(block) ->
-         * aaay(line). Fields are classified by type rather than name because the pipeline's
+         * Builds Gboard's Text graph from the pipeline payload: bajd(blocks) -> bajc(block) ->
+         * baiy(line). Fields are classified by type rather than name because the pipeline's
          * holders differ per model release: a String is the text (or the language tag), a Rect
          * is the box, a Point[] is the corner polygon and an array is the children.
          */
         private Object transcribe(Object[] blocks) throws Exception {
             Class<?> textClass = Class.forName("bajd", false, gboard);
-            Class<?> blockClass = Class.forName("aaba", false, gboard);
-            Class<?> lineClass = Class.forName("aaay", false, gboard);
-            // Elements are plain aaaz nodes; Gboard's jih walks a line's children at that type.
-            Class<?> elementClass = Class.forName("aaaz", false, gboard);
+            Class<?> blockClass = Class.forName("bajc", false, gboard);
+            Class<?> lineClass = Class.forName("baiy", false, gboard);
+            // Elements are plain baja nodes, the common base of the line and block classes.
+            Class<?> elementClass = Class.forName("baja", false, gboard);
 
             Constructor<?> textConstructor = textClass.getDeclaredConstructor(List.class);
             Constructor<?> blockConstructor = blockClass.getDeclaredConstructor(
@@ -291,7 +291,7 @@ public final class GboardOcrBundledBridge {
 
         private Object completeTask(Object result) {
             try {
-                Class<?> taskImplClass = Class.forName("lxp", false, gboard);
+                Class<?> taskImplClass = Class.forName("zee", false, gboard);
                 Object task = taskImplClass.getDeclaredConstructor().newInstance();
                 taskImplClass.getMethod("q", Object.class).invoke(task, result);
                 return task;
@@ -303,9 +303,9 @@ public final class GboardOcrBundledBridge {
 
         private Object failedTask(Throwable failure) {
             try {
-                Class<?> taskImplClass = Class.forName("lxp", false, gboard);
+                Class<?> taskImplClass = Class.forName("zee", false, gboard);
                 Object task = taskImplClass.getDeclaredConstructor().newInstance();
-                taskImplClass.getMethod("o", Exception.class).invoke(task, asException(failure));
+                taskImplClass.getMethod("p", Exception.class).invoke(task, asException(failure));
                 return task;
             } catch (Throwable ignored) {
                 throw new IllegalStateException("Bundled OCR failed", failure);
@@ -314,7 +314,7 @@ public final class GboardOcrBundledBridge {
 
         private Object emptyModuleSpecs() {
             try {
-                Class<?> spec = Class.forName("kzf", false, gboard);
+                Class<?> spec = Class.forName("xli", false, gboard);
                 return Array.newInstance(spec, 0);
             } catch (Throwable failure) {
                 return Array.newInstance(Object.class, 0);

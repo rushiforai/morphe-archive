@@ -69,6 +69,8 @@ public final class XSettings {
 
     // Automatic feedback and likes.
     public static final BooleanSetting AUTO_DISLIKE_FILTERED = new BooleanSetting("yx_auto_dislike_filtered", FALSE);
+    /** After a hand-made Not interested, send I don't like the video when 5 seconds pass with no reason chosen (AutoReason). */
+    public static final BooleanSetting AUTO_REASON = new BooleanSetting("yx_auto_reason", FALSE);
     /** Off, partly (any progress bar), or fully (a progress bar of at least 90%). */
     public static final StringSetting AUTO_WATCHED = new StringSetting("yx_auto_watched", "off");
     public static final BooleanSetting AUTO_LIKE = new BooleanSetting("yx_auto_like", FALSE);

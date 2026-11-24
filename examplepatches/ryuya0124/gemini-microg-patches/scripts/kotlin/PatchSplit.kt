@@ -10,7 +10,8 @@ fun main(args: Array<String>) {
         check(manifest.packageName == "com.google.android.googlequicksearchbox")
         val attribute = manifest.manifestElement!!.searchAttributeByName("package")
             ?: error("Missing package attribute")
-        attribute.setValueAsString("com.google.android.googlequicksearchbox.morphe")
-        apk.writeApk(File(args[1]))
+        attribute.setDataAsString("com.google.android.googlequicksearchbox.morphe")
+        // ARSCLib bundled with Desktop 2.x writes through ApkFileWriter (old: ApkModule.writeApk).
+        apk.createApkFileWriter(File(args[1])).use { it.write() }
     } finally { apk.close() }
 }

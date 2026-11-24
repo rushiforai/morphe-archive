@@ -495,6 +495,33 @@ public class AdBlockerTest {
     }
 
     @Test
+    public void aStreamMovedBetweenTwoPollsIsFollowedAtOnce() {
+        backupHasAds("site", false);
+        blocker.process(NATIVE_1080, Playlists.media("n", 100, "llll", false));
+        String moved = "https://euc11.playlist.ttvnw.net/v1/playlist/moved.m3u8";
+
+        // The next poll, at the usual ~2 s, already comes from the new server: its ad is blocked too.
+        now += 2_000;
+        String out = blocker.process(moved, Playlists.media("n", 102, "llaa", true));
+
+        assertTrue(out.contains(Playlists.segment("site", 104)));
+        assertFalse("no ad segment reaches the player", out.contains("/ads/"));
+        assertTrue(blocker.isKnownMediaPlaylist(moved));
+    }
+
+    @Test
+    public void anotherPlayerOfTheSameStreamIsNotTakenForItMoving() {
+        blocker.process(NATIVE_1080, Playlists.media("n", 100, "llll", false));
+        String second = "https://euc11.playlist.ttvnw.net/v1/playlist/second.m3u8";
+
+        // Same segments, polled half a second after the stream's own poll: another player of it.
+        now += 500;
+        String text = Playlists.media("n", 100, "llll", false);
+        assertSame(text, blocker.process(second, text));
+        assertFalse(blocker.isKnownMediaPlaylist(second));
+    }
+
+    @Test
     public void recognisesTheNewPlaylistHosts() {
         assertTrue(AdBlocker.isLiveMediaPlaylist("https://euc11.playlist.ttvnw.net/v1/playlist/CqQH5w.m3u8"));
         assertTrue(AdBlocker.isLiveMediaPlaylist("https://video-weaver.fra05.hls.ttvnw.net/v1/playlist/abc.m3u8"));

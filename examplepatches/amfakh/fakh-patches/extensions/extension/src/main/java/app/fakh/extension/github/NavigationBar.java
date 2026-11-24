@@ -1,3 +1,8 @@
+/*
+ * Copyright 2026 amfakh
+ * SPDX-License-Identifier: GPL-3.0-only
+ */
+
 package app.fakh.extension.github;
 
 import android.app.Activity;
@@ -16,6 +21,7 @@ import java.lang.reflect.Modifier;
 import java.util.ArrayList;
 import java.util.List;
 
+import app.fakh.extension.shared.Features;
 import app.fakh.extension.shared.GlassCapsule;
 import app.fakh.extension.shared.GlassTabs;
 import app.fakh.extension.shared.SlidingPill;
@@ -31,12 +37,15 @@ import app.fakh.extension.shared.AppRuntime;
 public final class NavigationBar {
     public static final String GLASS = "fakh_glass_navbar";
     public static final String HIDE_LABELS = "fakh_hide_nav_labels";
+    public static final String SMALLER = "fakh_smaller_navbar";
     /** The Liquid Glass switch, on until turned off: the settings row shows it on before it is ever saved. */
     public static final String LIQUID = "fakh_liquid_glass";
     private static final float LANDSCAPE_HEIGHT_DP = 272f;
     public static final String NAV_RIGHT = "fakh_nav_right";
     /** Prefix of the switch that hides each tab, which {@link ChoiceSheets} sets from the tab sheet. */
     static final String HIDE_TAB = "fakh_hide_tab_";
+    /** The tabs after Home in the order the user dragged them to, as label names joined by commas. */
+    static final String TAB_ORDER = "fakh_tab_order";
     /** The name of the label of the Home tab. */
     static final String HOME_TAB = "menu_home";
     /** Every tab the app lists, before the hidden ones are dropped, for the sheet. */
@@ -87,7 +96,7 @@ public final class NavigationBar {
 
     /** Injected before the call that draws a tab: its label composable, or null while labels are hidden. */
     public static Object label(Object label) {
-        return MaterialYou.flag(HIDE_LABELS) ? null : label;
+        return Features.on(HIDE_LABELS) ? null : label;
     }
 
     /**
@@ -159,7 +168,13 @@ public final class NavigationBar {
      * @return the mask, with the color taken from the arguments while the bar is glass
      */
     public static int labelStyleMask(int mask) {
-        return glass() ? mask & ~1 : mask;
+        int result = glass() ? mask & ~1 : mask;
+        return smaller() ? result & ~2 : result;
+    }
+
+    /** Smaller label font size (10sp) when the smaller navigation bar is enabled. */
+    public static long labelFontSize(long fontSize) {
+        return smaller() ? 0x141200000L : fontSize;
     }
 
     /** The indicator the app draws behind the selected tab: none where the capsule draws its own pill. */
@@ -168,11 +183,12 @@ public final class NavigationBar {
     }
 
     /**
-     * The space Material 3 puts between a tab's icon indicator and its label, in dp: none on the glass bar, whose pill
-     * holds both and is too low for Material's 4dp on top of the indicator's own.
+     * The space Material 3 puts between a tab's icon indicator and its label, in dp: none on the glass bar, or -2dp on
+     * the smaller bar to offset the indicator's own 4dp bottom padding so the label sits closer to the icon.
      */
     public static float labelGap(float gap) {
-        return slider == null || !glass() ? gap : 0f;
+        if (smaller()) return -2f;
+        return slider != null && glass() ? 0f : gap;
     }
 
     /** The ripple a pressed tab shows behind its icon, or none on the glass bar, where the pill marks the tab. */
@@ -304,8 +320,9 @@ public final class NavigationBar {
     /** Called when an activity comes to the front: gives its bottom bar the capsule. */
     static void install(Activity activity) {
         boolean glass = glass();
-        boolean right = MaterialYou.flag(NAV_RIGHT);
-        if (!glass && !right) return;
+        boolean right = Features.on(NAV_RIGHT);
+        boolean small = smaller();
+        if (!glass && !right && !small) return;
         boolean portrait = activity.getResources().getConfiguration().orientation == Configuration.ORIENTATION_PORTRAIT;
         View bar = activity.findViewById(activity.getResources().getIdentifier(
                 "navigation_bar", "id", activity.getPackageName()));
@@ -318,15 +335,21 @@ public final class NavigationBar {
             if (glass) installLandscapeGlass(activity, bar);
             return;
         }
-        if (!glass) return;
         float density = bar.getResources().getDisplayMetrics().density;
+        if (!glass) {
+            ViewGroup.LayoutParams size = bar.getLayoutParams();
+            size.height = Math.round((Features.on(HIDE_LABELS) ? 48 : 52) * density) + bar.getPaddingBottom();
+            bar.setLayoutParams(size);
+            return;
+        }
         int side = Math.round((SIDE_MARGIN_DP + INNER_PADDING_DP) * density);
-        int vertical = Math.round(VERTICAL_MARGIN_DP * density);
+        int vertical = Math.round((small ? 4 : VERTICAL_MARGIN_DP) * density);
         bar.setPadding(side, vertical, side, vertical);
         // The tabs are at least 80dp tall; a bar that is shorter clamps them and centers the icon and label.
+        int heightDp = small ? (Features.on(HIDE_LABELS) ? 42 : 46)
+                : (Features.on(HIDE_LABELS) ? ICON_ONLY_HEIGHT_DP : LABELED_HEIGHT_DP);
         ViewGroup.LayoutParams size = bar.getLayoutParams();
-        size.height = Math.round((MaterialYou.flag(HIDE_LABELS) ? ICON_ONLY_HEIGHT_DP : LABELED_HEIGHT_DP) * density)
-                + 2 * vertical;
+        size.height = Math.round(heightDp * density) + 2 * vertical;
         bar.setLayoutParams(size);
         GlassCapsule.clearSystemBar(activity);
         capsule = new GlassCapsule(barColor, density, new GlassCapsule.Layout() {
@@ -345,7 +368,7 @@ public final class NavigationBar {
             public boolean pill(RectF out) {
                 if (slider == null || !slider.has() || !capsule(shape)) return false;
                 // The whole tab, icon and label, a little wider than the tab, with a thin rim of the capsule all around.
-                float inset = PILL_INSET_DP * density;
+                float inset = (small ? 3 : PILL_INSET_DP) * density;
                 float grow = PILL_GROW_DP * density;
                 out.set(Math.max(shape.left + inset, slider.start() - grow), shape.top + inset,
                         Math.min(shape.right - inset, slider.end() + grow), shape.bottom - inset);
@@ -353,7 +376,7 @@ public final class NavigationBar {
             }
         }, FILL_ALPHA);
         bar.setBackground(capsule);
-        capsule.setLiquid(MaterialYou.prefs(activity).getBoolean(LIQUID, false));
+        capsule.setLiquid(Features.on(LIQUID));
         capsule.setBevel(true);
         startPill(bar, false);
         matchPage(activity);
@@ -471,8 +494,9 @@ public final class NavigationBar {
 
     /** Landscape: the same capsule, upright around the rail's tabs. */
     private static void installLandscapeGlass(Activity activity, View bar) {
+        boolean small = smaller();
         float density = bar.getResources().getDisplayMetrics().density;
-        // The rail is 80dp wide on its own; the capsule hugs it and is only as tall as the four tabs.
+        // The rail is 80dp wide on its own (64dp when smaller); the capsule hugs it and is only as tall as the four tabs.
         bar.setPadding(0, 0, 0, 0);
         GlassCapsule.clearSystemBar(activity);
         capsule = new GlassCapsule(barColor, density, new GlassCapsule.Layout() {
@@ -480,9 +504,13 @@ public final class NavigationBar {
 
             @Override
             public boolean capsule(RectF out) {
-                float height = Math.min(bar.getHeight() - 2 * VERTICAL_MARGIN_DP * density, LANDSCAPE_HEIGHT_DP * density);
+                int count = tabIcons.size();
+                float contentHeight = (count > 0 ? count * (RAIL_TAB_DP + RAIL_GAP_DP) - RAIL_GAP_DP : 236) * density;
+                float pad = (small ? 4 : 6) * density;
+                float height = Math.min(bar.getHeight() - 2 * VERTICAL_MARGIN_DP * density, contentHeight + 2 * pad);
                 float top = (bar.getHeight() - height) / 2f;
-                out.set(8 * density, top, bar.getWidth() - 8 * density, top + height);
+                float sideInset = (small ? 14 : 8) * density;
+                out.set(sideInset, top, bar.getWidth() - sideInset, top + height);
                 return out.width() > 0 && out.height() > 0;
             }
 
@@ -490,15 +518,15 @@ public final class NavigationBar {
             public boolean pill(RectF out) {
                 if (slider == null || !slider.has() || !capsule(shape)) return false;
                 // The whole tab, a little taller than it, with a thin rim of the capsule all around.
-                float inset = PILL_INSET_DP * density;
-                float grow = PILL_GROW_DP * density;
+                float inset = (small ? 3 : PILL_INSET_DP) * density;
+                float grow = (small ? 1 : PILL_GROW_DP) * density;
                 out.set(shape.left + inset, Math.max(shape.top + inset, slider.start() - grow),
                         shape.right - inset, Math.min(shape.bottom - inset, slider.end() + grow));
                 return true;
             }
         }, FILL_ALPHA);
         bar.setBackground(capsule);
-        capsule.setLiquid(MaterialYou.prefs(activity).getBoolean(LIQUID, false));
+        capsule.setLiquid(Features.on(LIQUID));
         capsule.setBevel(true);
         startPill(bar, true);
         bar.addOnLayoutChangeListener((v, l, t, r, b, ol, ot, or, ob) -> syncPill());
@@ -560,7 +588,11 @@ public final class NavigationBar {
     }
 
     private static boolean glass() {
-        return MaterialYou.flag(GLASS, true);
+        return Features.on(GLASS);
+    }
+
+    private static boolean smaller() {
+        return Features.on(SMALLER);
     }
 
     /**
@@ -568,6 +600,15 @@ public final class NavigationBar {
      * read: drops the tabs switched off in the sheet, and keeps them all when none would be left.
      */
     public static List<Object> tabs(List<Object> tabs) {
+        tabs = new ArrayList<>(tabs);
+        tabs.addAll(ExtraTab.all());
+        List<String> order = java.util.Arrays.asList(Features.text(TAB_ORDER, "").split(","));
+        // A stable sort: Home first, then the dragged order, then tabs the user has not placed yet.
+        tabs.sort(java.util.Comparator.comparingInt(tab -> {
+            String name = labelName(tab);
+            int index = order.indexOf(name);
+            return HOME_TAB.equals(name) ? -1 : index < 0 ? order.size() : index;
+        }));
         allTabs = new ArrayList<>(tabs);
         List<Object> shown = new ArrayList<>();
         for (Object tab : tabs) {
@@ -594,9 +635,12 @@ public final class NavigationBar {
         }
     }
 
-    /** Whether the user switched the tab named [name] off; the Home tab never is, as the app starts on it. */
+    /**
+     * Whether the user switched the tab named [name] off; the Home tab never is, as the app starts on it. The tabs the
+     * app does not have, Repositories and Stars, start off.
+     */
     static boolean hidden(String name) {
-        return !HOME_TAB.equals(name) && MaterialYou.flag(HIDE_TAB + name);
+        return !HOME_TAB.equals(name) && Features.value(HIDE_TAB + name, ExtraTab.LABELS.contains(name));
     }
 
     /**
@@ -613,6 +657,24 @@ public final class NavigationBar {
                     field.setAccessible(true);
                     int id = field.getInt(tab);
                     if (id != 0 && "string".equals(context.getResources().getResourceTypeName(id))) return id;
+                } catch (ReflectiveOperationException | Resources.NotFoundException ignored) {
+                }
+            }
+        }
+        return 0;
+    }
+
+    /** The icon of a tab, as a drawable resource id: the first of its int fields that names a drawable; 0 when none does. */
+    static int iconId(Object tab) {
+        Context context = AppRuntime.application();
+        if (context == null) return 0;
+        for (Class<?> type = tab.getClass(); type != null && type != Object.class; type = type.getSuperclass()) {
+            for (Field field : type.getDeclaredFields()) {
+                if (field.getType() != int.class || Modifier.isStatic(field.getModifiers())) continue;
+                try {
+                    field.setAccessible(true);
+                    int id = field.getInt(tab);
+                    if (id != 0 && "drawable".equals(context.getResources().getResourceTypeName(id))) return id;
                 } catch (ReflectiveOperationException | Resources.NotFoundException ignored) {
                 }
             }

@@ -15,7 +15,6 @@ import com.android.tools.smali.dexlib2.AccessFlags
 import com.android.tools.smali.dexlib2.Opcode
 
 private const val REQUEST_PACKET = "Lcom/zing/zalocore/connection/socket/RequestPacket;"
-private const val SETTINGS = "Lapp/template/extension/extension/NezumiSettings;"
 
 private object DirectTextTypingFingerprint : Fingerprint(
     returnType = "V",
@@ -50,7 +49,7 @@ private fun suppressTextTyping(method: MutableMethod, statusParameter: String) {
         if-nez $statusParameter, :nezumi_send_typing
         invoke-static {}, Lcom/zing/zalo/MainApplication;->getAppContext()Landroid/content/Context;
         move-result-object v0
-        invoke-static {v0}, $SETTINGS->isTypingHidden(Landroid/content/Context;)Z
+        invoke-static {v0}, $CHAT_OPTIONS->isTypingHidden(Landroid/content/Context;)Z
         move-result v0
         if-eqz v0, :nezumi_send_typing
         return-void
@@ -61,7 +60,7 @@ private fun suppressTextTyping(method: MutableMethod, statusParameter: String) {
 val hideTextTypingPatch = bytecodePatch(
     name = "Hide text typing",
     description = "Hide outgoing text typing in direct and group chats when enabled in Nezumi Settings.",
-    default = false,
+    default = true,
 ) {
     compatibleWith(Compatibility(
         name = "Zalo",

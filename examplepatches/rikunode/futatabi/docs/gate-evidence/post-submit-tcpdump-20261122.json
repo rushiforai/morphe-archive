@@ -1,0 +1,71 @@
+{
+  "observedAt": "2026-11-22 JST",
+  "device": "Android emulator-5554, root tcpdump 4.99.4, interface any (LINUX_SLL2)",
+  "app": "unmodified futatter 3.1.1 (com.Nanasaki.ftutter)",
+  "appUid": 10218,
+  "localBoard": "http://127.0.0.1:18766/aimoge/",
+  "adbReverse": "tcp:18766 tcp:18766",
+  "riskControl": {
+    "ipv4": "iptables OUTPUT UID 10218 !127.0.0.0/8 REJECT",
+    "ipv6": "ip6tables OUTPUT UID 10218 !::1/128 REJECT",
+    "enabledForBothWindows": true,
+    "removedAfterward": true,
+    "otherAppsUnmodified": true
+  },
+  "baseline": {
+    "action": "Return to board list, tap local board, wait for catalogue",
+    "pcapLocalOnly": "apk-inspection/netgate/baseline-valid.pcap",
+    "pcapBytes": 1824,
+    "sha256": "0d3594ece6c5060a758f3e1afce48da6dcd7f50a2cbda64c43da6acdd662b0a1",
+    "packets": 19,
+    "tcpDestinations": [
+      "127.0.0.1:18766"
+    ],
+    "tcpConnections": 2,
+    "observedSourcePorts": [
+      35370,
+      35386
+    ],
+    "externalBlockedCounters": {
+      "ipv4Before": 57,
+      "ipv4After": 57,
+      "ipv6Before": 68,
+      "ipv6After": 68
+    },
+    "note": "Catalog title and '46' rendered; null-check warning appeared from image path; existing thread could still be opened."
+  },
+  "submission": {
+    "action": "From existing local thread, open native reply modal, enter local test comment, tap submit, wait and capture",
+    "pcapLocalOnly": "apk-inspection/netgate/post-only.pcap",
+    "pcapBytes": 136,
+    "sha256": "cab022822a4fcf3666458a6e0e3a33b2bd40e132c216466d25a185b766762d7a",
+    "packets": 1,
+    "packetDescription": "eth0 ICMPv6 fe80::2 to ff02::1 router advertisement, unrelated to app, no TCP",
+    "newTcpConnectionsObserved": 0,
+    "externalBlockedCounters": {
+      "ipv4Before": 57,
+      "ipv4After": 57,
+      "ipv6Before": 68,
+      "ipv6After": 68
+    },
+    "uiStateAfter": "Reply modal closed, pre-existing thread remained; no success confirmation"
+  },
+  "interpretation": {
+    "proven": "No TCP SYN observed during isolated submission capture and no increment in per-app IPv4/IPv6 egress REJECT counters; reply returned to thread without contacting fixture.",
+    "notProven": "Whether a Dart-domain check, parser flag, validation, cached path or other condition prevents initiating networking; cannot infer remote hostname absent DNS/connection evidence.",
+    "limits": [
+      "pcap snaplen 96 stores packet headers only",
+      "tcpdump may not see packets filtered at OUTPUT; UID REJECT counters independently cover outbound attempts but not hostnames",
+      "other emulator traffic such as router advertisements appears on capture",
+      "only local-thread reply was tested, no real-site posting",
+      "catalog baseline generated local TCP flows and may also have a null warning"
+    ]
+  },
+  "restore": {
+    "ipv4RuleRemoved": true,
+    "ipv6RuleRemoved": true,
+    "port18766Server": "tests/adb_reverse_fixture.py --port 18766",
+    "adbReverseUnchanged": true,
+    "appCodeModified": false
+  }
+}

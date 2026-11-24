@@ -2,11 +2,15 @@ package app.morphe.extension.youtube.swipecontrols.controller.gesture.core
 
 import android.view.GestureDetector
 import android.view.MotionEvent
+import app.morphe.extension.youtube.patches.video.PlaybackSpeedPatch.userSelectedPlaybackSpeed
+import app.morphe.extension.youtube.patches.video.PlaybackSpeedValues
+import app.morphe.extension.youtube.shared.VideoInformation
 import app.morphe.extension.youtube.swipecontrols.SwipeControlsConfigurationProvider.SwipeZoneAction
 import app.morphe.extension.youtube.swipecontrols.SwipeControlsHostActivity
 import app.morphe.extension.youtube.swipecontrols.misc.Point
 import app.morphe.extension.youtube.swipecontrols.misc.contains
 import app.morphe.extension.youtube.swipecontrols.misc.toPoint
+import kotlin.math.abs
 
 /**
  * the common base of all [GestureController] classes.
@@ -16,6 +20,7 @@ import app.morphe.extension.youtube.swipecontrols.misc.toPoint
  */
 abstract class BaseGestureController(
     private val controller: SwipeControlsHostActivity,
+    private val reservePortraitSwipes: Boolean = false,
 ) : GestureController,
     GestureDetector.SimpleOnGestureListener(),
     SwipeDetector by SwipeDetectorImpl(
@@ -30,6 +35,16 @@ abstract class BaseGestureController(
         controller.config.speedDistance,
         controller.config.seekDistance,
         controller.config.volumeSwipeSensitivity,
+        adjustSpeed = { direction ->
+            val newSpeed = PlaybackSpeedValues.adjustBySwipe(VideoInformation.getPlaybackSpeed(), direction)
+            VideoInformation.overridePlaybackSpeed(newSpeed)
+            userSelectedPlaybackSpeed(newSpeed)
+            controller.overlay.onSpeedChanged(newSpeed)
+        },
+        seekBy = { deltaMillis ->
+            VideoInformation.seekToRelative(deltaMillis.toLong())
+            controller.overlay.onSeekChanged(deltaMillis)
+        },
     ) {
 
     /**
@@ -44,11 +59,6 @@ abstract class BaseGestureController(
     private var didCancelDownstream = false
 
     override fun submitTouchEvent(motionEvent: MotionEvent): Boolean {
-        // ignore if swipe is disabled
-        if (!controller.config.enableSwipeControls) {
-            return false
-        }
-
         // create a copy of the event so we can modify it
         // without causing any issues downstream
         val me = MotionEvent.obtain(motionEvent)
@@ -59,12 +69,16 @@ abstract class BaseGestureController(
             me.action = MotionEvent.ACTION_CANCEL
         }
 
-        // send the event to the detector
-        // if we force intercept events, the event is always consumed
-        val consumed = detector.onTouchEvent(me) || shouldForceInterceptEvents
+        val detectorConsumed = detector.onTouchEvent(me)
 
-        // evaluate swipe zone before recycling
-        val inSwipeZone = isInSwipeZone(me)
+        // A claimed portrait gesture stays ours after leaving its start zone. Before the claim,
+        // taps, unrelated scrolls and other gestures continue through the native player.
+        val consumeEvent = if (controller.config.enablePortraitSwipeControls) {
+            didCancelDownstream || (reservePortraitSwipes &&
+                me.actionMasked == MotionEvent.ACTION_MOVE && detectorConsumed)
+        } else {
+            (detectorConsumed || shouldForceInterceptEvents) && isInSwipeZone(me)
+        }
 
         // invoke the custom onUp handler
         if (me.action == MotionEvent.ACTION_UP || me.action == MotionEvent.ACTION_CANCEL) {
@@ -74,9 +88,15 @@ abstract class BaseGestureController(
         // recycle the copy
         me.recycle()
 
-        // do not consume dropped events
-        // or events outside any swipe zone
-        return !dropped && consumed && inSwipeZone
+        return !dropped && consumeEvent
+    }
+
+    override fun cancelTouchEvent(event: MotionEvent) {
+        val cancelEvent = MotionEvent.obtain(event)
+        cancelEvent.action = MotionEvent.ACTION_CANCEL
+        detector.onTouchEvent(cancelEvent)
+        onUp(cancelEvent)
+        cancelEvent.recycle()
     }
 
     /**
@@ -124,8 +144,23 @@ abstract class BaseGestureController(
 
             consumed
         } else {
-            false
+            shouldHoldPortraitMove(from, to)
         }
+    }
+
+    private fun shouldHoldPortraitMove(from: MotionEvent, to: MotionEvent): Boolean {
+        if (!reservePortraitSwipes || !controller.config.enablePortraitSwipeControls ||
+            (!controller.config.enableSwipeControlsLockMode && controller.config.isScreenLocked)
+        ) return false
+
+        // GestureDetector reached touch slop but the configured swipe threshold is higher.
+        // Give a configured axis priority over native fullscreen drag only inside its start zone.
+        val direction = if (abs(to.y - from.y) > abs(to.x - from.x)) {
+            SwipeDetector.SwipeDirection.VERTICAL
+        } else {
+            SwipeDetector.SwipeDirection.HORIZONTAL
+        }
+        return swipeActionAt(from.toPoint(), direction) != SwipeZoneAction.OFF
     }
 
     /**
@@ -153,11 +188,7 @@ abstract class BaseGestureController(
                 (controller.config.leftZoneAction != SwipeZoneAction.OFF && point in controller.zones.left) ||
                     (controller.config.rightZoneAction != SwipeZoneAction.OFF && point in controller.zones.right)
 
-            SwipeDetector.SwipeDirection.NONE ->
-                (controller.config.leftZoneAction != SwipeZoneAction.OFF && point in controller.zones.left) ||
-                    (controller.config.rightZoneAction != SwipeZoneAction.OFF && point in controller.zones.right) ||
-                    (controller.config.topZoneAction != SwipeZoneAction.OFF && point in controller.zones.top) ||
-                    (controller.config.bottomZoneAction != SwipeZoneAction.OFF && point in controller.zones.bottom)
+            SwipeDetector.SwipeDirection.NONE -> controller.zones.containsActiveZone(point)
         }
     }
 
@@ -170,21 +201,7 @@ abstract class BaseGestureController(
      * direction.
      */
     protected fun swipeActionAt(origin: Point, direction: SwipeDetector.SwipeDirection): SwipeZoneAction =
-        when (direction) {
-            SwipeDetector.SwipeDirection.HORIZONTAL -> when (origin) {
-                in controller.zones.top -> controller.config.topZoneAction
-                in controller.zones.bottom -> controller.config.bottomZoneAction
-                else -> SwipeZoneAction.OFF
-            }
-
-            SwipeDetector.SwipeDirection.VERTICAL -> when (origin) {
-                in controller.zones.left -> controller.config.leftZoneAction
-                in controller.zones.right -> controller.config.rightZoneAction
-                else -> SwipeZoneAction.OFF
-            }
-
-            SwipeDetector.SwipeDirection.NONE -> SwipeZoneAction.OFF
-        }
+        controller.zones.actionAt(origin, direction)
 
     /**
      * Applies the action assigned to the zone where a swipe started.
@@ -199,44 +216,9 @@ abstract class BaseGestureController(
         val action = swipeActionAt(from.toPoint(), direction)
         if (action == SwipeZoneAction.OFF) return false
 
-        // Normalize the physical gesture first: upward and rightward swipes are positive. The
-        // legacy speed and seek scrollers use the opposite sign from volume and brightness, so
-        // invert their normalized distance to preserve their existing behavior in every zone.
-        val normalizedDistance = if (direction == SwipeDetector.SwipeDirection.HORIZONTAL) {
-            -distanceX
-        } else {
-            distanceY
-        }
-        val distance = when (action) {
-            SwipeZoneAction.SPEED,
-            SwipeZoneAction.SEEK -> -normalizedDistance
-            else -> normalizedDistance
-        }
-
-        @Suppress("KotlinConstantConditions")
-        return when (action) {
-            SwipeZoneAction.VOLUME -> {
-                scrollVolume(distance)
-                true
-            }
-
-            SwipeZoneAction.BRIGHTNESS -> {
-                scrollBrightness(distance)
-                true
-            }
-
-            SwipeZoneAction.SPEED -> {
-                scrollSpeed(distance)
-                true
-            }
-
-            SwipeZoneAction.SEEK -> {
-                scrollSeek(distance)
-                true
-            }
-
-            SwipeZoneAction.OFF -> false
-        }
+        controller.overlay.selectGestureStyle(direction)
+        applySwipe(action, direction, distanceX, distanceY)
+        return true
     }
 
     /**

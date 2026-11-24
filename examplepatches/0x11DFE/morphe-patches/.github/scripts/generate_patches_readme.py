@@ -99,6 +99,7 @@ DOC_LINKS = {
     "com.greycastel.waypoint": "docs/waypoint/README.md",
     "com.vpnproxymd.mdproxyvpn": "docs/md-proxy/README.md",
     "com.omarea.vtools": "docs/scene/README.md",
+    "com.tribalfs.gmh": "docs/galaxy-maxhz/README.md",
 }
 
 

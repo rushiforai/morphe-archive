@@ -36,7 +36,7 @@ public final class RefreshTargets {
             if(enabled)values.add(key);else values.remove(key);
             prefs(activity).edit().putStringSet(KEY,values).apply();
         }
-        Toast.makeText(activity,enabled?"別の板・スレで更新すると、このスレの新着本文も取得します":"更新対象から外しました",Toast.LENGTH_SHORT).show();
+        Toast.makeText(activity,enabled?"板・スレの更新操作時に、このスレの新着本文も取得します（自動巡回では追加取得しません）":"更新対象から外しました",Toast.LENGTH_SHORT).show();
         return true;
     }
     static String menuLabel(Activity activity,Object info)throws Exception{
@@ -66,11 +66,16 @@ public final class RefreshTargets {
         return info.getClass().getMethod(version.contains("226")?"e":"b",info.getClass()).invoke(null,info);
     }
     public static void refresh(Object fragment,int action){
-        if(OpenTabsRefresh.dispatching())return;
+        if(fragment==null||OpenTabsRefresh.dispatching())return;
         // Pull-to-refresh and the native re-fetch command use a resource ID,
         // whereas toolbar/gesture refresh uses action 5.
         if(action!=5&&action!=2131362342&&action!=2131296861&&action!=0x7f090244)return;
         Activity activity=Haiagaru.toolbarActivity(fragment);if(activity==null)return;
+        try{
+            android.view.View root=(android.view.View)fragment.getClass().getMethod("getView").invoke(fragment);
+            if(root==null||!root.isShown()||root.getWindowVisibility()!=android.view.View.VISIBLE
+                    ||!Boolean.TRUE.equals(fragment.getClass().getMethod("isResumed").invoke(fragment)))return;
+        }catch(ReflectiveOperationException unavailable){return;}
         if(action!=5)try{
             String version=version(activity);
             int expected=version.contains("191")?2131362342:version.contains("226")?2131296861:0x7f090244;

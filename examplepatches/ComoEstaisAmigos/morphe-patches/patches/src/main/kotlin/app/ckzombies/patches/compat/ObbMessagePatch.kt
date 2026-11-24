@@ -1,5 +1,7 @@
 package app.ckzombies.patches.compat
 
+import app.ckzombies.patches.shared.Constants.ORIGINAL_APK
+import app.adebisi.patches.shared.requireGluMobileSigner
 import app.morphe.patcher.Fingerprint
 import app.morphe.patcher.extensions.InstructionExtensions.addInstruction
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
@@ -217,6 +219,7 @@ internal val obbMessagePatch = patch {
     dependsOn(bundleObbPatch)
 
     execute {
+        requireGluMobileSigner(ORIGINAL_APK)
         val newState = DownloadViewNewStateFingerprint.method
         val draw = TextAreaDrawFingerprint.method
         val findInDir = FindGpkFileInDirFingerprint.method

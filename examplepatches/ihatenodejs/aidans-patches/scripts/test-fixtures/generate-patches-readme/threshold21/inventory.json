@@ -1,0 +1,26 @@
+{
+  "version": "v2.0.0",
+  "patches": [
+    { "name": "Patch 01", "description": "boundary 1", "compatiblePackages": [{ "packageName": "com.example.boundary", "name": "Boundary", "targets": [] }] },
+    { "name": "Patch 02", "description": "boundary 2", "compatiblePackages": [{ "packageName": "com.example.boundary", "name": "Boundary", "targets": [] }] },
+    { "name": "Patch 03", "description": "boundary 3", "compatiblePackages": [{ "packageName": "com.example.boundary", "name": "Boundary", "targets": [] }] },
+    { "name": "Patch 04", "description": "boundary 4", "compatiblePackages": [{ "packageName": "com.example.boundary", "name": "Boundary", "targets": [] }] },
+    { "name": "Patch 05", "description": "boundary 5", "compatiblePackages": [{ "packageName": "com.example.boundary", "name": "Boundary", "targets": [] }] },
+    { "name": "Patch 06", "description": "boundary 6", "compatiblePackages": [{ "packageName": "com.example.boundary", "name": "Boundary", "targets": [] }] },
+    { "name": "Patch 07", "description": "boundary 7", "compatiblePackages": [{ "packageName": "com.example.boundary", "name": "Boundary", "targets": [] }] },
+    { "name": "Patch 08", "description": "boundary 8", "compatiblePackages": [{ "packageName": "com.example.boundary", "name": "Boundary", "targets": [] }] },
+    { "name": "Patch 09", "description": "boundary 9", "compatiblePackages": [{ "packageName": "com.example.boundary", "name": "Boundary", "targets": [] }] },
+    { "name": "Patch 10", "description": "boundary 10", "compatiblePackages": [{ "packageName": "com.example.boundary", "name": "Boundary", "targets": [] }] },
+    { "name": "Patch 11", "description": "boundary 11", "compatiblePackages": [{ "packageName": "com.example.boundary", "name": "Boundary", "targets": [] }] },
+    { "name": "Patch 12", "description": "boundary 12", "compatiblePackages": [{ "packageName": "com.example.boundary", "name": "Boundary", "targets": [] }] },
+    { "name": "Patch 13", "description": "boundary 13", "compatiblePackages": [{ "packageName": "com.example.boundary", "name": "Boundary", "targets": [] }] },
+    { "name": "Patch 14", "description": "boundary 14", "compatiblePackages": [{ "packageName": "com.example.boundary", "name": "Boundary", "targets": [] }] },
+    { "name": "Patch 15", "description": "boundary 15", "compatiblePackages": [{ "packageName": "com.example.boundary", "name": "Boundary", "targets": [] }] },
+    { "name": "Patch 16", "description": "boundary 16", "compatiblePackages": [{ "packageName": "com.example.boundary", "name": "Boundary", "targets": [] }] },
+    { "name": "Patch 17", "description": "boundary 17", "compatiblePackages": [{ "packageName": "com.example.boundary", "name": "Boundary", "targets": [] }] },
+    { "name": "Patch 18", "description": "boundary 18", "compatiblePackages": [{ "packageName": "com.example.boundary", "name": "Boundary", "targets": [] }] },
+    { "name": "Patch 19", "description": "boundary 19", "compatiblePackages": [{ "packageName": "com.example.boundary", "name": "Boundary", "targets": [] }] },
+    { "name": "Patch 20", "description": "boundary 20", "compatiblePackages": [{ "packageName": "com.example.boundary", "name": "Boundary", "targets": [] }] },
+    { "name": "Patch 21", "description": "boundary 21", "compatiblePackages": [{ "packageName": "com.example.boundary", "name": "Boundary", "targets": [] }] }
+  ]
+}

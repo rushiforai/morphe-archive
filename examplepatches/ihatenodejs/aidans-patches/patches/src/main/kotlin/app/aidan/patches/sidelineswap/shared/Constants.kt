@@ -15,6 +15,6 @@ val COMPATIBILITY_SIDELINESWAP = Compatibility(
         "e434334ea79d8702a5d023ce7bfae4da9fa5539796cb9e0ba515cb471528697f"
     ),
     targets = listOf(
-        AppTarget(version = "1.52.0", minSdk = 28)
+        AppTarget(version = SIDELINESWAP_2_3_2, minSdk = 24)
     )
 )

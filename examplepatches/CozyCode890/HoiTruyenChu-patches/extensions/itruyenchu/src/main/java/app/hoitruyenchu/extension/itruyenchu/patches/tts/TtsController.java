@@ -96,6 +96,14 @@ public final class TtsController {
         final String voice;
         boolean sent;
         int retries;
+        /** The engine is given text.substring(offset): the line goes on from a word. */
+        int offset;
+        /** Start of the word being spoken (onRangeStart), index in text; -1 unknown. */
+        int progress = -1;
+        /** When the engine started this utterance (elapsedRealtime), 0 = not started. */
+        long startedAt;
+        /** Position the line was stopped at (before the "start from" setting), -1 none. */
+        int parkedAt = -1;
 
         Utterance(String id, String text, String language, Float pitch, Float rate, String voice) {
             this.id = id;
@@ -161,6 +169,217 @@ public final class TtsController {
     private static boolean noisyRegistered;
 
     private TtsController() {
+    }
+
+    // ---------------------------------------------------------------------------------------------
+    // Resume from the exact word
+    //
+    // The engine reports the word it is saying (onRangeStart). When a line is stopped in the middle
+    // (pause button, media controls, call, headphones, sleep timer, speed change) the position is
+    // kept: lines kept in "pending" are sent again from that word, and for a stop by the app
+    // (Speech.stop(), the line is dropped) the position is remembered per line text, also across
+    // restarts (SharedPreferences htc_word_points). The next time that line is the first one spoken
+    // after a stop, it starts from the word. A line spoken as part of a running reading (the previous
+    // line just ended) always starts at its beginning.
+
+    private static final String WORD_PREFS = "htc_word_points";
+    private static final int MAX_POINTS = 300;
+    private static final long POINT_MAX_AGE_MS = 30L * 24 * 3600_000;
+    private static final long HINT_MS = 8_000;
+    /** Line key -> {pos, time}: where an app-stopped line was. Access order: oldest first. */
+    private static LinkedHashMap<String, long[]> wordPoints;
+    private static boolean pointsDirty;
+    /** Positions asked by the scripts (tapped word, "read the line again") per line key: {pos, until}. */
+    private static final HashMap<String, long[]> hints = new HashMap<>();
+    /** Characters per second at speed 1 (measured on finished lines). */
+    private static float charsPerSecond = 14f;
+    private static final String WORD_EVENT = "htcWord";
+    private static boolean rangeEventsSeen;
+
+    private static boolean wordEnabled() {
+        return HtcSettings.bool(HtcSettings.WORD_ENABLED);
+    }
+
+    private static String lineKey(String text) {
+        String t = text == null ? "" : text.trim();
+        return t.length() + ":" + t.hashCode();
+    }
+
+    /**
+     * A script asks for the next time this line is spoken to start at pos (a tapped word; 0 = from
+     * its start). Called from the AsyncStorage thread.
+     */
+    public static void hint(String text, int pos, boolean keep) {
+        if (text == null || text.isEmpty()) return;
+        synchronized (lock) {
+            if (keep) {
+                // A marked line, played later: like a line stopped at that word.
+                hints.remove(lineKey(text));
+                savePointLocked(text, Math.max(0, pos));
+            } else {
+                hints.put(lineKey(text), new long[]{Math.max(0, pos), SystemClock.elapsedRealtime() + HINT_MS});
+            }
+        }
+        Log.i(TAG, (keep ? "marked line starts at " : "next start of the line at ") + pos + " (asked by the reader)");
+    }
+
+    private static LinkedHashMap<String, long[]> pointsLocked() {
+        if (wordPoints != null) return wordPoints;
+        wordPoints = new LinkedHashMap<>(64, 0.75f, true);
+        try {
+            Context c = appContext != null ? appContext : HtcSettings.context();
+            if (c != null) {
+                String json = c.getSharedPreferences(WORD_PREFS, Context.MODE_PRIVATE).getString("points", null);
+                if (json != null) {
+                    JSONObject o = new JSONObject(json);
+                    long now = System.currentTimeMillis();
+                    for (java.util.Iterator<String> it = o.keys(); it.hasNext(); ) {
+                        String k = it.next();
+                        org.json.JSONArray a = o.optJSONArray(k);
+                        if (a == null || a.length() < 2) continue;
+                        long t = a.optLong(1);
+                        if (now - t > POINT_MAX_AGE_MS) continue;
+                        wordPoints.put(k, new long[]{a.optLong(0), t});
+                    }
+                }
+            }
+        } catch (Throwable t) {
+            Log.w(TAG, "could not read word positions", t);
+        }
+        return wordPoints;
+    }
+
+    private static void savePointLocked(String text, int pos) {
+        LinkedHashMap<String, long[]> points = pointsLocked();
+        String key = lineKey(text);
+        if (pos <= 0 || pos >= text.trim().length() - 1) {
+            if (points.remove(key) != null) schedulePointsSaveLocked();
+            return;
+        }
+        points.put(key, new long[]{pos, System.currentTimeMillis()});
+        while (points.size() > MAX_POINTS) {
+            String oldest = points.keySet().iterator().next();
+            points.remove(oldest);
+        }
+        schedulePointsSaveLocked();
+    }
+
+    private static void dropPointLocked(String text) {
+        if (text == null) return;
+        LinkedHashMap<String, long[]> points = pointsLocked();
+        if (points.remove(lineKey(text)) != null) schedulePointsSaveLocked();
+    }
+
+    private static void schedulePointsSaveLocked() {
+        if (pointsDirty) return;
+        pointsDirty = true;
+        main.postDelayed(() -> {
+            String json;
+            Context c;
+            synchronized (lock) {
+                pointsDirty = false;
+                JSONObject o = new JSONObject();
+                try {
+                    for (Map.Entry<String, long[]> e : pointsLocked().entrySet()) {
+                        o.put(e.getKey(), new org.json.JSONArray().put(e.getValue()[0]).put(e.getValue()[1]));
+                    }
+                } catch (Throwable ignored) {
+                }
+                json = o.toString();
+                c = appContext != null ? appContext : HtcSettings.context();
+            }
+            try {
+                if (c != null) c.getSharedPreferences(WORD_PREFS, Context.MODE_PRIVATE).edit().putString("points", json).apply();
+            } catch (Throwable t) {
+                Log.w(TAG, "could not save word positions", t);
+            }
+        }, 2_000);
+    }
+
+    private static boolean isWordChar(char c) {
+        return !Character.isWhitespace(c);
+    }
+
+    private static int wordStart(String text, int pos) {
+        int p = Math.max(0, Math.min(pos, text.length()));
+        while (p > 0 && isWordChar(text.charAt(p - 1))) p--;
+        return p;
+    }
+
+    private static int previousWord(String text, int start) {
+        int p = start;
+        while (p > 0 && !isWordChar(text.charAt(p - 1))) p--;
+        return wordStart(text, p);
+    }
+
+    private static boolean isPhraseEnd(char c) {
+        return ",.;:!?…—–\"“”()[]".indexOf(c) >= 0;
+    }
+
+    /** Where to go on from a line stopped at pos, by the "start from" setting. */
+    private static int resumeFrom(String text, int pos, float rate, boolean exactWord) {
+        if (text == null || pos <= 0) return 0;
+        String mode = exactWord ? "word" : HtcSettings.string(HtcSettings.WORD_FROM);
+        int p;
+        switch (mode) {
+            case "back":
+                p = previousWord(text, previousWord(text, wordStart(text, pos)));
+                break;
+            case "phrase": {
+                int i = Math.min(pos, text.length()) - 1;
+                while (i >= 0 && !isPhraseEnd(text.charAt(i))) i--;
+                p = i + 1;
+                while (p < text.length() && (Character.isWhitespace(text.charAt(p)) || isPhraseEnd(text.charAt(p)))) p++;
+                if (p >= pos) p = wordStart(text, pos);
+                break;
+            }
+            case "seconds":
+                p = wordStart(text, pos - Math.round(2f * charsPerSecond * Math.max(0.25f, rate)));
+                break;
+            default:
+                p = wordStart(text, pos);
+        }
+        if (p >= text.trim().length() - 1) return 0;
+        return Math.max(0, p);
+    }
+
+    /** Index in u.text the engine has reached. */
+    private static int progressOfLocked(Utterance u) {
+        if (!u.sent) return u.parkedAt >= 0 ? u.parkedAt : u.offset;
+        if (u.progress >= 0) return u.progress;
+        if (u.startedAt <= 0) return u.offset;
+        // No word events from this engine: estimate from the time spoken.
+        float rate = appliedRate != null ? appliedRate : 1f;
+        long ms = SystemClock.elapsedRealtime() - u.startedAt;
+        int chars = Math.round(ms / 1000f * charsPerSecond * rate);
+        return Math.min(u.text.length(), u.offset + Math.max(0, chars - 2));
+    }
+
+    /**
+     * The utterance was stopped by us and will be sent again: from the word reached (exactWord: a
+     * speed change, no repeat) or by the "start from" setting.
+     */
+    private static void parkLocked(Utterance u, boolean exactWord) {
+        if (!wordEnabled()) {
+            u.offset = 0;
+        } else {
+            int at = progressOfLocked(u);
+            u.parkedAt = at;
+            u.offset = resumeFrom(u.text, at, appliedRate != null ? appliedRate : 1f, exactWord);
+        }
+        u.progress = -1;
+        u.startedAt = 0;
+    }
+
+    private static void emitWord(final Utterance u, final int start, final int end) {
+        if (u == null || "off".equals(HtcSettings.string(HtcSettings.WORD_KARAOKE))
+                || !HtcSettings.bool(HtcSettings.WORD_ENABLED)) return;
+        try {
+            JSONObject o = new JSONObject().put("s", start).put("e", end).put("k", lineKey(u.text))
+                    .put("c", (double) charsPerSecond);
+            JsBridge.emit(WORD_EVENT, o.toString());
+        } catch (Throwable ignored) {
+        }
     }
 
     // ---------------------------------------------------------------------------------------------
@@ -333,6 +552,7 @@ public final class TtsController {
                 respoken.clear();
             }
             Utterance u = new Utterance(id, text, language, pitch, rate, voice);
+            u.offset = startOffsetLocked(text, continuous);
             pending.put(id, u);
             touchLocked();
             if (tts == null) createLocked("speak without engine");
@@ -343,6 +563,30 @@ public final class TtsController {
             }
         }
         notifyMedia();
+    }
+
+    /** Where a line the app asks for starts: a script's hint, or the word it was stopped at. */
+    private static int startOffsetLocked(String text, boolean continuous) {
+        if (text == null) return 0;
+        String key = lineKey(text);
+        long[] hint = hints.remove(key);
+        if (hint != null && hint[1] >= SystemClock.elapsedRealtime()) {
+            dropPointLocked(text);
+            int pos = (int) Math.min(hint[0], text.length());
+            int from = pos > 0 ? wordStart(text, pos) : 0;
+            if (from >= text.trim().length() - 1) from = 0;
+            Log.i(TAG, "line starts at " + from + " (asked by the reader)");
+            return from;
+        }
+        // In a running reading the next line starts at its beginning: the previous one just ended
+        // and nobody stopped the speech since.
+        boolean chained = continuous && lastDoneAt > lastStopAt;
+        if (chained || !wordEnabled()) return 0;
+        long[] point = pointsLocked().get(key);
+        if (point == null) return 0;
+        int from = resumeFrom(text, (int) point[0], appliedRate != null ? appliedRate : 1f, false);
+        if (from > 0) Log.i(TAG, "going on from character " + from + " of the line (stopped at " + point[0] + ")");
+        return from;
     }
 
     /** Sleep timer over before a new line: the line stays queued, the app is asked to show "paused". */
@@ -362,6 +606,17 @@ public final class TtsController {
     /** Replaces textToSpeech.stop() called by JS Speech.stop(). */
     public static int stop(TextToSpeech engine) {
         synchronized (lock) {
+            // Remember where the lines in flight were (pause button, chapter change, tap on a line).
+            if (wordEnabled()) {
+                for (Utterance u : pending.values()) {
+                    if (!u.sent && u.parkedAt < 0) continue;
+                    int at = progressOfLocked(u);
+                    if (at > 0) {
+                        savePointLocked(u.text, at);
+                        Log.i(TAG, "stopped at character " + at + "/" + u.text.length() + " of the line");
+                    }
+                }
+            }
             pending.clear();
             suppressStop.clear();
             respoken.clear();
@@ -422,6 +677,7 @@ public final class TtsController {
             for (Utterance u : pending.values()) {
                 if (!u.sent) continue;
                 respoken.add(u.id);
+                parkLocked(u, true);
                 u.sent = false;
                 restart = true;
             }
@@ -573,7 +829,10 @@ public final class TtsController {
         appliedLocale = null;
         appliedVoice = null;
         resolvedLocales.clear();
-        for (Utterance u : pending.values()) u.sent = false;
+        for (Utterance u : pending.values()) {
+            if (u.sent) parkLocked(u, true);
+            u.sent = false;
+        }
         suppressStop.clear();
         respoken.clear();
 
@@ -672,7 +931,9 @@ public final class TtsController {
         int result;
         try {
             applyOptionsLocked(u);
-            result = tts.speak(u.text, TextToSpeech.QUEUE_ADD, null, u.id);
+            String text = u.offset > 0 && u.offset < u.text.length() ? u.text.substring(u.offset) : u.text;
+            if (text != u.text) Log.i(TAG, "speaking from character " + u.offset + "/" + u.text.length());
+            result = tts.speak(text, TextToSpeech.QUEUE_ADD, null, u.id);
         } catch (Throwable t) {
             Log.w(TAG, "speak threw", t);
             result = TextToSpeech.ERROR;
@@ -780,12 +1041,19 @@ public final class TtsController {
             if (stale()) return;
             String text;
             Float rate;
+            Utterance u;
             synchronized (lock) {
                 stallTicks = 0;
-                Utterance u = pending.get(id);
+                u = pending.get(id);
                 text = u != null ? u.text : null;
                 rate = appliedRate;
+                if (u != null) {
+                    u.startedAt = SystemClock.elapsedRealtime();
+                    u.progress = -1;
+                    u.parkedAt = -1;
+                }
             }
+            if (u != null) emitWord(u, u.offset, u.offset);
             ReadingProgress.onLineStarted(text, rate);
             notifyMedia();
             UtteranceProgressListener l = appListener;
@@ -803,6 +1071,17 @@ public final class TtsController {
                 respoken.remove(id);
                 touchLocked();
                 lastDoneAt = SystemClock.elapsedRealtime();
+                if (u != null) {
+                    // The line was read to its end: no position to go on from any more.
+                    dropPointLocked(u.text);
+                    int chars = u.text.length() - u.offset;
+                    long ms = u.startedAt > 0 ? lastDoneAt - u.startedAt : 0;
+                    float rate = appliedRate != null ? appliedRate : 1f;
+                    if (chars >= 20 && ms >= 1_000 && rate > 0) {
+                        float cps = chars / (ms / 1000f) / rate;
+                        if (cps > 3 && cps < 60) charsPerSecond = charsPerSecond * 0.8f + cps * 0.2f;
+                    }
+                }
             }
             if (HtcPatches.backgroundReading()) SleepTimer.onLineDone(text);
             ReadingProgress.onLineDone();
@@ -826,6 +1105,16 @@ public final class TtsController {
         @Override
         public void onRangeStart(String id, int start, int end, int frame) {
             if (stale()) return;
+            Utterance u;
+            synchronized (lock) {
+                u = pending.get(id);
+                if (u != null && u.sent) u.progress = Math.min(u.text.length(), u.offset + Math.max(0, start));
+                if (!rangeEventsSeen) {
+                    rangeEventsSeen = true;
+                    Log.i(TAG, "the engine reports the word being spoken");
+                }
+            }
+            if (u != null && u.sent) emitWord(u, u.offset + start, u.offset + end);
             UtteranceProgressListener l = appListener;
             if (l != null) l.onRangeStart(id, start, end, frame);
         }
@@ -907,7 +1196,10 @@ public final class TtsController {
             Log.i(TAG, "paused from the media controls");
             userPaused = true;
             for (Utterance u : pending.values()) {
-                if (u.sent) suppressStop.add(u.id);
+                if (u.sent) {
+                    suppressStop.add(u.id);
+                    parkLocked(u, false);
+                }
                 u.sent = false;
             }
             try {
@@ -1024,7 +1316,10 @@ public final class TtsController {
                 Log.i(TAG, "call detected (audio mode " + mode + "), pausing speech");
                 interrupted = true;
                 for (Utterance u : pending.values()) {
-                    if (u.sent) suppressStop.add(u.id);
+                    if (u.sent) {
+                        suppressStop.add(u.id);
+                        parkLocked(u, false);
+                    }
                     u.sent = false;
                 }
                 try {

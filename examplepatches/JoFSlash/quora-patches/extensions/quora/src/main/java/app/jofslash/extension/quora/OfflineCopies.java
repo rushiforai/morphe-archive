@@ -13,9 +13,9 @@ import java.security.MessageDigest;
 
 /**
  * For Bookmarks: the text of each saved answer or post, so it can be read without internet and
- * stays readable when its author deletes it. One file per bookmark in the app's own storage; the
- * text only, without images. A copy goes when its bookmark is removed. Backups don't hold them;
- * Save to Downloads under Bookmarks writes them to a Markdown file.
+ * stays readable when its author deletes it. One file per bookmark in the app's own storage, and its
+ * pictures in a folder next to it. A copy goes when its bookmark is removed. Backups don't hold them;
+ * Save to Downloads under Bookmarks writes the texts to a Markdown file.
  */
 final class OfflineCopies {
 
@@ -27,12 +27,25 @@ final class OfflineCopies {
     static final class Copy {
         final String title, author, text;
         final long time;
+        /** The saved pictures, in the order of the page. */
+        final java.util.List<Image> images = new java.util.ArrayList<>();
 
         Copy(String title, String author, String text, long time) {
             this.title = title;
             this.author = author;
             this.text = text;
             this.time = time;
+        }
+    }
+
+    /** A saved picture: its file, and the end of the text it comes after. */
+    static final class Image {
+        final File file;
+        final String after;
+
+        Image(File file, String after) {
+            this.file = file;
+            this.after = after;
         }
     }
 
@@ -53,6 +66,9 @@ final class OfflineCopies {
             o.put("a", author == null ? "" : author.trim());
             o.put("x", body);
             o.put("d", System.currentTimeMillis());
+            // A new text keeps the pictures saved before; saveImages replaces them when they changed.
+            JSONObject old = readJson(context, url);
+            if (old != null && old.has("i")) o.put("i", old.getJSONArray("i"));
             return write(context, url, o);
         } catch (Exception ex) {
             Log.e(TAG, "Failed to save the offline copy", ex);
@@ -72,9 +88,8 @@ final class OfflineCopies {
         return temp.renameTo(file);
     }
 
-    /** The saved copy, or null when there is none. */
-    static synchronized Copy load(Context context, String url) {
-        if (context == null || !ReadingHistory.isQuoraUrl(url)) return null;
+    /** The saved copy as it is kept, or null when there is none. */
+    private static JSONObject readJson(Context context, String url) {
         try {
             File file = file(context, url);
             if (!file.isFile()) return null;
@@ -88,12 +103,31 @@ final class OfflineCopies {
                 }
             }
             JSONObject o = new JSONObject(new String(data, StandardCharsets.UTF_8));
-            if (!url.equals(o.optString("u"))) return null;
-            return new Copy(o.optString("t"), o.optString("a"), o.optString("x"), o.optLong("d"));
+            return url.equals(o.optString("u")) ? o : null;
         } catch (Exception ex) {
             Log.e(TAG, "Failed to read the offline copy", ex);
             return null;
         }
+    }
+
+    /** The saved copy, or null when there is none. */
+    static synchronized Copy load(Context context, String url) {
+        if (context == null || !ReadingHistory.isQuoraUrl(url)) return null;
+        JSONObject o = readJson(context, url);
+        if (o == null) return null;
+        Copy copy = new Copy(o.optString("t"), o.optString("a"), o.optString("x"), o.optLong("d"));
+        org.json.JSONArray list = o.optJSONArray("i");
+        File folder = images(context, url);
+        for (int i = 0; list != null && i < list.length(); i++) {
+            JSONObject one = list.optJSONObject(i);
+            if (one == null) continue;
+            File picture = new File(folder, one.optString("f"));
+            // Only names this class made, in the copy's own folder.
+            if (one.optString("f").matches("\\d{1,2}\\.img") && picture.isFile()) {
+                copy.images.add(new Image(picture, one.optString("a")));
+            }
+        }
+        return copy;
     }
 
     /** The saved copy as it is kept, for a backup file; null when there is none. */
@@ -147,6 +181,7 @@ final class OfflineCopies {
         try {
             File file = file(context, url);
             if (file.isFile() && !file.delete()) Log.e(TAG, "Failed to remove the offline copy");
+            deleteFolder(images(context, url));
         } catch (Exception ex) {
             Log.e(TAG, "Failed to remove the offline copy", ex);
         }
@@ -173,6 +208,200 @@ final class OfflineCopies {
 
     private static String oneLine(String s) {
         return s == null ? "" : s.replaceAll("\\s+", " ").trim();
+    }
+
+    private static final int MAX_IMAGES = 20;
+    private static final int MAX_IMAGE_BYTES = 3 * 1024 * 1024;
+    /** All saved pictures together; past this, new ones aren't saved. */
+    private static final long MAX_ALL_IMAGES = 150L * 1024 * 1024;
+    private static final java.util.Set<String> downloading = new java.util.HashSet<>();
+
+    /**
+     * Keeps the pictures of a bookmarked page with its copy, from the list the page sent as
+     * [{"s": address, "a": text before it}]. Only https addresses on Quora's image servers
+     * (*.quoracdn.net). Downloads in the background, and not at all when nothing changed. With Data
+     * saver on, only on Wi-Fi and other networks that aren't metered.
+     */
+    static void saveImages(Context context, String url, String json) {
+        if (context == null || json == null || json.length() > 20_000) return;
+        Context app = context.getApplicationContext();
+        if (!ReadingHistory.BOOKMARKS.contains(app, url)) return;
+        try {
+            org.json.JSONArray list = new org.json.JSONArray(json);
+            java.util.List<String[]> wanted = new java.util.ArrayList<>();
+            for (int i = 0; i < list.length() && wanted.size() < MAX_IMAGES; i++) {
+                JSONObject one = list.optJSONObject(i);
+                if (one == null) continue;
+                String src = one.optString("s");
+                if (!src.matches("https://[a-z0-9.-]+\\.quoracdn\\.net/[^\\s]{1,1000}")) continue;
+                wanted.add(new String[]{src, one.optString("a").trim()});
+            }
+            synchronized (OfflineCopies.class) {
+                JSONObject copy = readJson(app, url);
+                if (copy == null) return;
+                if (same(copy.optJSONArray("i"), wanted, images(app, url))) return;
+                if (!downloading.add(url)) return;
+            }
+            if (!wanted.isEmpty() && dataSaverBlocks(app)) {
+                synchronized (OfflineCopies.class) {
+                    downloading.remove(url);
+                }
+                return;
+            }
+            new Thread(() -> {
+                try {
+                    download(app, url, wanted);
+                } finally {
+                    synchronized (OfflineCopies.class) {
+                        downloading.remove(url);
+                    }
+                }
+            }, "JoFSlashOfflineImages").start();
+        } catch (Exception ex) {
+            Log.e(TAG, "Failed to save the pictures", ex);
+        }
+    }
+
+    /** Whether the saved pictures are these, with their files still there. */
+    private static boolean same(org.json.JSONArray saved, java.util.List<String[]> wanted, File folder) {
+        int count = saved == null ? 0 : saved.length();
+        if (count != wanted.size()) return false;
+        for (int i = 0; i < count; i++) {
+            JSONObject one = saved.optJSONObject(i);
+            if (one == null || !wanted.get(i)[0].equals(one.optString("s"))) return false;
+            String name = one.optString("f");
+            if (!name.isEmpty() && !new File(folder, name).isFile()) return false;
+        }
+        return true;
+    }
+
+    static boolean dataSaverBlocks(Context context) {
+        if (!PatchSettings.isRegistered("dataSaver") || !PatchSettings.isOn("dataSaver")) return false;
+        try {
+            android.net.ConnectivityManager cm = (android.net.ConnectivityManager)
+                    context.getSystemService(Context.CONNECTIVITY_SERVICE);
+            return cm == null || cm.isActiveNetworkMetered();
+        } catch (Exception ex) {
+            return true;
+        }
+    }
+
+    private static void download(Context context, String url, java.util.List<String[]> wanted) {
+        File folder = images(context, url);
+        File temp = new File(folder.getPath() + ".new");
+        deleteFolder(temp);
+        if (!wanted.isEmpty() && !temp.mkdirs()) return;
+        long room = MAX_ALL_IMAGES - size(new File(context.getFilesDir(), FOLDER)) + size(folder);
+        org.json.JSONArray saved = new org.json.JSONArray();
+        try {
+            for (int i = 0; i < wanted.size(); i++) {
+                File out = new File(temp, i + ".img");
+                long n = fetch(wanted.get(i)[0], out, room);
+                room -= Math.max(n, 0);
+                JSONObject one = new JSONObject();
+                one.put("s", wanted.get(i)[0]);
+                // One that failed is noted without a file, so the next visit doesn't try again.
+                one.put("f", n > 0 ? out.getName() : "");
+                one.put("a", wanted.get(i)[1]);
+                saved.put(one);
+            }
+            synchronized (OfflineCopies.class) {
+                JSONObject copy = readJson(context, url);
+                // The bookmark was removed meanwhile.
+                if (copy == null || !ReadingHistory.BOOKMARKS.contains(context, url)) {
+                    deleteFolder(temp);
+                    return;
+                }
+                deleteFolder(folder);
+                if (temp.isDirectory() && !temp.renameTo(folder)) {
+                    deleteFolder(temp);
+                    saved = new org.json.JSONArray();
+                }
+                copy.put("i", saved);
+                write(context, url, copy);
+            }
+        } catch (Exception ex) {
+            Log.e(TAG, "Failed to download the pictures", ex);
+        } finally {
+            deleteFolder(temp);
+        }
+    }
+
+    /** Downloads one picture to a file. Returns its size, or 0 when it isn't a picture or too big. */
+    static long fetch(String src, File out, long room) {
+        java.net.HttpURLConnection connection = null;
+        try {
+            connection = (java.net.HttpURLConnection) java.net.URI.create(src).toURL().openConnection();
+            connection.setConnectTimeout(15_000);
+            connection.setReadTimeout(20_000);
+            connection.setInstanceFollowRedirects(false);
+            if (connection.getResponseCode() != java.net.HttpURLConnection.HTTP_OK) return 0;
+            String type = connection.getContentType();
+            if (type == null || !type.startsWith("image/")) return 0;
+            long total = 0;
+            try (java.io.InputStream in = connection.getInputStream(); FileOutputStream file = new FileOutputStream(out)) {
+                byte[] buffer = new byte[16 * 1024];
+                int n;
+                while ((n = in.read(buffer)) != -1) {
+                    total += n;
+                    if (total > MAX_IMAGE_BYTES || total > room) break;
+                    file.write(buffer, 0, n);
+                }
+            }
+            if (total > MAX_IMAGE_BYTES || total > room) {
+                if (!out.delete()) Log.e(TAG, "Failed to remove a picture that is too big");
+                return 0;
+            }
+            return total;
+        } catch (Exception ex) {
+            Log.e(TAG, "Failed to download a picture: " + ex);
+            return 0;
+        } finally {
+            if (connection != null) connection.disconnect();
+        }
+    }
+
+    private static long size(File file) {
+        if (file.isFile()) return file.length();
+        long total = 0;
+        File[] files = file.listFiles();
+        if (files != null) for (File f : files) total += size(f);
+        return total;
+    }
+
+    /**
+     * Where a picture goes in the text: the end of the paragraph that holds the text it came after
+     * on the page, looking from {@code from} on. The page sends that text with its spaces joined, so
+     * any run of spaces and line breaks matches a space. No text puts it at {@code from}; text that
+     * isn't found, at the end.
+     */
+    static int after(String text, String before, int from) {
+        if (before == null || before.trim().isEmpty()) return from;
+        StringBuilder regex = new StringBuilder();
+        for (String word : before.trim().split("\\s+")) {
+            // Also no space: the page joins its text pieces with spaces, as in "trail. [ 1 ]" for "trail.[1]".
+            if (regex.length() > 0) regex.append("\\s*");
+            regex.append(java.util.regex.Pattern.quote(word));
+        }
+        java.util.regex.Matcher m = java.util.regex.Pattern.compile(regex.toString()).matcher(text);
+        if (!m.find(Math.max(0, Math.min(from, text.length())))) {
+            // After the same text as the picture before it: right after that one.
+            return m.find(0) ? from : text.length();
+        }
+        int end = text.indexOf('\n', m.end());
+        return end < 0 ? text.length() : end;
+    }
+
+    /** The folder of a page's pictures, next to its file. */
+    private static File images(Context context, String url) {
+        File file = file(context, url);
+        return new File(file.getParentFile(), file.getName().replace(".json", ""));
+    }
+
+    private static void deleteFolder(File folder) {
+        File[] files = folder.listFiles();
+        if (files != null) for (File f : files) if (!f.delete()) Log.e(TAG, "Failed to remove a saved picture");
+        if (folder.isDirectory() && !folder.delete()) Log.e(TAG, "Failed to remove the pictures folder");
     }
 
     /** The file of a page: the SHA-256 of its link, so any link makes a safe file name. */

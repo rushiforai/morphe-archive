@@ -1,6 +1,8 @@
 package app.aidan.patches.aftership.auth
 
 import app.aidan.patches.aftership.shared.Constants.COMPATIBILITY_AFTERSHIP
+import app.aidan.patches.shared.hasRange
+import app.aidan.patches.shared.matchesAt
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
 import app.morphe.patcher.patch.BytecodePatchContext
 import app.morphe.patcher.patch.PatchException
@@ -22,15 +24,14 @@ val bypassSignatureCheckResourcePatch = rawResourcePatch(
     compatibleWith(COMPATIBILITY_AFTERSHIP)
 
     execute {
+        var foundSignatureLibrary = false
 
         // Patch arm64-v8a checkApkSha
         val arm64So = get("lib/arm64-v8a/libandroidsig-lib.so")
         if (arm64So.exists()) {
+            foundSignatureLibrary = true
             val bytes = arm64So.readBytes()
             val offset = 0x48dd8
-            if (bytes.size <= offset + 8) {
-                throw PatchException("lib/arm64-v8a/libandroidsig-lib.so is too small for patch offset")
-            }
             val expected = byteArrayOf(
                 0xff.toByte(), 0x43, 0x02, 0xd1.toByte(),
                 0xf7.toByte(), 0x2b, 0x00, 0xf9.toByte()
@@ -39,13 +40,18 @@ val bypassSignatureCheckResourcePatch = rawResourcePatch(
                 0x20.toByte(), 0x00.toByte(), 0x80.toByte(), 0x52.toByte(),
                 0xc0.toByte(), 0x03.toByte(), 0x5f.toByte(), 0xd6.toByte()
             )
-            val alreadyPatched = replacement.indices.all { bytes[offset + it] == replacement[it] }
+            if (expected.size != replacement.size) {
+                throw PatchException("lib/arm64-v8a/libandroidsig-lib.so replacement length mismatch")
+            }
+            if (!bytes.hasRange(offset, expected.size)) {
+                throw PatchException("lib/arm64-v8a/libandroidsig-lib.so is too small for patch offset")
+            }
+            val alreadyPatched = bytes.matchesAt(offset, replacement)
             if (!alreadyPatched) {
-                val matches = expected.indices.all { bytes[offset + it] == expected[it] }
-                if (!matches) {
+                if (!bytes.matchesAt(offset, expected)) {
                     throw PatchException("lib/arm64-v8a/libandroidsig-lib.so byte sequence mismatch at offset 0x48dd8")
                 }
-                System.arraycopy(replacement, 0, bytes, offset, 8)
+                System.arraycopy(replacement, 0, bytes, offset, replacement.size)
                 arm64So.writeBytes(bytes)
             }
         }
@@ -53,26 +59,35 @@ val bypassSignatureCheckResourcePatch = rawResourcePatch(
         // Patch armeabi-v7a checkApkSha
         val armV7So = get("lib/armeabi-v7a/libandroidsig-lib.so")
         if (armV7So.exists()) {
+            foundSignatureLibrary = true
             val bytes = armV7So.readBytes()
             val offset = 0x3d54c
-            if (bytes.size <= offset + 4) {
-                throw PatchException("lib/armeabi-v7a/libandroidsig-lib.so is too small for patch offset")
-            }
             val expected = byteArrayOf(
                 0xf0.toByte(), 0xb5.toByte(), 0x03, 0xaf.toByte()
             )
             val replacement = byteArrayOf(
                 0x01.toByte(), 0x20.toByte(), 0x70.toByte(), 0x47.toByte()
             )
-            val alreadyPatched = replacement.indices.all { bytes[offset + it] == replacement[it] }
+            if (expected.size != replacement.size) {
+                throw PatchException("lib/armeabi-v7a/libandroidsig-lib.so replacement length mismatch")
+            }
+            if (!bytes.hasRange(offset, expected.size)) {
+                throw PatchException("lib/armeabi-v7a/libandroidsig-lib.so is too small for patch offset")
+            }
+            val alreadyPatched = bytes.matchesAt(offset, replacement)
             if (!alreadyPatched) {
-                val matches = expected.indices.all { bytes[offset + it] == expected[it] }
-                if (!matches) {
+                if (!bytes.matchesAt(offset, expected)) {
                     throw PatchException("lib/armeabi-v7a/libandroidsig-lib.so byte sequence mismatch at offset 0x3d54c")
                 }
-                System.arraycopy(replacement, 0, bytes, offset, 4)
+                System.arraycopy(replacement, 0, bytes, offset, replacement.size)
                 armV7So.writeBytes(bytes)
             }
+        }
+
+        if (!foundSignatureLibrary) {
+            throw PatchException(
+                "No libandroidsig-lib.so found for arm64-v8a or armeabi-v7a; cannot bypass native signature check"
+            )
         }
     }
 }

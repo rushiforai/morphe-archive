@@ -67,6 +67,7 @@ public final class RowStyling {
     }
     public static void onInflatedView(View view) {
         if (view == null) return;
+        BundleVisuals.stabilizeParent(view);
         CharcoalTheme.onBoundView(view);
         if (NavigationStyle.shapes()) MaterialShapes.apply(view);
     }

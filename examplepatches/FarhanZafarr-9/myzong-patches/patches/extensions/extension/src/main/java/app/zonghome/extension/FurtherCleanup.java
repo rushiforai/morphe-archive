@@ -124,6 +124,7 @@ public final class FurtherCleanup {
                 View v = root.findViewById(id);
                 // Preserve the invisible Recharge anchor that supplies btnLoan's width.
                 int visibility = v == rechargeAnchor ? View.INVISIBLE : View.GONE;
+                if(v!=null && v==rechargeAnchor && v.getAlpha()!=0f)v.setAlpha(0f);
                 if (v != null && v.getVisibility() != visibility) {
                     v.setVisibility(visibility);
                     changed = true;

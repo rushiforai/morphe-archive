@@ -10,16 +10,10 @@ import app.ra1nify.f4t.shared.OPLUS_KEYBOARD
 private const val IME_CONFIG = "res/xml/ime_config.xml"
 
 /**
- * Declares the keyboard as an inline-autofill capable input method.
+ * Adds `android:supportsInlineSuggestions="true"` to the input method descriptor.
  *
- * The autofill framework only pushes inline suggestions to an IME that advertises
- * `android:supportsInlineSuggestions` in its input method descriptor. The stock keyboard does not, so
- * password managers have no way to offer a fill suggestion inside the keyboard surface.
- *
- * This patch only adds the declaration. Rendering the fill bubble is done by the companion module,
- * which draws it in the keyboard's own window; the keyboard ships no inline suggestion UI of its own.
- * That split is deliberate: the declaration is a one-attribute resource change, while the UI depends
- * on the host version and belongs on the hooking side.
+ * The autofill framework only pushes inline suggestions to an IME that advertises this attribute.
+ * The fill bubble itself is drawn by the companion module.
  */
 @Suppress("unused")
 val enableInlineAutofillPatch = resourcePatch(
@@ -32,7 +26,6 @@ val enableInlineAutofillPatch = resourcePatch(
 ) {
     compatibleWith(OPLUS_KEYBOARD)
 
-    // The anti-resale notice is not optional: every keyboard patch pulls it in.
     dependsOn(keyboardAntiResalePatch)
 
     execute {

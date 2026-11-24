@@ -1,3 +1,15 @@
+## [2.2.0](https://github.com/CozyCode890/HoiTruyenChu-patches/compare/v2.1.0...v2.2.0) (2026-11-23)
+
+### ✨ New Features
+
+* resume from the exact word, mini player, YouTube-like speed menu ([32de020](https://github.com/CozyCode890/HoiTruyenChu-patches/commit/32de020b9bc33d78dddeff51248af641cd9aed88))
+
+## [2.1.0](https://github.com/CozyCode890/HoiTruyenChu-patches/compare/v2.0.0...v2.1.0) (2026-11-23)
+
+### ✨ New Features
+
+* support app 3.0.0 and choose what tapping a line does while reading ([69f98d4](https://github.com/CozyCode890/HoiTruyenChu-patches/commit/69f98d4b27c89782562c240abdf6ea005288a020))
+
 ## [2.0.0](https://github.com/CozyCode890/HoiTruyenChu-patches/compare/v1.3.0...v2.0.0) (2026-11-23)
 
 ### ⚠ BREAKING CHANGES

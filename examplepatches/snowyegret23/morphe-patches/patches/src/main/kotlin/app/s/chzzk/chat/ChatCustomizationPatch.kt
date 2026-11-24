@@ -11,6 +11,7 @@ import app.s.chzzk.common.utils.localRegisterCount
 import app.s.chzzk.common.utils.parameterTypeNames
 import app.s.chzzk.common.utils.rewrite
 import app.s.chzzk.common.utils.smaliReference
+import app.s.chzzk.shared.Constants.CHZZK_TV_VERSIONS
 import app.s.chzzk.shared.Constants.COMPATIBILITY_CHZZK
 import app.s.chzzk.shared.nativeKeyboxPatch
 import com.android.tools.smali.dexlib2.AccessFlags
@@ -64,7 +65,7 @@ val chatCustomizationPatch = bytecodePatch(
 
     execute {
         addCodecWorkarounds()
-        if (packageMetadata.versionName in setOf("1.3.0", "1.4.0")) {
+        if (packageMetadata.versionName in CHZZK_TV_VERSIONS) {
             addTvCustomization()
             return@execute
         }

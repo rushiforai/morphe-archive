@@ -1,0 +1,80 @@
+{
+  "name": "The Crypto App",
+  "workflow": "emulator-thecryptoapp.yml",
+  "patches": "patches/src/main/kotlin/app/jofslash/patches/thecryptoapp",
+  "extension": "extensions/thecryptoapp",
+  "docs": "docs/thecryptoapp/README.md",
+  "readme": {
+    "style": "kept",
+    "sections": {
+      "Prices": "Price"
+    }
+  },
+  "store": "https://play.google.com/store/apps/details?id=com.crypter.cryptocyrrency",
+  "package": "com.crypter.cryptocyrrency",
+  "store_note": "(TrustSwap)",
+  "summary": "Hide the ads, and add your own price alerts (price or 24h change), a chart and a local portfolio, with free public prices and no account.",
+  "owners": [
+    "TrustSwap"
+  ],
+  "apk": {
+    "release": "thecryptoapp",
+    "version": "first",
+    "asset": "*.apkm",
+    "file": "thecryptoapp.apkm"
+  },
+  "android": {
+    "note": "The Crypto App 4.0.5 needs Android 10 or newer: a few versions from there, and the next one, whose image is only in the SDK's canary channel so far. The release tries the oldest supported version, the newest stable one and the next one; a pull request the oldest and the newest stable.",
+    "pull_request": [
+      {
+        "api": "29",
+        "android": "10",
+        "channel": "stable"
+      },
+      {
+        "api": "36",
+        "android": "16",
+        "channel": "stable"
+      }
+    ],
+    "full": [
+      {
+        "api": "29",
+        "android": "10",
+        "channel": "stable"
+      },
+      {
+        "api": "36",
+        "android": "16",
+        "channel": "stable"
+      },
+      {
+        "api": "37.0",
+        "android": "17",
+        "channel": "canary"
+      }
+    ]
+  },
+  "checks": {
+    "error_tag": "E/JoFCryptoApp",
+    "grant": [
+      "android.permission.POST_NOTIFICATIONS"
+    ]
+  },
+  "check": [
+    "python3 .github/scripts/check_app.py thecryptoapp \"$APK\" --cli \"$CLI\" --install --expect-screen --compare-original --adb adb"
+  ],
+  "versions": {
+    "pattern": "\\d+(\\.\\d+)+",
+    "example": "4.0.6",
+    "source": "apkmirror",
+    "apkmirror": "/apk/trustswap-inc/cryptocurrency-bitcoin-altcoin-price/",
+    "file": "apkm",
+    "bundle_cpus": [
+      "arm64-v8a[^<]*x86_64",
+      "universal"
+    ],
+    "shows": "shows its own screen",
+    "phone_test": "add an alert and open a chart on a phone: the emulator test only starts the app."
+  }
+}

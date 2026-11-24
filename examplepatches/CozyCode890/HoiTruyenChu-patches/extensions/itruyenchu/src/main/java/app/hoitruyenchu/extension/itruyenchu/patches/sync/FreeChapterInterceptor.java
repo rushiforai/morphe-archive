@@ -16,6 +16,7 @@ import okhttp3.Response;
 import okhttp3.ResponseBody;
 import okio.Buffer;
 
+import app.hoitruyenchu.extension.itruyenchu.patches.shared.AppInfo;
 import app.hoitruyenchu.extension.itruyenchu.patches.shared.HtcSettings;
 import okhttp3.Interceptor;
 
@@ -35,6 +36,8 @@ final class FreeChapterInterceptor implements Interceptor {
     private static final Pattern FREE_CHAPTER = Pattern.compile("^/free/([^/]+)/chuong-(\\d+)\\.txt$");
     private static final String SYNC_BUTTON_PATH = "/users/sync-books";
     private static final String PULL_PATH = "/users/sync-books-new";
+    /** Field of the request body: "newest" or "oldest" first, the order wanted for the answer. */
+    static final String ORDER_FIELD = "htcOrder";
 
     @Override
     public Response intercept(Chain chain) throws IOException {
@@ -62,11 +65,15 @@ final class FreeChapterInterceptor implements Interceptor {
     /** @return the answer for the sync button, or null to send the original request. */
     private static Response syncButton(Chain chain, Request request) throws IOException {
         JSONArray local;
+        boolean newestFirst;
         Request pull;
         MediaType json = MediaType.parse("application/json; charset=utf-8");
         try {
-            local = new JSONObject(bodyOf(request)).optJSONArray("recentReads");
+            JSONObject sent = new JSONObject(bodyOf(request));
+            local = sent.optJSONArray("recentReads");
             if (local == null) return null;
+            // SyncScript asks for its order; the app's own button: depends on the app version.
+            newestFirst = "newest".equals(sent.optString(ORDER_FIELD, AppInfo.isV3() ? "newest" : "oldest"));
             String url = request.url().toString();
             int index = url.indexOf(SYNC_BUTTON_PATH);
             if (index < 0) return null;
@@ -84,7 +91,7 @@ final class FreeChapterInterceptor implements Interceptor {
         String pulled = body == null ? "" : body.string();
         String answer = null;
         try {
-            answer = AutoSyncPatch.onSyncButton(local, pulled, request.header("Authorization"));
+            answer = AutoSyncPatch.onSyncButton(local, pulled, request.header("Authorization"), newestFirst);
         } catch (Throwable t) {
             Log.w(TAG, "sync button failed", t);
         }

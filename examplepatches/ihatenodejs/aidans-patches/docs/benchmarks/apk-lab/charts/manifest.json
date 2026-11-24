@@ -1,0 +1,53 @@
+{
+  "schemaVersion": 1,
+  "charts": [
+    {
+      "file": "charts/wall-time.png",
+      "workloads": [
+        "startup.help",
+        "inspect.small",
+        "inspect.large",
+        "splits.small",
+        "splits.large",
+        "dex.small",
+        "dex.large",
+        "unity.small",
+        "unity.large",
+        "il2cpp.small",
+        "il2cpp.large",
+        "resources.small",
+        "resources.large",
+        "code.small",
+        "code.large",
+        "morphe.small",
+        "morphe.large"
+      ],
+      "metric": "wallTime",
+      "unit": "milliseconds"
+    },
+    {
+      "file": "charts/wall-ratio.png",
+      "workloads": [
+        "startup.help",
+        "inspect.small",
+        "inspect.large",
+        "splits.small",
+        "splits.large",
+        "dex.small",
+        "dex.large",
+        "unity.small",
+        "unity.large",
+        "il2cpp.small",
+        "il2cpp.large",
+        "resources.small",
+        "resources.large",
+        "code.small",
+        "code.large",
+        "morphe.small",
+        "morphe.large"
+      ],
+      "metric": "wallTime",
+      "unit": "milliseconds"
+    }
+  ]
+}

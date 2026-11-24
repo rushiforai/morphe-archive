@@ -1,0 +1,7 @@
+{
+  "created_at": "2026-11-24T05:04:41",
+  "description": "## [0.4.2](https://github.com/stivencop414-bot/PatchLab/compare/v0.4.1...v0.4.2) (2026-11-24)\n\n### 🐛 Bug Fixes\n\n* **meitu:** use instructions.size instead of -1 for <clinit> insertion (fixes IndexOutOfBoundsException) ([6d400b8](https://github.com/stivencop414-bot/PatchLab/commit/6d400b8a08ed46852237c11493397b3bf1cef3a6))",
+  "download_url": "https://github.com/stivencop414-bot/PatchLab/releases/download/v0.4.2/patches-0.4.2.mpp",
+  "signature_download_url": "",
+  "version": "0.4.2"
+}

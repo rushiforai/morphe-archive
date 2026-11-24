@@ -25,7 +25,7 @@ internal object NativeEdits {
             WordEdit(0x0057BCD0, 0x00000016L, 0x00000015L),
         ),
     )
-    val IS_AVAILABLE: Map<String, List<WordEdit>> = mapOf(
+    val NETWORK_AVAILABILITY: Map<String, List<WordEdit>> = mapOf(
         "armeabi" to listOf(
             WordEdit(0x000C43F4, 0xE92D4010L, 0xE3A00000L),
             WordEdit(0x000C43F8, 0xE59F3020L, 0xE12FFF1EL),

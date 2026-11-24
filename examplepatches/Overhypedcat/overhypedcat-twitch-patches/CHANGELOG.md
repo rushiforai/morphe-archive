@@ -1,3 +1,9 @@
+## [4.3.0](https://github.com/[secure]/overhypedcat-twitch-patches/compare/v4.2.2...v4.3.0) (2026-11-23)
+
+### New Features
+
+* Highest quality switch, a closable log window, and a detailed log of the video and the phone ([053e63e](https://github.com/[secure]/overhypedcat-twitch-patches/commit/053e63e0ae759f98a67e5591264b8fdd3528941a))
+
 ## [4.2.2](https://github.com/[secure]/overhypedcat-twitch-patches/compare/v4.2.1...v4.2.2) (2026-11-21)
 
 ### Bug Fixes

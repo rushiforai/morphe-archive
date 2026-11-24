@@ -42,7 +42,7 @@ OPTIONS:
 EXIT CODES:
   0: Success (all current or update cleanly applied)
   1: Error (registry failure, policy violation, stale plan, or manager error)
-  2: Actionable updates available or compatibility-blocked newer releases
+  2: Actionable updates available
   3: Update declined by user in interactive prompt
 
 EXAMPLES:
@@ -124,7 +124,7 @@ async function runCheck(
 ): Promise<{
   report: DependencyReport;
   policy: DependencyPolicy;
-  hasUpdatesOrBlocked: boolean;
+  hasUpdates: boolean;
   hasErrors: boolean;
 }> {
   const startTime = performance.now();
@@ -185,10 +185,10 @@ async function runCheck(
     proposal,
   };
 
-  const hasUpdatesOrBlocked = summary.update > 0 || summary.blocked > 0;
+  const hasUpdates = summary.update > 0;
   const hasErrors = summary.error > 0 || summary.unsupported > 0;
 
-  return { report, policy, hasUpdatesOrBlocked, hasErrors };
+  return { report, policy, hasUpdates, hasErrors };
 }
 
 async function main() {
@@ -201,10 +201,7 @@ async function main() {
   }
 
   if (command === 'check') {
-    const { report, hasUpdatesOrBlocked, hasErrors } = await runCheck(
-      rootDir,
-      onlyIds,
-    );
+    const { report, hasUpdates, hasErrors } = await runCheck(rootDir, onlyIds);
 
     if (json) {
       console.log(JSON.stringify(report, null, 2));
@@ -214,7 +211,7 @@ async function main() {
 
     if (hasErrors) {
       process.exit(1);
-    } else if (hasUpdatesOrBlocked) {
+    } else if (hasUpdates) {
       process.exit(2);
     } else {
       process.exit(0);

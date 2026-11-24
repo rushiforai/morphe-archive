@@ -35,3 +35,12 @@ tools/*.keystore
 artifacts_debug/
 temp_smali/
 verify_apk/
+
+# Secrets & local credentials (Zero-Leak Rule)
+.env
+.env.*
+local.properties
+*.jks
+credentials.json
+google-services.json
+

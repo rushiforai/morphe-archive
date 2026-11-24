@@ -1,7 +1,7 @@
 {
-  "created_at": "2026-11-23T05:26:46",
-  "description": "# Haiagaru 1.51.0 (2026-11-23)\n\n### 追加機能\n\n- HOMEの並び替え中、ピンをスレタイトルの右端に組み込みました。スクロールや並び替えで行と一緒に動き、タップで固定・解除できます。\n\n- HOMEの一覧上でスレやラベルを並び替えられます。お気に入り板をまたぐラベル移動と、ラベルや所属スレを残したまま並び順を戻す操作に対応しました。並び替え中の通常の長押しメニューは抑止します。\n\n- 「HOMEの★・ラベル見出しをタップして開閉」は初期オンです。Haiagaru設定と更新履歴から切り替えられます。\n\n- 1.50.2からの更新後は「投稿後すぐ元の画面に戻る（実験的）」を一度オフにします。その後、手動でオンにした設定は保持します。Cookie確認が必要な場合は投稿画面を復帰させてから確認を表示します。\n\n\n## 謝辞\n\nご支援いただいている皆様、ありがとうございます。README掲載の支援者の皆様へ感謝申し上げます。\n\n- Kitadai 様\n- yujirox 様\n- ﾜｯﾁｮｲ 8f01-uDul 様\n- toya0717 様\n- MUMEI 様\n- タケヨシキ 様\n- 無名 様\n- ｵｲｺﾗﾐﾈｵ 様\n- Red Frame X 様\n- ﾜｯﾁｮｲ 3f3c-gNc7 様\n- chikuwadon 様（外部チェッカーとの連携をご快諾いただき、ありがとうございます）\n- rikunode 様（226／242のDroid＋ツールバー対応）\n\n## 開発継続へのご支援のお願い\n\n開発の継続を応援していただける場合は、よろしければ[GitHubのStar](https://github.com/areteruhiro/Haiagaru-Morphe)だけでもお願いします。励みになります。さらにご支援いただける場合は、以下から寄付を受け付けています。\n\n- [Amazon Gift Card](https://www.amazon.co.jp/gp/product/B004N3APGO) Send to (areteruhiro@gmail.com)\n- [PayPay](https://qr.paypay.ne.jp/p2p01_FSEj08sDQx0enogO)\n\n皆様からのご報告・検証・ご支援が開発の励みになっています。",
-  "download_url": "https://github.com/areteruhiro/Haiagaru-Morphe/releases/download/1.51.0/patches-1.51.0.mpp",
+  "created_at": "2026-11-23T17:15:24",
+  "description": "# Haiagaru 1.53.0 (2026-11-23)\n\n### 追加機能\n\n- HOME板名タップと必死チェッカー表示切替を正式版へ統合\n\nHOMEのスレ（板順）は板名ラベルのタップで開閉し、上部または︙メニューで操作の有効・無効を切り替えられます。表示中の一覧行を基準に並び替え、画面切替時の表示ずれを抑えます。\n\n必死チェッカー専用ビューアをパッチに常時含め、Haiagaru設定のONで専用表示、OFFでChMateのWeb表示を使います。タブレットのメモ表示も修正します。\n\n\n## 謝辞\n\nご支援いただいている皆様、ありがとうございます。README掲載の支援者の皆様へ感謝申し上げます。\n\n- Kitadai 様\n- yujirox 様\n- ﾜｯﾁｮｲ 8f01-uDul 様\n- toya0717 様\n- MUMEI 様\n- タケヨシキ 様\n- 無名 様\n- ｵｲｺﾗﾐﾈｵ 様\n- Red Frame X 様\n- ﾜｯﾁｮｲ 3f3c-gNc7 様\n- chikuwadon 様（外部チェッカーとの連携をご快諾いただき、ありがとうございます）\n- rikunode 様（226／242のDroid＋ツールバー対応）\n\n## 開発継続へのご支援のお願い\n\n開発の継続を応援していただける場合は、よろしければ[GitHubのStar](https://github.com/areteruhiro/Haiagaru-Morphe)だけでもお願いします。励みになります。さらにご支援いただける場合は、以下から寄付を受け付けています。\n\n- [Amazon Gift Card](https://www.amazon.co.jp/gp/product/B004N3APGO) Send to (areteruhiro@gmail.com)\n- [PayPay](https://qr.paypay.ne.jp/p2p01_FSEj08sDQx0enogO)\n\n皆様からのご報告・検証・ご支援が開発の励みになっています。",
+  "download_url": "https://github.com/areteruhiro/Haiagaru-Morphe/releases/download/1.53.0/patches-1.53.0.mpp",
   "signature_download_url": "",
-  "version": "1.51.0"
+  "version": "1.53.0"
 }

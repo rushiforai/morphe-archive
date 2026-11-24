@@ -1,0 +1,55 @@
+{
+  "args": [
+    "--gradle-home",
+    "/Users/aidan/Projects/aidans-patches/tools/asset-prep/tests/fixtures/pdfbox/gradle-home/single",
+    "--aar",
+    "/Users/aidan/Projects/aidans-patches/tools/asset-prep/tests/fixtures/pdfbox/aars/standard-lzma.aar",
+    "--output",
+    "/var/folders/q_/8vvtb5m90p95bxyjx1dw609r0000gn/T/asset-pdfbox-capture-ytqouz1z/lzma.zip"
+  ],
+  "exit": 0,
+  "stdout": "Packaged 5 PDFBox assets into /var/folders/q_/8vvtb5m90p95bxyjx1dw609r0000gn/T/asset-pdfbox-capture-ytqouz1z/lzma.zip\n",
+  "stderr": "",
+  "outputExists": true,
+  "output": {
+    "entries": [
+      {
+        "name": "com/tom_roush/a.txt",
+        "size": 6,
+        "sha256": "b6a98d9ce9a2d9149288fa3df42d377c3e42737afdcdaf714e33c0a100b51060",
+        "method": 8,
+        "directory": false
+      },
+      {
+        "name": "com/tom_roush/nested/b.bin",
+        "size": 256,
+        "sha256": "40aff2e9d2d8922e47afd4648e6967497158785fbd1da870e7110266bf944880",
+        "method": 8,
+        "directory": false
+      },
+      {
+        "name": "com/tom_roush/nested/empty.dat",
+        "size": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "method": 8,
+        "directory": false
+      },
+      {
+        "name": "com/tom_roush/z-last.txt",
+        "size": 4,
+        "sha256": "72d4df2c38fbc597aa5ea832baa8d09ed3ec77fc3107dcc9204a8500405cd992",
+        "method": 8,
+        "directory": false
+      },
+      {
+        "name": "com/tom_roush/unicode-\u00e9.txt",
+        "size": 13,
+        "sha256": "f682a5ef26796a5f98678d3a028d07c8853e6c5fc01005b55bd95852d00fc917",
+        "method": 8,
+        "directory": false
+      }
+    ],
+    "count": 5
+  },
+  "outputSha256": "5388d4625b1bacf6ca070723de045184d9023e5ecd548ab0964cd6d97465c056"
+}

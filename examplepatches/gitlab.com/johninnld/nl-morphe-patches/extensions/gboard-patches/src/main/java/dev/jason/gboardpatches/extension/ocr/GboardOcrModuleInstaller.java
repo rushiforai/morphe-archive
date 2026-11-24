@@ -46,7 +46,7 @@ final class GboardOcrModuleInstaller {
             ClassLoader classLoader = requireClassLoader();
             List<Object> optionalApis = createOptionalApis(engine, classLoader);
             Object client = createClient(context, classLoader);
-            Class<?> statusListenerClass = Class.forName("ackq", false, classLoader);
+            Class<?> statusListenerClass = Class.forName("xvo", false, classLoader);
             AtomicBoolean completed = new AtomicBoolean();
             Object statusListener = Proxy.newProxyInstance(
                     classLoader,
@@ -144,18 +144,26 @@ final class GboardOcrModuleInstaller {
             throw new IllegalStateException("Could not build OCR module request array");
         }
 
-        Class<?> optionalApiClass = Class.forName("zxe", false, classLoader);
-        Constructor<?> optionalApiConstructor = optionalApiClass.getDeclaredConstructor(
-                requestArray.getClass());
-        optionalApiConstructor.setAccessible(true);
-        Object optionalApi = optionalApiConstructor.newInstance(requestArray);
+        // 18.8's OptionalModuleApi is the interface xns (a()[Lxli;). Stock only implements it
+        // with fixed no-argument lambdas, so answer it with a proxy carrying this request.
+        Class<?> optionalApiInterface = Class.forName("xns", false, classLoader);
+        final Object features = requestArray;
+        Object optionalApi = Proxy.newProxyInstance(
+                classLoader,
+                new Class<?>[]{optionalApiInterface},
+                (proxy, method, arguments) -> {
+                    if (method.getDeclaringClass() == Object.class) {
+                        return handleObjectMethod(proxy, method, arguments);
+                    }
+                    return "a".equals(method.getName()) ? features : null;
+                });
         List<Object> optionalApis = new ArrayList<Object>();
         optionalApis.add(optionalApi);
         return optionalApis;
     }
 
     private static Object createClient(Context context, ClassLoader classLoader) throws Throwable {
-        Class<?> moduleInstallClientClass = Class.forName("zgp", false, classLoader);
+        Class<?> moduleInstallClientClass = Class.forName("xws", false, classLoader);
         Constructor<?> clientConstructor = moduleInstallClientClass.getDeclaredConstructor(
                 Context.class);
         clientConstructor.setAccessible(true);
@@ -166,16 +174,16 @@ final class GboardOcrModuleInstaller {
 
     private static Object createInstallTask(Object client, List<Object> optionalApis,
             Object statusListener, ClassLoader classLoader) throws Throwable {
-        Class<?> requestClass = Class.forName("amly", false, classLoader);
-        Class<?> statusListenerClass = Class.forName("ackq", false, classLoader);
+        Class<?> requestClass = Class.forName("xvu", false, classLoader);
+        Class<?> statusListenerClass = Class.forName("xvo", false, classLoader);
         Constructor<?> requestConstructor = requestClass.getDeclaredConstructor(
                 List.class,
                 statusListenerClass);
         requestConstructor.setAccessible(true);
         Object installRequest = requestConstructor.newInstance(optionalApis, statusListener);
 
-        Class<?> moduleInstallClientClass = Class.forName("zgp", false, classLoader);
-        Method installMethod = moduleInstallClientClass.getDeclaredMethod("c", requestClass);
+        Class<?> moduleInstallClientClass = Class.forName("xws", false, classLoader);
+        Method installMethod = moduleInstallClientClass.getDeclaredMethod("b", requestClass);
         installMethod.setAccessible(true);
         Object task = installMethod.invoke(client, installRequest);
         if (task == null) {
@@ -186,7 +194,7 @@ final class GboardOcrModuleInstaller {
 
     private static Object createAvailabilityTask(Object client, List<Object> optionalApis,
             ClassLoader classLoader) throws Throwable {
-        Class<?> optionalApiInterface = Class.forName("vvp", false, classLoader);
+        Class<?> optionalApiInterface = Class.forName("xns", false, classLoader);
         Object optionalApiArray = Array.newInstance(optionalApiInterface, optionalApis.size());
         for (int index = 0; index < optionalApis.size(); index++) {
             Array.set(optionalApiArray, index, optionalApis.get(index));
@@ -211,7 +219,7 @@ final class GboardOcrModuleInstaller {
             throw new IllegalStateException("Task class loader unavailable");
         }
 
-        Class<?> listenerClass = Class.forName("xgp", false, classLoader);
+        Class<?> listenerClass = Class.forName("zdk", false, classLoader);
         registerCompletionListener(task, listenerClass, completion);
     }
 
@@ -300,7 +308,7 @@ final class GboardOcrModuleInstaller {
     private static void unregisterStatusListener(Object client, Object statusListener) {
         try {
             Method unregisterMethod = client.getClass().getDeclaredMethod(
-                    "b", statusListener.getClass().getInterfaces()[0]);
+                    "c", statusListener.getClass().getInterfaces()[0]);
             unregisterMethod.setAccessible(true);
             unregisterMethod.invoke(client, statusListener);
         } catch (Throwable ignored) {

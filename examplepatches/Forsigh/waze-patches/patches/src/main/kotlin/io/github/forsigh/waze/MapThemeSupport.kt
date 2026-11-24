@@ -168,6 +168,48 @@ internal val THEMES = linkedMapOf(
         "highways" to "D98F6B",
         "street" to "D98F6B",
     ),
+    // Night ramps added with the 0.30.66 theme pass: three road classes each, all three measured
+    // against the #000000 canvas so no class sinks into it (street 6.5:1 or better).
+    "AMOLED Rose" to mapOf(
+        "map_background" to "000000",
+        "freeways" to "FFD6E6",
+        "primary" to "FFA3C6",
+        "secondary" to "D96E9B",
+        "highways" to "D96E9B",
+        "street" to "D96E9B",
+    ),
+    "AMOLED Copper" to mapOf(
+        "map_background" to "000000",
+        "freeways" to "FFDCB8",
+        "primary" to "E8A063",
+        "secondary" to "C0824E",
+        "highways" to "C0824E",
+        "street" to "C0824E",
+    ),
+    "AMOLED Lime" to mapOf(
+        "map_background" to "000000",
+        "freeways" to "EBFFC2",
+        "primary" to "C2EE72",
+        "secondary" to "86B838",
+        "highways" to "86B838",
+        "street" to "86B838",
+    ),
+    "AMOLED Sand" to mapOf(
+        "map_background" to "000000",
+        "freeways" to "FFF0D6",
+        "primary" to "E2C89A",
+        "secondary" to "B99A63",
+        "highways" to "B99A63",
+        "street" to "B99A63",
+    ),
+    "AMOLED Steel" to mapOf(
+        "map_background" to "000000",
+        "freeways" to "E4F0FF",
+        "primary" to "B4C8DE",
+        "secondary" to "849CB6",
+        "highways" to "849CB6",
+        "street" to "849CB6",
+    ),
     "Dark Purple" to mapOf(
         "map_background" to "272E3A",
         "freeways" to "B18CFF",

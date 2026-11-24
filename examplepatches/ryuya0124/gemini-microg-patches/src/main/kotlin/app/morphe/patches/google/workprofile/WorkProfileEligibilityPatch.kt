@@ -17,13 +17,14 @@ val workProfileEligibilityPatch = bytecodePatch(
     description = "Secure FolderでのWORK_PROFILE_NOT_SUPPORTED (19)を、既存のプロファイル許可分岐で回避します。",
     default = true
 ) {
-    compatibleWith("com.google.android.googlequicksearchbox")
+    compatibleWith(*VersionHookRegistry.compatibility("com.google.android.googlequicksearchbox"))
     execute {
         val spec = VersionHookRegistry.target(HookId.WORK_PROFILE_ELIGIBILITY, packageMetadata)
-        val candidates = getAllClassesWithString(spec.anchorStrings[0])
+        val candidates = classDefByStrings(spec.anchorStrings[0])
         var patched = 0
         for (clazz in candidates) {
             check(clazz.type == spec.className) { "Unsupported eligibility class: ${clazz.type}" }
+            if (clazz.methods.none { spec.matches(it) && it.implementation != null }) continue
             for (method in mutableClassDefBy(clazz).methods) {
                 if (method.implementation == null) continue
                 val ins = method.instructions.toList()

@@ -1,0 +1,104 @@
+name: Emulator tests
+
+# Tests every app whose code changed on dev, right after the change, so the release mostly finds its
+# tests already done (see .github/scripts/tested.py) and doesn't have to start dozens of emulators at
+# once. An app passes once per fingerprint: a merge that touches only Listonic tests only Listonic;
+# a change to the shared build or test tests every app.
+#
+# Every Monday all apps are tested again, whatever was recorded, to catch an Android image or a
+# runner that changed under them. A run by hand can do the same with "Test every app".
+
+on:
+  push:
+    branches: [dev]
+    paths-ignore:
+      - 'docs/**'
+      - '**.md'
+      - 'CHANGELOG.md'
+  schedule:
+    - cron: '0 4 * * 1'
+  workflow_dispatch:
+    inputs:
+      all:
+        description: 'Test every app, even the ones that passed with this code'
+        type: boolean
+        default: false
+
+concurrency:
+  group: emulator-tests-${{ github.ref }}
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+  packages: read
+
+jobs:
+  plan:
+    name: Find the apps to test
+    runs-on: ubuntu-latest
+    outputs:
+      apps: ${{ steps.plan.outputs.apps }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Find the apps to test
+        id: plan
+        env:
+          ALL: ${{ github.event_name == 'schedule' || inputs.all == true }}
+        run: |
+          if [ "$ALL" = "true" ]; then
+            apps=$(python3 .github/scripts/tested.py plan --all)
+          else
+            apps=$(python3 .github/scripts/tested.py plan)
+          fi
+          echo "To test: $apps"
+          echo "apps=$apps" >> "$GITHUB_OUTPUT"
+
+  bundle:
+    name: Build the patches
+    needs: plan
+    if: needs.plan.outputs.apps != '[]'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Setup Java
+        uses: actions/setup-java@v6
+        with:
+          distribution: 'temurin'
+          java-version: '21'
+          cache: 'gradle'
+
+      - name: Build
+        env:
+          GITHUB_ACTOR: ${{ github.actor }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GRADLE_ATTEMPTS: 5
+        run: bash .github/scripts/gradle-retry.sh :patches:buildAndroid --no-daemon
+
+      - name: Keep the bundle for the emulators
+        uses: actions/upload-artifact@v4
+        with:
+          name: patches-bundle
+          path: patches/build/libs/*.mpp
+          if-no-files-found: error
+          retention-days: 1
+
+  emulator:
+    name: Emulator test (${{ matrix.app }})
+    needs: [plan, bundle]
+    strategy:
+      fail-fast: false
+      matrix:
+        app: ${{ fromJSON(needs.plan.outputs.apps) }}
+    permissions:
+      contents: write
+      packages: read
+    uses: ./.github/workflows/emulator-app.yml
+    secrets: inherit
+    with:
+      app: ${{ matrix.app }}
+      bundle: patches-bundle
+      record: true

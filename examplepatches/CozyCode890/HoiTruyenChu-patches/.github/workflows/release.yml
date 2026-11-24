@@ -2,11 +2,20 @@ name: Release
 
 on:
   workflow_dispatch:
+    inputs:
+      apk_tag:
+        description: 'Only (re)build the patched APK of this existing release, e.g. v2.1.0'
+        required: false
+        default: ''
   push:
 
 jobs:
   release:
     name: Release
+    if: github.event_name != 'workflow_dispatch' || inputs.apk_tag == ''
+    outputs:
+      published: ${{ steps.release.outputs.new_release_published }}
+      tag: ${{ steps.release.outputs.new_release_git_tag }}
     permissions:
       contents: write
       packages: write
@@ -57,3 +66,31 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: ./gradlew :patches:buildAndroid clean --no-daemon
+
+  # The patched app itself, attached to every release (and on demand: run the workflow with apk_tag).
+  # Original app: release "app-source"; signing key: secret MORPHE_KEYSTORE_BASE64 (see build_apk.sh).
+  apk:
+    name: Patched APK
+    needs: release
+    if: >-
+      always() && (needs.release.outputs.published == 'true'
+      || (github.event_name == 'workflow_dispatch' && inputs.apk_tag != ''))
+    permissions:
+      contents: write
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Setup Java
+        uses: actions/setup-java@v6
+        with:
+          distribution: 'temurin'
+          java-version: '21'
+
+      - name: Patch the app and attach the APK
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          MORPHE_KEYSTORE_BASE64: ${{ secrets.MORPHE_KEYSTORE_BASE64 }}
+          TAG: ${{ inputs.apk_tag || needs.release.outputs.tag }}
+        run: bash .github/scripts/build_apk.sh "$TAG"

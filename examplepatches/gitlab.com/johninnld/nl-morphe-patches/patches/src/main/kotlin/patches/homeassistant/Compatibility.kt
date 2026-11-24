@@ -18,4 +18,12 @@ internal val homeAssistant = Compatibility(
     ),
 )
 
-internal val originalInput = patches.shared.originalInput(homeAssistant)
+internal val homeAssistantAutomotive = Compatibility(
+    name = "Home Assistant (Automotive)",
+    packageName = "io.homeassistant.companion.android",
+    apkFileType = ApkFileType.APK,
+    signatures = homeAssistant.signatures,
+    targets = listOf(AppTarget(version = "2026.11.2-full", versionCode = 25803, minSdk = 29)),
+)
+
+internal val originalInput = patches.shared.originalInput(homeAssistant, variants = listOf(homeAssistantAutomotive))

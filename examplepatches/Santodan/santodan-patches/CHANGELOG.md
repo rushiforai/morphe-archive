@@ -1,3 +1,29 @@
+## [0.21.1](https://github.com/Santodan/santodan-patches/compare/v0.21.0...v0.21.1) (2026-11-23)
+
+### 🚀 Updated App Support
+
+* **reddit:** support 2026.47.0 for content filters and home flairs ([87216cf](https://github.com/Santodan/santodan-patches/commit/87216cffb0b21983b953b5b2ddc05b19fe73a862))
+
+## [0.21.0](https://github.com/Santodan/santodan-patches/compare/v0.20.0...v0.21.0) (2026-11-23)
+
+### 🐛 Bug Fixes
+
+* **build:** default Desktop import check to the newest workspace JAR [skip ci] ([c029a71](https://github.com/Santodan/santodan-patches/commit/c029a7157947b034bfca42fbab0530e82841492a))
+* **nuviotv:** keep the discovered label registry bounded and usable [skip ci] ([e8c81cc](https://github.com/Santodan/santodan-patches/commit/e8c81cc3a9eee99d7716ad272fbc2677fb20d752))
+* **nuviotv:** persist selected artwork in native records [skip ci] ([68b312d](https://github.com/Santodan/santodan-patches/commit/68b312dd2addd8591472276b7dfef3d3494f564b))
+* **nuviotv:** update Continue Watching during playback [skip ci] ([60d5cc9](https://github.com/Santodan/santodan-patches/commit/60d5cc97a57da3fa712b2b357b74a387d5a09a33))
+
+### ✨ New Features
+
+* **nuviotv:** add label customization and fix sync dialog [skip ci] ([0050079](https://github.com/Santodan/santodan-patches/commit/0050079401f70528ab827884c617fa816da629e9))
+* **nuviotv:** consolidate date label appearance editor [skip ci] ([7b71eb7](https://github.com/Santodan/santodan-patches/commit/7b71eb7e668076104c45a9af2e7960a86456a65a))
+* **nuviotv:** unify date and count label customization [skip ci] ([ce01eda](https://github.com/Santodan/santodan-patches/commit/ce01eda510191f883574e5b105c4e62889da11e5))
+
+### 🚀 Updated App Support
+
+* **nuviotv:** support 1.1.1 [skip ci] ([df76faf](https://github.com/Santodan/santodan-patches/commit/df76faf1ebf0fce38a4053a342a13de58ffc278d))
+* **reddit:** support 2026.45.0 for content filters and home flairs ([55600ca](https://github.com/Santodan/santodan-patches/commit/55600cae84d0b6980c3cc8d1e874b9a204d326b3))
+
 ## [0.20.0](https://github.com/Santodan/santodan-patches/compare/v0.19.0...v0.20.0) (2026-11-18)
 
 ### 🐛 Bug Fixes

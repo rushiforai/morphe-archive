@@ -13,7 +13,6 @@ import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
 import com.android.tools.smali.dexlib2.iface.reference.FieldReference
 import com.android.tools.smali.dexlib2.iface.reference.MethodReference
 
-private const val SETTINGS_CLASS = "Lapp/template/extension/extension/NezumiSettings;"
 private const val ARRAY_LIST = "Ljava/util/ArrayList;"
 private const val FEED_LIST = "Ljava/util/List;"
 private const val TIMELINE_VIEW = "Lcom/zing/zalo/social/presentation/timeline/view/TimelineView;"
@@ -28,7 +27,7 @@ private data class FeedListMatch(
 val hideFeedAdsPatch = bytecodePatch(
     name = "Hide feed ads",
     description = "Remove sponsored and advertising items from Zalo's user feed when enabled in Nezumi Settings.",
-    default = false,
+    default = true,
 ) {
     compatibleWith(Compatibility(
         name = "Zalo",
@@ -91,9 +90,9 @@ val hideFeedAdsPatch = bytecodePatch(
         check(matches.size == 1) { "Expected one feed list update, found ${matches.size}" }
         val match = matches.single()
         match.method.addInstructions(match.insertionIndex,
-            "invoke-static {v${match.listRegister}}, $SETTINGS_CLASS->filterFeedAds(Ljava/util/List;)Ljava/util/List;\n" +
+            "invoke-static {v${match.listRegister}}, $FEED_ADS->filterFeedAds(Ljava/util/List;)Ljava/util/List;\n" +
                 "move-result-object v${match.listRegister}")
 
         attachNezumiSettings("attachFeedAds")
     }
-}
+}

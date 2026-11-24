@@ -42,6 +42,7 @@
       "save_story_from_share",
       "save_story_pick",
       "pick_grid_videos",
+      "delete_picked_posts",
       "download_video_path",
       "download_photo_path",
       "download_video_filename_template",
@@ -64,6 +65,7 @@
       "publish_date_short_date",
       "publish_date_day_first",
       "publish_date_month_name",
+      "publish_date_instead_of_age",
       "publish_date_on_grid",
       "video_length_on_grid",
       "hide_grid_view_count",
@@ -75,6 +77,7 @@
       "collection_grid_sort",
       "sound_grid_sort",
       "liked_jump_to_date",
+      "favorites_jump_to_date",
       "grid_search",
       "grid_position_controls"
     ],
@@ -359,6 +362,7 @@
       "fit_video_to_screen",
       "fit_fills_tall_screen",
       "fill_video_to_screen",
+      "fill_wide_videos",
       "stretch_video_to_screen",
       "blend_video_to_screen",
       "keep_middle_video_to_screen"
@@ -445,7 +449,8 @@
       "hide_inbox_custom_titles",
       "show_inbox_filters",
       "pin_more_chats",
-      "show_message_times"
+      "show_message_times",
+      "keep_chat_place"
     ],
     "Hide inbox stories": [
       "hide_inbox_stories"
@@ -520,6 +525,7 @@
       "see_through_status_bar",
       "status_bar_shade",
       "burn_in_guard",
+      "burn_in_guard_level",
       "hide_share_guide",
       "hide_rail_follow",
       "hide_rail_like",
@@ -555,6 +561,8 @@
       "auto_streak",
       "auto_streak_recipient",
       "auto_streak_minute",
+      "auto_streak_random",
+      "auto_streak_latest_minute",
       "auto_streak_message"
     ],
     "Keep playing in the background": [
@@ -593,6 +601,7 @@
       "show_exact_battle_scores",
       "live_room_info",
       "live_running_time",
+      "live_following_row_order",
       "offer_live_quality",
       "remember_live_quality",
       "live_start_quality",
@@ -709,6 +718,7 @@
       "hold_speed_slide",
       "hold_speed_hud_style",
       "hold_speed_slide_axis",
+      "hold_speed_hud_size",
       "hide_speed_toasts",
       "remembered_speed_v2"
     ],
@@ -733,6 +743,8 @@
     "Remember clear display": [
       "automatic_clear_display",
       "automatic_clear_display_delay",
+      "tap_shows_cleared_controls",
+      "clear_display_fade_out",
       "remember_clear_display_on_scroll",
       "clear_display"
     ],
@@ -803,6 +815,9 @@
       "show_author_region",
       "region_as_flag",
       "country_date_under_caption",
+      "country_date_text_size",
+      "country_date_opacity",
+      "country_date_shadow",
       "show_author_handle"
     ],
     "Show commenter handle and region": [
@@ -1024,6 +1039,14 @@
       "type": "boolean",
       "default": false
     },
+    "auto_streak_latest_minute": {
+      "field": "AUTO_STREAK_LATEST_MINUTE",
+      "key": "auto_streak_latest_minute",
+      "type": "integer",
+      "default": 1200,
+      "minimum": 0,
+      "maximum": 1439
+    },
     "auto_streak_message": {
       "field": "AUTO_STREAK_MESSAGE",
       "key": "auto_streak_message",
@@ -1037,6 +1060,12 @@
       "default": 720,
       "minimum": 0,
       "maximum": 1439
+    },
+    "auto_streak_random": {
+      "field": "AUTO_STREAK_RANDOM",
+      "key": "auto_streak_random",
+      "type": "boolean",
+      "default": false
     },
     "auto_streak_recipient": {
       "field": "AUTO_STREAK_RECIPIENT",
@@ -1274,6 +1303,14 @@
       "type": "string",
       "default": "off"
     },
+    "burn_in_guard_level": {
+      "field": "BURN_IN_GUARD_LEVEL",
+      "key": "burn_in_guard_level",
+      "type": "integer",
+      "default": 25,
+      "minimum": 0,
+      "maximum": 90
+    },
     "camera_mic_indicator": {
       "field": "CAMERA_MIC_INDICATOR",
       "key": "camera_mic_indicator",
@@ -1363,6 +1400,12 @@
     "clear_display": {
       "field": "CLEAR_DISPLAY",
       "key": "clear_display",
+      "type": "boolean",
+      "default": false
+    },
+    "clear_display_fade_out": {
+      "field": "CLEAR_DISPLAY_FADE_OUT",
+      "key": "clear_display_fade_out",
       "type": "boolean",
       "default": false
     },
@@ -1492,6 +1535,28 @@
       "type": "boolean",
       "default": true
     },
+    "country_date_opacity": {
+      "field": "COUNTRY_DATE_OPACITY",
+      "key": "country_date_opacity",
+      "type": "integer",
+      "default": 100,
+      "minimum": 10,
+      "maximum": 100
+    },
+    "country_date_shadow": {
+      "field": "COUNTRY_DATE_SHADOW",
+      "key": "country_date_shadow",
+      "type": "boolean",
+      "default": false
+    },
+    "country_date_text_size": {
+      "field": "COUNTRY_DATE_TEXT_SIZE",
+      "key": "country_date_text_size",
+      "type": "integer",
+      "default": 0,
+      "minimum": 0,
+      "maximum": 48
+    },
     "country_date_under_caption": {
       "field": "COUNTRY_DATE_UNDER_CAPTION",
       "key": "country_date_under_caption",
@@ -1563,6 +1628,12 @@
     "default_speed_enabled": {
       "field": "DEFAULT_SPEED_ENABLED",
       "key": "default_speed_enabled",
+      "type": "boolean",
+      "default": false
+    },
+    "delete_picked_posts": {
+      "field": "DELETE_PICKED_POSTS",
+      "key": "delete_picked_posts",
       "type": "boolean",
       "default": false
     },
@@ -1938,6 +2009,12 @@
       "type": "string",
       "default": "profile"
     },
+    "favorites_jump_to_date": {
+      "field": "FAVORITES_JUMP_TO_DATE",
+      "key": "favorites_jump_to_date",
+      "type": "boolean",
+      "default": false
+    },
     "feed_author_text_size": {
       "field": "FEED_AUTHOR_TEXT_SIZE",
       "key": "feed_author_text_size",
@@ -2023,6 +2100,12 @@
     "fill_video_to_screen": {
       "field": "FILL_VIDEO_TO_SCREEN",
       "key": "fill_video_to_screen",
+      "type": "boolean",
+      "default": false
+    },
+    "fill_wide_videos": {
+      "field": "FILL_WIDE_VIDEOS",
+      "key": "fill_wide_videos",
       "type": "boolean",
       "default": false
     },
@@ -3158,6 +3241,14 @@
       "type": "string",
       "default": ""
     },
+    "hold_speed_hud_size": {
+      "field": "HOLD_SPEED_HUD_SIZE",
+      "key": "hold_speed_hud_size",
+      "type": "integer",
+      "default": 100,
+      "minimum": 50,
+      "maximum": 150
+    },
     "hold_speed_hud_style": {
       "field": "HOLD_SPEED_HUD_STYLE",
       "key": "hold_speed_hud_style",
@@ -3259,6 +3350,12 @@
     "keep_captions_clear_display": {
       "field": "KEEP_CAPTIONS_CLEAR_DISPLAY",
       "key": "keep_captions_clear_display",
+      "type": "boolean",
+      "default": false
+    },
+    "keep_chat_place": {
+      "field": "KEEP_CHAT_PLACE",
+      "key": "keep_chat_place",
       "type": "boolean",
       "default": false
     },
@@ -3433,6 +3530,12 @@
     "live_feed_filter": {
       "field": "LIVE_FEED_FILTER",
       "key": "live_feed_filter",
+      "type": "boolean",
+      "default": false
+    },
+    "live_following_row_order": {
+      "field": "LIVE_FOLLOWING_ROW_ORDER",
+      "key": "live_following_row_order",
       "type": "boolean",
       "default": false
     },
@@ -4071,6 +4174,12 @@
     "publish_date_exact_time": {
       "field": "PUBLISH_DATE_EXACT_TIME",
       "key": "publish_date_exact_time",
+      "type": "boolean",
+      "default": false
+    },
+    "publish_date_instead_of_age": {
+      "field": "PUBLISH_DATE_INSTEAD_OF_AGE",
+      "key": "publish_date_instead_of_age",
       "type": "boolean",
       "default": false
     },
@@ -4883,6 +4992,12 @@
     "system_font": {
       "field": "SYSTEM_FONT",
       "key": "system_font",
+      "type": "boolean",
+      "default": false
+    },
+    "tap_shows_cleared_controls": {
+      "field": "TAP_SHOWS_CLEARED_CONTROLS",
+      "key": "tap_shows_cleared_controls",
       "type": "boolean",
       "default": false
     },

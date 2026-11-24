@@ -313,7 +313,9 @@ private fun BytecodePatchContext.stubInstanaWorkers() {
     val networkWorker = mutableClassDefByOrNull("Lcom/instana/android/performance/network/NetworkUsageWorker;")
     if (networkWorker != null) {
         val workerMethod = networkWorker.methods.firstOrNull {
-            (it.name == "b" || it.name == "doWork") && it.returnType == resultDescriptor && it.implementation != null
+            (it.name == "a" || it.name == "b" || it.name == "doWork") &&
+                it.returnType == resultDescriptor &&
+                it.implementation != null
         } ?: throw PatchException("Missing worker entrypoint in NetworkUsageWorker")
 
         workerMethod.addInstructions(

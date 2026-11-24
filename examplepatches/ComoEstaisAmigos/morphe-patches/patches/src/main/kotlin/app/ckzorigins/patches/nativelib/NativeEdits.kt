@@ -1,6 +1,6 @@
 package app.ckzorigins.patches.nativelib
 
-import app.ckzorigins.patches.shared.ByteEdit
+import app.adebisi.patches.shared.ByteEdit
 
 internal object NativeEdits {
     const val UNITY = "lib/armeabi-v7a/libunity.so"

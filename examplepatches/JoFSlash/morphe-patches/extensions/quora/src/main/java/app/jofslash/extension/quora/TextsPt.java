@@ -38,7 +38,6 @@ final class TextsPt {
         m.put("Filters", "Filtros");
         m.put("Keywords, authors and Spaces to hide.", "Palavras-chave, autores e Spaces a ocultar.");
         m.put("Separate with commas", "Separe com vírgulas");
-        m.put("Matching ignores case. Saved when you go back.", "Não diferencia maiúsculas de minúsculas. Salvo ao voltar.");
         m.put("History", "Histórico");
         m.put("Answers, posts and questions you opened.", "Respostas, posts e perguntas que você abriu.");
         m.put("Bookmarks", "Favoritos");
@@ -172,7 +171,6 @@ final class TextsPt {
         m.put("Items you already opened, when they come back.", "Itens que você já abriu, quando voltam a aparecer.");
         m.put("Answers older than the years set below.", "Respostas mais antigas que o prazo definido abaixo.");
         m.put("Items that mention your keywords (see Filters).", "Itens que mencionam as suas palavras-chave (veja Filtros).");
-        m.put("Items from the people and Spaces in Filters.", "Itens das pessoas e Spaces em Filtros.");
         m.put("Upvote, view, comment and share numbers.", "Números de upvotes, visualizações, comentários e compartilhamentos.");
         m.put("The downvote button.", "O botão de downvote.");
         m.put("\"123 comments from … and more\" rows.", "Linhas \"123 comments from … and more\".");
@@ -266,8 +264,6 @@ final class TextsPt {
         m.put("Couldn't save the file.", "Não foi possível salvar o arquivo.");
         // Presets.
         m.put("Presets", "Predefinições");
-        m.put("Switch many patches at once: everything, a clean feed, or ads only.",
-                "Mude vários patches de uma vez: tudo, um feed limpo ou só anúncios.");
         m.put("Quora patches are on", "Os patches do Quora estão ativos");
         m.put("Change them any time in Settings > Morphe, or by long-pressing the Home tab.",
                 "Altere-os quando quiser em Settings > Morphe ou tocando e segurando a aba Home.");
@@ -297,5 +293,78 @@ final class TextsPt {
         m.put("For reading", "Para ler");
         m.put("A clean feed, whole answers with more space, no numbers, and bars that hide while you read.",
                 "Um feed limpo, respostas inteiras com mais espaço, sem números e barras que se escondem enquanto lês.");
+        // Update notice.
+        m.put("Switch many patches at once: everything, a clean feed, for reading, or ads only.",
+                "Muda muitos patches de uma vez: tudo, um feed limpo, para ler ou só anúncios.");
+        m.put("Patches ", "Patches ");
+        m.put("A newer version is out: ", "Saiu uma versão mais nova: ");
+        m.put("the newest.", "a mais recente.");
+        m.put("Get the new version", "Obter a nova versão");
+        m.put("What's new, and how to patch again.", "Novidades e como voltar a aplicar os patches.");
+        // Block an author with a long press.
+        m.put("Items from the people and Spaces in Filters. Long-press a name to add it.",
+                "Publicações das pessoas e Espaços dos Filtros. Mantém premido um nome para o adicionar.");
+        m.put("Hide everything by ", "Ocultar tudo de ");
+        m.put("Their answers and posts won't show in the feed or on question pages. You can remove the name again in Patch settings > More > Filters.",
+                "As suas respostas e publicações não vão aparecer no feed nem nas páginas de perguntas. Podes remover o nome em Patch settings > Mais > Filtros.");
+        m.put("hidden.", "oculto.");
+        // Hidden counts.
+        m.put("Hidden in the last 7 days: ", "Ocultado nos últimos 7 dias: ");
+        m.put("Ads", "Anúncios");
+        m.put("AI answers", "Respostas de IA");
+        m.put("Quora+ answers", "Respostas Quora+");
+        m.put("Suggestions", "Sugestões");
+        m.put("Your filters", "Os teus filtros");
+        // Offline pictures.
+        m.put("Saved as text with its pictures: links and formatting aren't kept.",
+                "Guardado como texto com as imagens: as ligações e a formatação não são guardadas.");
+        // Update notice, settings line only.
+        m.put("Shows here when newer patches are out, from GitHub once a day.",
+                "Mostra aqui quando saem patches mais novos, do GitHub uma vez por dia.");
+        // Feed tools: reader view, reading time, filters, picking, author lists.
+        m.put("\"4 min read\" above longer answers.", "«4 min de leitura» acima das respostas longas.");
+        m.put("A Reader view button next to Share under answers.",
+                "Um botão Modo de leitura ao lado de Partilhar sob as respostas.");
+        m.put("All bookmarks with their saved text, to a notes app, Pocket or mail.",
+                "Todos os marcadores com o texto guardado, para uma app de notas, Pocket ou e-mail.");
+        m.put("Answers and posts someone only shared again.",
+                "Respostas e publicações que alguém apenas voltou a partilhar.");
+        m.put("Answers marked as translated from another language.",
+                "Respostas marcadas como traduzidas de outra língua.");
+        m.put("Answers with fewer upvotes than set below.", "Respostas com menos votos do que o definido abaixo.");
+        m.put("Author lists to follow", "Listas de autores que segues");
+        m.put("Bigger", "Maior");
+        m.put("Boxes you picked under More > Pick something to hide.",
+                "Partes escolhidas em Mais > Escolher algo para ocultar.");
+        m.put("Fewer upvotes than", "Menos votos do que");
+        m.put("Hidden.", "Oculto.");
+        m.put("Hide the marked box and the others like it?", "Ocultar a parte marcada e as outras iguais?");
+        m.put("Hide the marked box?", "Ocultar a parte marcada?");
+        m.put("Links to text files with names, one per line. They are downloaded once a day.",
+                "Links para ficheiros de texto com nomes, um por linha. São descarregados uma vez por dia.");
+        m.put("Matching ignores case and finds whole words; end a word with * to also find longer ones (art* finds artist). Saved when you go back.",
+                "Maiúsculas não contam e procuram-se palavras inteiras; uma palavra terminada em * também encontra outras mais longas (art* encontra artist). Guardado ao voltar.");
+        m.put("Names from the lists: ", "Nomes das listas: ");
+        m.put("Not downloaded yet.", "Ainda não descarregado.");
+        m.put("Nothing here can be hidden this way. Try a bigger part of the page.",
+                "Isto não se pode ocultar assim. Experimenta uma parte maior da página.");
+        m.put("Nothing picked yet", "Ainda nada escolhido");
+        m.put("One per line. Delete a line to show those boxes again.",
+                "Um por linha. Apaga uma linha para voltar a mostrar essas partes.");
+        m.put("Open a page first.", "Abre primeiro uma página.");
+        m.put("Pick something to hide", "Escolher algo para ocultar");
+        m.put("Picked to hide", "Escolhido para ocultar");
+        m.put("Posts that are only a picture or a video.", "Publicações que são só uma imagem ou um vídeo.");
+        m.put("Reader view", "Modo de leitura");
+        m.put("Share", "Partilhar");
+        m.put("Tap a box on the page to hide it and every box like it.",
+                "Toca numa parte da página para a ocultar junto com todas as iguais.");
+        m.put("Tap what to hide", "Toca no que queres ocultar");
+        m.put("This is the start the feed shows. Open the answer to read all of it here.",
+                "Este é o início que o feed mostra. Abre a resposta para a ler toda aqui.");
+        m.put("Too long to share with the saved texts: sharing the titles and links. Save to Downloads keeps all of it.",
+                "Com os textos guardados é demasiado longo para partilhar: partilham-se títulos e links. Guardar em Transferências mantém tudo.");
+        m.put("You can show it again under Filters.", "Podes voltar a mostrá-lo em Filtros.");
+        m.put("min read", "min de leitura");
     }
 }

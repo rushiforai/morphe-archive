@@ -13,6 +13,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.*
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.runtime.*
+import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.drawBehind
@@ -178,6 +179,33 @@ internal fun weightedSurface(root: View?): Int? = if (root is LinearLayout)
 /** Bounded browser plus independently scrolling controls, also used by web dialogs. */
 @Composable internal fun BrowserModel(root: LinearLayout, revision: Int, modifier: Modifier, changed: () -> Unit) {
     val index = weightedSurface(root) ?: return
+    if (root.tag == "haiagaru.thread-group-selection") {
+        Column(modifier, verticalArrangement = Arrangement.spacedBy(6.dp)) {
+            // Search and bulk actions stay together above the scrolling list.
+            for (i in 0 until index) {
+                val control = root.getChildAt(i)
+                if (control is LinearLayout && control.childCount == 2 &&
+                    control.getChildAt(0) is Button && control.getChildAt(1) is Button) {
+                    Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                        for (j in 0 until 2) {
+                            val button = control.getChildAt(j) as Button
+                            OutlinedButton(onClick = { button.performClick(); changed() },
+                                modifier = Modifier.weight(1f),
+                                contentPadding = PaddingValues(horizontal = 8.dp, vertical = 8.dp)) {
+                                Text(button.text.toString(), style = MaterialTheme.typography.labelMedium)
+                            }
+                        }
+                    }
+                } else if (control is TextView && control !is EditText) {
+                    Text(control.text.toString(), style = MaterialTheme.typography.bodySmall)
+                } else ModelContent(control, revision, insideScroll = true, changed = changed)
+            }
+            Box(Modifier.fillMaxWidth().weight(1f).clipToBounds()) {
+                ModelContent(root.getChildAt(index), revision, Modifier.fillMaxSize(), changed = changed)
+            }
+        }
+        return
+    }
     BoxWithConstraints(modifier) {
         val percent = if (root.getTag(HissiMenuController.CHECKER_LAYOUT_TAG) == true || root.context is HissiMenuActivity)
             root.context.getSharedPreferences(WacchoiSearchOptions.PREFS, 0).getInt("checkerHeaderPercent", 20).coerceIn(10, 60) else 20

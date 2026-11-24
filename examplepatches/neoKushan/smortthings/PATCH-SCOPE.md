@@ -1,6 +1,7 @@
 # Morphe patch — "LocalThings key in the Information screen"
 
-Target: `com.samsung.android.oneconnect` (SmartThings / OneConnect) **1.8.52.23** (latest).
+Target: `com.samsung.android.oneconnect` (SmartThings / OneConnect) **1.8.54.23** (latest) /
+**1.8.52.23**; other builds patchable as experimental.
 Goal: during normal device pairing/registration, capture the device's **OwnerPSK** (the
 LocalThings credential) and **surface it as a row in that device's Information screen**, only
 when available. No root; the patch runs inside the app, re-signed, installed on a stock phone.
@@ -113,8 +114,10 @@ us clear of redistributing Samsung's app.
 - **Release:** semantic-commit → `release.yml` builds + publishes the signed `.mpp`; sign releases
   (`generateSigningKey` → `MORPHE_SIGNING_KEY` secret) so Morphe Manager trusts updates. Users add
   the repo URL as a Morphe source.
-- **Version pinning:** the patch targets OneConnect **1.8.52.23**; fingerprints should fail
-  cleanly (patch not applied) on versions where they don't match, rather than mis-patch.
+- **Version targeting:** confirmed builds (**1.8.54.23**, **1.8.52.23**) are advertised as
+  recommended targets; an experimental `version = null` catch-all also allows patching any other
+  build so new releases can be tested. Fingerprints fail cleanly (patch not applied) on versions
+  where they don't match, rather than mis-patch.
 
 ## Defensive requirements (we can ONLY test on the HW-Q950A soundbar)
 Everything else is untested hardware, so the extension MUST degrade safely, never crash the host

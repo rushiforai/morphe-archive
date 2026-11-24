@@ -62,8 +62,26 @@ private object GoogleAccountIdProvider : Fingerprint(
     filters = listOf(string("^^_account_id_^^")),
 )
 
-private const val TYPES_LATEST = 8
-private const val MICROG_EXTENSION = "Lapp/template/extension/extension/ZaloMicroGSupport;"
+// Drive token refresh used by media backup: builds Account(email, "com.google") for the drive.appdata scope.
+// Without the account-type rewrite microG rejects it and media backup stops with gdrive_token_invalid.
+private object DriveTokenRefresher : Fingerprint(
+    returnType = "Ljava/lang/Object;",
+    parameters = listOf("Ljava/lang/Object;"),
+    filters = listOf(
+        string("Check refresh Google Auth token: currToken="),
+        string("com.google"),
+        string("oauth2: https://www.googleapis.com/auth/drive.appdata"),
+    ),
+)
+
+// Drive token getter used by every backup/restore path: reuses the cached token or calls the refresher above.
+private object DriveTokenGetter : Fingerprint(
+    returnType = "Ljava/lang/String;",
+    parameters = listOf("Z"),
+    filters = listOf(string("appBackupGdriveToken")),
+)
+
+private const val TYPES_LATEST = 9
 private const val SYNC_VIEW = "Lcom/zing/zalo/ui/backuprestore/drive/SyncGoogleAccountBaseView;"
 private const val MANAGE_VIEW = "Lcom/zing/zalo/ui/backuprestore/drive/ManageGoogleAccountView;"
 private const val CHOOSE_ACCOUNT_SHEET = "Lcom/zing/zalo/ui/backuprestore/encryption/setup/drive/ChooseDriveAccountBS;"
@@ -96,7 +114,7 @@ private fun replaceAccountPicker(method: MutableMethod, contextOwner: String) = 
     invoke-virtual {p0}, $contextOwner->getContext()Landroid/content/Context;
     move-result-object v2
     check-cast v2, Landroid/app/Activity;
-    invoke-static {v2}, $MICROG_EXTENSION->checkGmsCore(Landroid/app/Activity;)Z
+    invoke-static {v2}, $MICROG_SUPPORT->checkGmsCore(Landroid/app/Activity;)Z
     move-result v1
     if-eqz v1, :microg_missing
     const/16 v1, 0x3eb
@@ -184,7 +202,7 @@ private fun Method.invokes(predicate: (MethodReference) -> Boolean) =
 val driveBackupMicroGPatch = bytecodePatch(
     name = "Drive backup via microG",
     description = "Enable Google Drive photo backup and use microG for Drive accounts and authentication.",
-    default = false,
+    default = true,
 ) {
     compatibleWith(driveCompatibility)
     dependsOn(nativeSignaturePatch)
@@ -204,7 +222,10 @@ val driveBackupMicroGPatch = bytecodePatch(
         eligibility.addInstructions(0, "const/4 v0, 0x1\nreturn v0")
         check(GoogleAuthTokenService.matchAll(1..1).size == 1)
         check(GoogleAccountIdProvider.matchAll(1..1).size == 1)
-        val authOwners = setOf(GoogleAuthTokenService.classDef.type, GoogleAccountIdProvider.classDef.type)
+        check(DriveTokenRefresher.matchAll(1..1).size == 1)
+        val authOwners = setOf(
+            GoogleAuthTokenService.classDef.type, GoogleAccountIdProvider.classDef.type, DriveTokenRefresher.classDef.type,
+        )
         val scopedAccounts = setOf(
             SYNC_VIEW, MANAGE_VIEW, "Lcom/zing/zalo/ui/backuprestore/drive/SyncGoogleAccountMediaRestoreView;",
             CHOOSE_ACCOUNT_SHEET, ZCLOUD_LOGIN_SHEET,
@@ -254,14 +275,14 @@ val driveBackupMicroGPatch = bytecodePatch(
                         call?.definingClass == SYNC_VIEW && call.parameterTypes == listOf("Ljava/lang/String;") && call.returnType == "V") {
                         val invoke = instruction as? FiveRegisterInstruction ?: error("Unexpected account refresh invoke")
                         check(invoke.registerCount == 2)
-                        method.replaceInstruction(index, "invoke-static {v${invoke.registerC}, v${invoke.registerD}}, $MICROG_EXTENSION->scheduleAccountRefresh(Ljava/lang/Object;Ljava/lang/String;)V")
+                        method.replaceInstruction(index, "invoke-static {v${invoke.registerC}, v${invoke.registerD}}, $MICROG_SUPPORT->scheduleAccountRefresh(Ljava/lang/Object;Ljava/lang/String;)V")
                         counts["refresh"] = counts.getValue("refresh") + 1
                     }
                 }
                 if (classDef.type == "Lcom/zing/zalo/ui/ZaloLauncherActivity;" && original.name == "onCreate" &&
                     original.parameterTypes == listOf("Landroid/os/Bundle;")) {
                     check(method.implementation!!.registerCount > 2)
-                    method.addInstructions(0, "move-object/from16 v0, p0\ninvoke-static {v0}, $MICROG_EXTENSION->checkGmsCore(Landroid/app/Activity;)Z\nmove-result v0")
+                    method.addInstructions(0, "move-object/from16 v0, p0\ninvoke-static {v0}, $MICROG_SUPPORT->checkGmsCore(Landroid/app/Activity;)Z\nmove-result v0")
                     counts["launch"] = counts.getValue("launch") + 1
                 }
             }
@@ -269,5 +290,24 @@ val driveBackupMicroGPatch = bytecodePatch(
         check(counts == mapOf("binding" to 1, "type" to TYPES_LATEST, "picker" to 2, "refresh" to 1, "result" to 1, "launch" to 1)) {
             "Unexpected Zalo Drive microG targets: $counts"
         }
+        wrapDriveTokenRefresh(DriveTokenGetter.also { check(it.matchAll(1..1).size == 1) }.method,
+            DriveTokenRefresher.classDef.type, DriveTokenRefresher.method.name)
     }
+}
+
+// Routes the background token refresh through DriveTokenRecovery: retries transient failures with a forced
+// refresh and posts a notification that opens microG's consent screen when user action is required.
+private fun wrapDriveTokenRefresh(getter: MutableMethod, refresherType: String, refreshName: String) {
+    val calls = getter.implementation!!.instructions.withIndex().filter { (_, instruction) ->
+        val reference = (instruction as? ReferenceInstruction)?.reference as? MethodReference
+        instruction.opcode == Opcode.INVOKE_VIRTUAL && reference?.definingClass == refresherType &&
+            reference.name == refreshName && reference.parameterTypes == listOf("Ljava/lang/Object;") &&
+            reference.returnType == "Ljava/lang/Object;"
+    }
+    check(calls.size == 1) { "Expected one Drive token refresh call, found ${calls.size}" }
+    val (index, instruction) = calls.single()
+    val invoke = instruction as FiveRegisterInstruction
+    check(invoke.registerCount == 2) { "Unexpected Drive token refresh invoke" }
+    getter.replaceInstruction(index, "invoke-static {v${invoke.registerC}, v${invoke.registerD}}, " +
+        "$DRIVE_TOKEN_RECOVERY->refresh(Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;")
 }

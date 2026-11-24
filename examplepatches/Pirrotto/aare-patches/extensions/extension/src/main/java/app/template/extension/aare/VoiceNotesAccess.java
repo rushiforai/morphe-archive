@@ -24,16 +24,14 @@ import rikka.shizuku.Shizuku;
 final class VoiceNotesAccess {
     private static final String TAG = "AareVoiceNotes";
 
-    /** A voice note file as the helper sees it. */
-    static final class Recording {
-        final String path;
-        final long modifiedMs;
-        final long size;
+    /** A voice message's recording, opened read-only by the helper; [token] stands for the file. */
+    static final class Found {
+        final String token;
+        final ParcelFileDescriptor pfd;
 
-        Recording(String path, long modifiedMs, long size) {
-            this.path = path;
-            this.modifiedMs = modifiedMs;
-            this.size = size;
+        Found(String token, ParcelFileDescriptor pfd) {
+            this.token = token;
+            this.pfd = pfd;
         }
     }
 
@@ -54,44 +52,33 @@ final class VoiceNotesAccess {
         }
     }
 
-    /** The received voice notes of the latest weeks, or null if the helper isn't reachable. */
-    static List<Recording> list(Context context) {
-        IBinder b = helper(context);
-        if (b == null) return null;
-        Parcel data = Parcel.obtain();
-        Parcel reply = Parcel.obtain();
-        try {
-            data.writeInterfaceToken(VoiceNotesShell.DESCRIPTOR);
-            b.transact(VoiceNotesShell.TRANSACTION_LIST, data, reply, 0);
-            reply.readException();
-            int n = reply.readInt();
-            List<Recording> list = new ArrayList<>(n);
-            for (int i = 0; i < n; i++) list.add(new Recording(reply.readString(), reply.readLong(), reply.readLong()));
-            return list;
-        } catch (Throwable t) {
-            Log.w(TAG, "list", t);
-            forget();
-            return null;
-        } finally {
-            data.recycle();
-            reply.recycle();
-        }
+    /** Whether the helper is reachable (Shizuku running and allowed). */
+    static boolean reachable(Context context) {
+        return helper(context) != null;
     }
 
-    /** One voice note, opened read-only by the helper, or null. */
-    static ParcelFileDescriptor open(Context context, String path) {
+    /**
+     * The recording of the voice message received at [messageTimeMs], lasting [statedMs] (-1 if
+     * unknown), not one of [used]; null if none is. The helper picks it: AARE sees no other file.
+     */
+    static Found find(Context context, long messageTimeMs, long statedMs, java.util.Collection<String> used) {
         IBinder b = helper(context);
         if (b == null) return null;
         Parcel data = Parcel.obtain();
         Parcel reply = Parcel.obtain();
         try {
             data.writeInterfaceToken(VoiceNotesShell.DESCRIPTOR);
-            data.writeString(path);
-            b.transact(VoiceNotesShell.TRANSACTION_OPEN, data, reply, 0);
+            data.writeLong(messageTimeMs);
+            data.writeLong(statedMs);
+            data.writeInt(used.size());
+            for (String t : used) data.writeString(t);
+            b.transact(VoiceNotesShell.TRANSACTION_FIND, data, reply, 0);
             reply.readException();
-            return reply.readInt() != 0 ? ParcelFileDescriptor.CREATOR.createFromParcel(reply) : null;
+            if (reply.readInt() == 0) return null;
+            String token = reply.readString();
+            return new Found(token, ParcelFileDescriptor.CREATOR.createFromParcel(reply));
         } catch (Throwable t) {
-            Log.w(TAG, "open " + path, t);
+            Log.w(TAG, "find", t);
             forget();
             return null;
         } finally {
@@ -139,7 +126,7 @@ final class VoiceNotesAccess {
                         .daemon(false)
                         .processNameSuffix("voicenotes")
                         .debuggable(false)
-                        .version(1);
+                        .version(2); // 2: find() instead of list/open
                 Connection nc = new Connection(args);
                 connection = nc;
                 try {

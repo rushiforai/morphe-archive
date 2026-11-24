@@ -238,6 +238,13 @@ final class UpdateHistory {
     private static void addFeatureSetting(LinearLayout content, Activity activity, ReleaseFeatureOptions.Option option) {
         SharedPreferences main = SettingsProfiles.prefs(activity);
         switch (option) {
+            case DIRECT_COPY_GESTURE:
+                toggle(content,activity,main,"レス本文の長押しコピー",DirectCopyGesture.KEY,false,EmojiFontFallback::refreshVisibleRows);
+                TextView directCopyHelp=new TextView(activity);directCopyHelp.setText("ChMate設定 → ジェスチャー → 長押しコピー ON／OFFで割り当てます。「なし」でジェスチャーを解除できます。ツールバーと設定のON／OFF状態は共通です。");content.addView(directCopyHelp);break;
+            case THREAD_TAB_GROUPS:
+                toggle(content,activity,main,"グループ化(実験的)",NativeTabGroups.KEY,false,null);
+                toggle(content,activity,main,"タブレット表示時にツールバーにグループ化ボタンを追加する",NativeTabGroups.BUTTON_KEY,true,null);
+                break;
             case FUTABA_OFFICIAL_POSTING:
                 toggle(content,activity,SettingsProfiles.prefs(activity),"ふたば img／may の公式投稿ページを開く",
                         FutabaPostingPopup.OFFICIAL,true,null); break;
@@ -332,7 +339,9 @@ final class UpdateHistory {
                 names.setOnClickListener(view -> DisplayNames.showKeywords(activity));
                 content.addView(names); break;
             case HOME_THREAD_ORDER:
-                toggle(content,activity,SettingsProfiles.prefs(activity),"HOMEのお気に入りスレの並び替え・固定を使う",HomeThreadOrder.ENABLED,true,activity::invalidateOptionsMenu); break;
+                toggle(content,activity,SettingsProfiles.prefs(activity),"HOMEのお気に入りスレの並び替え・固定を使う",HomeThreadOrder.ENABLED,true,activity::invalidateOptionsMenu);
+                toggle(content,activity,SettingsProfiles.prefs(activity),"HOMEの★・ラベル・板名見出しをタップして開閉",HomeThreadOrder.FOLD_ON_TAP,true,()->BrowsingHistory.refreshVisible(activity));
+                toggle(content,activity,SettingsProfiles.prefs(activity),"板名タップ切替を上部に表示（OFFで︙メニュー）",HomeBoardFoldLabels.TITLE_CONTROL,true,()->{BrowsingHistory.refreshVisible(activity);activity.invalidateOptionsMenu();}); break;
             case KEYWORD_MENU:
                 toggle(content,activity,SettingsProfiles.prefs(activity),"HOMEの3点メニューにキーワード表示名の設定を表示",HomeThreadOrder.KEYWORD_MENU,false,activity::invalidateOptionsMenu); break;
             case RESPONSE_NOTES_MENU:
@@ -340,6 +349,14 @@ final class UpdateHistory {
                 bindToggle(memo,activity.getSharedPreferences("haiagaru_response_actions",0),"response-note-menu",
                         ()->ResponseMenuSettings.visible(ResponseNotes.MENU),on->ResponseMenuSettings.storeVisibility(activity.getSharedPreferences("haiagaru_response_actions",0),ResponseNotes.MENU,on?1:2));
                 content.addView(memo);break;
+            case HIDE_IMAGE_BOTTOM_ACTIONS:
+                try {
+                    if ("0.8.10.242 dev".equals(activity.getPackageManager().getPackageInfo(activity.getPackageName(), 0).versionName)) {
+                        toggle(content,activity,VideoViewerSettings.prefs(activity),ImageViewerRotationButton.HIDE_BOTTOM_ACTIONS_LABEL,
+                                ImageViewerRotationButton.HIDE_BOTTOM_ACTIONS,false,null);
+                    }
+                } catch (android.content.pm.PackageManager.NameNotFoundException ignored) {}
+                break;
             case ROTATION_MENU:
                 toggle(content,activity,FeatureSwitches.prefs(activity),"画像ビューアの回転操作を︙メニューにまとめる",ImageViewerRotationButton.MENU_KEY,true,null); break;
             case EXTERNAL_VIDEO_CACHE:
@@ -348,9 +365,6 @@ final class UpdateHistory {
                 toggle(content,activity,FeatureSwitches.prefs(activity),"投稿欄に板ごとの上限・残量・超過位置を表示", "postEditorLimitDisplay",true,null); break;
             case FILTER_OPTIMIZATION:
                 toggle(content,activity,FeatureSwitches.prefs(activity),"フィルターの抽出・位置保持・件数集計を最適化",ExtraQuickFilters.OPTIMIZATION,false,null); break;
-            case HOME_INLINE_ORDER:
-                toggle(content,activity,SettingsProfiles.prefs(activity),"HOMEの★・ラベル見出しをタップして開閉",
-                        HomeThreadOrder.FOLD_ON_TAP,true,()->BrowsingHistory.refreshVisible(activity)); break;
             case BACKGROUND_POSTING_OPT_IN:
                 ExpertSettings.addBackgroundPosting(content,activity,SettingsProfiles.prefs(activity)); break;
             case EXPERT_PERFORMANCE:

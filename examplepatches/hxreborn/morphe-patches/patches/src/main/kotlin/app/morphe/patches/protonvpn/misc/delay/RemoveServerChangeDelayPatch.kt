@@ -10,9 +10,8 @@
  */
 package app.morphe.patches.protonvpn.misc.delay
 
-import app.morphe.patcher.patch.BytecodePatch
-import app.morphe.patcher.patch.bytecodePatch
-import app.morphe.patcher.util.matchSingle
+import app.morphe.patcher.patch.Patch
+import app.morphe.patcher.patch.patch
 import app.morphe.patcher.util.returnEarly
 import app.morphe.patches.protonvpn.misc.settings.patchesSettingsPatch
 import app.morphe.patches.shared.compat.AppCompatibilities
@@ -20,15 +19,15 @@ import app.morphe.patches.shared.misc.proton.VPN_SETTINGS_CLASS
 import app.morphe.patches.shared.misc.proton.markPatchApplied
 
 @Suppress("unused")
-val removeServerChangeDelayPatch: BytecodePatch = bytecodePatch(
+val removeServerChangeDelayPatch: Patch = patch(
     name = "Remove server change delay",
     description = "Removes the wait between server changes on free plans.",
 ) {
-    compatibleWith(AppCompatibilities.PROTON_VPN)
+    compatibleWith(AppCompatibilities.PROTON_VPN, AppCompatibilities.PROTON_VPN_FDROID)
     dependsOn(patchesSettingsPatch)
 
     execute {
         markPatchApplied(VPN_SETTINGS_CLASS, "removeServerChangeDelay", removeServerChangeDelayPatch)
-        changeServerDelayFingerprints.forEach { it.matchSingle().method.returnEarly(0) }
+        changeServerDelayFingerprints.forEach { it.method.returnEarly(0) }
     }
 }

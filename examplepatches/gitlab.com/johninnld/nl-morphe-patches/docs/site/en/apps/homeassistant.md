@@ -8,6 +8,8 @@ Use Home Assistant's native car interface with DriveDeck or another compatible p
 
 Select the complete original archive in Morphe Manager, including the base, architecture and display APKs. This target is the ARM64 build.
 
+For the Automotive APK port, use [Home Assistant (Automotive)](homeassistant-automotive.md).
+
 ## Patches
 
 | Patch | Default | What it does |

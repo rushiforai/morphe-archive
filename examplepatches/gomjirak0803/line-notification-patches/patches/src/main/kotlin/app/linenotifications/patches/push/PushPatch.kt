@@ -25,8 +25,8 @@ private const val LINE_ORIGINAL_CERT_SHA1 = "89396DC419292473972813922867E6973D6
 @Suppress("unused")
 val fixPushNotificationsPatch = bytecodePatch(
     name = "Restore push registration",
-    description = "Optional: restores Firebase installation registration after re-signing. Changes the reported certificate for FIS requests only; no microG required.",
-    default = false,
+    description = "Restores Firebase installation registration after re-signing. Changes the reported certificate for FIS requests only.",
+    default = true,
 ) {
     compatibleWith(COMPATIBILITY_LINE)
     dependsOn(verifiedLineVersionPatch)

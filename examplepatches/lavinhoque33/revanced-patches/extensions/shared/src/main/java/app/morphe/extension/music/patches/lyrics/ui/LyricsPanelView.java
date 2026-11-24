@@ -3,6 +3,7 @@
  * https://github.com/MorpheApp/morphe-patches/pull/2269
  *
  * See the included NOTICE file for GPLv3 Section 7 terms that apply to this code.
+ * Modified by lavinhoque33, 2026-11-23.
  */
 
 package app.morphe.extension.music.patches.lyrics.ui;
@@ -84,7 +85,6 @@ import app.morphe.extension.music.patches.lyrics.LyricsBracketSplitter;
 import app.morphe.extension.music.patches.lyrics.LyricsLine;
 import app.morphe.extension.music.patches.lyrics.LyricsMerge;
 import app.morphe.extension.music.patches.lyrics.TrackInfo;
-import app.morphe.extension.music.patches.lyrics.requests.LrcParser;
 import app.morphe.extension.music.patches.lyrics.requests.LyricsRequests;
 import app.morphe.extension.music.patches.lyrics.romanizers.RimeDictStore;
 import app.morphe.extension.music.patches.lyrics.romanizers.ScriptDetector;
@@ -284,6 +284,8 @@ public final class LyricsPanelView extends FrameLayout implements LyricsManager.
     private final List<List<LyricsSpanBuilder.WordTiming>> lineWordSpans = new ArrayList<>();
     private final List<Integer> lineOriginalStarts = new ArrayList<>();
     private final List<Boolean> lineIsBackground = new ArrayList<>();
+    @Nullable
+    private LyricsEchoTiming.Window[] echoWindows;
     private final List<ForegroundColorSpan> lineUnsungSpans = new ArrayList<>();
 
     private static final ExecutorService LINE_BUILDER_EXECUTOR = Executors.newSingleThreadExecutor();
@@ -357,11 +359,11 @@ public final class LyricsPanelView extends FrameLayout implements LyricsManager.
             if (line < 0 || line >= sz) {
                 return true;
             }
-            if (!lineWordSpans.get(line).isEmpty()) {
+            if (echoWindow(line) == null && !lineWordSpans.get(line).isEmpty()) {
                 return false;
             }
             for (int b = line + 1; b < sz && isSecondaryLineAt(b); b++) {
-                if (!lineWordSpans.get(b).isEmpty()) {
+                if (echoWindow(b) == null && !lineWordSpans.get(b).isEmpty()) {
                     return false;
                 }
             }
@@ -372,10 +374,13 @@ public final class LyricsPanelView extends FrameLayout implements LyricsManager.
         public long firstStart(int line) {
             final int sz = size();
             long minStart = Long.MAX_VALUE;
-            if (line >= 0 && line < sz && !lineWordSpans.get(line).isEmpty()) {
+            if (line >= 0 && line < sz && echoWindow(line) == null && !lineWordSpans.get(line).isEmpty()) {
                 minStart = lineWordSpans.get(line).get(0).startMs();
             }
             for (int b = line + 1; b < sz && isSecondaryLineAt(b); b++) {
+                if (echoWindow(b) != null) {
+                    continue;
+                }
                 List<LyricsSpanBuilder.WordTiming> bt = lineWordSpans.get(b);
                 if (!bt.isEmpty()) {
                     minStart = Math.min(minStart, bt.get(0).startMs());
@@ -388,11 +393,14 @@ public final class LyricsPanelView extends FrameLayout implements LyricsManager.
         public long lastEnd(int line) {
             final int sz = size();
             long maxEnd = 0L;
-            if (line >= 0 && line < sz && !lineWordSpans.get(line).isEmpty()) {
+            if (line >= 0 && line < sz && echoWindow(line) == null && !lineWordSpans.get(line).isEmpty()) {
                 List<LyricsSpanBuilder.WordTiming> timings = lineWordSpans.get(line);
                 maxEnd = timings.get(timings.size() - 1).endMs();
             }
             for (int b = line + 1; b < sz && isSecondaryLineAt(b); b++) {
+                if (echoWindow(b) != null) {
+                    continue;
+                }
                 List<LyricsSpanBuilder.WordTiming> bt = lineWordSpans.get(b);
                 if (!bt.isEmpty()) {
                     maxEnd = Math.max(maxEnd, bt.get(bt.size() - 1).endMs());
@@ -1246,6 +1254,7 @@ public final class LyricsPanelView extends FrameLayout implements LyricsManager.
         for (int i = 0; i < lineTotalCount; i++) {
             isSecFlags[i] = isSecondaryLyricLine(i, newLyrics.lines());
         }
+        echoWindows = newLyrics.synced() ? LyricsEchoTiming.buildWindows(newLyrics.lines(), isSecFlags) : null;
 
         boolean[] lineRightAligned = new boolean[lineTotalCount];
         int curParentForAlign = -1;
@@ -3619,6 +3628,7 @@ public final class LyricsPanelView extends FrameLayout implements LyricsManager.
         lineOriginalStarts.clear();
         lineUnsungSpans.clear();
         lineIsBackground.clear();
+        echoWindows = null;
         highlightedIndex = -1;
         karaokeState.resetContent();
         lastOverlayIndex = -1;
@@ -3633,11 +3643,19 @@ public final class LyricsPanelView extends FrameLayout implements LyricsManager.
         clearPendingHideAnchor();
     }
 
+    @Nullable
+    private LyricsEchoTiming.Window echoWindow(int index) {
+        return echoWindows != null && index >= 0 && index < echoWindows.length ? echoWindows[index] : null;
+    }
+
+    /** Non-echo background vocals still share the lead's look and word handoff. */
     private void forEachBgLine(int start, Lyrics current, IntConsumer action) {
         for (int b = 1; start + b < lineViews.size()
                 && start + b < current.lines().size()
                 && isSecondaryLineAt(start + b); b++) {
-            action.accept(start + b);
+            if (echoWindow(start + b) == null) {
+                action.accept(start + b);
+            }
         }
     }
 
@@ -3645,7 +3663,8 @@ public final class LyricsPanelView extends FrameLayout implements LyricsManager.
         if (index < 0 || current == null) {
             return;
         }
-        if (index < lineViews.size() && lineViews.get(index) instanceof LyricsLineView view) {
+        if (echoWindow(index) == null && index < lineViews.size()
+                && lineViews.get(index) instanceof LyricsLineView view) {
             view.setActiveLine(active);
         }
         forEachBgLine(index, current, i -> {
@@ -3653,6 +3672,18 @@ public final class LyricsPanelView extends FrameLayout implements LyricsManager.
                 view.setActiveLine(active);
             }
         });
+    }
+
+    private void fadeGroupedLead(int index, float alpha) {
+        if (echoWindow(index) == null) {
+            LyricsViewSupport.fadeTo(lineViews.get(index), alpha);
+        }
+    }
+
+    private void setGroupedLeadColor(int index, int color) {
+        if (echoWindow(index) == null) {
+            lineViews.get(index).setTextColor(color);
+        }
     }
 
     private void updateHighlight() {
@@ -3666,12 +3697,12 @@ public final class LyricsPanelView extends FrameLayout implements LyricsManager.
         LyricsManager manager = LyricsManager.getInstance();
         final long pos = manager.getPositionMs();
         final int index = resolveLeadLineIndex(current.indexForPosition(pos, highlightedIndex));
-        updateBgLinesVisibility(pos, current, index);
+        updateVocalLines(pos, current, index, karaokeActive);
 
         if (index == highlightedIndex) {
             markActiveLine(index, current, true);
             if (!karaokeActive && index >= 0 && index < lineViews.size()) {
-                lineViews.get(index).setTextColor(LyricsColors.lineTextColor());
+                setGroupedLeadColor(index, LyricsColors.lineTextColor());
                 forEachBgLine(index, current,
                         i -> lineViews.get(i).setTextColor(LyricsColors.lineTextColor()));
             }
@@ -3680,23 +3711,7 @@ public final class LyricsPanelView extends FrameLayout implements LyricsManager.
             return;
         }
 
-        if (highlightedIndex >= 0 && highlightedIndex < lineViews.size()) {
-            final boolean keepFullOpacity = karaokeActive
-                    && KaraokeHighlightState.stillLit(wordTimings, highlightedIndex, pos);
-            markActiveLine(highlightedIndex, current, false);
-            if (!keepFullOpacity) {
-                LyricsViewSupport.fadeTo(lineViews.get(highlightedIndex), INACTIVE_LINE_ALPHA);
-                if (!karaokeActive) {
-                    lineViews.get(highlightedIndex).setTextColor(LyricsColors.unsungWordColor());
-                }
-                forEachBgLine(highlightedIndex, current, i -> {
-                    LyricsViewSupport.fadeTo(lineViews.get(i), INACTIVE_LINE_ALPHA);
-                    if (!karaokeActive) {
-                        lineViews.get(i).setTextColor(LyricsColors.unsungWordColor());
-                    }
-                });
-            }
-        }
+        retireGroupedLead(current, pos, karaokeActive);
         highlightedIndex = index;
         seekPending = false;
 
@@ -3714,23 +3729,35 @@ public final class LyricsPanelView extends FrameLayout implements LyricsManager.
         final boolean withinWindow = isClusterStillActive(current, index, pos);
         markActiveLine(index, current, withinWindow);
 
-        LyricsViewSupport.fadeTo(lineViews.get(index), withinWindow ? 1f : INACTIVE_LINE_ALPHA);
+        fadeGroupedLead(index, withinWindow ? 1f : INACTIVE_LINE_ALPHA);
         if (!karaokeActive) {
-            lineViews.get(index).setTextColor(withinWindow
-                    ? LyricsColors.lineTextColor() : LyricsColors.unsungWordColor());
+            setGroupedLeadColor(index, withinWindow ? LyricsColors.lineTextColor() : LyricsColors.unsungWordColor());
+            forEachBgLine(index, current, i -> lineViews.get(i).setTextColor(LyricsColors.lineTextColor()));
         }
-        forEachBgLine(index, current, i -> {
-            LyricsViewSupport.fadeTo(lineViews.get(i), 1f);
-            if (!karaokeActive) {
-                lineViews.get(i).setTextColor(LyricsColors.lineTextColor());
-            }
-        });
 
         if (SystemClock.uptimeMillis() < userScrollUntilUptimeMs) {
             return;
         }
 
         scrollAnchorIntoView(index, true);
+    }
+
+    private void retireGroupedLead(Lyrics current, long posMs, boolean wordSync) {
+        final int index = highlightedIndex;
+        if (index < 0 || index >= lineViews.size()) {
+            return;
+        }
+
+        markActiveLine(index, current, false);
+        if (wordSync && KaraokeHighlightState.stillLit(wordTimings, index, posMs)) {
+            return;
+        }
+
+        fadeGroupedLead(index, INACTIVE_LINE_ALPHA);
+        if (!wordSync) {
+            setGroupedLeadColor(index, LyricsColors.unsungWordColor());
+            forEachBgLine(index, current, i -> lineViews.get(i).setTextColor(LyricsColors.unsungWordColor()));
+        }
     }
 
     /**
@@ -4024,7 +4051,7 @@ public final class LyricsPanelView extends FrameLayout implements LyricsManager.
         final boolean karaokeActive = Settings.LYRICS_WORD_SYNC.get();
         final long pos = LyricsManager.getInstance().getPositionMs();
         final int index = resolveLeadLineIndex(current.indexForPosition(pos, highlightedIndex));
-        updateBgLinesVisibility(pos, current, index);
+        updateVocalLines(pos, current, index, karaokeActive);
         if (index == highlightedIndex) {
             markActiveLine(index, current, true);
             applyLineOverlay(index);
@@ -4032,24 +4059,7 @@ public final class LyricsPanelView extends FrameLayout implements LyricsManager.
             return;
         }
 
-        if (highlightedIndex >= 0 && highlightedIndex < lineViews.size()) {
-            // A line still singing its words keeps its brightness, or this tick's paint lands dimmed.
-            final boolean keepFullOpacity = karaokeActive
-                    && KaraokeHighlightState.stillLit(wordTimings, highlightedIndex, pos);
-            markActiveLine(highlightedIndex, current, false);
-            if (!keepFullOpacity) {
-                LyricsViewSupport.fadeTo(lineViews.get(highlightedIndex), INACTIVE_LINE_ALPHA);
-                if (!karaokeActive) {
-                    lineViews.get(highlightedIndex).setTextColor(LyricsColors.unsungWordColor());
-                }
-                forEachBgLine(highlightedIndex, current, i -> {
-                    LyricsViewSupport.fadeTo(lineViews.get(i), INACTIVE_LINE_ALPHA);
-                    if (!karaokeActive) {
-                        lineViews.get(i).setTextColor(LyricsColors.unsungWordColor());
-                    }
-                });
-            }
-        }
+        retireGroupedLead(current, pos, karaokeActive);
         highlightedIndex = index;
         seekPending = false;
 
@@ -4066,17 +4076,12 @@ public final class LyricsPanelView extends FrameLayout implements LyricsManager.
 
         markActiveLine(index, current, true);
 
-        LyricsViewSupport.fadeTo(lineViews.get(index), 1f);
+        fadeGroupedLead(index, 1f);
         // Word sync keeps the build's unsung color: the dim base the sung words read against.
         if (!karaokeActive) {
-            lineViews.get(index).setTextColor(LyricsColors.lineTextColor());
+            setGroupedLeadColor(index, LyricsColors.lineTextColor());
+            forEachBgLine(index, current, i -> lineViews.get(i).setTextColor(LyricsColors.lineTextColor()));
         }
-        forEachBgLine(index, current, i -> {
-            LyricsViewSupport.fadeTo(lineViews.get(i), 1f);
-            if (!karaokeActive) {
-                lineViews.get(i).setTextColor(LyricsColors.lineTextColor());
-            }
-        });
 
         if (SystemClock.uptimeMillis() < userScrollUntilUptimeMs) {
             return;
@@ -4098,63 +4103,48 @@ public final class LyricsPanelView extends FrameLayout implements LyricsManager.
 
     private void executeWordSync(KaraokeHighlightState.Action action) {
         switch (action.kind()) {
-            case PAINT -> {
-                applyWordColors(action.line(), action.posMs(), action.allSung());
-                applyBgWordColors(action.line(), action.posMs(), action.allSung());
-            }
-            case CLEAR -> clearWordHighlight(action.line());
+            case PAINT -> applyGroupedWordColors(action.line(), action.posMs(), action.allSung());
+            case CLEAR -> applyGroupedWordColors(action.line(), Long.MIN_VALUE, false);
             case CLEAR_FADE -> {
-                clearWordHighlight(action.line());
-                fadeLineAndBg(action.line());
+                applyGroupedWordColors(action.line(), Long.MIN_VALUE, false);
+                fadeGroupedLead(action.line(), INACTIVE_LINE_ALPHA);
             }
-            case FADE -> fadeLineAndBg(action.line());
+            case FADE -> fadeGroupedLead(action.line(), INACTIVE_LINE_ALPHA);
             case RESET_ACTIVE -> resetLineForWordSyncOff(action.line(), true);
             case RESET_INACTIVE -> resetLineForWordSyncOff(action.line(), false);
         }
     }
 
-    private void fadeLineAndBg(int line) {
-        if (line < 0 || line >= lineViews.size() || lyrics == null) {
-            return;
-        }
-        LyricsViewSupport.fadeTo(lineViews.get(line), LyricsPanelView.INACTIVE_LINE_ALPHA);
-        forEachBgLine(line, lyrics, i ->
-                LyricsViewSupport.fadeTo(lineViews.get(i), LyricsPanelView.INACTIVE_LINE_ALPHA));
-    }
-
     private void resetLineForWordSyncOff(int line, boolean activeLine) {
-        lineViews.get(line).setTextColor(
-                activeLine ? LyricsColors.lineTextColor() : LyricsColors.unsungWordColor());
+        TextView view = lineViews.get(line);
+        boolean active = echoWindow(line) != null && view instanceof LyricsLineView echo
+                ? echo.activeLine : activeLine;
+        view.setTextColor(active ? LyricsColors.lineTextColor() : LyricsColors.unsungWordColor());
         ForegroundColorSpan cached = line < lineUnsungSpans.size()
                 ? lineUnsungSpans.get(line) : null;
-        if (cached != null && lineViews.get(line).getText() instanceof Spannable) {
-            ((Spannable) lineViews.get(line).getText()).removeSpan(cached);
+        if (cached != null && view.getText() instanceof Spannable text) {
+            text.removeSpan(cached);
             lineUnsungSpans.set(line, null);
         }
-        if (lineViews.get(line) instanceof LyricsLineView lineView) {
+        if (view instanceof LyricsLineView lineView) {
             lineView.setHighlight(Collections.emptyList(), 0, false, 0, -1);
         }
     }
 
-    private void applyBgWordColors(int parentIndex, long positionMs, boolean allSung) {
-        if (lyrics == null) return;
+    private void applyGroupedWordColors(int parentIndex, long positionMs, boolean allSung) {
+        if (echoWindow(parentIndex) == null) {
+            applyWordColors(parentIndex, positionMs, allSung);
+        }
+        if (lyrics == null) {
+            return;
+        }
+
         List<LyricsLine> lines = lyrics.lines();
         for (int i = parentIndex + 1; i < lines.size() && isSecondaryLineAt(i); i++) {
-            applyWordColors(i, positionMs, allSung);
+            if (echoWindow(i) == null) {
+                applyWordColors(i, positionMs, allSung);
+            }
         }
-    }
-
-    private void resetBgWordColors(int parentIndex) {
-        if (lyrics == null) return;
-        List<LyricsLine> lines = lyrics.lines();
-        for (int i = parentIndex + 1; i < lines.size() && isSecondaryLineAt(i); i++) {
-            applyWordColors(i, Long.MIN_VALUE, false);
-        }
-    }
-
-    private void clearWordHighlight(int lineIndex) {
-        applyWordColors(lineIndex, Long.MIN_VALUE, false);
-        resetBgWordColors(lineIndex);
     }
 
     private void applyWordColors(int index, long positionMs, boolean allSung) {
@@ -4433,7 +4423,6 @@ public final class LyricsPanelView extends FrameLayout implements LyricsManager.
             for (int i = 0; i < count; i++) {
                 final boolean isActive = i == highlightedIndex;
                 resetLineForWordSyncOff(i, isActive);
-                forEachBgLine(i, lyrics, bg -> resetLineForWordSyncOff(bg, isActive));
             }
             karaokeState.resetContent();
         }
@@ -4818,9 +4807,7 @@ public final class LyricsPanelView extends FrameLayout implements LyricsManager.
             LyricsLine prev = lines.get(index - 1);
             final long gap = line.startTimeMs() - prev.startTimeMs();
             if (gap >= 0 && gap <= ECHO_MAX_GAP_MS) {
-                String cleanCurr = LrcParser.cleanTextForComparison(line.text());
-                candidate = !cleanCurr.isEmpty()
-                        && cleanCurr.equals(LrcParser.cleanTextForComparison(prev.text()));
+                candidate = LyricsEchoTiming.hasSameLyrics(prev, line);
             }
         }
         if (!candidate) {
@@ -4865,7 +4852,7 @@ public final class LyricsPanelView extends FrameLayout implements LyricsManager.
                 && Boolean.TRUE.equals(lineIsBackground.get(index));
     }
 
-    /** A background vocal is never highlighted on its own: its lead line is. */
+    /** A background vocal scrolls with its lead line, even when it has its own highlight. */
     private int resolveLeadLineIndex(int index) {
         int res = index;
         while (res > 0 && isSecondaryLineAt(res)) {
@@ -4924,14 +4911,16 @@ public final class LyricsPanelView extends FrameLayout implements LyricsManager.
         return line.startTimeMs() + UNENDED_LAST_LINE_MS;
     }
 
-    /** When a lead line and the background vocals after it go out. */
+    /** When a normally grouped lead and its backing vocals go out. Echoes use their own windows. */
     private long computeAdjustedClusterEndMs(Lyrics current, int leadIdx) {
         List<LyricsLine> lines = current.lines();
         long clusterBaseEnd = computeLineActualEndMs(lines, leadIdx);
         int clusterEndIdx = leadIdx;
         while (clusterEndIdx + 1 < lines.size() && isSecondaryLineAt(clusterEndIdx + 1)) {
             clusterEndIdx++;
-            clusterBaseEnd = Math.max(clusterBaseEnd, computeLineActualEndMs(lines, clusterEndIdx));
+            if (echoWindow(clusterEndIdx) == null) {
+                clusterBaseEnd = Math.max(clusterBaseEnd, computeLineActualEndMs(lines, clusterEndIdx));
+            }
         }
         for (int j = clusterEndIdx + 1; j < lines.size(); j++) {
             if (!isSecondaryLineAt(j)) {
@@ -4955,17 +4944,11 @@ public final class LyricsPanelView extends FrameLayout implements LyricsManager.
     }
 
     /** Open while its lead line is the active one, and while it is sung itself. */
-    private boolean shouldBgLineBeVisible(Lyrics current, int activeLeadIdx, int bgIdx, long posMs) {
-        if (!Settings.LYRICS_SPLIT_BACKGROUND.get()) {
-            return true;
-        }
-        if (!current.synced()) {
-            return true;
-        }
+    private boolean shouldBgLineBeVisible(Lyrics current, int activeLeadIdx, int bgIdx, long posMs, boolean wordSync) {
         if (activeLeadIdx >= 0 && findParentLeadIndex(bgIdx) == activeLeadIdx) {
             return true;
         }
-        if (Settings.LYRICS_WORD_SYNC.get()
+        if (wordSync
                 && bgIdx < lineWordSpans.size()
                 && !lineWordSpans.get(bgIdx).isEmpty()) {
             List<LyricsSpanBuilder.WordTiming> bt = lineWordSpans.get(bgIdx);
@@ -4980,12 +4963,28 @@ public final class LyricsPanelView extends FrameLayout implements LyricsManager.
                 && posMs <= bgLine.endTimeMs() + BG_LINGER_MS;
     }
 
-    private void updateBgLinesVisibility(long posMs, Lyrics current, int activeLeadIdx) {
+    private void updateVocalLines(long posMs, Lyrics current, int activeLeadIdx, boolean wordSync) {
+        final boolean splitBackground = Settings.LYRICS_SPLIT_BACKGROUND.get();
         final int count = Math.min(lineViews.size(), current.lines().size());
-        for (int i = 0; i < count; i++) {
-            if (lineViews.get(i) instanceof LyricsLineView view && view.isSecondary()) {
-                final boolean visible = shouldBgLineBeVisible(current, activeLeadIdx, i, posMs);
+        for (int index = 0; index < count; index++) {
+            if (!(lineViews.get(index) instanceof LyricsLineView view)) {
+                continue;
+            }
+
+            LyricsEchoTiming.Window echo = echoWindow(index);
+            boolean singing = echo != null && echo.contains(posMs);
+            if (echo != null) {
+                view.updateEchoLook(singing, wordSync, splitBackground);
+                if (wordSync && (singing || view.positionMs != Long.MIN_VALUE || lineUnsungSpans.get(index) != null)) {
+                    applyWordColors(index, singing ? posMs : Long.MIN_VALUE, false);
+                }
+            }
+            if (view.isSecondary()) {
+                boolean visible = !splitBackground || singing
+                        || shouldBgLineBeVisible(current, activeLeadIdx, index, posMs, wordSync);
+                if (echo == null) {
                     view.setActiveLine(visible);
+                }
                 view.animateSecondaryExpansion(visible, false);
             }
         }

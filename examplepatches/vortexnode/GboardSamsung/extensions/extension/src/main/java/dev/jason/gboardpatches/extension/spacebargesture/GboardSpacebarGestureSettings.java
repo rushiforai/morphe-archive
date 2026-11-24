@@ -16,6 +16,13 @@ public final class GboardSpacebarGestureSettings {
             "pref_spacebar_language_swipe_enabled";
     public static final boolean DEFAULT_SPACEBAR_LANGUAGE_SWIPE_ENABLED = true;
 
+    public static final String PREF_KEY_SPACEBAR_LANGUAGE_SWIPE_MODE =
+            "pref_spacebar_language_swipe_mode";
+    public static final String SWIPE_MODE_SAMSUNG = "samsung";
+    public static final String SWIPE_MODE_GBOARD = "gboard";
+    public static final String SWIPE_MODE_FREE = "free";
+    public static final String DEFAULT_SPACEBAR_LANGUAGE_SWIPE_MODE = SWIPE_MODE_SAMSUNG;
+
     public static final String PREF_KEY_SPACEBAR_LANGUAGE_CHEVRONS_ENABLED =
             "pref_spacebar_language_chevrons_enabled";
     public static final boolean DEFAULT_SPACEBAR_LANGUAGE_CHEVRONS_ENABLED = false;
@@ -28,6 +35,9 @@ public final class GboardSpacebarGestureSettings {
 
     private static volatile boolean cachedSwipeEnabled = DEFAULT_SPACEBAR_LANGUAGE_SWIPE_ENABLED;
     private static volatile long cachedSwipeTimestampMs = -1L;
+
+    private static volatile String cachedSwipeMode = DEFAULT_SPACEBAR_LANGUAGE_SWIPE_MODE;
+    private static volatile long cachedSwipeModeTimestampMs = -1L;
 
     private static volatile boolean cachedChevronsEnabled =
             DEFAULT_SPACEBAR_LANGUAGE_CHEVRONS_ENABLED;
@@ -72,6 +82,55 @@ public final class GboardSpacebarGestureSettings {
             cachedSwipeTimestampMs = currentTimeMs();
         }
         return saved;
+    }
+
+    public static String getSpacebarLanguageSwipeMode(Context context) {
+        long now = currentTimeMs();
+        long cachedAt = cachedSwipeModeTimestampMs;
+        if (cachedAt >= 0L && (now - cachedAt) < CACHE_TTL_MS) {
+            return cachedSwipeMode;
+        }
+        String value = readSpacebarLanguageSwipeMode(context);
+        cachedSwipeMode = value;
+        cachedSwipeModeTimestampMs = now;
+        return value;
+    }
+
+    public static String readSpacebarLanguageSwipeMode(Context context) {
+        return GboardPatchesSettings.readRuntimeSetting(
+                context,
+                GboardSpacebarGestureSettings::readSpacebarLanguageSwipeMode,
+                DEFAULT_SPACEBAR_LANGUAGE_SWIPE_MODE);
+    }
+
+    public static String readSpacebarLanguageSwipeMode(SharedPreferences preferences) {
+        if (preferences == null) {
+            return DEFAULT_SPACEBAR_LANGUAGE_SWIPE_MODE;
+        }
+        Object raw = preferences.getAll().get(PREF_KEY_SPACEBAR_LANGUAGE_SWIPE_MODE);
+        if (raw instanceof String value) {
+            return normalizeSwipeMode(value);
+        }
+        return DEFAULT_SPACEBAR_LANGUAGE_SWIPE_MODE;
+    }
+
+    public static boolean writeSpacebarLanguageSwipeMode(Context context, String mode) {
+        String normalized = normalizeSwipeMode(mode);
+        boolean saved = writeString(context, PREF_KEY_SPACEBAR_LANGUAGE_SWIPE_MODE, normalized);
+        if (saved) {
+            cachedSwipeMode = normalized;
+            cachedSwipeModeTimestampMs = currentTimeMs();
+        }
+        return saved;
+    }
+
+    public static String normalizeSwipeMode(String mode) {
+        if (SWIPE_MODE_SAMSUNG.equals(mode)
+                || SWIPE_MODE_GBOARD.equals(mode)
+                || SWIPE_MODE_FREE.equals(mode)) {
+            return mode;
+        }
+        return DEFAULT_SPACEBAR_LANGUAGE_SWIPE_MODE;
     }
 
     public static boolean isSpacebarLanguageChevronsEnabled(Context context) {
@@ -144,9 +203,11 @@ public final class GboardSpacebarGestureSettings {
 
     public static void invalidateCache() {
         cachedSwipeTimestampMs = -1L;
+        cachedSwipeModeTimestampMs = -1L;
         cachedChevronsTimestampMs = -1L;
         cachedHideGlobeTimestampMs = -1L;
         cachedSwipeEnabled = DEFAULT_SPACEBAR_LANGUAGE_SWIPE_ENABLED;
+        cachedSwipeMode = DEFAULT_SPACEBAR_LANGUAGE_SWIPE_MODE;
         cachedChevronsEnabled = DEFAULT_SPACEBAR_LANGUAGE_CHEVRONS_ENABLED;
         cachedHideGlobeKey = DEFAULT_HIDE_LANGUAGE_SWITCH_KEY;
     }
@@ -172,6 +233,21 @@ public final class GboardSpacebarGestureSettings {
             }
         }
         return defaultValue;
+    }
+
+    private static boolean writeString(Context context, String key, String value) {
+        if (context == null) {
+            return false;
+        }
+        SharedPreferences preferences = GboardPatchesSettings.preferencesOrNull(context);
+        if (preferences == null) {
+            return false;
+        }
+        try {
+            return preferences.edit().putString(key, value).commit();
+        } catch (RuntimeException unavailable) {
+            return false;
+        }
     }
 
     private static boolean writeBoolean(Context context, String key, boolean value) {

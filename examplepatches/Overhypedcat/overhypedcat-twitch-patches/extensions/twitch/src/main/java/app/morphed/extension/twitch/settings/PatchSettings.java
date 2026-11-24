@@ -21,6 +21,7 @@ public final class PatchSettings {
     /** The streams song removal is on for: off until switched on, per channel (a past broadcast on its own). */
     static final String SONG_REMOVAL_STREAMS = "song_removal_streams";
     public static final String QUALITY_UNLOCK = "quality_unlock";
+    public static final String HIGHEST_QUALITY = "highest_quality";
 
     public interface Listener {
         void changed(String key, boolean on);
@@ -31,6 +32,7 @@ public final class PatchSettings {
     private static volatile Set<String> songStreams = new HashSet<>(); // copied on change
     private static volatile String watching; // the stream being watched: "channel:name" or "vod:id"
     private static volatile boolean qualityUnlock = false; // on once a VPN server is added
+    private static volatile boolean highestQuality = false;
     private static final CopyOnWriteArrayList<Listener> LISTENERS = new CopyOnWriteArrayList<>();
 
     private PatchSettings() {
@@ -47,6 +49,7 @@ public final class PatchSettings {
             Set<String> saved = preferences.getStringSet(SONG_REMOVAL_STREAMS, null);
             if (saved != null) songStreams = new HashSet<>(saved);
             qualityUnlock = preferences.getBoolean(QUALITY_UNLOCK, false);
+            highestQuality = preferences.getBoolean(HIGHEST_QUALITY, false);
             loaded = true;
         }
     }
@@ -90,11 +93,18 @@ public final class PatchSettings {
         return qualityUnlock;
     }
 
+    /** Whether every stream starts at its highest quality (one switch for all channels). */
+    public static boolean highestQuality() {
+        load();
+        return highestQuality;
+    }
+
     public static boolean get(String key) {
         switch (key) {
             case AD_BLOCK: return adBlock();
             case SONG_REMOVAL: return songRemoval();
             case QUALITY_UNLOCK: return qualityUnlock();
+            case HIGHEST_QUALITY: return highestQuality();
             default: throw new IllegalArgumentException(key);
         }
     }
@@ -120,6 +130,7 @@ public final class PatchSettings {
                 return;
             }
             case QUALITY_UNLOCK: qualityUnlock = on; break;
+            case HIGHEST_QUALITY: highestQuality = on; break;
             default: throw new IllegalArgumentException(key);
         }
         Context context = App.application();

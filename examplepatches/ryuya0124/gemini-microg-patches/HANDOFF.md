@@ -6,6 +6,15 @@
 
 利用者から見える変更点・修正点だけを短く書く。内部実装の説明やテスト結果は含めず、必要な開発記録はdocs/testingやこの引き継ぎメモに残す。2026-11-12の利用者の指示で、他のリポジトリにも共通する方針。v0.3.3の公開Release本文と元Markdownをこの形式へ修正済み。
 
+## 2026-11-24: Issue #9 v0.3.8（Patcher 2.5・省メモリ）
+
+- Patcher-Version 2.5.0へ移行、replaceStringsで文字列置換を集約。診断ブランチから「会話の更新要求警告」の互換処理だけを診断コード抜きで移植（Google17.72.17のみ、既定ON）。
+- 端末500MB想定: Manager2.7.1の「Use embedded VM」オフ＝ART 512MBで旧版はresources.arsc全解析でOOM。Googleのマニフェスト編集をraw resource patch＋バイナリAXML直接編集に変更し、表を解析しない。Android12/17 AVD（heapsize512m）でユニバーサルAPKはピーク約290MBで成功・起動確認、Geminiは29MB。
+- 残課題（次版0.3.9）: 分割バンドル(.apks/.apkm)はManagerのsplit結合がパッチ前に表全体を読むため512MBでOOM。パッチ側の外。詳細は docs/testing/issue-9-patcher-2.5.md。
+- 公開: [v0.3.8](https://github.com/ryuya0124/gemini-microg-patches/releases/tag/v0.3.8)（commit cae88e7、MPP SHA256 87b8797a…2569。AVD検証・CI・公開物が一致）。[Issue返信](https://github.com/ryuya0124/gemini-microg-patches/issues/9#issuecomment-7121307351)済み、Issueは開いたまま報告者の確認待ち。
+- 2026-11-24のミス: コミット本文の「Fixes #9」でpush時にIssueが自動クローズされ、再オープンした。Issueはリリース→返信→報告者の確認→クローズの順。コミットにFixes/Closesを書かない。
+- 専用AVD: GeminiPatch_API31（Android12）、GeminiPatch_API37（Android17）。dalvik.vm.heapsizeは再起動で戻るので、テスト時にroot→setprop→stop/startで512mにする。Manager APKとテスト出力はGit対象外のlocal/issue9。
+
 ## 現在の状態
 
 - microGログイン修正とセキュアフォルダのエラー(19)回避を実装済み。
@@ -222,3 +231,10 @@ ProcessNameProbeがインストール済みAPKの実コードを呼び、初回/
 - APK入力guard追加後のManager最終マトリクスも23/23成功。証拠はMacのlocal/issue8/play-store/manager-final-results、集計JSONのWindows控えはoutputs/v0.3.5-evidence。認証済UI XMLは公開しない。
 - [Issue返信](https://github.com/ryuya0124/gemini-microg-patches/issues/8#issuecomment-6827381066)で原因と、原本両APKをsource既定選択＋任意の更新停止で再パッチする方法を短く案内。Issueは閉じていない。投稿者の実機での解消報告はまだない。
 - 専用の旧回帰AVD5580/5582は名前を確認して停止。ユーザーがログインしたPlay Store AVD5584とWindowsのscrcpy画面は維持し、アカウント/公式アプリを消去していない。実機/Tail ADB/ADBサーバーは変更・停止していない。
+
+## Issue #9 Patcher 2.5移行・メモリ削減（2026-11-24、未公開）
+
+- [Issue #9](https://github.com/ryuya0124/gemini-microg-patches/issues/9)：Patcher 1.12向けのままで、メモリ使用が多くMorpheが落ちるとの報告。作業はworktree `/Users/ryuya/Documents/GeminiPatch-issue9`、branch `fix/issue9-patcher-2.5`（origin/main基準）。mainの未コミットのIssue #8候補とは混ぜていない。
+- 主因はMPPの `Patcher-Version: 1.12.0`。Patcher 2.xは2.0未満のバンドルが1つでもあると全バンドルで全リソースを先に展開する旧動作になる。2.5.0宣言に変更し、`replaceStrings()`で文字列置換、変更するクラスだけmutable化、索引構築前にリソーステーブルを読む読み取り専用の依存を追加。
+- Desktop 2.3.0で旧v0.3.5出力とDEX全クラス・aapt2のリソース/文字列/Manifestが一致。6GB上限でGoogleのRSS 3.8GB→2.1GB、6.3秒→2.7秒。必要ヒープの下限は旧新とも約1GBでAPK自体が決める。repoの全検証が成功。詳細は docs/testing/issue-9-patcher-2.5.md。
+- 未実施：Android Manager 2.7.1の実GUI生成と実機/AVDでの起動（専用AVDはWindows側）。公開・タグ・Issue返信もまだ。

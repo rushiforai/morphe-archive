@@ -59,6 +59,27 @@ internal object Constants {
         )
     )
 
+    /**
+     * The docked player finds the fragments and views of the app by their names, which the app
+     * does not obfuscate, so it is not tied to one version like the music card.
+     */
+    val COMPATIBILITY_APPLE_MUSIC_DOCKED_PLAYER = Compatibility(
+        name = "Apple Music",
+        packageName = "com.apple.android.music",
+        apkFileType = ApkFileType.APK_REQUIRED,
+        appIconColor = 0xFA243C,
+        targets = listOf(
+            AppTarget(
+                version = "7.0.3",
+                minSdk = 26
+            ),
+            AppTarget(
+                version = "7.0.0",
+                minSdk = 26
+            )
+        )
+    )
+
     val COMPATIBILITY_LASTWAVE = Compatibility(
         name = "LastWave",
         packageName = "com.lastwave.app",

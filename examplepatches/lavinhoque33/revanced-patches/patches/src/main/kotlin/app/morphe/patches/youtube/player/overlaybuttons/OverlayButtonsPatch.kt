@@ -356,7 +356,6 @@ val overlayButtonsPatch = resourcePatch(
                 "revanced_mute_volume_button.xml",
                 "revanced_loop_segment_button.xml",
                 "revanced_repeat_button.xml",
-                "revanced_video_quality_dialog_button.xml",
                 "revanced_vot_button.xml",
             )
         )

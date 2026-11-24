@@ -182,11 +182,13 @@ The **Bypass Native Signature Check** patch neutralizes `checkApkSha` across all
 The patch overrides the prologue of `checkApkSha` in both arm64-v8a and armeabi-v7a to immediately return `true` (`1`):
 
 1. **`lib/arm64-v8a/libandroidsig-lib.so` (Offset `0x48dd8`):**
-   - **Expected Bytes:** `ff 43 02 d1 f7 2b 00 f9` (`sub sp, sp, #0x90; str x23, [sp, #0x28]`)
+   - **Expected Bytes:** `ff 43 02 d1 f7 2b 00 f9` (`sub sp, sp, #0x90; str x23, [sp, #0x50]`)
    - **Replacement Bytes:** `20 00 80 52 c0 03 5f d6` (`mov w0, #1; ret`)
 2. **`lib/armeabi-v7a/libandroidsig-lib.so` (Offset `0x3d54c`):**
    - **Expected Bytes:** `f0 b5 03 af` (`push {r4-r7, lr}; sub sp, ...`)
    - **Replacement Bytes:** `01 20 70 47` (`movs r0, #1; bx lr`)
+
+At least one supported ABI library must be present; otherwise the patch fails fast rather than silently applying only `Remove Login` without the signature bypass. Individual ABI libraries remain optional so split bundles that ship only one architecture still work.
 
 The patch enforces byte verification: if the target binary is already patched, it succeeds idempotently; if byte patterns do not match expected opcodes, it fails fast by throwing `PatchException`.
 

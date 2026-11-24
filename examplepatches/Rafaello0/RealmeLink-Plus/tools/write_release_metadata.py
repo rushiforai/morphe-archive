@@ -32,7 +32,7 @@ def main() -> None:
             "RealmeLink Plus by RaFaeLL0 — version " + args.version +
             ". Morphe patches for realme Link 5.8.811.2814: "
             "AMOLED dark theme, bypass session expiry (original hxreborn patches); "
-            "remember ANC/Transparency/Off, remember Game Mode, and clean home screen. "
+            "remember ANC/Transparency/Off, remember Game Mode, clean home screen, and experimental single tap. "
             "Source: " + root
         ),
         "download_url": root + "/releases/download/" + args.tag + "/" + args.asset,

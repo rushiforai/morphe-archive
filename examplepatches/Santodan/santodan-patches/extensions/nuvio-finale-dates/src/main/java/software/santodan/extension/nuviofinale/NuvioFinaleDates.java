@@ -149,8 +149,13 @@ public final class NuvioFinaleDates {
             Object[] style = badgeStyle(loader, boxScope, composer);
             // Compose packs sp as a unit tag followed by the float's bits.
             long fontSize = ((Number) style[2]).longValue();
-            method.invoke(null, badge, style[0], style[1], fontSize, null, null, 0L, null, 0L,
-                0, false, 0, 0, null, style[3], composer, 0, 0, 65520);
+            Object[] arguments=new Object[]{badge, style[0], style[1], fontSize, null, null, 0L, null, 0L,
+                0, false, 0, 0, null, style[3], composer, 0, 0, 65520};
+            try {
+                Class<?> labels=Class.forName("software.santodan.extension.nuviomenu.NuvioLabelStyles",false,loader);
+                arguments=(Object[])labels.getMethod("applyAdded",String.class,Object.class,Object[].class).invoke(null,"date_label",composer,arguments);
+            } catch(ClassNotFoundException absent) { /* Preserve native defaults when the shared runtime is absent. */ }
+            method.invoke(null,arguments);
         } catch (Throwable error) {
             Log.e(TAG, "badge compose failed", error);
             // Keep the host card usable if badge rendering fails.

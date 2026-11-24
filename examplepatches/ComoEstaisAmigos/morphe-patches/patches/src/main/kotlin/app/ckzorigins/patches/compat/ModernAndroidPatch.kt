@@ -4,27 +4,23 @@ import app.ckzorigins.patches.mono.gluBackupPatch
 import app.ckzorigins.patches.mono.stubMobileAppTrackerDeviceIds
 import app.ckzorigins.patches.nativelib.NativeEdits
 import app.ckzorigins.patches.shared.Constants.COMPATIBILITY
-import app.ckzorigins.patches.shared.applyByteEdits
-import app.ckzorigins.patches.shared.sha256
+import app.ckzorigins.patches.shared.Constants.ORIGINAL_APK
+import app.adebisi.patches.shared.applyByteEdits
+import app.adebisi.patches.shared.makeBindExplicit
+import app.adebisi.patches.shared.requireStockNative
+import app.adebisi.patches.shared.setTargetSdk
 import app.morphe.patcher.util.returnEarly
-import app.morphe.patcher.Fingerprint
 import app.morphe.patcher.extensions.InstructionExtensions.addInstruction
-import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
 import app.morphe.patcher.extensions.InstructionExtensions.getInstruction
 import app.morphe.patcher.extensions.InstructionExtensions.replaceInstruction
 import app.morphe.patcher.patch.PatchException
 import app.morphe.patcher.patch.document
 import app.morphe.patcher.patch.mutableClassDefBy
 import app.morphe.patcher.patch.patch
-import app.morphe.patcher.patch.resourceFile
 import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod
 import com.android.tools.smali.dexlib2.Opcode
-import com.android.tools.smali.dexlib2.iface.instruction.FiveRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.NarrowLiteralInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
-import org.w3c.dom.Element
-
-internal const val TARGET_SDK = 25
 
 /**
  * targetSdk 25, TEXTREL, GetSerialID, and the Play Store bindService setPackage belong together:
@@ -41,10 +37,10 @@ val modernAndroidPatch = patch(
     dependsOn(gluBackupPatch)
 
     execute {
-        requireStockNative(NativeEdits.UNITY, NativeEdits.UNITY_SHA256)
-        applyByteEdits(NativeEdits.UNITY, NativeEdits.TEXTREL)
-        requireStockNative(NativeEdits.GWALLET, NativeEdits.GWALLET_SHA256)
-        applyByteEdits(NativeEdits.GWALLET, NativeEdits.SERIAL_ID + NativeEdits.JNI_GUARDS)
+        requireStockNative(NativeEdits.UNITY, NativeEdits.UNITY_SHA256, "Glu", ORIGINAL_APK)
+        applyByteEdits(NativeEdits.UNITY, NativeEdits.TEXTREL, ORIGINAL_APK)
+        requireStockNative(NativeEdits.GWALLET, NativeEdits.GWALLET_SHA256, "Glu", ORIGINAL_APK)
+        applyByteEdits(NativeEdits.GWALLET, NativeEdits.SERIAL_ID + NativeEdits.JNI_GUARDS, ORIGINAL_APK)
         makeBindExplicit(BindMarketBillingServiceFingerprint)
         makeBindExplicit(LicenseCheckAccessFingerprint)
         skipExpansionSizeCheck(ExpansionFileExistsFingerprint.method)
@@ -52,37 +48,8 @@ val modernAndroidPatch = patch(
         UnityDeviceIdFingerprint.method.returnEarly("")
         zeroPlayHavenWorldWritableIfPresent()
 
-        document("AndroidManifest.xml").use { document ->
-            val manifest = document.documentElement
-            val usesSdk = document.getElementsByTagName("uses-sdk").item(0) as Element?
-                ?: document.createElement("uses-sdk").also { manifest.insertBefore(it, manifest.firstChild) }
-            usesSdk.setAttribute("android:targetSdkVersion", TARGET_SDK.toString())
-        }
+        document("AndroidManifest.xml").use { setTargetSdk(it) }
     }
-}
-
-/**
- * Same three instructions as the hand-packaged APK: setPackage("com.android.vending") on the
- * Intent, using the constructor's string register, which the next instruction overwrites anyway.
- */
-private fun makeBindExplicit(fingerprint: Fingerprint) {
-    val constructor = fingerprint.instructionMatches[1]
-    val call = constructor.getInstruction<FiveRegisterInstruction>()
-    val intent = call.registerC
-    val scratch = call.registerD
-    val method = fingerprint.method
-    val next = method.getInstruction(constructor.index + 1)
-    if (next.opcode != Opcode.CONST_4 || (next as OneRegisterInstruction).registerA != scratch) {
-        throw PatchException("${method.name}: v$scratch is still live after the Intent constructor")
-    }
-    method.addInstructions(
-        constructor.index + 1,
-        """
-            const-string v$scratch, "com.android.vending"
-            invoke-virtual {v$intent, v$scratch}, Landroid/content/Intent;->setPackage(Ljava/lang/String;)Landroid/content/Intent;
-            move-result-object v$intent
-        """,
-    )
 }
 
 /** Same as the hand-packaged APK: return File.exists() and skip the expansion size check. */
@@ -124,16 +91,4 @@ private fun zeroWorldWritableMode(method: MutableMethod) {
         )
     val dest = (insns[index] as OneRegisterInstruction).registerA
     method.replaceInstruction(index, "const/4 v$dest, 0x0")
-}
-
-private fun requireStockNative(path: String, expectedSha: String) {
-    val lib = resourceFile(path, copy = true)
-    if (!lib.exists()) throw PatchException("$path is missing from this APK")
-    val hash = lib.readBytes().sha256()
-    if (hash != expectedSha) {
-        throw PatchException(
-            "$path is not Glu's original (sha256 ${hash.take(12)}). " +
-                "Patch the Origins 2.0.1 APK signed by Glu Mobile, not a repack or a patched build.",
-        )
-    }
 }

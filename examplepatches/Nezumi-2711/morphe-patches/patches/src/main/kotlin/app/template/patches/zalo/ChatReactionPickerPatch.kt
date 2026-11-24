@@ -19,7 +19,6 @@ import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
 import com.android.tools.smali.dexlib2.iface.reference.FieldReference
 
-private const val SETTINGS_CLASS = "Lapp/template/extension/extension/NezumiSettings;"
 
 private object ChatReactionEntitlementFingerprint : Fingerprint(
     returnType = "Z",
@@ -48,7 +47,7 @@ internal object ZaloSettingsFingerprint : Fingerprint(
 val chatReactionPickerPatch = bytecodePatch(
     name = "Chat reaction picker",
     description = "Allow the enabled chat reaction UI without a matching subscription package.",
-    default = false,
+    default = true,
 ) {
     compatibleWith(Compatibility(
         name = "Zalo",
@@ -72,7 +71,7 @@ val chatReactionPickerPatch = bytecodePatch(
         method.addInstructionsWithLabels(1, """
             invoke-static {}, Lcom/zing/zalo/MainApplication;->getAppContext()Landroid/content/Context;
             move-result-object v1
-            invoke-static {v1}, $SETTINGS_CLASS->isReactionEnabled(Landroid/content/Context;)Z
+            invoke-static {v1}, $CHAT_OPTIONS->isReactionEnabled(Landroid/content/Context;)Z
             move-result v1
             if-eqz v1, :nezumi_original_reaction
             return v${first.registerA}
@@ -88,7 +87,7 @@ internal fun attachNezumiSettings(methodName: String) {
     val settings = ZaloSettingsFingerprint.method
     if (settings.implementation!!.instructions.any {
         (it as? ReferenceInstruction)?.reference?.toString() ==
-            "$SETTINGS_CLASS->$methodName(Landroid/view/View;Landroid/view/View;)V"
+            "$NEZUMI_SETTINGS->$methodName(Landroid/view/View;Landroid/view/View;)V"
     }) return
     val privacyIndex = settings.implementation!!.instructions.indexOfFirst {
         it.opcode == Opcode.SGET &&
@@ -102,5 +101,5 @@ internal fun attachNezumiSettings(methodName: String) {
     check(settings.getInstruction<OneRegisterInstruction>(privacyIndex + 3).opcode == Opcode.CHECK_CAST)
     check(settings.getInstruction<OneRegisterInstruction>(privacyIndex + 4).opcode == Opcode.IF_EQZ)
     check(settings.getInstruction<OneRegisterInstruction>(privacyIndex + 4).registerA == privacy.registerA)
-    settings.addInstructions(privacyIndex + 5, "invoke-static {v${lookup.registerC}, v${privacy.registerA}}, $SETTINGS_CLASS->$methodName(Landroid/view/View;Landroid/view/View;)V")
+    settings.addInstructions(privacyIndex + 5, "invoke-static {v${lookup.registerC}, v${privacy.registerA}}, $NEZUMI_SETTINGS->$methodName(Landroid/view/View;Landroid/view/View;)V")
 }

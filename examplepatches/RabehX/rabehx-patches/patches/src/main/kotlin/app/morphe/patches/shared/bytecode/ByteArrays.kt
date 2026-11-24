@@ -5,60 +5,108 @@
 
 package app.morphe.patches.shared.bytecode
 
-/** Byte-array helpers for binary bundle patching (Hermes bytecode, etc.). */
-internal fun ByteArray.toHexString(separator: String = " "): String =
-    joinToString(separator) { "%02x".format(it) }
-
-internal fun ByteArray.hex(): String = toHexString("")
-
-internal fun String.hexToBytes(): ByteArray {
-    val clean = lineSequence()
-        .joinToString("") { it.substringBefore('#') }
-        .filterNot(Char::isWhitespace)
-    require(clean.length % 2 == 0) { "hex string must have even length" }
-    return ByteArray(clean.length / 2) { i ->
-        clean.substring(i * 2, i * 2 + 2).toInt(16).toByte()
-    }
-}
-
-internal fun ByteArray.indexOfAll(needle: ByteArray): List<Int> {
-    val result = mutableListOf<Int>()
-    if (needle.isEmpty() || needle.size > size) return result
-    var from = 0
-    while (true) {
-        val idx = indexOf(needle, from) ?: break
-        result.add(idx)
-        from = idx + 1
-    }
-    return result
-}
-
-internal fun ByteArray.indexOf(needle: ByteArray): Int? = indexOf(needle, 0)
-
-private fun ByteArray.indexOf(needle: ByteArray, from: Int): Int? {
-    if (needle.isEmpty() || needle.size > size - from) return null
-    outer@ for (i in from..size - needle.size) {
-        for (j in needle.indices) {
-            if (this[i + j] != needle[j]) continue@outer
+/** Returns the first byte offset of [needle] in the receiver, or `null` if absent. */
+internal fun ByteArray.indexOf(needle: ByteArray): Int? {
+    if (needle.isEmpty() || needle.size > size) return null
+    val first = needle[0]
+    val lastStart = size - needle.size
+    var i = 0
+    while (i <= lastStart) {
+        if (this[i] == first) {
+            var matched = true
+            for (j in 1 until needle.size) {
+                if (this[i + j] != needle[j]) {
+                    matched = false
+                    break
+                }
+            }
+            if (matched) return i
         }
-        return i
+        i++
     }
     return null
 }
 
-internal fun ByteArray.requireIndexOf(needle: ByteArray, message: String): Int =
-    indexOf(needle) ?: error(message)
-
-internal fun ByteArray.requireOccurrenceCount(needle: ByteArray, expected: Int, message: String) {
-    val count = indexOfAll(needle).size
-    require(count == expected) { "$message (found $count, expected $expected)" }
+/** Returns every non-overlapping offset where [needle] appears in the receiver. */
+internal fun ByteArray.indexOfAll(needle: ByteArray): List<Int> {
+    if (needle.isEmpty() || needle.size > size) return emptyList()
+    val first = needle[0]
+    val lastStart = size - needle.size
+    val offsets = mutableListOf<Int>()
+    var i = 0
+    while (i <= lastStart) {
+        if (this[i] == first) {
+            var matched = true
+            for (j in 1 until needle.size) {
+                if (this[i + j] != needle[j]) {
+                    matched = false
+                    break
+                }
+            }
+            if (matched) {
+                offsets += i
+                i += needle.size
+                continue
+            }
+        }
+        i++
+    }
+    return offsets
 }
 
-internal fun ByteArray.replaceFirst(needle: ByteArray, replacement: ByteArray): ByteArray {
-    val idx = requireIndexOf(needle, "needle not found")
-    return copyOfRange(0, idx) + replacement + copyOfRange(idx + needle.size, size)
+private val IDENTIFIER_BYTES: Set<Byte> =
+    (('a'..'z') + ('A'..'Z') + ('0'..'9') + listOf('_', '.', '/', '-'))
+        .map { it.code.toByte() }
+        .toSet()
+
+/** Occurrences of [needle] that start a Dart/C pool entry rather than continue an identifier. */
+internal fun ByteArray.indexOfAllAtEntryStart(needle: ByteArray): List<Int> =
+    indexOfAll(needle).filter { offset ->
+        val previous = if (offset > 0) this[offset - 1] else 0.toByte()
+        previous !in IDENTIFIER_BYTES
+    }
+
+internal class NeutralisationEdit(val offset: Int, val length: Int, val literal: String)
+
+internal class NeutralisationPlan(
+    val edits: List<NeutralisationEdit>,
+    val absent: List<String>,
+)
+
+/** Plans same-length overwrite edits for overlapping literals (longest first) before writing. */
+internal fun ByteArray.planNeutralisations(literals: List<String>): NeutralisationPlan {
+    val edits = mutableListOf<NeutralisationEdit>()
+    val absent = mutableListOf<String>()
+    val covered = HashSet<Int>()
+
+    literals.sortedByDescending { it.length }.forEach { literal ->
+        val needle = literal.toByteArray(Charsets.US_ASCII)
+        val offsets = indexOfAllAtEntryStart(needle)
+        if (offsets.isEmpty()) {
+            absent += literal
+            return@forEach
+        }
+        offsets.forEach { offset ->
+            val span = (offset until offset + needle.size).toSet()
+            when {
+                covered.containsAll(span) -> Unit
+                covered.any { it in span } -> error(
+                    "$literal@$offset partially overlaps an already planned literal",
+                )
+                else -> {
+                    covered += span
+                    edits += NeutralisationEdit(offset, needle.size, literal)
+                }
+            }
+        }
+    }
+    return NeutralisationPlan(edits, absent)
 }
 
-internal fun ByteArray.requireByteAt(offset: Int, expected: Byte, message: String) {
-    require(size > offset && this[offset] == expected) { "$message (at $offset)" }
+/** Applies a [NeutralisationPlan] by filling planned spans with `'Z'` in a copy. */
+internal fun ByteArray.applyNeutralisations(plan: NeutralisationPlan): ByteArray {
+    val patched = copyOf()
+    val filler = 'Z'.code.toByte()
+    plan.edits.forEach { edit -> ByteArray(edit.length) { filler }.copyInto(patched, edit.offset) }
+    return patched
 }

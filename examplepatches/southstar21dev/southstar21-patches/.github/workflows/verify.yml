@@ -6,7 +6,7 @@ name: Verify patches
 #
 # The APKMs can't live in this public repo, so they're release assets of a private repo:
 #   repo:  vars.TEST_APKS_REPO (default southstar21dev/test-apks)
-#   tag:   <app>-<version> (instagram-454.0.0.54.77, spotify-9.2.0.2053, youtubemusic-9.46.51),
+#   tag:   <app>-<version> (instagram-456.1.0.56.78, spotify-9.2.0.2053, youtubemusic-9.46.51),
 #          holding each build of
 #          that version (one .apkm per version code, as builds of one version are obfuscated
 #          differently), named as APKMirror does: <package>_<version>-<version code>_....apkm

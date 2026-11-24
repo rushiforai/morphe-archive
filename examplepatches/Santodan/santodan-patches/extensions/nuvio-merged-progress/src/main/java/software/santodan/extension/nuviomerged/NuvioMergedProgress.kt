@@ -144,12 +144,14 @@ object NuvioMergedProgress {
 
     /** The same back-stack flow used by MainActivity, including actual player routes. */
     @JvmStatic fun activityResumed(value: Any) = startupStage("merge.activityResumed") {
+        localHomeForeground = true
         activity = java.lang.ref.WeakReference(value as Activity)
         navigation.foreground(true)
         observeHomePresentation(value)
 
         requestAutomaticSync()
         refreshSyncBanner()
+        offerLocalHomePlayback()
     }
 
     /** beta.8 ComponentActivity's reporter sets f and invokes g under lock c. */
@@ -170,6 +172,8 @@ object NuvioMergedProgress {
 
     @JvmStatic fun activityPaused(value: Any) {
         if (activity.get() !== value) return
+        localHomeForeground = false
+        if (localHomeObserver != null) localHomeUpdates.clear()
         navigation.foreground(false)
         playbackRevision.incrementAndGet()
         mergeJob?.cancel()
@@ -186,6 +190,8 @@ object NuvioMergedProgress {
         navigation.navigate(null)
         navigationJob?.cancel()
         navigationOwner = null
+        localHomeObserver?.cancel(); localHomeObserver = null
+        localHomeUpdates.clear(); localHomeSettings = null; localHomeOwner = null; localHomeView = null
     }
 
     @JvmStatic fun registerNavigation(controller: Any) {
@@ -241,12 +247,95 @@ object NuvioMergedProgress {
     /** beta.8 xa.s3.b assigns i1 after starting the native Home CW pipeline. */
     @JvmStatic fun homePipelineStarted(home: Any) {
         nativeHome = java.lang.ref.WeakReference(home)
+        observeLocalHomePlayback(home)
         if (enabled() && playbackPaused) pauseHomePipeline()
+    }
+
+    @Volatile private var localHomeForeground = true
+    @Volatile private var localHomeSettings: NuvioLocalHomeProjection.Settings? = null
+    private var localHomeOwner: Any? = null
+    private var localHomeObserver: Job? = null
+    private data class LocalHomePlayback(val settings: NuvioLocalHomeProjection.Settings, val record: Any, val completed: Boolean, val at: Long)
+    private data class LocalHomeView(val update: LocalHomePlayback, val item: Any?)
+    @Volatile private var localHomeView: LocalHomeView? = null
+    private val localHomeUpdates by lazy {
+        NuvioLocalHomeUpdates<LocalHomePlayback, NuvioLocalHomeProjection.Result>(providerObserverScope,
+            valid = { profile -> localHomeForeground && enabled() && snapshotKey() == profile && activeCacheKey == profile },
+            resolve = { update -> withContext(Dispatchers.IO) {
+                if (update.completed && playbackKey(update.record).season == null) NuvioLocalHomeProjection.Result(null, true)
+                else NuvioLocalHomeProjection.resolve(update.settings, update.record, update.completed)
+            } },
+            publish = { update, result ->
+                NuvioLocalHomeProjection.publish(update.settings, update.record, update.completed, result,
+                    valid = { localHomeCurrent(update) },
+                    same = { item -> localHomeItemKey(item)?.let { candidate ->
+                        val key = playbackKey(update.record)
+                        candidate.type == key.type && candidate.id in NuvioPlaybackBridge.overlay.related(key.id, mergedShowSiblings)
+                    } == true }, published = { item -> localHomeView = LocalHomeView(update, item) })
+            }, failure = { Log.w(TAG, "Local Continue Watching projection deferred; native Home remains available", it) })
+    }
+    @JvmStatic fun captureHomeSnapshot(cycle: Any) {
+        if (!enabled()) return
+        runCatching {
+            if (NuvioLocalHomeProjection.field(cycle, NuvioNative.REF_LOCAL_HOME_STAGE_LABEL) != 0) return
+            val settings = NuvioLocalHomeProjection.settings(cycle, snapshotKey())
+            if (settings.home !== nativeHome.get()) return
+            if (localHomeSettings != settings) { localHomeUpdates.clear(); localHomeView = null; localHomeSettings = settings }
+            observeLocalHomePlayback(settings.home)
+            offerLocalHomePlayback()
+            if (playbackPaused) pauseHomePipeline()
+        }.onFailure { Log.w(TAG, "Unable to capture native Home settings for local playback", it) }
+    }
+    private fun observeLocalHomePlayback(home: Any) {
+        if (!enabled() || repository == null) return
+        if (localHomeOwner === home && localHomeObserver?.isActive == true) return
+        localHomeObserver?.cancel(); localHomeUpdates.clear()
+        if (localHomeOwner !== home) { localHomeSettings = null; localHomeView = null }
+        localHomeOwner = home
+        val profile = field(requireNotNull(repository), "j").get(repository)
+        val profiles = field(profile, "f").get(profile) as StateFlow<*>
+        localHomeObserver = providerObserverScope.launch {
+            combine(NuvioPlaybackBridge.revision, profiles) { _, _ -> Unit }.collect {
+                runCatching { offerLocalHomePlayback() }.onFailure { Log.w(TAG, "Local Home playback event deferred", it) }
+            }
+        }
+    }
+    private fun offerLocalHomePlayback() {
+        val settings = localHomeSettings ?: return
+        if (!localHomeForeground || !enabled() || settings.profile != snapshotKey() || activeCacheKey != settings.profile) {
+            localHomeUpdates.clear(); return
+        }
+        val entry = latestLocalHomeEntry(settings.profile)
+        if (entry?.action != NuvioLocalOverlay.Action.PLAY || entry.record == null) { localHomeUpdates.clear(); return }
+        val completed = playbackCompleted(entry.record)
+        if (!completed && playbackNumber(entry.record, "getPosition") <= 0) { localHomeUpdates.clear(); localHomeView = null; return }
+        val token = "${entry.key}|$completed|${if (completed) 0L else entry.at}"
+        localHomeUpdates.offer(settings.profile, token, LocalHomePlayback(settings, entry.record, completed, entry.at))
+    }
+    private fun latestLocalHomeEntry(profile: String) = NuvioPlaybackBridge.entries(profile).maxWithOrNull(
+        compareBy<NuvioLocalOverlay.Entry<Any>> { it.at }.thenBy { it.key.season ?: 0 }.thenBy { it.key.episode ?: 0 })
+    private fun localHomeCurrent(update: LocalHomePlayback): Boolean {
+        val profile = update.settings.profile
+        if (!localHomeForeground || !enabled() || snapshotKey() != profile || activeCacheKey != profile ||
+            nativeHome.get() !== update.settings.home || localHomeSettings != update.settings) return false
+        val latest = latestLocalHomeEntry(profile) ?: return false
+        return latest.action == NuvioLocalOverlay.Action.PLAY && latest.record != null && latest.key == playbackKey(update.record) &&
+            playbackCompleted(latest.record) == update.completed && (update.completed || latest.at == update.at)
+    }
+    private fun localHomeItemKey(item: Any): NuvioLocalOverlay.Key? = when (item.javaClass.name) {
+        NuvioNative.HOME_PROGRESS_ITEM_NAME -> playbackKey(transitionField(item, NuvioNative.REF_HOME_PROGRESS_RECORD)!!)
+        NuvioNative.HOME_NEXT_ITEM_NAME -> transitionField(item, NuvioNative.REF_HOME_NEXT_INFO)!!.let { info ->
+            NuvioLocalOverlay.key(transitionField(info, NuvioNative.REF_HOME_NEXT_ID) as String,
+                transitionField(info, NuvioNative.REF_HOME_NEXT_TYPE) as String, null, null)
+        }
+        else -> null
     }
 
     private fun pauseHomePipeline() {
         if (!enabled()) return
         val home = nativeHome.get() ?: return
+        // A fast launch from the restored row must capture native settings before bulk work is stopped.
+        if (localHomeSettings?.let { it.home === home && it.profile == snapshotKey() } != true) return
         try {
             if (homePipelineGate.pause(home, field(home, "i1").get(home) as? Job))
                 Log.d(TAG, "Native Home CW pipeline paused for playback; cards retained")
@@ -257,10 +346,60 @@ object NuvioMergedProgress {
         val home = nativeHome.get() ?: return
         if (!homePipelineGate.resume(home)) return
         try {
-            findMethod(home.javaClass, "b", 1).invoke(null, home)
+            findMethod(home.javaClass, NuvioNative.REF_LOCAL_HOME_RESUME.substringAfter("->").substringBefore('('), 1).invoke(null, home)
             Log.d(TAG, "Native Home CW pipeline resumed on Home")
         } catch (error: Throwable) { Log.e(TAG, "Unable to resume native Home CW pipeline", error) }
     }
+
+    @JvmStatic fun retainInitialContinueWatching(cycle: Any, proposed: List<Any>): List<Any> {
+        if (!enabled()) return proposed
+        return try { retainPartialContinueWatching(transitionField(cycle, NuvioNative.REF_HOME_TRANSITION_OWNER)!!, proposed) }
+        catch (error: Exception) { Log.w(TAG, "Unable to retain pending Continue Watching card", error); proposed }
+    }
+
+    /** Called only by initial/partial native publications; the final result remains authoritative. */
+    @JvmStatic fun retainPartialContinueWatching(home: Any, proposed: List<Any>): List<Any> {
+        if (!enabled() || nativeHome.get() !== home) return proposed
+        val profile = snapshotKey()
+        if (activeCacheKey != profile) return proposed
+        return try {
+            val aliases = mergedShowSiblings
+            fun show(key: NuvioLocalOverlay.Key) = "${key.type}|${NuvioPlaybackBridge.overlay.related(key.id, aliases).minOrNull()}"
+            val pending = NuvioPlaybackBridge.overlay.seeds(emptyList(), NuvioPlaybackBridge.entries(profile), emptyMap(), aliases)
+                .filter { playbackCompleted(it) }.mapTo(HashSet()) { show(playbackKey(it)) }
+            if (pending.isEmpty() && localHomeView == null) return proposed
+            val state = (transitionField(home, NuvioNative.REF_HOME_STATE_FLOW) as StateFlow<*>).value ?: return proposed
+            @Suppress("UNCHECKED_CAST")
+            val current = (transitionField(state, NuvioNative.REF_HOME_VISIBLE_ITEMS) as List<Any>) +
+                (transitionField(state, NuvioNative.REF_HOME_UPCOMING_ITEMS) as List<Any>)
+            val view = localHomeView
+            val latest = latestLocalHomeEntry(profile)
+            val projected = if (view != null && view.update.settings == localHomeSettings && view.update.settings.home === home &&
+                latest?.action == NuvioLocalOverlay.Action.PLAY && latest.record != null &&
+                latest.key == playbackKey(view.update.record) && playbackCompleted(latest.record) == view.update.completed &&
+                (view.update.completed || latest.at == view.update.at)) {
+                val target = playbackKey(view.update.record)
+                if (view.item == null) pending.remove(show(target))
+                NuvioHomeTransition.project(current, proposed, view.item) { item ->
+                    localHomeItemKey(item)?.let { it.type == target.type && it.id in NuvioPlaybackBridge.overlay.related(target.id, aliases) } == true
+                }
+            } else proposed
+            NuvioHomeTransition.retain(current, projected, pending) { item ->
+                when (item.javaClass.name) {
+                    NuvioNative.HOME_PROGRESS_ITEM_NAME -> show(playbackKey(transitionField(item, NuvioNative.REF_HOME_PROGRESS_RECORD)!!))
+                    NuvioNative.HOME_NEXT_ITEM_NAME -> {
+                        val info = transitionField(item, NuvioNative.REF_HOME_NEXT_INFO)!!
+                        show(NuvioLocalOverlay.key(transitionField(info, NuvioNative.REF_HOME_NEXT_ID) as String,
+                            transitionField(info, NuvioNative.REF_HOME_NEXT_TYPE) as String, null, null))
+                    }
+                    else -> null
+                }
+            }
+        } catch (error: Exception) { Log.w(TAG, "Unable to retain pending Continue Watching card", error); proposed }
+    }
+
+    private fun transitionField(owner: Any, reference: String): Any? =
+        field(owner, reference.substringAfter("->").substringBefore(':')).get(owner)
 
     private fun trackingKey(name: String) = "${snapshotKey()}_$name"
     private fun mainTracking(): String {
@@ -433,12 +572,12 @@ object NuvioMergedProgress {
     }
 
     private fun renderTrackingDialog(composer: Any) {
-        val mode = activeDialog ?: return
-        if (dialogProfile != snapshotKey()) { dismissTrackingDialog(); return }
-        val ids = listOf("NUVIO_SYNC", "TRAKT", "SIMKL", "MDBLIST")
-        val profile = dialogProfile
         findMethod(composer.javaClass, "d0", 1).invoke(composer, 0x534d4757)
         try {
+            val mode = activeDialog ?: return
+            if (dialogProfile != snapshotKey()) { dismissTrackingDialog(); return }
+            val ids = listOf("NUVIO_SYNC", "TRAKT", "SIMKL", "MDBLIST")
+            val profile = dialogProfile
             if (mode == "main") {
                 NuvioTrackingDialogs.picker(composer, "Main tracking service", ids, ids.map(::trackingLabel),
                     mainTracking(), { id ->
@@ -789,6 +928,11 @@ object NuvioMergedProgress {
     @JvmStatic fun selectSource(requested: Any): Any {
         val name = (requested as? Enum<*>)?.name
         val merged = name == "MERGED_HIGHEST" || name == "MERGED_RECENT"
+        if (!merged) {
+            if (localHomeObserver != null) localHomeUpdates.clear()
+            localHomeView = null
+            localHomeSettings = null
+        }
         preferences().edit()
             .putBoolean(ENABLED, merged)
             .putString(STRATEGY, if (name == "MERGED_RECENT") RECENT else "highest")

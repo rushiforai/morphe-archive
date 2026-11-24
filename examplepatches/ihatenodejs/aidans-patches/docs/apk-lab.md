@@ -8,52 +8,63 @@
 
 ### Host Prerequisites
 
-- **Python**: Version `3.12+` managed via `uv`.
+- **Rust**: Stable toolchain (`cargo`); the CLI is built from `tools/apk-lab/Cargo.toml`.
 - **Java**: JDK `21+` (Eclipse Temurin recommended; provides `java` and `keytool`).
 - **Android SDK Build Tools**: Version `36.0.0` (`aapt2`, `apksigner`, `zipalign`, `dexdump`).
   - Path detected automatically from `ANDROID_HOME`, `ANDROID_SDK_ROOT`, or repository `local.properties` (`sdk.dir`).
 - **Android Platform Tools**: `adb` for device deployment and runtime monitoring (detected from SDK `platform-tools/adb` or PATH).
-- **uv**: Fast Python package installer and virtualenv manager.
 
 ### Setup & Toolchain Installation
+
+The canonical development command builds and runs the native binary in one step:
+
+```bash
+cargo run --locked --quiet --manifest-path tools/apk-lab/Cargo.toml --bin apk-lab -- <subcommand> [flags]
+```
+
+CI and release jobs build once and execute the release binary directly:
+
+```bash
+cargo build --release --locked --manifest-path tools/apk-lab/Cargo.toml --bin apk-lab
+tools/apk-lab/target/release/apk-lab <subcommand>
+```
 
 Tools are pinned in `tools/apk-lab/tools.lock.json` with official download URLs and immutable SHA-256 digests. Only `apk-lab setup` downloads external tools.
 
 ```bash
-# Sync Python virtual environment
-uv sync --locked --project tools/apk-lab
-
 # Install pinned analysis tools (Morphe Desktop 1.18.0, JADX 1.5.6, Apktool 3.0.3, baksmali 3.0.10, smali 3.0.10)
-uv run --project tools/apk-lab apk-lab setup --profile analysis
+cargo run --locked --quiet --manifest-path tools/apk-lab/Cargo.toml --bin apk-lab -- setup --profile analysis
 # Install CI profile (includes apkeep on Linux x86-64)
-uv run --project tools/apk-lab apk-lab setup --profile ci
+cargo run --locked --quiet --manifest-path tools/apk-lab/Cargo.toml --bin apk-lab -- setup --profile ci
 
 # Verify host prerequisites, tool caches, and workspace permissions
-uv run --project tools/apk-lab apk-lab doctor
+cargo run --locked --quiet --manifest-path tools/apk-lab/Cargo.toml --bin apk-lab -- doctor
 
 # Doctor verification in CI mode (checks presence of credentials without leaking values)
-uv run --project tools/apk-lab apk-lab doctor --ci --json
+cargo run --locked --quiet --manifest-path tools/apk-lab/Cargo.toml --bin apk-lab -- doctor --ci --json
 ```
 
 Global options such as `--workspace-root PATH` (default: `.apk-lab`) precede the subcommand:
 
-````bash
-uv run --project tools/apk-lab apk-lab --workspace-root /custom/workspace doctor
+```bash
+cargo run --locked --quiet --manifest-path tools/apk-lab/Cargo.toml --bin apk-lab -- --workspace-root /custom/workspace doctor
+```
 
 ---
 
 ## 2. Command Reference
 
 ### `inspect` — Artifact Inspection
+
 Validates archive security (path traversal, duplicate names, zip bomb ratio limits, encryption) and parses container structure, signing certificates, splits, DEX counts, native libraries, and assets by content rather than file suffix.
 
 ```bash
 # Human readable inspection
-uv run --project tools/apk-lab apk-lab inspect path/to/app.apkm
+cargo run --locked --quiet --manifest-path tools/apk-lab/Cargo.toml --bin apk-lab -- inspect path/to/app.apkm
 
 # JSON output (creates no persistent workspace)
-uv run --project tools/apk-lab apk-lab inspect path/to/app.apkm --json -
-````
+cargo run --locked --quiet --manifest-path tools/apk-lab/Cargo.toml --bin apk-lab -- inspect path/to/app.apkm --json -
+```
 
 ### `analyze` — Managed Extraction & Decompilation
 
@@ -61,14 +72,16 @@ Extracts artifacts into a managed run directory under `.apk-lab/<package>/<versi
 
 ```bash
 # Default: metadata + smali disassembly
-uv run --project tools/apk-lab apk-lab analyze path/to/app.apkm
+cargo run --locked --quiet --manifest-path tools/apk-lab/Cargo.toml --bin apk-lab -- analyze path/to/app.apkm
 
-# Include JADX Java decompilation
-uv run --project tools/apk-lab apk-lab analyze path/to/app.apkm --jadx
+# JADX Java decompilation (replaces the default smali disassembly)
+cargo run --locked --quiet --manifest-path tools/apk-lab/Cargo.toml --bin apk-lab -- analyze path/to/app.apkm --jadx
 
-# Include Apktool resource decoding
-uv run --project tools/apk-lab apk-lab analyze path/to/app.apkm --apktool
+# Apktool resource decoding (replaces the default smali disassembly)
+cargo run --locked --quiet --manifest-path tools/apk-lab/Cargo.toml --bin apk-lab -- analyze path/to/app.apkm --apktool
 ```
+
+Default Smali disassembly runs only when neither `--jadx` nor `--apktool` is used; add `--smali` alongside either flag to keep it.
 
 The command extracts all native `.so` shared libraries across the base APK and architecture splits into `<workspace>/lib/<arch>/` (e.g. `lib/arm64-v8a/libil2cpp.so`), and prints the exact directory and matching cleanup command upon completion.
 
@@ -77,13 +90,13 @@ The command extracts all native `.so` shared libraries across the base APK and a
 Compares two APK/APKM/XAPK/APKS artifacts across version codes, signing certificates, split members, DEX classes/methods delta, native libraries, and assets.
 
 ```bash
-uv run --project tools/apk-lab apk-lab compare old_version.apkm new_version.apkm
+cargo run --locked --quiet --manifest-path tools/apk-lab/Cargo.toml --bin apk-lab -- compare old_version.apkm new_version.apkm
 
 # Save JSON diff report
-uv run --project tools/apk-lab apk-lab compare old_version.apkm new_version.apkm --json report.json
+cargo run --locked --quiet --manifest-path tools/apk-lab/Cargo.toml --bin apk-lab -- compare old_version.apkm new_version.apkm --json report.json
 
 # Decompile and diff specific classes with JADX (reports unchanged, modified, added, removed, missing, tool_unavailable, or error; diffs truncate at the first 500 lines followed by a truncation marker)
-uv run --project tools/apk-lab apk-lab compare old_version.apkm new_version.apkm --class com.example.Foo
+cargo run --locked --quiet --manifest-path tools/apk-lab/Cargo.toml --bin apk-lab -- compare old_version.apkm new_version.apkm --class com.example.Foo
 ```
 
 ### `check` — Real Patch Compatibility Testing
@@ -98,20 +111,20 @@ Applies patch bundles (`.mpp`) to an artifact using Morphe Desktop in isolated r
 
 ```bash
 # Quick check: auto-resolves latest .mpp bundle and infers package name
-uv run --project tools/apk-lab apk-lab check path/to/app.apkm --all
+cargo run --locked --quiet --manifest-path tools/apk-lab/Cargo.toml --bin apk-lab -- check path/to/app.apkm --all
 
 # Test specific patch with all option permutations
-uv run --project tools/apk-lab apk-lab check path/to/app.apkm \
+cargo run --locked --quiet --manifest-path tools/apk-lab/Cargo.toml --bin apk-lab -- check path/to/app.apkm \
   --patch "Patch Name"
 
 # Explicit overrides for bundle and package name
-uv run --project tools/apk-lab apk-lab check path/to/app.apkm \
+cargo run --locked --quiet --manifest-path tools/apk-lab/Cargo.toml --bin apk-lab -- check path/to/app.apkm \
   --mpp patches/build/libs/patches-X.X.X.mpp \
   --package com.example.app \
   --all
 
 # Retain workspace scratch files for inspection (ephemeral by default)
-uv run --project tools/apk-lab apk-lab check path/to/app.apkm \
+cargo run --locked --quiet --manifest-path tools/apk-lab/Cargo.toml --bin apk-lab -- check path/to/app.apkm \
   --all \
   --keep-workspace
 ```
@@ -120,7 +133,7 @@ uv run --project tools/apk-lab apk-lab check path/to/app.apkm \
 
 - `--mpp` is optional: when omitted, `apk-lab` automatically locates and uses the newest compiled `.mpp` bundle in `patches/build/libs/`.
 - `--package` is optional: when omitted, `apk-lab` automatically inspects the artifact and infers its package name.
-- **Pipe Safety**: CLI runners catch `BrokenPipeError` gracefully; piping output to `head`, `tail`, or `less` terminates with exit code 0 rather than raising unhandled broken pipe exceptions.
+- **Pipe Safety**: Output uses fallible writes, and the binary maps a closed pipe (`EPIPE`) to exit code 0; piping to `head`, `tail`, or `less` therefore terminates cleanly instead of panicking on a broken pipe.
 
 ### `clean` — Managed Workspace Cleanup
 
@@ -128,16 +141,16 @@ Safely removes managed run directories. With `--run <path>`, strictly verifies t
 
 ```bash
 # Clean specific run
-uv run --project tools/apk-lab apk-lab clean --run .apk-lab/com.example/run-dir
+cargo run --locked --quiet --manifest-path tools/apk-lab/Cargo.toml --bin apk-lab -- clean --run .apk-lab/com.example/run-dir
 
 # Clean all runs for an application package
-uv run --project tools/apk-lab apk-lab clean --package com.example.app
+cargo run --locked --quiet --manifest-path tools/apk-lab/Cargo.toml --bin apk-lab -- clean --package com.example.app
 
 # Clean runs older than N days
-uv run --project tools/apk-lab apk-lab clean --stale 7
+cargo run --locked --quiet --manifest-path tools/apk-lab/Cargo.toml --bin apk-lab -- clean --stale 7
 
 # Dry-run preview
-uv run --project tools/apk-lab apk-lab clean --package com.example.app --dry-run
+cargo run --locked --quiet --manifest-path tools/apk-lab/Cargo.toml --bin apk-lab -- clean --package com.example.app --dry-run
 ```
 
 ### `asm` — ARM64 Instruction Assembler & Branch Relocator
@@ -146,15 +159,15 @@ Encodes ARM64 machine instructions and computes 26-bit relative branch relocatio
 
 ```bash
 # Calculate relative branch and encode to little-endian hex bytes
-uv run --project tools/apk-lab apk-lab asm "bl 0x3c98ce4" --pc 0x1fcf6e8
+cargo run --locked --quiet --manifest-path tools/apk-lab/Cargo.toml --bin apk-lab -- asm "bl 0x3c98ce4" --pc 0x1fcf6e8
 # Output: 7f 25 73 94
 
 # Encode return instruction directly to Kotlin byteArrayOf syntax
-uv run --project tools/apk-lab apk-lab asm "ret" --format kotlin
+cargo run --locked --quiet --manifest-path tools/apk-lab/Cargo.toml --bin apk-lab -- asm "ret" --format kotlin
 # Output: byteArrayOf(0xc0.toByte(), 0x03, 0x5f, 0xd6.toByte())
 
 # Encode immediate register move
-uv run --project tools/apk-lab apk-lab asm "mov w1, #1"
+cargo run --locked --quiet --manifest-path tools/apk-lab/Cargo.toml --bin apk-lab -- asm "mov w1, #1"
 # Output: 21 00 80 52
 ```
 
@@ -164,10 +177,10 @@ Extracts and parses Unity `assets/bin/Data/Managed/Metadata/global-metadata.dat`
 
 ```bash
 # Query symbols matching a method name substring
-uv run --project tools/apk-lab apk-lab il2cpp path/to/game.apkm --query OpenShop
+cargo run --locked --quiet --manifest-path tools/apk-lab/Cargo.toml --bin apk-lab -- il2cpp path/to/game.apkm --query OpenShop
 
 # Export all symbols or matches to JSON stdout or file
-uv run --project tools/apk-lab apk-lab il2cpp path/to/game.apkm --query "Blackjack.*" --json symbols.json
+cargo run --locked --quiet --manifest-path tools/apk-lab/Cargo.toml --bin apk-lab -- il2cpp path/to/game.apkm --query "Blackjack.*" --json symbols.json
 ```
 
 ### `unity` — Unity Serialized Asset & GameObject Inspector
@@ -176,10 +189,10 @@ Inspects Unity serialized asset files (`assets/bin/Data/*.assets`, `*.assets.spl
 
 ```bash
 # Locate GameObject and calculate active-state byte offset
-uv run --project tools/apk-lab apk-lab unity path/to/game.apkm --gameobject Button_HelpCenter
+cargo run --locked --quiet --manifest-path tools/apk-lab/Cargo.toml --bin apk-lab -- unity path/to/game.apkm --gameobject Button_HelpCenter
 
 # Output matches as JSON
-uv run --project tools/apk-lab apk-lab unity path/to/game.apkm --gameobject Button_HelpCenter --json
+cargo run --locked --quiet --manifest-path tools/apk-lab/Cargo.toml --bin apk-lab -- unity path/to/game.apkm --gameobject Button_HelpCenter --json
 ```
 
 ### `deploy` — Deterministic Patch, Sign & Device Deployment
@@ -188,20 +201,20 @@ Applies Morphe patches from a `.mpp` bundle to an APK/APKM/XAPK/APKS artifact, a
 
 ```bash
 # Deploy all default-compatible patches to the single connected device and launch
-uv run --project tools/apk-lab apk-lab deploy path/to/app.apkm \
+cargo run --locked --quiet --manifest-path tools/apk-lab/Cargo.toml --bin apk-lab -- deploy path/to/app.apkm \
   --mpp patches/build/libs/patches-X.X.X.mpp \
   --package com.example.app \
   --all \
   --launch
 
 # Automatically compile newest .mpp bundle before deploying
-uv run --project tools/apk-lab apk-lab deploy path/to/app.apkm \
+cargo run --locked --quiet --manifest-path tools/apk-lab/Cargo.toml --bin apk-lab -- deploy path/to/app.apkm \
   --build \
   --package com.example.app \
   --all
 
 # Deploy explicit patches with options to a specific device emulator
-uv run --project tools/apk-lab apk-lab deploy path/to/app.apkm \
+cargo run --locked --quiet --manifest-path tools/apk-lab/Cargo.toml --bin apk-lab -- deploy path/to/app.apkm \
   --mpp patches/build/libs/patches-X.X.X.mpp \
   --package com.example.app \
   -e "Patch Name" \
@@ -211,17 +224,17 @@ uv run --project tools/apk-lab apk-lab deploy path/to/app.apkm \
   --out /tmp/deployed.apk
 
 # Deploy with custom keystore and signing credentials
-uv run --project tools/apk-lab apk-lab deploy path/to/app.apkm \
+cargo run --locked --quiet --manifest-path tools/apk-lab/Cargo.toml --bin apk-lab -- deploy path/to/app.apkm \
   --mpp patches/build/libs/patches-X.X.X.mpp \
   --package com.example.app \
   --all \
   --keystore /path/to/custom.keystore \
   --ks-alias mykey \
-  --ks-pass secretpass \
-  --key-pass secretpass
+  --ks-pass-file /path/to/ks.pass \
+  --key-pass-file /path/to/key.pass
 
 # Perform a clean install (destructively uninstalls first, clearing app data)
-uv run --project tools/apk-lab apk-lab deploy path/to/app.apkm \
+cargo run --locked --quiet --manifest-path tools/apk-lab/Cargo.toml --bin apk-lab -- deploy path/to/app.apkm \
   --mpp patches/build/libs/patches-X.X.X.mpp \
   --package com.example.app \
   --all \
@@ -233,9 +246,10 @@ uv run --project tools/apk-lab apk-lab deploy path/to/app.apkm \
 - `--all` selects all compatible patches marked `default: true` for the package, transitively resolving dependencies.
 - `--build` compiles the latest `.mpp` patch bundle via Gradle (`./gradlew :patches:buildAndroid`) automatically before deploying, making `--mpp` optional.
 - **Automatic Keystore Negotiation**: If `--keystore` is omitted, `apk-lab` inspects the installed package signature on the target device via ADB. If the installed app matches Morphe's bundled key signature, Morphe's cached keystore (`morphe-data/morphe.keystore`) is used automatically, preventing `INSTALL_FAILED_UPDATE_INCOMPATIBLE`. Otherwise, it falls back to the standard Android debug keystore (`~/.android/debug.keystore`, auto-created with permissions `0600` if absent).
-- Custom keystores and credentials can be specified using `--keystore PATH`, `--ks-alias ALIAS`, `--ks-pass PASS`, and `--key-pass PASS`.
+- Custom keystores and credentials can be specified using `--keystore PATH`, `--ks-alias ALIAS`, `--ks-pass-file PATH`, and `--key-pass-file PATH`.
+- `--ks-pass-file`/`--key-pass-file` read the secret from a `0600` regular file and are mutually exclusive with the inline `--ks-pass`/`--key-pass` forms. The inline forms still work but print a one-line note that their values are visible in process listings; prefer the file forms in automation.
 - Installs use data-preserving `adb install -r` by default (and with explicit `--reinstall`). `--clean-install` attempts `adb uninstall <package>` first (clearing app data; uninstall failure is ignored) before installing.
-- Staging occurs in a temporary directory inside the final output's parent directory, ensuring `os.replace` is same-filesystem atomic. Failures before destination replacement leave existing files untouched; installation or launch failures occur after the destination file has already been replaced.
+- Staging occurs in a temporary directory inside the final output's parent directory, so the final `fs::rename` stays on one filesystem and is atomic. Failures before destination replacement leave existing files untouched; installation or launch failures occur after the destination file has already been replaced.
 - When `--out PATH` is specified, the resolved output destination must not be identical to or alias the input artifact; deployment fails immediately before staging or device communication to prevent clobbering input files.
 
 ### `dev` — Rapid Patch Build, Deploy & Launch Loop
@@ -244,10 +258,10 @@ Provides an end-to-end rapid iteration command for local patch development. Auto
 
 ```bash
 # Build patches, discover target artifact, deploy, and cold-launch
-uv run --project tools/apk-lab apk-lab dev geocaching
+cargo run --locked --quiet --manifest-path tools/apk-lab/Cargo.toml --bin apk-lab -- dev geocaching
 
 # Target specific device and clean install
-uv run --project tools/apk-lab apk-lab dev sezzle --device emulator-5554 --clean-install
+cargo run --locked --quiet --manifest-path tools/apk-lab/Cargo.toml --bin apk-lab -- dev sezzle --device emulator-5554 --clean-install
 ```
 
 **Arguments & Behavior:**
@@ -264,12 +278,12 @@ Hooks into a running or freshly launched app process on an ADB device, monitors 
 
 ```bash
 # Monitor application health for 10 seconds
-uv run --project tools/apk-lab apk-lab monitor \
+cargo run --locked --quiet --manifest-path tools/apk-lab/Cargo.toml --bin apk-lab -- monitor \
   --package com.example.app \
   --timeout 10.0
 
 # Monitor with automatic thread dump capture on ANR or spin
-uv run --project tools/apk-lab apk-lab monitor \
+cargo run --locked --quiet --manifest-path tools/apk-lab/Cargo.toml --bin apk-lab -- monitor \
   --package com.example.app \
   --device emulator-5554 \
   --dump-threads
@@ -288,11 +302,11 @@ Retrieves the most recent Android logcat records for a package and extracts Java
 
 ```bash
 # Show recent crash summaries for the connected device (resolves Smali frames if workspace exists)
-uv run --project tools/apk-lab apk-lab crash-trace \
+cargo run --locked --quiet --manifest-path tools/apk-lab/Cargo.toml --bin apk-lab -- crash-trace \
   --package com.example.app
 
 # Query a specific device and emit machine-readable reports including resolved frames
-uv run --project tools/apk-lab apk-lab crash-trace \
+cargo run --locked --quiet --manifest-path tools/apk-lab/Cargo.toml --bin apk-lab -- crash-trace \
   --package com.example.app \
   --device emulator-5554 \
   --lines 10000 \
@@ -306,24 +320,55 @@ uv run --project tools/apk-lab apk-lab crash-trace \
 - `--lines N`: Number of recent logcat lines to inspect (default: `5000`).
 - `--json`: Emit an array of structured crash reports instead of a human-readable summary, including resolved frames with Smali file paths, method signatures, and code snippets when available.
 
+### `ui` — Device UI Hierarchy Inspection & Click Automation
+
+Dumps the current Android UI hierarchy through ADB and filters nodes by text, content description, or clickability; `ui click` clicks the first matching node or direct coordinates.
+
+```bash
+# Dump clickable nodes as JSON
+cargo run --locked --quiet --manifest-path tools/apk-lab/Cargo.toml --bin apk-lab -- ui dump --clickable --json
+
+# Click the first node whose text contains "Sign in"
+cargo run --locked --quiet --manifest-path tools/apk-lab/Cargo.toml --bin apk-lab -- ui click --text "Sign in"
+
+# Click direct coordinates
+cargo run --locked --quiet --manifest-path tools/apk-lab/Cargo.toml --bin apk-lab -- ui click --coords 540,1200
+```
+
+**Arguments:**
+
+- `ui dump`: `--device SERIAL`, `--clickable`, `--text TEXT`, `--desc DESC`, `--json`.
+- `ui click`: `--device SERIAL`, plus either `--coords X,Y` or at least one of `--text TEXT`, `--desc DESC`.
+
+### `selftest` — Native Contract Self-Check
+
+Validates the native exit-code table and JSON envelope without external tools or an artifact.
+
+```bash
+cargo run --locked --quiet --manifest-path tools/apk-lab/Cargo.toml --bin apk-lab -- selftest
+cargo run --locked --quiet --manifest-path tools/apk-lab/Cargo.toml --bin apk-lab -- selftest --json
+```
+
+`--json [FILE|-]` emits the self-test report as JSON; `-` or no value writes stdout.
+
 ### `inspect-code` — Targeted Class and Method Bytecode/AST Inspection & Diff
 
 Extracts or decompiles _only a single class or method_ directly from an APK without decompiling the entire multi-gigabyte application, and provides side-by-side unified diffs between unpatched and patched APKs.
 
 ```bash
 # Disassemble specific class to Smali
-uv run --project tools/apk-lab apk-lab inspect-code path/to/app.apkm \
+cargo run --locked --quiet --manifest-path tools/apk-lab/Cargo.toml --bin apk-lab -- inspect-code path/to/app.apkm \
   --class com.example.app.MainActivity \
   --format smali
 
 # Extract specific method using bare name or Dalvik descriptor
-uv run --project tools/apk-lab apk-lab inspect-code path/to/app.apkm \
+cargo run --locked --quiet --manifest-path tools/apk-lab/Cargo.toml --bin apk-lab -- inspect-code path/to/app.apkm \
   --class com.example.app.MainActivity \
   --method "onCreate(Landroid/os/Bundle;)V" \
   --format smali
 
 # Compare decompiled Java method between unpatched and patched APKs
-uv run --project tools/apk-lab apk-lab inspect-code patched.apk \
+cargo run --locked --quiet --manifest-path tools/apk-lab/Cargo.toml --bin apk-lab -- inspect-code patched.apk \
   --class com.example.app.MainActivity \
   --method onCreate \
   --format java \
@@ -344,13 +389,13 @@ Statically validates Smali instruction snippets prior to injecting them into Mor
 
 ```bash
 # Validate instruction format register widths
-uv run --project tools/apk-lab apk-lab validate-smali \
+cargo run --locked --quiet --manifest-path tools/apk-lab/Cargo.toml --bin apk-lab -- validate-smali \
   --snippet "instance-of v0, p1, Lcom/example/Target;" \
   --locals 2 \
   --params 2
 
 # Validate static method snippet with branch loop
-uv run --project tools/apk-lab apk-lab validate-smali \
+cargo run --locked --quiet --manifest-path tools/apk-lab/Cargo.toml --bin apk-lab -- validate-smali \
   --snippet "const/4 v0, 1\n:loop\nadd-int/lit8 v0, v0, 1\ngoto :loop" \
   --locals 2 \
   --params 0 \
@@ -375,23 +420,23 @@ Resolves resources and raw members across base APKs and configuration splits (`s
 
 ```bash
 # Query by hex resource ID
-uv run --project tools/apk-lab apk-lab res path/to/app.apkm \
+cargo run --locked --quiet --manifest-path tools/apk-lab/Cargo.toml --bin apk-lab -- res path/to/app.apkm \
   --query 0x7f08028e
 
 # Query by type/name or bare name
-uv run --project tools/apk-lab apk-lab res path/to/app.apkm \
+cargo run --locked --quiet --manifest-path tools/apk-lab/Cargo.toml --bin apk-lab -- res path/to/app.apkm \
   --query @drawable/map_preview_trails
 
 # Search string/text values using --text or --value alias
-uv run --project tools/apk-lab apk-lab res path/to/app.apkm \
+cargo run --locked --quiet --manifest-path tools/apk-lab/Cargo.toml --bin apk-lab -- res path/to/app.apkm \
   --text "Upgrade to Premium"
 
 # Search string/text values using query prefix syntax
-uv run --project tools/apk-lab apk-lab res path/to/app.apkm \
+cargo run --locked --quiet --manifest-path tools/apk-lab/Cargo.toml --bin apk-lab -- res path/to/app.apkm \
   --query text:"Upgrade to Premium"
 
 # Query by file path and extract matched drawables to disk
-uv run --project tools/apk-lab apk-lab res path/to/app.apkm \
+cargo run --locked --quiet --manifest-path tools/apk-lab/Cargo.toml --bin apk-lab -- res path/to/app.apkm \
   --query res/drawable-xxhdpi/map_preview_trails.webp \
   --extract /tmp/extracted_drawables
 ```
@@ -413,16 +458,16 @@ Parses the string identifier table (`string_ids_off`) directly from raw Dalvik D
 
 ```bash
 # Search strings matching regex query across all DEX files
-uv run --project tools/apk-lab apk-lab strings path/to/app.apkm -q "isNewUser"
+cargo run --locked --quiet --manifest-path tools/apk-lab/Cargo.toml --bin apk-lab -- strings path/to/app.apkm -q "isNewUser"
 
 # Filter by specific DEX file
-uv run --project tools/apk-lab apk-lab strings path/to/app.apkm -q "cc-api-data" --dex classes2.dex
+cargo run --locked --quiet --manifest-path tools/apk-lab/Cargo.toml --bin apk-lab -- strings path/to/app.apkm -q "cc-api-data" --dex classes2.dex
 
 # Case-sensitive search
-uv run --project tools/apk-lab apk-lab strings path/to/app.apkm -q "AdobeID" --case-sensitive
+cargo run --locked --quiet --manifest-path tools/apk-lab/Cargo.toml --bin apk-lab -- strings path/to/app.apkm -q "AdobeID" --case-sensitive
 
 # Output structured JSON
-uv run --project tools/apk-lab apk-lab strings path/to/app.apkm -q "api.endpoint" --json -
+cargo run --locked --quiet --manifest-path tools/apk-lab/Cargo.toml --bin apk-lab -- strings path/to/app.apkm -q "api.endpoint" --json -
 ```
 
 ### `manifest` — AndroidManifest Component and Intent Filter Inspector
@@ -431,17 +476,17 @@ Extracts structured component declarations (`activity`, `service`, `receiver`, `
 
 ```bash
 # Inspect all declared components
-uv run --project tools/apk-lab apk-lab manifest path/to/app.apkm
+cargo run --locked --quiet --manifest-path tools/apk-lab/Cargo.toml --bin apk-lab -- manifest path/to/app.apkm
 
 # Filter by component type
-uv run --project tools/apk-lab apk-lab manifest path/to/app.apkm --type provider
-uv run --project tools/apk-lab apk-lab manifest path/to/app.apkm --type receiver
+cargo run --locked --quiet --manifest-path tools/apk-lab/Cargo.toml --bin apk-lab -- manifest path/to/app.apkm --type provider
+cargo run --locked --quiet --manifest-path tools/apk-lab/Cargo.toml --bin apk-lab -- manifest path/to/app.apkm --type receiver
 
 # Filter component names with regex
-uv run --project tools/apk-lab apk-lab manifest path/to/app.apkm --filter "InitProvider"
+cargo run --locked --quiet --manifest-path tools/apk-lab/Cargo.toml --bin apk-lab -- manifest path/to/app.apkm --filter "InitProvider"
 
 # Output structured JSON
-uv run --project tools/apk-lab apk-lab manifest path/to/app.apkm --type provider --json -
+cargo run --locked --quiet --manifest-path tools/apk-lab/Cargo.toml --bin apk-lab -- manifest path/to/app.apkm --type provider --json -
 ```
 
 ### `fixtures` — Private R2 Cloud Fixtures
@@ -450,16 +495,16 @@ Manages the two-slot private R2 storage architecture (`fixtures/<package>/latest
 
 ```bash
 # Seed a target slot from a verified local artifact
-uv run --project tools/apk-lab apk-lab fixtures seed \
+cargo run --locked --quiet --manifest-path tools/apk-lab/Cargo.toml --bin apk-lab -- fixtures seed \
   --package com.example.app \
   --role target \
   --artifact path/to/app.apkm
 
 # Inspect slot metadata in R2
-uv run --project tools/apk-lab apk-lab fixtures info --package com.example.app
+cargo run --locked --quiet --manifest-path tools/apk-lab/Cargo.toml --bin apk-lab -- fixtures info --package com.example.app
 
 # Download a fixture slot
-uv run --project tools/apk-lab apk-lab fixtures download \
+cargo run --locked --quiet --manifest-path tools/apk-lab/Cargo.toml --bin apk-lab -- fixtures download \
   --package com.example.app \
   --role target \
   --out /tmp/target.apk
@@ -472,10 +517,10 @@ Prerequisites: Google Play credentials configured via `APKEEP_ACCOUNTS` or `goog
 
 ```bash
 # Acquire latest version of an application package
-uv run --project tools/apk-lab apk-lab acquire com.example.app
+cargo run --locked --quiet --manifest-path tools/apk-lab/Cargo.toml --bin apk-lab -- acquire com.example.app
 
 # Acquire specific version to an explicit output directory
-uv run --project tools/apk-lab apk-lab acquire com.example.app --version 2.22.08 --out-dir /tmp/artifacts
+cargo run --locked --quiet --manifest-path tools/apk-lab/Cargo.toml --bin apk-lab -- acquire com.example.app --version 2.22.08 --out-dir /tmp/artifacts
 ```
 
 ### `play-accounts` — Google Play Account Management
@@ -484,7 +529,7 @@ Interactive TUI for managing Google Play accounts stored at `${XDG_CONFIG_HOME:-
 
 ```bash
 # Launch interactive TUI via apk-lab
-uv run --project tools/apk-lab apk-lab play-accounts
+cargo run --locked --quiet --manifest-path tools/apk-lab/Cargo.toml --bin apk-lab -- play-accounts
 
 # Launch via root package.json shortcut
 bun run play-accounts
@@ -513,7 +558,7 @@ Features:
 4. **Implement**: Define fail-fast Morphe patches in Kotlin using `compositeFeaturePatch`, `bytecodePatch`, `resourcePatch`, or `rawResourcePatch`. Register `Compatibility(name, packageName, apkFileType, signatures, targets)`.
 5. **Compile**: Run `./gradlew :patches:buildAndroid --no-daemon`.
 6. **Verify**: Run `apk-lab check <artifact> --mpp patches/build/libs/patches-*.mpp --package <pkg> --all`.
-7. **Device Smoke Test**: Deploy and monitor on an emulator or test device (`uv run --project tools/apk-lab apk-lab deploy <artifact> --mpp <bundle> --package <pkg> --all --launch` followed by `uv run --project tools/apk-lab apk-lab monitor --package <pkg> --timeout 10.0 --dump-threads`) and smoke test user flows.
+7. **Device Smoke Test**: Deploy and monitor on an emulator or test device (`cargo run --locked --quiet --manifest-path tools/apk-lab/Cargo.toml --bin apk-lab -- deploy <artifact> --mpp <bundle> --package <pkg> --all --launch` followed by `cargo run --locked --quiet --manifest-path tools/apk-lab/Cargo.toml --bin apk-lab -- monitor --package <pkg> --timeout 10.0 --dump-threads`) and smoke test user flows.
 8. **Clean**: Clean the workspace with `apk-lab clean --run <path>`.
 
 ### Migrating Existing Patches on App Updates
@@ -524,7 +569,7 @@ Features:
 4. **Analyze & Remap**: Run `apk-lab analyze <new_artifact> --smali` to rediscover changed classes, obfuscated descriptors, and instructions using stable landmarks. For native/Unity patches, rerun `apk-lab il2cpp` and `apk-lab unity` to update shifted offsets.
 5. **Update Source**: Update patch definitions, extension classes, and bump target in `Constants.kt`.
 6. **Matrix Check**: Rebuild and run `apk-lab check <new_artifact> --mpp <bundle> --package <pkg> --all`. Require 100% pass rate.
-7. **Documentation & List**: Update reverse engineering specs in `docs/<app>/`, run `./gradlew generatePatchesList`, and sync README with `python3 .github/scripts/generate_patches_readme.py ihatenodejs/aidans-patches dev patches-list.json README.md`.
+7. **Documentation & List**: Update reverse engineering specs in `docs/<app>/`, run `./gradlew generatePatchesList`, and sync README with `bun scripts/generate-patches-readme.ts ihatenodejs/aidans-patches dev patches-list.json README.md`.
 
 ---
 
@@ -533,3 +578,46 @@ Features:
 - **Durable vs. Disposable**: Durable repository changes are patch Kotlin sources, Java extension sources, compatibility metadata, docs, tests, and web UI. APK files, decompiled smali/java trees, patched APK outputs, and downloader tokens are **disposable and never committed**.
 - **Private Fixtures**: APK fixture bytes exist only in runner temp memory or the private `aidans-patches-apk-fixtures` R2 bucket. Public worker endpoints and status APIs only return metadata and status badges, never proprietary binaries.
 - **Fail-Fast Invariant**: All patches enforce strict preconditions; if bytecode shapes differ, patches throw `PatchException` rather than generating corrupted APKs.
+
+---
+
+### Native implementation
+
+`tools/apk-lab` builds the single production `apk-lab` binary. It covers archive
+security and workspace management plus `setup`, `doctor`, `inspect`, `clean`,
+`analyze`, `compare`, `check`, `deploy`, `monitor`, `crash-trace`, `asm`,
+`il2cpp`, `unity`, `inspect-code`, `validate-smali`, `res`, `strings`,
+`manifest`, `fixtures`, `acquire`, `play-accounts`, `ui`, `selftest`, and the
+compatibility `ci matrix|start|run` entrypoints. It never invokes Python.
+
+```bash
+cargo build --release --locked --manifest-path tools/apk-lab/Cargo.toml --bin apk-lab
+tools/apk-lab/target/release/apk-lab --help
+tools/apk-lab/target/release/apk-lab inspect app.apkm --json
+```
+
+Archive limits, workspace markers, tool-cache layout, exit codes, and `--json`
+modes are covered by the native test suite and recorded compatibility evidence.
+`ci` preserves the original request-ID, saved-submission, 2xx-only marker, and
+Worker payload semantics. Acquisition keeps the serialized
+`apkeep`/`goopdl`/`apkmirror`/`manual` source labels while using native delivery
+with no Python subprocess.
+
+## 5. Migration Evidence
+
+The native implementation was validated against an independent Python oracle during
+the Rust migration. The migration summary and static charts are retained under
+[docs/apk-lab-rust-migration.md](apk-lab-rust-migration.md) and
+`docs/benchmarks/apk-lab/charts/`; raw benchmark evidence remains in Git history.
+The historical migration harness and Python implementation were retired after
+acceptance.
+
+Normal development uses the production `apk-lab` binary and its native test suite.
+There is no repository command that invokes Python. Generated migration output
+(`.apk-lab-migration/`) and private corpus manifests
+(`docs/benchmarks/apk-lab/*.local.json`) remain ignored. Public files contain only
+sanitized identities and hashes, never proprietary APK bytes or credentials.
+
+Authorized device, Play, R2, Worker, and compatibility-workflow evidence was captured
+during the migration. Rerun those scenarios when changing an entrypoint or delivery
+behavior; report viewing does not contact live services.

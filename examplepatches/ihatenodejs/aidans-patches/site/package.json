@@ -10,7 +10,7 @@
     "astro": "astro",
     "test": "bun test",
     "check": "astro check",
-    "check:icons": "python3 ../.github/scripts/sync_app_icons.py --check-only"
+    "check:icons": "bun ../scripts/asset-prep.ts icons --check-only"
   },
   "dependencies": {
     "@astrojs/check": "^0.9.4",

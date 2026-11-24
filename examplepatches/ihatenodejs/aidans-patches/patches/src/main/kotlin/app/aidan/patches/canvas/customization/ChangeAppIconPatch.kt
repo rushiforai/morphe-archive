@@ -1,12 +1,16 @@
 package app.aidan.patches.canvas.customization
 
 import app.aidan.patches.canvas.shared.COMPATIBILITY_CANVAS
+import app.aidan.patches.shared.compositeFeaturePatch
+import app.aidan.patches.shared.isEnabled
+import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
+import app.morphe.patcher.patch.BytecodePatchContext
 import app.morphe.patcher.patch.ImageSize
 import app.morphe.patcher.patch.PatchException
 import app.morphe.patcher.patch.ResourcePatchContext
 import app.morphe.patcher.patch.imageOption
-import app.morphe.patcher.patch.resourcePatch
 import app.morphe.patcher.patch.stringOption
+import com.android.tools.smali.dexlib2.iface.instruction.NarrowLiteralInstruction
 import org.w3c.dom.Document
 import org.w3c.dom.Element
 import java.awt.image.BufferedImage
@@ -24,17 +28,34 @@ private const val MAX_FOREGROUND_DIMENSION = 4096
 private const val CUSTOM_FOREGROUND_RESOURCE_NAME = "aidan_canvas_launcher_foreground"
 private const val CUSTOM_FOREGROUND_DRAWABLE = "@drawable/$CUSTOM_FOREGROUND_RESOURCE_NAME"
 private const val BACKGROUND_COLOR_RESOURCE_NAME = "aidan_canvas_launcher_background"
+private const val SPLASH_BACKGROUND_COLOR_RESOURCE_NAME = "aidan_canvas_splash_background"
 private const val VECTOR_FOREGROUND_PATH = "res/drawable/ic_launcher_foreground.xml"
-private const val ORIGINAL_FOREGROUND_COLOR = "#e62429"
+private const val DEFAULT_FOREGROUND_COLOR = "#E62429"
+private const val DEFAULT_BACKGROUND_COLOR = "#FFFFFF"
+private const val DEFAULT_SPLASH_BACKGROUND_COLOR = "#FFFFFF"
 
 private const val ADAPTIVE_ICON_PATH = "res/mipmap/ic_launcher.xml"
 private const val ADAPTIVE_ICON_V26_PATH = "res/mipmap-anydpi/ic_launcher.xml"
 private const val ADAPTIVE_ICON_VERSIONED_PATH = "res/mipmap-anydpi-v26/ic_launcher.xml"
 
+private const val SPLASH_BACKGROUND_PATH = "res/drawable/splash_background_student.xml"
+private const val SPLASH_LAYOUT_PATH = "res/layout/activity_init_login.xml"
+private const val STYLES_PATH = "res/values/styles.xml"
+private const val SPLASH_THEME_NAME = "LoginFlowTheme.Splash_Student"
+private const val SPLASH_ICON_DRAWABLE = "@drawable/ic_splash_icon_student"
+private const val LOGIN_LAYOUT_BACKGROUND = "@color/backgroundLightest"
+private const val SPLASH_BACKGROUND_REFERENCE = "@color/$SPLASH_BACKGROUND_COLOR_RESOURCE_NAME"
+private const val SPLASH_THEME_BACKGROUND_ATTRIBUTE = "android:windowSplashScreenBackground"
+private const val LOGIN_ACTIVITY_DESCRIPTOR = "Lcom/instructure/student/activity/LoginActivity;"
+private const val LOGIN_LANDING_ACTIVITY_DESCRIPTOR =
+    "Lcom/instructure/student/activity/LoginLandingPageActivity;"
+private const val LOGIN_THEME_COLOR_RESOURCE_ID = 0x7f06010c
+
 @Suppress("unused")
-val changeAppIconPatch = resourcePatch(
+val changeAppIconPatch = compositeFeaturePatch(
     name = "Change App Icon",
     description = "Recolors the Canvas launcher icon and optionally replaces its foreground with a custom PNG. " +
+        "The colors also theme the launch splash screen and the signed-out Canvas logo when changed. " +
         "The image is an adaptive-icon foreground, so launchers mask it to their icon shape; keep artwork inside " +
         "the central safe area of a 432x432 PNG.",
     default = false
@@ -42,40 +63,113 @@ val changeAppIconPatch = resourcePatch(
     category("Customization")
     compatibleWith(COMPATIBILITY_CANVAS)
 
-    val foregroundColorOption = stringOption(
-        key = "foregroundColor",
-        default = "#E62429",
-        title = "Foreground Color",
-        description = "Color of the original launcher foreground vector (#RRGGBB or opaque #AARRGGBB). Also tints the monochrome icon vector."
+    val foregroundColorOption = registerOption(
+        stringOption(
+            key = "foregroundColor",
+            default = DEFAULT_FOREGROUND_COLOR,
+            title = "Foreground Color",
+            description = "Color of the original launcher foreground vector (#RRGGBB or opaque #AARRGGBB). " +
+                "Also tints the monochrome icon vector and, when changed from the default, the splash logo, " +
+                "animated loader, and signed-out Canvas logo."
+        )
     )
 
-    val backgroundColorOption = stringOption(
-        key = "backgroundColor",
-        default = "#FFFFFF",
-        title = "Background Color",
-        description = "Adaptive icon background color (#RRGGBB or opaque #AARRGGBB)."
+    val backgroundColorOption = registerOption(
+        stringOption(
+            key = "backgroundColor",
+            default = DEFAULT_BACKGROUND_COLOR,
+            title = "Background Color",
+            description = "Adaptive icon background color (#RRGGBB or opaque #AARRGGBB)."
+        )
     )
 
-    val customForegroundOption = imageOption(
-        key = "customForeground",
-        default = "",
-        title = "Custom Foreground Image",
-        description = "Optional square PNG used as the adaptive icon foreground. The launcher masks the image " +
-            "to its icon shape, so keep artwork inside the central safe area.",
-        allowedExtensions = listOf("png"),
-        recommendedSize = ImageSize(432, 432)
+    val splashBackgroundColorOption = registerOption(
+        stringOption(
+            key = "splashBackgroundColor",
+            default = DEFAULT_SPLASH_BACKGROUND_COLOR,
+            title = "Splash Background Color",
+            description = "Splash screen background color used when Theme Splash Screen is enabled " +
+                "(#RRGGBB or opaque #AARRGGBB). Independent of the launcher icon background."
+        )
     )
 
-    execute {
+    val themeSplashScreenOption = booleanOption(
+        key = "themeSplashScreen",
+        default = true,
+        title = "Theme Splash Screen",
+        description = "Applies the splash background color to the Android 12+ system splash and the legacy splash " +
+            "window, and the foreground color to the splash logo and animated loader, when each differs from " +
+            "its default."
+    )
+
+    val themeLandingLogoOption = booleanOption(
+        key = "themeLandingLogo",
+        default = true,
+        title = "Theme Signed-Out Logo",
+        description = "Tints the Canvas mark on the signed-out landing page with the foreground color when it " +
+            "differs from the default."
+    )
+
+    val customForegroundOption = registerOption(
+        imageOption(
+            key = "customForeground",
+            default = "",
+            title = "Custom Foreground Image",
+            description = "Optional square PNG used as the adaptive icon foreground. The launcher masks the image " +
+                "to its icon shape, so keep artwork inside the central safe area.",
+            allowedExtensions = listOf("png"),
+            recommendedSize = ImageSize(432, 432)
+        )
+    )
+
+    resources {
         val foregroundColor = normalizeRgbColor("foregroundColor", foregroundColorOption.value)
         val backgroundColor = normalizeRgbColor("backgroundColor", backgroundColorOption.value)
+        val splashBackgroundColor = normalizeRgbColor(
+            "splashBackgroundColor",
+            splashBackgroundColorOption.value
+        )
         val customForeground = customForegroundOption.value?.trim().orEmpty()
 
         recolorForegroundVector(foregroundColor)
-        updateBackgroundColorResource(backgroundColor)
+        updateColorResource(BACKGROUND_COLOR_RESOURCE_NAME, backgroundColor)
         updateAdaptiveIcons(backgroundColor, customForeground)
+
+        // A customized splash color is intentionally not night-adaptive.
+        val splashBackgroundCustomized = splashBackgroundColor != DEFAULT_SPLASH_BACKGROUND_COLOR
+        val foregroundCustomized = foregroundColor != DEFAULT_FOREGROUND_COLOR
+        val themeSplashScreen = themeSplashScreenOption.isEnabled
+
+        if (themeSplashScreen && (splashBackgroundCustomized || foregroundCustomized)) {
+            if (splashBackgroundCustomized) {
+                updateColorResource(SPLASH_BACKGROUND_COLOR_RESOURCE_NAME, splashBackgroundColor)
+            }
+            updateSplashDrawable(
+                recolorBackground = splashBackgroundCustomized,
+                foregroundColor = foregroundColor.takeIf { foregroundCustomized },
+            )
+        }
+        if (themeSplashScreen && splashBackgroundCustomized) {
+            updateSplashLayoutBackground()
+            updateSplashThemeBackground()
+        }
+    }
+
+    bytecode {
+        val foregroundColor = normalizeRgbColor("foregroundColor", foregroundColorOption.value)
+        if (foregroundColor != DEFAULT_FOREGROUND_COLOR) {
+            if (themeSplashScreenOption.isEnabled) {
+                overrideThemeColor(LOGIN_ACTIVITY_DESCRIPTOR, foregroundColor)
+            }
+            if (themeLandingLogoOption.isEnabled) {
+                overrideThemeColor(LOGIN_LANDING_ACTIVITY_DESCRIPTOR, foregroundColor)
+            }
+        }
     }
 }
+
+/** Normalized colors are "#RRGGBB"; Android color ints need the opaque alpha channel. */
+private fun argbColorInt(color: String): Int = 0xFF000000.toInt() or color.substring(1).toLong(16).toInt()
 
 private fun normalizeRgbColor(optionName: String, value: String?): String {
     val color = value?.trim().orEmpty()
@@ -100,14 +194,14 @@ private fun ResourcePatchContext.recolorForegroundVector(foregroundColor: String
         for (index in 0 until paths.length) {
             val path = paths.item(index) as? Element ?: continue
             val fillColor = path.getAttribute("android:fillColor")
-            if (!fillColor.equals(ORIGINAL_FOREGROUND_COLOR, ignoreCase = true)) continue
+            if (!fillColor.equals(DEFAULT_FOREGROUND_COLOR, ignoreCase = true)) continue
             path.setAndroidAttribute("fillColor", foregroundColor)
             updated++
         }
 
         if (updated == 0) {
             throw PatchException(
-                "No path with android:fillColor=\"$ORIGINAL_FOREGROUND_COLOR\" was found in $VECTOR_FOREGROUND_PATH."
+                "No path with android:fillColor=\"$DEFAULT_FOREGROUND_COLOR\" was found in $VECTOR_FOREGROUND_PATH."
             )
         }
     }
@@ -118,7 +212,7 @@ private fun ResourcePatchContext.recolorForegroundVector(foregroundColor: String
  * literal compiles, but launchers can fail to inflate it and fall back to the default Android
  * icon. Keep the value in a color resource so the background is a normal resource reference.
  */
-private fun ResourcePatchContext.updateBackgroundColorResource(backgroundColor: String) {
+private fun ResourcePatchContext.updateColorResource(resourceName: String, color: String) {
     document("res/values/colors.xml").use { document ->
         val resources = document.documentElement
         if (resources.tagName != "resources") {
@@ -127,16 +221,16 @@ private fun ResourcePatchContext.updateBackgroundColorResource(backgroundColor: 
 
         val colors = document.getElementsByTagName("color")
         for (index in 0 until colors.length) {
-            val color = colors.item(index) as? Element ?: continue
-            if (color.getAttribute("name") != BACKGROUND_COLOR_RESOURCE_NAME) continue
-            color.textContent = backgroundColor
+            val existing = colors.item(index) as? Element ?: continue
+            if (existing.getAttribute("name") != resourceName) continue
+            existing.textContent = color
             return@use
         }
 
-        val color = document.createElement("color")
-        color.setAttribute("name", BACKGROUND_COLOR_RESOURCE_NAME)
-        color.textContent = backgroundColor
-        resources.appendChild(color)
+        val declared = document.createElement("color")
+        declared.setAttribute("name", resourceName)
+        declared.textContent = color
+        resources.appendChild(declared)
     }
 }
 
@@ -196,6 +290,90 @@ private fun ResourcePatchContext.copyVersionedAdaptiveIcon() {
     val source = get(ADAPTIVE_ICON_V26_PATH)
     destination.parentFile?.mkdirs()
     source.copyTo(destination)
+}
+
+private fun ResourcePatchContext.updateSplashDrawable(
+    recolorBackground: Boolean,
+    foregroundColor: String?,
+) {
+    document(SPLASH_BACKGROUND_PATH).use { document ->
+        val root = document.documentElement
+        if (root.tagName != "layer-list") {
+            throw PatchException("Expected <layer-list> root in $SPLASH_BACKGROUND_PATH, found <${root.tagName}>.")
+        }
+
+        val colors = document.getElementsByTagName("color")
+        if (colors.length != 1) {
+            throw PatchException("Expected exactly one <color> in $SPLASH_BACKGROUND_PATH, found ${colors.length}.")
+        }
+
+        val bitmaps = document.getElementsByTagName("bitmap")
+        if (bitmaps.length != 1) {
+            throw PatchException("Expected exactly one <bitmap> in $SPLASH_BACKGROUND_PATH, found ${bitmaps.length}.")
+        }
+
+        val bitmap = bitmaps.item(0) as Element
+        val src = bitmap.getAttribute("android:src")
+        if (src != SPLASH_ICON_DRAWABLE) {
+            throw PatchException(
+                "Unexpected splash icon in $SPLASH_BACKGROUND_PATH: '$src'. Expected '$SPLASH_ICON_DRAWABLE'."
+            )
+        }
+
+        // The stock background is a color attribute, not element text.
+        if (recolorBackground) {
+            (colors.item(0) as Element).setAndroidAttribute("color", SPLASH_BACKGROUND_REFERENCE)
+        }
+        foregroundColor?.let { bitmap.setAndroidAttribute("tint", it) }
+    }
+}
+
+private fun ResourcePatchContext.updateSplashLayoutBackground() {
+    document(SPLASH_LAYOUT_PATH).use { document ->
+        val root = document.documentElement
+        if (root.tagName != "FrameLayout") {
+            throw PatchException("Expected <FrameLayout> root in $SPLASH_LAYOUT_PATH, found <${root.tagName}>.")
+        }
+
+        val current = root.getAttribute("android:background")
+        if (current != LOGIN_LAYOUT_BACKGROUND) {
+            throw PatchException(
+                "Unexpected splash layout background '$current' in $SPLASH_LAYOUT_PATH. " +
+                    "Expected '$LOGIN_LAYOUT_BACKGROUND'."
+            )
+        }
+
+        root.setAndroidAttribute("background", SPLASH_BACKGROUND_REFERENCE)
+    }
+}
+
+private fun ResourcePatchContext.updateSplashThemeBackground() {
+    document(STYLES_PATH).use { document ->
+        val styleNodes = document.getElementsByTagName("style")
+        val matches = (0 until styleNodes.length).mapNotNull { styleNodes.item(it) as? Element }
+            .filter { it.getAttribute("name") == SPLASH_THEME_NAME }
+        if (matches.size != 1) {
+            throw PatchException(
+                "Expected exactly one <style name=\"$SPLASH_THEME_NAME\"> in $STYLES_PATH, found ${matches.size}."
+            )
+        }
+
+        val style = matches.single()
+        val items = style.getElementsByTagName("item")
+        var updated = false
+        for (index in 0 until items.length) {
+            val item = items.item(index) as? Element ?: continue
+            if (item.getAttribute("name") != SPLASH_THEME_BACKGROUND_ATTRIBUTE) continue
+            item.textContent = SPLASH_BACKGROUND_REFERENCE
+            updated = true
+        }
+        if (!updated) {
+            val item = document.createElement("item")
+            item.setAttribute("name", SPLASH_THEME_BACKGROUND_ATTRIBUTE)
+            item.textContent = SPLASH_BACKGROUND_REFERENCE
+            style.appendChild(item)
+        }
+    }
 }
 
 private fun requireOriginalForeground(document: Document) {
@@ -345,4 +523,36 @@ private fun ResourcePatchContext.findResourceFiles(resourceName: String): List<F
     return resDirectory.walkTopDown()
         .filter { it.isFile && it.nameWithoutExtension == resourceName }
         .toList()
+}
+
+/**
+ * BaseLoginInitActivity.applyTheme() feeds themeColor() into CanvasLoadingView.setOverrideColor(),
+ * and BaseLoginLandingPageActivity.applyTheme() feeds it into ColorUtils.colorIt(canvasLogo), so
+ * prepending a constant recolors the launch loader and the signed-out landing page logo together.
+ * FindSchoolActivity and other login screens override themeColor() separately and stay untouched.
+ */
+private fun BytecodePatchContext.overrideThemeColor(classDescriptor: String, foregroundColor: String) {
+    val activity = mutableClassDefByOrNull(classDescriptor)
+        ?: throw PatchException("Missing class $classDescriptor for splash theming.")
+    val themeColor = activity.methods.firstOrNull {
+        it.name == "themeColor" && it.parameterTypes.isEmpty() && it.returnType == "I"
+    } ?: throw PatchException("Missing themeColor()I in $classDescriptor.")
+    val implementation = themeColor.implementation
+        ?: throw PatchException("themeColor()I has no implementation in $classDescriptor.")
+
+    val resolvesOriginalColor = implementation.instructions.any {
+        (it as? NarrowLiteralInstruction)?.narrowLiteral == LOGIN_THEME_COLOR_RESOURCE_ID
+    }
+    if (!resolvesOriginalColor) {
+        throw PatchException(
+            "themeColor()I no longer resolves R.color.login_studentAppTheme " +
+                "(0x${LOGIN_THEME_COLOR_RESOURCE_ID.toString(16)}) in $classDescriptor."
+        )
+    }
+    if (implementation.registerCount < 2) {
+        throw PatchException("themeColor()I has ${implementation.registerCount} registers; v0 is required.")
+    }
+
+    val literal = argbColorInt(foregroundColor).toUInt().toString(16).uppercase()
+    themeColor.addInstructions(0, "const v0, 0x$literal\nreturn v0")
 }

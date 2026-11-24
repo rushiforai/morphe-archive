@@ -147,6 +147,10 @@ internal enum class PatchList(
         "Adds a Watch later button to video thumbnails in feeds, " +
                 "and opens the video menu by tapping and holding anywhere on a video."
     ),
+    HOME_FEED_CHANNEL_NAMES(
+        "Home feed channel names",
+        "Adds an option to show channel display names instead of handles below video titles in the Home feed."
+    ),
     FEED_VIEW_COUNT(
         "Feed view count",
         "Adds options to hide view counts or upload dates below feed videos and show view counts on thumbnails."

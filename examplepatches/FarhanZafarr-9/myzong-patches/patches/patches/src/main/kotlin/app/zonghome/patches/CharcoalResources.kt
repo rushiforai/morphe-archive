@@ -85,7 +85,9 @@ internal class CharcoalResources {
     }
 
     /** Read id entries without changing the palette or resource table. */
-    fun viewIds(input:ByteArray,wanted:Set<String>):Map<String,Int> {
+    fun viewIds(input:ByteArray,wanted:Set<String>):Map<String,Int> = resourceIds(input,wanted,"id")
+
+    fun resourceIds(input:ByteArray,wanted:Set<String>,resourceType:String):Map<String,Int> {
         require(u16(input,0)==2 && size(input,0)==input.size)
         val result=mutableMapOf<String,Int>()
         for((_,pkg) in children(input)) {
@@ -98,7 +100,7 @@ internal class CharcoalResources {
             for((_,type) in children(pkg)) {
                 if(u16(type,0)!=0x201)continue
                 val typeId=type[8].toInt() and 255
-                if(types.getOrNull(typeId-1)!="id")continue
+                if(types.getOrNull(typeId-1)!=resourceType)continue
                 val start=i32(type,16)
                 for(slot in slots(type)) {
                     val entry=start+slot.offset;val key=i32(type,entry+4)
@@ -111,6 +113,52 @@ internal class CharcoalResources {
         return result
     }
 
+    /** Alias every density of an existing drawable to the chosen vector. */
+    fun drawableAlias(input: ByteArray, sourceId: Int, targetId: Int): ByteArray {
+        val result=input.copyOf(); var changed=0
+        for((pkgAt,pkg) in children(input)) {
+            if(u16(pkg,0)!=0x200 || i32(pkg,8)!=(sourceId ushr 24))continue
+            val typeOffset=if(u16(pkg,2)>=288)i32(pkg,284)else 0
+            for((typeAt,type) in children(pkg)) {
+                if(u16(type,0)!=0x201 || (type[8].toInt() and 255)+typeOffset!=((sourceId ushr 16) and 255))continue
+                for(slot in slots(type))if(slot.index==(sourceId and 65535)) {
+                    val entry=i32(type,16)+slot.offset
+                    check(u16(type,entry+2) and 1 == 0) { "Complex splash drawable" }
+                    val value=pkgAt+typeAt+entry+u16(type,entry)
+                    result[value+3]=1
+                    java.nio.ByteBuffer.wrap(result).order(java.nio.ByteOrder.LITTLE_ENDIAN).putInt(value+4,targetId)
+                    changed++
+                }
+            }
+        }
+        check(changed>0) { "Splash drawable not found" }
+        return result
+    }
+
+    /** Replace launcher references without touching application labels or notification icons. */
+    fun launcherIconReferences(input:ByteArray,iconId:Int):ByteArray {
+        require(u16(input,0)==3 && size(input,0)==input.size)
+        val result=input.copyOf()
+        var strings=emptyList<String>();var resources=emptyList<Int>();var at=u16(input,2);var changed=0
+        while(at<input.size) {
+            val length=size(input,at)
+            if(u16(input,at)==1)strings=pool(input.copyOfRange(at,at+length))
+            if(u16(input,at)==0x180)resources=(at+8 until at+length step 4).map { i32(input,it) }
+            if(u16(input,at)==0x102 && strings.getOrNull(i32(input,at+20))=="application") {
+                val first=at+16+u16(input,at+24);val stride=u16(input,at+26);val count=u16(input,at+28)
+                require(stride>=20 && first.toLong()+stride.toLong()*count<=at+length)
+                repeat(count) { index ->
+                    val p=first+index*stride
+                    if(resources.getOrNull(i32(input,p+4)) in setOf(0x01010002,0x0101052c)) {
+                        put32(result,p+8,-1);result[p+15]=1;put32(result,p+16,iconId);changed++
+                    }
+                }
+            }
+            at+=length
+        }
+        check(changed==2) { "Expected both application launcher icon references, found $changed" }
+        return result
+    }
     /** Set initial visibility before inflation, adding sorted attributes when absent. */
     fun initialVisibility(input:ByteArray,hidden:Map<Int,Int>,collapse:Pair<Int,Set<Int>>?=null):ByteArray {
         require(u16(input,0)==3 && size(input,0)==input.size)
@@ -288,7 +336,9 @@ internal class CharcoalResources {
     /** Changes existing typed XML values in place. No strings, nodes or resource IDs are added. */
     fun xml(input: ByteArray, path: String, staticSplash: Boolean = false): ByteArray {
         if (input.size < 8 || u16(input, 0) != 3) return input
-        val result = input.copyOf(); var names = emptyList<String>(); var attributeIds = emptyList<Int>(); var rewardPathIndex = -1; var at = u16(input, 2); var depth = 0
+        if (path.endsWith("/ic_launcher_background.xml")) return input // Launcher Light/Dark presets are independent of app dark mode.
+        val result = input.copyOf(); var names = emptyList<String>(); var attributeIds = emptyList<Int>(); var rewardPathIndex = -1; var illustrationPathIndex = -1; var at = u16(input, 2); var depth = 0
+        val mapIllustration=path.substringAfterLast("/")=="ic_illustration_one.xml"
         val rewardVector=path.substringAfterLast("/")=="ic_reward_box.xml"
         val dialogLayout=Regex("res/layout[^/]*/(alert_success_failure.*|view_success_failure_alert|popup_reward_6gb|daily_rewards_congrats|profile_rewards_congrats|view_daily_rewards_game_end)\\.xml").matches(path)
         val dialogShape=path.substringAfterLast("/") in setOf("confirmation_background.xml","confirmation_image_bg.xml","card_background_bottom.xml","sidenav_divider.xml")
@@ -300,6 +350,7 @@ internal class CharcoalResources {
             if (u16(input, at) == 0x102) {
                 val elementName=names.getOrNull(i32(input,at+20))
                 if(rewardVector && elementName=="path")rewardPathIndex++
+                if(mapIllustration && elementName=="path")illustrationPathIndex++
                 val rootLayout = depth == 0 && path.startsWith("res/layout")
                 val stride = u16(input, at + 26); val count = u16(input, at + 28)
                 val first = at + 16 + u16(input, at + 24)
@@ -329,6 +380,7 @@ internal class CharcoalResources {
                     val background = name in setOf("background", "backgroundTint", "cardBackgroundColor", "startColor", "endColor", "centerColor") || (bgFile && name in setOf("fillColor", "color"))
                     val foreground = name in setOf("textColor", "textColorHint", "tint", "strokeColor") || (!bgFile && name in setOf("fillColor", "color"))
                     val surface = if (rootLayout && name == "background") CharcoalPalette.background else CharcoalPalette.surface
+                    if(path.substringAfterLast("/")=="usage_item.xml" && name=="textColor") replacement=CharcoalPalette.text
                     if (type == 1 && background && data in whites) replacement = surface
                     if (type in 28..31) {
                         val r = data ushr 16 and 255; val g = data ushr 8 and 255; val b = data and 255
@@ -356,7 +408,8 @@ internal class CharcoalResources {
                     if(rewardVector && rewardPathIndex==0 && name=="fillAlpha") {
                         replacement=java.lang.Float.floatToRawIntBits(1f);replacementType=4
                     }
-                    if (staticSplash && name == "src") { replacement = 0x7f080267; replacementType = 1 }
+                    if(mapIllustration && illustrationPathIndex==0 && name=="fillColor")replacement=0x00000000
+                    if (staticSplash && name == "src") { replacement = 0x7f0804f2; replacementType = 1 }
                     if(staticSplash && elementName?.endsWith("GifImageView")==true && name in setOf("layout_width","layout_height")) {
                         replacement=(96 shl 8) or 1;replacementType=5 // 96dp, integer complex dimension.
                     }

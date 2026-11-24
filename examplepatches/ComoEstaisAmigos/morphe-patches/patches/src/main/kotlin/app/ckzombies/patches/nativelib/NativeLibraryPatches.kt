@@ -2,6 +2,9 @@ package app.ckzombies.patches.nativelib
 
 import app.ckzombies.patches.compat.obbMessagePatch
 import app.ckzombies.patches.shared.Constants.COMPATIBILITY_CK_ZOMBIES
+import app.ckzombies.patches.shared.Constants.ORIGINAL_APK
+import app.adebisi.patches.shared.hexToBytes
+import app.adebisi.patches.shared.requireStockNative
 import app.morphe.patcher.patch.PatchException
 import app.morphe.patcher.patch.patch
 import app.morphe.patcher.patch.resourceFile
@@ -9,8 +12,6 @@ import app.morphe.patcher.patch.resourceFile
 internal val ABIS = listOf("armeabi", "armeabi-v7a")
 
 private fun libraryPath(abi: String) = "lib/$abi/${NativeEdits.LIBRARY}"
-
-private fun String.hexToBytes() = ByteArray(length / 2) { substring(it * 2, it * 2 + 2).toInt(16).toByte() }
 
 /**
  * Maps the first-segment padding both the currency cave and the civilian stubs sit in.
@@ -26,21 +27,20 @@ internal fun Elf32.mapExecutablePadding(abi: String) {
 }
 
 /**
- * Refuses every build but Glu's own. Every native patch depends on this, so it runs before any
- * of them touches a library: a repack or an already patched APK stops here, not halfway.
+ * Refuses every build but Glu's own libraries. Every native patch depends on this, so it runs
+ * before any of them touches a library: a repack or an already patched APK stops here, not
+ * halfway. The Glu Mobile cert is a separate check on [app.ckzombies.patches.compat.obbMessagePatch];
+ * a re-sign of stock libs would still pass this hash.
  */
 internal val nativeLibraryCheckPatch = patch {
     execute {
         for (abi in ABIS) {
-            val file = resourceFile(libraryPath(abi))
-            if (!file.exists()) throw PatchException("${libraryPath(abi)} is missing from this APK")
-            val hash = Elf32.sha256(file.readBytes())
-            if (hash != NativeEdits.STOCK_SHA256.getValue(abi)) {
-                throw PatchException(
-                    "${libraryPath(abi)} is not Glu's original (sha256 ${hash.take(12)}). " +
-                        "Patch the untouched v3.1.0 APK signed by Glu Mobile, not a repack or a patched build."
-                )
-            }
+            requireStockNative(
+                libraryPath(abi),
+                NativeEdits.STOCK_SHA256.getValue(abi),
+                "Glu",
+                ORIGINAL_APK,
+            )
         }
     }
 }
@@ -258,11 +258,11 @@ val hideDailyDealPatch = patch(
  * would not do: r0 holds the CNetworkAvailability pointer the caller passed, which every caller
  * reads as true, so the stub sets r0 first.
  */
-internal val serverCheckStallPatch = patch {
+internal val networkAvailabilityPatch = patch {
     dependsOn(nativeLibraryCheckPatch)
 
     execute {
-        editLibraries(NativeEdits.IS_AVAILABLE)
+        editLibraries(NativeEdits.NETWORK_AVAILABILITY)
     }
 }
 

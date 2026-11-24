@@ -153,7 +153,7 @@ val fullscreenReadingPatch = bytecodePatch(
 val bookmarksPatch = bytecodePatch(
     name = "Bookmarks",
     description = "Adds a bookmark button next to Share under an open answer or post, to read it later. " +
-            "Saved items are listed under Bookmarks in Patch settings with their text, which you can read " +
+            "Saved items are listed under Bookmarks in Patch settings with their text and pictures, which you can read " +
             "without internet. Everything stays on your phone.",
     default = true
 ) {
@@ -209,6 +209,68 @@ val readAloudPatch = bytecodePatch(
         PageFinishedFingerprint.method.addInstruction(
             0,
             "invoke-static { p1 }, $READING->readAloud(Landroid/webkit/WebView;)V"
+        )
+        bindBridge()
+    }
+}
+
+@Suppress("unused")
+val readerViewPatch = bytecodePatch(
+    name = "Reader view",
+    description = "Adds a Reader view button next to Share under answers and posts. It shows their text " +
+            "with the pictures in a plain page, without the rest of Quora's page.",
+    default = false
+) {
+    category("Reading")
+    compatibleWith(COMPATIBILITY_QUORA)
+
+    extendWith("extensions/quora.mpe")
+
+    execute {
+        PageFinishedFingerprint.method.addInstruction(
+            0,
+            "invoke-static { p1 }, $READING->readerView(Landroid/webkit/WebView;)V"
+        )
+        bindBridge()
+    }
+}
+
+@Suppress("unused")
+val readingTimePatch = bytecodePatch(
+    name = "Reading time",
+    description = "Shows how many minutes an open answer or post takes to read, when it takes at least two.",
+    default = false
+) {
+    category("Reading")
+    compatibleWith(COMPATIBILITY_QUORA)
+
+    extendWith("extensions/quora.mpe")
+
+    execute {
+        PageFinishedFingerprint.method.addInstruction(
+            0,
+            "invoke-static { p1 }, $READING->readingTime(Landroid/webkit/WebView;)V"
+        )
+    }
+}
+
+@Suppress("unused")
+val pickToHidePatch = bytecodePatch(
+    name = "Hide what you pick",
+    description = "Patch settings > More > Pick something to hide: tap a box on the page to hide it and " +
+            "every box like it. Filters lists what you picked, to show it again.",
+    // On: it hides nothing until you pick something.
+    default = true
+) {
+    category("Feed")
+    compatibleWith(COMPATIBILITY_QUORA)
+
+    extendWith("extensions/quora.mpe")
+
+    execute {
+        PageFinishedFingerprint.method.addInstruction(
+            0,
+            "invoke-static { p1 }, Lapp/jofslash/extension/quora/Picker;->page(Landroid/webkit/WebView;)V"
         )
         bindBridge()
     }

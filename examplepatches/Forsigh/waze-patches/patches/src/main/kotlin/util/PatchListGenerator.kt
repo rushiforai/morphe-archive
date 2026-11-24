@@ -14,13 +14,16 @@ import java.net.URLClassLoader
 import java.util.jar.Manifest
 
 fun main() {
+    // Newest .mpp wins. listFiles() order is filesystem order, so a stale build left in
+    // build/libs silently produced a patches-list.json from the wrong bundle - a locked old
+    // artefact once kept the list one release behind the .mpp that was actually shipped.
     val patchFiles = setOf(
         File("build/libs/").listFiles { file ->
             val fileName = file.name
             !fileName.contains("javadoc") &&
                     !fileName.contains("sources") &&
                     fileName.endsWith(".mpp")
-        }!!.first()
+        }!!.maxBy { it.lastModified() }
     )
     val loadedPatches = loadPatchesFromJar(patchFiles)
     val patchClassLoader = URLClassLoader(patchFiles.map { it.toURI().toURL() }.toTypedArray())

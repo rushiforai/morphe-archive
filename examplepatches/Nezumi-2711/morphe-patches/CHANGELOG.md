@@ -1,3 +1,39 @@
+## [1.7.0](https://github.com/Nezumi-2711/morphe-patches/compare/v1.6.0...v1.7.0) (2026-11-23)
+
+### 🐛 Bug Fixes
+
+* **zalo:** keep Drive photo backup working under microG ([73d40d5](https://github.com/Nezumi-2711/morphe-patches/commit/73d40d534c1cd6ee2e64755128419232d6abb1da))
+* **zalo:** keep OA hidden when an incoming message caches a blank profile ([861947a](https://github.com/Nezumi-2711/morphe-patches/commit/861947a60c183d4fb0e5d0c70ca53a3d513e3cb9))
+
+### ✨ New Features
+
+* **zalo:** add AMOLED dark theme patch ([f4e10c9](https://github.com/Nezumi-2711/morphe-patches/commit/f4e10c90b71113c21d2668bca598f0ecbf20a1d1))
+* **zalo:** enable all patches by default except Clone package ([7e6a25e](https://github.com/Nezumi-2711/morphe-patches/commit/7e6a25e6dc446c22bc2241aabf5b86f107d48009))
+* **zalo:** restyle Nezumi's Settings with Zalo switches and leading icons ([9ae7416](https://github.com/Nezumi-2711/morphe-patches/commit/9ae7416536357d2938d6b2cbced2bf8853b0310e))
+
+## [1.7.0-dev.3](https://github.com/Nezumi-2711/morphe-patches/compare/v1.7.0-dev.2...v1.7.0-dev.3) (2026-11-23)
+
+### 🐛 Bug Fixes
+
+* **zalo:** keep OA hidden when an incoming message caches a blank profile ([861947a](https://github.com/Nezumi-2711/morphe-patches/commit/861947a60c183d4fb0e5d0c70ca53a3d513e3cb9))
+
+## [1.7.0-dev.2](https://github.com/Nezumi-2711/morphe-patches/compare/v1.7.0-dev.1...v1.7.0-dev.2) (2026-11-23)
+
+### 🐛 Bug Fixes
+
+* **zalo:** keep Drive photo backup working under microG ([73d40d5](https://github.com/Nezumi-2711/morphe-patches/commit/73d40d534c1cd6ee2e64755128419232d6abb1da))
+
+### ✨ New Features
+
+* **zalo:** add AMOLED dark theme patch ([f4e10c9](https://github.com/Nezumi-2711/morphe-patches/commit/f4e10c90b71113c21d2668bca598f0ecbf20a1d1))
+
+## [1.7.0-dev.1](https://github.com/Nezumi-2711/morphe-patches/compare/v1.6.0...v1.7.0-dev.1) (2026-11-23)
+
+### ✨ New Features
+
+* **zalo:** enable all patches by default except Clone package ([7e6a25e](https://github.com/Nezumi-2711/morphe-patches/commit/7e6a25e6dc446c22bc2241aabf5b86f107d48009))
+* **zalo:** restyle Nezumi's Settings with Zalo switches and leading icons ([9ae7416](https://github.com/Nezumi-2711/morphe-patches/commit/9ae7416536357d2938d6b2cbced2bf8853b0310e))
+
 ## [1.6.0](https://github.com/Nezumi-2711/morphe-patches/compare/v1.5.0...v1.6.0) (2026-11-23)
 
 ### 🐛 Bug Fixes

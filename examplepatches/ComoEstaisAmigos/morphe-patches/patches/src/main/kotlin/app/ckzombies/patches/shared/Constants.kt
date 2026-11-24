@@ -6,11 +6,12 @@ import app.morphe.patcher.patch.Compatibility
 
 object Constants {
     const val PACKAGE_NAME = "com.glu.android.zombsniper"
+    const val ORIGINAL_APK = "untouched v3.1.0 APK"
 
     /**
-     * Glu's own build of v3.1.0 (versionCode 310), signed `CN=Glu Mobile`. A repack of the same
-     * version whose native libraries differ from Glu's is refused by the hash check, whatever its
-     * version name says.
+     * Glu's own build of v3.1.0 (versionCode 310), signed `CN=Glu Mobile`. A re-sign is refused
+     * by the cert check; a repack whose native libraries differ from Glu's is refused by the
+     * hash check, whatever its version name says.
      */
     val COMPATIBILITY_CK_ZOMBIES = Compatibility(
         name = "CK Zombies",

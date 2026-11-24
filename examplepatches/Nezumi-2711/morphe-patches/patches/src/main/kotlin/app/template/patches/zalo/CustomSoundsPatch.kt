@@ -14,7 +14,6 @@ import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.iface.instruction.FiveRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
 
-private const val SOUNDS = "Lapp/template/extension/extension/CustomSounds;"
 private const val DATA_SOURCE = "Landroid/media/MediaPlayer;->setDataSource(Landroid/content/Context;Landroid/net/Uri;)V"
 
 private val soundProviderPatch = resourcePatch {
@@ -22,7 +21,7 @@ private val soundProviderPatch = resourcePatch {
         document("AndroidManifest.xml").use { document ->
             val application = document.getElementsByTagName("application").item(0)
             val provider = document.createElement("provider")
-            provider.setAttribute("android:name", "app.template.extension.extension.SoundProvider")
+            provider.setAttribute("android:name", SOUND_PROVIDER_CLASS)
             provider.setAttribute("android:authorities",
                 document.documentElement.getAttribute("package") + ".nezumi.sounds")
             provider.setAttribute("android:exported", "false")
@@ -69,7 +68,7 @@ private object OneShotNotificationFingerprint : Fingerprint(
 val customSoundsPatch = bytecodePatch(
     name = "Custom sounds",
     description = "Choose custom notification and incoming-call sounds in Nezumi's Settings.",
-    default = false,
+    default = true,
 ) {
     compatibleWith(Compatibility(
         name = "Zalo",
@@ -93,7 +92,7 @@ val customSoundsPatch = bytecodePatch(
         check(call.registerCount == 3)
         method.replaceInstruction(index,
             "invoke-static {v${call.registerC}, v${call.registerD}, v${call.registerE}}, " +
-                "$SOUNDS->setRingtoneDataSource(Landroid/media/MediaPlayer;Landroid/content/Context;Landroid/net/Uri;)V")
+                "$CUSTOM_SOUNDS->setRingtoneDataSource(Landroid/media/MediaPlayer;Landroid/content/Context;Landroid/net/Uri;)V")
 
         check(OneShotNotificationFingerprint.matchAll(1..1).size == 1)
         val oneShot = OneShotNotificationFingerprint.method
@@ -106,14 +105,14 @@ val customSoundsPatch = bytecodePatch(
         check(oneShotCall.registerCount == 3)
         oneShot.replaceInstruction(oneShotIndex,
             "invoke-static {v${oneShotCall.registerC}, v${oneShotCall.registerD}, v${oneShotCall.registerE}}, " +
-                "$SOUNDS->setNotificationDataSource(Landroid/media/MediaPlayer;Landroid/content/Context;Landroid/net/Uri;)V")
+                "$CUSTOM_SOUNDS->setNotificationDataSource(Landroid/media/MediaPlayer;Landroid/content/Context;Landroid/net/Uri;)V")
 
         check(NotificationChannelBuilderFingerprint.matchAll(1..1).size == 1)
         val builder = NotificationChannelBuilderFingerprint.method
         check(builder.implementation!!.registerCount == 3)
         builder.replaceInstruction(0,
-            "invoke-static {p0, p1}, $SOUNDS->notificationBuilder(Landroid/content/Context;Ljava/lang/String;)Landroid/app/Notification\$Builder;")
+            "invoke-static {p0, p1}, $CUSTOM_SOUNDS->notificationBuilder(Landroid/content/Context;Ljava/lang/String;)Landroid/app/Notification\$Builder;")
         builder.replaceInstruction(1, "move-result-object v0")
         attachNezumiSettings("attachCustomSounds")
     }
-}
+}

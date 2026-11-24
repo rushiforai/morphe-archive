@@ -34,20 +34,23 @@ object AlwaysRepeatButton {
                 controlsViewGroup = controlsView,
                 imageViewButtonId = "revanced_always_repeat_button",
                 buttonVisibility = { isButtonEnabled() },
-                onClickListener = { view: View -> onClick(view) },
+                onClickListener = { view: View ->
+                    toggleRepeat()
+                    updateRepeatState(view as ImageView)
+                },
                 onLongClickListener = { view: View ->
-                    onLongClick(view)
+                    toggleRepeatPause()
+                    updateRepeatState(view as ImageView)
                     true
                 }
             )
-            instance?.changeSelected(selected = alwaysRepeat.get())
             instance?.setStyledIcon(
                 iconName = "morphe_loop_video_button_off",
                 activatedIconName = "morphe_loop_video_button_on",
                 activatedState = android.R.attr.state_selected,
                 activatedTintColor = activatedTint(controlsView),
             )
-            instance?.setColorFilter(selected = alwaysRepeatPause.get())
+            instance?.imageView()?.let(::updateRepeatState)
         } catch (ex: Exception) {
             Logger.printException({ "initializeButton failure" }, ex)
         }
@@ -88,7 +91,8 @@ object AlwaysRepeatButton {
      *
      * @return The theme color, or null to keep the color of the icon.
      */
-    private fun activatedTint(view: View): Int? {
+    @JvmStatic
+    fun activatedTint(view: View): Int? {
         if (Settings.PLAYER_ICON_STYLE.get() == PlayerIcons.Style.CUSTOM) return null
 
         val attr = ResourceUtils.getAttrIdentifier("ytCallToAction")
@@ -103,45 +107,25 @@ object AlwaysRepeatButton {
         return value.data
     }
 
-    private fun onClick(view: View) {
-        instance?.changeSelected(!view.isSelected)
-    }
-
-    private fun onLongClick(view: View) {
-        instance?.changeColorFilter()
-    }
-
-    private fun PlayerControlButton.changeColorFilter() {
-        val imageView: ImageView? = imageView()
-        if (imageView == null) return
-
-        imageView.isSelected = true
-        alwaysRepeat.save(true)
-
-        val newValue: Boolean = !alwaysRepeatPause.get()
-        alwaysRepeatPause.save(newValue)
-        setColorFilter(imageView, newValue)
-    }
-
-    private fun PlayerControlButton.changeSelected(selected: Boolean) {
-        val imageView: ImageView? = imageView()
-        if (imageView == null) return
-
-        if (imageView.colorFilter === cf) {
+    @JvmStatic
+    fun toggleRepeat() {
+        if (alwaysRepeatPause.get()) {
             showToastShort(str("revanced_overlay_button_not_allowed_warning"))
             return
         }
-
-        imageView.isSelected = selected
-        alwaysRepeat.save(selected)
+        alwaysRepeat.save(!alwaysRepeat.get())
     }
 
-    private fun PlayerControlButton.setColorFilter(
-        imageView: ImageView? = imageView(),
-        selected: Boolean
-    ) {
-        if (selected) imageView?.colorFilter = cf
-        else imageView?.clearColorFilter()
+    @JvmStatic
+    fun toggleRepeatPause() {
+        alwaysRepeat.save(true)
+        alwaysRepeatPause.save(!alwaysRepeatPause.get())
+    }
+
+    @JvmStatic
+    fun updateRepeatState(imageView: ImageView) {
+        imageView.isSelected = alwaysRepeat.get()
+        imageView.colorFilter = if (alwaysRepeatPause.get()) cf else null
     }
 
 }

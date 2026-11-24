@@ -60,6 +60,7 @@ import app.morphe.extension.facebook.media.FeedSound;
 import app.morphe.extension.facebook.media.ResumePlayback;
 import app.morphe.extension.facebook.menu.MenuLayoutDump;
 import app.morphe.extension.facebook.media.TapToPlay;
+import app.morphe.extension.facebook.media.VideoBuffer;
 import app.morphe.extension.facebook.misc.AppIcons;
 import app.morphe.extension.facebook.misc.AppLock;
 import app.morphe.extension.facebook.misc.BreakTimer;
@@ -89,6 +90,7 @@ import app.morphe.extension.facebook.stories.StoryTaps;
 import app.morphe.extension.facebook.stories.SuggestedStories;
 import app.morphe.extension.facebook.theme.AccentResources;
 import app.morphe.extension.facebook.theme.AmoledResources;
+import app.morphe.extension.facebook.theme.MaterialYouSwitch;
 import app.morphe.extension.facebook.theme.MaterialYouTheme;
 
 /**
@@ -194,14 +196,17 @@ public final class SettingsEntry {
             if (SettingsStatus.returnRefresh()) HomeBack.watch(context);
             // Keep feed videos muted: a sound left on goes off again when Facebook comes back (#465).
             if (SettingsStatus.keepFeedVideosMuted()) FeedSound.watch(context);
+            // Video buffer: a paused video still loading rests while no Facebook screen is started (#548).
+            if (SettingsStatus.videoBuffer()) VideoBuffer.watch(context);
             // Hide the video comment box: the seek bar goes down only in the Shorts viewer's screen (#552).
             if (SettingsStatus.commentSheetOptions()) CommentSheetOptions.watch(context);
             watchLauncherChanges(context);
             TextSize.application(context);
-            // Only with the theme in the build, so its class and palette aren't loaded otherwise.
-            if (SettingsStatus.materialYouTheme()) MaterialYouTheme.watchWindows(context);
-            // Accent color's route five, for the colours views inflated from XML read themselves.
-            if (SettingsStatus.accentColor()) AccentResources.watchActivities(context);
+            // Only with the theme in the build and switched on, so its class and palette aren't loaded otherwise.
+            if (MaterialYouSwitch.on()) MaterialYouTheme.watchWindows(context);
+            // Accent color's route five, for the colours views inflated from XML read themselves, and
+            // with Material You switched off, its colours put back in each activity's (D#527).
+            if (SettingsStatus.accentColor() || MaterialYouSwitch.off()) AccentResources.watchActivities(context);
             // AMOLED's Background color row, for the colours views inflated from XML read themselves (#214).
             if (SettingsStatus.amoledTheme()) AmoledResources.watchActivities(context);
             // See-through bars, a switch of the tab bar patch: each main screen as it resumes.

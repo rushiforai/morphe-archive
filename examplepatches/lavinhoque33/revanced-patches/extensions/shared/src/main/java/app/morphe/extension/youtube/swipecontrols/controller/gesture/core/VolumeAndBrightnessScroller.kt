@@ -1,14 +1,12 @@
 package app.morphe.extension.youtube.swipecontrols.controller.gesture.core
 
 import app.morphe.extension.shared.utils.Utils.dipToPixels
-import app.morphe.extension.youtube.patches.video.PlaybackSpeedPatch.userSelectedPlaybackSpeed
-import app.morphe.extension.youtube.shared.VideoInformation
+import app.morphe.extension.youtube.swipecontrols.SwipeControlsConfigurationProvider.SwipeZoneAction
+import app.morphe.extension.youtube.swipecontrols.controller.gesture.core.SwipeDetector.SwipeDirection
 import app.morphe.extension.youtube.swipecontrols.controller.AudioVolumeController
 import app.morphe.extension.youtube.swipecontrols.controller.ScreenBrightnessController
 import app.morphe.extension.youtube.swipecontrols.misc.ScrollDistanceHelper
 import app.morphe.extension.youtube.swipecontrols.misc.SwipeControlsOverlay
-import kotlin.math.roundToInt
-import kotlin.math.roundToLong
 
 /**
  * describes a class that controls volume and brightness based on scrolling events
@@ -48,6 +46,23 @@ interface VolumeAndBrightnessScroller {
     fun resetScroller()
 }
 
+internal fun VolumeAndBrightnessScroller.applySwipe(
+    action: SwipeZoneAction,
+    direction: SwipeDirection,
+    distanceX: Double,
+    distanceY: Double,
+) {
+    // Upward and rightward swipes increase volume, brightness, speed and seek position.
+    val distance = if (direction == SwipeDirection.HORIZONTAL) -distanceX else distanceY
+    when (action) {
+        SwipeZoneAction.VOLUME -> scrollVolume(distance)
+        SwipeZoneAction.BRIGHTNESS -> scrollBrightness(distance)
+        SwipeZoneAction.SPEED -> scrollSpeed(distance)
+        SwipeZoneAction.SEEK -> scrollSeek(distance)
+        SwipeZoneAction.OFF -> Unit
+    }
+}
+
 /**
  * handles scrolling of volume and brightness, adjusts them using the provided controllers and updates the overlay
  *
@@ -67,6 +82,9 @@ class VolumeAndBrightnessScrollerImpl(
     speedDistance: Float,
     seekDistance: Float,
     private val volumeSwipeSensitivity: Int,
+    adjustSpeed: (Int) -> Unit,
+    seekBy: (Int) -> Unit,
+    private val initialBrightness: (() -> Double)? = null,
 ) : VolumeAndBrightnessScroller {
 
     // region volume
@@ -74,7 +92,7 @@ class VolumeAndBrightnessScrollerImpl(
         ScrollDistanceHelper(
             dipToPixels(volumeDistance),
         ) { _, _, direction ->
-            volumeController?.run {
+            volumeController?.takeIf { it.isAvailable && it.maxVolume > 0 }?.run {
                 adjustVolumeBySteps(direction * volumeSwipeSensitivity)
                 overlayController.onVolumeChanged(volume, maxVolume, boostStep)
             }
@@ -92,14 +110,16 @@ class VolumeAndBrightnessScrollerImpl(
         ) { _, _, direction ->
             screenController?.run {
                 val shouldAdjustBrightness =
-                    if (host.config.shouldLowestValueEnableAutoBrightness) {
+                    if (config.shouldLowestValueEnableAutoBrightness) {
                         screenBrightness > 0 || direction > 0
                     } else {
                         screenBrightness >= 0 || direction >= 0
                     }
 
                 if (shouldAdjustBrightness) {
-                    screenBrightness += direction
+                    val current = screenBrightness
+                    val start = if (current < 0 && direction > 0) initialBrightness?.invoke() ?: current else current
+                    screenBrightness = start + direction
                 } else {
                     restoreDefaultBrightness()
                 }
@@ -114,21 +134,7 @@ class VolumeAndBrightnessScrollerImpl(
     private val speedScroller = ScrollDistanceHelper(
         dipToPixels(speedDistance),
     ) { _, _, direction ->
-        val currentSpeed = VideoInformation.getPlaybackSpeed()
-
-        // Convert current speed to an integer representation (multiply by 100)
-        // in order to fix a floating-point imprecision (1.04999 instead of 1.05)
-        val currentSpeedInt = (currentSpeed * 100).roundToInt()
-
-        // Calculate the new speed as an integer, incrementing by 5 (which represents 0.05)
-        val newSpeedInt = (currentSpeedInt - direction * 5).coerceIn(5, 800)
-
-        // Convert back to a float
-        val newSpeed = newSpeedInt / 100f
-
-        VideoInformation.overridePlaybackSpeed(newSpeed)
-        userSelectedPlaybackSpeed(newSpeed)
-        overlayController.onSpeedChanged(newSpeed)
+        adjustSpeed(direction)
     }
 
     override fun scrollSpeed(distance: Double) = speedScroller.add(distance)
@@ -138,10 +144,7 @@ class VolumeAndBrightnessScrollerImpl(
     private val seekScroller = ScrollDistanceHelper(
         dipToPixels(seekDistance),
     ) { _, _, direction ->
-        val seekAmountMillis = (direction * -500.0).roundToLong()
-
-        VideoInformation.seekToRelative(seekAmountMillis)
-        overlayController.onSeekChanged(seekAmountMillis.toInt())
+        seekBy(direction * 500)
     }
 
     override fun scrollSeek(distance: Double) = seekScroller.add(distance)

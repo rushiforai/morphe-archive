@@ -1,16 +1,15 @@
 package app.aidan.patches.geocaching.features
 
 import app.aidan.patches.geocaching.shared.COMPATIBILITY_GEOCACHING
-import app.aidan.patches.geocaching.shared.patchAllL3cChecksToValue
+import app.aidan.patches.geocaching.shared.patchAllPremiumChecksToValue
 import app.aidan.patches.geocaching.shared.patchIncludeOwnedDisabledCachesToNull
-import app.aidan.patches.geocaching.shared.patchSanitizeFilterModel
 import app.aidan.patches.shared.compositeFeaturePatch
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
 import app.morphe.patcher.extensions.InstructionExtensions.replaceInstruction
 import app.morphe.patcher.patch.BytecodePatchContext
 import app.morphe.patcher.patch.PatchException
-import app.morphe.patcher.patch.ResourcePatchContext
 import app.morphe.patcher.patch.booleanOption
+import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod
 import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.builder.instruction.BuilderInstruction30t
 import com.android.tools.smali.dexlib2.iface.instruction.NarrowLiteralInstruction
@@ -19,7 +18,6 @@ import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
 import com.android.tools.smali.dexlib2.iface.reference.FieldReference
 import com.android.tools.smali.dexlib2.iface.reference.MethodReference
 import com.android.tools.smali.dexlib2.iface.reference.StringReference
-import org.w3c.dom.Element
 
 val localPremiumPatch = compositeFeaturePatch(
     name = "Local Premium",
@@ -33,15 +31,9 @@ val localPremiumPatch = compositeFeaturePatch(
     val showLocalPremiumWarnings = booleanOption(
         key = "showLocalPremiumWarnings",
         title = "Show Local Premium Warnings",
-        description = "Shows an informational warning banner on Premium Member Only caches indicating that complete cache data is restricted by the server for basic accounts.",
+        description = "Shows an informational notice when opening a Premium Member Only cache, indicating that complete cache data is restricted by the server for basic accounts.",
         default = true
     )
-
-    resources {
-        if (showLocalPremiumWarnings.value != false) {
-            patchCacheSummaryWarningLayout()
-        }
-    }
 
     bytecode {
         patchProfileMembershipLabel()
@@ -53,53 +45,27 @@ val localPremiumPatch = compositeFeaturePatch(
         patchPreventCacheDetailsError()
         patchPreventMapSearchError()
         patchPreventNavigationLoadError()
-        patchDescriptionFragmentWebViewLineBreak()
         if (showLocalPremiumWarnings.value != false) {
-            patchGeocacheDetailsActivityRoute()
-            patchCacheSummaryWarningBinding()
+            patchPmoWarningNotice()
         }
     }
 }
 
 /**
- * Changes the membership title in the Profile header from the server-provided Basic label to
- * "Premium member".
+ * Forces the UserSession premium predicate (Ldic;->e()Z) to return true.
  */
-private fun BytecodePatchContext.patchMembershipStrings() {
-    val hb5Class = mutableClassDefByOrNull("Lhb5;") ?: return
-    val iMethod = hb5Class.methods.firstOrNull {
-        it.name == "i" && it.returnType == "I" && it.parameterTypes == listOf("I", "I") && it.implementation != null
-    } ?: return
-
-    val impl = iMethod.implementation ?: return
-    val instructions = impl.instructions.toList()
-
-    for ((index, instruction) in instructions.withIndex()) {
-        if ((instruction as? NarrowLiteralInstruction)?.narrowLiteral == 0x7f14068e) {
-            val reg = (instruction as OneRegisterInstruction).registerA
-            val after = instructions.getOrNull(index + 1)
-            val alreadyPatched = after?.opcode == Opcode.CONST &&
-                (after as? OneRegisterInstruction)?.registerA == reg &&
-                (after as? NarrowLiteralInstruction)?.narrowLiteral == 0x7f140690
-            if (!alreadyPatched) {
-                iMethod.addInstructions(index + 1, "const v$reg, 0x7f140690")
-            }
-        }
-    }
-}
-
 private fun BytecodePatchContext.patchL3cIsPremium() {
-    val l3cClass = mutableClassDefByOrNull("Ll3c;") ?: return
-    val dMethod = l3cClass.methods.firstOrNull {
-        it.name == "d" && it.returnType == "Z" && it.parameterTypes.isEmpty() && it.implementation != null
+    val userClass = mutableClassDefByOrNull("Ldic;") ?: return
+    val eMethod = userClass.methods.firstOrNull {
+        it.name == "e" && it.returnType == "Z" && it.parameterTypes.isEmpty() && it.implementation != null
     } ?: return
 
-    val firstInst = dMethod.implementation?.instructions?.firstOrNull()
+    val firstInst = eMethod.implementation?.instructions?.firstOrNull()
     val isAlreadyPatched = firstInst?.opcode == Opcode.CONST_4 &&
         (firstInst as? OneRegisterInstruction)?.registerA == 0 &&
         (firstInst as? NarrowLiteralInstruction)?.narrowLiteral == 1
     if (!isAlreadyPatched) {
-        dMethod.addInstructions(0, "const/4 v0, 0x1\nreturn v0")
+        eMethod.addInstructions(0, "const/4 v0, 0x1\nreturn v0")
     }
 }
 
@@ -118,20 +84,23 @@ private fun BytecodePatchContext.patchProfileModelMembershipType() {
     }
 }
 
+/**
+ * Forces the UserSession membership-tier setter (Ldic;->t(I)V) to store the Premium tier (3).
+ */
 private fun BytecodePatchContext.patchL3cMembershipType() {
-    val l3cClass = mutableClassDefByOrNull("Ll3c;") ?: return
-    val sMethod = l3cClass.methods.firstOrNull {
-        it.name == "s" && it.returnType == "V" && it.parameterTypes == listOf("I") && it.implementation != null
+    val userClass = mutableClassDefByOrNull("Ldic;") ?: return
+    val tMethod = userClass.methods.firstOrNull {
+        it.name == "t" && it.returnType == "V" && it.parameterTypes == listOf("I") && it.implementation != null
     } ?: return
 
-    val impl = sMethod.implementation ?: return
+    val impl = tMethod.implementation ?: return
     val p1Reg = impl.registerCount - 1
     val firstInst = impl.instructions.firstOrNull()
     val isAlreadyPatched = firstInst?.opcode == Opcode.CONST_4 &&
         (firstInst as? OneRegisterInstruction)?.registerA == p1Reg &&
         (firstInst as? NarrowLiteralInstruction)?.narrowLiteral == 3
     if (!isAlreadyPatched) {
-        sMethod.addInstructions(0, "const/4 v$p1Reg, 0x3")
+        tMethod.addInstructions(0, "const/4 v$p1Reg, 0x3")
     }
 }
 
@@ -140,7 +109,6 @@ private fun BytecodePatchContext.patchL3cMembershipType() {
  * "Premium member".
  */
 private fun BytecodePatchContext.patchProfileMembershipLabel() {
-    patchMembershipStrings()
     patchL3cIsPremium()
     patchL3cMembershipType()
     patchProfileModelMembershipType()
@@ -148,54 +116,32 @@ private fun BytecodePatchContext.patchProfileMembershipLabel() {
     val mapProfileMethod = profileMapper.methods.firstOrNull {
         it.name == "a" &&
             it.parameterTypes.singleOrNull() == "Lcom/groundspeak/geocaching/intro/network/api/profile/OwnProfileResponse;" &&
-            it.returnType == "Lz09;" &&
+            it.returnType == "Lyd9;" &&
             it.implementation != null
     } ?: return
 
     val instructions = mapProfileMethod.implementation!!.instructions.toList()
 
-    // 1. Force hb5.i result register (membership string resource ID) to 0x7f140690 (R.string.member_type_premium)
+    // Force the membership-label resource id to R.string.member_type_premium (0x7f140717).
+    // Llw5.l(memberTypeId, membershipTierId) is the 10.24.0 membership-title mapper.
     for (i in 0 until instructions.size - 1) {
         val curr = instructions[i]
         val next = instructions[i + 1]
-        val isHb5I = curr.opcode == Opcode.INVOKE_STATIC &&
+        val isMembershipMapper = curr.opcode == Opcode.INVOKE_STATIC &&
             (curr as? ReferenceInstruction)?.reference?.let { ref ->
                 (ref as? MethodReference)?.let { m ->
-                    m.name == "i" && m.definingClass == "Lhb5;" && m.returnType == "I"
+                    m.name == "l" && m.definingClass == "Llw5;" && m.returnType == "I"
                 } == true
             } == true
-        if (isHb5I && next.opcode == Opcode.MOVE_RESULT) {
+        if (isMembershipMapper && next.opcode == Opcode.MOVE_RESULT) {
             val reg = (next as OneRegisterInstruction).registerA
             val after = instructions.getOrNull(i + 2)
             val alreadyPatched = after?.opcode == Opcode.CONST &&
                 (after as? OneRegisterInstruction)?.registerA == reg &&
-                (after as? NarrowLiteralInstruction)?.narrowLiteral == 0x7f140690
+                (after as? NarrowLiteralInstruction)?.narrowLiteral == 0x7f140717
             if (!alreadyPatched) {
-                mapProfileMethod.addInstructions(i + 2, "const v$reg, 0x7f140690")
+                mapProfileMethod.addInstructions(i + 2, "const v$reg, 0x7f140717")
             }
-        }
-    }
-
-    // 2. Also ensure OwnProfileResponse.Profile.k() returns "Premium member"
-    val kIndex = instructions.indexOfFirst { instruction ->
-        instruction.opcode == Opcode.INVOKE_VIRTUAL &&
-            (instruction as? ReferenceInstruction)?.reference?.let { reference ->
-                (reference as? MethodReference)?.let { method ->
-                    method.definingClass == "Lcom/groundspeak/geocaching/intro/network/api/profile/OwnProfileResponse\$Profile;" &&
-                        method.name == "k" &&
-                        method.returnType == "Ljava/lang/String;"
-                } == true
-            } == true
-    }
-    if (kIndex >= 0 && instructions.getOrNull(kIndex + 1)?.opcode == Opcode.MOVE_RESULT_OBJECT) {
-        val reg = (instructions[kIndex + 1] as OneRegisterInstruction).registerA
-        val after = instructions.getOrNull(kIndex + 2)
-        val alreadyPatched = after?.opcode == Opcode.CONST_STRING &&
-            (after as? ReferenceInstruction)?.reference?.let { ref ->
-                (ref as? StringReference)?.string == "Premium member"
-            } == true
-        if (!alreadyPatched) {
-            mapProfileMethod.addInstructions(kIndex + 2, "const-string v$reg, \"Premium member\"")
         }
     }
 }
@@ -210,12 +156,12 @@ private fun BytecodePatchContext.patchMapUpgradeIcon() {
     val initMethod = viewModelClass.methods.firstOrNull {
         it.name == "<init>" && it.implementation != null
     } ?: throw PatchException("SharedMapViewModel.<init> not found")
-    patchAllL3cChecksToValue(initMethod, "SharedMapViewModel.<init>", true)
+    patchAllPremiumChecksToValue(initMethod, "SharedMapViewModel.<init>", true)
 
     val aMethod = viewModelClass.methods.firstOrNull {
-        it.name == "A" && it.implementation != null && it.parameterTypes == listOf("Lcom/groundspeak/geocaching/intro/mainmap/map/MapMode;")
-    } ?: throw PatchException("SharedMapViewModel.A not found")
-    patchAllL3cChecksToValue(aMethod, "SharedMapViewModel.A", true)
+        it.name == "H" && it.implementation != null && it.parameterTypes == listOf("Lcom/groundspeak/geocaching/intro/mainmap/map/MapMode;")
+    } ?: throw PatchException("SharedMapViewModel.H(MapMode) not found")
+    patchAllPremiumChecksToValue(aMethod, "SharedMapViewModel.H", true)
     val mapUiClass = mutableClassDefBy("Lcom/groundspeak/geocaching/intro/mainmap/map/i;")
     val bMethod = mapUiClass.methods.firstOrNull {
         it.name == "b" && it.returnType == "V" && it.implementation != null
@@ -254,21 +200,19 @@ private fun BytecodePatchContext.patchMapUpgradeIcon() {
 
 /**
  * Removes the "Upgrade to premium" promotional card section at the bottom of the Profile screen.
+ *
+ * The project profile composable is now `com.groundspeak.geocaching.intro.profile.l.c(...)`
+ * (was `l.b`). Its premium flag is parameter p5; forcing it true makes `if-nez p5` skip the
+ * `ui.compose.p.b` upgrade card.
  */
 private fun BytecodePatchContext.patchProfileUpgradeCard() {
-    val x29Class = mutableClassDefBy("Lx29;")
-    val invokeMethod = x29Class.methods.firstOrNull {
-        it.name == "invoke" && it.implementation != null && it.parameterTypes.size == 3
-    } ?: throw PatchException("x29.invoke not found")
-    patchAllL3cChecksToValue(invokeMethod, "x29.invoke", true)
-
     val profileClass = mutableClassDefBy("Lcom/groundspeak/geocaching/intro/profile/l;")
-    val bMethod = profileClass.methods.firstOrNull {
-        it.name == "b" && it.returnType == "V" && it.implementation != null && it.parameterTypes.size == 13
-    } ?: throw PatchException("com.groundspeak.geocaching.intro.profile.l.b not found")
+    val cMethod = profileClass.methods.firstOrNull {
+        it.name == "c" && it.returnType == "V" && it.implementation != null && it.parameterTypes.size == 13
+    } ?: throw PatchException("com.groundspeak.geocaching.intro.profile.l.c not found")
 
-    val impl = bMethod.implementation ?: throw PatchException("Missing implementation in profile l.b")
-    val p5Reg = impl.registerCount - bMethod.parameters.size + 5
+    val impl = cMethod.implementation ?: throw PatchException("Missing implementation in profile l.c")
+    val p5Reg = impl.registerCount - cMethod.parameters.size + 5
     val instructions = impl.instructions.toList()
 
     val branchIndex = instructions.indexOfFirst { instruction ->
@@ -280,7 +224,7 @@ private fun BytecodePatchContext.patchProfileUpgradeCard() {
         val alreadyPatched = prev?.opcode == Opcode.CONST_16 &&
             (prev as? OneRegisterInstruction)?.registerA == p5Reg
         if (!alreadyPatched) {
-            bMethod.addInstructions(branchIndex, "const/16 v$p5Reg, 0x1")
+            cMethod.addInstructions(branchIndex, "const/16 v$p5Reg, 0x1")
         }
     }
 }
@@ -288,34 +232,34 @@ private fun BytecodePatchContext.patchProfileUpgradeCard() {
 /**
  * Removes the Statistics item row and its trailing spacer from the Profile screen.
  *
- * In `com.groundspeak.geocaching.intro.profile.l.b`, the Statistics item is rendered via
- * `k19.p(Lu4c;->f:Lg29;, ...)`. When local Premium is active, this item appears on the Profile screen,
- * but navigating into it results in an error screen because the statistics data relies on server-side
- * processing unavailable to non-premium accounts.
+ * In `com.groundspeak.geocaching.intro.profile.l.c`, the Statistics row is rendered via
+ * `je9.p(Lmjc;->f:Lgf9;, ...)`. When local Premium is active, the row appears but navigating into it
+ * fails because the statistics data relies on server-side processing unavailable to basic accounts.
  *
- * Neutralizing the `u4c.f` field access, the `k19.p` composable invocation, and the trailing spacer
- * call (`f.u`) cleanly removes the Statistics row while preserving slot table alignment and leaving
- * a single section spacer above Trackables.
+ * Neutralizing the `mjc.f` field access, the `je9.p` composable invocation, and the trailing spacer
+ * call (`f.v`) removes the row while preserving Compose slot-table alignment.
  */
 private fun BytecodePatchContext.patchProfileStatisticsItem() {
     val profileClass = mutableClassDefBy("Lcom/groundspeak/geocaching/intro/profile/l;")
-    val bMethod = profileClass.methods.firstOrNull {
-        it.name == "b" && it.returnType == "V" && it.implementation != null && it.parameterTypes.size == 13
-    } ?: throw PatchException("com.groundspeak.geocaching.intro.profile.l.b not found")
+    val cMethod = profileClass.methods.firstOrNull {
+        it.name == "c" && it.returnType == "V" && it.implementation != null && it.parameterTypes.size == 13
+    } ?: throw PatchException("com.groundspeak.geocaching.intro.profile.l.c not found")
 
-    val impl = bMethod.implementation ?: throw PatchException("Missing implementation in profile l.b")
+    val impl = cMethod.implementation ?: throw PatchException("Missing implementation in profile l.c")
     val instructions = impl.instructions.toList()
 
     val statsIndex = instructions.indexOfFirst { instruction ->
         instruction.opcode == Opcode.INVOKE_STATIC &&
             (instruction as? ReferenceInstruction)?.reference?.let { ref ->
                 (ref as? MethodReference)?.let { m ->
-                    m.definingClass == "Lk19;" && m.name == "p"
+                    m.definingClass == "Lje9;" &&
+                        m.name == "p" &&
+                        m.parameterTypes.firstOrNull() == "Lgf9;"
                 }
             } == true
     }
     if (statsIndex < 0) {
-        throw PatchException("Could not find k19.p invocation in profile l.b")
+        throw PatchException("Could not find je9.p(gf9, ...) invocation in profile l.c")
     }
 
     val igetIndex = statsIndex - 1
@@ -323,12 +267,12 @@ private fun BytecodePatchContext.patchProfileStatisticsItem() {
     val isIgetStats = igetInst?.opcode == Opcode.IGET_OBJECT &&
         (igetInst as? ReferenceInstruction)?.reference?.let { ref ->
             (ref as? FieldReference)?.let { f ->
-                f.name == "f" && f.type == "Lg29;"
+                f.name == "f" && f.type == "Lgf9;" && f.definingClass == "Lmjc;"
             }
         } == true
 
     if (!isIgetStats) {
-        throw PatchException("Instruction preceding k19.p is not Lu4c;->f:Lg29; iget-object")
+        throw PatchException("Instruction preceding je9.p is not Lmjc;->f:Lgf9; iget-object")
     }
 
     val spacerIndex = statsIndex + 1
@@ -336,17 +280,17 @@ private fun BytecodePatchContext.patchProfileStatisticsItem() {
     val isSpacer = spacerInst?.opcode == Opcode.INVOKE_STATIC &&
         (spacerInst as? ReferenceInstruction)?.reference?.let { ref ->
             (ref as? MethodReference)?.let { m ->
-                m.definingClass == "Lcom/groundspeak/geocaching/intro/ui/compose/f;" && m.name == "u"
+                m.definingClass == "Lcom/groundspeak/geocaching/intro/ui/compose/f;" && m.name == "v"
             }
         } == true
 
     if (!isSpacer) {
-        throw PatchException("Instruction following k19.p is not f.u spacer invoke-static")
+        throw PatchException("Instruction following je9.p is not f.v spacer invoke-static")
     }
 
-    bMethod.replaceInstruction(spacerIndex, "nop")
-    bMethod.replaceInstruction(statsIndex, "nop")
-    bMethod.replaceInstruction(igetIndex, "nop")
+    cMethod.replaceInstruction(spacerIndex, "nop")
+    cMethod.replaceInstruction(statsIndex, "nop")
+    cMethod.replaceInstruction(igetIndex, "nop")
 }
 
 /**
@@ -355,10 +299,10 @@ private fun BytecodePatchContext.patchProfileStatisticsItem() {
 private fun BytecodePatchContext.patchSettingsFragment() {
     val settingsClass = mutableClassDefBy("Lcom/groundspeak/geocaching/intro/fragments/settings/SettingsFragment;")
     val vMethod = settingsClass.methods.firstOrNull {
-        it.name == "v" && it.returnType == "V" && it.implementation != null && it.parameterTypes.size == 3
-    } ?: throw PatchException("SettingsFragment.v not found")
+        it.name == "w" && it.returnType == "V" && it.implementation != null && it.parameterTypes.size == 3
+    } ?: throw PatchException("SettingsFragment.w not found")
 
-    patchAllL3cChecksToValue(vMethod, "SettingsFragment.v", true)
+    patchAllPremiumChecksToValue(vMethod, "SettingsFragment.w", true)
 }
 
 /**
@@ -367,47 +311,49 @@ private fun BytecodePatchContext.patchSettingsFragment() {
  */
 private fun BytecodePatchContext.patchAccountFragment() {
     val accountClass = mutableClassDefBy("Lcom/groundspeak/geocaching/intro/fragments/AccountFragment;")
-    val vMethod = accountClass.methods.firstOrNull {
-        it.name == "v" && it.returnType == "V" && it.implementation != null && it.parameterTypes.size == 4
-    } ?: throw PatchException("AccountFragment.v not found")
+    val wMethod = accountClass.methods.firstOrNull {
+        it.name == "w" && it.returnType == "V" && it.implementation != null && it.parameterTypes.size == 4
+    } ?: throw PatchException("AccountFragment.w not found")
 
     // 1. Override "Membership type: Basic" text with "Membership type: Premium"
-    val initialInstructions = vMethod.implementation?.instructions?.toList() ?: emptyList()
-    for (i in 0 until initialInstructions.size - 1) {
-        val curr = initialInstructions[i]
-        val next = initialInstructions[i + 1]
-        val isL65U = curr.opcode == Opcode.INVOKE_STATIC &&
-            (curr as? ReferenceInstruction)?.reference?.let { ref ->
-                (ref as? MethodReference)?.let { m ->
-                    m.name == "U" && m.definingClass == "Ll65;" && m.returnType == "Ljava/lang/String;"
-                } == true
-            } == true
-        if (isL65U && next.opcode == Opcode.MOVE_RESULT_OBJECT) {
-            val prev = if (i > 0) initialInstructions[i - 1] else null
-            val isBasicString = (prev as? NarrowLiteralInstruction)?.narrowLiteral == 0x7f140692
-            if (isBasicString) {
-                val reg = (next as OneRegisterInstruction).registerA
-                val after = initialInstructions.getOrNull(i + 2)
-                val alreadyReplaced = after?.opcode == Opcode.CONST_STRING &&
-                    (after as? ReferenceInstruction)?.reference?.let { ref ->
-                        (ref as? StringReference)?.string == "Membership type: Premium"
+    val initialInstructions = wMethod.implementation?.instructions?.toList() ?: emptyList()
+    val basicLabelIdx = initialInstructions.indexOfFirst {
+        (it as? NarrowLiteralInstruction)?.narrowLiteral == 0x7f140719
+    }
+    if (basicLabelIdx >= 0) {
+        val labelCallIdx = (basicLabelIdx until initialInstructions.size).firstOrNull { i ->
+            val inst = initialInstructions[i]
+            inst.opcode == Opcode.INVOKE_STATIC &&
+                (inst as? ReferenceInstruction)?.reference?.let { ref ->
+                    (ref as? MethodReference)?.let { m ->
+                        m.name == "L" && m.definingClass == "Lc26;" && m.returnType == "Ljava/lang/String;"
                     } == true
-                if (!alreadyReplaced) {
-                    vMethod.addInstructions(i + 2, "const-string v$reg, \"Membership type: Premium\"")
-                }
-                break
+                } == true
+        }
+        val moveResultIdx = labelCallIdx?.plus(1)
+        val moveResult = moveResultIdx?.let { initialInstructions.getOrNull(it) }
+        if (moveResultIdx != null && moveResult?.opcode == Opcode.MOVE_RESULT_OBJECT) {
+            val reg = (moveResult as OneRegisterInstruction).registerA
+            val after = initialInstructions.getOrNull(moveResultIdx + 1)
+            val alreadyReplaced = after?.opcode == Opcode.CONST_STRING &&
+                (after as? ReferenceInstruction)?.reference?.let { ref ->
+                    (ref as? StringReference)?.string == "Membership type: Premium"
+                } == true
+            if (!alreadyReplaced) {
+                wMethod.addInstructions(moveResultIdx + 1, "const-string v$reg, \"Membership type: Premium\"")
             }
         }
     }
 
-    // 2. Refresh instructions list after insertion so indices are exact
-    val instructions = vMethod.implementation?.instructions?.toList() ?: emptyList()
+    // 2. Skip the Upgrade to Premium item (settings/f0) and its trailing spacer
+    val instructions = wMethod.implementation?.instructions?.toList() ?: emptyList()
     val sgetIndex = instructions.indexOfFirst { instruction ->
         instruction.opcode == Opcode.SGET_OBJECT &&
             (instruction as? ReferenceInstruction)?.reference?.let { ref ->
                 (ref as? FieldReference)?.let { f ->
-                    f.name == "g" && (f.definingClass.contains("e0") || f.type.contains("e0"))
-                } == true
+                    f.name == "g" &&
+                        f.definingClass == "Lcom/groundspeak/geocaching/intro/fragments/settings/f0;"
+                }
             } == true
     }
     if (sgetIndex >= 0) {
@@ -416,13 +362,16 @@ private fun BytecodePatchContext.patchAccountFragment() {
             inst.opcode == Opcode.INVOKE_VIRTUAL &&
                 (inst as? ReferenceInstruction)?.reference?.let { ref ->
                     (ref as? MethodReference)?.let { m ->
-                        m.name == "t" && m.definingClass == "Lb44;"
+                        m.name == "t" && m.definingClass == "Lr94;"
                     } == true
                 } == true
-        } ?: throw PatchException("Could not find b44.t target after e0.g in AccountFragment.v")
+        } ?: throw PatchException("Could not find r94.t(Z) target after settings/f0.g in AccountFragment.w")
 
-        val targetLabel = vMethod.implementation!!.newLabelForIndex(targetIndex)
-        vMethod.implementation!!.replaceInstruction(sgetIndex, BuilderInstruction30t(Opcode.GOTO_32, targetLabel))
+        val targetLabel = wMethod.implementation!!.newLabelForIndex(targetIndex)
+        wMethod.implementation!!.replaceInstruction(
+            sgetIndex,
+            BuilderInstruction30t(Opcode.GOTO_32, targetLabel)
+        )
     }
 }
 
@@ -446,11 +395,9 @@ private fun BytecodePatchContext.patchLegacyGeocacheRepoLiteCache() {
     val dClass = mutableClassDefByOrNull("Lcom/groundspeak/geocaching/intro/model/d;") ?: return
     val eMethod = dClass.methods.firstOrNull {
         it.name == "e" &&
-            it.parameterTypes == listOf(
-                "Ljava/lang/String;",
-                "Lcom/groundspeak/geocaching/intro/geocachedetails/k;",
-                "Lkotlin/coroutines/jvm/internal/ContinuationImpl;"
-            ) &&
+            it.parameterTypes.size == 3 &&
+            it.parameterTypes[0] == "Ljava/lang/String;" &&
+            it.parameterTypes[2].contains("Continuation") &&
             it.implementation != null
     } ?: return
 
@@ -461,20 +408,27 @@ private fun BytecodePatchContext.patchLegacyGeocacheRepoLiteCache() {
         inst.opcode == Opcode.INVOKE_STATIC &&
             (inst as? ReferenceInstruction)?.reference?.let { ref ->
                 (ref as? MethodReference)?.let { m ->
-                    m.definingClass == "Lie4;" && m.name == "l"
+                    m.definingClass == "Lfj4;" &&
+                        m.name == "n" &&
+                        m.returnType == "Lcom/groundspeak/geocaching/intro/types/LegacyGeocache;"
                 }
             } == true
     }
     if (invokeLIndex == -1) return
 
-    val nextInst = instructions.getOrNull(invokeLIndex + 2)
-    val isAlreadyPatched = nextInst?.opcode == Opcode.MOVE_OBJECT
+    val moveResultIdx = invokeLIndex + 1
+    val moveResult = instructions.getOrNull(moveResultIdx) as? OneRegisterInstruction ?: return
+    val reg = moveResult.registerA
+
+    val isAlreadyPatched = instructions.any { inst ->
+        (inst as? ReferenceInstruction)?.reference?.toString()?.contains("rememberLiteGeocache") == true
+    }
     if (!isAlreadyPatched) {
         eMethod.addInstructions(
-            invokeLIndex + 2,
+            moveResultIdx + 1,
             """
-                move-object p1, p3
-                invoke-static {p3}, Lapp/aidan/extension/geocaching/GeocacheEnrichmentBridge;->rememberLiteGeocache(Ljava/lang/Object;)V
+                move-object p1, v$reg
+                invoke-static {v$reg}, Lapp/aidan/extension/geocaching/GeocacheEnrichmentBridge;->rememberLiteGeocache(Ljava/lang/Object;)V
             """.trimIndent()
         )
     }
@@ -510,6 +464,12 @@ private fun BytecodePatchContext.patchFetchLegacyCacheFallback() {
     }
     if (logStringIndex == -1) return
 
+    val returnOffset = instructions.subList(logStringIndex, instructions.size)
+        .indexOfFirst { it.opcode == Opcode.RETURN_OBJECT }
+    if (returnOffset == -1) return
+    val returnIndex = logStringIndex + returnOffset
+    val failureReg = (instructions[returnIndex] as OneRegisterInstruction).registerA
+
     // The instruction before logStringIndex is: const-string v0, "GeocacheRepo"
     val targetIndex = logStringIndex - 1
     val thisReg = impl.registerCount - 2
@@ -518,30 +478,50 @@ private fun BytecodePatchContext.patchFetchLegacyCacheFallback() {
         targetIndex,
         """
             move-object/16 v0, v$thisReg
-            invoke-static {v0, v7}, Lapp/aidan/extension/geocaching/GeocacheEnrichmentBridge;->onFetchFailed(Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;
-            move-result-object v7
+            invoke-static {v0, v$failureReg}, Lapp/aidan/extension/geocaching/GeocacheEnrichmentBridge;->onFetchFailed(Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;
+            move-result-object v$failureReg
         """.trimIndent()
     )
 }
 
 private fun BytecodePatchContext.patchSanitizeLoadedCache() {
-    val y82Class = mutableClassDefByOrNull("Ly82;") ?: return
-    val pMethod = y82Class.methods.firstOrNull {
-        it.name == "p" &&
-            it.parameterTypes == listOf("Ljava/lang/String;") &&
-            it.returnType == "Lcom/groundspeak/geocaching/intro/types/LegacyGeocache;" &&
+    // 10.24.0 loads the database lite row through GeocacheRepo.g(String, Continuation) and converts
+    // it with fj4.n; sanitize the converted LegacyGeocache before it is returned.
+    val repoClass = mutableClassDefByOrNull("Lcom/groundspeak/geocaching/intro/geocache/b;") ?: return
+    val gMethod = repoClass.methods.firstOrNull {
+        it.name == "g" &&
+            it.parameterTypes.size == 2 &&
+            it.parameterTypes[0] == "Ljava/lang/String;" &&
             it.implementation != null
     } ?: return
 
-    val impl = pMethod.implementation ?: return
+    val impl = gMethod.implementation ?: return
     val instructions = impl.instructions.toList()
-    val returnIndex = instructions.indexOfLast { it.opcode == Opcode.RETURN_OBJECT }
-    if (returnIndex == -1) return
+    val convertIndex = instructions.indexOfFirst { inst ->
+        inst.opcode == Opcode.INVOKE_STATIC &&
+            (inst as? ReferenceInstruction)?.reference?.let { ref ->
+                (ref as? MethodReference)?.let { m ->
+                    m.definingClass == "Lfj4;" &&
+                        m.name == "n" &&
+                        m.returnType == "Lcom/groundspeak/geocaching/intro/types/LegacyGeocache;"
+                }
+            } == true
+    }
+    if (convertIndex == -1) return
 
-    val returnInst = instructions[returnIndex] as? OneRegisterInstruction ?: return
-    val reg = returnInst.registerA
+    val moveResultIdx = convertIndex + 1
+    val reg = (instructions.getOrNull(moveResultIdx) as? OneRegisterInstruction)?.registerA ?: return
+    val returnIndex = (moveResultIdx until instructions.size).firstOrNull { i ->
+        instructions[i].opcode == Opcode.RETURN_OBJECT &&
+            (instructions[i] as? OneRegisterInstruction)?.registerA == reg
+    } ?: return
 
-    pMethod.addInstructions(
+    val alreadyPatched = instructions.any { inst ->
+        (inst as? ReferenceInstruction)?.reference?.toString()?.contains("sanitizeLoadedCache") == true
+    }
+    if (alreadyPatched) return
+
+    gMethod.addInstructions(
         returnIndex,
         """
             invoke-static {v$reg}, Lapp/aidan/extension/geocaching/GeocacheEnrichmentBridge;->sanitizeLoadedCache(Ljava/lang/Object;)Ljava/lang/Object;
@@ -562,15 +542,49 @@ private fun BytecodePatchContext.patchSanitizeLoadedCache() {
  * parameters, preventing 403 errors while preserving all user-configured filters.
  */
 private fun BytecodePatchContext.patchPreventMapSearchError() {
-    val filterPrefsClass = mutableClassDefByOrNull("Ldk3;") ?: return
+    val filterPrefsClass = mutableClassDefByOrNull("Lto3;") ?: return
     val hMethod = filterPrefsClass.methods.firstOrNull {
         it.name == "h" &&
             it.parameterTypes.isEmpty() &&
-            it.returnType == "Lck3;" &&
+            it.returnType == "Lso3;" &&
             it.implementation != null
     } ?: return
     patchIncludeOwnedDisabledCachesToNull(hMethod)
-    patchSanitizeFilterModel(hMethod)
+    sanitizeFilterPreferencesInPlace(hMethod)
+}
+
+/**
+ * Injects `GeocacheFilterBridge.sanitizeFilterModel` before FilterPreferences.h() returns its
+ * filter-preference value object (`Lso3;`), nulling inactive toggles that make basic-account map
+ * searches fail with HTTP 403.
+ */
+private fun BytecodePatchContext.sanitizeFilterPreferencesInPlace(method: MutableMethod) {
+    val impl = method.implementation ?: return
+    val instructions = impl.instructions.toList()
+    val alreadyPatched = instructions.any { inst ->
+        (inst as? ReferenceInstruction)?.reference?.toString()?.contains("sanitizeFilterModel") == true
+    }
+    if (alreadyPatched) return
+
+    val returnIdx = (0 until instructions.size).firstOrNull { i ->
+        val inst = instructions[i]
+        inst.opcode == Opcode.RETURN_OBJECT &&
+            (
+                instructions.getOrNull(i - 1)?.opcode == Opcode.INVOKE_DIRECT_RANGE ||
+                    instructions.getOrNull(i - 1)?.opcode == Opcode.INVOKE_DIRECT
+                )
+    } ?: -1
+    if (returnIdx == -1) return
+
+    val reg = (instructions[returnIdx] as OneRegisterInstruction).registerA
+    method.addInstructions(
+        returnIdx,
+        """
+        invoke-static {v$reg}, Lapp/aidan/extension/geocaching/GeocacheFilterBridge;->sanitizeFilterModel(Ljava/lang/Object;)Ljava/lang/Object;
+        move-result-object v$reg
+        check-cast v$reg, Lso3;
+        """.trimIndent()
+    )
 }
 
 /**
@@ -604,191 +618,32 @@ private fun BytecodePatchContext.patchPreventNavigationLoadError() {
     )
 }
 
-private const val CD_ITEM_SUMMARY_LAYOUT = "res/layout/cd_item_summary.xml"
-private const val CACHE_SUMMARY_ITEM_CLASS =
-    "Lcom/groundspeak/geocaching/intro/geocachedetails/overviewitems/CacheSummaryItem;"
-private const val CACHE_TITLE_RES_ID = 0x7f0a0543
-
 /**
- * Injects a light-orange warning banner container into the cache details summary layout
- * directly between the favorites section divider (view_extra_space) and the difficulty meters
- * (dts_container). The banner is initially GONE and made visible at runtime for PMO caches.
+ * In GeocacheDetailsActivity.C(LegacyGeocache), shows a one-shot notice when the opened cache is
+ * Premium Member Only. 10.24.0 renders cache details in Compose and no longer ships the
+ * cd_item_summary.xml view holder, so the previous in-layout banner has no anchor; the notice is a
+ * Toast keyed per cache code so recompositions cannot spam it.
  */
-private fun ResourcePatchContext.patchCacheSummaryWarningLayout() {
-    document(CD_ITEM_SUMMARY_LAYOUT).use { doc ->
-        val existing = doc.getElementsByTagName("LinearLayout")
-        for (i in 0 until existing.length) {
-            val elem = existing.item(i) as? Element ?: continue
-            val tag = elem.getAttribute("android:tag")
-            val id = elem.getAttribute("android:id")
-            if (tag == "pmo_warning_container" || id.contains("pmo_warning_container")) {
-                return@use
-            }
-        }
+private fun BytecodePatchContext.patchPmoWarningNotice() {
+    val activityClass = mutableClassDefBy("Lcom/groundspeak/geocaching/intro/geocachedetails/GeocacheDetailsActivity;")
+    val renderMethod = activityClass.methods.firstOrNull {
+        it.name == "C" &&
+            it.returnType == "V" &&
+            it.parameterTypes.map(CharSequence::toString) ==
+            listOf("Lcom/groundspeak/geocaching/intro/types/LegacyGeocache;") &&
+            it.implementation != null
+    } ?: throw PatchException("GeocacheDetailsActivity.C(LegacyGeocache;)V not found")
 
-        val allElements = doc.getElementsByTagName("*")
-        var dtsContainer: Element? = null
-        for (i in 0 until allElements.length) {
-            val elem = allElements.item(i) as? Element ?: continue
-            val id = elem.getAttribute("android:id")
-            if (id == "@id/dts_container" || id.endsWith("dts_container")) {
-                dtsContainer = elem
-                break
-            }
-        }
-
-        if (dtsContainer == null) {
-            throw PatchException("[$CD_ITEM_SUMMARY_LAYOUT] Could not find @id/dts_container element")
-        }
-
-        val parent = dtsContainer.parentNode
-            ?: throw PatchException("[$CD_ITEM_SUMMARY_LAYOUT] @id/dts_container has no parent")
-
-        val warning = doc.createElement("LinearLayout")
-        warning.setAttribute("android:id", "@+id/pmo_warning_container")
-        warning.setAttribute("android:tag", "pmo_warning_container")
-        warning.setAttribute("android:orientation", "horizontal")
-        warning.setAttribute("android:gravity", "center_vertical")
-        warning.setAttribute("android:visibility", "gone")
-        warning.setAttribute("android:layout_width", "0dp")
-        warning.setAttribute("android:layout_height", "wrap_content")
-        warning.setAttribute("android:layout_marginLeft", "@dimen/large")
-        warning.setAttribute("android:layout_marginRight", "@dimen/large")
-        warning.setAttribute("android:layout_marginStart", "@dimen/large")
-        warning.setAttribute("android:layout_marginEnd", "@dimen/large")
-        warning.setAttribute("android:layout_marginTop", "@dimen/small")
-        warning.setAttribute("android:layout_marginBottom", "@dimen/small")
-        warning.setAttribute("android:paddingLeft", "@dimen/large")
-        warning.setAttribute("android:paddingRight", "@dimen/large")
-        warning.setAttribute("android:paddingStart", "@dimen/large")
-        warning.setAttribute("android:paddingEnd", "@dimen/large")
-        warning.setAttribute("android:paddingTop", "@dimen/medium")
-        warning.setAttribute("android:paddingBottom", "@dimen/medium")
-        warning.setAttribute("app:layout_constraintStart_toStartOf", "parent")
-        warning.setAttribute("app:layout_constraintEnd_toEndOf", "parent")
-        warning.setAttribute("app:layout_constraintTop_toBottomOf", "@id/view_extra_space")
-
-        val icon = doc.createElement("ImageView")
-        icon.setAttribute("android:id", "@+id/pmo_warning_icon")
-        icon.setAttribute("android:tag", "pmo_warning_icon")
-        icon.setAttribute("android:layout_width", "20.0dp")
-        icon.setAttribute("android:layout_height", "20.0dp")
-        icon.setAttribute("android:layout_marginRight", "@dimen/medium")
-        icon.setAttribute("android:layout_marginEnd", "@dimen/medium")
-        icon.setAttribute("android:src", "@drawable/warning_filled")
-        icon.setAttribute("android:contentDescription", "@null")
-        warning.appendChild(icon)
-
-        val text = doc.createElement("com.google.android.material.textview.MaterialTextView")
-        text.setAttribute("android:id", "@+id/pmo_warning_text")
-        text.setAttribute("android:tag", "pmo_warning_text")
-        text.setAttribute("android:layout_width", "0dp")
-        text.setAttribute("android:layout_height", "wrap_content")
-        text.setAttribute("android:layout_weight", "1.0")
-        text.setAttribute("android:textAppearance", "@style/textAppearanceCaption1")
-        text.setAttribute("android:textColor", "#b54b00")
-        text.setAttribute("android:text", "Premium Member Only cache. Complete cache data (description, hints, logs) is unavailable for basic accounts due to a server restriction.")
-        warning.appendChild(text)
-
-        parent.insertBefore(warning, dtsContainer)
-        dtsContainer.setAttribute("app:layout_constraintTop_toBottomOf", "@id/pmo_warning_container")
+    val impl = renderMethod.implementation ?: throw PatchException("Missing implementation in GeocacheDetailsActivity.C")
+    val alreadyPatched = impl.instructions.any { inst ->
+        (inst as? ReferenceInstruction)?.reference?.toString()?.contains("notifyPmoRestricted") == true
     }
-}
+    if (alreadyPatched) return
 
-/**
- * Injects a call to GeocacheEnrichmentBridge.bindCacheSummaryWarning in CacheSummaryItem.bindViewHolder
- * to evaluate the cache's PMO status, dynamically apply light-orange alert theming, and reveal the warning banner.
- */
-private fun BytecodePatchContext.patchCacheSummaryWarningBinding() {
-    val summaryItemClass = mutableClassDefBy(CACHE_SUMMARY_ITEM_CLASS)
-    val bindMethod = summaryItemClass.methods.firstOrNull {
-        it.name == "bindViewHolder" && it.implementation != null
-    } ?: throw PatchException("[$CACHE_SUMMARY_ITEM_CLASS] bindViewHolder method not found")
-
-    val impl = bindMethod.implementation
-        ?: throw PatchException("Missing implementation in bindViewHolder")
-    val instructions = impl.instructions.toList()
-
-    val constIdx = instructions.indexOfFirst {
-        (it as? NarrowLiteralInstruction)?.narrowLiteral == CACHE_TITLE_RES_ID
-    }
-    if (constIdx < 0) {
-        throw PatchException("[$CACHE_SUMMARY_ITEM_CLASS] Could not find 0x7f0a0543 in bindViewHolder")
-    }
-
-    val igetIdx = constIdx - 1
-    if (igetIdx < 0 || instructions[igetIdx].opcode != Opcode.IGET_OBJECT) {
-        throw PatchException("[$CACHE_SUMMARY_ITEM_CLASS] Expected iget-object directly before const 0x7f0a0543")
-    }
-
-    bindMethod.addInstructions(
-        igetIdx,
+    renderMethod.addInstructions(
+        0,
         """
-        iget-object v0, p1, Landroidx/recyclerview/widget/o0;->itemView:Landroid/view/View;
-        invoke-virtual {p0}, Lcom/groundspeak/geocaching/intro/geocachedetails/LifecycleItemAdapter${'$'}Item;->getData()Ljava/lang/Object;
-        move-result-object v1
-        invoke-static {v0, v1}, Lapp/aidan/extension/geocaching/GeocacheEnrichmentBridge;->bindCacheSummaryWarning(Landroid/view/View;Ljava/lang/Object;)V
+        invoke-static {p0, p1}, Lapp/aidan/extension/geocaching/GeocacheEnrichmentBridge;->notifyPmoRestricted(Landroid/content/Context;Ljava/lang/Object;)V
         """.trimIndent()
     )
-}
-
-private const val GEOCACHE_DETAILS_ACTIVITY_COMPANION =
-    "Lcom/groundspeak/geocaching/intro/geocachedetails/GeocacheDetailsActivity\$a;"
-private const val DESCRIPTION_FRAGMENT_CLASS = "Lr64;"
-
-/**
- * Ensures GeocacheDetailsActivity (the XML-backed details screen containing cd_item_summary.xml)
- * is launched instead of the experimental Jetpack Compose rewrite (GeocacheDetailsActivity2)
- * so the warning banner is displayed between the favorites divider and difficulty meters.
- */
-private fun BytecodePatchContext.patchGeocacheDetailsActivityRoute() {
-    val companionClass = mutableClassDefByOrNull(GEOCACHE_DETAILS_ACTIVITY_COMPANION) ?: return
-    val aMethod = companionClass.methods.firstOrNull {
-        it.name == "a" && it.implementation != null
-    } ?: return
-
-    val impl = aMethod.implementation ?: return
-    val instructions = impl.instructions.toList()
-
-    for (i in instructions.indices) {
-        val inst = instructions[i]
-        if (inst.opcode == Opcode.CONST_CLASS) {
-            val typeRef = (inst as? ReferenceInstruction)?.reference as? com.android.tools.smali.dexlib2.iface.reference.TypeReference
-            if (typeRef?.type == "Lcom/groundspeak/geocaching/intro/geocachedetails/GeocacheDetailsActivity2;") {
-                val reg = (inst as OneRegisterInstruction).registerA
-                aMethod.replaceInstruction(
-                    i,
-                    "const-class v$reg, Lcom/groundspeak/geocaching/intro/geocachedetails/GeocacheDetailsActivity;"
-                )
-                break
-            }
-        }
-    }
-}
-
-/**
- * Ensures WebView in DescriptionFragment (r64.y) uses HTML line breaks (<br/><br/>\n\n) between
- * the short description ("Premium Member Only Cache") and the long description so that WebView
- * renders a blank line instead of collapsing the whitespace.
- */
-private fun BytecodePatchContext.patchDescriptionFragmentWebViewLineBreak() {
-    val r64Class = mutableClassDefByOrNull(DESCRIPTION_FRAGMENT_CLASS) ?: return
-    val yMethod = r64Class.methods.firstOrNull {
-        it.name == "y" && it.implementation != null
-    } ?: return
-
-    val impl = yMethod.implementation ?: return
-    val instructions = impl.instructions.toList()
-
-    for (i in instructions.indices) {
-        val inst = instructions[i]
-        if (inst.opcode == Opcode.CONST_STRING) {
-            val strRef = (inst as? ReferenceInstruction)?.reference as? StringReference
-            if (strRef?.string == "\n\n") {
-                val reg = (inst as OneRegisterInstruction).registerA
-                yMethod.replaceInstruction(i, "const-string v$reg, \"<br/><br/>\\n\\n\"")
-                break
-            }
-        }
-    }
 }

@@ -127,11 +127,11 @@ final class ExpertSettings {
 
     static void addBackgroundPosting(LinearLayout options, Activity activity, SharedPreferences prefs) {
         LiveSettings.Toggle backgroundPosting = new LiveSettings.Toggle(activity);
-        backgroundPosting.setText("投稿後すぐ元の画面に戻る（実験的）");
+        backgroundPosting.setText("投稿後すぐ元の画面に戻る");
         backgroundPosting.setChecked(prefs.getBoolean(BACKGROUND_POSTING, false));
         options.addView(backgroundPosting);
         android.widget.TextView backgroundPostingHelp = new android.widget.TextView(activity);
-        backgroundPostingHelp.setText("初期設定はOFFです。この更新後の初回起動時は、以前オンにした場合も一度オフになります。送信処理は止めず、投稿画面を同じタスクの背面に残して元の画面へ戻します。送信エラーやCookie確認が発生した場合は投稿画面を再表示します。成功時はChMate標準の投稿結果通知で一覧を更新します。対応する送信Taskを確認できない場合は投稿画面を閉じません。変更はすぐ反映されます。");
+        backgroundPostingHelp.setText("この更新後の初回起動時は、以前オンにした場合も一度オフになります。送信処理は止めず、投稿画面を同じタスクの背面に残して元の画面へ戻します。送信エラーやCookie確認が発生した場合は投稿画面を再表示します。成功時はChMate標準の投稿結果通知で一覧を更新します。対応する送信Taskを確認できない場合は投稿画面を閉じません。変更はすぐ反映されます。");
         options.addView(backgroundPostingHelp);
         new LiveSettings(prefs, () -> {}).toggle(backgroundPosting, BACKGROUND_POSTING);
     }

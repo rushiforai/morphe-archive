@@ -110,8 +110,8 @@ private const val PATCH = "Clean up Reels"
 val cleanUpReelsPatch = patch(
     name = "Clean up Reels",
     description = "Hides clutter on reels, such as the Follow button, comment previews, Remix and Use template " +
-        "buttons and Threads cards between reels, so more of the video shows, and can play each reel once " +
-        "instead of over and over, keep its original audio instead of a Meta AI dub, drop the search suggestions under the caption, over the comments and at the top of a profile's reels, or hide the like, comment and share counts, the Like, Comment, Repost, Share, Save or speaker button, or the line naming the reel's sound. It can also keep the Reels tab to accounts you follow, open a video you tap in the feed on its own, with no reels after it, do the same for a reel you open from a link or a chat, keep the Add friend pop-up off a reel someone who isn't your friend sent you, play a feed video again right there when you tap Watch again instead of opening Reels, play a video you tap in Saved in the video player instead of Reels, go on to the next reel in Saved instead of a suggested one, keep reels playing without stopping to ask \"Are you still watching?\", fill a tall screen with a reel or a full-screen video instead of leaving black bars around it, with a pinch to see one reel whole, take the UP NEXT bar off the bottom of a video you open from the feed, hide the Fullscreen button under a wide video or the full-screen and picture-in-picture buttons on videos in the feed and search results, stop the \"This is taking a while\" message when a video is slow to load, and play whole reels in the feed's Reels row instead of the same second over and over, or keep the Comment button on reels with comments turned off so you can read them, and hide the one-tap Subscribe button some authors get instead of Follow, or Search and the button beside it at the top of a video you open and of the Reels tab, and show when a reel or video was posted, or take \"New for you\" off the line under a reel's author. Its Burn-in guard can fade a reel's buttons, caption and bars when you leave them alone, so they don't burn into the screen. With Turn off HDR brightness patched too, it can show Reels in gray, video and all. Starts off. Turn on the parts you want in Hushfacebook settings > Reels and Watch.",
+        "buttons and Threads cards or Meta promos between reels, so more of the video shows, and can play each reel once " +
+        "instead of over and over, keep its original audio instead of a Meta AI dub, drop the search suggestions under the caption, over the comments and at the top of a profile's reels, or hide the like, comment and share counts, the Like, Comment, Repost, Share, Save or speaker button, or the line naming the reel's sound. It can also keep the Reels tab to accounts you follow, open a video you tap in the feed on its own, with no reels after it, do the same for a reel you open from a link or a chat, keep the Add friend pop-up off a reel someone who isn't your friend sent you, play a feed video again right there when you tap Watch again instead of opening Reels, play a video you tap in Saved in the video player instead of Reels, go on to the next reel in Saved instead of a suggested one, keep reels playing without stopping to ask \"Are you still watching?\", fill a tall screen with a reel or a full-screen video instead of leaving black bars around it, with a pinch to see one reel whole, take the UP NEXT bar off the bottom of a video you open from the feed, hide the Fullscreen button under a wide video or the full-screen and picture-in-picture buttons on videos in the feed and search results, stop the \"This is taking a while\" message when a video is slow to load, and play whole reels in the feed's Reels row instead of the same second over and over, or keep the Comment button on reels with comments turned off so you can read them, put Like, Comment, Share and Save back beside long videos, and hide the one-tap Subscribe button some authors get instead of Follow, or Search and the button beside it at the top of a video you open and of the Reels tab, and show when a reel or video was posted, or take \"New for you\" off the line under a reel's author. Its Burn-in guard can fade a reel's buttons, caption and bars when you leave them alone, so they don't burn into the screen. With Turn off HDR brightness patched too, it can show Reels in gray, video and all. Starts off. Turn on the parts you want in Hushfacebook settings > Reels and Watch.",
 ) {
     category("Reels")
     dependsOn(settingsPatch)
@@ -120,6 +120,8 @@ val cleanUpReelsPatch = patch(
 
     executeBytecode {
         filterChips()
+        // #314: the chip row under a feed video keeps a list of its own (see FeedChipRow.kt).
+        filterFeedChipRow()
         // #314: and "Made with Edits" under the caption, which isn't one of the chips.
         hideEditsLabel()
         // #200: the Reels tab draws the audio line in a row of its own, past the chip list. Looked up
@@ -246,6 +248,13 @@ val cleanUpReelsPatch = patch(
             skipStillWatching()
         } catch (exception: PatchException) {
             patchLog.warning("${exception.message}, so Skip \"Are you still watching?\" leaves Facebook's prompt as it is.")
+        }
+        // #525: a long video's side column, which Facebook presets to the three dots alone, built
+        // from its usual list with Like, Comment, Share and Save.
+        try {
+            showLongVideoButtons()
+        } catch (exception: PatchException) {
+            patchLog.warning("${exception.message}, so Side buttons on long videos leaves long videos as Facebook draws them.")
         }
         // #404: the card a press lands on, for a reel that opens from Saved and goes on to the next one.
         try {

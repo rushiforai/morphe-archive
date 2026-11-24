@@ -11,8 +11,8 @@ import io.github.forsigh.waze.WazeConstants.COMPATIBILITY_WAZE
  *
  *  - `CAR_LIB_CAR_GPS_FILTERING_ENABLED` gates the car-GPS filtering stage (read in
  *    `com.waze.location.g`, applied in `com.waze.location.k`),
- *  - `AAP_USE_NORMAL_CAR_GPS_UPDATE_RATE` selects the update-rate policy the projection
- *    (AAP) path uses (wired through the `com.waze.modules` chain),
+ *  - `AAP_USE_NORMAL_CAR_GPS_UPDATE_RATE` was removed by Waze in 5.28.4.900 (the key is gone from
+ *    ConfigValues), so the row no longer records it; the three keys below are what remains.
  *  - `CAR_LIB_LISTEN_TO_CAR_COMPASS` makes the car map take heading from the car's compass
  *    (read in `com.waze.car_lib.h.c`).
  *  - 5.25.90.900 renamed the update-rate switch to `GPS_ALIGN_AAP_AND_DEVICE_UPDATE_RATE`
@@ -40,7 +40,6 @@ val aaSmootherMapPatch = bytecodePatch(
         recordBoolean(
             "aas", true,
             "CONFIG_VALUE_CAR_LIB_CAR_GPS_FILTERING_ENABLED",
-            "CONFIG_VALUE_AAP_USE_NORMAL_CAR_GPS_UPDATE_RATE",
             "CONFIG_VALUE_GPS_ALIGN_AAP_AND_DEVICE_UPDATE_RATE",
             "CONFIG_VALUE_CAR_LIB_LISTEN_TO_CAR_COMPASS",
         )

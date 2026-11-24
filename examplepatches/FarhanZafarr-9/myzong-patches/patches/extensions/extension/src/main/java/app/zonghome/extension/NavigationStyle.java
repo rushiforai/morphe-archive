@@ -114,7 +114,7 @@ public final class NavigationStyle {
             }
             long now = android.os.SystemClock.uptimeMillis();
             boolean styleNow = bundlesTabs == null || !bundlesTabs.isShown() || lastBundleStyle == 0 || now-lastBundleStyle >= 200;
-            if (styleNow && shapes()) MaterialShapes.apply(view);
+            if (styleNow && shapes() && (bundlesTabs == null || !bundlesTabs.isShown())) MaterialShapes.apply(view);
             if (iconOnly()) {
                 View navigation = find(view, "bottomNav");
                 if (navigation != null) {

@@ -25,6 +25,19 @@ internal fun BytecodePatchContext.patchFf5chBrowserAds(version: String) {
         val callback = owner.methods.single { it.name == name && it.parameterTypes.take(2) == listOf(view, "Ljava/lang/String;") && it.returnType == "V" }
         callback.addInstructions(0, "invoke-static/range {p1 .. p2}, $extension->$helper(${view}Ljava/lang/String;)V")
     }
+    val commit = owner.methods.singleOrNull { it.name == "onPageCommitVisible" && it.parameterTypes == listOf(view, "Ljava/lang/String;") }
+    if (commit != null) {
+        commit.addInstructions(0,"invoke-static/range {p1 .. p2}, $extension->finished(${view}Ljava/lang/String;)V")
+    } else owner.methods.add(MutableMethod(ImmutableMethod(type,"onPageCommitVisible",
+        listOf(view,"Ljava/lang/String;").map { ImmutableMethodParameter(it,emptySet(),null) },"V",1,
+        emptySet(),emptySet(),ImmutableMethodImplementation(3,emptyList(),emptyList(),emptyList())
+    )).apply {
+        addInstructions(0,"""
+            invoke-super {p0, p1, p2}, $client->onPageCommitVisible(${view}Ljava/lang/String;)V
+            invoke-static {p1, p2}, $extension->finished(${view}Ljava/lang/String;)V
+            return-void
+        """.trimIndent())
+    })
     check(owner.methods.none { it.name == "shouldInterceptRequest" })
     owner.methods.add(MutableMethod(ImmutableMethod(type, "shouldInterceptRequest",
         listOf(view, request).map { ImmutableMethodParameter(it, emptySet(), null) }, response, 1,
@@ -35,6 +48,20 @@ internal fun BytecodePatchContext.patchFf5chBrowserAds(version: String) {
             move-result-object v0
             if-nez v0, :result
             invoke-super {p0, p1, p2}, $client->shouldInterceptRequest($view$request)$response
+            move-result-object v0
+            :result
+            return-object v0
+        """.trimIndent())
+    })
+    owner.methods.add(MutableMethod(ImmutableMethod(type,"shouldInterceptRequest",
+        listOf(view,"Ljava/lang/String;").map { ImmutableMethodParameter(it,emptySet(),null) },response,1,
+        emptySet(),emptySet(),ImmutableMethodImplementation(4,emptyList(),emptyList(),emptyList())
+    )).apply {
+        addInstructions(0,"""
+            invoke-static {p1, p2}, $extension->interceptLegacy(${view}Ljava/lang/String;)$response
+            move-result-object v0
+            if-nez v0, :result
+            invoke-super {p0, p1, p2}, $client->shouldInterceptRequest(${view}Ljava/lang/String;)$response
             move-result-object v0
             :result
             return-object v0

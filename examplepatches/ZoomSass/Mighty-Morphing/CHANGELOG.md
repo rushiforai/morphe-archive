@@ -1,3 +1,15 @@
+## [1.6.1](https://github.com/ZoomSass/Mighty-Morphing/compare/v1.6.0...v1.6.1) (2026-11-23)
+
+### 🐛 Bug Fixes
+
+* Extra comment request logging and load-more fixes (test build) ([78cf4a7](https://github.com/ZoomSass/Mighty-Morphing/commit/78cf4a7fdd78a72c695d20751c1762f0d29091aa))
+
+## [1.6.1-dev.1](https://github.com/ZoomSass/Mighty-Morphing/compare/v1.6.0...v1.6.1-dev.1) (2026-11-23)
+
+### 🐛 Bug Fixes
+
+* Extra comment request logging and load-more fixes (test build) ([78cf4a7](https://github.com/ZoomSass/Mighty-Morphing/commit/78cf4a7fdd78a72c695d20751c1762f0d29091aa))
+
 ## [1.6.0](https://github.com/ZoomSass/Mighty-Morphing/compare/v1.5.0...v1.6.0) (2026-11-22)
 
 ### ✨ New Features

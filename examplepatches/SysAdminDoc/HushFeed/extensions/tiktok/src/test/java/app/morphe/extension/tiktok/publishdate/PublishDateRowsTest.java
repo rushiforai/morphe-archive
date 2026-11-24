@@ -40,6 +40,37 @@ public class PublishDateRowsTest {
 
     @After public void tearDown() {
         SettingsStatus.alwaysShowPublishDateEnabled = false;
+        SettingsStatus.publishDateGridsEnabled = false;
+        Settings.ALWAYS_SHOW_PUBLISH_DATE.resetToDefault();
+    }
+
+    /**
+     * TikTok Lite (#502) patches only the date by the creator's name. Its grid rows would change
+     * nothing there, so they're offered only where the grids were hooked.
+     */
+    @Test public void theGridRowsShowOnlyWhereTheGridsWereHooked() {
+        try (var controller = Robolectric.buildActivity(TestActivity.class).setup()) {
+            var activity = controller.get();
+            Utils.setContext(activity);
+            SettingsStatus.alwaysShowPublishDateEnabled = true;
+
+            SettingsStatus.publishDateGridsEnabled = false;
+            PreferenceScreen lite = activity.getPreferenceManager().createPreferenceScreen(activity);
+            new InterfacePreferenceCategory(activity, lite);
+            assertNotNull(lite.findPreference(Settings.ALWAYS_SHOW_PUBLISH_DATE.key));
+            assertNotNull(lite.findPreference(Settings.PUBLISH_DATE_EXACT_TIME.key));
+            assertNotNull(lite.findPreference(Settings.PUBLISH_DATE_INSTEAD_OF_AGE.key));
+            assertNull(lite.findPreference(Settings.PUBLISH_DATE_ON_GRID.key));
+            assertNull(lite.findPreference(Settings.VIDEO_LENGTH_ON_GRID.key));
+            assertNull(lite.findPreference(Settings.HIDE_GRID_VIEW_COUNT.key));
+            assertNull(lite.findPreference(Settings.ROUNDED_GRID_CORNERS.key));
+
+            SettingsStatus.publishDateGridsEnabled = true;
+            PreferenceScreen tiktok = activity.getPreferenceManager().createPreferenceScreen(activity);
+            new InterfacePreferenceCategory(activity, tiktok);
+            assertNotNull(tiktok.findPreference(Settings.PUBLISH_DATE_ON_GRID.key));
+            assertNotNull(tiktok.findPreference(Settings.ROUNDED_GRID_CORNERS.key));
+        }
     }
 
     @Test public void theOptionsAreOnTheFeedScreenPageOnlyWhenPatched() {
@@ -56,9 +87,11 @@ public class PublishDateRowsTest {
             assertNull(without.findPreference(Settings.PUBLISH_DATE_SHORT_DATE.key));
             assertNull(without.findPreference(Settings.PUBLISH_DATE_DAY_FIRST.key));
             assertNull(without.findPreference(Settings.PUBLISH_DATE_MONTH_NAME.key));
+            assertNull(without.findPreference(Settings.PUBLISH_DATE_INSTEAD_OF_AGE.key));
             assertNull(without.findPreference(Settings.VIDEO_LENGTH_ON_GRID.key));
 
             SettingsStatus.alwaysShowPublishDateEnabled = true;
+            SettingsStatus.publishDateGridsEnabled = true;
             PreferenceScreen with = activity.getPreferenceManager().createPreferenceScreen(activity);
             new InterfacePreferenceCategory(activity, with);
             assertNotNull(with.findPreference(Settings.ALWAYS_SHOW_PUBLISH_DATE.key));
@@ -68,6 +101,7 @@ public class PublishDateRowsTest {
             assertNotNull(with.findPreference(Settings.PUBLISH_DATE_SHORT_DATE.key));
             assertNotNull(with.findPreference(Settings.PUBLISH_DATE_DAY_FIRST.key));
             assertNotNull(with.findPreference(Settings.PUBLISH_DATE_MONTH_NAME.key));
+            assertNotNull(with.findPreference(Settings.PUBLISH_DATE_INSTEAD_OF_AGE.key));
             assertNotNull(with.findPreference(Settings.VIDEO_LENGTH_ON_GRID.key));
             // They apply to the next video or grid shown, so none asks for a restart.
             assertFalse(Settings.PUBLISH_DATE_EXACT_TIME.rebootApp);
@@ -77,6 +111,7 @@ public class PublishDateRowsTest {
             assertFalse(Settings.PUBLISH_DATE_SHORT_DATE.rebootApp);
             assertFalse(Settings.PUBLISH_DATE_DAY_FIRST.rebootApp);
             assertFalse(Settings.PUBLISH_DATE_MONTH_NAME.rebootApp);
+            assertFalse(Settings.PUBLISH_DATE_INSTEAD_OF_AGE.rebootApp);
             // Both only shape the time to the second, so they follow its switch.
             try {
                 Settings.PUBLISH_DATE_EXACT_TIME.save(false);

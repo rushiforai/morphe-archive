@@ -196,14 +196,14 @@ private fun BytecodePatchContext.bypassPlayServicesSignatureChecks() {
 
 /**
  * Activates the Live Activity feature gate across API response models and view model mappers:
- * 1. Forces ActionsResponse.liveActivityEnabled (Lrd;->j: Boolean) to Boolean.TRUE upon construction.
- * 2. Forces Action.liveActivityEnabled (Lrb;->i: boolean) to true upon construction.
+ * 1. Forces ActionsResponse.liveActivityEnabled (Led;->j: Boolean) to Boolean.TRUE upon construction.
+ * 2. Forces Action.liveActivityEnabled (Lcb;->i: boolean) to true upon construction.
  * This ensures GameCenterViewModel (ip7) resolves showLiveActivityToggle to true for all live and upcoming games.
  */
 private fun BytecodePatchContext.forceLiveActivitiesActive() {
-    // 1. ActionsResponse constructor (Lrd;)
-    val rdClass = mutableClassDefByOrNull("Lrd;")
-        ?: throw PatchException("Missing required class Lrd; (ActionsResponse)")
+    // 1. ActionsResponse constructor (Led;)
+    val rdClass = mutableClassDefByOrNull("Led;")
+        ?: throw PatchException("Missing required class Led; (ActionsResponse)")
 
     val rdConstructor = rdClass.methods.singleOrNull { method ->
         method.name == "<init>" &&
@@ -211,20 +211,20 @@ private fun BytecodePatchContext.forceLiveActivitiesActive() {
                 "I",
                 "Ljava/lang/String;",
                 "Ljava/lang/String;",
-                "Lfva;",
-                "Lfva;",
-                "Lfva;",
+                "Lshb;",
+                "Lshb;",
+                "Lshb;",
                 "Ljava/lang/String;",
-                "Lfva;",
-                "Lfva;",
-                "Lfva;",
+                "Lshb;",
+                "Lshb;",
+                "Lshb;",
                 "Ljava/lang/Boolean;"
             ) &&
             method.returnType == "V"
-    } ?: throw PatchException("Missing required ActionsResponse constructor in Lrd;")
+    } ?: throw PatchException("Missing required ActionsResponse constructor in Led;")
 
     val rdImpl = rdConstructor.implementation
-        ?: throw PatchException("ActionsResponse constructor in Lrd; has no implementation")
+        ?: throw PatchException("ActionsResponse constructor in Led; has no implementation")
 
     val rdReturnIndices = rdImpl.instructions.withIndex()
         .filter { it.value.opcode == Opcode.RETURN_VOID }
@@ -240,33 +240,33 @@ private fun BytecodePatchContext.forceLiveActivitiesActive() {
             returnIdx,
             """
             sget-object v0, Ljava/lang/Boolean;->TRUE:Ljava/lang/Boolean;
-            iput-object v0, p0, Lrd;->j:Ljava/lang/Boolean;
+            iput-object v0, p0, Led;->j:Ljava/lang/Boolean;
             """.trimIndent()
         )
     }
 
-    // 2. Action constructor (Lrb;)
-    val rbClass = mutableClassDefByOrNull("Lrb;")
-        ?: throw PatchException("Missing required class Lrb; (Action)")
+    // 2. Action constructor (Lcb;)
+    val rbClass = mutableClassDefByOrNull("Lcb;")
+        ?: throw PatchException("Missing required class Lcb; (Action)")
 
     val rbConstructor = rbClass.methods.singleOrNull { method ->
         method.name == "<init>" &&
             method.parameterTypes == listOf(
                 "Ljava/lang/String;",
                 "Ljava/lang/String;",
-                "Lafe;",
-                "Lafe;",
-                "Lafe;",
-                "Leva;",
-                "Lafe;",
-                "Lafe;",
+                "La5f;",
+                "La5f;",
+                "La5f;",
+                "Lrhb;",
+                "La5f;",
+                "La5f;",
                 "Z"
             ) &&
             method.returnType == "V"
-    } ?: throw PatchException("Missing required Action constructor in Lrb;")
+    } ?: throw PatchException("Missing required Action constructor in Lcb;")
 
     val rbImpl = rbConstructor.implementation
-        ?: throw PatchException("Action constructor in Lrb; has no implementation")
+        ?: throw PatchException("Action constructor in Lcb; has no implementation")
 
     val rbReturnIndices = rbImpl.instructions.withIndex()
         .filter { it.value.opcode == Opcode.RETURN_VOID }
@@ -282,7 +282,7 @@ private fun BytecodePatchContext.forceLiveActivitiesActive() {
             returnIdx,
             """
             const/4 p9, 0x1
-            iput-boolean p9, p0, Lrb;->i:Z
+            iput-boolean p9, p0, Lcb;->i:Z
             """.trimIndent()
         )
     }

@@ -55,10 +55,11 @@ private fun readingOptionPatch(
     optionDescription: String,
     optionDefault: String,
     optionValues: Map<String, String>? = null,
+    patchDefault: Boolean = false,
 ) = bytecodePatch(
     name = name,
     description = description,
-    default = false
+    default = patchDefault
 ) {
     category(patchCategory)
     compatibleWith(COMPATIBILITY_QUORA)
@@ -94,7 +95,7 @@ val filterKeywordsPatch = readingOptionPatch(
     extensionMethod = "filterKeywords",
     optionKey = "keywords",
     optionTitle = "Keywords",
-    optionDescription = "Words or phrases, separated by commas. Matching ignores case. Example: crypto, horoscope, Elon Musk",
+    optionDescription = "Words or phrases, separated by commas. Matching ignores case and finds whole words; end a word with * to also find longer ones. Example: crypto, horoscope*, Elon Musk",
     optionDefault = "",
 )
 
@@ -102,12 +103,14 @@ val filterKeywordsPatch = readingOptionPatch(
 val blockAuthorsPatch = readingOptionPatch(
     name = "Block authors and Spaces",
     patchCategory = "Feed",
-    description = "Hides answers and posts by the people and Spaces you pick.",
+    description = "Hides answers and posts by the people and Spaces you pick. Long-press a name in the feed to add it.",
     extensionMethod = "blockAuthors",
     optionKey = "authors",
     optionTitle = "Authors and Spaces",
     optionDescription = "Names as Quora shows them, separated by commas. Example: Jane Doe, Cats of Quora",
     optionDefault = "",
+    // On: it hides nothing until you add a name, and the long press to add one needs it.
+    patchDefault = true,
 )
 
 @Suppress("unused")
@@ -301,3 +304,40 @@ val dataSaverPatch = bytecodePatch(
         )
     }
 }
+
+@Suppress("unused")
+val hideLowVotedPatch = readingOptionPatch(
+    name = "Hide low-voted answers",
+    patchCategory = "Feed",
+    description = "Hides answers and posts with fewer upvotes than the number you pick, in the feed and on question pages.",
+    extensionMethod = "hideLowVoted",
+    optionKey = "minUpvotes",
+    optionTitle = "Fewer upvotes than",
+    optionDescription = "Answers and posts with fewer upvotes than this are hidden.",
+    optionDefault = "5",
+    optionValues = mapOf("1" to "1", "5" to "5", "10" to "10", "50" to "50", "100" to "100"),
+)
+
+@Suppress("unused")
+val hideResharesPatch = readingPatch(
+    name = "Hide reshares",
+    patchCategory = "Feed",
+    description = "Hides answers and posts in the feed that someone only shared again.",
+    extensionMethod = "hideReshares",
+)
+
+@Suppress("unused")
+val hideMediaOnlyPatch = readingPatch(
+    name = "Hide picture and video posts",
+    patchCategory = "Feed",
+    description = "Hides answers and posts in the feed that are only a picture or a video, with hardly any text.",
+    extensionMethod = "hideMediaOnly",
+)
+
+@Suppress("unused")
+val hideTranslatedPatch = readingPatch(
+    name = "Hide machine-translated answers",
+    patchCategory = "Feed",
+    description = "Hides answers and posts that Quora marks as translated from another language.",
+    extensionMethod = "hideTranslated",
+)

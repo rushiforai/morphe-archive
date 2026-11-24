@@ -132,3 +132,96 @@ jobs:
           $STATUS
 
           Release notes: https://github.com/$REPO/releases/tag/v$LATEST"
+
+  # @MorpheApp/changelog is a git dependency pinned to a commit; Dependabot cannot
+  # track it. Pin package.json to the bundle branch tip and open a PR when it moves.
+  update-changelog:
+    name: Update morphe-changelog
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout dev
+        uses: actions/checkout@v7
+        with:
+          ref: dev
+
+      - name: Find current pin and latest bundle commit
+        id: version
+        run: |
+          CURRENT=$(sed -E 's/.*changelog\.git#([^"]*).*/\1/' package.json)
+          LATEST=$(git ls-remote https://github.com/MorpheApp/changelog.git bundle | cut -f1)
+
+          echo "Current: $CURRENT | Latest bundle commit: $LATEST"
+          if [ -z "$CURRENT" ] || [ -z "$LATEST" ]; then
+            echo "::error::Could not read the current pin or latest bundle commit"
+            exit 1
+          fi
+
+          if [ "$LATEST" != "$CURRENT" ]; then
+            echo "update=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "update=false" >> "$GITHUB_OUTPUT"
+          fi
+          echo "short=${LATEST::12}" >> "$GITHUB_OUTPUT"
+          echo "latest=$LATEST" >> "$GITHUB_OUTPUT"
+          echo "current=$CURRENT" >> "$GITHUB_OUTPUT"
+
+      - name: Skip if a branch for this commit already exists
+        id: exists
+        if: steps.version.outputs.update == 'true'
+        run: |
+          if git ls-remote --exit-code --heads origin "bot/morphe-changelog-${{ steps.version.outputs.short }}" >/dev/null 2>&1; then
+            echo "found=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "found=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Pin package.json to the latest bundle commit
+        if: steps.version.outputs.update == 'true' && steps.exists.outputs.found == 'false'
+        env:
+          LATEST: ${{ steps.version.outputs.latest }}
+        run: |
+          sed -i "s|changelog.git#.*\"|changelog.git#$LATEST\"|" package.json
+          git diff
+
+      # npm install is the meaningful check here: the changelog package is consumed
+      # by semantic-release at release time, not by the Gradle build.
+      - name: Verify dependencies resolve
+        id: build
+        if: steps.version.outputs.update == 'true' && steps.exists.outputs.found == 'false'
+        continue-on-error: true
+        run: npm install --no-audit --no-fund
+
+      - name: Commit, push and open PR
+        if: steps.version.outputs.update == 'true' && steps.exists.outputs.found == 'false'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          CURRENT: ${{ steps.version.outputs.current }}
+          LATEST: ${{ steps.version.outputs.latest }}
+          SHORT: ${{ steps.version.outputs.short }}
+          BUILD_OUTCOME: ${{ steps.build.outcome }}
+        run: |
+          BRANCH="bot/morphe-changelog-$SHORT"
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git checkout -b "$BRANCH"
+          git add package.json
+          git commit -m "chore: update morphe-changelog to $SHORT"
+          git push origin "$BRANCH"
+
+          if [ "$BUILD_OUTCOME" = "success" ]; then
+            STATUS="npm install check passed."
+            DRAFT=""
+          else
+            STATUS="npm install check FAILED. Opened as a draft."
+            DRAFT="--draft"
+          fi
+
+          gh pr create $DRAFT \
+            --base dev \
+            --head "$BRANCH" \
+            --title "chore: update morphe-changelog to $SHORT" \
+            --body "Bumps the pinned \`@MorpheApp/changelog\` bundle commit from \`$CURRENT\` to \`$LATEST\`.
+
+          $STATUS
+
+          Latest bundle commits: https://github.com/MorpheApp/changelog/commits/bundle"

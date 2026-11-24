@@ -1,11 +1,14 @@
 package app.zonghome.extension;
 import android.view.View;
 import android.view.ViewGroup;
-final class HomeControls {
+public final class HomeControls {
+    public static void prepare(View root) { apply(root); }
     private HomeControls() {}
     private static boolean hide(View root, String name) {
         View view = ViewNames.find(root, name);
-        if (view == null || view.getVisibility() == View.GONE) return false;
+        if (view == null) return false;
+        if(view.getAlpha()!=0f)view.setAlpha(0f);
+        if(view.getVisibility() == View.GONE)return false;
         view.setVisibility(View.GONE);
         return true;
     }

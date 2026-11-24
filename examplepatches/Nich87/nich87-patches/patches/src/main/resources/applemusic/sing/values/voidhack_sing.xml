@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="voidhack_sing_title">Vocal separation</string>
+    <string name="voidhack_sing_mix">Vocal and accompaniment mix</string>
+    <string name="voidhack_sing_original">Original mix</string>
+    <string name="voidhack_sing_reduce_vocals">Vocals reduced by %1$d%%</string>
+    <string name="voidhack_sing_reduce_backing">Accompaniment reduced by %1$d%%</string>
+    <string name="voidhack_sing_reset">Original mix</string>
+    <string name="voidhack_sing_download">Prepare model</string>
+    <string name="voidhack_sing_setup">Download the 30 MB model once to separate vocals on this device.</string>
+    <string name="voidhack_sing_preparing">Preparing the separation model…</string>
+    <string name="voidhack_sing_format">Separation requires stereo PCM at 32, 44.1, 48, 88.2, 96, 176.4 or 192 kHz.</string>
+    <string name="voidhack_sing_failed">The model could not be prepared. Tap Prepare model to retry.</string>
+</resources>

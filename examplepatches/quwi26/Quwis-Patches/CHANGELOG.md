@@ -1,3 +1,9 @@
+# [1.14.1](https://github.com/quwi26/Quwis-Patches/compare/v1.14.0...v1.14.1) (2026-11-23)
+
+### Bug Fixes
+
+* **Game Review:** a game with an en passant capture no longer crashes the review screen on chess.com 4.10.23. A move derived from the board could be named from the square of the captured pawn, which the app cannot replay and which ended in a bare `NullPointerException`; the moves are now replayed with the app's own converter before the review is shown, a best move the app cannot replay is left out, and the app log says which move could not be read
+
 # [1.14.0](https://github.com/quwi26/Quwis-Patches/compare/v1.13.4...v1.14.0) (2026-11-22)
 
 ### New Features

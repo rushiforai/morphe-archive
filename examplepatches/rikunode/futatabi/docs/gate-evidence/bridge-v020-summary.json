@@ -1,0 +1,27 @@
+{
+  "device": "Android API 36 emulator-5554",
+  "app_package": "com.Nanasaki.ftutter.morphe",
+  "original_package_preserved": true,
+  "provider_authority": "com.Nanasaki.ftutter.morphe.futatabi.init",
+  "loopback_tcp_18765_connected": true,
+  "board_url": "http://127.0.0.1:18765/aimoge/",
+  "aimoge_count_after_restart": 1,
+  "stock_cat_board_count": 1,
+  "other_existing_boards_preserved": 1,
+  "board_visible_in_ui": true,
+  "catalog_has_cells": true,
+  "catalog_null_check_error": false,
+  "thread_post_numbers_present": true,
+  "thread_image_views": 1,
+  "thread_null_check_error": false,
+  "video_thumbnail_fallback": {
+    "http_status": 200,
+    "bytes": 20460,
+    "mime": "image/jpeg",
+    "jpeg_magic_verified": true
+  },
+  "read_only_POST_status": 403,
+  "mebuki_disabled_GET_status": 503,
+  "animanch_adapter": "deferred",
+  "physical_device_test": "not performed"
+}

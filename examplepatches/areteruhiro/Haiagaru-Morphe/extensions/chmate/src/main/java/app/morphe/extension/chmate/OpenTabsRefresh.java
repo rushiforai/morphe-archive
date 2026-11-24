@@ -101,11 +101,15 @@ public final class OpenTabsRefresh {
     /** Bound to each version's concrete native board/thread command dispatcher by the patch. */
     private static boolean nativeRefresh(Object fragment){return false;}
     /** Refresh the matched reader after its background DAT has had time to arrive. */
-    static void refreshWatchedFragment(Object fragment){
-        if(fragment==null||dispatching())return;
+    static boolean refreshWatchedFragment(Object fragment){
+        if(fragment==null||dispatching())return false;
+        try{
+            View root=(View)fragment.getClass().getMethod("getView").invoke(fragment);
+            if(root==null||!root.isShown()||!Boolean.TRUE.equals(fragment.getClass().getMethod("isResumed").invoke(fragment)))return false;
+        }catch(ReflectiveOperationException unavailable){return false;}
         dispatching.set(true);
-        try{nativeRefresh(fragment);}
-        catch(Exception error){android.util.Log.w("Haiagaru","Watched reader refresh unavailable",error);}
+        try{return nativeRefresh(fragment);}
+        catch(Exception error){android.util.Log.w("Haiagaru","Watched reader refresh unavailable",error);return false;}
         finally{dispatching.remove();}
     }
     static boolean dispatching(){return Boolean.TRUE.equals(dispatching.get());}

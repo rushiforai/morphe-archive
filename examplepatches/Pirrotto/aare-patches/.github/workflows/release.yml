@@ -34,6 +34,12 @@ jobs:
       - name: Install dependencies
         run: npm install
 
+      # Unit tests (TunnelMathTest…): a failure stops the job, so nothing is released.
+      - name: Test
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: ./gradlew :extensions:extension:test --no-daemon
+
       # Semantic release runs its own Gradle build command.
       # Only dev and main branch will generate a release as specified by .releaserc
       - name: Release

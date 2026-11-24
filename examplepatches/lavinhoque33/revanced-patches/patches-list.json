@@ -1,5 +1,5 @@
 {
-  "version": "v1.48.0",
+  "version": "v1.49.0",
   "patches": [
     {
       "name": "Add to queue",
@@ -7,6 +7,8 @@
       "use": true,
       "dependencies": [
         "ResourcePatch",
+        "BytecodePatch",
+        "BytecodePatch",
         "BytecodePatch",
         "BytecodePatch",
         "BytecodePatch",
@@ -134,6 +136,27 @@
           "21.45.90",
           "21.13.164",
           "20.05.46"
+        ]
+      },
+      "options": []
+    },
+    {
+      "name": "A–B repeat",
+      "description": "Adds optional Now Playing controls to repeat a section of a track.",
+      "use": true,
+      "dependencies": [
+        "BytecodePatch",
+        "ResourcePatch",
+        "BytecodePatch"
+      ],
+      "compatiblePackages": {
+        "com.google.android.apps.youtube.music": [
+          "9.40.51",
+          "9.45.51",
+          "9.15.51",
+          "8.30.54",
+          "8.28.54",
+          "8.12.54"
         ]
       },
       "options": []
@@ -2117,6 +2140,28 @@
       "options": []
     },
     {
+      "name": "Home feed channel names",
+      "description": "Adds an option to show channel display names instead of handles below video titles in the Home feed.",
+      "use": true,
+      "dependencies": [
+        "BytecodePatch",
+        "ResourcePatch",
+        "ResourcePatch",
+        "BytecodePatch",
+        "BytecodePatch",
+        "BytecodePatch"
+      ],
+      "compatiblePackages": {
+        "com.google.android.youtube": [
+          "21.39.525",
+          "21.45.90",
+          "21.13.164",
+          "20.05.46"
+        ]
+      },
+      "options": []
+    },
+    {
       "name": "Hook download actions",
       "description": "Adds support to download videos with the built-in downloader or an external downloader app, and an offline library for downloaded videos.",
       "use": true,
@@ -2209,6 +2254,7 @@
       "dependencies": [
         "ResourcePatch",
         "ResourcePatch",
+        "BytecodePatch",
         "ResourcePatch"
       ],
       "compatiblePackages": {
@@ -3911,7 +3957,6 @@
       "description": "Adds options to hide or change components located on the toolbar, such as the search bar, header, and toolbar buttons.",
       "use": true,
       "dependencies": [
-        "BytecodePatch",
         "BytecodePatch",
         "BytecodePatch",
         "ResourcePatch",

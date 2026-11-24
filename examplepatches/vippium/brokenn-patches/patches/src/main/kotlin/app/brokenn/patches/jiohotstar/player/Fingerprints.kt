@@ -11,3 +11,19 @@ internal object PlayerWidgetConverterFingerprint : Fingerprint(
         string("getItemsList(...)")
     )
 )
+
+internal object PlayerTopBarFingerprint : Fingerprint(
+    returnType = "V",
+    filters = listOf(
+        string("icon-settings"),
+        string("threeSixtyItem")
+    )
+)
+
+internal object PlayerBackButtonFingerprint : Fingerprint(
+    returnType = "V",
+    filters = listOf(
+        string("common-v2__a11y_go_back_cta"),
+        string("tag_arrow_back_button")
+    )
+)

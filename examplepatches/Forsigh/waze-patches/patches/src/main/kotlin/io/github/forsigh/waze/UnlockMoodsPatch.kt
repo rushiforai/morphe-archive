@@ -182,6 +182,7 @@ val unlockMoodsPatch = bytecodePatch(
     // by q() and handed to fp as a constructor argument, and the catalogue refresh moved to
     // MoodManagerBase.refreshMoodsListJNI() calling the *ProtosNTV natives. All three are anchored below.
     compatibleWith(COMPATIBILITY_WAZE)
+    category("UI Customization")
 
     dependsOn(skinRefreshPatch)
     execute {

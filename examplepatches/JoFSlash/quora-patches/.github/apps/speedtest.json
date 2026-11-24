@@ -1,0 +1,77 @@
+{
+  "name": "Speedtest",
+  "workflow": "emulator-speedtest.yml",
+  "patches": "patches/src/main/kotlin/app/jofslash/patches/speedtest",
+  "docs": "docs/speedtest/README.md",
+  "readme": {
+    "style": "generated",
+    "order": [
+      "Ads",
+      "Privacy",
+      "App"
+    ],
+    "intro": {
+      "Ads": "The banner and the ad after a speed test.",
+      "Privacy": "Trackers and permissions. They change nothing you see.",
+      "App": "Prompts the app shows by itself."
+    }
+  },
+  "store": "https://play.google.com/store/apps/details?id=org.zwanoo.android.speedtest",
+  "package": "org.zwanoo.android.speedtest",
+  "store_note": "(Ookla)",
+  "summary": "Remove the ads from the internet speed test and stop its third-party trackers (Appvestor, CellRebel), without an account.",
+  "owners": [
+    "Ookla"
+  ],
+  "apk": {
+    "release": "speedtest",
+    "version": "first",
+    "asset": "*.apk",
+    "file": "speedtest.apk"
+  },
+  "android": {
+    "note": "Speedtest 7.1.5 needs Android 9 (minSdk 28), but the x86_64 emulator needs arm64 translation, which google_apis images have from API 30 on (not API 33). The release tries the oldest supported version, the newest stable one and the next one; a pull request the oldest and the newest stable.",
+    "pull_request": [
+      {
+        "api": "30",
+        "android": "11",
+        "channel": "stable"
+      },
+      {
+        "api": "36",
+        "android": "16",
+        "channel": "stable"
+      }
+    ],
+    "full": [
+      {
+        "api": "30",
+        "android": "11",
+        "channel": "stable"
+      },
+      {
+        "api": "36",
+        "android": "16",
+        "channel": "stable"
+      },
+      {
+        "api": "37.0",
+        "android": "17",
+        "channel": "canary"
+      }
+    ]
+  },
+  "check": [
+    "python3 .github/scripts/check_app.py speedtest \"$APK\" --cli \"$CLI\" --install --expect-screen --compare-original --adb adb"
+  ],
+  "versions": {
+    "pattern": "\\d+(\\.\\d+)+",
+    "example": "7.1.6",
+    "source": "apkmirror",
+    "apkmirror": "/apk/ookla/speedtest/",
+    "file": "apk",
+    "signer": "Ookla",
+    "shows": "shows its own screen",
+    "phone_test": "run a speed test on a phone: the emulator test only starts the app."
+  }
+}

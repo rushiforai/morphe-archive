@@ -57,6 +57,7 @@ val keepAlivePatch = bytecodePatch(
     execute {
         val w = where ?: "everywhere"
         val m = minutes ?: 10
+        requireChoice("keepAlivePatch", "where", w, setOf("everywhere", "phone", "auto", "car"))
 
         if (w == "everywhere" || w == "phone") {
             recordLong("ka", "CONFIG_VALUE_POWER_BACKGROUND_TIMEOUT_MS" to m * 60_000L)

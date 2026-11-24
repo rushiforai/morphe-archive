@@ -42,7 +42,7 @@ public final class DictationPayloadLoader {
      */
     private static void installReadinessAlias() throws Exception {
         ClassLoader loader = DictationPayloadLoader.class.getClassLoader();
-        Class<?> aubj = Class.forName("defpackage.aubj", false, loader);
+        Class<?> aubj = Class.forName("aubj", false, loader);
         java.util.Map<String, String> aliases = new java.util.HashMap<String, String>();
         aliases.put(LIBRARY, "integrated_shared_object");
         Object map = aubj.getMethod("i", java.util.Map.class).invoke(null, aliases);

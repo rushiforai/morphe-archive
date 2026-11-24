@@ -40,6 +40,7 @@ channel may share a line, separated by commas (`@channel: live, shorts, <3:00`).
 | Setting | Effect |
 |---|---|
 | Mark hidden videos as not liked | Each video the filters hide gets Not interested > Tell us why > I don't like the video |
+| Give the reason after Not interested | When you choose Not interested on a video yourself and pick no reason within 5 seconds, the app taps Tell us why > I don't like the video |
 | Mark watched videos | Videos with the red progress bar get Not interested > Tell us why > I've already watched the video; Partly marks any bar, Fully only videos played to 90% in this app |
 | Like every video watched | Likes a video after 3 seconds in the player, when it is neither liked nor disliked |
 

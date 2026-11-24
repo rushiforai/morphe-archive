@@ -11,6 +11,7 @@ import app.morphe.patcher.util.findFreeRegister
 import app.morphe.patcher.util.getReference
 import app.morphe.patcher.util.smali.ExternalLabel
 import app.morphe.patches.shared.mainactivity.mainActivityMutableClass
+import app.morphe.patches.youtube.player.icons.copyPlayerIcons
 import app.morphe.patches.youtube.video.audio.soundBoostPatch
 import app.morphe.patches.youtube.utils.compatibility.Constants.COMPATIBILITY_YOUTUBE
 import app.morphe.patches.youtube.utils.extension.Constants.SWIPE_PATH
@@ -31,7 +32,6 @@ import app.morphe.patches.youtube.utils.resourceid.sharedResourceIdPatch
 import app.morphe.patches.youtube.utils.settings.ResourceUtils.addPreference
 import app.morphe.patches.youtube.utils.settings.ResourceUtils.getContext
 import app.morphe.patches.youtube.utils.settings.settingsPatch
-import app.morphe.patches.youtube.video.audio.soundBoostPatch
 import app.morphe.util.ResourceGroup
 import app.morphe.util.addInstructionsAtControlFlowLabel
 import app.morphe.util.copyResources
@@ -67,7 +67,6 @@ val swipeControlsPatch = bytecodePatch(
         settingsPatch,
         soundBoostPatch,
         versionCheckPatch,
-        soundBoostPatch,
     )
 
     execute {
@@ -309,20 +308,22 @@ val swipeControlsPatch = bytecodePatch(
                 "ic_sc_brightness_manual.xml",
                 "ic_sc_volume_mute.xml",
                 "ic_sc_volume_normal.xml",
-                // Modern
-                "revanced_ic_sc_brightness_auto.xml",
-                "revanced_ic_sc_brightness_full.xml",
-                "revanced_ic_sc_brightness_high.xml",
-                "revanced_ic_sc_brightness_low.xml",
-                "revanced_ic_sc_brightness_manual.xml",
-                "revanced_ic_sc_brightness_medium.xml",
-                "revanced_ic_sc_seek.xml",
-                "revanced_ic_sc_speed.xml",
-                "revanced_ic_sc_volume_high.xml",
-                "revanced_ic_sc_volume_low.xml",
-                "revanced_ic_sc_volume_mute.xml",
-                "revanced_ic_sc_volume_normal.xml",
             )
+        )
+        getContext().copyPlayerIcons(
+            "youtube/swipecontrols",
+            "revanced_ic_sc_brightness_auto",
+            "revanced_ic_sc_brightness_full",
+            "revanced_ic_sc_brightness_high",
+            "revanced_ic_sc_brightness_low",
+            "revanced_ic_sc_brightness_manual",
+            "revanced_ic_sc_brightness_medium",
+            "revanced_ic_sc_seek",
+            "revanced_ic_sc_speed",
+            "revanced_ic_sc_volume_high",
+            "revanced_ic_sc_volume_low",
+            "revanced_ic_sc_volume_mute",
+            "revanced_ic_sc_volume_normal",
         )
 
         // endregion

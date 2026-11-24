@@ -2,7 +2,7 @@
 
 このガイドは、はてなブックマークAndroidアプリ向けの非公式パッチ集「Hoshiori」をMorphe Managerで追加・適用するためのものです。
 
-**現在の公開版はv0.4.5、対象APKはHatena Bookmark 5.80（versionCode 58000）だけ**です。ほかのバージョンに適用しないでください。
+**現在の公開版はv0.5.0、対象APKはHatena Bookmark 5.80（versionCode 58000）だけ**です。ほかのバージョンに適用しないでください。
 
 ## 事前に用意するもの
 
@@ -22,17 +22,18 @@ https://github.com/rikunode/hoshiori
 
 [パッチソースを追加するリンク](https://morphe.software/add-source?github=rikunode/hoshiori)からも登録できます。
 
-登録後、ソースを更新します。**v0.4.5のパッチが5件表示されること**を確認してください。0件やエラーの場合は、ソースURLとリストの更新状態を確かめ、正常に表示されるまで適用しないでください。
+登録後、ソースを更新します。**v0.5.0のパッチが6件表示されること**を確認してください。0件やエラーの場合は、ソースURLとリストの更新状態を確かめ、正常に表示されるまで適用しないでください。
 
 ## 2. 対象APKにパッチを適用する
 
 1. Morphe Managerのパッチ適用画面で、Hatena Bookmark 5.80（versionCode 58000）のAPKを選択します。
-2. 次の5件から必要なパッチを選択します。初期設定では5件とも有効です。
+2. 次の6件から必要なパッチを選択します。初期設定では6件とも有効です。
    - PR記事の非表示
    - 「今週のブクマ数ランキング」のお知らせ非表示
    - アプリ内ブラウザの広告ブロック
    - 記事サイトのCookie・Webストレージ保持
    - 元アプリと併用するためのクローン化
+   - ブックマーク詳細の記事カードから記事を開く
 3. 必要に応じてオプションを変更し、パッチを適用します。
 4. 生成・署名されたAPKを確認してからインストールします。
 5. まず記事一覧と記事の表示を確認し、機能ごとに動作を試してください。
@@ -47,6 +48,7 @@ https://github.com/rikunode/hoshiori
 | `blockInAppBrowserAds` | ON | 記事WebViewで広告関連の通信・表示を抑制する |
 | `updateAdBlockLists` | ON | 広告ブロックのフィルターリストを最大24時間に1回更新する |
 | `preserveArticleWebStorage` | **ON** | 記事終了時のCookie消去と起動時のWebストレージ消去を抑止する |
+| `openArticleFromBookmarkCard` | **ON** | ブックマーク詳細の記事カードから記事本体をアプリ内ブラウザで開く |
 
 **Cookie保持はNHK ONE専用ではありません。** 他サイトのログイン情報や追跡用Cookieも残る可能性があります。保持を望まない場合は `preserveArticleWebStorage` をOFFにしてください。
 

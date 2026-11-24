@@ -2,7 +2,7 @@
 
 Testing repository for the Morphe **Honista v13 complete local fixes** patch bundle.
 
-In Morphe Manager, add `https://github.com/Manishrdy/honista-patches` as a **Remote** patch source. The repository root `patches-bundle.json` points to the **v1.1.0** release. Alternatively, download `honista-patches-1.1.0.mpp` from that release and import it as a **Local** source. Select the original Honista v13 ARM64 APK and the complete local fixes patch. Supported package/version: `cc.honista.app`, `426.0.0.37.70` (version code `383207254`).
+In Morphe Manager, add `https://github.com/Manishrdy/honista-patches` as a **Remote** patch source. The repository root `patches-bundle.json` points to the **v1.1.2** release. Alternatively, download `honista-patches-1.1.2.mpp` from that release and import it as a **Local** source. Select the original Honista v13 ARM64 APK and the complete local fixes patch. Supported package/version: `cc.honista.app`, `426.0.0.37.70` (version code `383207254`).
 
 See [the patch project guide](honista-patches/README.md) for compatibility checks, included changes, building, and signing instructions. Updating an existing patched installation requires its original signing key, which stays outside Git.
 
@@ -13,7 +13,7 @@ cd honista-patches
 ./gradlew :patches:buildAndroid
 ```
 
-The result is `honista-patches/patches/build/libs/patches-1.0.0.mpp`. JDK 17+ and Android SDK platform 36/build-tools 36.1.0 are required. Fresh GitHub Packages dependency downloads may require your own read-packages credentials as described in the guide.
+The result is `honista-patches/patches/build/libs/patches-1.1.2.mpp`. JDK 17+ and Android SDK platform 36/build-tools 36.1.0 are required. Fresh GitHub Packages dependency downloads may require your own read-packages credentials as described in the guide.
 
 ## Files excluded from Git
 
@@ -34,10 +34,17 @@ The Gradle wrapper JAR, baseline class fingerprints, helper DEX and frozen start
 
 Morphe Desktop 1.18.1 successfully patched the original APK with its default mode. All 17 changed/added classes and the startup-module asset match the tested build. Existing modified inputs are rejected. Android Manager UI testing remains pending because the phone was disconnected during bundle preparation.
 
+## Validation fix (1.1.2)
+
+The 1.1.2 release replaces build-time serialized DEX hashes with trusted reference classes serialized by the same runtime writer as the input. This addresses a portability problem in the validation behind the Manager error “differs from the tested original APK”: serialized DEX bytes are not a stable fingerprint across writer/runtime versions. Package/version checks and rejection of changed classes or existing helpers remain enabled. The reference contains only the nine protected original classes and is exported only after checking the original APK against the frozen hashes (the eight retained 1.1.1 entries plus the verified interceptor target). The stale `LX/hf;` replacement was also remapped to its current obfuscated interceptor class; the old name now identifies an unrelated UI class.
+
+Build and import `honista-patches/patches/build/libs/patches-1.1.2.mpp` as a local source. The remote descriptor points to the 1.1.2 release. Run `./gradlew :patches:verifyInput :patches:verifyOriginal` from the patch project to check input guards and patch/compile the original APK. Local verification passed: all nine protected original classes accepted, modified inputs rejected, and the full patch compiled 35 DEX files with the expected module asset. Verification with Manager 2.7.1 / patcher 2.5.0 on Android remains pending; a genuinely different APK will still be rejected.
+
 ## Release history
 
 | Version | APK version | Notes |
 | --- | --- | --- |
+| v1.1.2 | 426.0.0.37.70 (383207254) | Compare input/reference classes with the same runtime writer; correct stale interceptor target |
 | v1.1.0 | 426.0.0.37.70 (383207254) | Re-port: remapped 6 R8-obfuscated class names, dropped 6 fully-inlined stubs |
 | v1.0.0 | 426.0.0.37.70 (383207254) | Initial release |
 

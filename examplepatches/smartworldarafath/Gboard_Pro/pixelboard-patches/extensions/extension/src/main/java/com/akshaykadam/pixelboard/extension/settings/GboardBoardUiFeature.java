@@ -20,12 +20,12 @@ public final class GboardBoardUiFeature implements GboardPatchesSettingsContract
 
     @Override
     public String getEntryTitle() {
-        return "Board UI";
+        return "Amoled";
     }
 
     @Override
     public String getEntrySummary() {
-        return "Custom display & AMOLED styling";
+        return "AMOLED Pure Black app & keyboard styling";
     }
 
     @Override
@@ -42,24 +42,38 @@ public final class GboardBoardUiFeature implements GboardPatchesSettingsContract
         Context ctx = host != null && host.getContext() != null ? host.getContext() : context;
         SharedPreferences prefs = ctx.getSharedPreferences(PREF_NAME, Context.MODE_PRIVATE);
 
-        boolean amoledBlack = prefs.getBoolean(KEY_AMOLED_BLACK, false);
+        boolean amoledBlack = GboardM3Helper.isAmoledBlackEnabled(ctx);
 
         List<GboardPatchesSettingsContract.Section> sections = new ArrayList<>();
 
         List<GboardPatchesSettingsContract.Row> rows = new ArrayList<>();
         rows.add(new GboardPatchesSettingsContract.ToggleRow(
                 "AMOLED Pure Black Mode",
-                "Pitch black keyboard background for battery savings on OLED screens",
+                "True #000000 black background across the entire app UI and keyboard",
                 true,
                 amoledBlack,
                 value -> {
-                    prefs.edit().putBoolean(KEY_AMOLED_BLACK, value).apply();
+                    prefs.edit().putBoolean(KEY_AMOLED_BLACK, value).commit();
                     try {
                         PreferenceManager.getDefaultSharedPreferences(ctx)
-                                .edit().putBoolean(KEY_AMOLED_BLACK, value).apply();
+                                .edit().putBoolean(KEY_AMOLED_BLACK, value).commit();
                     } catch (Throwable ignored) {
                     }
-                    if (host != null) host.submit(h -> h.refresh());
+                    try {
+                        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.N) {
+                            Context dps = ctx.createDeviceProtectedStorageContext();
+                            dps.getSharedPreferences(PREF_NAME, Context.MODE_PRIVATE)
+                                    .edit().putBoolean(KEY_AMOLED_BLACK, value).commit();
+                            PreferenceManager.getDefaultSharedPreferences(dps)
+                                    .edit().putBoolean(KEY_AMOLED_BLACK, value).commit();
+                        }
+                    } catch (Throwable ignored) {
+                    }
+                    if (ctx instanceof GboardPatchesSettingsActivity act) {
+                        act.runOnUiThread(act::animateThemeChangeTransition);
+                    } else if (host != null) {
+                        host.submit(h -> h.refresh());
+                    }
                 }
         ));
 
@@ -70,18 +84,22 @@ public final class GboardBoardUiFeature implements GboardPatchesSettingsContract
 
         List<GboardPatchesSettingsContract.StatusBlock> statusBlocks = new ArrayList<>();
         statusBlocks.add(new GboardPatchesSettingsContract.StatusBlock(
-                "AMOLED Pure Black Optimization",
-                "When enabled, the keyboard window renders with true #000000 pitch-black pixels to maximize battery life on OLED and AMOLED displays.",
+                "AMOLED Pure Black",
+                "When enabled, the entire Gboard Pro app UI and keyboard surfaces switch immediately to true #000000 pure black for OLED displays.",
                 GboardPatchesSettingsContract.StatusTone.INFO
         ));
 
         return new GboardPatchesSettingsContract.Screen(
-                "Board UI",
+                "Amoled",
                 null,
-                "Board UI",
-                "Custom display & AMOLED styling",
+                "Amoled",
+                "AMOLED Pure Black app & keyboard styling",
                 statusBlocks,
-                sections
+                sections,
+                GboardPatchesSettingsContract.RefreshPolicy.none(),
+                GboardPatchesSettingsContract.PanelStyle.FLAT,
+                null,
+                false
         );
     }
 }

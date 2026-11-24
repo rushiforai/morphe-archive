@@ -4,15 +4,14 @@
  */
 package app.morphe.patches.clipstudiopaint.misc.launch
 
-import app.morphe.patcher.patch.rawResourcePatch
+import app.morphe.patcher.patch.patch
 import app.morphe.patches.clipstudiopaint.misc.rewriteNativeLibrary
 import app.morphe.patches.shared.compat.AppCompatibilities
+import app.morphe.patches.shared.misc.arm64.Arm64.NOP
 import app.morphe.patches.shared.misc.requireArm64
 
-private const val NOP = 0xd503201f.toInt()
-
 @Suppress("unused")
-val openDrawingOnLaunchPatch = rawResourcePatch(
+val openDrawingOnLaunchPatch = patch(
     name = "Open drawing on launch",
     description = "Opens the selected Studio or Simple Mode workspace on launch.",
 ) {

@@ -1,8 +1,13 @@
+/*
+ * Copyright 2026 amfakh
+ * SPDX-License-Identifier: GPL-3.0-only
+ */
+
 package app.fakh.patches.confluence
 
 import app.fakh.patches.confluence.shared.Constants.COMPATIBILITY_CONFLUENCE
-import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
-import app.morphe.patcher.patch.mutableClassDefBy
+import app.fakh.patches.confluence.shared.Constants.PITCH_BLACK
+import app.fakh.patches.shared.register
 import app.morphe.patcher.patch.patch
 
 @Suppress("unused")
@@ -16,12 +21,6 @@ val pitchBlackPatch = patch(
     dependsOn(colorsPatch, settingsPatch)
 
     execute {
-        mutableClassDefBy(EXTENSION).methods.first { it.name == "isPitchBlackIncluded" }.addInstructions(
-            0,
-            """
-                const/4 v0, 0x1
-                return v0
-            """,
-        )
+        register(PITCH_BLACK)
     }
 }

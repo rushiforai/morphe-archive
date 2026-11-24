@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="voidhack_sing_title">ボーカル分離</string>
+    <string name="voidhack_sing_mix">ボーカルと伴奏のバランス</string>
+    <string name="voidhack_sing_original">元の音</string>
+    <string name="voidhack_sing_reduce_vocals">ボーカルを %1$d%% 抑える</string>
+    <string name="voidhack_sing_reduce_backing">伴奏を %1$d%% 抑える</string>
+    <string name="voidhack_sing_reset">元の音に戻す</string>
+    <string name="voidhack_sing_download">モデルを準備</string>
+    <string name="voidhack_sing_setup">端末内でボーカルを分離するには、初回に約 30 MB のモデルをダウンロードします。</string>
+    <string name="voidhack_sing_preparing">分離モデルを準備中…</string>
+    <string name="voidhack_sing_format">分離には 32、44.1、48、88.2、96、176.4、192 kHz のいずれかのステレオ PCM 再生が必要です。</string>
+    <string name="voidhack_sing_failed">モデルを準備できませんでした。「モデルを準備」をタップすると再試行できます。</string>
+</resources>

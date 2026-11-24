@@ -50,7 +50,7 @@ public final class NuvioFinaleDatesPatch {
             false, builder -> {
                 builder.compatibleWith(new Compatibility(PACKAGE, "NuvioTV", null, ApkFileType.APK,
                     null, null, NuvioLayout.modernTargets(), app.morphe.patcher.patch.FormFactor.TV, false));
-                builder.dependsOn(NuvioSettingsMenuPatch.getMenuPatch());
+                builder.dependsOn(NuvioLabelCustomizationPatch.getNuvioLabelCustomizationPatch());
                 builder.extendWith(NuvioFinaleDatesPatch::extensionStream);
                 builder.execute(context -> {
                     String version = context.getPackageMetadata().getVersionName();

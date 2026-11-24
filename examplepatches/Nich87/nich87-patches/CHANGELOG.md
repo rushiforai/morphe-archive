@@ -1,3 +1,25 @@
+## [1.6.0](https://github.com/Nich87/nich87-patches/compare/v1.5.0...v1.6.0) (2026-11-23)
+
+### ✨ New Features
+
+* Add on-device vocal separation for Apple Music ([80a9d1b](https://github.com/Nich87/nich87-patches/commit/80a9d1bd083c7ec1b250336c58e2c28727c8d44a))
+
+### 🐛 Bug Fixes
+
+* Preserve LRCLIB word timing ([07ebfa4](https://github.com/Nich87/nich87-patches/commit/07ebfa4f020e28b04d3d476a9417631cdbdf5a0c)), closes [#12](https://github.com/Nich87/nich87-patches/issues/12)
+
+## [1.6.0-dev.2](https://github.com/Nich87/nich87-patches/compare/v1.6.0-dev.1...v1.6.0-dev.2) (2026-11-23)
+
+### 🐛 Bug Fixes
+
+* Preserve LRCLIB word timing ([07ebfa4](https://github.com/Nich87/nich87-patches/commit/07ebfa4f020e28b04d3d476a9417631cdbdf5a0c)), closes [#12](https://github.com/Nich87/nich87-patches/issues/12)
+
+## [1.6.0-dev.1](https://github.com/Nich87/nich87-patches/compare/v1.5.0...v1.6.0-dev.1) (2026-11-23)
+
+### ✨ New Features
+
+* Add on-device vocal separation for Apple Music ([80a9d1b](https://github.com/Nich87/nich87-patches/commit/80a9d1bd083c7ec1b250336c58e2c28727c8d44a))
+
 ## [1.5.0](https://github.com/Nich87/nich87-patches/compare/v1.4.0...v1.5.0) (2026-11-22)
 
 ### ✨ New Features

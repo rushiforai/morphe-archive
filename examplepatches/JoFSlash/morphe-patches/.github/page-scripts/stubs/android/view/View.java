@@ -29,6 +29,10 @@ public class View {
         return true;
     }
 
+    public boolean isShown() {
+        return true;
+    }
+
     public boolean postDelayed(Runnable action, long delayMillis) {
         return true;
     }

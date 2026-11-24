@@ -8,6 +8,7 @@
  * - anddea (https://github.com/anddea)
  *
  * Licensed under the GNU General Public License v3.0.
+ * Modified by lavinhoque33, 2026-11-23
  *
  * ------------------------------------------------------------------------
  * GPLv3 Section 7 – Additional Terms & Attribution Requirements
@@ -64,6 +65,7 @@ import app.morphe.patches.shared.layout.branding.BrandingIcon
 import app.morphe.patches.shared.layout.branding.CustomBrandingConfig
 import app.morphe.patches.shared.layout.branding.NotificationBuilderFingerprint
 import app.morphe.patches.shared.layout.branding.NotificationIconFingerprint
+import app.morphe.patches.shared.layout.branding.addBrandingIconPackOptions
 import app.morphe.patches.shared.layout.branding.addCustomBrandingSystemSplashThemeStyles
 import app.morphe.patches.shared.layout.branding.applyCustomBranding
 import app.morphe.patches.shared.layout.branding.customBrandingIconOptionDescription
@@ -108,6 +110,8 @@ private val availableIcon = listOf(
     BrandingIcon("mmt_pink", "MMT Pink", true),
     BrandingIcon("mmt_turquoise", "MMT Turquoise", true),
     BrandingIcon("mmt_yellow", "MMT Yellow", true),
+    BrandingIcon("reseam", "Reseam", true, launcherOnly = true),
+    BrandingIcon("revanced", "ReVanced", true, launcherOnly = true),
     BrandingIcon("revancify_blue", "Revancify Blue", true),
     BrandingIcon("revancify_red", "Revancify Red", true),
     BrandingIcon("squid_game", "Squid Game", true),
@@ -267,7 +271,8 @@ val customBrandingPatch = resourcePatch(
         title = "App icon",
         description = "Icon used by Android and selected by default in the app. " +
             "Choose Custom to use the Custom icon folder, or enter a resource folder path. " +
-            "Mounted (root) installs require patching again to change the launcher icon.",
+            "Mounted (root) installs require patching again to change the launcher icon. " +
+            "Turn off unused icon packs below; the selected startup icon is always kept.",
         required = true,
     )
     val customIconOption = folderOption(
@@ -275,6 +280,7 @@ val customBrandingPatch = resourcePatch(
         title = "Custom icon",
         description = customBrandingIconOptionDescription,
     )
+    val iconPackOptions = addBrandingIconPackOptions(availableIcon)
 
     dependsOn(
         settingsPatch,
@@ -292,6 +298,9 @@ val customBrandingPatch = resourcePatch(
             customNameOption.value?.trim()?.takeIf { it.isNotEmpty() },
             customIconOption.value?.trim()?.takeIf { it.isNotEmpty() },
             appIconOption.value ?: "original",
+            includedIconKeys = iconPackOptions.mapNotNullTo(mutableSetOf()) { (key, option) ->
+                key.takeIf { option.value != false }
+            },
         )
         installYouTubeRvxSettingsIconLayout()
         addPreference(

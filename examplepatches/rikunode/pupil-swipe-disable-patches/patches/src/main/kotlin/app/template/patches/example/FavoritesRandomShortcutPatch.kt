@@ -43,7 +43,7 @@ private object GalleryDetailShortcutFingerprint : Fingerprint(
     returnType = "V",
 )
 
-private object GalleryThumbnailListShortcutFingerprint : Fingerprint(
+private object GalleryTypeListShortcutFingerprint : Fingerprint(
     definingClass = "Lxyz/quaver/pupil/ui/compose/GalleryDetailKt;",
     name = "GalleryDetail\$lambda\$3\$0",
     parameters = listOf(
@@ -181,24 +181,36 @@ val favoritesRandomShortcutPatch = bytecodePatch(
             "Unexpected Pupil 6.1.1 GalleryDetailPage layout; refusing random shortcut patch"
         }
 
-        val thumbnailListMethod = GalleryThumbnailListShortcutFingerprint.method
-        val thumbnailListInstructions = thumbnailListMethod.implementation?.instructions
-            ?: error("Pupil 6.1.1 thumbnail LazyList bytecode is missing")
-        // Original 6.1.1 DEX: 94 instructions, 14 registers.
-        // The thumbnails heading is item 47; the next item (48..54) is
-        // the original ThumbnailPager. p8/v13 is the live LazyListScope.
-        require(thumbnailListInstructions.size == 94 &&
-            thumbnailListMethod.implementation?.registerCount == 14 &&
-            thumbnailListInstructions[47].opcode == Opcode.INVOKE_STATIC &&
-            (thumbnailListInstructions[47] as? ReferenceInstruction)?.reference?.toString() ==
+        val typeListMethod = GalleryTypeListShortcutFingerprint.method
+        val typeListInstructions = typeListMethod.implementation?.instructions
+            ?: error("Pupil 6.1.1 gallery type LazyList bytecode is missing")
+        // Original Pupil 6.1.1 DEX: 94 instructions, 14 registers.
+        // Index 37 finishes the optional tag item. Index 38 checks thumbnails.
+        // Index 43 branches past the thumbnail header when thumbnails are empty.
+        // Inject at 47, immediately BEFORE the thumbnail heading item$default,
+        // only inside the non-empty thumbnails branch. p8/v13 is LazyListScope.
+        require(typeListInstructions.size == 94 &&
+            typeListMethod.implementation?.registerCount == 14 &&
+            typeListInstructions[37].opcode == Opcode.INVOKE_STATIC &&
+            (typeListInstructions[37] as? ReferenceInstruction)?.reference?.toString() ==
                 "Landroidx/compose/foundation/lazy/LazyItemScope\$-CC;->item\$default(Landroidx/compose/foundation/lazy/LazyListScope;Lkotlin/jvm/functions/Function3;)V" &&
-            thumbnailListInstructions[48].opcode == Opcode.NEW_INSTANCE &&
-            (thumbnailListInstructions[48] as? ReferenceInstruction)?.reference?.toString() ==
-                "Lxyz/quaver/pupil/ui/compose/GalleryDetailKt\$\$ExternalSyntheticLambda2;" &&
-            thumbnailListInstructions[54].opcode == Opcode.INVOKE_STATIC &&
-            (thumbnailListInstructions[54] as? ReferenceInstruction)?.reference?.toString() ==
+            typeListInstructions[38].opcode == Opcode.INVOKE_VIRTUAL &&
+            (typeListInstructions[38] as? ReferenceInstruction)?.reference?.toString() ==
+                "Lxyz/quaver/pupil/hitomi/Gallery;->getThumbnails()Ljava/util/List;" &&
+            typeListInstructions[41].opcode == Opcode.INVOKE_INTERFACE &&
+            (typeListInstructions[41] as? ReferenceInstruction)?.reference?.toString() ==
+                "Ljava/util/Collection;->isEmpty()Z" &&
+            typeListInstructions[43].opcode == Opcode.IF_NEZ &&
+            typeListInstructions[44].opcode == Opcode.SGET_OBJECT &&
+            (typeListInstructions[44] as? ReferenceInstruction)?.reference?.toString() ==
+                "Lxyz/quaver/pupil/ui/compose/ComposableSingletons\$GalleryDetailKt;->INSTANCE:Lxyz/quaver/pupil/ui/compose/ComposableSingletons\$GalleryDetailKt;" &&
+            typeListInstructions[45].opcode == Opcode.INVOKE_VIRTUAL &&
+            (typeListInstructions[45] as? ReferenceInstruction)?.reference?.toString() ==
+                "Lxyz/quaver/pupil/ui/compose/ComposableSingletons\$GalleryDetailKt;->getLambda\$-1638367423\$app()Lkotlin/jvm/functions/Function3;" &&
+            typeListInstructions[47].opcode == Opcode.INVOKE_STATIC &&
+            (typeListInstructions[47] as? ReferenceInstruction)?.reference?.toString() ==
                 "Landroidx/compose/foundation/lazy/LazyItemScope\$-CC;->item\$default(Landroidx/compose/foundation/lazy/LazyListScope;Lkotlin/jvm/functions/Function3;)V"
-        ) { "Unexpected Pupil 6.1.1 thumbnail list layout; refusing shortcut injection" }
+        ) { "Unexpected Pupil 6.1.1 tags-to-thumbnails boundary; refusing shortcut injection" }
 
         val resumeMethod = MainResumeShortcutFingerprint.method
         val resumeInstructions = resumeMethod.implementation?.instructions
@@ -325,9 +337,9 @@ val favoritesRandomShortcutPatch = bytecodePatch(
                 invoke-static {v0}, $SHORTCUT_CLASS->bindDetail(Lkotlin/jvm/functions/Function1;)V
             """.trimIndent(),
         )
-        thumbnailListMethod.addInstructions(
-            48,
-            "invoke-static {p8}, $SHORTCUT_CLASS->addThumbnailShortcutItem(Ljava/lang/Object;)V",
+        typeListMethod.addInstructions(
+            47,
+            "invoke-static {p8}, $SHORTCUT_CLASS->addTypeShortcutItem(Ljava/lang/Object;)V",
         )
         settingsMethod.addInstructions(
             867,

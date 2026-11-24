@@ -185,6 +185,10 @@ nav:
           - apps/eclipse-music.md
           - apps/spotify.md
           - apps/apple-music.md
+          - apps/angry-birds-2.md
+          - apps/angry-birds-friends.md
+          - apps/draw-a-stickman-epic-3.md
+          - apps/gamesnacks.md
           - apps/beach-buggy-racing.md
           - apps/candy-crush-soda-saga.md
           - apps/kijk.md
@@ -203,8 +207,12 @@ nav:
           - apps/2dehands.md
           - apps/aliexpress.md
           - apps/bol.md
+          - apps/cronometer.md
+          - apps/dynamicspot.md
           - apps/gboard.md
           - apps/homeassistant.md
+          - apps/homeassistant-automotive.md
+          - apps/plugshare.md
           - apps/tuya.md
           - apps/reolink.md
           - apps/pdfcraft.md

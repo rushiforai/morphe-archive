@@ -5,7 +5,7 @@
   var releases = [], filter = 'all', releaseStatus = 'loading', refreshed = null;
   var select = document.getElementById('site-language');
   var storageKey = 'tiktoklite.site.language';
-  var REPO = 'jair1c/tiktok-lite-patches';
+  var REPO = 'KyVexo/tiktok-lite-patches';
   function $(id) { return document.getElementById(id); }
 
   function normalize(value) {

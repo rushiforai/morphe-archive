@@ -6,11 +6,11 @@
 | --------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | **Application Name**        | 365 Pay                                                                                                                                                                                                     |
 | **Package Name**            | `com.avinside`                                                                                                                                                                                              |
-| **Supported Version**       | `10.2605.0` (Morphe Compatibility: `10.2605.0`, `minSdk` 27)                                                                                                                                                |
-| **Analyzed Version Code**   | `2026519590`                                                                                                                                                                                                |
+| **Supported Version**       | `10.2606.1` (Morphe Compatibility: `10.2605.0`, `10.2606.1`, `minSdk` 27)                                                                                                                                   |
+| **Analyzed Version Code**   | `2026527959`                                                                                                                                                                                                |
 | **Target SDK**              | `36` (Android 16)                                                                                                                                                                                           |
 | **Minimum SDK**             | `27` (Android 8.1)                                                                                                                                                                                          |
-| **APK Format**              | APKM (`base.apk`, `config.arm64_v8a.apk`, `config.en.apk`, `config.xhdpi.apk`)                                                                                                                              |
+| **APK Format**              | APKM (`base.apk`, `com.avinside.config.arm64_v8a.apk`, `com.avinside.config.en.apk`, `com.avinside.config.xxhdpi.apk`)                                                                                      |
 | **Package Signing SHA-256** | `8709f6fd781c4ba9a4f50df8c44f8c5a4ccb2fd2b114b71912e79eacf8857b1d`                                                                                                                                          |
 | **Architecture**            | React Native with Hermes Bytecode (`assets/index.android.bundle`, HBC v96), Scandit Barcode SDK, Stripe Payment Sheet, Auth0, OneSignal SDK, Firebase (Analytics, Crashlytics), Instana APM, Branch Metrics |
 
@@ -65,14 +65,14 @@ flowchart TD
 
 ## Hermes Bytecode & Developer Tools Architecture
 
-All high-level business logic, state machines, and UI components reside in the compiled Hermes JavaScript bytecode bundle located at `assets/index.android.bundle` (HBC v96, 18,065,192 bytes, 85,164 functions, 121,459 strings).
+All high-level business logic, state machines, and UI components reside in the compiled Hermes JavaScript bytecode bundle located at `assets/index.android.bundle` (HBC v96, 17,930,056 bytes, 82,248 functions, 119,570 strings).
 
 ### Hidden Developer & Diagnostics Screen (`EnvironmentScreen`)
 
 - **Navigation & Trigger Gesture:**
-  - Screen component: `EnvironmentScreen` (`_0x54a8cc`, function index 52517).
-  - On `WelcomeScreen`, tapping the 365 Pay logo invokes `logoPress` (`_0x16a90c`, function index 53285), which increments state counter `touches`.
-  - When `touches >= 5`, it invokes `goToEnvironmentSettings` (`_0x1033cf`, function index 53290), navigating to `EnvironmentScreen`.
+  - Screen component: `EnvironmentScreen` (`WelcomeScreen` module closure, function index 50071 in `10.2606.1`).
+  - On `WelcomeScreen`, tapping the 365 Pay logo invokes the `logoPress` handler (`_0x182757`, function index 50102, code offset `0xbfd9af` in `10.2606.1`), which increments state counter `touches`.
+  - When `touches >= 5`, it invokes `goToEnvironmentSettings`, navigating to `EnvironmentScreen`.
 - **Backend Environment Switcher:**
   - Dynamically fetches environment definitions from `https://tally.prod.readytouchpos.com/tallyapi/discover/listAsEnvironmentsMap`.
   - Allows switching API gateways and Auth0 authentication domains between:
@@ -99,7 +99,7 @@ All high-level business logic, state machines, and UI components reside in the c
 
 ### Initial Application State Defaults
 
-- In `_0x3844af` (function index 15766), the initial application state initializes `isDebug = false` and `demo = false`. Modifying these locations allows booting directly into Debug Messages or Demo Mode upon cold launch without manual interaction with `EnvironmentScreen`.
+- In `_0x5cf9f9` (function index 17817, code offset `0x8a520b` in `10.2606.1`), the initial application state initializes `isDebug = false` and `demo = false`. Modifying these locations allows booting directly into Debug Messages or Demo Mode upon cold launch without manual interaction with `EnvironmentScreen`.
 
 ### Investigated Server & Location Feature Gates
 

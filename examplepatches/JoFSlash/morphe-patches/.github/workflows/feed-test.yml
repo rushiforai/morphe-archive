@@ -2,11 +2,14 @@ name: Feed test
 
 # Signs in to Quora with a test account in the patched app on an emulator and checks the page
 # patches on the real feed and on an answer: the ask box is hidden, no promoted items, Copy and
-# Share text buttons under answers, the bookmark button and the app's bookmark list.
+# Share text buttons under answers, the bookmark button and the app's bookmark list. It also counts
+# every Quora class name the patches use (dom_annotate_*, puppeteer_test_*) on both pages and lists
+# them in the job summary; the ones the app's page check relies on must be there.
 #
-# The weekly release (release.yml) runs it first and releases only when it passes; it also runs by
-# hand. Not on pull requests or daily: frequent sign-ins from new emulators could get the test
-# account locked.
+# It runs when Quora's patches or this test change on dev, and a pass is recorded for that code and
+# day (.github/scripts/tested.py). The release runs it only when it hasn't passed for the current code
+# in the last few days, and releases only when it passes. It also runs by hand. Not on pull requests
+# or daily: frequent sign-ins from new emulators could get the test account locked.
 #
 # A run on main that doesn't pass (a failed check, or a skip because the session no longer works)
 # opens the issue "Feed test needs attention", or comments on it; the next run that passes closes it.
@@ -26,6 +29,15 @@ name: Feed test
 # with answers to open.
 
 on:
+  push:
+    branches: [dev]
+    paths:
+      - 'patches/src/main/kotlin/app/jofslash/patches/quora/**'
+      - 'extensions/quora/**'
+      - '.github/workflows/feed-test.yml'
+      - '.github/scripts/feed-test.mjs'
+      - '.github/scripts/check_app.py'
+      - '.github/scripts/apps/quora.py'
   workflow_dispatch:
   workflow_call:
     outputs:
@@ -34,7 +46,7 @@ on:
         value: ${{ jobs.feed.outputs.result }}
 
 permissions:
-  contents: read
+  contents: write
   packages: read
   issues: write
 
@@ -73,6 +85,7 @@ jobs:
         with:
           distribution: 'temurin'
           java-version: '21'
+          cache: 'gradle'
 
       - name: Setup Node
         if: steps.secrets.outputs.skip != 'true'
@@ -139,10 +152,10 @@ jobs:
           target: google_apis
           arch: x86_64
           disable-animations: true
-          script: python3 .github/scripts/check_quora_version.py "$RUNNER_TEMP/quora.apkm" --cli "$RUNNER_TEMP/morphe-cli.jar" --install --expect-login --exclude "Disable WebView debugging" --exclude "Start tab" --adb adb && node .github/scripts/feed-test.mjs
+          script: python3 .github/scripts/check_app.py quora "$RUNNER_TEMP/quora.apkm" --cli "$RUNNER_TEMP/morphe-cli.jar" --install --expect-screen --exclude "Disable WebView debugging" --exclude "Start tab" --adb adb && node .github/scripts/feed-test.mjs
 
       # passed / skipped / failed, from what feed-test.mjs wrote. No file: the app didn't patch,
-      # install or start (check_quora_version.py failed), or the run stopped early.
+      # install or start (check_app.py failed), or the run stopped early.
       - name: Outcome
         id: outcome
         if: always()
@@ -161,8 +174,15 @@ jobs:
           echo "result=${line%%:*}" >> "$GITHUB_OUTPUT"
           { echo 'detail<<EOF_DETAIL'; echo "$line"; echo 'EOF_DETAIL'; } >> "$GITHUB_OUTPUT"
 
+      # Remember the pass, so the release doesn't sign in again for the same code within days.
+      - name: Record the pass
+        if: steps.outcome.outputs.result == 'passed'
+        run: |
+          git checkout -- extensions/quora
+          python3 .github/scripts/tested.py feed-record
+
       - name: Open or close the issue
-        if: always() && github.ref == 'refs/heads/main' && steps.outcome.outputs.result != ''
+        if: always() && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/dev') && steps.outcome.outputs.result != ''
         env:
           GH_TOKEN: ${{ github.token }}
           RESULT: ${{ steps.outcome.outputs.result }}

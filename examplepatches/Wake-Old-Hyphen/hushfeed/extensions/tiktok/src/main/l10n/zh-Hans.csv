@@ -640,7 +640,6 @@ Followers,追随者
 Likes,获赞
 Following,正在关注
 Follows you,跟着你
-"For OLED screens. After 5 seconds without a touch, the buttons, caption and tabs over the video dim to a quarter, and your next touch brings them back. Shift also moves everything on the feed a few pixels every 2 minutes.",对于OLED屏幕。 5 秒没有触摸后，视频上的按钮、标题和选项卡会变暗四分之一，你的下一次触摸会将它们恢复。 Shift 还会每 2 分钟将信息流上的所有内容移动几个像素.
 For You,为你
 "For You, Following and the other feed tabs stay behind a calm panel and won't swipe. Messages, profiles and search work as usual, a link to one video still opens that video, and the app opens on Inbox instead of the feed.",对于你来说，关注和其他信息流选项卡保留在平静的面板后面并且不会滑动。消息、个人资料和搜索照常工作，指向一个视频的链接仍然会打开该视频，并且应用程序会在收件箱而不是信息流中打开.
 Forced %1$d of %2$d gates,已强制 %2$d 个门中的 %1$d 个
@@ -1774,6 +1773,8 @@ Custom hold speed,自定义按住速度
 Enter one speed from %1$s to %2$s,输入一个从 %1$s 到 %2$s 的速度
 Slide to change the hold speed,滑动更改按住时的速度
 Hold speed bubble style,按住速度气泡样式
+Hold speed bubble size,按住速度气泡大小
+"How big the bubble is drawn, from %1$d to %2$d. 100 is the normal size, which already grows with your phone's font size.",气泡绘制的大小，范围为 %1$d 到 %2$d。100 为正常大小，它本身已会随手机的字体大小变大.
 Pill,胶囊
 Circle,圆形
 Pill is the wide bubble with a row of dots under the speed. Circle is a small round dial with a notch for each speed around its edge.,胶囊是速度下方带一排圆点的宽气泡。圆形是一个小圆盘，边缘为每个速度标有刻度.
@@ -3023,3 +3024,27 @@ Skip promo lines,跳过推广字幕行
 Promo words,推广词
 "Separate words or phrases with commas, like casino, promo code. Capital letters don't matter, and ""a"" & ""b"" or ""a"" !& ""b"" work as they do for Blocked caption words.","用逗号分隔词语或短语，例如 casino, promo code。不区分大小写，""a"" & ""b"" 或 ""a"" !& ""b"" 的用法与“屏蔽的标题文字”相同."
 Skipped a promo line,已跳过一行推广内容
+Country and date text size,国家和日期文字大小
+"Use 0 to match the post date's size, or %1$d to %2$d. Sizes only the line under the caption and keeps Android's font scaling.",设为 0 则与发布日期大小相同，或设为 %1$d 到 %2$d。只调整说明文字下方那一行，并保留 Android 的字体缩放.
+Post date's size,发布日期大小
+Country and date opacity,国家和日期不透明度
+"How solid the line under the caption is drawn, from 10 to 100. Lower lets more of the video show through.",说明文字下方那一行的不透明程度，从 10 到 100。数值越低，视频透出越多.
+Shadow under the country and date,国家和日期下方的阴影
+Draws a dark shadow under the line's letters so it stays readable on bright videos.,在这一行文字下方绘制深色阴影，让它在明亮的视频上也清晰可读.
+Tap brings the controls back,点按恢复控件
+"A tap shows the hidden controls again instead of pausing the video. They hide again after the delay, or after %1$d seconds if the delay is shorter.",点按会重新显示隐藏的控件，而不是暂停视频。控件会在延迟后再次隐藏，如果延迟更短，则在 %1$d 秒后隐藏.
+"For OLED screens. After 5 seconds without a touch, the buttons, caption and tabs over the video dim to the level below, and your next touch brings them back. Shift also moves everything on the feed a few pixels every 2 minutes.",适用于 OLED 屏幕。5 秒没有触摸后，视频上的按钮、标题和选项卡会变暗到下方设置的程度，你的下一次触摸会将它们恢复。Shift 还会每 2 分钟将信息流上的所有内容移动几个像素.
+Burn-in guard dim level,老化防护变暗程度
+"How solid the buttons, caption and tabs are while dimmed, from %1$d to %2$d. Lower dims them more.",变暗时按钮、标题和选项卡的不透明程度，从 %1$d 到 %2$d。数值越低越暗.
+Fade the controls out,淡出控件
+"The buttons, caption and tabs fade away instead of vanishing at once, and a touch during the fade brings them back. With Android's animations turned off they still vanish at once.",按钮、标题和选项卡会逐渐淡出，而不是一下子消失，淡出时触摸屏幕会让它们恢复。关闭 Android 动画时，它们仍会立即消失.
+Date instead of age,显示日期而非时长
+"Recent videos show the date they were posted by the creator's name, like 10-12, in place of an age like 2d ago. Day before month and Write the month as a word change it the same way.",新视频在创作者名字旁显示发布日期，如 10-12，而不是像 2天前 这样的时长。日在月前 和 用文字写月份 也会以同样方式改变它.
+Keep your place in chats,保持聊天中的位置
+A chat you've scrolled up in stays where you were when you come back from a video or send a reply. Sending a regular message or tapping the down arrow still takes you to the newest.,在聊天中向上滚动后，从视频返回或发送回复时会停留在原处。发送普通消息或点按向下箭头仍会跳到最新消息.
+Fill wide videos too,宽视频也铺满
+"With the switch above on, landscape and square videos are cropped to cover the screen too, so only their middle shows. Off, they stay whole.",开启上面的开关后，横向和方形视频也会被裁剪以铺满屏幕，只显示中间部分。关闭时，它们保持完整.
+Random time each day,每天随机时间
+"Sends at a different time each day, somewhere between When to send and Latest time.",每天在不同时间发送，介于何时发送和最晚时间之间.
+Latest time,最晚时间
+"The end of the random window, on the same day as When to send. If it isn't later, the message goes at When to send.",随机时间段的结束时间，与何时发送在同一天。如果不晚于它，消息会在何时发送的时间发出.

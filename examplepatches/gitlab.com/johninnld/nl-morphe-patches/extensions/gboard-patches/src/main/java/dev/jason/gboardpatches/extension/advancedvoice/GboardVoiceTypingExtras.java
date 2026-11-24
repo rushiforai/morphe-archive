@@ -26,6 +26,13 @@ public final class GboardVoiceTypingExtras {
     private static final String TRADITIONAL_FRAGMENT =
             "com.google.android.apps.inputmethod.latin.preference.TraditionalVoiceSettingsFragment";
 
+    // R8 renames androidx.preference members in Gboard. 18.8.0.1022711984-beta (arm64 and
+    // armeabi-v7a): PreferenceFragmentCompat (egl) findPreference = gX(CharSequence),
+    // getPreferenceScreen = n(), PreferenceGroup.removePreference = ao(Preference).
+    private static final String[] FIND_PREFERENCE = {"findPreference", "gX"};
+    private static final String[] GET_PREFERENCE_SCREEN = {"getPreferenceScreen", "n"};
+    private static final String[] REMOVE_PREFERENCE = {"removePreference", "ao"};
+
     private GboardVoiceTypingExtras() {
     }
 
@@ -56,15 +63,21 @@ public final class GboardVoiceTypingExtras {
         }
         for (String key : new String[] {ADVANCED_FEATURES, AUTO_PUNCTUATION, LANGUAGE_SWITCHING}) {
             try {
-                Object preference = invoke(fragment, "findPreference", CharSequence.class, key);
+                Object preference = invokeFirst(fragment, FIND_PREFERENCE, CharSequence.class, key);
                 if (preference == null) {
                     continue;
                 }
-                Object screen = invoke(fragment, "getPreferenceScreen");
+                Object screen = invokeFirst(fragment, GET_PREFERENCE_SCREEN, null, null);
                 if (screen == null) {
                     continue;
                 }
-                Method remove = findMethod(screen.getClass(), "removePreference", 1);
+                Method remove = null;
+                for (String name : REMOVE_PREFERENCE) {
+                    remove = findMethod(screen.getClass(), name, 1);
+                    if (remove != null) {
+                        break;
+                    }
+                }
                 if (remove != null) {
                     remove.invoke(screen, preference);
                 }
@@ -72,6 +85,19 @@ public final class GboardVoiceTypingExtras {
                 Log.w(TAG, "could not hide stock voice row " + key, failure);
             }
         }
+    }
+
+    private static Object invokeFirst(Object target, String[] names, Class<?> type, Object value)
+            throws Exception {
+        NoSuchMethodException missing = null;
+        for (String name : names) {
+            try {
+                return type == null ? invoke(target, name) : invoke(target, name, type, value);
+            } catch (NoSuchMethodException failure) {
+                missing = failure;
+            }
+        }
+        throw missing;
     }
 
     private static Object invoke(Object target, String name, Class<?>... types) throws Exception {

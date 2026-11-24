@@ -1,9 +1,27 @@
+/*
+ * Copyright 2026 amfakh
+ * SPDX-License-Identifier: GPL-3.0-only
+ */
+
 package app.fakh.patches.linkedin.feed
 
 import app.fakh.patches.linkedin.shared.Constants.COMPATIBILITY_LINKEDIN
+import app.fakh.patches.linkedin.shared.Constants.EXPAND_POSTS
 import app.fakh.patches.linkedin.shared.Constants.EXTENSION_PACKAGE
-import app.fakh.patches.linkedin.shared.markIncluded
+import app.fakh.patches.linkedin.shared.Constants.FOCUS_MODE
+import app.fakh.patches.linkedin.shared.Constants.HIDE_CELEBRATIONS
+import app.fakh.patches.linkedin.shared.Constants.HIDE_FEED_JOBS
+import app.fakh.patches.linkedin.shared.Constants.HIDE_GAMES
+import app.fakh.patches.linkedin.shared.Constants.HIDE_NEW_POSTS_PILL
+import app.fakh.patches.linkedin.shared.Constants.HIDE_PREMIUM
+import app.fakh.patches.linkedin.shared.Constants.HIDE_PROMOTED_JOBS
+import app.fakh.patches.linkedin.shared.Constants.HIDE_RECOMMENDATIONS
+import app.fakh.patches.linkedin.shared.Constants.HIDE_REPOSTS
+import app.fakh.patches.linkedin.shared.Constants.HIDE_SUGGESTED
+import app.fakh.patches.linkedin.shared.Constants.HIDE_TRANSLATION
+import app.fakh.patches.linkedin.shared.Constants.HIDE_VIDEO_POSTS
 import app.fakh.patches.linkedin.shared.sduiComponentFilterPatch
+import app.fakh.patches.shared.register
 import app.morphe.patcher.Fingerprint
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
 import app.morphe.patcher.extensions.InstructionExtensions.getInstruction
@@ -24,7 +42,7 @@ val hideSuggestedPostsPatch = patch(
     compatibleWith(COMPATIBILITY_LINKEDIN)
     category("Feed")
     dependsOn(sduiComponentFilterPatch)
-    execute { markIncluded("isHideSuggestedIncluded") }
+    execute { register(HIDE_SUGGESTED) }
 }
 
 @Suppress("unused")
@@ -36,7 +54,7 @@ val hidePromotedJobsPatch = patch(
     compatibleWith(COMPATIBILITY_LINKEDIN)
     category("Ads")
     dependsOn(sduiComponentFilterPatch)
-    execute { markIncluded("isHidePromotedJobsIncluded") }
+    execute { register(HIDE_PROMOTED_JOBS) }
 }
 
 @Suppress("unused")
@@ -48,7 +66,7 @@ val expandPostsPatch = patch(
     compatibleWith(COMPATIBILITY_LINKEDIN)
     category("Feed")
     dependsOn(sduiComponentFilterPatch)
-    execute { markIncluded("isExpandPostsIncluded") }
+    execute { register(EXPAND_POSTS) }
 }
 
 @Suppress("unused")
@@ -61,7 +79,7 @@ val feedFiltersPatch = patch(
     compatibleWith(COMPATIBILITY_LINKEDIN)
     category("Feed")
     dependsOn(sduiComponentFilterPatch)
-    execute { markIncluded("isFeedFiltersIncluded") }
+    execute { register(FOCUS_MODE, HIDE_CELEBRATIONS, HIDE_FEED_JOBS, HIDE_REPOSTS, HIDE_VIDEO_POSTS, HIDE_RECOMMENDATIONS, HIDE_GAMES, HIDE_NEW_POSTS_PILL, HIDE_TRANSLATION) }
 }
 
 /**
@@ -90,7 +108,7 @@ val hidePremiumUpsellsPatch = patch(
     category("Ads")
     dependsOn(sduiComponentFilterPatch)
     execute {
-        markIncluded("isHidePremiumIncluded")
+        register(HIDE_PREMIUM)
 
         NavPanelPremiumFingerprint.let {
             val index = it.instructionMatches.first().index

@@ -759,6 +759,9 @@
       "compatiblePackages": {
         "com.zhiliaoapp.musically": [
           "47.9.3"
+        ],
+        "com.zhiliaoapp.musically.go": [
+          "47.8.2"
         ]
       },
       "compatibility": [
@@ -779,6 +782,27 @@
                 "ARMEABI_V7A": 2024709030,
                 "X86": 2024709030,
                 "X86_64": 2024709030
+              }
+            }
+          ]
+        },
+        {
+          "name": "TikTok Lite",
+          "packageName": "com.zhiliaoapp.musically.go",
+          "description": null,
+          "appIconColor": 16657493,
+          "signatures": [
+            "d7811ec4166fea6cc720ba66699dc84b584ac9e6986613a76d4e43d8cbe32b27"
+          ],
+          "targets": [
+            {
+              "version": "47.8.2",
+              "experimental": false,
+              "versionCodes": {
+                "ARM64_V8A": 470802,
+                "ARMEABI_V7A": 470802,
+                "X86": 470802,
+                "X86_64": 470802
               }
             }
           ]
@@ -833,6 +857,15 @@
         {
           "key": "publish_date_month_name",
           "title": "Default: publish date month name",
+          "description": null,
+          "required": false,
+          "type": "kotlin.Boolean",
+          "default": false,
+          "values": null
+        },
+        {
+          "key": "publish_date_instead_of_age",
+          "title": "Default: publish date instead of age",
           "description": null,
           "required": false,
           "type": "kotlin.Boolean",
@@ -4752,6 +4785,15 @@
           "values": null
         },
         {
+          "key": "fill_wide_videos",
+          "title": "Default: fill wide videos",
+          "description": null,
+          "required": false,
+          "type": "kotlin.Boolean",
+          "default": false,
+          "values": null
+        },
+        {
           "key": "stretch_video_to_screen",
           "title": "Default: stretch video to screen",
           "description": null,
@@ -5052,6 +5094,9 @@
       "compatiblePackages": {
         "com.zhiliaoapp.musically": [
           "47.9.3"
+        ],
+        "com.zhiliaoapp.musically.go": [
+          "47.8.2"
         ]
       },
       "compatibility": [
@@ -5072,6 +5117,27 @@
                 "ARMEABI_V7A": 2024709030,
                 "X86": 2024709030,
                 "X86_64": 2024709030
+              }
+            }
+          ]
+        },
+        {
+          "name": "TikTok Lite",
+          "packageName": "com.zhiliaoapp.musically.go",
+          "description": null,
+          "appIconColor": 16657493,
+          "signatures": [
+            "d7811ec4166fea6cc720ba66699dc84b584ac9e6986613a76d4e43d8cbe32b27"
+          ],
+          "targets": [
+            {
+              "version": "47.8.2",
+              "experimental": false,
+              "versionCodes": {
+                "ARM64_V8A": 470802,
+                "ARMEABI_V7A": 470802,
+                "X86": 470802,
+                "X86_64": 470802
               }
             }
           ]
@@ -5746,7 +5812,7 @@
     },
     {
       "name": "Hide inbox items",
-      "description": "Lets you hide Inbox rows you don't use, like message requests, TikTok Shop, the stories row and the On this day memory in it, plus call buttons and suggested replies in chats. Each has its own switch. Also offers search in loaded Activity notifications and TikTok's Main, Requests, Unread and Starred tabs on any account, a way to rebuild message search, room to pin more than 5 chats and the time under each chat message. Starts off. Turn it on in Hushfeed settings > Inbox.",
+      "description": "Lets you hide Inbox rows you don't use, like message requests, TikTok Shop, the stories row and the On this day memory in it, plus call buttons and suggested replies in chats. Each has its own switch. Also offers search in loaded Activity notifications and TikTok's Main, Requests, Unread and Starred tabs on any account, a way to rebuild message search, room to pin more than 5 chats, the time under each chat message and a way to keep your place in a chat you scrolled up in. Starts off. Turn it on in Hushfeed settings > Inbox.",
       "category": "Inbox",
       "use": true,
       "dependencies": [
@@ -6028,6 +6094,15 @@
         {
           "key": "show_message_times",
           "title": "Default: show message times",
+          "description": null,
+          "required": false,
+          "type": "kotlin.Boolean",
+          "default": false,
+          "values": null
+        },
+        {
+          "key": "keep_chat_place",
+          "title": "Default: keep chat place",
           "description": null,
           "required": false,
           "type": "kotlin.Boolean",
@@ -6891,6 +6966,15 @@
           "required": false,
           "type": "kotlin.String",
           "default": "off",
+          "values": null
+        },
+        {
+          "key": "burn_in_guard_level",
+          "title": "Default: burn in guard level",
+          "description": null,
+          "required": false,
+          "type": "kotlin.Int",
+          "default": 25,
           "values": null
         },
         {
@@ -9386,6 +9470,15 @@
           "values": null
         },
         {
+          "key": "hold_speed_hud_size",
+          "title": "Default: hold speed hud size",
+          "description": null,
+          "required": false,
+          "type": "kotlin.Int",
+          "default": 100,
+          "values": null
+        },
+        {
           "key": "hide_speed_toasts",
           "title": "Default: hide speed toasts",
           "description": null,
@@ -9688,6 +9781,24 @@
           "required": false,
           "type": "kotlin.Int",
           "default": 1000,
+          "values": null
+        },
+        {
+          "key": "tap_shows_cleared_controls",
+          "title": "Default: tap shows cleared controls",
+          "description": null,
+          "required": false,
+          "type": "kotlin.Boolean",
+          "default": false,
+          "values": null
+        },
+        {
+          "key": "clear_display_fade_out",
+          "title": "Default: clear display fade out",
+          "description": null,
+          "required": false,
+          "type": "kotlin.Boolean",
+          "default": false,
           "values": null
         },
         {
@@ -10307,6 +10418,9 @@
       "compatiblePackages": {
         "com.zhiliaoapp.musically": [
           "47.9.3"
+        ],
+        "com.zhiliaoapp.musically.go": [
+          "47.8.2"
         ]
       },
       "compatibility": [
@@ -10327,6 +10441,27 @@
                 "ARMEABI_V7A": 2024709030,
                 "X86": 2024709030,
                 "X86_64": 2024709030
+              }
+            }
+          ]
+        },
+        {
+          "name": "TikTok Lite",
+          "packageName": "com.zhiliaoapp.musically.go",
+          "description": null,
+          "appIconColor": 16657493,
+          "signatures": [
+            "d7811ec4166fea6cc720ba66699dc84b584ac9e6986613a76d4e43d8cbe32b27"
+          ],
+          "targets": [
+            {
+              "version": "47.8.2",
+              "experimental": false,
+              "versionCodes": {
+                "ARM64_V8A": 470802,
+                "ARMEABI_V7A": 470802,
+                "X86": 470802,
+                "X86_64": 470802
               }
             }
           ]
@@ -10885,6 +11020,9 @@
       "compatiblePackages": {
         "com.zhiliaoapp.musically": [
           "47.9.3"
+        ],
+        "com.zhiliaoapp.musically.go": [
+          "47.8.2"
         ]
       },
       "compatibility": [
@@ -10905,6 +11043,27 @@
                 "ARMEABI_V7A": 2024709030,
                 "X86": 2024709030,
                 "X86_64": 2024709030
+              }
+            }
+          ]
+        },
+        {
+          "name": "TikTok Lite",
+          "packageName": "com.zhiliaoapp.musically.go",
+          "description": null,
+          "appIconColor": 16657493,
+          "signatures": [
+            "d7811ec4166fea6cc720ba66699dc84b584ac9e6986613a76d4e43d8cbe32b27"
+          ],
+          "targets": [
+            {
+              "version": "47.8.2",
+              "experimental": false,
+              "versionCodes": {
+                "ARM64_V8A": 470802,
+                "ARMEABI_V7A": 470802,
+                "X86": 470802,
+                "X86_64": 470802
               }
             }
           ]
@@ -10932,6 +11091,33 @@
         {
           "key": "country_date_under_caption",
           "title": "Default: country date under caption",
+          "description": null,
+          "required": false,
+          "type": "kotlin.Boolean",
+          "default": false,
+          "values": null
+        },
+        {
+          "key": "country_date_text_size",
+          "title": "Default: country date text size",
+          "description": null,
+          "required": false,
+          "type": "kotlin.Int",
+          "default": 0,
+          "values": null
+        },
+        {
+          "key": "country_date_opacity",
+          "title": "Default: country date opacity",
+          "description": null,
+          "required": false,
+          "type": "kotlin.Int",
+          "default": 100,
+          "values": null
+        },
+        {
+          "key": "country_date_shadow",
+          "title": "Default: country date shadow",
           "description": null,
           "required": false,
           "type": "kotlin.Boolean",

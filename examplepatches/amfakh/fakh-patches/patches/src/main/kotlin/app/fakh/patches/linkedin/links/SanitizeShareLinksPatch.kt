@@ -1,13 +1,23 @@
+/*
+ * Based on Michii Patches by heyymichii, GPLv3:
+ * https://github.com/heyymichii/michii-patches
+ *
+ * Modifications copyright 2026 amfakh
+ * SPDX-License-Identifier: GPL-3.0-only
+ */
+
 package app.fakh.patches.linkedin.links
 
 import app.fakh.patches.linkedin.shared.Constants.COMPATIBILITY_LINKEDIN
 import app.fakh.patches.linkedin.shared.Constants.EXTENSION_PACKAGE
-import app.fakh.patches.linkedin.shared.markIncluded
+import app.fakh.patches.linkedin.shared.Constants.SANITIZE_SHARE_LINKS
 import app.fakh.patches.linkedin.shared.settingsPatch
+import app.fakh.patches.shared.register
 import app.morphe.patcher.Fingerprint
 import app.morphe.patcher.extensions.InstructionExtensions.getInstruction
 import app.morphe.patcher.extensions.InstructionExtensions.replaceInstruction
 import app.morphe.patcher.methodCall
+import app.morphe.patcher.patch.PatchException
 import app.morphe.patcher.patch.patch
 import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.iface.instruction.FiveRegisterInstruction
@@ -53,7 +63,7 @@ val sanitizeShareLinksPatch = patch(
     dependsOn(settingsPatch)
 
     execute {
-        markIncluded("isSanitizeShareLinksIncluded")
+        register(SANITIZE_SHARE_LINKS)
 
         // Edit every class that calls one of the redirected methods, found through the patcher's call index. This
         // includes libraries (Compose clipboard, ShareCompat), since LinkedIn copies and shares through them too.
@@ -71,6 +81,7 @@ val sanitizeShareLinksPatch = patch(
             ).matchAllOrNull().orEmpty()
         }.filterNot { it.originalClassDef.type.startsWith("$EXTENSION_PACKAGE/") }.map { it.classDef }.distinctBy { it.type }
 
+        var redirected = 0
         targets.forEach { classDef ->
             classDef.methods.forEach { method ->
                 val instructions = method.implementation?.instructions ?: return@forEach
@@ -94,8 +105,10 @@ val sanitizeShareLinksPatch = patch(
                         else -> return@forEach
                     }
                     method.replaceInstruction(index, call)
+                    redirected++
                 }
             }
         }
+        if (redirected == 0) throw PatchException("No link copy or share calls found")
     }
 }
