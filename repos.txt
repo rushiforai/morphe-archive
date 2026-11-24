@@ -3,6 +3,7 @@
 020krJ/morpheArc
 0x0day-0wl/morphe-patches
 0x11DFE/morphe-patches
+0xJohnnyboy/morphe-patches
 0xRJDev/shikify
 0xtalos/365score-patches
 0xtalos/vibe-patches
@@ -237,6 +238,7 @@ elouangrimm/sobosuba-morphe-patches
 emotionbug/EBPatcher-patches
 encarnian/gboard-enc-patches
 enccmp/mn-patches
+EnesCevikdogan/LiquidMusic
 Entree3k/Morning-Entree-Patches
 epabafree/sabp-eppy-patches
 Epxec/android-patches
@@ -408,11 +410,13 @@ Johnnycyan/waze-morphe-patches
 Joly0/joly0-patches
 jordanwoodson/lurk-morphe-patches
 Joristdh/Platypatch
+josselinonduty/morphe-patches
 Joussflls10/Jouss-Patches
 jrddupont/discord-patches
 Juankyyy/morphe-patches
 junksidetm/Gboard-patches
 Just-a-lurker/facebook-morphe-patches
+Just-a0user/what-it-should-be
 JZ6/Flexboard
 jzl1/morphe-patches
 k2ej/standby
@@ -433,6 +437,7 @@ kim20598/hakim-morphe-patches
 kinoosaki/Kinos-Patches
 kiraio-moe/Lain-Patches
 Kirby1997/morphe-patches
+kirihime9/morphe-patches
 Kirkland-Pickles/Gboard-offline-morphe
 kljjh/flyme-lyrics-patches
 kolaron/morphe-patches
@@ -447,6 +452,8 @@ kveld9/brave-patches
 kveld9/kveld-extra-morphe-patches
 kveld9/kveld-morphe-patches
 kyurem39/mpvEx-patches
+KyVexo/farotv-patches
+KyVexo/tiktok-lite-patches
 LaBlazer/morphe-patches
 LaKakaReal/LaKakaShitPatches
 lamphung-phuc/nmax-patches
@@ -542,6 +549,7 @@ na-x-ril/onlynazril-patches
 Nagol12344/patch
 Nai64/Nai64ExtraPatches
 Nai64/Nai64Patches
+nawszym/sey-morphe-patches
 needfish/channel-blocker-patches
 NekoGryphou/gryphous-morphe-patches
 neoKushan/smortthings
@@ -611,6 +619,7 @@ Prisoner-24601/custom-morphe-patches
 pseudofractal/morphe-patches
 Psyquix/Morphe-patches
 PyFlat-JR/Morphe-Patches
+quangmach/waze-minimize-search-bar
 quantavil/edge-morphe-patches
 Quantro100/Morphe-patches
 quwi26/Quwis-Patches
@@ -639,6 +648,7 @@ Rico957/timetree-ads-patch
 RikoDEV/morphed-pl
 rikunode/chmate-ua-spoof-patches
 rikunode/fairemail-morphe-patches
+rikunode/futatabi
 rikunode/hatena-bookmark-hide-pr-patches
 rikunode/hoshiori
 rikunode/pupil-morphe-patches
@@ -674,6 +684,7 @@ saigauthamr/tao-patches
 SailHighSea/sailhighsea-patches
 salihefee/moonreader-regional-patches
 salmanbappi/Quwis-Patches
+saneclacibos19/Anixart-patches
 Santodan/santodan-patches
 SapitoSucio/FroggoMorphePatches
 sarvottam99/SARVO-Patches
@@ -728,6 +739,7 @@ ssch71/wear-patches
 Starkist124/stars-morphe-patch
 steeepaaaan/pdalife-morphe-patches
 stivencop414-bot/Morphe-Vix-Patches
+stivencop414-bot/PatchLab
 suakamargas121/bookish-guacamole
 suakamargas121/shiny-train
 subenoeva/roadsync-patches
