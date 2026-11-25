@@ -1,13 +1,6 @@
-# Repos reported by the last notification (12)
-0xJohnnyboy/morphe-patches
-EnesCevikdogan/LiquidMusic
-KyVexo/farotv-patches
-KyVexo/tiktok-lite-patches
-josselinonduty/morphe-patches
-kirihime9/morphe-patches
-nawszym/sey-morphe-patches
-quangmach/waze-minimize-search-bar
-rikunode/futatabi
-saneclacibos19/Anixart-patches
-springfurst/morphe-patches
-stivencop414-bot/PatchLab
+# Repos reported by the last notification (5)
+Nai64/Nai64ExtraPatches
+abotmaker/gboard-rambler-enhancements
+assc0d3r/GLYPHCHEMY
+kennyric/byd-maps-patches
+mben25/morphe-patches
