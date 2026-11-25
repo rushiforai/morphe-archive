@@ -987,14 +987,6 @@
                 "updatedAt": 1786067248701
             },
             {
-                "name": "FTL-Patches",
-                "source": "https://raw.githubusercontent.com/BlazeFTL/FTL-Patches/main/patches-bundle.json",
-                "autoUpdate": true,
-                "sortOrder": 130,
-                "createdAt": 1786263569063,
-                "updatedAt": 1786263569063
-            },
-            {
                 "name": "braintropy-patches",
                 "source": "https://raw.githubusercontent.com/braiNtropy/braintropy-patches/main/patches-bundle.json",
                 "autoUpdate": true,
@@ -3457,14 +3449,6 @@
                 "sortOrder": 506,
                 "createdAt": 1793428148764,
                 "updatedAt": 1793428148764
-            },
-            {
-                "name": "FaceBook-Lite-Morphe",
-                "source": "https://raw.githubusercontent.com/BlazeFTL/FaceBook-Lite-Morphe/main/patches-bundle.json",
-                "autoUpdate": true,
-                "sortOrder": 507,
-                "createdAt": 1793428149362,
-                "updatedAt": 1793428149362
             },
             {
                 "name": "breal-morphe-patches",
@@ -6105,6 +6089,54 @@
                 "sortOrder": 862,
                 "createdAt": 1795509684452,
                 "updatedAt": 1795509684452
+            },
+            {
+                "name": "Nai64ExtraPatches",
+                "source": "https://raw.githubusercontent.com/Nai64/Nai64ExtraPatches/main/patches-bundle.json",
+                "autoUpdate": true,
+                "sortOrder": 863,
+                "createdAt": 1795592006046,
+                "updatedAt": 1795592006046
+            },
+            {
+                "name": "Nai64Patches",
+                "source": "https://raw.githubusercontent.com/Nai64/Nai64Patches/main/patches-bundle.json",
+                "autoUpdate": true,
+                "sortOrder": 864,
+                "createdAt": 1795592006541,
+                "updatedAt": 1795592006541
+            },
+            {
+                "name": "gboard-rambler-enhancements",
+                "source": "https://raw.githubusercontent.com/abotmaker/gboard-rambler-enhancements/main/patches-bundle.json",
+                "autoUpdate": true,
+                "sortOrder": 865,
+                "createdAt": 1795592010377,
+                "updatedAt": 1795592010377
+            },
+            {
+                "name": "GLYPHCHEMY",
+                "source": "https://raw.githubusercontent.com/assc0d3r/GLYPHCHEMY/main/patches-bundle.json",
+                "autoUpdate": true,
+                "sortOrder": 866,
+                "createdAt": 1795592013381,
+                "updatedAt": 1795592013381
+            },
+            {
+                "name": "byd-maps-patches",
+                "source": "https://raw.githubusercontent.com/kennyric/byd-maps-patches/main/patches-bundle.json",
+                "autoUpdate": true,
+                "sortOrder": 867,
+                "createdAt": 1795592025073,
+                "updatedAt": 1795592025073
+            },
+            {
+                "name": "morphe-patches",
+                "source": "https://raw.githubusercontent.com/mben25/morphe-patches/main/patches-bundle.json",
+                "autoUpdate": true,
+                "sortOrder": 868,
+                "createdAt": 1795592029260,
+                "updatedAt": 1795592029260
             }
         ]
     }
