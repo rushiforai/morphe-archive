@@ -23,10 +23,13 @@ import com.android.tools.smali.dexlib2.AccessFlags
 import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.iface.Method
 import com.android.tools.smali.dexlib2.iface.instruction.FiveRegisterInstruction
+import com.android.tools.smali.dexlib2.iface.instruction.Instruction
+import com.android.tools.smali.dexlib2.iface.instruction.NarrowLiteralInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.RegisterRangeInstruction
 import com.android.tools.smali.dexlib2.iface.reference.MethodReference
+import com.android.tools.smali.dexlib2.iface.reference.StringReference
 import com.android.tools.smali.dexlib2.iface.reference.TypeReference
 
 private const val PATCH = "Filter comments"
@@ -34,8 +37,11 @@ private const val PATCH = "Filter comments"
 /** The extension's filter, and the stubs the patch writes into it. */
 internal const val COMMENTS = "$EXTENSION_PACKAGE/comments/CommentFilter;"
 
-/** The opened post's repository. Its name survives Redex; its methods' names don't. */
-internal const val PERMALINK_REPOSITORY = "Lcom/instagram/barcelona/permalink/data/BarcelonaPermalinkRepository;"
+/**
+ * What parses an opened post's replies: its screen coordinator from 457 on, the repository up to 456.
+ * Its name survives Redex; its methods' names don't.
+ */
+internal const val PERMALINK_SCREEN = "Lcom/instagram/barcelona/permalink/data/PermalinkScreenCoordinator;"
 
 /** The answer Threads parses an opened post's replies from. */
 internal const val REPLIES_RESPONSE = "Lcom/instagram/api/schemas/TextAppRepliesResponseIntf;"
@@ -52,21 +58,27 @@ internal const val MEDIA = "Lcom/instagram/feed/media/Media;"
 /** A post's text with its mentions and links. A kept schema interface. */
 internal const val TEXT_WITH_ENTITIES = "Lcom/instagram/api/schemas/TextWithEntitiesIntf;"
 
-/** The helpers Threads keeps for a post's caption. A kept class. */
-internal const val MEDIA_EXT = "Lcom/instagram/feed/media/MediaExtKt;"
+/** Pando's field name a post's caption getter checks before it reads the caption. */
+internal const val CAPTION_FIELD = "caption"
+
+/** The field Pando's model of a caption reads its text from. */
+internal const val CAPTION_TEXT_FIELD = "text"
+
+/** How Pando's generated models read a String field, by the hash of its name. */
+internal const val PANDO_STRING_READ = "getStringValueByHashCode"
 
 private const val LIST = "Ljava/util/List;"
 private const val STRING = "Ljava/lang/String;"
 
 /**
- * The repository's parse of one opened post's answer: it takes the answer, the repository, two
+ * The coordinator's parse of one opened post's answer: it takes the answer, the coordinator, two
  * state objects and two flags, and answers the next state. A suspend function, so its answer is an
  * object, and the names of its own and the state's types change with every build.
  */
 internal object RepliesParseFingerprint : Fingerprint(
-    definingClass = PERMALINK_REPOSITORY,
+    definingClass = PERMALINK_SCREEN,
     returnType = "L",
-    parameters = listOf(REPLIES_RESPONSE, PERMALINK_REPOSITORY, "L", "L", "Z", "Z"),
+    parameters = listOf(REPLIES_RESPONSE, PERMALINK_SCREEN, "L", "L", "Z", "Z"),
 )
 
 /**
@@ -80,8 +92,8 @@ internal object RepliesParseFingerprint : Fingerprint(
  * <p>What a reply says is read from the post it carries. Those reads have a new name in every
  * build, so four of them are written into the extension here: the reply's list of posts, a post's
  * media, a media's own text, and the caption Threads keeps beside it. Each is found by its shape on
- * a class Threads keeps the name of, and each has to be the only one of its shape, or the patch
- * refuses rather than filtering the wrong thing.
+ * a class Threads keeps the name of, the caption by the field names Pando reads it from, and each
+ * has to be the only one of its shape, or the patch refuses rather than filtering the wrong thing.
  */
 @Suppress("unused")
 val filterCommentsPatch = bytecodePatch(
@@ -108,7 +120,7 @@ val filterCommentsPatch = bytecodePatch(
         val itemMedia = itemMediaGetter()
         val mediaText = mediaTextGetter()
         val textBody = textBodyGetter(mediaText.returnType)
-        val caption = captionHelper()
+        val caption = captionRead()
 
         writeStub(
             COMMENTS, "threadItems", 2,
@@ -161,7 +173,10 @@ val filterCommentsPatch = bytecodePatch(
                 instance-of v0, p0, $MEDIA
                 if-eqz v0, :nothing
                 check-cast p0, $MEDIA
-                invoke-static { p0 }, $MEDIA_EXT->${caption.name}($MEDIA)$STRING
+                invoke-virtual { p0 }, $MEDIA->${caption.getter.name}()${caption.getter.returnType}
+                move-result-object v0
+                if-eqz v0, :nothing
+                invoke-interface { v0 }, ${caption.getter.returnType}->${caption.text}()$STRING
                 move-result-object v0
                 return-object v0
                 :nothing
@@ -275,28 +290,46 @@ internal fun BytecodePatchContext.textBodyGetter(type: String): Method =
     classDefBy(type).methods.filter { it.parameterTypes.isEmpty() && it.returnType == STRING }
         .singleOrPatchException("$PATCH: the text's one no-argument String getter in $type")
 
-/**
- * The helper in [MEDIA_EXT] that answers a post's caption: the one static method taking a post and
- * answering a String that calls one of the post's own getters and then its answer's String getter.
- * Threads has two no-argument caption getters, so the helper is how the caption is read without
- * having to tell them apart.
- */
-internal fun BytecodePatchContext.captionHelper(): Method =
-    classDefBy(MEDIA_EXT).methods.filter { method ->
-        AccessFlags.STATIC.isSet(method.accessFlags) &&
-            method.returnType == STRING &&
-            method.parameterTypes.map(CharSequence::toString) == listOf(MEDIA) &&
-            method.readsGetterThenString()
-    }.singleOrPatchException("$PATCH: the caption helper in $MEDIA_EXT")
+/** A post's caption: its [getter] on the post, and the name of the String getter of its [text]. */
+internal class CaptionRead(val getter: Method, val text: String)
 
-/** Whether [this] calls a no-argument post getter and then a String getter on what it answers. */
-internal fun Method.readsGetterThenString(): Boolean {
-    val calls = implementation?.instructions?.mapNotNull { it.getReference<MethodReference>() }.orEmpty()
-    val getter = calls.firstOrNull {
-        it.definingClass == MEDIA && it.parameterTypes.isEmpty() && it.name != "<init>"
-    } ?: return false
-    return calls.any {
-        it.definingClass == getter.returnType && it.parameterTypes.isEmpty() &&
-            it.returnType == STRING && it.name != "<init>"
+/**
+ * The post's caption, as two reads. The post's one no-argument getter whose body names Pando's
+ * [CAPTION_FIELD] field answers the caption, an interface with many String getters. That getter
+ * also names the Pando model it builds the caption as, and the model reads each String getter from
+ * a field by the hash of its name: the caption's text is the one it reads from [CAPTION_TEXT_FIELD].
+ * 456 had a helper in MediaExtKt doing both, and 457 copies it into every caller instead.
+ */
+internal fun BytecodePatchContext.captionRead(): CaptionRead {
+    val getter = classDefBy(MEDIA).methods.filter { method ->
+        method.parameterTypes.isEmpty() && !AccessFlags.STATIC.isSet(method.accessFlags) &&
+            method.implementation?.instructions?.any { it.string() == CAPTION_FIELD } == true
+    }.singleOrPatchException("$PATCH: the post's \"$CAPTION_FIELD\" getter in $MEDIA")
+    val caption = classDefByOrNull(getter.returnType)
+    if (caption == null || !AccessFlags.INTERFACE.isSet(caption.accessFlags)) {
+        throw PatchException("$PATCH: $MEDIA->${getter.name} answers ${getter.returnType}, not a caption interface")
     }
+    val getters = caption.methods.filter { it.parameterTypes.isEmpty() && it.returnType == STRING }.map { it.name }.toSet()
+    val model = getter.implementation!!.instructions
+        .mapNotNull { if (it.opcode == Opcode.CONST_CLASS) it.getReference<TypeReference>()?.type else null }
+        .mapNotNull { classDefByOrNull(it) }
+        .filter { caption.type in it.interfaces }
+        .singleOrPatchException("$PATCH: the Pando model $MEDIA->${getter.name} builds its caption as")
+    val text = model.methods.filter { it.name in getters && it.readsPandoString(CAPTION_TEXT_FIELD) }
+        .singleOrPatchException("$PATCH: the caption's \"$CAPTION_TEXT_FIELD\" getter in ${model.type}")
+    return CaptionRead(getter, text.name)
 }
+
+/** Whether [this] answers Pando's String field [field] and nothing else: the hash of its name, then the read. */
+internal fun Method.readsPandoString(field: String): Boolean {
+    val body = implementation?.instructions?.toList() ?: return false
+    return body.size == 4 && body[0].opcode == Opcode.CONST &&
+        (body[0] as NarrowLiteralInstruction).narrowLiteral == field.hashCode() &&
+        body[1].getReference<MethodReference>()?.let {
+            it.name == PANDO_STRING_READ && it.parameterTypes.map(CharSequence::toString) == listOf("I") && it.returnType == STRING
+        } == true &&
+        body[2].opcode == Opcode.MOVE_RESULT_OBJECT && body[3].opcode == Opcode.RETURN_OBJECT
+}
+
+private fun Instruction.string() =
+    if (opcode == Opcode.CONST_STRING || opcode == Opcode.CONST_STRING_JUMBO) getReference<StringReference>()?.string else null

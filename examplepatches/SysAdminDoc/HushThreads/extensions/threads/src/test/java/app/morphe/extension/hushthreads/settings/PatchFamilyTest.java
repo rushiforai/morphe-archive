@@ -147,13 +147,14 @@ public class PatchFamilyTest {
     /**
      * The patches that joined the default selection from the opt-in list start with every switch
      * off, so a build patched with the defaults acts as Threads does until a switch is turned on.
-     * Spoof SIM region was never opt-in, and starts off for the same reason.
+     * Spoof SIM region, HushThreads header logo and Custom font were never opt-in, and start off for the same
+     * reason.
      */
     @Test
     public void thePatchesThatJoinedTheDefaultSelectionStartWithEverySwitchOff() {
         Set<PatchFamily> joined = EnumSet.of(PatchFamily.RETURN_REFRESH, PatchFamily.VIDEO_AUTOPLAY,
                 PatchFamily.MAX_IMAGE_QUALITY, PatchFamily.SCREENSHOT_DETECTION, PatchFamily.SPOOF_SIM_REGION,
-                PatchFamily.PURE_BLACK);
+                PatchFamily.PURE_BLACK, PatchFamily.HEADER_LOGO, PatchFamily.CUSTOM_FONT);
         for (PatchFamily family : joined) {
             assertTrue(family.patchName + " isn't in the default selection",
                     PatchFamily.DEFAULT_SELECTION.contains(family));
@@ -177,6 +178,7 @@ public class PatchFamilyTest {
         build.remove(PatchFamily.TRUST_USER_CERTIFICATES);
         build.remove(PatchFamily.CHANGE_PACKAGE_NAME);
         build.remove(PatchFamily.CHANGE_APP_NAME);
+        build.remove(PatchFamily.CUSTOM_LAUNCHER_ICON);
         assertEquals(Collections.emptyList(), PatchFamily.missingDefaults(build));
         for (String line : PatchFamily.reportLines(build, false)) {
             assertFalse(line, line.startsWith("left out of Manager's default selection"));
@@ -189,7 +191,7 @@ public class PatchFamilyTest {
         assertEquals("left out of Manager's default selection: Hide ads, Hide suggested users",
                 lines.get(lines.size() - 1));
         assertEquals("not in this build: Hide ads, Hide suggested users, Change version code, Remove share targets, "
-                + "Trust user-added certificates, Change package name, Change app name", lines.get(lines.size() - 2));
+                + "Trust user-added certificates, Change package name, Change app name, Custom launcher icon", lines.get(lines.size() - 2));
     }
 
     /** The new line goes through the redactor like the rest of the section and comes out whole. */
@@ -255,12 +257,12 @@ public class PatchFamilyTest {
                 "Sanitize sharing links: disabled by its switch (hushthreads_sanitize_sharing_links=off)",
                 "Remove the advertising ID: no switch, stays in while paused: the removed advertising ID permission",
                 "not in this build: Hide suggested users, Block background-return feed refresh, Disable video autoplay, Max image quality, Disable swipe to Search, Open links in browser, "
-                        + "Disable analytics, Disable screenshot detection, Spoof SIM region, Save photos and videos, Pure black dark mode, Hide the Instagram button, Hide ghost post bubbles, Full size profile pictures, Show exact post times, Filter comments, Restore screens on re-signed builds, Change version code, Remove share targets, Trust user-added certificates, "
-                        + "Change package name, Change app name",
+                        + "Disable analytics, Disable screenshot detection, Spoof SIM region, Save photos and videos, Pure black dark mode, HushThreads header logo, Custom font, Hide the Instagram button, Hide ghost post bubbles, Hide post buttons, Full size profile pictures, Show exact post times, Filter comments, Restore screens on re-signed builds, Change version code, Remove share targets, Trust user-added certificates, "
+                        + "Change package name, Change app name, Custom launcher icon",
                 "left out of Manager's default selection: Hide suggested users, Block background-return feed refresh, "
                         + "Disable video autoplay, Max image quality, Disable swipe to Search, Open links in browser, Disable analytics, Disable "
-                        + "screenshot detection, Spoof SIM region, Save photos and videos, Pure black dark mode, Hide the Instagram button, "
-                        + "Hide ghost post bubbles, Full size profile pictures, Show exact post times, Filter comments, Restore screens on re-signed builds"),
+                        + "screenshot detection, Spoof SIM region, Save photos and videos, Pure black dark mode, HushThreads header logo, Custom font, Hide the Instagram button, "
+                        + "Hide ghost post bubbles, Hide post buttons, Full size profile pictures, Show exact post times, Filter comments, Restore screens on re-signed builds"),
                 running);
         assertEquals("Restore screens on re-signed builds: no switch, stays in while paused: the re-signed build fix",
                 PatchFamily.reportLines(EnumSet.of(PatchFamily.RESTORE_TRUST), false).get(0));

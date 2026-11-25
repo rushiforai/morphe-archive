@@ -1,6 +1,8 @@
 package com.feurstagram.extension;
 
+import android.app.Activity;
 import android.content.Context;
+import android.content.Intent;
 import android.content.res.Resources;
 import android.os.Build;
 import android.view.HapticFeedbackConstants;
@@ -9,6 +11,8 @@ import android.view.ViewGroup;
 import android.view.ViewTreeObserver;
 import android.widget.HorizontalScrollView;
 import android.widget.Toast;
+
+import java.lang.ref.WeakReference;
 
 /**
  * UI-level hiders and the landing-page redirect, all installed on the main
@@ -66,17 +70,23 @@ public final class Hiders {
         // "Friends" tab in the Reels viewer header.
         observer.addOnGlobalLayoutListener(new FriendsLaneHider(root));
         // Cold-start landing-page redirect.
-        observer.addOnGlobalLayoutListener(new LandingWatcher(root));
+        observer.addOnGlobalLayoutListener(new LandingWatcher(root, isColdLaunch(root)));
         // Keep swipes off the pages whose tab was hidden.
         HiddenTabSwipeSkipper.install(root);
     }
 
+    /** Resource ids by name; they never change in a process, and a lookup costs on every layout pass. */
+    private static final java.util.HashMap<String, Integer> IDS = new java.util.HashMap<>();
+
     static int resolveId(Context context, String name) {
+        Integer cached = IDS.get(name);
+        if (cached != null) return cached;
         Resources resources = context.getResources();
         int id = resources.getIdentifier(name, "id", context.getPackageName());
         if (id == 0) {
             id = resources.getIdentifier(name, "id", "com.instagram.android");
         }
+        IDS.put(name, id);
         return id;
     }
 
@@ -373,25 +383,49 @@ public final class Hiders {
         }
     }
 
+    /** The activity the landing redirect last ran in: alive across a recreation, gone before a launch. */
+    private static WeakReference<Activity> landedIn = new WeakReference<>(null);
+
     /**
-     * Redirects to the chosen landing surface (search/direct/profile) once per
-     * tab-bar build, then detaches. "home" needs no redirect.
+     * Whether this tab bar belongs to a genuine launch from the launcher. Not an activity
+     * recreated from a live one (fold, dark-mode switch): its predecessor is still undestroyed
+     * or it hands over retained state. Not a bar Instagram rebuilt in place. Not a cold start
+     * from a notification or shared link, whose intent is not the launcher's plain one.
+     */
+    @SuppressWarnings("deprecation") // the retained state is one of the two signs of a recreation
+    private static boolean isColdLaunch(ViewGroup root) {
+        Context context = Settings.getActivityContext(root);
+        if (!(context instanceof Activity)) return true;
+        Activity current = (Activity) context;
+        Activity previous = landedIn.get();
+        if (current == previous || current.getLastNonConfigurationInstance() != null) return false;
+        if (previous != null && !previous.isFinishing() && !previous.isDestroyed()) return false;
+        Intent launch = current.getIntent();
+        return launch == null || (launch.getData() == null
+                && (launch.getAction() == null || Intent.ACTION_MAIN.equals(launch.getAction())));
+    }
+
+    /**
+     * Redirects to the chosen landing surface (search/direct/profile) on a cold
+     * launch, then detaches. "home" needs no redirect.
      */
     static final class LandingWatcher implements ViewTreeObserver.OnGlobalLayoutListener {
         private static final int MAX_ATTEMPTS = 30;
         private ViewGroup container;
+        private final boolean launch;
         private boolean done;
         private int attempts;
 
-        LandingWatcher(ViewGroup container) {
+        LandingWatcher(ViewGroup container, boolean launch) {
             this.container = container;
+            this.launch = launch;
         }
 
         @Override
         public void onGlobalLayout() {
             ViewGroup root = container;
             if (root == null) return;
-            if (done) {
+            if (done || !launch) {
                 detach();
                 return;
             }
@@ -427,6 +461,8 @@ public final class Hiders {
 
             view.performClick();
             done = true;
+            Context host = Settings.getActivityContext(root);
+            if (host instanceof Activity) landedIn = new WeakReference<>((Activity) host);
             detach();
         }
 

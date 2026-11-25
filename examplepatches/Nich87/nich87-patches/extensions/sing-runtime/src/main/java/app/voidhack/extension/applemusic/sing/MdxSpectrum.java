@@ -27,6 +27,7 @@ final class MdxSpectrum {
 
     private static final float[] WINDOW = new float[FFT_SIZE];
     private static final float[] NORMALIZATION = new float[FRAMES];
+    private static final float[] UNITY_NORMALIZATION = new float[FRAMES];
     private static final float[] COS = new float[FFT_SIZE];
     private static final float[] NEGATIVE_SIN = new float[FFT_SIZE];
     private static final int[] INPUT_INDEX = new int[FFT_SIZE];
@@ -63,7 +64,9 @@ final class MdxSpectrum {
         }
         for (int frame = 0; frame < FRAMES; frame++) {
             // Undo both overlap-add windowing and the unnormalized inverse FFT.
-            NORMALIZATION[frame] = COMPENSATION / (FFT_SIZE * windowPower[frame + HALF_FFT]);
+            float unity = 1.0f / (FFT_SIZE * windowPower[frame + HALF_FFT]);
+            UNITY_NORMALIZATION[frame] = unity;
+            NORMALIZATION[frame] = COMPENSATION * unity;
         }
     }
 
@@ -93,6 +96,14 @@ final class MdxSpectrum {
     }
 
     void inverse(float[] tensor, float[] interleaved) {
+        inverseWithScale(tensor, interleaved, NORMALIZATION);
+    }
+
+    void inverseUnity(float[] tensor, float[] interleaved) {
+        inverseWithScale(tensor, interleaved, UNITY_NORMALIZATION);
+    }
+
+    private void inverseWithScale(float[] tensor, float[] interleaved, float[] normalization) {
         requireWindowAndTensor(interleaved, tensor);
         Arrays.fill(interleaved, 0f);
         for (int time = 0; time < TIME_STEPS; time++) {
@@ -109,8 +120,9 @@ final class MdxSpectrum {
             }
         }
         for (int frame = 0; frame < FRAMES; frame++) {
-            interleaved[CHANNELS * frame] *= NORMALIZATION[frame];
-            interleaved[CHANNELS * frame + 1] *= NORMALIZATION[frame];
+            float gain = normalization[frame];
+            interleaved[CHANNELS * frame] *= gain;
+            interleaved[CHANNELS * frame + 1] *= gain;
         }
     }
 

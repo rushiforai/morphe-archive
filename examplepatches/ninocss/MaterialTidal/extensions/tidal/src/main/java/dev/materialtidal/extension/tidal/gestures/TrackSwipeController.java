@@ -165,7 +165,9 @@ public final class TrackSwipeController {
             String entry = rv.getResources().getResourceEntryName(id);
             if (entry != null) {
                 String lower = entry.toLowerCase();
-                return lower.contains("play_queue") || lower.contains("edit_playlist");
+                return lower.contains("playqueue")
+                        || lower.contains("play_queue")
+                        || lower.contains("edit_playlist");
             }
         } catch (Throwable ignored) {
         }

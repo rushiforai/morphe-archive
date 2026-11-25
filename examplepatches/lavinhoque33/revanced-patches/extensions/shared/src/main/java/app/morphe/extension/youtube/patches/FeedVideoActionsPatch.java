@@ -4,6 +4,7 @@
  *
  * See the included NOTICE file for GPLv3 Section 7 terms that apply to this code.
  * Modified by lavinhoque33, 2026-11-23
+ * Modified by lavinhoque33, 2026-11-24
  */
 
 package app.morphe.extension.youtube.patches;
@@ -30,6 +31,7 @@ import android.view.View;
 import android.view.ViewConfiguration;
 import android.view.ViewGroup;
 import android.view.ViewParent;
+import android.view.accessibility.AccessibilityNodeInfo;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
@@ -53,6 +55,7 @@ import app.morphe.extension.shared.utils.Utils;
 import app.morphe.extension.youtube.innertube.queue.PlaylistQueueRenderer;
 import app.morphe.extension.shared.utils.ResourceUtils;
 import app.morphe.extension.youtube.utils.ExtendedUtils;
+import app.morphe.extension.youtube.patches.queue.ThumbnailQueueButton;
 import app.morphe.extension.youtube.patches.queue.ThumbnailQueuePatch;
 import app.morphe.extension.youtube.patches.utils.FeedVideoCardsPatch;
 import app.morphe.extension.youtube.patches.utils.FlyoutUtils;
@@ -70,6 +73,7 @@ import app.morphe.extension.youtube.patches.general.DownloadActionsPatch;
  *   <li>Watch later button: drawn on the overlay of the root host. Tapping it saves the video to
  *       Watch later, and tapping and holding it opens the Save to playlist panel. Both run the
  *       command of the app directly, so they do not depend on the menu of the video.</li>
+ *   <li>Add to queue button: tapping the upper-left thumbnail button starts or queues its video.</li>
  * </ul>
  * The content description of the menu button is localized and contains the title of its
  * video. The texts of the video are removed from it, and the remaining pattern is learned
@@ -79,9 +83,11 @@ import app.morphe.extension.youtube.patches.general.DownloadActionsPatch;
 @SuppressWarnings("unused")
 public final class FeedVideoActionsPatch {
 
-    private static final boolean LONG_PRESS_MENU = Settings.FEED_LONG_PRESS_MENU.get();
-    private static final boolean WATCH_LATER_BUTTON = Settings.FEED_WATCH_LATER_BUTTON.get();
-    private static final boolean ENABLED = isPatchIncluded() && (LONG_PRESS_MENU || WATCH_LATER_BUTTON);
+    private static final boolean LONG_PRESS_MENU = isPatchIncluded() && Settings.FEED_LONG_PRESS_MENU.get();
+    private static final boolean WATCH_LATER_BUTTON = isPatchIncluded() && Settings.FEED_WATCH_LATER_BUTTON.get();
+    private static final boolean FEED_ACTIONS_ENABLED = LONG_PRESS_MENU || WATCH_LATER_BUTTON;
+    private static final boolean QUEUE_BUTTON = ThumbnailQueuePatch.isEnabled();
+    private static final boolean ENABLED = FEED_ACTIONS_ENABLED || QUEUE_BUTTON;
 
     private static final boolean USE_EXPERIMENTAL_ICONS = ExtendedUtils.IS_20_31_OR_GREATER
             && !ExtendedUtils.isSpoofingToLessThan("20.31.00");
@@ -144,11 +150,13 @@ public final class FeedVideoActionsPatch {
     private static final int GESTURE_LONG_PRESS_PENDING = 1;
     private static final int GESTURE_BADGE = 2;
     private static final int GESTURE_CONSUMED = 3;
+    private static final int GESTURE_QUEUE_BUTTON = 4;
 
     private static final Handler handler = new Handler(Looper.getMainLooper());
 
     /** Root hosts that currently show a video. Used only on the main thread. */
     private static final Map<ComponentHost, VideoCard> cards = new WeakHashMap<>();
+    private static final Map<ComponentHost, ThumbnailQueueButton> queueButtons = new WeakHashMap<>();
 
     /**
      * Root hosts with a layout change, which are checked once the layout pass is done.
@@ -161,11 +169,14 @@ public final class FeedVideoActionsPatch {
 
     private static WeakReference<ComponentHost> gestureHostRef = new WeakReference<>(null);
     private static int gestureMode = GESTURE_NONE;
+    @Nullable
+    private static ThumbnailQueueButton pressedQueueButton;
     private static float downX, downY;
     private static float downRawX, downRawY;
     /** Position of the video on the screen when touched, to notice that the feed has moved. */
     private static final int[] downLocation = new int[2];
     private static final int[] currentLocation = new int[2];
+    private static final int[] queueButtonLocation = new int[2];
 
     /** Longer than a normal long press, so resting a finger before scrolling does not open it. */
     private static final long LONG_PRESS_TIMEOUT_MS = ViewConfiguration.getLongPressTimeout() * 5L / 4;
@@ -202,15 +213,7 @@ public final class FeedVideoActionsPatch {
         void placeBadge(ComponentHost host) {
             final int size = dp(host, BADGE_SIZE_DP);
             final int top = thumbnailTop + dp(host, BADGE_MARGIN_DP);
-            int right = host.getWidth() - dp(host, BADGE_RIGHT_MARGIN_DP);
-            String queueLabel = Settings.QUEUE_THUMBNAIL_BUTTON.get() ? ThumbnailQueuePatch.visibleButtonLabel() : null;
-            final int touchSlop = dp(host, BADGE_TOUCH_SLOP_DP);
-            if (queueLabel != null && hasOverlappingThumbnailButton(host, host, queueLabel,
-                    new Rect(right - size - touchSlop, top - touchSlop, right + touchSlop, top + size + touchSlop),
-                    new Rect())) {
-                // Keep the existing action separate from a native button mounted in the same corner.
-                right = dp(host, BADGE_RIGHT_MARGIN_DP) + size;
-            }
+            final int right = host.getWidth() - dp(host, BADGE_RIGHT_MARGIN_DP);
             badge.setBounds(right - size, top, right, top + size);
             badge.hostRef = new WeakReference<>(host);
             if (!badgeAdded) {
@@ -412,25 +415,6 @@ public final class FeedVideoActionsPatch {
         if (view != root) {
             root.offsetDescendantRectToMyCoords(view, rect);
         }
-    }
-
-    private static boolean hasOverlappingThumbnailButton(ComponentHost root, ViewGroup parent, String label,
-                                                         Rect touchBounds, Rect buttonBounds) {
-        for (int i = 0, count = parent.getChildCount(); i < count; i++) {
-            View child = parent.getChildAt(i);
-            if (child.getVisibility() != View.VISIBLE) {
-                continue;
-            }
-
-            setRectInRoot(root, child, buttonBounds);
-            if (Rect.intersects(touchBounds, buttonBounds)
-                    && ((child.isClickable() && TextUtils.equals(label, child.getContentDescription()))
-                    || (child instanceof ViewGroup group
-                    && hasOverlappingThumbnailButton(root, group, label, touchBounds, buttonBounds)))) {
-                return true;
-            }
-        }
-        return false;
     }
 
     /**
@@ -706,12 +690,55 @@ public final class FeedVideoActionsPatch {
             rootsToUpdate.clear();
             for (ComponentHost root : roots) {
                 if (root != null && root.isAttachedToWindow() && isRootHost(root)) {
-                    updateCard(root);
+                    if (QUEUE_BUTTON) {
+                        updateQueueButton(root);
+                    }
+                    if (FEED_ACTIONS_ENABLED) {
+                        updateCard(root);
+                    }
                 }
             }
         } catch (Exception ex) {
             Logger.printException(() -> "updateRoots failure", ex);
         }
+    }
+
+    private static void updateQueueButton(ComponentHost root) {
+        ThumbnailQueueButton button = ThumbnailQueueButton.bind(root, queueButtons.get(root));
+        if (button == null) {
+            queueButtons.remove(root);
+        } else {
+            queueButtons.put(root, button);
+        }
+    }
+
+    public static void invalidateQueueButtons() {
+        if (QUEUE_BUTTON) {
+            Utils.runOnMainThreadNowOrLater(() -> {
+                for (ThumbnailQueueButton button : queueButtons.values()) {
+                    button.invalidateSelf();
+                }
+            });
+        }
+    }
+
+    /** Injection point, after the native Litho host and its delegate populate the node. */
+    public static void addQueueAccessibilityAction(ComponentHost host, AccessibilityNodeInfo info) {
+        if (QUEUE_BUTTON) {
+            ThumbnailQueueButton button = queueButtons.get(findRootHost(host));
+            if (button != null) {
+                button.addAccessibilityAction(host, info, StringRef.str("revanced_queue_manager_add_to_queue"));
+            }
+        }
+    }
+
+    /** Injection point. Normal actions, including the virtual-node provider's actions, follow the stock path. */
+    public static boolean performQueueAccessibilityAction(ComponentHost host, int action) {
+        if (!QUEUE_BUTTON || !ThumbnailQueueButton.isQueueActionId(action)) {
+            return false;
+        }
+        ThumbnailQueueButton button = queueButtons.get(findRootHost(host));
+        return button != null && button.performAccessibilityAction(host, action);
     }
 
     /**
@@ -720,11 +747,14 @@ public final class FeedVideoActionsPatch {
      * and mount later without another layout, so a known video without actions needs a scroll check.
      */
     public static void onCardLaidOut(ComponentHost host, @Nullable String videoId) {
-        if (!ENABLED) {
+        if (!FEED_ACTIONS_ENABLED && !QUEUE_BUTTON) {
             return;
         }
         try {
-            if (updateCard(host) == null && videoId != null) {
+            if (QUEUE_BUTTON) {
+                updateQueueButton(host);
+            }
+            if (FEED_ACTIONS_ENABLED && updateCard(host) == null && videoId != null) {
                 FeedVideoCardsPatch.scheduleScrollCheck(host);
             }
         } catch (Exception ex) {
@@ -782,6 +812,10 @@ public final class FeedVideoActionsPatch {
                 return false;
             }
             switch (gestureMode) {
+                case GESTURE_QUEUE_BUTTON -> {
+                    onQueueButtonTouch(host, event, action, gestureEnded);
+                    return true;
+                }
                 case GESTURE_BADGE -> {
                     VideoCard card = cards.get(host);
                     if (action == MotionEvent.ACTION_MOVE && card != null
@@ -830,6 +864,20 @@ public final class FeedVideoActionsPatch {
     private static boolean onTouchDown(ComponentHost host, MotionEvent event) {
         resetGesture();
 
+        if (QUEUE_BUTTON) {
+            ThumbnailQueueButton button = queueButtons.get(host);
+            if (button != null && button.hit(host, event.getX(), event.getY(), currentLocation, queueButtonLocation)) {
+                recordTouchDown(host, event);
+                gestureMode = GESTURE_QUEUE_BUTTON;
+                pressedQueueButton = button;
+                button.setPressed(true);
+                return true;
+            }
+        }
+        if (!FEED_ACTIONS_ENABLED) {
+            return false;
+        }
+
         VideoCard card = cards.get(host);
         if (card == null || card.getMenuButton() == null) {
             // The host may show another video since its last layout.
@@ -839,12 +887,7 @@ public final class FeedVideoActionsPatch {
             }
         }
 
-        gestureHostRef = new WeakReference<>(host);
-        downX = event.getX();
-        downY = event.getY();
-        downRawX = event.getRawX();
-        downRawY = event.getRawY();
-        host.getLocationOnScreen(downLocation);
+        recordTouchDown(host, event);
 
         if (WATCH_LATER_BUTTON && card.isBadgeHit(host, downX, downY)) {
             gestureMode = GESTURE_BADGE;
@@ -859,6 +902,33 @@ public final class FeedVideoActionsPatch {
             handler.postDelayed(longPressRunnable, LONG_PRESS_TIMEOUT_MS);
         }
         return false;
+    }
+
+    private static void recordTouchDown(ComponentHost host, MotionEvent event) {
+        gestureHostRef = new WeakReference<>(host);
+        downX = event.getX();
+        downY = event.getY();
+        downRawX = event.getRawX();
+        downRawY = event.getRawY();
+        host.getLocationOnScreen(downLocation);
+    }
+
+    private static void onQueueButtonTouch(ComponentHost host, MotionEvent event, int action, boolean ended) {
+        ThumbnailQueueButton button = pressedQueueButton;
+        boolean stillOnButton = button != null && button == queueButtons.get(host)
+                && button.hit(host, event.getX(), event.getY(), currentLocation, queueButtonLocation)
+                && !hasMoved(host, event);
+        if (ended) {
+            resetGesture();
+            if (action == MotionEvent.ACTION_UP && stillOnButton) {
+                vibrate(host, false);
+                button.click();
+            }
+        } else if (action == MotionEvent.ACTION_POINTER_DOWN || !stillOnButton) {
+            // The enclosing list can intercept the drag. Never hand an up event to the thumbnail underneath.
+            releaseQueueButton();
+            gestureMode = GESTURE_CONSUMED;
+        }
     }
 
     /**
@@ -884,8 +954,16 @@ public final class FeedVideoActionsPatch {
     private static void resetGesture() {
         handler.removeCallbacks(longPressRunnable);
         handler.removeCallbacks(badgeLongPressRunnable);
+        releaseQueueButton();
         gestureMode = GESTURE_NONE;
         gestureHostRef = new WeakReference<>(null);
+    }
+
+    private static void releaseQueueButton() {
+        if (pressedQueueButton != null) {
+            pressedQueueButton.setPressed(false);
+            pressedQueueButton = null;
+        }
     }
 
     private static void onLongPressTimeout() {
@@ -1014,7 +1092,7 @@ public final class FeedVideoActionsPatch {
      * Not every such button opens a menu, such as the comment button of posts.
      */
     public static void onFlyoutSender(@Nullable View sender) {
-        if (ENABLED && sender != null) {
+        if (FEED_ACTIONS_ENABLED && sender != null) {
             lastSenderRef = new WeakReference<>(sender);
         }
     }
@@ -1025,7 +1103,7 @@ public final class FeedVideoActionsPatch {
      * is found by it. Only a sender that opened a menu with a video id is the menu button.
      */
     public static void onFlyoutCreated() {
-        if (!ENABLED) {
+        if (!FEED_ACTIONS_ENABLED) {
             return;
         }
         try {

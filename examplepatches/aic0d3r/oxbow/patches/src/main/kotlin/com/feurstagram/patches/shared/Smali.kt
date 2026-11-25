@@ -139,7 +139,7 @@ fun MutableMethod.rememberStringsIf(toggle: String, remember: String, parameterI
 }
 
 /** Register holding parameter [index] (0-based, without `this`), which sits in the highest locals. */
-private fun MutableMethod.parameterRegister(index: Int): Int {
+fun MutableMethod.parameterRegister(index: Int): Int {
     val words = parameterTypes.sumOf { if (it.toString() == "J" || it.toString() == "D") 2 else 1 } + 1
     return (implementation?.registerCount ?: 0) - words + 1 + index
 }

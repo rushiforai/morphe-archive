@@ -1,6 +1,7 @@
 package app.morphe.extension.hushthreads.coexist;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
@@ -40,7 +41,7 @@ public class ShareTilesTest {
 
     @Test
     public void aTileTheLauncherRefusedOpensTheAppItNames() {
-        ShareTiles.openRefused(false, app(), tile());
+        assertTrue("the app opened", ShareTiles.openRefused(false, app(), tile()));
         Intent opened = started();
         assertEquals(MESSENGER, opened.getPackage());
         assertEquals(Intent.ACTION_SEND, opened.getAction());
@@ -56,20 +57,20 @@ public class ShareTilesTest {
 
     @Test
     public void aTileTheLauncherStartedDoesNotOpenTwice() {
-        ShareTiles.openRefused(true, app(), tile());
+        assertTrue("the launcher's own yes stands", ShareTiles.openRefused(true, app(), tile()));
         assertNull(started());
     }
 
     @Test
     public void anIntentNamingNoAppIsLeftAlone() {
-        ShareTiles.openRefused(false, app(), new Intent(Intent.ACTION_SEND).setType("text/plain"));
+        assertFalse(ShareTiles.openRefused(false, app(), new Intent(Intent.ACTION_SEND).setType("text/plain")));
         assertNull(started());
     }
 
     @Test
     public void nothingToOpenIsLeftAlone() {
-        ShareTiles.openRefused(false, null, tile());
-        ShareTiles.openRefused(false, app(), null);
+        assertFalse(ShareTiles.openRefused(false, null, tile()));
+        assertFalse(ShareTiles.openRefused(false, app(), null));
         assertNull(started());
     }
 
@@ -96,7 +97,7 @@ public class ShareTilesTest {
                 throw new ActivityNotFoundException(intent.getPackage());
             }
         };
-        ShareTiles.openRefused(false, gone, tile());
+        assertFalse("nothing opened", ShareTiles.openRefused(false, gone, tile()));
         assertNull(started());
     }
 }

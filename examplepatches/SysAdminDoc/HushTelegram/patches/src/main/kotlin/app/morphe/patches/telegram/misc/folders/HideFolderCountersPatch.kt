@@ -56,6 +56,7 @@ val hideFolderCountersPatch = bytecodePatch(
         val counter = resolveHideFolderCounters()
         requireLaunchFolderRuntime()
         requireTabIconsRuntime()
+        requireBottomTabsRuntime()
         // The folder at launch switch rides along while the catalog is held. A build without its shape
         // keeps the counters and leaves the switch out.
         val launch = resolveLaunchFolder()
@@ -117,15 +118,6 @@ val hideFolderCountersPatch = bytecodePatch(
         } catch (failed: Exception) {
             "the date order's stubs don't build (${failed.javaClass.simpleName}: ${failed.message})"
         } else null
-        // Pin on this phone needs all three: the sort hook, the date order's stubs and the long press item.
-        val localPinsReady = unhidden == null && noMenu == null && noSort == null
-        val noLocalPins = if (localPinsReady) try {
-            requireLocalPinsRuntime()
-            writeLocalPinsStubs(menu!!.refs!!)
-            null
-        } catch (failed: Exception) {
-            "the long press pin's stub doesn't build (${failed.javaClass.simpleName}: ${failed.message})"
-        } else null
         // So does the passcode that hidden chats can ask for, which reads Telegram's own passcode state.
         val noPasscode = if (unhidden == null) try {
             requireAppPasscodeRuntime()
@@ -179,6 +171,20 @@ val hideFolderCountersPatch = bytecodePatch(
             } else {
                 patchLog.warning("Hide folder tab counters: $noIcons. The patch goes on without folder tab icons.")
             }
+            // Moving the strip above the bottom bar rides on it too, and a chat list without the shape keeps it on top.
+            val bottom = resolveBottomTabs(launch.refs!!)
+            val notMoved = bottom.missing ?: try {
+                writeBottomTabsStubs(bottom.refs!!)
+                null
+            } catch (failed: Exception) {
+                "the moved folder tabs' stubs don't build (${failed.javaClass.simpleName}: ${failed.message})"
+            }
+            if (notMoved == null) {
+                bottom.apply()
+                enableCapability("bottomTabs")
+            } else {
+                patchLog.warning("Hide folder tab counters: $notMoved. The patch goes on without moving the folder tabs.")
+            }
             if (launch.refs!!.scrollTo == null) {
                 patchLog.warning("Hide folder tab counters: the folder tabs can't be scrolled. A picked folder past the screen's edge opens out of view.")
             }
@@ -215,13 +221,6 @@ val hideFolderCountersPatch = bytecodePatch(
             }
             if (noMenu == null) {
                 menu!!.apply()
-                if (localPinsReady) {
-                    if (noLocalPins == null) {
-                        enableCapability("localPins")
-                    } else {
-                        patchLog.warning("Hide folder tab counters: $noLocalPins. Hidden chats go on without Pin on this phone.")
-                    }
-                }
             } else {
                 patchLog.warning("Hide folder tab counters: $noMenu. Hidden chats go on without Hide from chat list in the long press menu.")
             }
@@ -233,20 +232,6 @@ val hideFolderCountersPatch = bytecodePatch(
             }
         } else {
             patchLog.warning("Hide folder tab counters: $unhidden. The patch goes on without hiding chats.")
-        }
-        // Moving All Chats goes last, since Hide All Chats hooks one of the same methods and would move the indices.
-        val place = resolveAllChatsPlace()
-        val unplaced = place.missing ?: try {
-            writeAllChatsPlaceStubs()
-            null
-        } catch (failed: Exception) {
-            "the All Chats place's stubs don't build (${failed.javaClass.simpleName}: ${failed.message})"
-        }
-        if (unplaced == null) {
-            place.apply()
-            enableCapability("allChatsPlace")
-        } else {
-            patchLog.warning("Hide folder tab counters: $unplaced. The patch goes on with All Chats first.")
         }
         // The avatar size touches only the chat row's layout, so it stands alone: found, assembled on a
         // copy, its stubs built, and only then Telegram's layout changed.
@@ -263,6 +248,14 @@ val hideFolderCountersPatch = bytecodePatch(
             enableCapability("chatListAvatar")
         } else {
             patchLog.warning("Hide folder tab counters: $unsized. The patch goes on without Change avatar size.")
+        }
+        // Saved Messages on its media (#103) asks the extension at the chat list's two reads of View as Chats.
+        val (savedMedia, noSavedMedia) = resolveSavedMediaFirst()
+        if (savedMedia != null) {
+            savedMedia.apply()
+            enableCapability("savedMediaFirst")
+        } else {
+            patchLog.warning("Hide folder tab counters: $noSavedMedia. The patch goes on without Open Saved Messages on its media.")
         }
     }
 }

@@ -590,6 +590,7 @@ Hide Repost under posts	隐藏帖子下方的转发
 Hide Share under posts	隐藏帖子下方的分享
 # context: switch title under News feed; Send is Facebook's own button under a post that sends it in a chat
 Hide Send under posts	隐藏帖子下方的发送
+Hide Stars and gifts under posts	隐藏帖子下方的星星和礼物
 Hide Save under posts	隐藏帖子下方的保存
 # context: summary shared by those five switches
 Takes this button out of the row under posts in the feed. The other buttons stay, and a post with all of its buttons hidden shows no row.	从动态中帖子下方的按钮行里移除这个按钮。其他按钮保留，所有按钮都隐藏的帖子不显示按钮行。
@@ -1001,6 +1002,7 @@ Hide the Create tab	隐藏“创建”标签页
 Hide the Explore tab	隐藏“探索”标签页
 Hide the Jobs tab	隐藏“招聘”标签页
 Removes this tab from the tab bar. Its page is still in the Menu. Restart Facebook to see the change.	从标签栏中移除此标签页。它的页面仍在菜单中。重启 Facebook 后可看到更改。
+Removes this tab from the tab bar. Its page is still in the Menu, unless you pick it in Menu tiles to hide. Restart Facebook to see the change.	从标签栏中移除此标签页。它的页面仍在菜单中，除非你在“要隐藏的菜单图块”中选中它。重启 Facebook 后可看到更改。
 Facebook opens on Home while %1$s is on, since %2$s is off the tab bar. Your choice stays saved.	开启“%1$s”后，Facebook 会打开主页，因为“%2$s”已不在标签栏上。你的选择仍会保存。
 # context: summary of that switch; Video is Facebook's name for the tab on some accounts
 No dot or new count on the Reels tab, called Video on some accounts. Other tabs keep theirs.	Reels 标签页（部分账号称为“视频”）上不显示圆点或新内容数量。其他标签页保持原样。
@@ -1240,15 +1242,6 @@ Turn off haptics	关闭触感反馈
 Stops the small vibrations Facebook makes when you tap or swipe. Your keyboard and phone vibrations aren't affected.	停止 Facebook 在你点按或滑动时产生的轻微震动。你的键盘和手机震动不受影响。
 Turn off screen transitions	关闭屏幕转场
 Tabs, the Menu, photos and screens that open over Facebook appear at once instead of sliding or zooming in. Swiping between tabs still works.	标签页、菜单、照片和在 Facebook 上方打开的页面会立即出现，而不是滑入或放大。在标签页之间滑动仍然有效。
-Unlock app icons	解锁应用图标
-Lets you pick the app icons Facebook keeps for Facebook Plus, on Facebook's App icon page. The Pick an app icon row opens that page. Your pick stays if you turn this off, so pick the blue one first to go back.	让你在 Facebook 的“应用图标”页面中选择 Facebook 为 Facebook Plus 保留的应用图标。“选择应用图标”这一行会打开该页面。即使你关闭此项，你的选择也会保留，所以要换回蓝色图标，请先选择蓝色的那个。
-# context: settings row under Appearance, right below the Unlock app icons switch; opens Facebook's own App icon page, so use Facebook's name for that page in this language
-Pick an app icon	选择应用图标
-Opens Facebook's App icon page, even on accounts where Facebook doesn't list it in Settings and privacy.	打开 Facebook 的“应用图标”页面，即使在 Facebook 没有在“设置和隐私”中列出它的账号上也可以。
-Use the icon at the top of Home	使用主页顶部的图标
-Shows the app icon you picked at the top of Home instead of the Facebook wordmark. Needs Unlock app icons and a pick other than the blue one. Restart Facebook to see the change.	在主页顶部显示你选择的应用图标，而不是 Facebook 字标。需要开启“解锁应用图标”，并选择蓝色以外的图标。重启 Facebook 后可看到更改。
-# context: toast when the row above finds no App icon page in this Facebook build
-This Facebook build has no App icon page.	此 Facebook 版本没有“应用图标”页面。
 # context: switch title under Playback; Android's own name for the floating video window
 Picture-in-picture	画中画
 # context: summary of that switch
@@ -1979,8 +1972,10 @@ Show reactions on the Like button	在“赞”按钮上显示回应
 Moves a post's reaction faces from the end of its button row onto the Like button, right before the count. The Like button likes and reacts as before. A video showing its views there gets one Like face, or your own reaction once you react. Hide the reaction preview on posts overrules it. A change shows on the posts drawn after it.	把帖子的回应图标从按钮行的末尾移到“赞”按钮上，紧挨在数字前面。“赞”按钮仍像以前一样点赞和回应。在那里显示播放次数的视频会显示一个“赞”图标，你回应后则显示你自己的回应。“隐藏帖子上的回应预览”优先。更改会在之后显示的帖子上生效。
 # context: switch title under Comments; the reaction preview is the stack of reaction icons in the corner of a comment
 Hide the reaction preview on comments	隐藏评论上的回应预览
+Hide reaction counts on comments	隐藏评论上的回应数
 # context: summary of that switch; "reactions" are Facebook's Like, Love, Haha and other reactions
 Hides the stacked reaction icons in the corner of a comment. The space stays, so a tap where they were still opens the list of reactions.	隐藏评论角落里叠放的回应图标。空间仍保留，因此点按它们原来所在的位置仍会打开回应列表。
+Hides the number next to the reaction icons on a comment. The icons stay, and a tap on them still opens the list of reactions.	隐藏评论上回应图标旁的数字。图标仍保留，点按它们仍会打开回应列表。
 # context: switch title under Downloads; "Download" is the post menu row "Download to phone" and "post menus" are the three-dot menus under posts
 Download first in post menus	帖子菜单中下载优先
 # context: summary of that switch; "Download to phone" and "Save photo" are the menu rows, translate them as elsewhere; "More options" is the title of Facebook's own page, use Facebook's wording
@@ -2723,7 +2718,9 @@ Your tab bar will go in this order: %1$s.	你的标签栏将按此顺序排列�
 Show only watched stories	只显示看过的快拍
 The Stories tray keeps only the stories you've already watched, so you can find one again. Turn it off to see the new ones. Hide seen stories waits while this is on. Applies when Facebook next loads the tray.	快拍栏只保留你已经看过的快拍，方便你再找到某一个。关闭后可看到新的快拍。开启时“隐藏已看过的快拍”暂不生效。在 Facebook 下次加载快拍栏时生效。
 Show Posts in search	在搜索中显示帖子
+Show Videos in search	在搜索中显示视频
 Puts Posts back in the row over search results, after Reels, so you can see only posts for what you searched.	把“帖子”放回搜索结果上方的那一行，排在 Reels 之后，这样你可以只看与搜索内容相关的帖子。
+Puts Videos in the row over search results, next to Posts, so you can see only videos for what you searched.	把“视频”放进搜索结果上方的那一行，排在“帖子”旁边，这样你可以只看搜索内容的视频。
 Saved button in search	搜索中的收藏按钮
 Puts a Saved button at the end of the search bar, so your saved posts and videos are one tap away. Restart Facebook to see the change.	在搜索栏末尾放一个“收藏”按钮，点一下就能看到你收藏的帖子和视频。重启 Facebook 后可看到更改。
 Restore feed sound after opened videos	打开视频后恢复动态的声音
@@ -3159,3 +3156,27 @@ All your notifications are marked as read.	你的所有通知都已标为已读�
 Nothing was marked, since Facebook didn't say who's signed in. Open the Notifications tab once, then try again.	没有标记任何通知，因为 Facebook 没有告知当前登录的是谁。请先打开一次“通知”标签，然后再试。
 This build can't mark notifications as read.	此版本无法将通知标为已读。
 Facebook couldn't mark your notifications as read. Try again in a moment.	Facebook 无法将你的通知标为已读。请稍后再试。
+# context: Share to Facebook chats, a switch on the Chats page and the share target it adds; the notes are short toasts
+Share to Facebook chats	分享到 Facebook 聊天
+Adds Facebook chats to Android's share menu. A photo or video you share there is saved to your gallery and text is copied, then your chats open so you can pick one and send it.	在 Android 的分享菜单中加入 Facebook 聊天。分享到这里的照片或视频会保存到图库，文字会被复制，然后打开你的聊天，选一个发送即可。
+Share to Facebook chats is off.	分享到 Facebook 聊天已关闭。
+Nothing in it to send.	没有可发送的内容。
+Couldn't save it to your gallery.	无法保存到图库。
+Copied and saved. Pick a chat.	已复制并保存。请选择聊天。
+In your gallery now. Pick a chat.	已在图库中。请选择聊天。
+Copied. Pick a chat and paste it.	已复制。选择聊天后粘贴。
+Open your chats to pick one.	打开聊天列表选择一个。
+Post date after the caption	发布日期放在说明后
+With Show the post date on reels on, puts the date at the end of the caption instead of under the name, where the song and other labels crowd it. A change shows from the next reel.	开启“在 Reels 上显示发布日期”时，把日期放在说明末尾，而不是名字下方那行（那里挤着歌曲和其他标签）。更改会从下一个 Reels 开始显示。
+Fill every reel	让所有 Reels 填满屏幕
+With Fill the screen with reels on, every reel fills the screen, even when that cuts a lot off the edges. Made for foldables and tablets, where most reels would keep their bars.	开启“让 Reels 填满屏幕”时，每个 Reels 都会填满屏幕，即使边缘会被裁掉很多。适用于折叠屏手机和平板，这些设备上大多数 Reels 原本会保留黑边。
+Chat background	聊天背景
+Last chat's background	最近聊天的背景
+A color code (#RRGGBB) for the space behind the messages in every chat, like #1E3A5F. Two codes, like #1E3A5F #6A1B9A, fade from one to the other. Only this phone sees it. Leave it blank for Facebook's own.	所有聊天中消息后方区域的颜色代码（#RRGGBB），例如 #1E3A5F。填两个代码，例如 #1E3A5F #6A1B9A，会从一种颜色渐变到另一种。只有这部手机会显示。留空则使用 Facebook 的背景。
+A color code (#RRGGBB) for %1$s only, like #1E3A5F. Two codes fade from one to the other. Leave it blank and it takes the chat background above.	仅用于 %1$s 的颜色代码（#RRGGBB），例如 #1E3A5F。填两个代码会从一种颜色渐变到另一种。留空则使用上方的聊天背景。
+Chats keep Facebook's background. Type a color code to change it on this phone only.	聊天保持 Facebook 的背景。输入颜色代码即可仅在这部手机上更改。
+Chats are %1$s behind the messages, on this phone only. Nobody in the chat is told.	聊天中消息后方为 %1$s，仅在这部手机上显示。聊天中的其他人不会收到通知。
+Open a chat, then come back here to give it a color of its own.	先打开一个聊天，再回到这里为它设置专属颜色。
+%1$s, the last chat you opened, takes the chat background above. Type a color code to give it its own.	%1$s 是你最近打开的聊天，使用上方的聊天背景。输入颜色代码即可为它设置专属颜色。
+%1$s, the last chat you opened, is %2$s.	%1$s 是你最近打开的聊天，颜色为 %2$s。
+Type one color code, or two for a fade from top to bottom.	输入一个颜色代码，或输入两个以从上到下渐变。

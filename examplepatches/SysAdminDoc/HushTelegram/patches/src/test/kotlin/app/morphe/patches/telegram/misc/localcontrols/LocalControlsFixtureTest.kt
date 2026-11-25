@@ -120,7 +120,9 @@ class LocalControlsFixtureTest {
             val special = context.resolveSpecialContacts().first!!
             // So do member join dates', which the member list test below holds to the stock code.
             val hooked = setOf(plan.method, special.putUser, special.updates) + context.resolveMemberJoinDates().first!!.methods +
-                context.resolveForwardDates().first!!.methods
+                context.resolveForwardDates().first!!.methods +
+                // And Rename on this phone's, which LocalNamesFixtureTest holds to the stock code.
+                context.resolveLocalNames().first!!.methods
             val stock = ImmutableMethod.of(plan.method)
             val untouched = hostState(build, context, hooked)
             assertEquals(emptyList<String>(), PatchLogCapture.warnings { showLocalIdsPatch.execute(context) })
@@ -152,7 +154,7 @@ class LocalControlsFixtureTest {
             assertEquals("$DC_ACCOUNTS->selectedAccount:I", person[0].controlRef())
             assertEquals("$DC_PEERS->getUser(Ljava/lang/Long;)$DC_USER", person[5].controlRef())
             assertEquals("$DC_USER->bot:Z", person[8].controlRef())
-            flags(context, ID_FLAGS + "specialContacts", true)
+            flags(context, ID_FLAGS + "specialContacts" + "localNames", true)
             flags(context, PASTE_FLAGS + REACTION_FLAGS, false)
         }
     }
@@ -178,11 +180,13 @@ class LocalControlsFixtureTest {
             val stock = putUser.controlBody().map { it.operand() }
             context.tgMutableClassDefBy(SC_CONTROLLER).methods.removeAll { it.origName == "processUpdateArray" }
             val warnings = PatchLogCapture.warnings { showLocalIdsPatch.execute(context) }
-            assertEquals("${build.name}: $warnings", 1, warnings.size)
-            assertTrue("${build.name}: $warnings", "processUpdateArray" in warnings.single() && "without Special contacts" in warnings.single())
+            // Rename on this phone hooks processUpdateArray too, so it stays out as well.
+            assertEquals("${build.name}: $warnings", 2, warnings.size)
+            assertTrue("${build.name}: $warnings", warnings.all { "processUpdateArray" in it })
+            assertTrue("${build.name}: $warnings", warnings.any { "without Special contacts" in it } && warnings.any { "without Rename on this phone" in it })
             assertEquals("${build.name}: putUser keeps its stock code", stock, putUser.controlBody().map { it.operand() })
             flags(context, ID_FLAGS, true)
-            flags(context, listOf("specialContacts"), false)
+            flags(context, listOf("specialContacts", "localNames"), false)
         }
     }
 
@@ -213,7 +217,8 @@ class LocalControlsFixtureTest {
             }
             val stock = plan.methods.associate { key(it) to ImmutableMethod.of(it) }
             val sites = plan.methods.associate { key(it) to plan.sites(it) }
-            val hooked = setOf(local, special.putUser, special.updates) + plan.methods + context.resolveForwardDates().first!!.methods
+            val hooked = setOf(local, special.putUser, special.updates) + plan.methods + context.resolveForwardDates().first!!.methods +
+                context.resolveLocalNames().first!!.methods
             val untouched = hostState(build, context, hooked)
             assertEquals(emptyList<String>(), PatchLogCapture.warnings { showLocalIdsPatch.execute(context) })
             val page = plan.binders.first()
@@ -313,7 +318,7 @@ class LocalControlsFixtureTest {
                 Opcode.CONST_4, Opcode.RETURN_OBJECT), inner.map { it.opcode })
             assertEquals("$JD_WRAPPED_PARTICIPANT->channelParticipant:$JD_CHANNEL_PARTICIPANT", inner[3].controlRef())
             assertEquals("${build.name}: every other list, row and host method keeps its code", untouched, hostState(build, context, hooked))
-            flags(context, ID_FLAGS + "specialContacts", true)
+            flags(context, ID_FLAGS + "specialContacts" + "localNames", true)
         }
     }
 
@@ -352,7 +357,7 @@ class LocalControlsFixtureTest {
             assertEquals("${build.name} $name: the stub keeps answering 0", listOf(Opcode.CONST_4, Opcode.RETURN), date.map { it.opcode })
             val inner = c.tgMutableClassDefBy(JOIN_DATES).methods.single { it.origName == "channelMember" }.controlBody()
             assertEquals("${build.name} $name: the stub keeps answering null", listOf(Opcode.CONST_4, Opcode.RETURN_OBJECT), inner.map { it.opcode })
-            flags(c, ID_FLAGS - "memberJoinDates" + "specialContacts", true)
+            flags(c, ID_FLAGS - "memberJoinDates" + "specialContacts" + "localNames", true)
             flags(c, listOf("memberJoinDates"), false)
         }
     }
@@ -369,7 +374,7 @@ class LocalControlsFixtureTest {
             assertEquals("${build.name}: one class draws both", plan.line.definingClass, plan.compact.definingClass)
             val stock = plan.methods.associate { key(it) to ImmutableMethod.of(it) }
             val sites = plan.methods.associate { key(it) to plan.sites(it) }
-            val hooked = setOf(local, special.putUser, special.updates) + joinDates.methods + plan.methods
+            val hooked = setOf(local, special.putUser, special.updates) + joinDates.methods + plan.methods + context.resolveLocalNames().first!!.methods
             val untouched = hostState(build, context, hooked)
             assertEquals(emptyList<String>(), PatchLogCapture.warnings { showLocalIdsPatch.execute(context) })
 
@@ -429,7 +434,7 @@ class LocalControlsFixtureTest {
                 listOf(date[3], date[5], date[7]).map { it.controlRef() })
             assertFalse(date.any { it.call() != null })
             assertEquals("${build.name}: every other host method keeps its code", untouched, hostState(build, context, hooked))
-            flags(context, ID_FLAGS + "specialContacts", true)
+            flags(context, ID_FLAGS + "specialContacts" + "localNames", true)
         }
     }
 
@@ -460,7 +465,7 @@ class LocalControlsFixtureTest {
             assertEquals("${build.name} $name: both sites keep their code", stock, plan.methods.associate { key(it) to it.state() })
             val date = c.tgMutableClassDefBy(FORWARD_DATES).methods.single { it.origName == "sentAt" }.controlBody()
             assertEquals("${build.name} $name: the stub keeps answering 0", listOf(Opcode.CONST_4, Opcode.RETURN), date.map { it.opcode })
-            flags(c, ID_FLAGS - "forwardDates" + "specialContacts", true)
+            flags(c, ID_FLAGS - "forwardDates" + "specialContacts" + "localNames", true)
             flags(c, listOf("forwardDates"), false)
         }
     }
@@ -485,7 +490,7 @@ class LocalControlsFixtureTest {
             assertEquals(1, after.count { it.controlRef() == "$LOCAL_IDS->addToProfile(Landroid/view/View;JJ)V" })
             assertEquals("${build.name}: the stock visibility refresh still ends the builder", stock.takeLast(3).map { it.opcode },
                 after.takeLast(3).map { it.opcode })
-            flags(context, ID_FLAGS + "specialContacts" + "commerceProfileSendGram", true)
+            flags(context, ID_FLAGS + "specialContacts" + "localNames" + "commerceProfileSendGram", true)
         }
     }
 
@@ -649,7 +654,11 @@ class LocalControlsFixtureTest {
         // Use normal paste also reads the entities method Mention by ID hooks. LocaleController holds the
         // getString(int) wrapper whose forwarded call 13.2 inlined into the profile's Send Gram title.
         result.putAll(FixtureDex.classes(build, setOf(boundMenu, "Lorg/telegram/messenger/R\$drawable;", "Lorg/telegram/messenger/MediaDataController;",
-            "Lorg/telegram/messenger/LocaleController;") + PROFILE_DC_TYPES + JD_TYPES + setOf(FD_MESSAGE, FD_TL_MESSAGE, FD_FWD_HEADER)))
+            "Lorg/telegram/messenger/LocaleController;", LN_STORAGE, LN_CONTACTS, "Lorg/telegram/tgnet/ConnectionsManager;") + PROFILE_DC_TYPES + JD_TYPES + setOf(FD_MESSAGE, FD_TL_MESSAGE, FD_FWD_HEADER)))
+        // Rename on this phone's mentions, with only the methods that make one: the rest of the chat
+        // screen's classes would hand the other patches here places whose own classes this slice leaves out.
+        for (host in mentionHosts(build)) result.putIfAbsent(host.type, ImmutableClassDef(host.type, host.accessFlags, host.superclass,
+            host.interfaces, host.sourceFile, host.annotations, host.fields, host.methods.filter { mentionCalls(it).isNotEmpty() }))
         loadAncestors(build, result)
         // 13.2 declares the row factory on the menu item's superclass and takes the title as a CharSequence.
         val menuLine = generateSequence(result.getValue(boundMenu)) { menu -> menu.superclass?.let { result[it] } }.toList()

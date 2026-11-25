@@ -37,6 +37,7 @@ import app.morphe.patcher.util.proxy.mutableTypes.MutableClass
 import app.morphe.util.ControlFlow
 import app.morphe.util.addInstructionsAtControlFlowLabel
 import app.morphe.util.definitionReaches
+import app.morphe.util.call
 import app.morphe.util.namedRegisters
 import com.android.tools.smali.dexlib2.iface.instruction.Instruction
 import com.android.tools.smali.dexlib2.iface.reference.MethodReference
@@ -643,7 +644,7 @@ internal fun BytecodePatchContext.constantEvent(name: String): Int? =
  * Where Telegram's storage posts the replaced messages event after replacing a stored message, as
  * the method and the post's index, or null. 13.1 posts it from a lambda of the storage's. 13.2 moved
  * that body into a merged runnable that replaceMessageIfExists queues, which posts another to the UI
- * thread, and that one posts the event.
+ * thread, and that one posts the event, in 13.3.1 from a method of its own that its run calls.
  */
 internal fun BytecodePatchContext.storageReplacedPost(): Pair<Method, Int>? {
     val storage = tgClassDefByOrNull(STORAGE) ?: return null
@@ -656,7 +657,14 @@ internal fun BytecodePatchContext.storageReplacedPost(): Pair<Method, Int>? {
         from = from.flatMap { m -> m.controlBody().filter { it.opcode == Opcode.NEW_INSTANCE } }
             .mapNotNull { ((it as ReferenceInstruction).reference as? TypeReference)?.type }.distinct()
             .mapNotNull { tgClassDefByOrNull(names.origType(it)) }
-            .flatMap { runnable -> runnable.methods.filter { it.name == "run" && it.parameterTypes.isEmpty() && it.returnType == "V" } }
+            .flatMap { runnable ->
+                val runs = runnable.methods.filter { it.name == "run" && it.parameterTypes.isEmpty() && it.returnType == "V" }
+                // 13.3.1's R8 moves some of a merged runnable's cases into methods of its own that run calls.
+                val own = runs.flatMap { it.controlBody() }.filter { it.opcode == Opcode.INVOKE_DIRECT }.mapNotNull { it.call() }
+                    .filter { it.definingClass == runnable.type && it.name != "<init>" && it.parameterTypes.isEmpty() && it.returnType == "V" }
+                    .map { it.name }.toSet()
+                runs + runnable.methods.filter { it.name in own && it.parameterTypes.isEmpty() && it.returnType == "V" }
+            }
         candidates += from
     }
     for (method in candidates) {

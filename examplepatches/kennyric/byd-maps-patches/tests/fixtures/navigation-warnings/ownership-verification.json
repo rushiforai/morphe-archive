@@ -1,0 +1,135 @@
+{
+  "format": 1,
+  "evidence_date": "2026-11-02",
+  "build_base_commit": "800dc63",
+  "scope": "Ownership/durability component only; Binder, native capture, real receiver output and complete warning acceptance remain pending",
+  "sources": {
+    "support/navigation-alerts/src/main/java/nl/johninnl/navigation/alerts/WarningCapabilities.java": "d690228171195b0fe0102712df565cd05891d4cb7e91acbf12f77980513d602b",
+    "support/navigation-alerts/src/main/java/nl/johninnl/navigation/alerts/PlaybackGrant.java": "32b6f403c47345719f7bb65f3e7dac90af16a254f4a92a686b649dbd8f9cb53a",
+    "support/navigation-alerts/src/main/java/nl/johninnl/navigation/alerts/PlaybackStore.java": "96051cd54d722a3bbb998b0928b287141ecaab81211ad94671450f452746f7fe",
+    "support/navigation-alerts/src/main/java/nl/johninnl/navigation/alerts/WarningAudioOwner.java": "9b78cc6f1464efd6fdf3ca8a1f2ca0cf06bd31ad9bd2f14a2c63835a059a0d28",
+    "support/navigation-alerts/src/main/java/nl/johninnl/navigation/alerts/AtomicPlaybackStore.java": "bd9b4d3aa904071b6d027470af075761834f46ba774225310c307ee06aea9a67"
+  },
+  "runs": {
+    "ledger-io-final": {
+      "status": "observed",
+      "boot_identity": "boot-count:3",
+      "process_pid": 8246,
+      "output_invoked": false,
+      "fd_before": 72,
+      "fd_after": 75,
+      "writes": 100,
+      "second_writer_rejected": true,
+      "file_mode": 384,
+      "file_bytes": 41,
+      "original_sha256": "f168bc730568b98ee8132131658d9220ef5be3557af41fd373bdaf104c31b20f",
+      "test_signed_sha256": "2221baf807b02eb7acdf75c6deaa37e270df576af52d21fa5647a7ccccc7181e",
+      "probe_sha256": "c27d1636e95bcb06afbd8e161f1783d049141fe5a08694365f18bcd27b44ffc4",
+      "installed_apk_sha256": {
+        "app.vela": "2221baf807b02eb7acdf75c6deaa37e270df576af52d21fa5647a7ccccc7181e",
+        "nl.johninnl.warningprobe.vela": "c27d1636e95bcb06afbd8e161f1783d049141fe5a08694365f18bcd27b44ffc4"
+      },
+      "process_uid": 10192,
+      "target_uid": 10192,
+      "run_id": "d29e603aa1a549f0bf5833eebd34ba96",
+      "report_sha256": "a4d6432295ece8b509e4787a6fe339b4630f988cc0851e382d107dcd660b4cc5"
+    },
+    "ledger-write-final": {
+      "status": "observed",
+      "boot_identity": "boot-count:3",
+      "process_pid": 8343,
+      "output_invoked": false,
+      "persisted_disposition": "GRANTED",
+      "original_sha256": "f168bc730568b98ee8132131658d9220ef5be3557af41fd373bdaf104c31b20f",
+      "test_signed_sha256": "2221baf807b02eb7acdf75c6deaa37e270df576af52d21fa5647a7ccccc7181e",
+      "probe_sha256": "c27d1636e95bcb06afbd8e161f1783d049141fe5a08694365f18bcd27b44ffc4",
+      "installed_apk_sha256": {
+        "app.vela": "2221baf807b02eb7acdf75c6deaa37e270df576af52d21fa5647a7ccccc7181e",
+        "nl.johninnl.warningprobe.vela": "c27d1636e95bcb06afbd8e161f1783d049141fe5a08694365f18bcd27b44ffc4"
+      },
+      "process_uid": 10192,
+      "target_uid": 10192,
+      "run_id": "971f782a6ab94752b81221b28f01dd1c",
+      "report_sha256": "893f02e824fe6de62d866961e888f68bcf56db54d85698fbed37988586a7d51e"
+    },
+    "ledger-recover-final": {
+      "status": "observed",
+      "boot_identity": "boot-count:3",
+      "process_pid": 8438,
+      "previous_process_pid": 8343,
+      "output_invoked": false,
+      "restart_fenced": true,
+      "stale_consumer_rejected": true,
+      "stale_started_rejected": true,
+      "test_only_parked_cleanup": true,
+      "original_sha256": "f168bc730568b98ee8132131658d9220ef5be3557af41fd373bdaf104c31b20f",
+      "test_signed_sha256": "2221baf807b02eb7acdf75c6deaa37e270df576af52d21fa5647a7ccccc7181e",
+      "probe_sha256": "c27d1636e95bcb06afbd8e161f1783d049141fe5a08694365f18bcd27b44ffc4",
+      "installed_apk_sha256": {
+        "app.vela": "2221baf807b02eb7acdf75c6deaa37e270df576af52d21fa5647a7ccccc7181e",
+        "nl.johninnl.warningprobe.vela": "c27d1636e95bcb06afbd8e161f1783d049141fe5a08694365f18bcd27b44ffc4"
+      },
+      "process_uid": 10192,
+      "target_uid": 10192,
+      "run_id": "2bea29d604174b24920c5c5e5282929f",
+      "report_sha256": "9e9715eff9a480466bd7be1b3284fa0520116d3f47c7fea3a65c5343407ad35a"
+    }
+  },
+  "tests": {
+    "flitsmeister": {
+      "tests": 60,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    "maps": {
+      "tests": 43,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    "vela": {
+      "tests": 36,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    "waze": {
+      "tests": 57,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    }
+  },
+  "payload_classes": {
+    "flitsmeister": [
+      "Lnl/johninnl/navigation/alerts/WarningAudioOwner;",
+      "Lnl/johninnl/navigation/alerts/AtomicPlaybackStore;"
+    ],
+    "maps": [
+      "Lnl/johninnl/navigation/alerts/WarningAudioOwner;",
+      "Lnl/johninnl/navigation/alerts/AtomicPlaybackStore;"
+    ],
+    "vela": [
+      "Lnl/johninnl/navigation/alerts/WarningAudioOwner;",
+      "Lnl/johninnl/navigation/alerts/AtomicPlaybackStore;"
+    ],
+    "waze": []
+  },
+  "descriptor_regression": {
+    "ledger-io-red": {
+      "fd_before": 72,
+      "fd_after": 175,
+      "writes": 100,
+      "status": "blocked",
+      "instrumentation_sha256": "cfc250ca6b30dd345f9ccc45f214d5fe441cc9c25d4757d97c0b0405ec5fb1d6"
+    },
+    "ledger-io-green": {
+      "fd_before": 72,
+      "fd_after": 75,
+      "writes": 100,
+      "status": "observed",
+      "instrumentation_sha256": "ef670cfe3fe4a017338a0c6761862d5a97831ed534bb763d232abe85077378ad"
+    }
+  }
+}

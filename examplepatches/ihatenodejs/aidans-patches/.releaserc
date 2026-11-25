@@ -1,9 +1,10 @@
 {
   "branches": [
-    "main",
+    "release/main",
     {
-      "name": "dev",
-      "prerelease": true
+      "name": "release/dev",
+      "prerelease": "dev",
+      "channel": "dev"
     }
   ],
   "plugins": [
@@ -58,7 +59,7 @@
         "prepareCmd": "./gradlew generatePatchesList \
           && jq '.version=\"${nextRelease.version}\"' patches-list.json > patches-list.json.tmp && mv patches-list.json.tmp patches-list.json \
           && bun scripts/generate-patches-readme.ts $GITHUB_REPOSITORY $GITHUB_REF_NAME patches-list.json README.md \
-          && npx prettier --write README.md"
+          && ./node_modules/.bin/prettier --write README.md"
       }
     ],
     [
@@ -91,7 +92,11 @@
         "backmergeStrategy": "merge",
         "backmergeBranches": [
           {
-            "from": "main",
+            "from": "release/main",
+            "to": "dev"
+          },
+          {
+            "from": "release/dev",
             "to": "dev"
           }
         ],

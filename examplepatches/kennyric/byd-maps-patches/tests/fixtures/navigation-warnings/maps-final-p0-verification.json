@@ -1,0 +1,50 @@
+{
+  "format": 1,
+  "scope": "Current Maps ready-idle P0 on owned4GiB/4core API34 emulator. All100 original native authorities retained. No physical/car routing claim.",
+  "apps": {
+    "nl.flitsmeister": "3e3c2e987bb6e9b28bc5692e52828ee03d317cf925f719ed4aece29f11614ac8",
+    "com.google.android.apps.maps": "979dba530da9c9c09c0d7867288206a1aa357a27e3701c63f8123bbe72ba9815",
+    "nl.johninnl.warningprobe.integration.maps": "32c97e90a6d4570c6bf2ae8db1953ca0af613709d685aa44ec74a535ba341c32"
+  },
+  "announcements": 100,
+  "actual_starts": 100,
+  "completed_source_acknowledgements": 100,
+  "duplicate_starts": 0,
+  "all_owner_ready": true,
+  "all_coordinates_absent": true,
+  "all_starts_before_deadline": true,
+  "delivery": {
+    "samples": 100,
+    "p95_ms": 9,
+    "p99_ms": 16,
+    "maximum_ms": 25
+  },
+  "acceptance_to_start": {
+    "samples": 100,
+    "p95_ms": 383,
+    "p99_ms": 415,
+    "maximum_ms": 602
+  },
+  "p0_p95_target_ms": 500,
+  "p0_target_met": true,
+  "raw_coordinator_passed": false,
+  "raw_coordinator_failure": "Whole-firewall equality included independent Android netd mangle-network changes. Original failed result retained.",
+  "independent_cleanup_audit": {
+    "owned_chain_and_references_absent": true,
+    "filter_nat_raw_unchanged": true,
+    "independent_netd_changes_preserved": {
+      "iptables": [
+        "Android netd interface marks/wakeup rules changed; preserved"
+      ],
+      "ip6tables": [
+        "Android netd interface marks/wakeup rules changed; preserved"
+      ]
+    },
+    "receiver_quiescent_and_preferences_exact": true,
+    "source_lease_process_cleanup_errors_excluding_unowned_rules": []
+  },
+  "raw_source": ".analysis/native-warning-bindings/maps-final-p0-100/source/852615de-fe59-44dd-8a29-149896dffaad/result.json",
+  "raw_source_sha256": "97980fc0626e3662931100917e021cf043455b5269363407573797cfb6114585",
+  "raw_receiver": ".analysis/native-warning-bindings/maps-final-p0-100/receiver-result.json",
+  "raw_receiver_sha256": "923f62f29aab0eb6b83a31630a8d7b5ac9c840a7209a46b1efbd6a36357543bb"
+}

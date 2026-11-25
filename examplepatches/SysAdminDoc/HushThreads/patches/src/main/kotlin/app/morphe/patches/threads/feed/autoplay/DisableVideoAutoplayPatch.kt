@@ -6,8 +6,8 @@
  * carried to 450 by reading its reshaped PostVideo and playback effect (2026-10-06). The Instagram
  * post, trend preview and ad card calls and PostVideo's default mask were read from 450 (2026-10-10),
  * their shortened PostVideo forwarder from 451 (2026-10-13), 454's forwarder, which pins the
- * play flag to false, from 454 (2026-11-02), and the lambda 455's PostVideo hands the flag to from
- * 455 (2026-11-12).
+ * play flag to false, from 454 (2026-11-02), the lambda 455's PostVideo hands the flag to from
+ * 455 (2026-11-12), and the default merge 456 moved into a shared helper from 456 (2026-11-18).
  */
 package app.morphe.patches.threads.feed.autoplay
 
@@ -19,10 +19,13 @@ import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod
 import app.morphe.patches.shared.compat.AppCompatibilities
 import app.morphe.patches.threads.feed.reaching
 import app.morphe.patches.threads.misc.extension.EXTENSION_PACKAGE
+import app.morphe.patches.threads.misc.extension.classesNoted
 import app.morphe.patches.threads.misc.extension.enableStatus
+import app.morphe.patches.threads.misc.extension.holdsNote
 import app.morphe.patches.threads.misc.extension.requireStatusMethod
 import app.morphe.patches.threads.misc.extension.threadsExtensionPatch
 import app.morphe.patches.threads.misc.settings.settingsPatch
+import app.morphe.util.ControlFlow
 import app.morphe.util.addInstructionsAtControlFlowLabel
 import app.morphe.util.argumentRegister
 import app.morphe.util.findMutableMethodOf
@@ -307,10 +310,6 @@ private fun BytecodePatchContext.playTargets(postVideo: Method, play: Int, defau
     return listOf(PlayTarget(postVideo, play, default)) + forwards
 }
 
-internal fun Method.holdsNote(note: String): Boolean = implementation?.instructions?.any {
-    it.getReference<StringReference>()?.string?.startsWith(note) == true
-} == true
-
 /**
  * The effect takes the composer, the player's state and the video, then Compose's ints (450 adds a
  * volume float among them, 455 a String ahead of it), and ends on its booleans: two in 450, where
@@ -343,6 +342,7 @@ internal fun BytecodePatchContext.playParameter(postVideo: Method, effect: Metho
  * and the [call] whose play [argument] follows it. Up to 454 that's PostVideo and its call to the
  * effect, since 455 the lambda PostVideo builds and its call to the video player. [parameter] is
  * the flag's index among PostVideo's parameters, and PostVideo reads it from [register] at [read].
+ * [default] is the flag's default when PostVideo gets it from a merge call, as it does since 456.
  */
 internal data class PlayTest(
     val method: Method,
@@ -352,6 +352,7 @@ internal data class PlayTest(
     val parameter: Int,
     val read: Int,
     val register: Int,
+    val default: PlayDefault? = null,
 )
 
 internal fun BytecodePatchContext.playTest(postVideo: Method, effect: Method): PlayTest {
@@ -484,9 +485,38 @@ private fun BytecodePatchContext.lambdaPlayTest(postVideo: Method, player: Metho
         read = write
         register = (postBody[write] as TwoRegisterInstruction).registerB
     }
-    val parameter = postVideo.heldBoolean(read, register)
+    val merged = mergedPlayFlag(postVideo, read, register)
+    val parameter = (if (merged != null) postVideo.arrivedBoolean(merged.first, merged.second) else postVideo.heldBoolean(read, register))
         ?: throw PatchException("$PATCH: PostVideo doesn't hand the video player's lambda one of its booleans")
-    return PlayTest(host, test, call, argument, parameter, read, register)
+    return PlayTest(host, test, call, argument, parameter, read, register, merged?.third)
+}
+
+/** The boolean parameter of [this] that [register] holds at [at], copied from where it arrived and otherwise unchanged, or null. */
+private fun Method.arrivedBoolean(at: Int, register: Int): Int? {
+    val (from, source) = origin(at, register)?.takeIf { it.first < 0 } ?: return null
+    val first = implementation!!.registerCount - parameterRegisters()
+    return parameterTypes.indices.singleOrNull { parameterTypes[it].toString() == "Z" && first + registerOffset(it) == source }
+        .takeIf { from < 0 }
+}
+
+/**
+ * 456 gives PostVideo's booleans their defaults through Compose's shared `merge(mask & bit, flag)`
+ * rather than writing a 0 or 1 over them. When [register] holds that call's answer at [at], this is
+ * the call, the register it reads the flag from, and the default it stands for. Null otherwise.
+ */
+private fun BytecodePatchContext.mergedPlayFlag(postVideo: Method, at: Int, register: Int): Triple<Int, Int, PlayDefault>? {
+    val body = postVideo.implementation!!.instructions.toList()
+    val reaching = postVideo.reaching(at, setOf(register))
+    val write = reaching.writes.singleOrNull()?.takeUnless { reaching.fromEntry } ?: return null
+    if (body[write].opcode != Opcode.MOVE_RESULT) return null
+    val call = write - 1
+    val merge = body.getOrNull(call) ?: return null
+    val value = defaultMerge(merge) ?: return null
+    val bitRegister = merge.argumentRegister(0)!!
+    val (tests, _) = postVideo.origin(call, bitRegister)?.takeIf { it.first >= 0 }
+        ?: throw PatchException("$PATCH: PostVideo tests its play flag's default on a value that differs by path")
+    val (mask, bit) = postVideo.playDefaultBit(tests, bitRegister)
+    return Triple(call, merge.argumentRegister(1)!!, PlayDefault(mask, bit, value))
 }
 
 /** Compose's default for one of the video player's booleans: the [bit] of its int parameter [mask] swaps it for [value]. */
@@ -527,15 +557,17 @@ private fun BytecodePatchContext.handedBooleanFrom(
     if (reaching.fromEntry) sources += player.parameterIndex(register)?.takeIf { player.parameterTypes[it].toString() == "Z" } ?: return null
     for (write in reaching.writes) {
         val instruction = body[write]
+        // 457 writes the default in place, behind a test of its bit: the path skipping the write
+        // carries the flag, and that path is the other write reaching here.
+        inlineDefault(player, write)?.let { defaults += it; continue }
         sources += when {
             instruction.opcode.isMove() -> handedBoolean(player, write, (instruction as TwoRegisterInstruction).registerB, defaults, following)
             instruction.opcode == Opcode.MOVE_RESULT -> {
                 val merge = body.getOrNull(write - 1) ?: return null
                 val value = defaultMerge(merge) ?: return null
                 val (tested, _) = player.origin(write - 1, merge.argumentRegister(0)!!)?.takeIf { it.first >= 0 } ?: return null
-                val and = body[tested].takeIf { it.opcode == Opcode.AND_INT_LIT8 || it.opcode == Opcode.AND_INT_LIT16 } ?: return null
-                val bit = (and as NarrowLiteralInstruction).narrowLiteral.takeIf { it.countOneBits() == 1 } ?: return null
-                val (from, masked) = player.origin(tested, (and as TwoRegisterInstruction).registerB) ?: return null
+                val (bit, source) = player.maskedBit(tested)?.takeIf { it.first.countOneBits() == 1 } ?: return null
+                val (from, masked) = player.origin(tested, source) ?: return null
                 val mask = player.parameterIndex(masked)?.takeIf { from < 0 && player.parameterTypes[it].toString() == "I" } ?: return null
                 defaults += PlayerDefault(mask, bit, value)
                 handedBoolean(player, write - 1, merge.argumentRegister(1)!!, defaults, following)
@@ -544,6 +576,27 @@ private fun BytecodePatchContext.handedBooleanFrom(
         } ?: return null
     }
     return sources.singleOrNull()
+}
+
+/**
+ * Compose's default for a boolean written in place, as 457's player does it, or null: [write] is a
+ * 0 or 1 into the boolean's register, reached only by falling through an `if-eqz` right before it
+ * on one bit of an int parameter, the default mask, so it runs only while the caller leaves that
+ * boolean out.
+ */
+private fun inlineDefault(player: Method, write: Int): PlayerDefault? {
+    val body = player.implementation!!.instructions.toList()
+    val value = body[write].takeIf { it.opcode in CONSTANTS } as? NarrowLiteralInstruction ?: return null
+    if (value.narrowLiteral !in 0..1) return null
+    val test = body.getOrNull(write - 1)?.takeIf { it.opcode == Opcode.IF_EQZ } ?: return null
+    val flow = ControlFlow.of(player)
+    val into = flow.instructions.indices.filter { write in flow.normal[it] || write in flow.exceptional[it] }
+    if (into != listOf(write - 1)) return null
+    val (tested, _) = player.origin(write - 1, (test as OneRegisterInstruction).registerA)?.takeIf { it.first >= 0 } ?: return null
+    val (bit, source) = player.maskedBit(tested)?.takeIf { it.first.countOneBits() == 1 } ?: return null
+    val (from, masked) = player.origin(tested, source) ?: return null
+    val mask = player.parameterIndex(masked)?.takeIf { from < 0 && player.parameterTypes[it].toString() == "I" } ?: return null
+    return PlayerDefault(mask, bit, value.narrowLiteral)
 }
 
 /**
@@ -599,9 +652,11 @@ private fun Method.effectPlayTest(effect: Method): PlayTest {
 /**
  * Where PostVideo sets its play flag to Compose's default: the 0 or 1 it writes into the register
  * it reads the flag from, behind an if-eqz on one bit of an int parameter, the caller's default
- * mask. Null when PostVideo has no default for the flag, so every caller passes its own.
+ * mask, or since 456 the merge call [shape] already read. Null when PostVideo has no default for the
+ * flag, so every caller passes its own.
  */
 internal fun Method.playDefault(shape: PlayTest): PlayDefault? {
+    shape.default?.let { return it }
     val body = implementation!!.instructions.toList()
     val write = reaching(shape.read, setOf(shape.register)).writes.filter { body[it] is NarrowLiteralInstruction }.ifEmpty { return null }
         .singleOrPatchException("$PATCH: PostVideo's default for its play flag")
@@ -612,24 +667,36 @@ internal fun Method.playDefault(shape: PlayTest): PlayDefault? {
     }
     val (tests, bitRegister) = origin(write - 1, (guard as OneRegisterInstruction).registerA)
         ?: throw PatchException("$PATCH: PostVideo tests its play flag's default on a value that differs by path")
-    val and = body.getOrNull(tests)
-    // The bit is the and's literal, or on 454 (0x8000, too wide for and-int/lit16) a constant in its other register.
-    val (bit, masked) = when (and?.opcode) {
-        Opcode.AND_INT_LIT16, Opcode.AND_INT_LIT8 -> (and as NarrowLiteralInstruction).narrowLiteral to (and as TwoRegisterInstruction).registerB
-        Opcode.AND_INT -> (and as ThreeRegisterInstruction).let { listOf(it.registerB to it.registerC, it.registerC to it.registerB) }
-            .firstNotNullOfOrNull { (constant, other) -> constantAt(tests, constant)?.let { it to other } }
-        else -> null
-    } ?: (null to -1)
-    if (bit == null || bit.countOneBits() != 1) {
-        throw PatchException("$PATCH: PostVideo's default for its play flag isn't behind one bit of v$bitRegister")
-    }
+    val (parameter, bit) = playDefaultBit(tests, bitRegister)
+    return PlayDefault(parameter, bit, (body[write] as NarrowLiteralInstruction).narrowLiteral)
+}
+
+/** PostVideo's default mask parameter and the one bit of it that the `and` at [tests], read as v[tested], keeps. */
+private fun Method.playDefaultBit(tests: Int, tested: Int): Pair<Int, Int> {
+    val (bit, masked) = maskedBit(tests)?.takeIf { it.first.countOneBits() == 1 }
+        ?: throw PatchException("$PATCH: PostVideo's default for its play flag isn't behind one bit of v$tested")
     val (from, mask) = origin(tests, masked)
         ?: throw PatchException("$PATCH: PostVideo's default mask differs by path")
     val first = implementation!!.registerCount - parameterRegisters()
     val parameter = parameterTypes.indices.takeIf { from < 0 }
         ?.singleOrNull { parameterTypes[it].toString() == "I" && first + registerOffset(it) == mask }
         ?: throw PatchException("$PATCH: PostVideo's default mask isn't one of its int parameters")
-    return PlayDefault(parameter, bit, (body[write] as NarrowLiteralInstruction).narrowLiteral)
+    return parameter to bit
+}
+
+/**
+ * What the `and` at [at] keeps and the register it takes it from, or null when that's no `and` of a
+ * known value. The bits are its literal, or since 454 (0x8000 is too wide for and-int/lit16) a
+ * constant in its other register.
+ */
+private fun Method.maskedBit(at: Int): Pair<Int, Int>? {
+    val and = implementation!!.instructions.toList().getOrNull(at) ?: return null
+    return when (and.opcode) {
+        Opcode.AND_INT_LIT16, Opcode.AND_INT_LIT8 -> (and as NarrowLiteralInstruction).narrowLiteral to (and as TwoRegisterInstruction).registerB
+        Opcode.AND_INT -> (and as ThreeRegisterInstruction).let { listOf(it.registerB to it.registerC, it.registerC to it.registerB) }
+            .firstNotNullOfOrNull { (constant, other) -> constantAt(at, constant)?.let { it to other } }
+        else -> null
+    }
 }
 
 /**
@@ -665,7 +732,7 @@ private fun Method.constantAt(at: Int, register: Int): Int? {
  * lacks the default's bit, since PostVideo then plays by the pinned false.
  */
 private fun BytecodePatchContext.playSites(targets: List<PlayTarget>, note: String): List<PlaySite> =
-    classDefByStrings(note, StringComparisonType.STARTS_WITH).flatMap { it.methods }
+    classesNoted(note).flatMap { it.methods }
         .filter { it.holdsNote(note) }
         .distinctBy { "${it.definingClass}->${it.name}${it.parameterTypes.joinToString("")}${it.returnType}" }
         .flatMap { method ->
@@ -736,7 +803,7 @@ private fun Instruction.calls(method: Method): Boolean =
     } == true
 
 private fun BytecodePatchContext.composable(note: String, label: String): MutableMethod {
-    val method = classDefByStrings(note, StringComparisonType.STARTS_WITH).flatMap { it.methods }
+    val method = classesNoted(note).flatMap { it.methods }
         .filter { it.holdsNote(note) }
         .distinctBy { "${it.definingClass}->${it.name}${it.parameterTypes.joinToString("")}${it.returnType}" }
         .singleOrPatchException("$PATCH: $label, the method holding \"$note\"")

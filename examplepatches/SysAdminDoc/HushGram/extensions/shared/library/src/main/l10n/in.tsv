@@ -517,6 +517,8 @@ Turn on %1$s to use this slider.	Aktifkan %1$s untuk menggunakan penggeser ini.
 Turn on Story ring size to use this choice.	Aktifkan Ukuran lingkaran cerita untuk menggunakan pilihan ini.
 # context: Settings page, Reels: the line under the greyed-out Fill the screen switch while Show the whole reel is on
 Turn off Show the whole reel to use this choice.	Nonaktifkan Tampilkan reel utuh untuk menggunakan pilihan ini.
+# context: Settings page, Feed: the line under the greyed-out Time in the top corner switch while Time under the tags button is on (#788)
+Turn off Time under the tags button to use this choice.	Nonaktifkan Waktu di bawah tombol tag untuk menggunakan pilihan ini.
 Turn on Default playback quality to use this choice.	Aktifkan Kualitas pemutaran default untuk menggunakan pilihan ini.
 Updating remembered positions...	Memperbarui posisi tersimpan...
 Undo cleared positions	Pulihkan posisi yang dihapus
@@ -893,7 +895,7 @@ Media link copied. It stops working after a few days.	Tautan media disalin. Taut
 No direct link for this one	Tidak ada tautan langsung untuk yang ini
 Posted %1$s	Diposting %1$s
 Size %1$d × %2$d	Ukuran %1$d × %2$d
-Adds Details to a feed post's or reel's menu. It shows when it went up, who posted it, its media ID and the size Download saves, with buttons to copy the file link, username and caption.	Menambahkan Detail ke menu postingan di feed atau reel. Menampilkan kapan diunggah, siapa yang mengunggah, ID medianya, dan ukuran yang disimpan Unduh, dengan tombol untuk menyalin tautan file, nama pengguna, dan keterangan.
+Adds Details to a feed post's or reel's menu. It shows when it went up, who posted it, its media ID and the size Download saves, with buttons to copy the file link, username and caption, open the photo or video in another app, and read its text with Google Lens. A story's menu gets Copy username.	Menambahkan Detail ke menu postingan di feed atau reel. Menampilkan kapan diunggah, siapa yang mengunggah, ID medianya, dan ukuran yang disimpan Unduh, dengan tombol untuk menyalin tautan file, nama pengguna, dan keterangan, membuka foto atau video di aplikasi lain, serta membaca teksnya dengan Google Lens. Menu cerita mendapat Salin nama pengguna.
 Caption	Keterangan
 Caption copied	Keterangan disalin
 Copy caption	Salin keterangan
@@ -978,6 +980,11 @@ The red dots and counts for new messages and notifications take the color you pi
 Icons in the accent color	Ikon dengan warna aksen
 Reel buttons in the accent color	Tombol reel dengan warna aksen
 The buttons beside a reel and their counts take the color you picked instead of white. Restart Instagram to see the change.	Tombol di samping reel dan angkanya memakai warna yang kamu pilih, bukan putih. Mulai ulang Instagram untuk melihat perubahannya.
+Text in the accent color	Teks dengan warna aksen
+Names, captions and other main text take the same color as the icons. Gray text stays gray. Restart Instagram to see the change.	Nama, keterangan, dan teks utama lainnya memakai warna yang sama dengan ikon. Teks abu-abu tetap abu-abu. Mulai ulang Instagram untuk melihat perubahannya.
+# context: Layout > Accent color switch. Saved is Instagram's own Saved page, in its label for this language.
+Filters in the accent color	Filter dengan warna aksen
+The filters along the top of Saved take the color you picked, and the one you're on is filled with it. Restart Instagram to see the change.	Filter di bagian atas Tersimpan memakai warna yang kamu pilih, dan filter yang sedang dipakai diisi dengan warna itu. Mulai ulang Instagram untuk melihat perubahannya.
 Instagram's icons on the top bar, the tab bar and under posts take the color you picked. Text stays as it is. Restart Instagram to see the change.	Ikon Instagram di bilah atas, bilah tab, dan di bawah postingan memakai warna yang kamu pilih. Teks tetap seperti semula. Mulai ulang Instagram untuk melihat perubahannya.
 Story rings in the accent color	Lingkaran story dengan warna aksen
 Story rings take the color you picked instead of Instagram's gradient. A few other gradients share those colors and change with them. Restart Instagram to see the change.	Lingkaran story memakai warna yang kamu pilih, bukan gradien Instagram. Beberapa gradien lain memakai warna yang sama dan ikut berubah. Mulai ulang Instagram untuk melihat perubahannya.
@@ -1236,7 +1243,7 @@ Never. Pick a time and the tab bar slides away once a reel has played that long 
 # context: summary of the Hide the tab bar on Reels row; %1$d is the seconds picked, 2, 3, 5 or 8
 On Reels, the tab bar slides away after %1$d seconds without a touch. Tap the bottom edge of the screen, change tab or press Back to bring it back. Restart Instagram after changing it.	Di Reels, bilah tab bergeser keluar setelah %1$d detik tanpa sentuhan. Ketuk tepi bawah layar, pindah tab, atau tekan Kembali untuk memunculkannya lagi. Mulai ulang Instagram setelah mengubahnya.
 Start feed videos with sound	Mulai video feed dengan suara
-Videos on Home play with their sound on, the same as tapping a video's speaker. Mute one and the ones after it stay muted. Your phone's ringer and volume still count, so on silent or with the volume down, they stay quiet.	Video di Beranda diputar dengan suara menyala, sama seperti mengetuk speaker video. Jika kamu membisukan satu video, video berikutnya tetap tanpa suara. Mode dering dan volume ponsel tetap berlaku, jadi saat senyap atau volume dimatikan, video tetap tanpa suara.
+Videos on Home play with their sound on, the same as tapping a video's speaker, and so do songs on photo posts. Mute one and the ones after it stay muted. Your phone's ringer and volume still count, so on silent or with the volume down, they stay quiet.	Video di Beranda diputar dengan suara menyala, sama seperti mengetuk speaker video, begitu juga lagu di postingan foto. Jika kamu membisukan satu video, video berikutnya tetap tanpa suara. Mode dering dan volume ponsel tetap berlaku, jadi saat senyap atau volume dimatikan, video tetap tanpa suara.
 Start feed videos muted	Mulai video feed tanpa suara
 Videos on Home start silent, even after you turn the sound on in Reels, so reels keep their sound. Tap a video's speaker to hear that one. Wins over Start feed videos with sound.	Video di Beranda mulai tanpa suara, bahkan setelah kamu menyalakan suara di Reels, jadi reels tetap bersuara. Ketuk speaker video untuk mendengarkan video itu. Lebih diutamakan daripada Mulai video feed dengan suara.
 Tap a feed video to pause it	Ketuk video feed untuk menjedanya
@@ -1315,6 +1322,8 @@ Takes the heart out of the column of buttons beside a reel, and the like count u
 Hide the Comment button on reels	Sembunyikan tombol Komentar di reel
 Takes the Comment button out of the column of buttons beside a reel, and the count under it. The comment bar under a reel has its own switch.	Menghapus tombol Komentar dari deretan tombol di samping reel, beserta angka di bawahnya. Kolom komentar di bawah reel punya sakelarnya sendiri.
 Hide the Save button on reels	Sembunyikan tombol Simpan di reel
+Hide the More button on reels	Sembunyikan tombol Lainnya di reel
+Takes the three dots, and the menu they open, off the bottom of the column of buttons beside a reel. Repost and Share have their own switches under Sharing.	Menghapus tiga titik, beserta menu yang dibukanya, dari bagian bawah deretan tombol di samping reel. Posting ulang dan Bagikan punya sakelarnya sendiri di Berbagi.
 Burn-in guard	Pelindung burn-in
 Dim when idle	Redupkan saat diam
 Dim when idle and shift	Redupkan saat diam dan geser
@@ -1884,6 +1893,12 @@ Instagram gradient on dark	Gradien Instagram di atas gelap
 Retro Instagram	Instagram retro
 Menu button on Home's header	Tombol menu di header Beranda
 Adds a menu button at the top of Home with your viewing history, Ghost mode and HushGram settings. Restart Instagram to see the change.	Menambahkan tombol menu di bagian atas Beranda dengan riwayat tontonan, mode hantu, dan pengaturan HushGram. Mulai ulang Instagram untuk melihat perubahannya.
+# context: entry of the menu that the menu button on Home's header opens; starts Instagram's own log out (#850)
+Log out	Keluar
+# context: Tab bar settings: switch that adds Log out to the list of the menu button on Home's header (#850)
+Log out in Home's menu	Keluar di menu Beranda
+# context: that switch summary (#850)
+Adds Log out after HushGram settings in the list the menu button on Home's header opens. It starts the same Log out as Instagram's own settings.	Menambahkan Keluar setelah pengaturan HushGram di daftar yang dibuka tombol menu di header Beranda. Ini memulai proses keluar yang sama dengan pengaturan Instagram.
 History button on Home's header	Tombol riwayat di header Beranda
 Adds a clock at the top of Home that opens your viewing history in one tap. Restart Instagram to see the change.	Menambahkan jam di bagian atas Beranda yang membuka riwayat tontonan dengan satu ketukan. Mulai ulang Instagram untuk melihat perubahannya.
 HushGram menu	Menu HushGram
@@ -1937,6 +1952,30 @@ Minimum views	Tayangan minimum
 Reels with fewer views than this are left out. Type a whole number, or 0 to not look at views.	Reel dengan tayangan lebih sedikit dari ini disembunyikan. Ketik bilangan bulat, atau 0 agar tayangan tidak dihitung.
 Fewer than %1$s views	Kurang dari %1$s tayangan
 Minimum likes	Suka minimum
+Maximum likes	Suka maksimum
+Minimum comments	Komentar minimum
+Maximum comments	Komentar maksimum
+Minimum shares	Bagikan minimum
+Maximum shares	Bagikan maksimum
+Minimum saves	Simpan minimum
+Maximum saves	Simpan maksimum
+Reels with more likes than this are left out. Type a whole number, or 0 for no maximum.	Reel dengan suka lebih banyak dari ini disembunyikan. Ketik bilangan bulat, atau 0 untuk tanpa batas atas.
+Reels with fewer comments than this are left out. Type a whole number, or 0 to not look at comments.	Reel dengan komentar lebih sedikit dari ini disembunyikan. Ketik bilangan bulat, atau 0 agar komentar tidak dihitung.
+Reels with more comments than this are left out. Type a whole number, or 0 for no maximum.	Reel dengan komentar lebih banyak dari ini disembunyikan. Ketik bilangan bulat, atau 0 untuk tanpa batas atas.
+Reels with fewer shares than this are left out. Type a whole number, or 0 to not look at shares.	Reel yang dibagikan lebih sedikit dari ini disembunyikan. Ketik bilangan bulat, atau 0 agar jumlah bagikan tidak dihitung.
+Reels with more shares than this are left out. Type a whole number, or 0 for no maximum.	Reel yang dibagikan lebih banyak dari ini disembunyikan. Ketik bilangan bulat, atau 0 untuk tanpa batas atas.
+Reels with fewer saves than this are left out. Type a whole number, or 0 to not look at saves.	Reel yang disimpan lebih sedikit dari ini disembunyikan. Ketik bilangan bulat, atau 0 agar jumlah simpan tidak dihitung.
+Reels with more saves than this are left out. Type a whole number, or 0 for no maximum.	Reel yang disimpan lebih banyak dari ini disembunyikan. Ketik bilangan bulat, atau 0 untuk tanpa batas atas.
+More than %1$s likes	Lebih dari %1$s suka
+Comments aren't looked at	Komentar tidak dihitung
+Fewer than %1$s comments	Kurang dari %1$s komentar
+More than %1$s comments	Lebih dari %1$s komentar
+Shares aren't looked at	Jumlah bagikan tidak dihitung
+Fewer than %1$s shares	Dibagikan kurang dari %1$s kali
+More than %1$s shares	Dibagikan lebih dari %1$s kali
+Saves aren't looked at	Jumlah simpan tidak dihitung
+Fewer than %1$s saves	Disimpan kurang dari %1$s kali
+More than %1$s saves	Disimpan lebih dari %1$s kali
 Reels with fewer likes than this are left out. Type a whole number, or 0 to not look at likes.	Reel dengan suka lebih sedikit dari ini disembunyikan. Ketik bilangan bulat, atau 0 agar suka tidak dihitung.
 Fewer than %1$s likes	Kurang dari %1$s suka
 Likes aren't looked at	Suka tidak dihitung
@@ -1990,6 +2029,12 @@ That picture is over %1$d MB.	Gambar itu lebih dari %1$d MB.
 Couldn't save the picture.	Gambar tidak bisa disimpan.
 Open a chat, tap the clock button next to the call buttons at the top, or long press the chat's name, and pick Jump to the first message or Jump to a date. The chat loads its older messages on its own, with a count and a Cancel button.	Buka obrolan, ketuk tombol jam di samping tombol panggilan di bagian atas, atau tekan lama nama obrolan, lalu pilih Lompat ke pesan pertama atau Lompat ke tanggal. Obrolan memuat pesan lamanya sendiri, dengan hitungan dan tombol Batal.
 Open a chat, tap the clock button next to the call buttons at the top, or long press the chat's name, and pick Export chat. The whole chat is saved as a text file in Downloads, HushGram folder, one line per message. Select messages in the same menu lets you tick messages to copy, share or save.	Buka obrolan, ketuk tombol jam di samping tombol panggilan di bagian atas, atau tekan lama nama obrolan, lalu pilih Ekspor obrolan. Seluruh obrolan disimpan sebagai berkas teks di Download, folder HushGram, satu baris per pesan. Dengan Pilih pesan di menu yang sama, kamu bisa mencentang pesan untuk disalin, dibagikan, atau disimpan.
+# context: settings switch title on the Messages page (#852): link buttons under a chat message, like the ones automated accounts send
+Copy links from chat buttons	Salin tautan dari tombol obrolan
+# context: that switch's summary (#852); Copy link is the row it adds to the menu you get when you hold a message, same words as the Copy link key
+Hold a message with link buttons, like the ones automated accounts send, and tap Copy link to copy where a button goes without opening it. With several buttons you pick one.	Tahan pesan yang berisi tombol tautan, seperti yang dikirim akun otomatis, lalu ketuk Salin tautan untuk menyalin tujuan tombol tanpa membukanya. Jika ada beberapa tombol, pilih salah satunya.
+# context: toast after Copy link put a chat button's link on the clipboard (#852)
+Link copied	Tautan disalin
 Instagram stopped loading older messages.	Instagram berhenti memuat pesan lama.
 Black settings page	Halaman pengaturan hitam
 Black rows and dialogs, with HushGram's name at the top.	Baris dan dialog hitam, dengan nama HushGram di atas.
@@ -2105,6 +2150,8 @@ Speed button on reels	Tombol kecepatan di reel
 Puts a speed icon beside a reel. Tap it to pick a speed from 0.5x to 3x. With Keep the reel speed on, the next reels play at it too.	Menaruh ikon kecepatan di samping reel. Ketuk untuk memilih kecepatan dari 0,5x hingga 3x. Jika Pertahankan kecepatan reel aktif, reel berikutnya juga diputar dengan kecepatan itu.
 Speed in the reel menu	Kecepatan di menu reel
 Adds Playback speed to the menu a reel's three dots open. Pick a speed there from 0.5x to 3x. With Keep the reel speed on, the next reels play at it too.	Menambahkan Kecepatan pemutaran ke menu yang dibuka tiga titik reel. Pilih kecepatan di sana dari 0,5x hingga 3x. Jika Pertahankan kecepatan reel aktif, reel berikutnya juga diputar dengan kecepatan itu.
+Whole reel in the reel menu	Reel utuh di menu reel
+Adds Show the whole reel to the menu a reel's three dots open. A tap fits that reel inside the screen until you swipe to the next one. Fill the screen there crops it again.	Menambahkan Tampilkan reel utuh ke menu yang dibuka tiga titik reel. Sekali ketuk, reel itu tampil utuh di layar sampai kamu geser ke reel berikutnya. Penuhi layar di menu yang sama memotongnya lagi.
 # context: Reels settings: a switch for an icon beside each reel that does what Instagram's own Full screen row in the reel's menu does (#480). Full screen is Instagram's term for it (bundled 453 string packs: Vollbild, pantalla completa, layar penuh, schermo intero, 전체 화면, tela cheia, tam ekran, toàn màn hình, 全螢幕); Start every reel in clear mode is HushGram's switch of that name
 Full screen button on reels	Tombol layar penuh di reel
 Puts a Full screen icon beside a reel, so one tap does what Full screen in its menu does. Start every reel in clear mode opens every reel that way.	Menaruh ikon Layar penuh di samping reel, jadi satu ketukan sama dengan Layar penuh di menunya. Mulai setiap reel dalam mode bersih membuka setiap reel seperti itu.
@@ -2120,6 +2167,9 @@ Full screen didn't open	Layar penuh tidak terbuka
 Stories fill the screen	Cerita memenuhi layar
 # context: that switch's summary (#436)
 On a tall screen a story covers the whole screen, with the reply bar on top of it like on shorter phones, instead of a rounded card above the bar.	Di layar yang tinggi, cerita menutupi seluruh layar dengan bilah balasan di atasnya seperti di ponsel yang lebih pendek, bukan kartu membulat di atas bilah.
+Show the whole story	Tampilkan cerita utuh
+Whole story in the story menu	Cerita utuh di menu cerita
+Adds Show the whole story to the menu a story's three dots open while Stories fill the screen is on. A tap fits that story inside the screen until the next one. Fill the screen there fills it again.	Menambahkan Tampilkan cerita utuh ke menu yang dibuka tiga titik cerita selama Cerita memenuhi layar aktif. Sekali ketuk, cerita itu tampil utuh di layar sampai cerita berikutnya. Penuhi layar di menu yang sama membuatnya memenuhi layar lagi.
 # context: a button in the select-text window that copies the whole text (#492)
 Copy all	Salin semua
 # context: toast after Copy all in the select-text window (#492)
@@ -2148,6 +2198,28 @@ Who stopped following you, after you open your Followers list	Siapa yang berhent
 Notify me of unfollowers	Beri tahu saya soal yang berhenti mengikuti
 # context: that switch summary (#492)
 After you scroll your own Followers list to the end, posts a notification naming who has left since last time. Nothing extra is asked of Instagram.	Setelah kamu menggulir daftar pengikutmu sampai akhir, menampilkan notifikasi berisi siapa yang pergi sejak terakhir kali. Tidak ada permintaan tambahan ke Instagram.
+# context: settings switch title on the Profiles page (#847); holding a tab (Followers, Following) at the top of a follow list filters it
+Hold a follow list's tabs to filter it	Tahan tab daftar ikuti untuk memfilternya
+# context: that switch's summary (#847); Followers and Following are Instagram's own list names
+In any Followers or Following list, hold a tab at the top to show everyone, only public accounts or only private ones. Accounts Instagram hasn't said either way about stay.	Di daftar Pengikut atau Mengikuti mana pun, tahan tab di atas untuk menampilkan semua orang, hanya akun publik, atau hanya akun privat. Akun yang belum disebut Instagram tetap ada.
+# context: settings switch title on the Profiles page (#847): dates on your own Followers and Following lists
+Follow dates in your lists	Tanggal mengikuti di daftarmu
+# context: that switch's summary (#847)
+Your own Followers and Following lists show since when each account follows you, or you them. Dates start the first time you scroll a list to the end with this on, so accounts already there get none.	Daftar Pengikut dan Mengikuti milikmu sendiri menampilkan sejak kapan setiap akun mengikutimu, atau kamu mengikutinya. Tanggal dimulai saat pertama kali kamu menggulir daftar sampai akhir dengan ini aktif, jadi akun yang sudah ada tidak mendapat tanggal.
+# context: a choice in the follow list filter dialog (#847): only public accounts
+Public accounts	Akun publik
+# context: a choice in the follow list filter dialog (#847): only private accounts
+Private accounts	Akun privat
+# context: title of the follow list filter dialog, whose choices are Everyone, Public accounts and Private accounts (#847)
+Show in follow lists	Tampilkan di daftar ikuti
+# context: toast after picking Everyone in the follow list filter (#847)
+Showing everyone	Menampilkan semua orang
+# context: toast after picking Public accounts in the follow list filter (#847)
+Showing public accounts	Menampilkan akun publik
+# context: toast after picking Private accounts in the follow list filter (#847)
+Showing private accounts	Menampilkan akun privat
+# context: before a follow list row's name: since when that follow started, %s is a short date like Mar 3 (#847)
+Since %s	Sejak %s
 # context: settings switch title and button label, the row Instagram calls About this account (#492)
 About this account	Tentang akun ini
 About this account button	Tombol Tentang akun ini
@@ -2516,6 +2588,10 @@ Tap sound volume	Volume suara ketuk
 Auto scroll in Home	Gulir otomatis di Beranda
 Moves Home on to the next post by itself. A video moves on when it ends, a photo or carousel after Time on each post. Touch the screen to hold it.	Beranda pindah sendiri ke postingan berikutnya. Video pindah saat selesai, foto atau carousel setelah Waktu di tiap postingan. Sentuh layar untuk menahannya.
 Time on each post	Waktu di tiap postingan
+# context: Feed settings: switch that takes a blocked account's posts out of Home as soon as the block goes through (#861)
+Hide posts when you block someone	Sembunyikan postingan saat memblokir seseorang
+# context: Summary of Hide posts when you block someone, a Feed switch (#861)
+When you block someone, their posts in Home go away right away instead of after you refresh it.	Saat kamu memblokir seseorang, postingannya di Beranda langsung hilang tanpa perlu menyegarkan dulu.
 # context: Reels settings: switch that lets a tap on the reel shown above an open comments sheet pause or play it, and a hold play it at 2x, without closing the comments (#665)
 Control the reel above comments	Kontrol reel di atas komentar
 # context: Summary of Control the reel above comments (#665)
@@ -2559,6 +2635,10 @@ The time on the seek bar counts down what's left of the video, like -0:33 / 0:45
 Time under the tags button	Waktu di bawah tombol tag
 # context: Summary of Time under the tags button (#711)
 Puts the time in the corner under the tags button instead of the middle of the bar.	Menaruh waktu di sudut, di bawah tombol tag, bukan di tengah bilah.
+# context: Feed settings: a switch under Time on the seek bar that moves the time to the video's top corner, below Instagram's countdown (#788)
+Time in the top corner	Waktu di sudut atas
+# context: Summary of Time in the top corner (#788)
+Puts the time in the top corner of the video instead of over the bar, just below anything Instagram shows there, like its countdown.	Menaruh waktu di sudut atas video, bukan di atas bilah, tepat di bawah apa pun yang ditampilkan Instagram di sana, seperti hitung mundurnya.
 # context: Feed settings: a switch under Tap a feed video to pause it that keeps any tap on a feed video from opening Reels (#706)
 Taps on feed videos stay in the feed	Ketukan di video feed tetap di feed
 # context: Summary of Taps on feed videos stay in the feed; Tap a feed video to pause it is the switch above it, use its translation (#706)
@@ -2597,6 +2677,10 @@ A feed video you hold for 2x keeps playing at 2x after you let go. Hold it again
 Only after a long hold	Hanya setelah tahan lama
 # context: Summary of Only after a long hold, a switch under Keep 2x after you let go (#552)
 Keeps 2x only when you hold the video for about 3 seconds. Let go sooner and it goes back to normal speed.	Tetap 2x hanya jika kamu menahan video sekitar 3 detik. Lepas lebih cepat dan kecepatan kembali normal.
+# context: Feed settings: a switch under Keep 2x after you let go that leaves Instagram's 2x label on a feed video kept at 2x (#860)
+Show 2x after you let go	Tampilkan 2x setelah dilepas
+# context: Summary of Show 2x after you let go, a switch under Keep 2x after you let go (#860)
+A feed video that keeps playing at 2x shows a 2x label at the top until it goes back to normal speed.	Video feed yang tetap diputar 2x menampilkan label 2x di bagian atas sampai kecepatannya kembali normal.
 # context: Feed settings: a switch under Hold for 2x on feed videos that keeps the poster's name over the video while it's held at 2x (#552)
 Keep the name while you hold	Tetap tampilkan nama saat menahan
 # context: Summary of Keep the name while you hold, a switch under Hold for 2x on feed videos (#552)
@@ -2664,6 +2748,10 @@ Hold a finger on the liquid pill's bubble, or slide it across the tabs, and the 
 # context: Keep story viewers, its Stories settings rows and the Story viewers page.
 Keep story viewers	Simpan penonton cerita
 Each time you open who viewed one of your stories, the list is kept on this phone and set beside your followers. Nothing extra is asked of Instagram. Turn it off and it stops at once.	Setiap kali kamu membuka siapa yang melihat salah satu ceritamu, daftarnya disimpan di ponsel ini dan disandingkan dengan pengikutmu. Tidak ada permintaan tambahan ke Instagram. Matikan dan langsung berhenti.
+# context: Stories > Keep story viewers, the switch for a search bar HushGram adds to Instagram's list of who viewed your story, and the bar's own words.
+Search bar in the viewer list	Bilah pencarian di daftar penonton
+Puts a Search viewers bar at the top of the list of who viewed your story. It searches the viewers kept on this phone, the ones Instagram has listed so far.	Menaruh bilah Cari penonton di bagian atas daftar orang yang melihat ceritamu. Bilah ini mencari di penonton yang tersimpan di ponsel ini, yaitu yang sudah ditampilkan Instagram sejauh ini.
+Search viewers	Cari penonton
 Story viewers	Penonton cerita
 Nothing here yet. With Keep story viewers on, open who viewed one of your stories in Instagram and the list is kept here.	Belum ada apa-apa. Dengan Simpan penonton cerita aktif, buka siapa yang melihat salah satu ceritamu di Instagram dan daftarnya disimpan di sini.
 %1$d story kept since %2$s. Tap to see who viewed it and who has no view recorded.	%1$d cerita disimpan sejak %2$s. Ketuk untuk melihat siapa yang melihatnya dan siapa yang belum tercatat melihat.
@@ -2714,6 +2802,10 @@ Matches: %1$d of %2$d blocked accounts	Cocok: %1$d dari %2$d akun yang diblokir
 Long press a profile picture to view it	Tekan lama foto profil untuk melihatnya
 # context: that switch summary (#737)
 Long press the picture at the top of a profile to open the whole square picture at full size, with Save under it, instead of Instagram's own preview. A tap works as before.	Tekan lama foto di bagian atas profil untuk membuka seluruh foto persegi dalam ukuran penuh, dengan Simpan di bawahnya, menggantikan pratinjau Instagram sendiri. Ketukan tetap berfungsi seperti biasa.
+# context: Profiles settings: switch that makes a tap on a profile's picture open the account's story when the picture has a story ring, where Instagram sometimes opened the picture (#823)
+A story ring opens the story	Lingkaran story membuka story
+# context: that switch summary (#823)
+Tapping the picture at the top of a profile with a story ring opens the story whenever Instagram has it, where Instagram sometimes opens the picture instead.	Mengetuk foto di bagian atas profil yang punya lingkaran story akan membuka story-nya setiap kali Instagram sudah memilikinya, padahal Instagram kadang membuka fotonya.
 # context: Notifications settings: row that opens a list of the kinds of notification rows this phone has seen, to tick the ones to hide (#756)
 Hide notifications by type	Sembunyikan notifikasi menurut jenis
 # context: that row's summary while nothing is ticked (#756)
@@ -2867,3 +2959,11 @@ Long press a chat to group it	Tekan lama chat untuk mengelompokkannya
 # context: Stories switch Story rings on saved posts and its summary, for posts on the Saved page (#790)
 Story rings on saved posts	Lingkaran cerita di postingan tersimpan
 Posts you saved show the story ring around the author's picture, like Home does, and a tap on it opens their story. It only uses stories Instagram has already loaded.	Postingan yang kamu simpan menampilkan lingkaran cerita di sekitar foto pembuatnya, seperti di Beranda, dan mengetuknya membuka ceritanya. Hanya memakai cerita yang sudah dimuat Instagram.
+# context: Details in a post's menu (#839): a row under the facts that sends the photo, or a video's cover, to Google Lens to read its words
+Read text with Lens	Baca teks dengan Lens
+# context: Details in a post's menu (#839): a toast while Open with or Read text with Lens fetches the post's file
+Getting the file ready	Menyiapkan file
+# context: Details in a post's menu (#839): a toast when Open with or Read text with Lens couldn't fetch the post's file
+Couldn't get the file	File tidak dapat diambil
+# context: Details in a post's menu (#839): a toast when no app on the phone takes the photo or video Open with offers
+No app here can open it	Tak ada aplikasi untuk membukanya

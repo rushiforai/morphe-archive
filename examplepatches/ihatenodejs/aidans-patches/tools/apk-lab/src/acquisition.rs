@@ -1,10 +1,11 @@
 //! Native APK acquisition orchestration and deterministic APKM normalization.
 //!
-//! The provider order matches the Python oracle: enabled `apkeep` accounts,
-//! direct AAS tokens, the dispenser when no direct token qualifies, then the
-//! configured APKMirror mapping. Serialized source labels stay compatible
-//! (`apkeep`, `goopdl`, `apkmirror`, `manual`); the `goopdl` label now denotes
-//! native Play delivery and never implies a Python subprocess.
+//! Provider order: enabled `apkeep` accounts, direct AAS tokens, the dispenser
+//! when no direct token qualifies, the configured APKMirror mapping, then the
+//! APKPure last resort through `apkeep`. Serialized source labels stay
+//! compatible (`apkeep`, `goopdl`, `apkmirror`, `manual`) and gain `apkpure`
+//! for the fallback; the `goopdl` label denotes native Play delivery and never
+//! implies a Python subprocess.
 //!
 //! Every provider is a trait so tests can exercise routing, account rotation,
 //! retries and cleanup without a network, a device, or a real credential. Each
@@ -109,6 +110,14 @@ pub const APKEEP_TIMEOUT: Duration = Duration::from_secs(600);
 pub const APKEEP_DEVICE_OPTION: &str = "device=px_9a,locale=en_US,timezone=UTC,split_apk=true";
 /// Aurora dispenser endpoint proven by the native Play probe.
 pub const DEFAULT_DISPENSER_URL: &str = "https://auroraoss.com/api/auth";
+/// `apkeep` download source for APKPure. Last-resort only: APKPure repackages
+/// third-party builds, so a fixture acquired here is never the Play-signed
+/// artifact and the serialized source must say so.
+pub const APKPURE_SOURCE: &str = "apk-pure";
+/// `apkeep` refuses APKPure downloads unless the operator acknowledges the EFF
+/// advisory. Only the fallback path passes it, and only as an explicit argv
+/// token so the acknowledgement is auditable.
+pub const APKPURE_ACKNOWLEDGE_OPTION: &str = "acknowledge_dangers=true";
 
 const STREAM_BUFFER_BYTES: usize = 64 * 1024;
 const DISPENSER_ACCOUNT_LABEL: &str = "dispenser";
@@ -123,6 +132,7 @@ pub enum AcquisitionSource {
     Apkeep,
     Goopdl,
     Apkmirror,
+    Apkpure,
     Manual,
 }
 
@@ -133,6 +143,7 @@ impl AcquisitionSource {
             Self::Apkeep => "apkeep",
             Self::Goopdl => "goopdl",
             Self::Apkmirror => "apkmirror",
+            Self::Apkpure => "apkpure",
             Self::Manual => "manual",
         }
     }
@@ -259,6 +270,11 @@ pub trait ApkmirrorProvider {
     fn download(&self, request: &ProviderRequest) -> Result<PathBuf, Error>;
 }
 
+/// APKPure fallback provider. Runs only after every first-party source failed.
+pub trait ApkpureProvider {
+    fn download(&self, request: &ProviderRequest) -> Result<PathBuf, Error>;
+}
+
 /// The APKMirror mapping the Python oracle ships. Kept verbatim so existing
 /// packages keep their repository and artifact type.
 pub const APKMIRROR_APP_MAP: &[(&str, ApkmirrorMapping)] = &[
@@ -328,18 +344,53 @@ pub fn apkmirror_mapping(package_name: &str) -> Option<ApkmirrorMapping> {
         .map(|(_, mapping)| *mapping)
 }
 
-/// Builds the exact `apkeep` argument list (apkeep 1.1.0).
+/// Resolves the `apkeep` `-a` argument. `apkeep` accepts `app_id@version`, so a
+/// requested version is asked for instead of downloading the newest build and
+/// failing validation afterwards.
+fn apkeep_app_spec(package_name: &str, version: Option<&str>) -> String {
+    match version.filter(|value| !value.is_empty()) {
+        Some(version) => format!("{package_name}@{version}"),
+        None => package_name.to_string(),
+    }
+}
+
+/// Builds the exact `apkeep` argument list for Google Play (apkeep 1.1.0).
 #[must_use]
-pub fn build_apkeep_args(package_name: &str, ini_path: &Path, out_dir: &Path) -> Vec<String> {
+pub fn build_apkeep_args(
+    package_name: &str,
+    version: Option<&str>,
+    ini_path: &Path,
+    out_dir: &Path,
+) -> Vec<String> {
     vec![
         "-a".to_string(),
-        package_name.to_string(),
+        apkeep_app_spec(package_name, version),
         "-d".to_string(),
         "google-play".to_string(),
         "-i".to_string(),
         ini_path.to_string_lossy().into_owned(),
         "-o".to_string(),
         APKEEP_DEVICE_OPTION.to_string(),
+        out_dir.to_string_lossy().into_owned(),
+    ]
+}
+
+/// Builds the exact `apkeep` argument list for the APKPure fallback. No
+/// credential file is passed because APKPure needs none, and the EFF advisory
+/// acknowledgement is explicit so the download is auditable.
+#[must_use]
+pub fn build_apkpure_args(
+    package_name: &str,
+    version: Option<&str>,
+    out_dir: &Path,
+) -> Vec<String> {
+    vec![
+        "-a".to_string(),
+        apkeep_app_spec(package_name, version),
+        "-d".to_string(),
+        APKPURE_SOURCE.to_string(),
+        "-o".to_string(),
+        APKPURE_ACKNOWLEDGE_OPTION.to_string(),
         out_dir.to_string_lossy().into_owned(),
     ]
 }
@@ -1172,6 +1223,7 @@ impl ApkeepProvider for ApkeepAcquirer<'_> {
         let (program, mut args) = self.tool.command()?;
         args.extend(build_apkeep_args(
             request.package_name,
+            request.expected_version,
             &ini_path,
             attempt.path(),
         ));
@@ -1474,35 +1526,22 @@ impl ApkmirrorProvider for ApkmirrorAcquirer<'_> {
             )));
         }
 
-        let downloaded = first_downloaded_file(attempt.path())?;
-        let advertised = if downloaded.extension().is_some_and(|extension| {
-            extension.eq_ignore_ascii_case("apkm") || extension.eq_ignore_ascii_case("zip")
-        }) {
-            let extract_dir = attempt.path().join("extracted");
-            archives::safe_extract_all(&downloaded, &extract_dir).map_err(|error| match error {
-                archives::ArchiveError::Security(message) => {
-                    Error::invalid_artifact(format!("Unsafe archive member path: {message}"))
-                }
-                other => Error::invalid_artifact(format!(
-                    "Corrupt bundle downloaded from APKMirror: {other}"
-                )),
-            })?;
-            let apks = collect_apk_files(&extract_dir)?;
-            let staged = attempt
-                .path()
-                .join(format!("{}.apkm", request.package_name));
-            normalize_apks_to_apkm(&apks, &staged, self.badger)?;
-            validate_version(
-                self.inspector.version(&staged).map_err(|error| {
-                    error_like(
-                        &error,
-                        format!("Failed to inspect downloaded APKM: {}", error.message()),
-                    )
-                })?,
+        let downloaded = first_downloaded_file(attempt.path())?.ok_or_else(|| {
+            Error::infrastructure(format!(
+                "apkmirror-downloader reported success but produced no APK/APKM/XAPK in {}",
+                attempt.path().display()
+            ))
+        })?;
+        let advertised = if is_bundle_extension(&downloaded) {
+            let apks = extract_bundle_apks(&downloaded, attempt.path(), "APKMirror")?;
+            stage_apkm(
+                &apks,
                 request,
+                attempt.path(),
+                self.badger,
+                self.inspector,
                 VersionLabel::Apkmirror,
-            )?;
-            promote(&staged, &advertised_apkm(request))?
+            )?
         } else if mapping.app_type == "bundle" {
             let staged = attempt
                 .path()
@@ -1542,12 +1581,93 @@ impl ApkmirrorProvider for ApkmirrorAcquirer<'_> {
     }
 }
 
+/// APKPure fallback provider. Runs last because APKPure repackages third-party
+/// builds; the serialized acquisition source records `apkpure` so a fixture
+/// seeded here is never mistaken for a Play-signed artifact.
+pub struct ApkpureAcquirer<'a> {
+    pub tool: &'a dyn ApkeepTool,
+    pub commands: &'a dyn CommandRunner,
+    pub badger: &'a dyn ApkBadger,
+    pub inspector: &'a dyn ArtifactInspector,
+    pub timeout: Duration,
+}
+
+impl ApkpureProvider for ApkpureAcquirer<'_> {
+    fn download(&self, request: &ProviderRequest) -> Result<PathBuf, Error> {
+        fs::create_dir_all(request.out_dir).map_err(|error| {
+            Error::io(
+                format!("create output directory {}", request.out_dir.display()),
+                error,
+            )
+        })?;
+        let attempt = tempfile::Builder::new()
+            .prefix("apkpure-")
+            .tempdir_in(request.out_dir)
+            .map_err(|error| Error::io("create APKPure attempt directory", error))?;
+
+        let (program, mut args) = self.tool.command()?;
+        args.extend(build_apkpure_args(
+            request.package_name,
+            request.expected_version,
+            attempt.path(),
+        ));
+        let redactor = Redactor::default();
+        let outcome = self
+            .commands
+            .run(&program, &args, None, self.timeout, &[])
+            .map_err(|error| {
+                Error::infrastructure(format!(
+                    "apkpure could not be executed: {}",
+                    sanitize_diagnostic(&error, &redactor)
+                ))
+            })?;
+        if outcome.timed_out {
+            return Err(Error::infrastructure(format!(
+                "apkpure download timed out for {}: {}",
+                request.package_name,
+                sanitize_diagnostic(&outcome.stderr, &redactor)
+            )));
+        }
+        if !outcome.success {
+            return Err(Error::infrastructure(format!(
+                "apkpure download failed for {}: {}",
+                request.package_name,
+                sanitize_diagnostic(&outcome.stderr, &redactor)
+            )));
+        }
+
+        let downloaded = first_downloaded_file(attempt.path())?.ok_or_else(|| {
+            Error::infrastructure(format!(
+                "apkeep apk-pure produced no artifact for {} v{} in {}; \
+                 the version may be absent from APKPure",
+                request.package_name,
+                request.expected_version.unwrap_or("latest"),
+                attempt.path().display()
+            ))
+        })?;
+        let apks = if is_bundle_extension(&downloaded) {
+            extract_bundle_apks(&downloaded, attempt.path(), "APKPure")?
+        } else {
+            vec![downloaded]
+        };
+        stage_apkm(
+            &apks,
+            request,
+            attempt.path(),
+            self.badger,
+            self.inspector,
+            VersionLabel::Apkpure,
+        )
+    }
+}
+
 /// Orchestrates providers in the oracle's order with account rotation,
 /// fallback and typed failure aggregation.
 pub struct Acquirer<'a> {
     pub apkeep: Option<&'a dyn ApkeepProvider>,
     pub play: Option<&'a dyn PlayProvider>,
     pub apkmirror: Option<&'a dyn ApkmirrorProvider>,
+    pub apkpure: Option<&'a dyn ApkpureProvider>,
     pub retry: RetryPolicy,
 }
 
@@ -1636,6 +1756,21 @@ impl Acquirer<'_> {
                 }
                 Err(error) => {
                     failures.push(format!("apkmirror: {error}"));
+                    last_error = Some(error);
+                }
+            }
+        }
+
+        if let Some(provider) = self.apkpure {
+            match self.attempt(|| provider.download(request)) {
+                Ok(path) => {
+                    return Ok(AcquiredArtifact {
+                        path,
+                        source: AcquisitionSource::Apkpure,
+                    })
+                }
+                Err(error) => {
+                    failures.push(format!("apkpure: {error}"));
                     last_error = Some(error);
                 }
             }
@@ -1750,6 +1885,13 @@ pub fn acquire_artifact(
         runner_script: default_apkmirror_runner(),
         timeout: DOWNLOAD_TIMEOUT,
     };
+    let apkpure = apkeep_tool.as_ref().map(|tool| ApkpureAcquirer {
+        tool,
+        commands: &commands,
+        badger: &badger,
+        inspector: &inspector,
+        timeout: APKEEP_TIMEOUT,
+    });
 
     let acquirer = Acquirer {
         apkeep: apkeep
@@ -1757,6 +1899,9 @@ pub fn acquire_artifact(
             .map(|provider| provider as &dyn ApkeepProvider),
         play: Some(&play),
         apkmirror: Some(&apkmirror),
+        apkpure: apkpure
+            .as_ref()
+            .map(|provider| provider as &dyn ApkpureProvider),
         retry: RetryPolicy::default(),
     };
     acquirer.acquire(&request, accounts.as_deref(), accounts_error.as_deref())
@@ -1767,6 +1912,7 @@ enum VersionLabel {
     Apkeep,
     Goopdl,
     Apkmirror,
+    Apkpure,
 }
 
 fn validate_version(
@@ -1789,6 +1935,10 @@ fn validate_version(
                     "APKMirror downloaded version '{}' != expected '{expected}'",
                     actual.version_name
                 ),
+                VersionLabel::Apkpure => format!(
+                    "APKPure downloaded version '{}' != expected '{expected}'",
+                    actual.version_name
+                ),
             };
             return Err(Error::invalid_artifact(message));
         }
@@ -1806,6 +1956,10 @@ fn validate_version(
                 ),
                 VersionLabel::Apkmirror => format!(
                     "APKMirror downloaded version code '{}' != expected '{expected}'",
+                    actual.version_code
+                ),
+                VersionLabel::Apkpure => format!(
+                    "APKPure downloaded version code '{}' != expected '{expected}'",
                     actual.version_code
                 ),
             };
@@ -1919,7 +2073,7 @@ fn walk_apk_files(directory: &Path, found: &mut Vec<PathBuf>) -> Result<(), Erro
     Ok(())
 }
 
-fn first_downloaded_file(attempt: &Path) -> Result<PathBuf, Error> {
+fn first_downloaded_file(attempt: &Path) -> Result<Option<PathBuf>, Error> {
     let mut files: Vec<PathBuf> = fs::read_dir(attempt)
         .map_err(|error| Error::io(format!("read directory {}", attempt.display()), error))?
         .collect::<Result<Vec<_>, _>>()
@@ -1929,19 +2083,64 @@ fn first_downloaded_file(attempt: &Path) -> Result<PathBuf, Error> {
         .filter(|path| {
             path.is_file()
                 && path.extension().is_some_and(|extension| {
-                    ["apk", "apkm", "zip"]
+                    ["apk", "apkm", "xapk", "zip"]
                         .iter()
                         .any(|wanted| extension.eq_ignore_ascii_case(wanted))
                 })
         })
         .collect();
     files.sort();
-    files.into_iter().next().ok_or_else(|| {
-        Error::infrastructure(format!(
-            "apkmirror-downloader reported success but no APK/APKM found in {}",
-            attempt.display()
-        ))
+    Ok(files.into_iter().next())
+}
+
+fn is_bundle_extension(path: &Path) -> bool {
+    path.extension().is_some_and(|extension| {
+        ["apkm", "xapk", "zip"]
+            .iter()
+            .any(|wanted| extension.eq_ignore_ascii_case(wanted))
     })
+}
+
+fn extract_bundle_apks(
+    downloaded: &Path,
+    attempt: &Path,
+    source: &str,
+) -> Result<Vec<PathBuf>, Error> {
+    let extract_dir = attempt.join("extracted");
+    archives::safe_extract_all(downloaded, &extract_dir).map_err(|error| match error {
+        archives::ArchiveError::Security(message) => {
+            Error::invalid_artifact(format!("Unsafe archive member path: {message}"))
+        }
+        other => {
+            Error::invalid_artifact(format!("Corrupt bundle downloaded from {source}: {other}"))
+        }
+    })?;
+    collect_apk_files(&extract_dir)
+}
+
+/// Normalizes acquired APKs into the advertised `.apkm`, validates the version
+/// constraints, and only then promotes the result into the output directory.
+fn stage_apkm(
+    apks: &[PathBuf],
+    request: &ProviderRequest,
+    attempt: &Path,
+    badger: &dyn ApkBadger,
+    inspector: &dyn ArtifactInspector,
+    label: VersionLabel,
+) -> Result<PathBuf, Error> {
+    let staged = attempt.join(format!("{}.apkm", request.package_name));
+    normalize_apks_to_apkm(apks, &staged, badger)?;
+    validate_version(
+        inspector.version(&staged).map_err(|error| {
+            error_like(
+                &error,
+                format!("Failed to inspect downloaded APKM: {}", error.message()),
+            )
+        })?,
+        request,
+        label,
+    )?;
+    promote(&staged, &advertised_apkm(request))
 }
 
 fn copy_file(source: &Path, destination: &Path) -> io::Result<()> {
@@ -1987,6 +2186,7 @@ mod tests {
             (AcquisitionSource::Apkeep, "apkeep"),
             (AcquisitionSource::Goopdl, "goopdl"),
             (AcquisitionSource::Apkmirror, "apkmirror"),
+            (AcquisitionSource::Apkpure, "apkpure"),
             (AcquisitionSource::Manual, "manual"),
         ] {
             let encoded = serde_json::to_string(&source).expect("serialize source");
@@ -2001,6 +2201,7 @@ mod tests {
     fn apkeep_argv_contains_no_credentials_or_interpreter() {
         let args = build_apkeep_args(
             "com.test.pkg",
+            None,
             Path::new("/tmp/creds.ini"),
             Path::new("/tmp/attempt"),
         );
@@ -2022,6 +2223,38 @@ mod tests {
                 APKEEP_DEVICE_OPTION,
                 "/tmp/attempt",
             ]
+        );
+    }
+
+    #[test]
+    fn requested_versions_are_pinned_per_download_source() {
+        let play = build_apkeep_args(
+            "com.test.pkg",
+            Some("1.2.3"),
+            Path::new("/tmp/creds.ini"),
+            Path::new("/tmp/attempt"),
+        );
+        assert_eq!(play[0], "-a");
+        assert_eq!(play[1], "com.test.pkg@1.2.3");
+        assert_eq!(play[3], "google-play");
+
+        let pure = build_apkpure_args("com.test.pkg", Some("1.2.3"), Path::new("/tmp/attempt"));
+        assert_eq!(
+            pure,
+            vec![
+                "-a",
+                "com.test.pkg@1.2.3",
+                "-d",
+                APKPURE_SOURCE,
+                "-o",
+                APKPURE_ACKNOWLEDGE_OPTION,
+                "/tmp/attempt",
+            ]
+        );
+        assert!(!pure.join(" ").contains("-i"));
+        assert_eq!(
+            build_apkpure_args("com.test.pkg", None, Path::new("/x"))[1],
+            "com.test.pkg"
         );
     }
 

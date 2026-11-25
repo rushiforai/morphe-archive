@@ -1,0 +1,51 @@
+{
+  "format": 1,
+  "scope": "Real DriveDeck 1.0.18 local car-preview host bound Maps native Presentation with no Maps phone Activity; visible safe-area warning, native speech start/completion, source acknowledgement and exact cleanup. This does not establish physical head-unit or Bluetooth/projection audio routing.",
+  "serial": "emulator-5584",
+  "avd": "native_warnings_car_api34",
+  "apps": {
+    "nl.flitsmeister": "3e3c2e987bb6e9b28bc5692e52828ee03d317cf925f719ed4aece29f11614ac8",
+    "org.ungoogled.android.apps.maps": "d8557e9562776729f67c86070d19444f1f985f0f4cc7b173116b22a8db06c0e7",
+    "nl.johninnl.warningprobe.integration.maps.car": "1b8aa65b9e17e08713d1cd907660573b36f7ba0680a876405c9d0292c36bdd9f"
+  },
+  "source_probe_sha256": "a9e5cfb255d72230b969f7f859faeae604a7e2dcb2b87f9c42457349f3c37ea1",
+  "host_package": "app.johninnl.drivedeck",
+  "host_apk_sha256": "353ee236646f71acffcca4e7560a563b8730cb3a41773bf223514287bdd0d7b4",
+  "actual_graph": {
+    "session": "nl.johninnl.navigation.alerts.WarningSession",
+    "connection": "nl.johninnl.navigation.alerts.WarningConnection",
+    "speaker": "org.ungoogled.ui.MapsWarningSpeaker",
+    "scheduler": "nl.johninnl.navigation.alerts.WarningScheduler",
+    "provider_uid": 10193
+  },
+  "phone_activities_created": 0,
+  "warning_text": "Flitsmeister\nSpeed cam 50",
+  "source_ack_outcomes": [
+    "GRANTED",
+    "STARTED",
+    "COMPLETED"
+  ],
+  "provider_managed_mute": true,
+  "actual_speaker_started_and_completed": true,
+  "visible_host_warning_frame": true,
+  "visual_inspection": "Native map and the complete Flitsmeister / Speed cam 50 panel are visible above the host navigation bar, at bottom right. The preceding maps-car-isolated-01 frame clipped the panel and remains rejected.",
+  "raw_result": ".analysis/native-warning-bindings/maps-car-isolated-02/result.json",
+  "raw_receiver": ".analysis/native-warning-bindings/maps-car-isolated-02/receiver-result.json",
+  "raw_source": ".analysis/native-warning-bindings/maps-car-isolated-02/source/aa75915b-d378-47a5-9c6b-b918478b1690/result.json",
+  "screenshot": ".analysis/native-warning-bindings/maps-car-isolated-02/maps-car-warning.png",
+  "screenshot_sha256": "c0273bf8c1c7f6350a9aa33b528b0089bf206b552ba681f9c176c524bd13834b",
+  "cleanup": {
+    "receiver_preferences_restored_exactly": true,
+    "receiver_output_quiescent": true,
+    "source_network_and_lease_restored": true,
+    "source_location_permissions_restored_exactly": true,
+    "receiver_location_permissions_restored_exactly": true,
+    "receiver_location_cleanup_record": ".analysis/native-warning-bindings/maps-car-isolated-02/receiver-location-cleanup.json"
+  },
+  "remaining": [
+    "Actual Android Auto/DHU projection",
+    "Actual car-only output routing",
+    "Physical head-unit acceptance",
+    "Other layouts and warning families"
+  ]
+}

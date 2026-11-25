@@ -30,6 +30,7 @@ import app.morphe.util.singleOrPatchException
 import com.android.tools.smali.dexlib2.AccessFlags
 import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.iface.Method
+import com.android.tools.smali.dexlib2.iface.instruction.Instruction
 import com.android.tools.smali.dexlib2.iface.instruction.NarrowLiteralInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.TwoRegisterInstruction
@@ -51,9 +52,16 @@ internal object SuggestedModelFingerprint : Fingerprint(
     name = "<init>", returnType = "V", filters = listOf(string("XDTSuggestedUsers")),
 )
 
+/**
+ * The feed item's parser, which names both kinds of suggested accounts. Filters match in order, and
+ * 457 names them the other way round from 456, so the second is checked wherever it sits.
+ */
 internal object SuggestedFeedParserFingerprint : Fingerprint(
     name = "unsafeParseFromJson", returnType = "Ljava/lang/Object;", parameters = listOf("L"),
-    filters = listOf(string(KICKSTART_USERS), string(SUGGESTED_USERS)),
+    filters = listOf(string(SUGGESTED_USERS)),
+    custom = { method, _ ->
+        method.implementation?.instructions?.any { it.getReference<StringReference>()?.string == KICKSTART_USERS } == true
+    },
 )
 
 private data class Use(val index: Int, val register: Int)
@@ -357,9 +365,69 @@ internal fun BytecodePatchContext.suggestedTargets(): SuggestedTargets {
         body[it].opcode == Opcode.NEW_INSTANCE && body[it].getReference<TypeReference>()?.type == item.type
     }.singleOrPatchException("$PATCH: feed-item allocation in response parser")
     val receivers = parser.valueUses(allocation)
+
+    /**
+     * The static method the parser calls at [call], with the register each argument arrives in,
+     * or null when it isn't one in the app that takes exactly what the parser hands it.
+     */
+    fun staticHelper(call: Int): Pair<Method, List<Int>>? {
+        if (body[call].opcode !in setOf(Opcode.INVOKE_STATIC, Opcode.INVOKE_STATIC_RANGE)) return null
+        val reference = body[call].getReference<MethodReference>() ?: return null
+        val registers = body[call].namedRegisters()
+        val helper = classDefByOrNull(reference.definingClass)?.methods?.filter {
+            AccessFlags.STATIC.isSet(it.accessFlags) && it.name == reference.name && it.returnType == reference.returnType &&
+                it.parameterTypes.map(CharSequence::toString) == reference.parameterTypes.map(CharSequence::toString)
+        }?.singleOrNull() ?: return null
+        val words = helper.parameterTypes.sumOf { if (it.toString() == "J" || it.toString() == "D") 2 else 1 }
+        val code = helper.implementation?.takeIf { words == registers.size } ?: return null
+        return helper to registers.indices.map { code.registerCount - words + it }
+    }
+
+    /**
+     * The item field a static helper stores [key]'s value in, when the parser hands the helper the
+     * value and the item instead of storing it itself. 457's Redex moved the parser's last stores
+     * into such a helper, the kickstart unit's among them. The parser has to hand over the parsed
+     * value itself, and the helper has to store only that parameter in the field.
+     */
+    fun outlinedSlot(key: String, uses: Set<Use>, definition: Use): FieldReference {
+        val handOff = uses.filter { use ->
+            body[use.index].opcode in setOf(Opcode.INVOKE_STATIC, Opcode.INVOKE_STATIC_RANGE) &&
+                body[use.index].namedRegisters().any { Use(use.index, it) in receivers }
+        }.singleOrPatchException("$PATCH: item-owned raw slot for $key")
+        val call = body[handOff.index]
+        val registers = call.namedRegisters()
+        val valueAt = registers.indices.filter { registers[it] == handOff.register }
+            .singleOrPatchException("$PATCH: $key value handed to its item helper")
+        val itemAt = registers.indices.filter { Use(handOff.index, registers[it]) in receivers }
+            .singleOrPatchException("$PATCH: item handed to the $key helper")
+        val reference = call.getReference<MethodReference>()!!
+        val (helper, arrivals) = staticHelper(handOff.index)
+            ?: throw PatchException("$PATCH: the $key item helper $reference isn't one static method taking what the parser hands it")
+        val valueIn = arrivals[valueAt]
+        val itemIn = arrivals[itemAt]
+        val helperBody = helper.body()
+        val items = helper.valueUses(-1, itemIn)
+        val field = helper.valueUses(-1, valueIn).mapNotNull {
+            val instruction = helperBody[it.index]
+            instruction.getReference<FieldReference>()?.takeIf { field ->
+                instruction.opcode == Opcode.IPUT_OBJECT && field.definingClass == item.type &&
+                    field.type == model.type && (instruction as TwoRegisterInstruction).registerA == it.register &&
+                    Use(it.index, instruction.registerB) in items
+            }
+        }.distinctBy { it.toString() }.singleOrPatchException("$PATCH: item-owned raw slot for $key in $reference")
+        parser.requireValueSource("$key value handed to its item helper", handOff, definition, allowNull = true)
+        helperBody.indices.filter { helperBody[it].opcode == Opcode.IPUT_OBJECT &&
+            helperBody[it].getReference<FieldReference>()?.toString() == field.toString() }.forEach { store ->
+            helper.requireValueSource("$key slot in its item helper", Use(store, (helperBody[store] as TwoRegisterInstruction).registerA),
+                Use(-1, valueIn), allowNull = true)
+        }
+        return field
+    }
+
     fun slot(key: String): Pair<FieldReference, String> {
         val value = parser.jsonValue(key, model.type)
-        val stores = parser.valueUses(value.result).mapNotNull {
+        val uses = parser.valueUses(value.result)
+        val stores = uses.mapNotNull {
             val instruction = body[it.index]
             instruction.getReference<FieldReference>()?.takeIf { field ->
                 instruction.opcode == Opcode.IPUT_OBJECT && field.definingClass == item.type &&
@@ -367,7 +435,11 @@ internal fun BytecodePatchContext.suggestedTargets(): SuggestedTargets {
                     Use(it.index, instruction.registerB) in receivers
             }
         }.distinctBy { it.toString() }
-        val field = stores.singleOrPatchException("$PATCH: item-owned raw slot for $key")
+        val field = if (stores.isEmpty()) {
+            outlinedSlot(key, uses, Use(value.result, (body[value.result] as OneRegisterInstruction).registerA))
+        } else {
+            stores.singleOrPatchException("$PATCH: item-owned raw slot for $key")
+        }
         body.indices.filter { body[it].opcode == Opcode.IPUT_OBJECT &&
             body[it].getReference<FieldReference>()?.toString() == field.toString() }.forEach { store ->
             parser.requireValueSource("$key slot", Use(store, (body[store] as TwoRegisterInstruction).registerA),
@@ -433,25 +505,43 @@ internal fun BytecodePatchContext.suggestedTargets(): SuggestedTargets {
     constructor.requireValueSource("raw type field", Use(rawStore,
         (constructor.body()[rawStore] as TwoRegisterInstruction).registerA), Use(-1, parameter))
     // Both root slots must feed the same wrapper whose enum map consumes this exact raw field.
+    // The parser builds the wrappers itself, or (457 on) a static helper it hands the item to
+    // does, reading the slots back off that item.
+    class ItemScope(val method: Method, val body: List<Instruction>, val items: Set<Use>)
+    val helperScopes = body.indices.flatMap { call ->
+        val arguments = body[call].namedRegisters()
+        val itemAt = arguments.indices.filter { Use(call, arguments[it]) in receivers }
+        if (itemAt.isEmpty()) return@flatMap emptyList()
+        val (helper, arrivals) = staticHelper(call) ?: return@flatMap emptyList()
+        listOf(ItemScope(helper, helper.body(), itemAt.flatMap { helper.valueUses(-1, arrivals[it]) }.toSet()))
+    }.distinctBy { it.method.toString() }
+    val scopes = listOf(ItemScope(parser, body, receivers)) + helperScopes
+    class Wrapping(val scope: ItemScope, val constructor: MethodReference, val call: Int)
     val wrappers = listOf(suggestedSlot, kickstartSlot).map { slot ->
-        body.indices.filter { body[it].opcode == Opcode.IGET_OBJECT &&
-            body[it].getReference<FieldReference>()?.toString() == slot.toString() }.flatMap { read ->
-            parser.valueUses(read).mapNotNull { use ->
-                body[use.index].getReference<MethodReference>()?.takeIf { call ->
-                    call.name == "<init>" && call.parameterTypes.map(CharSequence::toString) == listOf(model.type) &&
-                        body[use.index].namedRegisters().getOrNull(1) == use.register
-                }?.let { it to use.index }
-            }
-        }.distinctBy { it.second }.singleOrPatchException("$PATCH: wrapper consuming $slot")
+        scopes.flatMap { scope ->
+            val code = scope.body
+            code.indices.filter { code[it].opcode == Opcode.IGET_OBJECT &&
+                code[it].getReference<FieldReference>()?.toString() == slot.toString() }.flatMap { read ->
+                scope.method.valueUses(read).mapNotNull { use ->
+                    code[use.index].getReference<MethodReference>()?.takeIf { call ->
+                        call.name == "<init>" && call.parameterTypes.map(CharSequence::toString) == listOf(model.type) &&
+                            code[use.index].namedRegisters().getOrNull(1) == use.register
+                    }?.let { Wrapping(scope, it, use.index) }
+                }
+            }.distinctBy { it.call }
+        }.singleOrPatchException("$PATCH: wrapper consuming $slot")
     }
-    if (wrappers[0].first.toString() != wrappers[1].first.toString()) throw PatchException("$PATCH: conflicting wrappers ${wrappers[0].first} and ${wrappers[1].first}")
-    val wrapperType = wrappers[0].first.definingClass
+    if (wrappers[0].constructor.toString() != wrappers[1].constructor.toString()) {
+        throw PatchException("$PATCH: conflicting wrappers ${wrappers[0].constructor} and ${wrappers[1].constructor}")
+    }
+    val wrapperType = wrappers[0].constructor.definingClass
     val wrapperClass = mutableClassDefBy(wrapperType)
     if (!AccessFlags.PUBLIC.isSet(wrapperClass.accessFlags) ||
         (wrapperClass.instanceFields + wrapperClass.staticFields).any { it.name == RAW_FIELD }) {
         throw PatchException("$PATCH: accessible wrapper with no capture-field collision")
     }
-    val wrapper = wrapperClass.methods.filter { it.toString() == wrappers[0].first.toString() }.singleOrPatchException("$PATCH: wrapper declaration ${wrappers[0].first}")
+    val wrapper = wrapperClass.methods.filter { it.toString() == wrappers[0].constructor.toString() }
+        .singleOrPatchException("$PATCH: wrapper declaration ${wrappers[0].constructor}")
     val wrapperBody = wrapper.body()
     val reads = wrapperBody.indices.filter {
         wrapperBody[it].opcode == Opcode.IGET_OBJECT &&
@@ -483,18 +573,20 @@ internal fun BytecodePatchContext.suggestedTargets(): SuggestedTargets {
     nonNullFlow.normal[guard] = listOf(rawRead)
     wrapper.requireValueSource("raw type map argument", mapUse,
         Use(rawRead, (wrapperBody[rawRead] as OneRegisterInstruction).registerA), flow = nonNullFlow)
-    val contentFields = wrappers.map { (_, call) ->
-        val receiver = body[call].namedRegisters().first()
-        val allocation = body.indices.filter {
-            body[it].opcode == Opcode.NEW_INSTANCE && body[it].getReference<TypeReference>()?.type == wrapperType &&
-                Use(call, receiver) in parser.valueUses(it)
-        }.singleOrPatchException("$PATCH: wrapper allocation for instruction $call")
-        parser.valueUses(allocation).mapNotNull { use ->
-            val instruction = body[use.index]
+    val contentFields = wrappers.map { wrapping ->
+        val method = wrapping.scope.method
+        val code = wrapping.scope.body
+        val receiver = code[wrapping.call].namedRegisters().first()
+        val allocation = code.indices.filter {
+            code[it].opcode == Opcode.NEW_INSTANCE && code[it].getReference<TypeReference>()?.type == wrapperType &&
+                Use(wrapping.call, receiver) in method.valueUses(it)
+        }.singleOrPatchException("$PATCH: wrapper allocation for instruction ${wrapping.call} in $method")
+        method.valueUses(allocation).mapNotNull { use ->
+            val instruction = code[use.index]
             instruction.getReference<FieldReference>()?.takeIf { field ->
                 instruction.opcode == Opcode.IPUT_OBJECT && field.definingClass == item.type &&
                     (instruction as TwoRegisterInstruction).registerA == use.register &&
-                    Use(use.index, instruction.registerB) in receivers
+                    Use(use.index, instruction.registerB) in wrapping.scope.items
             }
         }.distinctBy { it.toString() }.singleOrPatchException("$PATCH: active content store")
     }.distinctBy { it.toString() }

@@ -132,6 +132,22 @@ public class Settings extends BaseSettings {
             new BooleanSetting("hushthreads_pure_black", FALSE, true);
 
     /**
+     * The HushThreads logo is drawn at the top of the feed in place of the Threads logo
+     * ({@link app.morphe.extension.hushthreads.theme.HeaderLogo}). Threads draws that logo again
+     * only when it changes, so a change waits for a restart.
+     */
+    public static final BooleanSetting HEADER_LOGO =
+            new BooleanSetting("hushthreads_header_logo", FALSE, true);
+
+    /**
+     * Threads' text is shown in a font file the person picks
+     * ({@link app.morphe.extension.hushthreads.theme.CustomFont}). Threads keeps the fonts it loaded,
+     * so a change waits for a restart.
+     */
+    public static final BooleanSetting CUSTOM_FONT =
+            new BooleanSetting("hushthreads_custom_font", FALSE, true);
+
+    /**
      * The Instagram button at the top of a profile isn't drawn, on your own profile or anyone
      * else's ({@link app.morphe.extension.hushthreads.profile.InstagramButton}). Threads keeps a
      * header it has drawn, so a change waits for a restart.
@@ -174,6 +190,46 @@ public class Settings extends BaseSettings {
      */
     public static final BooleanSetting DOWNLOAD_COMPATIBLE =
             new BooleanSetting("hushthreads_download_compatible", FALSE);
+
+    /**
+     * The like button under posts and replies isn't drawn
+     * ({@link app.morphe.extension.hushthreads.feed.PostButtons}). Threads keeps a row it has
+     * drawn, so a change waits for a restart.
+     */
+    public static final BooleanSetting HIDE_LIKE_BUTTON =
+            new BooleanSetting("hushthreads_hide_like_button", FALSE, true);
+
+    /**
+     * The reply button under posts and replies isn't drawn
+     * ({@link app.morphe.extension.hushthreads.feed.PostButtons}). Threads keeps a row it has
+     * drawn, so a change waits for a restart.
+     */
+    public static final BooleanSetting HIDE_REPLY_BUTTON =
+            new BooleanSetting("hushthreads_hide_reply_button", FALSE, true);
+
+    /**
+     * The repost button under posts and replies isn't drawn
+     * ({@link app.morphe.extension.hushthreads.feed.PostButtons}). Threads keeps a row it has
+     * drawn, so a change waits for a restart.
+     */
+    public static final BooleanSetting HIDE_REPOST_BUTTON =
+            new BooleanSetting("hushthreads_hide_repost_button", FALSE, true);
+
+    /**
+     * The share button under posts and replies isn't drawn
+     * ({@link app.morphe.extension.hushthreads.feed.PostButtons}). Threads keeps a row it has
+     * drawn, so a change waits for a restart.
+     */
+    public static final BooleanSetting HIDE_SHARE_BUTTON =
+            new BooleanSetting("hushthreads_hide_share_button", FALSE, true);
+
+    /**
+     * The save button under posts and replies isn't drawn
+     * ({@link app.morphe.extension.hushthreads.feed.PostButtons}). Threads keeps a row it has
+     * drawn, so a change waits for a restart.
+     */
+    public static final BooleanSetting HIDE_SAVE_BUTTON =
+            new BooleanSetting("hushthreads_hide_save_button", FALSE, true);
 
     /**
      * Holding a post's text opens Threads' Copy text sheet, on an opened post too, in place of a

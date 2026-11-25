@@ -86,6 +86,10 @@ public class AndroidTargetChangesGuardTest {
      * instance field is not one.
      */
     private static final List<ReviewedWrites> REVIEWED_WRITES = Arrays.asList(
+            new ReviewedWrites("captions/OriginalSound.java", 1,
+                    "safe: writes only the three objects it just built with newInstance (the "
+                            + "play address, its TtsInfos entry and the Audio), each a named model "
+                            + "property, and a refused write returns false, so no track is made"),
             new ReviewedWrites("comment/CommentTools.java", 1,
                     "safe: writes pollInfo on a comment model instance, and skips static fields "
                             + "where it reads them"),
@@ -201,7 +205,7 @@ public class AndroidTargetChangesGuardTest {
         }
         int reviewed = REVIEWED_WRITES.stream().mapToInt(row -> row.writes).sum();
         assertEquals("the reviewed total no longer matches what the scan finds", reviewed, total);
-        assertEquals("the audit counted ten reflective writes", 10, total);
+        assertEquals("the audit counted eleven reflective writes on 2026-11-25", 11, total);
     }
 
     @Test

@@ -114,24 +114,31 @@ internal val BaiduHostnameVerifierCertificateFingerprint =
 internal val BaiduHostnameVerifierSessionFingerprint = hostnameVerifierSession(BAIDU_OKHTTP)
 
 /** Obfuscated platform trust manager used by TeraBox's own HTTP clients. */
-internal val TencentTrustManagerFingerprint = trustManager("Lkd/____\$___;")
+internal val TencentTrustManagerFingerprint = trustManager("Lld/____\$___;")
+
+/**
+ * Trust manager that verifies the chain through `X509TrustManagerExtensions`
+ * and throws `CertificateException` on a mismatch. New in 4.29.0; it wraps the
+ * same platform manager and is what pins the CDN hosts.
+ */
+internal val TencentPinnedTrustManagerFingerprint = trustManager("Lld/__\$___;")
 
 /** Obfuscated host name verifiers wrapped around the strict platform verifier. */
-internal val TencentHostnameVerifierFingerprint = hostnameVerifier("Lkd/____\$_;")
+internal val TencentHostnameVerifierFingerprint = hostnameVerifier("Lld/____\$_;")
 
-internal val TencentLoginHostnameVerifierFingerprint = hostnameVerifier("Lkd/__\$_;")
+internal val TencentLoginHostnameVerifierFingerprint = hostnameVerifier("Lld/__\$_;")
 
-internal val TencentDownloadHostnameVerifierFingerprint = hostnameVerifier("Lkd/__\$__;")
+internal val TencentDownloadHostnameVerifierFingerprint = hostnameVerifier("Lld/__\$__;")
 
 internal val ObfuscatedHostnameVerifierFingerprint = hostnameVerifier("L_____/___;")
 
-internal val NcHostnameVerifierFingerprint = hostnameVerifier("Lnc/______;")
+internal val NcHostnameVerifierFingerprint = hostnameVerifier("Loc/______;")
 
-internal val FeHostnameVerifierFingerprint = hostnameVerifier("Lfe/__\$_;")
+internal val FeHostnameVerifierFingerprint = hostnameVerifier("Lge/__\$_;")
 
-internal val QdHostnameVerifierFingerprint = hostnameVerifier("Lqd/__\$_;")
+internal val QdHostnameVerifierFingerprint = hostnameVerifier("Lrd/__\$_;")
 
-internal val HttpDnsHostnameVerifierFingerprint = hostnameVerifier("Lau/n\$_;")
+internal val HttpDnsHostnameVerifierFingerprint = hostnameVerifier("Lcu/n\$_;")
 
 internal val MintegralHostnameVerifierFingerprint =
     hostnameVerifier("Lcom/mbridge/msdk/foundation/same/net/MBridgeHostnameVerifier;")

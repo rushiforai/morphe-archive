@@ -15,12 +15,14 @@ import app.morphe.patches.threads.misc.extension.EXTENSION_PACKAGE
 import com.android.tools.smali.dexlib2.AccessFlags
 import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.iface.Method
+import com.android.tools.smali.dexlib2.iface.instruction.FiveRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.Instruction
 import com.android.tools.smali.dexlib2.iface.instruction.NarrowLiteralInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.TwoRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.reference.FieldReference
+import com.android.tools.smali.dexlib2.iface.reference.MethodReference
 import com.android.tools.smali.dexlib2.iface.reference.StringReference
 
 /** Instagram's post model, which Threads carries and which keeps its name. */
@@ -63,14 +65,57 @@ private fun com.android.tools.smali.dexlib2.iface.instruction.Instruction.loadsL
 
 /**
  * One bridge: the extension method [name], and the call [call] its body makes on the argument
- * cast to [receiver]. [primitive] when the call answers an int rather than an object.
+ * cast to [receiver]. [primitive] when the call answers an int rather than an object, [reads] when
+ * [call] is field reads that leave the answer in p0 themselves.
  */
-private class Bridge(val name: String, val receiver: String, val call: String, val primitive: Boolean = false)
+private class Bridge(
+    val name: String,
+    val receiver: String,
+    val call: String,
+    val primitive: Boolean = false,
+    val reads: Boolean = false,
+)
+
+/**
+ * The reads that answer a Media's id: its data field, then that field's String, the two reads its
+ * own hashCode() hashes. 456 kept a getId() making them; 457 copies them into every caller and
+ * drops it. Throws unless hashCode() still hashes a String read off a field of Media's own, and
+ * both fields are public, since the bridge reads them from another package.
+ */
+private fun BytecodePatchContext.mediaIdReads(patch: String): String {
+    val media = classDefBy(MEDIA)
+    val body = media.methods.singleOrNull { it.name == "hashCode" && it.parameterTypes.isEmpty() && it.returnType == "I" }
+        ?.implementation?.instructions?.toList().orEmpty()
+    fun read(at: Int) = body.getOrNull(at)?.takeIf { it.opcode == Opcode.IGET_OBJECT }
+        ?.let { (it as ReferenceInstruction).reference as FieldReference }
+    val data = read(0)
+    val id = read(1)
+    val hashes = body.getOrNull(2)?.takeIf { it.opcode == Opcode.INVOKE_VIRTUAL }
+        ?.let { (it as ReferenceInstruction).reference as MethodReference }
+        ?.let { it.definingClass == "Ljava/lang/String;" && it.name == "hashCode" } == true
+    val chained = hashes &&
+        (body[0] as TwoRegisterInstruction).registerA == (body[1] as TwoRegisterInstruction).registerB &&
+        (body[1] as TwoRegisterInstruction).registerA == (body[2] as FiveRegisterInstruction).registerC
+    if (data == null || id == null || !chained || data.definingClass != MEDIA || id.definingClass != data.type ||
+        id.type != "Ljava/lang/String;"
+    ) {
+        throw PatchException("$patch: $MEDIA's hashCode() no longer hashes a String it reads off a field of its own")
+    }
+    fun public(field: FieldReference) = classDefBy(field.definingClass).let { holder ->
+        AccessFlags.PUBLIC.isSet(holder.accessFlags) && holder.fields.any {
+            it.name == field.name && it.type == field.type && AccessFlags.PUBLIC.isSet(it.accessFlags) &&
+                !AccessFlags.STATIC.isSet(it.accessFlags)
+        }
+    }
+    if (!public(data) || !public(id)) throw PatchException("$patch: $MEDIA's id, $data then $id, isn't public")
+    return "iget-object p0, p0, $data\niget-object p0, p0, $id"
+}
 
 /**
  * Finds what the body of each of the extension's InstagramMedia bridges calls, and answers the
  * step that writes them: the argument cast to the model's type and handed to the getter that reads
- * the field, found by [pandoGetter] or, for the media's id, by its kept name. Everything is found
+ * the field, found by [pandoGetter], or for the media's id the two reads [mediaIdReads] finds
+ * inline. Everything is found
  * here, so a build where one is missing stops the patch naming [patch] before anything changes.
  *
  * Each body uses its parameter register alone, so the stub's own register count doesn't matter,
@@ -83,9 +128,7 @@ internal fun BytecodePatchContext.mediaBridges(patch: String): () -> Unit {
     val takenAt = pandoGetter(patch, MEDIA, "taken_at", "Ljava/lang/Long;")
     val carousel = pandoGetter(patch, MEDIA, "carousel_media", "Ljava/util/List;")
     val username = pandoGetter(patch, USER, "username", "Ljava/lang/String;")
-    val mediaId = classDefBy(MEDIA).methods.singleOrNull {
-        it.name == "getId" && it.parameterTypes.isEmpty() && it.returnType == "Ljava/lang/String;"
-    } ?: throw PatchException("$patch: $MEDIA has no getId()")
+    val mediaId = mediaIdReads(patch)
     // A version comes as either of two classes, so it's read through their interface, by the name
     // the tree-backed class gives each getter.
     fun version(field: String, returns: String) = throughInterface(patch, VIDEO_VERSION, PANDO_VIDEO_VERSION, field, returns)
@@ -93,7 +136,7 @@ internal fun BytecodePatchContext.mediaBridges(patch: String): () -> Unit {
     return bridgeWriter(patch, listOf(
         Bridge("videoVersions", MEDIA, virtual(videoVersions)),
         Bridge("dashManifest", MEDIA, virtual(dashManifest)),
-        Bridge("mediaId", MEDIA, virtual(mediaId)),
+        Bridge("mediaId", MEDIA, mediaId, reads = true),
         Bridge("owner", MEDIA, virtual(owner)),
         Bridge("takenAt", MEDIA, virtual(takenAt)),
         Bridge("carouselMedia", MEDIA, virtual(carousel)),
@@ -131,8 +174,9 @@ internal fun BytecodePatchContext.imageBridges(patch: String): () -> Unit {
  * The same for the posts a Threads post shows in place of media of its own: a linked Instagram post,
  * and the post it attaches, reposts or quotes. These getters are shortened on an interface with no
  * tree-backed key of their own to search for, so they're read off the method that writes a post
- * back out as JSON, which loads each field just before it names it: a field and the plain getter
- * answering it on the same data class, and the interface that class implements declaring that getter.
+ * back out as JSON, which reads each one just before it names it. 457 calls the interface's getter
+ * there itself. Earlier builds load a field, and the plain getter answering it on the same data
+ * class, declared by the interface that class implements, is the one to call.
  * The linked post and the share info have to come off the interface [MEDIA]'s text post info answers,
  * and the three shared posts off the interface the share info answers.
  */
@@ -146,8 +190,17 @@ internal fun BytecodePatchContext.linkedPostBridges(patch: String): () -> Unit {
     }.singleOrNull() ?: throw PatchException("$patch: expected one getter on $MEDIA for $TEXT_POST_INFO")
 
     fun getter(key: String, onInterface: String): Method {
+        // 457 writes each through the interface's own getter, which then has to be [onInterface]'s.
+        writer.getterWrittenAs(key)?.let { called ->
+            if (called.definingClass != onInterface) {
+                throw PatchException("$patch: the getter for $key is on ${called.definingClass}, not $onInterface")
+            }
+            return anInterface(patch, onInterface).methods.singleOrNull {
+                it.name == called.name && it.parameterTypes.isEmpty() && it.returnType == called.returnType
+            } ?: throw PatchException("$patch: $onInterface doesn't declare ${called.name}, the getter for $key")
+        }
         val field = writer.fieldWrittenAs(key)
-            ?: throw PatchException("$patch: expected a field read and tested just before $key is written")
+            ?: throw PatchException("$patch: expected a field or getter read and tested just before $key is written")
         val holder = classDefBy(field.definingClass)
         val method = holder.methods.singleOrNull { candidate ->
             candidate.parameterTypes.isEmpty() && candidate.returnType == field.type &&
@@ -199,6 +252,24 @@ internal fun Method.writesLinkedPosts() = LINKED_POST_KEYS.all { key -> implemen
 /** The fields a method that [writesLinkedPosts] reads for them, on the build's data classes. */
 internal fun Method.linkedPostFields() = LINKED_POST_KEYS.mapNotNull { fieldWrittenAs(it) }
 
+/** The interface getters a method that [writesLinkedPosts] calls for them, as 457 writes them. */
+internal fun Method.linkedPostGetters() = LINKED_POST_KEYS.mapNotNull { getterWrittenAs(it) }
+
+/**
+ * The interface getter this method calls and tests for null just before it names [key]:
+ * `invoke-interface {vB}, getter()L; move-result-object vA; if-eqz vA; const-string`.
+ */
+private fun Method.getterWrittenAs(key: String): MethodReference? {
+    val code = implementation!!.instructions.toList()
+    val named = code.indexOfFirst { it.isString(key) }
+    if (named < 3 || code[named - 3].opcode != Opcode.INVOKE_INTERFACE || code[named - 2].opcode != Opcode.MOVE_RESULT_OBJECT ||
+        code[named - 1].opcode != Opcode.IF_EQZ
+    ) return null
+    if ((code[named - 2] as OneRegisterInstruction).registerA != (code[named - 1] as OneRegisterInstruction).registerA) return null
+    val called = (code[named - 3] as ReferenceInstruction).reference as MethodReference
+    return called.takeIf { it.parameterTypes.isEmpty() && it.returnType.startsWith("L") }
+}
+
 /** The field this method loads and tests for null just before it names [key]: `iget-object vA; if-eqz vA; const-string`. */
 private fun Method.fieldWrittenAs(key: String): FieldReference? {
     val code = implementation!!.instructions.toList()
@@ -248,7 +319,9 @@ private fun BytecodePatchContext.bridgeWriter(patch: String, bridges: List<Bridg
             if (stub.implementation!!.instructions.first().opcode == Opcode.CHECK_CAST) return@forEach
             stub.addInstructions(
                 0,
-                if (bridge.primitive) {
+                if (bridge.reads) {
+                    "check-cast p0, ${bridge.receiver}\n${bridge.call}\nreturn-object p0"
+                } else if (bridge.primitive) {
                     """
                         check-cast p0, ${bridge.receiver}
                         ${bridge.call}

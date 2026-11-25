@@ -62,6 +62,10 @@ final class ProfilesCategory {
                         L10n.t("Long press a profile picture to view it"),
                         L10n.t("Long press the picture at the top of a profile to open the whole square picture at full "
                                 + "size, with Save under it, instead of Instagram's own preview. A tap works as before.")));
+                profiles.addPreference(toggle(context, Settings.RING_TAP_OPENS_STORY,
+                        L10n.t("A story ring opens the story"),
+                        L10n.t("Tapping the picture at the top of a profile with a story ring opens the story whenever "
+                                + "Instagram has it, where Instagram sometimes opens the picture instead.")));
                 profiles.addPreference(toggle(context, Settings.PROFILE_HISTORY, L10n.t("Keep profile history"),
                         L10n.t("Remembers the username, bio and profile picture of each profile you open, on this phone "
                                 + "only, and tells you when one changed since your last visit. Pictures are copied from "
@@ -156,6 +160,13 @@ final class ProfilesCategory {
                         return true;
                     });
                     profiles.addPreference(mark(clearUnfollowers, SettingsIcons.DELETE));
+                    profiles.addPreference(toggle(context, Settings.FOLLOW_LIST_FILTER, L10n.t("Hold a follow list's tabs to filter it"),
+                            L10n.t("In any Followers or Following list, hold a tab at the top to show everyone, only public "
+                                    + "accounts or only private ones. Accounts Instagram hasn't said either way about stay.")));
+                    profiles.addPreference(toggle(context, Settings.FOLLOW_DATES, L10n.t("Follow dates in your lists"),
+                            L10n.t("Your own Followers and Following lists show since when each account follows you, or you "
+                                    + "them. Dates start the first time you scroll a list to the end with this on, so "
+                                    + "accounts already there get none.")));
                 }
             }
             if (build.contains(PatchFamily.ASK_BEFORE_FOLLOW)) {

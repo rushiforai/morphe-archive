@@ -451,6 +451,10 @@
     "Keep list position": [
       "KEEP_LIST_POSITION"
     ],
+    "List search and tap to top": [
+      "LIST_SEARCH",
+      "LIST_TAB_TO_TOP"
+    ],
     "Episodes in full screen": [
       "LANDSCAPE_EPISODES"
     ],

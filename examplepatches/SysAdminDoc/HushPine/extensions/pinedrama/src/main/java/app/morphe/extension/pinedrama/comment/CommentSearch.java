@@ -910,11 +910,11 @@ public final class CommentSearch {
     }
 
     /** A magnifier drawn with the clear glyph's stroke, so the two read as one set. */
-    static final class SearchGlyphDrawable extends Drawable {
+    public static final class SearchGlyphDrawable extends Drawable {
         private final Paint paint = new Paint(Paint.ANTI_ALIAS_FLAG);
         private final int size;
 
-        SearchGlyphDrawable(Context context, int color) {
+        public SearchGlyphDrawable(Context context, int color) {
             paint.setColor(color);
             paint.setStyle(Paint.Style.STROKE);
             paint.setStrokeWidth(SettingsUi.strokePx(context, 2f));

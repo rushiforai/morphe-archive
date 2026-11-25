@@ -1,0 +1,77 @@
+name: App versions
+
+# Once a day, looks for a version of each app that this bundle doesn't support yet, and tries it:
+# app-version.yml does the work for one app, with the "versions" settings in .github/apps/<app>.json.
+# Every app with those settings is checked, so adding an app adds no workflow.
+#
+# Run it by hand with an app (the name of its file in .github/apps, without .json) and a version to
+# try that one, for example after uploading its file to JoFSlash/morphe-apks:
+#   gh workflow run versions.yml -f app=<app> -f version=<version>
+# Without an app it checks every app, as the scheduled run does.
+
+on:
+  schedule:
+    - cron: '15 6 * * *'
+  workflow_dispatch:
+    inputs:
+      app:
+        description: 'App to check (empty: every app)'
+        required: false
+      version:
+        description: 'Version to try (needs an app; empty: the newest one found)'
+        required: false
+
+permissions:
+  contents: write
+  pull-requests: write
+  issues: write
+  packages: read
+
+jobs:
+  apps:
+    name: List the apps
+    runs-on: ubuntu-latest
+    outputs:
+      apps: ${{ steps.list.outputs.apps }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: List the apps
+        id: list
+        env:
+          APP: ${{ inputs.app }}
+          VERSION: ${{ inputs.version }}
+        run: |
+          if [ -n "$VERSION" ] && [ -z "$APP" ]; then
+            echo "::error::A version to try needs the app it belongs to."; exit 1
+          fi
+          apps=$(python3 - <<'EOF'
+          import json, os, pathlib
+          wanted = os.environ["APP"]
+          apps = [p.stem for p in sorted(pathlib.Path(".github/apps").glob("*.json"))
+                  if "versions" in json.loads(p.read_text(encoding="utf-8"))]
+          if wanted:
+              if wanted not in apps:
+                  raise SystemExit(f"::error::{wanted} has no .github/apps/{wanted}.json with \"versions\".")
+              apps = [wanted]
+          print(json.dumps(apps))
+          EOF
+          )
+          echo "To check: $apps"
+          echo "apps=$apps" >> "$GITHUB_OUTPUT"
+
+  version:
+    name: ${{ matrix.app }}
+    needs: apps
+    strategy:
+      fail-fast: false
+      # A few at a time, so APKMirror and APKPure aren't asked for many files at once.
+      max-parallel: 3
+      matrix:
+        app: ${{ fromJSON(needs.apps.outputs.apps) }}
+    uses: ./.github/workflows/app-version.yml
+    secrets: inherit
+    with:
+      app: ${{ matrix.app }}
+      version: ${{ inputs.version || '' }}

@@ -56,6 +56,7 @@ import dev.jason.gboardpatches.patches.gboard.features.manualincognito.gboardMan
 import dev.jason.gboardpatches.patches.gboard.features.packagerename.GboardPackageRenameTarget
 import dev.jason.gboardpatches.patches.gboard.features.packagerename.applyGboardApplicationDisplayName
 import dev.jason.gboardpatches.patches.gboard.features.packagerename.gboardPackageRenameResourcePatch
+import dev.jason.gboardpatches.patches.gboard.features.playstoreupdates.gboardDisablePlayStoreUpdatesResourcePatch
 import dev.jason.gboardpatches.patches.gboard.features.appicon.gboardCustomAppIconResourcePatch
 import dev.jason.gboardpatches.patches.gboard.features.packagerename.isValidGboardAppDisplayName
 import dev.jason.gboardpatches.patches.gboard.features.packagerename.isValidGboardTargetPackageName
@@ -747,6 +748,23 @@ val gboardPackageRenamePatch = gboardPublicResourcePatch(
 }
 
 @Suppress("unused")
+val gboardDisablePlayStoreUpdatesPatch = gboardPublicResourcePatch(
+    featureId = "disable_play_store_updates",
+    name = "Disable Play Store updates",
+    description = "Disables Google Play Store updates by setting the version code to the maximum allowed (2147483647). " +
+        "Useful when keeping the official com.google.android.inputmethod.latin package name; does not work with root mounting.\n" +
+        "Отключает обновления из Google Play Store, устанавливая максимально допустимый код версии (2147483647). " +
+        "Полезно при использовании официального имени пакета com.google.android.inputmethod.latin; не работает при корневом монтировании.",
+    default = false,
+) {
+    compatibleWith(COMPATIBILITY_GBOARD)
+
+    dependsOn(
+        gboardDisablePlayStoreUpdatesResourcePatch,
+    )
+}
+
+@Suppress("unused")
 val gboardSignatureBypassPatch = gboardPublicResourcePatch(
     featureId = "add_gboard_signature_bypass",
     name = "Add Gboard Signature Bypass",
@@ -798,6 +816,7 @@ object GboardPublishedPatchCatalog {
         gboardKeypressHapticsPatch,
         gboardSettingsHomepagePatch,
         gboardPackageRenamePatch,
+        gboardDisablePlayStoreUpdatesPatch,
         gboardSignatureBypassPatch,
     ).filterTo(linkedSetOf()) { patch -> patch.name != null }
 

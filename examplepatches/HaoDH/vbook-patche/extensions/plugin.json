@@ -1,0 +1,19 @@
+{
+  "metadata": {
+    "name": "HaoDH – vBook Extensions",
+    "author": "HaoDH",
+    "description": "Tiện ích biên tập truyện convert bằng DeepSeek"
+  },
+  "data": [
+    {
+      "name": "DeepSeek – Biên tập truyện convert",
+      "author": "HaoDH",
+      "version": 3,
+      "source": "https://api.deepseek.com",
+      "description": "Biên tập QT/Hán Việt thành tiếng Việt tự nhiên khi đọc; xử lý riêng khoảng chương A–B và lưu kết quả theo truyện.",
+      "type": "translate",
+      "locale": "vi_VN",
+      "path": "https://github.com/HaoDH/vbook-patche/releases/download/convert-editor-1.1.1/vbook-convert-editor-1.1.1.zip"
+    }
+  ]
+}

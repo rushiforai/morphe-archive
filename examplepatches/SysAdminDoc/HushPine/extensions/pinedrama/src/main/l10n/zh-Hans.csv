@@ -1833,3 +1833,9 @@ Preferred subtitles,首选字幕
 Preferred dubs,首选配音
 Always open on Home,始终在首页打开
 "PineDrama sometimes starts on Discover, like in the first days after an install. This starts it on Home instead.",PineDrama 有时会在“发现”页启动，比如安装后的头几天。开启后会改为在首页启动.
+Search this list,搜索此列表
+Nothing in this list matches,此列表中没有匹配项
+Tap the tab you're on to go back to the top,点按当前标签返回顶部
+Tapping the tab you're already on in History or Favorites takes that list back to its first row.,"在历史记录或收藏中点按当前所在的标签,该列表会回到第一行."
+Search History and Favorites,搜索历史记录和收藏
+"Puts a search bar above these lists. It looks through the whole list, loading the rest as it goes, and tapping a result opens it.","在这些列表上方添加搜索栏。它会查看整个列表,边查看边加载其余部分,点按结果即可打开."

@@ -65,6 +65,7 @@ class MessageMenuFixtureTest {
 
     internal fun hosts(build: File): List<ClassDef> = baseHosts(build).let { it + selectBetweenHosts(build, it) }.let { it + hideForMeHosts(build, it) }
         .let { it + sharedMediaSelectAllHosts(build, it) }.let { it + alsoDeleteHosts(build, it) }.let { it + photoEditHosts(build, it) }
+        .let { it + linkPreviewHosts(build, it) }
 
     private fun baseHosts(build: File): List<ClassDef> {
         val found = FixtureDex.classesWhere(build, { true }) { m ->
@@ -73,7 +74,7 @@ class MessageMenuFixtureTest {
                 AccessFlags.STATIC.isSet(m.accessFlags) && params == listOf("I", "I", list, list) && m.origReturnType == "V" ||
                 // 13.2's label helper also takes the icon and returns it boxed.
                 AccessFlags.STATIC.isSet(m.accessFlags) && params == listOf("I", list, "I", list, "I") && m.origReturnType == "Ljava/lang/Integer;" ||
-                m.origName == "getParentActivity" && params.isEmpty() || m.isSelectionCanCopy() || m.isStorySaveMenu() || m.isScreenshotSlice() ||
+                m.origName == "getParentActivity" && params.isEmpty() || m.isSelectionCanCopy() || m.isScreenshotSlice() || m.isLinkPreviewMenu() ||
                 m.controlBody().map { it.controlRef() }.let { IS_PREMIUM in it && FORWARDS in it && NAME_HIDE in it }
         }
         return (FixtureDex.classes(build, fixed).values + found).distinctBy { it.type }.map(ImmutableClassDef::of)
@@ -90,6 +91,8 @@ class MessageMenuFixtureTest {
             val oldFill = ImmutableMethod.of(site.fill)
             val oldChoose = ImmutableMethod.of(site.choose)
             assertEquals(emptyList<String>(), PatchLogCapture.warnings { messageMenuPatch.execute(context) })
+            assertEquals("$name: the timed viewer's hook went in", 1, context.tgMutableClassDefBy(SECRET_VIEWER).methods
+                .count { m -> m.controlBody().any { it.controlRef() == SCREENSHOTS_TIMED } })
 
             // The builder: the call sits where its one return was, and every branch to that return lands on the call.
             val before = oldFill.controlBody()
@@ -191,6 +194,10 @@ class MessageMenuFixtureTest {
                 assertEquals("$name: the stub's authority", site.authority, stub("uri").first().controlString())
             }
             assertTrue("$name: Telegram's downloaded copy", stub("photoFile").any { it.controlRef() == "Lorg/telegram/messenger/FileLoader;->getPathToMessage(Lorg/telegram/tgnet/TLRPC\$Message;)Ljava/io/File;" })
+            val photoFile = stub("photoFile").mapNotNull { it.controlRef() }
+            assertTrue("$name: a video's chosen quality is looked for first: $photoFile",
+                photoFile.indexOf("Lorg/telegram/messenger/FileLoader;->getPathToAttach(Lorg/telegram/tgnet/TLObject;Z)Ljava/io/File;") in
+                    0 until photoFile.indexOf("Lorg/telegram/messenger/FileLoader;->getPathToMessage(Lorg/telegram/tgnet/TLRPC\$Message;)Ljava/io/File;"))
             assertTrue("$name: no photo behind the age filter", stub("photo").any { it.controlRef() == "Lorg/telegram/messenger/MessageObject;->isHiddenSensitive()Z" })
             // Message details: the file's type, name, picture size and length, each from Telegram's own field.
             val document = "Lorg/telegram/tgnet/TLRPC\$Document;"

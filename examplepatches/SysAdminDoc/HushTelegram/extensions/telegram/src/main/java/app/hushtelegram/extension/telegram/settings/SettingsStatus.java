@@ -49,8 +49,7 @@ public final class SettingsStatus {
     public static boolean commercePremiumEffects() { return false; }
     public static boolean commercePremiumEmojiPacks() { return false; }
     public static boolean commerceEmojiStatus() { return false; }
-    public static boolean commercePremiumIcons() { return false; }
-    public static boolean commerceLocalEmojiStatus() { return false; }
+    public static boolean commerceMovingEmojiStatus() { return false; }
     public static boolean hidePromotionalBanners() { return false; }
     public static boolean promotionalSuggestions() { return false; }
     public static boolean birthdayGiftBanner() { return false; }
@@ -78,6 +77,7 @@ public final class SettingsStatus {
     public static boolean registrationDate() { return false; }
     public static boolean memberJoinDates() { return false; }
     public static boolean forwardDates() { return false; }
+    public static boolean localNames() { return false; }
     public static boolean chatDoubleTapReaction() { return false; }
     public static boolean previewDoubleTapReaction() { return false; }
     public static boolean reactionRows() { return false; }
@@ -85,8 +85,8 @@ public final class SettingsStatus {
     public static boolean reactionSelection() { return false; }
     public static boolean emojiPackNote() { return false; }
     public static boolean copySelection() { return false; }
-    public static boolean storySave() { return false; }
     public static boolean allowScreenshots() { return false; }
+    public static boolean timedScreenshots() { return false; }
     public static boolean quietContactsNag() { return false; }
     public static boolean holidayLook() { return false; }
     public static boolean titleEmoji() { return false; }
@@ -98,16 +98,19 @@ public final class SettingsStatus {
     public static boolean listBackground() { return false; }
     public static boolean hideTranslateBar() { return false; }
     public static boolean hidePinnedBar() { return false; }
+    public static boolean alwaysTranslateBar() { return false; }
     public static boolean exactNumbers() { return false; }
     public static boolean revealSpoilers() { return false; }
     public static boolean chatRevealMenu() { return false; }
     public static boolean searchHitQuotes() { return false; }
+    public static boolean revealTimedMedia() { return false; }
     public static boolean hideKeyboardOnScroll() { return false; }
     public static boolean keepVideosMuted() { return false; }
     public static boolean videoEitherLandscape() { return false; }
     public static boolean videoOnlyFromButton() { return false; }
     public static boolean videoStartsSilent() { return false; }
     public static boolean videoTracks() { return false; }
+    public static boolean externalPlayer() { return false; }
     public static boolean swipeBackOnProfiles() { return false; }
     public static boolean hidePhoneNumber() { return false; }
     public static boolean shareNumberUnticked() { return false; }
@@ -121,17 +124,17 @@ public final class SettingsStatus {
     public static boolean hideFolderCounters() { return false; }
     public static boolean launchFolder() { return false; }
     public static boolean hideAllChats() { return false; }
-    public static boolean allChatsPlace() { return false; }
     public static boolean hiddenChats() { return false; }
     public static boolean sortByDate() { return false; }
-    public static boolean localPins() { return false; }
     public static boolean fitTabs() { return false; }
     public static boolean tabIcons() { return false; }
+    public static boolean bottomTabs() { return false; }
     public static boolean hiddenPasscode() { return false; }
     public static boolean adminChats() { return false; }
     public static boolean hiddenAccounts() { return false; }
     public static boolean hiddenUnread() { return false; }
     public static boolean chatListAvatar() { return false; }
+    public static boolean savedMediaFirst() { return false; }
     public static boolean forwardHideSender() { return false; }
     public static boolean voiceMusicPlayer() { return false; }
     public static boolean playbackPosition() { return false; }
@@ -144,6 +147,7 @@ public final class SettingsStatus {
     public static boolean alsoDeleteChecked() { return false; }
     public static boolean bookmarks() { return false; }
     public static boolean photoEdit() { return false; }
+    public static boolean linkPreviewPhoto() { return false; }
     public static boolean silenceNonContacts() { return false; }
     public static boolean disableArchivePull() { return false; }
     public static boolean rearCameraFirst() { return false; }
@@ -153,6 +157,8 @@ public final class SettingsStatus {
     public static boolean hideBlockedInGroups() { return false; }
     public static boolean hideByKeyword() { return false; }
     public static boolean stickerSize() { return false; }
+    public static boolean keepStickerCache() { return false; }
+    public static boolean stickerPanelSize() { return false; }
     public static boolean hideFeaturesAndInvite() { return false; }
     public static boolean messageMenuRepeat() { return false; }
     public static boolean keepDeleted() { return false; }
@@ -173,6 +179,8 @@ public final class SettingsStatus {
     public static boolean compactTabBar() { return false; }
     public static boolean sideMenu() { return false; }
     public static boolean hideNewMessage() { return false; }
+    public static boolean hideDownloadsButton() { return false; }
+    public static boolean alwaysShowDownloadsButton() { return false; }
     public static boolean barOutline() { return false; }
     public static boolean fasterDownloads() { return false; }
     public static boolean dataSaverDownloads() { return false; }
@@ -270,7 +278,6 @@ public final class SettingsStatus {
     public static boolean deleteAccount() { return false; }
     public static boolean duressWipe() { return false; }
     public static boolean suppressScreenshotNotification() { return false; }
-    public static boolean unlockPremium() { return false; }
     public static boolean bypassChannelRestrictions() { return false; }
     public static boolean openRestrictedChats() { return false; }
     public static boolean bannedChannelWeb() { return false; }

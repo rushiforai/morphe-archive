@@ -25,7 +25,7 @@ public final class GboardLongPressQuickActionsSettingsFeatureTest {
         Assert.assertEquals("Long-Press Editing Shortcuts", screen.getToolbarTitle());
         Assert.assertEquals(2, screen.getSections().size());
         Assert.assertEquals("Feature", screen.getSections().get(0).getTitle());
-        Assert.assertEquals(3, screen.getSections().get(0).getItems().size());
+        Assert.assertEquals(4, screen.getSections().get(0).getItems().size());
         Assert.assertTrue(screen.getSections().get(0).getItems().get(0)
                 instanceof GboardPatchesSettingsContract.ToggleRow);
         GboardPatchesSettingsContract.ToggleRow toggle =

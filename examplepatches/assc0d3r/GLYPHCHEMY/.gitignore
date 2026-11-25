@@ -1,0 +1,24 @@
+# Build outputs
+build/
+dist/
+*.apk
+*.apks
+
+# Gradle
+.gradle/
+
+# IDE files
+.idea/
+*.iml
+.vscode/
+
+# Local cache and libraries
+libs/
+local.properties
+*.log
+
+# Local scratch (upstream clones, dexquery output, screenshots)
+tmp/
+
+# Python bytecode cache
+__pycache__/

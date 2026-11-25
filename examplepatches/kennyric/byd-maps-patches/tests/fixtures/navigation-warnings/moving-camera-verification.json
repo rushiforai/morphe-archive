@@ -1,0 +1,192 @@
+{
+  "format": 1,
+  "runs": [
+    {
+      "receiver": "maps",
+      "folder": ".analysis/native-warning-bindings/maps-moving-camera-01",
+      "installed_sha256": {
+        "nl.flitsmeister": "f76a1afc4e971cd81ad1a4f8aae8bed367a6b3f2391b78f6e1a15d599e0b622c",
+        "org.ungoogled.android.apps.maps": "a85076dbe6b94cab28f5148a81faa1b90ea2fb152e97f60f6ce8f54659b52efb",
+        "app.vela": "db277bae28b17584c34c31caa0eea313a76b45ed118084e5e9a856d9044e1670"
+      },
+      "raw_sha256": {
+        ".analysis/native-warning-bindings/maps-moving-camera-01/result.json": "d2253aa33a50826f98606aa642c9569966db8c08c2bcfd45bc7a1cb4a3f2890e",
+        ".analysis/native-warning-bindings/maps-moving-camera-01/seed-receiver-result.json": "7f0f3e9e84d575203de361e7a29af725ef159ed7952519a34013c19a1ebb999c",
+        ".analysis/native-warning-bindings/maps-moving-camera-01/seed-source/492a2e78-b9bc-41ec-bd7d-177675b9f696/result.json": "544272f6956fa5bba4e060b2c7da9c0a65e9872a8e05bb86c115ff80e49e4ead"
+      },
+      "helper_sha256": {
+        "maps": "918d116d16602d3701f013b894988298ceed621d18e0e93c54dfe9d34751318d",
+        "vela": "d908422df8d23b05a00f56d58af385092929d8815afa7f3eeceadba82af1addd",
+        "source": "e2446a2461416631427c5bff87fad05e147fbf5dbe28a3eb9f40182cee8d1823"
+      },
+      "source_uid": 10192,
+      "receiver_uid": 10194,
+      "cases": [
+        {
+          "speed_kmh": 50,
+          "native_decision_distance_m": 276.0138973121643,
+          "decision_to_start_ms": 294,
+          "issued_to_start_ms": 285,
+          "receiver_accept_to_start_ms": 283,
+          "started_lead_ms": 19607,
+          "completion_lead_ms": 18095,
+          "native_receiving_gps_samples": 23,
+          "native_clear_sequence": 3,
+          "message": "Speed cam 50",
+          "warning_id": "SpeedCam:probe-restart-2cf3fe2ead0643e1b59303a155662636-moving-50",
+          "event_key": "e9ba70f7ba2d0247b34553e4b2e5066a509a015ea5745e22d37bf963d41e241c",
+          "attempt_id": "ea04af31-ee69-4d2b-a725-c28a728f3fe5"
+        },
+        {
+          "speed_kmh": 100,
+          "native_decision_distance_m": 551.8611279525757,
+          "decision_to_start_ms": 73,
+          "issued_to_start_ms": 67,
+          "receiver_accept_to_start_ms": 65,
+          "started_lead_ms": 19819,
+          "completion_lead_ms": 18099,
+          "native_receiving_gps_samples": 27,
+          "native_clear_sequence": 6,
+          "message": "Speed cam 100",
+          "warning_id": "SpeedCam:probe-restart-2cf3fe2ead0643e1b59303a155662636-moving-100",
+          "event_key": "00c453e173fc8a03d03275549403f454b310dbe37ecd8ce9cec0663556dc121d",
+          "attempt_id": "3511f5c7-827b-4d20-b9b2-07110f6694f0"
+        },
+        {
+          "speed_kmh": 130,
+          "native_decision_distance_m": 720.6333248748779,
+          "decision_to_start_ms": 113,
+          "issued_to_start_ms": 93,
+          "receiver_accept_to_start_ms": 88,
+          "started_lead_ms": 19906,
+          "completion_lead_ms": 17705,
+          "native_receiving_gps_samples": 27,
+          "native_clear_sequence": 9,
+          "message": "Speed cam 130",
+          "warning_id": "SpeedCam:probe-restart-2cf3fe2ead0643e1b59303a155662636-moving-130",
+          "event_key": "e6dd0d145e3246de0f418c115a32a7448a0fc2eabbeb1fe3a105942b0709fd83",
+          "attempt_id": "2d55f928-beff-4240-8821-d4ca585c0da0"
+        }
+      ],
+      "actual_starts": 3,
+      "actual_completions": 3,
+      "extra_start_from_native_update_or_clear": false,
+      "exact_cleanup_verified": true,
+      "scope": "Original SpeedCamTask.a/d decisions with private candidate/location fixtures and real emulator GPS in the receiver. No public repository mutation or direct warning-manager trigger; not natural detector, physical driving or car-output acceptance."
+    },
+    {
+      "receiver": "vela",
+      "folder": ".analysis/native-warning-bindings/vela-moving-camera-02",
+      "installed_sha256": {
+        "nl.flitsmeister": "f76a1afc4e971cd81ad1a4f8aae8bed367a6b3f2391b78f6e1a15d599e0b622c",
+        "org.ungoogled.android.apps.maps": "a85076dbe6b94cab28f5148a81faa1b90ea2fb152e97f60f6ce8f54659b52efb",
+        "app.vela": "db277bae28b17584c34c31caa0eea313a76b45ed118084e5e9a856d9044e1670"
+      },
+      "raw_sha256": {
+        ".analysis/native-warning-bindings/vela-moving-camera-02/result.json": "26f4da101e7f5374601aa4f1707783361895cc82a3b42729d36c7c1a9a86ccd1",
+        ".analysis/native-warning-bindings/vela-moving-camera-02/seed-receiver-result.json": "107de55044d1cd05c2dc9c3d309baef295d80b6a0047f5c561a519bbd0bbb420",
+        ".analysis/native-warning-bindings/vela-moving-camera-02/seed-source/fe4a661f-edcb-4ca7-ad63-ea2134f7ae77/result.json": "e63ef5707d68e384b36b4f3ae3e601932b19cf7cd109538ba3d13fd23d7f8b75"
+      },
+      "helper_sha256": {
+        "maps": "918d116d16602d3701f013b894988298ceed621d18e0e93c54dfe9d34751318d",
+        "vela": "d908422df8d23b05a00f56d58af385092929d8815afa7f3eeceadba82af1addd",
+        "source": "e2446a2461416631427c5bff87fad05e147fbf5dbe28a3eb9f40182cee8d1823"
+      },
+      "source_uid": 10192,
+      "receiver_uid": 10193,
+      "cases": [
+        {
+          "speed_kmh": 50,
+          "native_decision_distance_m": 275.58334174346925,
+          "decision_to_start_ms": 880,
+          "issued_to_start_ms": 873,
+          "receiver_accept_to_start_ms": 871,
+          "started_lead_ms": 19050,
+          "completion_lead_ms": 17485,
+          "native_receiving_gps_samples": 23,
+          "native_clear_sequence": 3,
+          "message": "Speed cam 50",
+          "warning_id": "SpeedCam:probe-restart-f5d8dfd7ff614fdfb31ff8d470fac00b-moving-50",
+          "event_key": "01a408041d84f1fedf115b4deb2c5d29c845740438d62b5185905fafc850ab94",
+          "attempt_id": "865180ce-38b3-4a1f-9f53-127ac3770bc8"
+        },
+        {
+          "speed_kmh": 100,
+          "native_decision_distance_m": 552.0555724029541,
+          "decision_to_start_ms": 795,
+          "issued_to_start_ms": 790,
+          "receiver_accept_to_start_ms": 789,
+          "started_lead_ms": 19172,
+          "completion_lead_ms": 17453,
+          "native_receiving_gps_samples": 26,
+          "native_clear_sequence": 6,
+          "message": "Speed cam 100",
+          "warning_id": "SpeedCam:probe-restart-f5d8dfd7ff614fdfb31ff8d470fac00b-moving-100",
+          "event_key": "e7018befbbcd08fd1f8025bade02b1a8ae17b551d847e6eda83edf29f7d2eff1",
+          "attempt_id": "26fe8ec1-f032-4ed2-9f14-4dcf5092c94c"
+        },
+        {
+          "speed_kmh": 130,
+          "native_decision_distance_m": 720.8861026496887,
+          "decision_to_start_ms": 794,
+          "issued_to_start_ms": 788,
+          "receiver_accept_to_start_ms": 787,
+          "started_lead_ms": 19258,
+          "completion_lead_ms": 17036,
+          "native_receiving_gps_samples": 27,
+          "native_clear_sequence": 9,
+          "message": "Speed cam 130",
+          "warning_id": "SpeedCam:probe-restart-f5d8dfd7ff614fdfb31ff8d470fac00b-moving-130",
+          "event_key": "c6af84dfc6617c274ea2214c38943e8756639efeaa11279f4a4bd7a72309e4c2",
+          "attempt_id": "f00f1965-f552-4ab9-b4b9-d87e11d14e25"
+        }
+      ],
+      "actual_starts": 3,
+      "actual_completions": 3,
+      "extra_start_from_native_update_or_clear": false,
+      "exact_cleanup_verified": true,
+      "scope": "Original SpeedCamTask.a/d decisions with private candidate/location fixtures and real emulator GPS in the receiver. No public repository mutation or direct warning-manager trigger; not natural detector, physical driving or car-output acceptance."
+    }
+  ],
+  "native_original_apk_sha256": "17f622c8072c9fd8bd121b872a3733a9a22aaff041d57560f6f3dd59a33ce1b7",
+  "native_task": "Lx9i;->a(Landroid/location/Location;)V and d(Landroid/location/Location;)V",
+  "native_decision_boundary": "Private original SpeedCamTask candidate-list/location input; original geometry, native 20-second default, manager and journal unchanged",
+  "native_static_evidence": {
+    "path": ".analysis/native-warning-bindings/moving-camera-native-static.json",
+    "sha256": "00f71df77697475bb40b78492ebc6e5e6e176d96b4fc224eed5c81d049f3a443"
+  },
+  "negative_controls": [
+    {
+      "control": "duplicate_native_start",
+      "rejected": true
+    },
+    {
+      "control": "missing_native_gps",
+      "rejected": true
+    },
+    {
+      "control": "changed_spoken_payload",
+      "rejected": true
+    }
+  ],
+  "failed_baseline": {
+    "path": ".analysis/native-warning-bindings/vela-moving-camera-01/result.json",
+    "reason": "Initial coordinator compared Vela onboarding granted permissions against the already granted temporary route snapshot. All three outputs completed, but acceptance was rejected for this incorrect secondary cleanup baseline. The original route baseline was restored; rerun 02 passed both baseline comparisons."
+  },
+  "scope_boundaries": [
+    "Private camera candidate list; no public report or repository writes and no natural detector-quality claim",
+    "Timed native-task location fixtures mirrored to actual emulator GPS; no physical driving acceptance",
+    "Straight approach and native passed-point CLEAR; route-bend, parallel-road and delayed/replay scenarios remain separate",
+    "System voice through both receivers on the directed-route APKs; other modes, compatibility/lifecycle, car routing and final review/delivery remain open"
+  ],
+  "final_owned_guest_state": {
+    "path": ".analysis/native-warning-bindings/moving-camera-end-state.json",
+    "test_targets_stopped": true,
+    "controlled_gps_returned_to_fixture_start": {
+      "latitude": 52.37,
+      "longitude": 4.9,
+      "speed_knots": 0
+    },
+    "original_physical_location_restoration_claimed": false
+  }
+}

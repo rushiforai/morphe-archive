@@ -1,7 +1,7 @@
 ![HushMessenger. Keep the conversation. Cut the friction.](assets/readme-hero.png)
 
 <p align="center">
-  <a href="https://github.com/SysAdminDoc/HushMessenger/releases/tag/v0.30.0"><img src="https://img.shields.io/badge/version-0.30.0-0084FF" alt="Version 0.30.0"></a>
+  <a href="https://github.com/SysAdminDoc/HushMessenger/releases/tag/v0.31.0"><img src="https://img.shields.io/badge/version-0.31.0-0084FF" alt="Version 0.31.0"></a>
   <a href="LICENSE"><img src="https://img.shields.io/badge/license-GPL--3.0-blue" alt="License GPL-3.0"></a>
   <img src="https://img.shields.io/badge/platform-Android%209%2B%20arm64%20%7C%20armv7-3DDC84" alt="Platform Android 9 or newer, arm64 and armv7">
   <img src="https://img.shields.io/badge/Messenger-587.0.0.54.96-0084FF" alt="Messenger 587.0.0.54.96">
@@ -35,7 +35,7 @@ Every switch starts off, so a freshly patched Messenger behaves like stock until
 3. **Patch Messenger.** The default selection includes every switch. Five patches start unselected because they change the app itself with no switch to undo them (see [Patches without a switch](#patches-without-a-switch)). To add one, turn on **Settings > Advanced > Expert mode** in Manager and use **Choose patches**.
 4. **Keep one source.** Don't add the remote source and a local copy together, and don't mix in Messenger patches from other sources.
 
-Prefer a local source? Download [`patches-0.30.0.mpp`](https://github.com/SysAdminDoc/HushMessenger/releases/tag/v0.30.0) and add it through **Sources > + > Local**. It won't update itself. The `.mpp` file is a patch bundle, not a Messenger APK. Morphe Desktop 2.1.0 or newer can load the same source too.
+Prefer a local source? Download [`patches-0.31.0.mpp`](https://github.com/SysAdminDoc/HushMessenger/releases/tag/v0.31.0) and add it through **Sources > + > Local**. It won't update itself. The `.mpp` file is a patch bundle, not a Messenger APK. Morphe Desktop 2.1.0 or newer can load the same source too.
 
 There are Hush patch sources for other apps too: [Hushfacebook](https://github.com/SysAdminDoc/HushFacebook) for Facebook, [HushGram](https://github.com/SysAdminDoc/HushGram) for Instagram, [HushPine](https://github.com/SysAdminDoc/HushPine) for PineDrama, [HushPinterest](https://github.com/SysAdminDoc/HushPinterest) for Pinterest, [HushTelegram](https://github.com/SysAdminDoc/HushTelegram) for Telegram, [HushThreads](https://github.com/SysAdminDoc/HushThreads) for Threads, [Hushfeed](https://github.com/SysAdminDoc/HushFeed) for TikTok and [HushTumblr](https://github.com/SysAdminDoc/HushTumblr) for Tumblr. Each one is a separate source in Manager, so add only the ones for apps you patch.
 
@@ -73,6 +73,7 @@ These start unselected:
 - **Clone install under another package name** installs a second Messenger beside the first (`com.facebook.orca.hush` by default). Push notifications may not reach the copy, and Root Mount can't use it.
 - **Spoof package version** gives Messenger a very high version code so the Play Store stops offering updates. Keep it selected with the same number every time you patch, since Android won't install a lower code over a higher one.
 - **Custom new-message sound** plays a sound file you pick at patch time (.ogg, .mp3, .m4a or .wav, 1 MB or less).
+- **Custom chat sounds** does the same for the sounds as you send a message, once it has gone through, and for a new message while Messenger is open. Pick a file for any of the three.
 - **Custom launcher icon** makes the home screen icon white on black or black on white.
 - **GmsCore support** is only for phones that run [microG-RE](https://github.com/MorpheApp/MicroG-RE) instead of Google Play services. Leave it out on a phone with Play services, or Messenger gets no notifications.
 
@@ -140,10 +141,10 @@ On Windows, compare your file with `Get-FileHash -Algorithm SHA256 .\messenger.a
 
 ## Verify a download
 
-The [v0.30.0 release](https://github.com/SysAdminDoc/HushMessenger/releases/tag/v0.30.0) ships `SHA256SUMS.txt` beside the bundle. Compare its `.mpp` hash with your download.
+The [v0.31.0 release](https://github.com/SysAdminDoc/HushMessenger/releases/tag/v0.31.0) ships `SHA256SUMS.txt` beside the bundle. Compare its `.mpp` hash with your download.
 
 ```text
-de5870f82a4aa0bcf2b9808e66ae8839b95f2168582ffba8024604d71b758e4a  patches-0.30.0.mpp
+5e8c9e90d6e835e1d15c551582e155cd9c54618326dc85466146e0ea4e0ed4a8  patches-0.31.0.mpp
 ```
 
 `SHA256SUMS.txt.sig` is an SSH signature made with the project's release key. Its fingerprint is `SHA256:Z+UfHy7IUbtgNRO/wHkIr68+u4I+SIKPY9avfx/VAPU` and its public half is in [`scripts/release_signers`](scripts/release_signers). Morphe doesn't check this one, so that's up to you. Download the three files from the same tag and run this (OpenSSH 8.1 or newer, which Windows 10 and later include). In PowerShell, wrap it in `cmd /c "..."`.

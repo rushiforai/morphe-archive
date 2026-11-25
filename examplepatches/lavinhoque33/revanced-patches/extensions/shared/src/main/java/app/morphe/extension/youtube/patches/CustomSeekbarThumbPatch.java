@@ -4,7 +4,7 @@
  *
  * See the included NOTICE file for GPLv3 Section 7 terms that apply to this code.
  * Licensed under the GNU General Public License v3.0.
- * Modified by lavinhoque33, 2026-11-17.
+ * Modified by lavinhoque33, 2026-11-24.
  * Written by lavinhoque33, 2026-11-17 (fork integration).
  */
 
@@ -40,6 +40,7 @@ import java.nio.file.StandardCopyOption;
 import app.morphe.extension.shared.utils.Logger;
 import app.morphe.extension.shared.utils.Utils;
 import app.morphe.extension.shared.ui.Dim;
+import app.morphe.extension.youtube.patches.player.BufferedSeekbarPatch;
 import app.morphe.extension.youtube.settings.Settings;
 
 /**
@@ -60,11 +61,6 @@ public final class CustomSeekbarThumbPatch {
      * Largest width and height of the thumb.
      */
     private static final int MAX_THUMB_SIZE_DP = 64;
-    /**
-     * The seekbar uses a radius of about 1dp while the player controls are hidden,
-     * which is only as thick as the seekbar line, so the thumb is not shown then.
-     */
-    private static final int MIN_RADIUS_DP = 2;
     /**
      * Gives a thumb height of 24dp while the player controls are shown,
      * and follows the radius as the seekbar animates.
@@ -117,7 +113,8 @@ public final class CustomSeekbarThumbPatch {
      * Injection point.
      */
     public static void setSeekbarView(View view) {
-        if (Settings.CUSTOM_SEEKBAR_THUMB.get() && seekbarViewRef.get() != view) {
+        if ((Settings.CUSTOM_SEEKBAR_THUMB.get() || Settings.ENABLE_CUSTOM_SEEKBAR_COLOR.get())
+                && seekbarViewRef.get() != view) {
             seekbarViewRef = new WeakReference<>(view);
         }
     }
@@ -128,7 +125,14 @@ public final class CustomSeekbarThumbPatch {
      */
     public static void drawCircle(Canvas canvas, float cx, float cy, float radius, Paint paint) {
         try {
-            if (Settings.CUSTOM_SEEKBAR_THUMB.get() && radius >= Dim.dp(MIN_RADIUS_DP)) {
+            if (radius < Dim.dp2) {
+                View seekbar = seekbarViewRef.get();
+                if (seekbar != null && Settings.ENABLE_CUSTOM_SEEKBAR_COLOR.get()
+                        && BufferedSeekbarPatch.isHiddenPortraitWatch(seekbar)) {
+                    // The collapsed stock thumb would paint a primary-colored dot over the gradient's accent.
+                    return;
+                }
+            } else if (Settings.CUSTOM_SEEKBAR_THUMB.get()) {
                 Drawable thumb = getThumbDrawable();
                 if (thumb != null) {
                     drawThumb(canvas, thumb, cx, cy, radius);

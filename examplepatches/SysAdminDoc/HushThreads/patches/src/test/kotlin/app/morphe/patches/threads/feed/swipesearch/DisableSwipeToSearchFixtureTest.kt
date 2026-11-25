@@ -13,6 +13,7 @@ import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
 import app.morphe.patcher.patch.BytecodePatchContext
 import app.morphe.patcher.patch.PatchException
 import app.morphe.patches.threads.misc.extension.SETTINGS_STATUS
+import app.morphe.patches.threads.misc.extension.holdsNote
 import app.morphe.patches.threads.misc.extension.parameterRegister
 import app.morphe.patches.threads.misc.extension.parameterRegisterNumber
 import app.morphe.util.argumentRegister
@@ -56,7 +57,7 @@ class DisableSwipeToSearchFixtureTest {
             val where = build.name
             // Read apart from the patch: one method holds the note, and in it one if-eqz on a
             // boolean field skips a page read on the way to an array of two pages.
-            val holders = screens(build).flatMap { it.methods }.filter { method -> method.body().any { it.isTabsNote() } }
+            val holders = screens(build).flatMap { it.methods }.filter { it.holdsNote(TABS_NOTE) }
             assertEquals("$where: methods holding the note", 1, holders.size)
             val screen = holders.single()
             val code = screen.body()
@@ -169,7 +170,7 @@ class DisableSwipeToSearchFixtureTest {
 
     private fun context(build: File): BytecodePatchContext {
         val screens = screens(build)
-        val screen = screens.flatMap { it.methods }.single { method -> method.body().any { it.isTabsNote() } }
+        val screen = screens.flatMap { it.methods }.single { it.holdsNote(TABS_NOTE) }
         val code = screen.body()
         // The state and the page enum, read off the screen's pager check.
         val types = pagerChecks(code).flatMap { (guard, _) ->
@@ -200,9 +201,7 @@ class DisableSwipeToSearchFixtureTest {
         }
 
     private fun screens(build: File): List<ClassDef> = fixtures.getOrPut(build) {
-        FixtureDex.classesWhere(build, { dex -> dex.stringSection.any { it.startsWith(TABS_NOTE) } }) { method ->
-            method.implementation?.instructions?.any { it.isTabsNote() } == true
-        }
+        FixtureDex.classesWhere(build, { true }) { it.holdsNote(TABS_NOTE) }
     }
 
     private fun status(context: BytecodePatchContext) = (context.mutableClassDefBy(SETTINGS_STATUS).methods

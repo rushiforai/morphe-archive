@@ -132,6 +132,24 @@ internal object TrackReportFingerprint : Fingerprint(
     strings = listOf("Enter onInfoIdChanged: mediaType="),
 )
 
+internal const val AUDIO_TYPE = "Lcom/ss/android/ugc/aweme/feed/model/Audio;"
+private const val ORIGINAL_SOUND = "Lapp/morphe/extension/pinedrama/captions/OriginalSound;"
+
+/** Where a video's audio getter hands its audio back, and the register holding it. */
+internal data class AudioReturnSite(val at: Int, val audio: Int)
+
+/** The getter every reader of a video's dubs goes through, playback and preload alike. */
+internal fun audioGetter(methods: Iterable<Method>): Method =
+    methods.firstOrNull { it.name == "getAudio" && it.returnType == AUDIO_TYPE && it.parameterTypes.isEmpty() }
+        ?: throw PatchException("$PATCH: videos no longer have an audio getter.")
+
+internal fun audioReturnSite(method: Method): AudioReturnSite {
+    val code = method.code()
+    val returns = code.withIndex().filter { it.value.opcode == Opcode.RETURN_OBJECT }
+    if (returns.size != 1) throw PatchException("$PATCH: the audio getter has ${returns.size} returns.")
+    return AudioReturnSite(returns[0].index, (returns[0].value as OneRegisterInstruction).registerA)
+}
+
 /** Settles which track the caption overlay asks for, from the translation state it's handed. */
 internal object OverlayTargetFingerprint : Fingerprint(
     returnType = "L",
@@ -758,6 +776,19 @@ val subtitleDubPreferencePatch = bytecodePatch(
                 invoke-virtual {v${track.second}, v${track.kind}, v${track.first}}, ${engine.engine.definingClass}->${engine.engine.name}(II)V
                 :morphe_track_as_played
                 move/from16 v${track.kind}, v${track.kindParameter}
+            """,
+        )
+
+        // In other app languages a drama can play from a copy with the dub mixed into its sound
+        // and no dubs listed. Force original dub gives it the original sound as a track to switch to.
+        val getter = mutable(audioGetter(mutableClassDefBy(AWEME_TYPE).methods))
+        val returned = audioReturnSite(getter)
+        getter.addInstructionsAtControlFlowLabel(
+            returned.at,
+            """
+                invoke-static {p0, v${returned.audio}}, $ORIGINAL_SOUND->audio($OBJECT$OBJECT)$OBJECT
+                move-result-object v${returned.audio}
+                check-cast v${returned.audio}, $AUDIO_TYPE
             """,
         )
 

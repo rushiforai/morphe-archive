@@ -42,17 +42,18 @@ import java.io.File
 class PermalinkAdsFixtureTest {
     private val feedAds = "$EXTENSION_PACKAGE/ads/FeedAds;"
     private val useCase = "Lcom/instagram/barcelona/permalink/adsusecase/PermalinkAdsUseCase;"
-    /** The result type each 455 build makes, by version code. */
+    /** The result type each 457 build makes, by version code. */
     private val adResults = mapOf(
-        "512508344" to "LX/4YJ;",
-        "512508348" to "LX/4YJ;",
-        "512508358" to "LX/4WL;",
-        "512508359" to "LX/4WG;",
-        "512508360" to "LX/4XD;",
-        "512508368" to "LX/4XE;",
-        "512508369" to "LX/4YJ;",
-        "512508370" to "LX/4XH;",
-        "512508371" to "LX/4YJ;",
+        "512708483" to "LX/4Wo;",
+        "512708484" to "LX/4WL;",
+        "512708486" to "LX/4WK;",
+        "512708487" to "LX/4Wo;",
+        "512708497" to "LX/4Wn;",
+        "512708498" to "LX/4Wn;",
+        "512708507" to "LX/4WK;",
+        "512708508" to "LX/4Wo;",
+        "512708509" to "LX/4WL;",
+        "512708510" to "LX/4Wo;",
     )
 
     @Test
@@ -66,10 +67,10 @@ class PermalinkAdsFixtureTest {
             val body = stock.single().instructions()
             val at = stock.single().permalinkAdResult()
 
-            // Read off each 455 build apart from the patch: the loop adds each ad it reads to v6, the
-            // size of what the server sent is read at 122 and 123, and the result is made at 124 and 125.
+            // Read off each 457 build apart from the patch: the loop adds each ad it reads to v6, the
+            // size of what the server sent is read at 131 and 132, and the result is made at 133 and 134.
             val expectedResult = adResults.entries.single { build.name.contains("-${it.key}.") }.value
-            assertEquals(where, 124, at.index)
+            assertEquals(where, 133, at.index)
             assertEquals(where, 6, at.list)
             assertEquals(where, expectedResult, at.result)
             assertTrue("$where: the loop adds each ad to v${at.list}", body.any {

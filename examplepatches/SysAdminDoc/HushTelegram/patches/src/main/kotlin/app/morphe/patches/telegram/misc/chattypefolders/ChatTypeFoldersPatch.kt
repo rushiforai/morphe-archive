@@ -36,6 +36,8 @@ import app.morphe.util.names.origParameterTypes
 import app.morphe.util.names.tgClassDefByOrNull
 import app.morphe.util.names.tgMutableClassDefByOrNull
 import app.morphe.util.namedRegisters
+import app.morphe.util.ControlFlow
+import app.morphe.util.writesReaching
 import app.morphe.patches.telegram.misc.localcontrols.Mention
 import app.morphe.patches.telegram.misc.localcontrols.forEachClassMentioning
 import com.android.tools.smali.dexlib2.iface.instruction.Instruction
@@ -61,6 +63,8 @@ internal const val NOTIFICATIONS = "Lorg/telegram/messenger/NotificationCenter;"
 private const val PINS = "Lorg/telegram/messenger/support/LongSparseIntArray;"
 private const val LIST = "Ljava/util/ArrayList;"
 private const val OBJECT = "Ljava/lang/Object;"
+/** How a storage lambda's case key gets loaded. */
+private val KEY_LOADS = setOf(Opcode.CONST_4, Opcode.CONST_16, Opcode.CONST)
 internal const val REQUEST_DELEGATE = "Lorg/telegram/tgnet/RequestDelegate;"
 internal const val TL_ERROR = "Lorg/telegram/tgnet/TLRPC\$TL_error;"
 internal const val GET_FILTERS = "Lorg/telegram/tgnet/TLRPC\$TL_messages_getDialogFilters;"
@@ -214,6 +218,7 @@ private fun BytecodePatchContext.postedFolderStorage(method: String, what: Strin
     forEachClassMentioning(Mention.reference(STORAGE_QUEUE) and Mention.type(LOCAL_FILTER)) { cls ->
         cls.methods.forEach { m ->
             val body = m.controlBody()
+            val flow by lazy { ControlFlow.of(m) }
             for (i in body.indices) {
                 if (!body[i].readsStorageQueue()) continue
                 val (queue, storage) = (body[i] as TwoRegisterInstruction).let { it.registerA to it.registerB }
@@ -229,8 +234,12 @@ private fun BytecodePatchContext.postedFolderStorage(method: String, what: Strin
                 val posted = body.getOrNull(build + 1) ?: continue
                 if (posted.opcode != Opcode.INVOKE_VIRTUAL || posted.namedRegisters() != listOf(queue, lambdaRegister) ||
                     posted.call()?.parameterTypes?.map { it.toString() } != listOf("Ljava/lang/Runnable;")) continue
-                val constants = (i + 2 until build).mapNotNull { at ->
-                    (body[at] as? NarrowLiteralInstruction)?.let { (body[at] as OneRegisterInstruction).registerA to it.narrowLiteral }
+                // 13.3.1's R8 loads the case key once, well before the post, and reuses it: what counts is
+                // the one constant every path brings to the constructor.
+                val constants = passed.drop(1).distinct().mapNotNull { register ->
+                    flow.writesReaching(build, register).map { at ->
+                        body.getOrNull(at)?.takeIf { it.opcode in KEY_LOADS }?.let { (it as NarrowLiteralInstruction).narrowLiteral }
+                    }.distinct().singleOrNull()?.let { register to it }
                 }.toMap()
                 val roles = init.parameterTypes.mapIndexed { n, type ->
                     val register = passed.getOrNull(n + 1)
@@ -544,7 +553,6 @@ private fun BytecodePatchContext.writeChatTypeFolderStubs(site: ChatTypeFoldersS
         add-int/lit8 v4, v4, 0x1
         goto :hush_next
         :hush_send
-        invoke-static {v0}, $CHAT_TYPE_FOLDERS->outgoingOrder(Ljava/lang/Object;)V
         invoke-static {p0}, $CONNECTIONS_INSTANCE
         move-result-object v2
         check-cast p1, $REQUEST_DELEGATE
@@ -617,7 +625,6 @@ internal fun BytecodePatchContext.resolveChatTypeFolders(): ChatTypeFoldersSite 
     controlHook(CHAT_TYPE_FOLDERS, "deleteFolder", listOf("I", "I", OBJECT), "V")
     controlHook(CHAT_TYPE_FOLDERS, "dropFolder", listOf("I", "I"), "V")
     controlHook(CHAT_TYPE_FOLDERS, "sendFolderOrder", listOf("I", OBJECT), "V")
-    controlHook(CHAT_TYPE_FOLDERS, "outgoingOrder", listOf(OBJECT), "V")
     controlHook(CHAT_TYPE_FOLDERS, "fetchFolders", listOf("I", OBJECT), "V")
     controlHook(CHAT_TYPE_FOLDERS, "setFolderColor", listOf("I", "I", "I"), "V")
 

@@ -1,3 +1,9 @@
+## [1.57.0](https://github.com/legendsciber/morphe-patches/compare/v1.56.0...v1.57.0) (2026-11-25)
+
+### ✨ New Features
+
+* **subwaysurf:** update to 3.72.0 ([e37ca7c](https://github.com/legendsciber/morphe-patches/commit/e37ca7cc84691566cf5f6f79f6546c5f7d73c2e1))
+
 ## [1.56.0](https://github.com/legendsciber/morphe-patches/compare/v1.55.0...v1.56.0) (2026-11-21)
 
 ### ✨ New Features

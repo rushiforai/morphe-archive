@@ -16,6 +16,7 @@ import dev.jason.gboardpatches.extension.R;
 import dev.jason.gboardpatches.extension.settings.GboardPatchesSettingsContract;
 import dev.jason.gboardpatches.extension.settings.GboardPatchesSettings;
 import dev.jason.gboardpatches.extension.settings.GboardPatchesFeatureAvailability;
+import dev.jason.gboardpatches.extension.settings.GboardNewSettingsHighlight;
 import dev.jason.gboardpatches.extension.settings.GboardSettingsText;
 
 public final class GboardAdvancedVoiceSettingsFeature
@@ -36,6 +37,8 @@ public final class GboardAdvancedVoiceSettingsFeature
     private final String enabledSummary;
     private final String zhTwPunctuationTitle;
     private final String zhTwPunctuationSummary;
+    private final String disableVoiceBeepTitle;
+    private final String disableVoiceBeepSummary;
     private final String sectionBehavior;
     private final String sectionInformation;
     private final String sectionOfflineSpeechModel;
@@ -93,6 +96,10 @@ public final class GboardAdvancedVoiceSettingsFeature
                 R.string.gboard_patches_advanced_voice_zh_tw_punctuation_title);
         zhTwPunctuationSummary = GboardSettingsText.get(context,
                 R.string.gboard_patches_advanced_voice_zh_tw_punctuation_summary);
+        disableVoiceBeepTitle = GboardSettingsText.get(context,
+                R.string.gboard_patches_advanced_voice_disable_beep_title);
+        disableVoiceBeepSummary = GboardSettingsText.get(context,
+                R.string.gboard_patches_advanced_voice_disable_beep_summary);
         sectionBehavior = GboardSettingsText.get(context,
                 R.string.gboard_patches_advanced_voice_section_behavior);
         sectionInformation = GboardSettingsText.get(context,
@@ -201,6 +208,8 @@ public final class GboardAdvancedVoiceSettingsFeature
             boolean enabled = GboardAdvancedVoiceSettings.readEnabled(preferences);
             boolean zhTwPunctuationEnabled =
                     GboardAdvancedVoiceSettings.readZhTwPunctuationEnabled(preferences);
+            boolean disableVoiceBeep =
+                    GboardAdvancedVoiceSettings.readDisableVoiceBeep(preferences);
             GboardDictationPayloadDetector.Detection payloadDetection =
                     GboardDictationPayloadDetector.detect(
                             context,
@@ -236,6 +245,23 @@ public final class GboardAdvancedVoiceSettingsFeature
                     value -> saveZhTwPunctuationEnabled(context, value))
                     .setRestartRequired(
                             GboardAdvancedVoiceSettings.PREF_KEY_ZH_TW_PUNCTUATION_ENABLED));
+            GboardPatchesSettingsContract.ToggleRow disableVoiceBeepRow =
+                    new GboardPatchesSettingsContract.ToggleRow(
+                            disableVoiceBeepTitle,
+                            disableVoiceBeepSummary,
+                            true,
+                            disableVoiceBeep,
+                            value -> {
+                                GboardNewSettingsHighlight.markItemViewed(
+                                        context,
+                                        GboardNewSettingsHighlight.ITEM_DISABLE_VOICE_BEEP);
+                                saveDisableVoiceBeep(context, value);
+                            });
+            if (GboardNewSettingsHighlight.isItemHighlighted(
+                    context, GboardNewSettingsHighlight.ITEM_DISABLE_VOICE_BEEP)) {
+                disableVoiceBeepRow.setDecoration(new GboardPatchesSettingsContract.RowDecoration().highlightDot(true));
+            }
+            behaviorRows.add(disableVoiceBeepRow);
 
             List<GboardPatchesSettingsContract.Row> informationRows =
                     new ArrayList<GboardPatchesSettingsContract.Row>();
@@ -346,6 +372,15 @@ public final class GboardAdvancedVoiceSettingsFeature
             Log.i(TAG, "Saved zh-TW punctuation enabled=" + enabled);
         } catch (Throwable throwable) {
             Log.w(TAG, "Failed to save zh-TW punctuation state", throwable);
+        }
+    }
+
+    private void saveDisableVoiceBeep(Context context, boolean disabled) {
+        try {
+            GboardAdvancedVoiceSettings.writeDisableVoiceBeep(context, disabled);
+            Log.i(TAG, "Saved disable voice beep=" + disabled);
+        } catch (Throwable throwable) {
+            Log.w(TAG, "Failed to save disable voice beep state", throwable);
         }
     }
 

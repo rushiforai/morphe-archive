@@ -17,13 +17,14 @@
   <a href="https://github.com/Nich87/nich87-patches/actions"><img src="https://img.shields.io/github/actions/workflow/status/Nich87/nich87-patches/release.yml?branch=main&style=flat-square&label=CI" alt="CI"></a>
   <a href="LICENSE"><img src="https://img.shields.io/github/license/Nich87/nich87-patches?style=flat-square" alt="License"></a>
   <a href="https://morphe.software"><img src="https://img.shields.io/badge/Morphe-compatible-00D26A?style=flat-square" alt="Morphe Compatibility"></a>
-  <a href="https://play.google.com/store/apps/details?id=com.apple.android.music"><img src="https://img.shields.io/badge/Apple%20Music-v7.0.0-FA243C?logo=apple-music&logoColor=white&style=flat-square" alt="Apple Music 7.0.0"></a>
+  <a href="https://play.google.com/store/apps/details?id=com.apple.android.music"><img src="https://img.shields.io/badge/Apple%20Music-v7.0.0--7.0.3-FA243C?logo=apple-music&logoColor=white&style=flat-square" alt="Apple Music 7.0.0-7.0.3"></a>
+  <a href="https://play.google.com/store/apps/details?id=com.twitter.android"><img src="https://img.shields.io/badge/X-v12.19.1-000000?logo=x&logoColor=white&style=flat-square" alt="X (Twitter) 12.19.1-release.0"></a>
 </p>
 
 <p align="center">
   <strong>Custom patches by Nich87 for use with <a href="https://morphe.software">Morphe</a>.</strong><br>
   This is an independent project based on the <a href="https://github.com/MorpheApp/morphe-patches-template">Morphe patches template</a>.<br>
-  Apple Music patches provide a Liquid Glass bottom bar, library import, export and downloads, and Japanese metadata repair. Each patch can be selected independently.
+  Provides Apple Music patches (Liquid Glass bottom bar, custom fonts, LRCLIB lyrics with on-device pronunciation guides and line editing, on-device stereo &amp; Dolby Atmos vocal separation, library backup/downloads, and Japanese metadata repair) and Twitter/X Spaces local mute. Each patch can be selected independently.
 </p>
 
 </div>
@@ -42,7 +43,7 @@ Enable pre-releases for development builds from `dev`.
 ## Patches
 
 <!-- PATCHES_START EXPANDED -->
-> **[v1.6.0](https://github.com/Nich87/nich87-patches/releases/tag/v1.6.0)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;7 patches total
+> **[v1.8.0](https://github.com/Nich87/nich87-patches/releases/tag/v1.8.0)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;7 patches total
 <details open>
 <summary>📦 Apple Music&nbsp;&nbsp;•&nbsp;&nbsp;6 patches</summary>
 <br>
@@ -57,10 +58,10 @@ Enable pre-releases for development builds from `dev`.
 | 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
 |----------|----------------|-----------|
 | [Custom font](#custom-font) | Replaces Apple Music's font across views, Compose screens, and lyrics using imported .ttf/.otf/.ttc files or system fonts, with optional SF Pro Latin preservation and per-scope settings. |  |
-| [LRCLIB lyrics](#lrclib-lyrics) | Fetches lyrics from LRCLIB for songs missing official or synced lyrics, allows per-song LRCLIB overrides and timing offsets, shows an Official / LRCLIB source indicator, and adds LRCLIB settings. |  |
+| [LRCLIB lyrics](#lrclib-lyrics) | Loads synced and unsynced local LRC files (per-song or auto-matched folder) and fetches lyrics from LRCLIB with per-song overrides, timing offsets, and a source indicator. Optionally generates pronunciation guides on-device. |  |
 | [Library import, export and downloads](#library-import-export-and-downloads) | Adds JSON library and playlist backups, additive import, and a native download action for the entire library. |  |
 | [Liquid Glass bottom bar](#liquid-glass-bottom-bar) | Adds live refractive glass to Apple Music's mini-player and bottom tabs, an animated selection lens, and a glass transition between the mini-player and Now Playing. Refraction requires Android 13 or newer. |  |
-| [On-device vocal separation](#on-device-vocal-separation) | Adds a vocal and accompaniment mix slider to the lyrics screen. Requires a one-time model download and compatible stereo playback. |  |
+| [On-device vocal separation](#on-device-vocal-separation) | Adds a vocal and accompaniment mix slider to the lyrics screen. Supports stereo and Dolby Atmos PCM after a one-time model download. |  |
 | [Repair Japanese library metadata](#repair-japanese-library-metadata) | Finds romanized library metadata and repairs selected songs using Japanese catalog data, preserving library entries and syncing changes to the account. |  |
 
 </details>

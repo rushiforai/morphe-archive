@@ -35,8 +35,8 @@ import java.io.File
 /** The one place Tumblr builds a shared or copied link and appends source=share to it. */
 @Category(FixtureTests::class)
 class SanitizeSharingLinksFixtureTest {
-    // Tumblr 47.0.0.108's name for the class holding the link builder. The patch finds it by its shape.
-    private val builder = "Lokj;"
+    // Tumblr 47.3.0.110's name for the class holding the link builder. The patch finds it by its shape.
+    private val builder = "Lpnj;"
 
     private fun context(build: File) = PatchContexts.of(ExtensionDex.classes() + FixtureDex.classes(build, setOf(builder)).values)
 

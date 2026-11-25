@@ -49,14 +49,14 @@ internal const val HUSH_BLOCK_ROW = "$EXTENSION_PACKAGE/timeline/HushBlockRow;"
 private const val LIST = "Ljava/util/List;"
 private const val IMMUTABLE_LIST = "Lcom/google/common/collect/ImmutableList;"
 
-// Tumblr 47.0.0.108's names: the class that lists a post's rows for the timeline, the post as it
+// Tumblr 47.3.0.110's names: the class that lists a post's rows for the timeline, the post as it
 // holds it, one row of blocks, and the screen's timeline, whose n() is Tumblr's own test for
 // whether this screen draws an author's Read more cut (true in the feeds, false on a post opened
 // by itself).
-internal const val POST_COMPOSER = "Lfmf;"
-internal const val COMPOSED_POST = "Ljm2;"
-internal const val BLOCK_ROW = "Ltj2;"
-internal const val TIMELINE_SCREEN = "Ljtl;"
+internal const val POST_COMPOSER = "Llkf;"
+internal const val COMPOSED_POST = "Ldm2;"
+internal const val BLOCK_ROW = "Lnj2;"
+internal const val TIMELINE_SCREEN = "Lzvl;"
 
 private const val TIMELINE_FIELD = "m"
 private const val READ_MORE_FIELD = "d"
@@ -79,7 +79,7 @@ internal class PostSite(
 internal class CollapseLongPostsPlan(val post: PostSite)
 
 /**
- * Tumblr lists the rows it draws for a post in the timeline (`fmf.h` in 47.0.0.108). When the
+ * Tumblr lists the rows it draws for a post in the timeline (`lkf.h` in 47.3.0.110). When the
  * author cut a post with a Read more, it appends only the post's own rows above the cut and then
  * its own Read more row, whose tap opens the post by itself. For a post the author didn't cut, the
  * hook goes in front of the call that appends every one of the post's own rows. It hands them to
@@ -89,11 +89,11 @@ internal class CollapseLongPostsPlan(val post: PostSite)
  * a post this cut opens it where it is ([expandLongPostsInPlace]).
  *
  * This hook cuts only the post's own rows. Tumblr's block binders find their row by counting the
- * rows drawn before them and reading that index from a list it built with the post (`jm2`'s trail
+ * rows drawn before them and reading that index from a list it built with the post (`dm2`'s trail
  * rows, then its own rows). The own rows come last, so dropping the end of them leaves every
  * earlier index in place, the same as an author's cut does. Dropping rows from a trail entry here
  * would shift every row after it onto the wrong block, so a long trail entry is cut where Tumblr
- * builds it instead ([collapseLongTrailEntries]), before `jm2` or this list reads it.
+ * builds it instead ([collapseLongTrailEntries]), before `dm2` or this list reads it.
  */
 @Suppress("unused")
 val collapseLongPostsPatch = bytecodePatch(
@@ -102,7 +102,7 @@ val collapseLongPostsPatch = bytecodePatch(
         " under them. Tap it and the whole post opens right there in the timeline. A long entry in a reblog trail gets cut" +
         " the same way, and its Read more opens the post." +
         " Asks keep Tumblr's layout. Starts off." +
-        " Turn it on in Tumblr settings > HushTumblr > Posts, where you can make the cut half a screen or two screens instead.",
+        " Turn it on in Tumblr settings > HushTumblr > Posts, where the cut can be as short as about 5 lines or as long as two screens.",
     default = true,
 ) {
     category("Posts")
@@ -198,7 +198,7 @@ internal fun BytecodePatchContext.resolveCollapseLongPosts(): CollapseLongPostsP
         "Tumblr's timeline no longer answers whether it draws a Read more cut",
     )
     val post = resolvePostSite(composer.methods.filter {
-        it.name == "h" && it.hasShape(listOf("Lr4g;", "I"), LIST) && !it.isStatic()
+        it.name == "h" && it.hasShape(listOf("Lf3g;", "I"), LIST) && !it.isStatic()
     }.only(PATCH, "the post row composer"))
     return CollapseLongPostsPlan(post)
 }
@@ -208,7 +208,7 @@ private fun BytecodePatchContext.resolvePostSite(method: Method): PostSite {
     val steps = method.instructionList()
     val all = steps.indices.filter {
         steps[it].opcode == Opcode.INVOKE_VIRTUAL && steps[it].methodRef()?.let { call ->
-            call.definingClass == COMPOSED_POST && call.name == "g" && call.hasShape(emptyList(), LIST)
+            call.definingClass == COMPOSED_POST && call.name == "f" && call.hasShape(emptyList(), LIST)
         } == true
     }.only(PATCH, "the post's every-row list")
     val read = steps[all] as FiveRegisterInstruction

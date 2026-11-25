@@ -112,12 +112,19 @@ public final class SettingsBackup {
             Settings.HIDE_GIFT_MESSAGE_POPUPS,
             Settings.LINE_BETWEEN_POSTS,
             Settings.APP_FONT,
+            Settings.TEXT_SIZE,
+            Settings.MORE_IMAGES_PER_POST,
+            Settings.FIX_HARD_TO_READ_TEXT,
+            Settings.DARK_SEARCH_BAR,
+            Settings.HIDE_SEARCH_BAR_LABEL,
+            Settings.DARK_BLOG_FOLLOW_BUTTON,
             Settings.TURN_OFF_SCREENSHOT_SHARING,
             Settings.DISABLE_UPDATE_PROMPTS,
             Settings.HIDE_SUGGESTED_BLOGS,
             Settings.HIDE_SUGGESTED_COMMUNITIES,
             Settings.HIDE_SUGGESTED_TAGS,
             Settings.HIDE_WATCH_IT_ROWS,
+            Settings.HIDE_MORE_POSTS_LIKE_THIS,
             Settings.HIDE_FEATURED_POSTS,
             Settings.HIDE_HASHTAGS,
             Settings.HIDE_FOLLOW_BUTTON,
@@ -139,6 +146,7 @@ public final class SettingsBackup {
             Settings.HIDE_OWN_REBLOGS,
             Settings.HIDE_REBLOGS_OF_YOURS,
             Settings.HIDE_LIKED_POSTS,
+            Settings.HIDE_FOLLOWED_IN_FOR_YOU,
             Settings.HIDE_NOTIFICATION_LIKES,
             Settings.HIDE_NOTIFICATION_REBLOGS,
             Settings.HIDE_NOTIFICATION_REPLIES,
@@ -182,7 +190,8 @@ public final class SettingsBackup {
             TextSettings.HIDDEN_WORDS,
             TextSettings.ALLOWED_WORDS,
             TextSettings.TAB_ORDER,
-            TextSettings.LONG_POST_SIZE));
+            TextSettings.LONG_POST_SIZE,
+            TextSettings.TEXT_SIZE_PERCENT));
 
     /**
      * Bounds for the parser, well past anything this class writes, so a file built to be
@@ -569,6 +578,7 @@ public final class SettingsBackup {
     /** [value] as its readers take it: a long post length its row never offers reads as the default. */
     private static String asRead(StringSetting setting, String value) {
         if (setting == TextSettings.LONG_POST_SIZE && textValue(setting, value) == null) return setting.defaultValue;
+        if (setting == TextSettings.TEXT_SIZE_PERCENT && textValue(setting, value) == null) return setting.defaultValue;
         return value;
     }
 
@@ -602,6 +612,7 @@ public final class SettingsBackup {
         String text = (String) value;
         if (setting == TextSettings.HIDDEN_WORDS || setting == TextSettings.ALLOWED_WORDS) return text.trim();
         if (setting == TextSettings.LONG_POST_SIZE) return TextSettings.LONG_POST_SIZES.contains(text) ? text : null;
+        if (setting == TextSettings.TEXT_SIZE_PERCENT) return TextSettings.TEXT_SIZES.contains(text) ? text : null;
         if (setting == TextSettings.TAB_ORDER) {
             return text.isEmpty() || text.equals(BottomBarTabs.join(BottomBarTabs.parse(text))) ? text : null;
         }

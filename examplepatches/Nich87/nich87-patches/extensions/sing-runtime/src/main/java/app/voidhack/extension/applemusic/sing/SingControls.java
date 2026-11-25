@@ -24,12 +24,15 @@ import android.widget.ProgressBar;
 import android.widget.ScrollView;
 import android.widget.TextView;
 
+import java.util.concurrent.ConcurrentHashMap;
+
 public final class SingControls {
     private static final String BUTTON_TAG = "app.voidhack.sing.controls";
     private static final int PLAYER_PLATTER = 0x2effffff;
     private static final int PLAYER_FOREGROUND = 0xf0ffffff;
     private static final int SHEET_SURFACE = 0xf0262528;
     private static final int SYMBOL_ON_FILL = 0xff29272b;
+    private static final ConcurrentHashMap<String, Integer> RESOURCE_IDS = new ConcurrentHashMap<>();
     private static boolean preparationFailed;
 
     private SingControls() {}
@@ -64,7 +67,7 @@ public final class SingControls {
         View button = root.findViewWithTag(BUTTON_TAG);
         return button != null && button.getParent() instanceof View slot
                 && slot.getTag() instanceof Control control
-                && control.panel == Panel.MIX && control.popup != null && control.popup.isShowing();
+                && (SingPlayback.isPreparing() || control.keepsControlsVisible());
     }
 
     private enum Panel { MIX, SETUP, PREPARING, ERROR, FORMAT }
@@ -84,6 +87,10 @@ public final class SingControls {
         private final Runnable refreshPanel = this::refreshPanel;
         private PopupWindow popup;
         private Panel panel;
+        private boolean buttonSynced;
+        private int lastMix;
+        private boolean lastSelected;
+        private float lastButtonAlpha = Float.NaN;
 
         Control(FrameLayout slot, View controls, View nativeVocal, View loading, int icon,
                 PlayerControls playerControls) {
@@ -147,13 +154,24 @@ public final class SingControls {
 
         private void syncButton() {
             int mix = SingPlayback.mix();
-            button.setSelected(SingPlayback.streamSupported() && mix != 0);
-            String description = mixLabel(mix);
-            if (!TextUtils.equals(button.getStateDescription(), description)) {
-                button.setStateDescription(description);
-            }
+            boolean selected = SingPlayback.streamSupported() && mix != 0;
             float alpha = panel == Panel.MIX && popup != null ? 0f : 1f;
-            if (button.getAlpha() != alpha) button.setAlpha(alpha);
+            if (!buttonSynced || selected != lastSelected) {
+                button.setSelected(selected);
+                lastSelected = selected;
+            }
+            if (!buttonSynced || mix != lastMix) {
+                String description = mixLabel(mix);
+                if (!TextUtils.equals(button.getStateDescription(), description)) {
+                    button.setStateDescription(description);
+                }
+                lastMix = mix;
+            }
+            if (!buttonSynced || alpha != lastButtonAlpha) {
+                if (button.getAlpha() != alpha) button.setAlpha(alpha);
+                lastButtonAlpha = alpha;
+            }
+            buttonSynced = true;
         }
 
         private void togglePanel() {
@@ -174,8 +192,13 @@ public final class SingControls {
             else slot.postDelayed(refreshPanel, 400);
         }
 
+        private boolean keepsControlsVisible() {
+            return (panel == Panel.MIX || panel == Panel.PREPARING)
+                    && popup != null && popup.isShowing();
+        }
+
         private void openPanel(Panel mode) {
-            closePanel();
+            closePanel(false);
             if (!slot.isAttachedToWindow() || slot.getVisibility() != View.VISIBLE) return;
             View root = slot.getRootView();
             int gap = mode == Panel.MIX ? 0 : dp(context, 8);
@@ -202,7 +225,9 @@ public final class SingControls {
             popup = window;
             int offset = mode == Panel.MIX ? -height : -height - button.getHeight() - gap;
             window.showAsDropDown(button, 0, offset, Gravity.END);
-            if (mode == Panel.MIX && playerControls != null) playerControls.voidhackShowControls();
+            if ((mode == Panel.MIX || mode == Panel.PREPARING) && playerControls != null) {
+                playerControls.voidhackShowControls();
+            }
             syncButton();
 
             content.setPivotX(slot.getLayoutDirection() == View.LAYOUT_DIRECTION_RTL
@@ -227,11 +252,11 @@ public final class SingControls {
         }
 
         private void releasePanel(boolean resumeFade) {
-            boolean wasMixer = panel == Panel.MIX;
+            boolean heldFade = panel == Panel.MIX || panel == Panel.PREPARING;
             popup = null;
             panel = null;
             slot.removeCallbacks(refreshPanel);
-            if (wasMixer && resumeFade && playerControls != null) {
+            if (heldFade && resumeFade && playerControls != null && !SingPlayback.isPreparing()) {
                 playerControls.voidhackResumeControlsFade();
             }
             syncButton();
@@ -363,10 +388,14 @@ public final class SingControls {
         private void prepareModel() {
             if (SingPlayback.isPreparing()) return;
             preparationFailed = false;
+            if (playerControls != null) playerControls.voidhackShowControls();
             SingPlayback.prepare(context, error -> {
                 preparationFailed = error != null;
                 slot.removeCallbacks(refreshPanel);
                 refreshPanel();
+                if (slot.isAttachedToWindow() && playerControls != null && !keepsControlsVisible()) {
+                    playerControls.voidhackResumeControlsFade();
+                }
             });
             openPanel(Panel.PREPARING);
         }
@@ -426,7 +455,12 @@ public final class SingControls {
     }
 
     private static int resource(Context context, String type, String name) {
-        return context.getResources().getIdentifier(name, type, context.getPackageName());
+        String key = type + "/" + name;
+        Integer cached = RESOURCE_IDS.get(key);
+        if (cached != null) return cached;
+        int id = context.getResources().getIdentifier(name, type, context.getPackageName());
+        if (id != 0) RESOURCE_IDS.put(key, id);
+        return id;
     }
 
     private static int color(Context context, String name, int fallback) {

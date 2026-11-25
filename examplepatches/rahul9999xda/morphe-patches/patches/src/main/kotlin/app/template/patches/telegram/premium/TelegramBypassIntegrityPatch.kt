@@ -11,6 +11,9 @@ import app.template.patches.shared.Constants.TELEGRAM_PLUS_COMPATIBILITY
 import app.template.patches.shared.Constants.TELEGRAM_WEB_COMPATIBILITY
 import app.template.patches.telegram.AndroidUtilitiesGetCertFingerprintFingerprint
 import app.template.patches.telegram.SafetyNetCheckFingerprint
+import app.template.patches.telegram.TelegramR8ConnectionManagerCertificateFingerprint
+import app.template.patches.telegram.TelegramPlusR8CertificateHashFingerprint
+import app.template.patches.telegram.TelegramPlus13221R8CertificateHashFingerprint
 import app.template.patches.telegram.signature.telegramSpoofDependency
 import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
@@ -73,17 +76,31 @@ val telegramBypassIntegrityPatch = bytecodePatch(
         val certHash = CERT_HASHES[detectedPackageName]
             ?: error("No cert hash for package '$detectedPackageName'")
 
-        // Return the exact original certificate SHA-256. Prefer the verified local AndroidUtilities
-        // helper body in all three audited clean APKs (Telegram/Web 13.1.1, Plus 13.1.1.0);
-        // retain call-site fallback for legacy variants.
+        // Return the original certificate SHA-256 where the APK exposes a local helper.
+        // Telegram/Web 13.2.2 no longer contains that named helper or a call-site to it;
+        // their SafetyNet JSONObject checks below remain independently patchable.
         val certMethod = AndroidUtilitiesGetCertFingerprintFingerprint.methodOrNull
+        val plusCertMethod = TelegramPlus13221R8CertificateHashFingerprint.methodOrNull
+            ?: TelegramPlusR8CertificateHashFingerprint.methodOrNull
         if (certMethod != null) {
             certMethod.addInstructions(0, """
                 const-string v0, "$certHash"
                 return-object v0
             """)
+        } else if (plusCertMethod != null) {
+            // Plus 13.2.2.1 uses m0.g2() for the SHA-256 certificate hash.
+            // Do not patch m0.f2(): that sibling helper computes SHA-1.
+            plusCertMethod.addInstructions(0, """
+                const-string v0, "$certHash"
+                return-object v0
+            """)
         } else {
-            val callMatches = plusCertificateFingerprintCallSite.matchAllOrNull().orEmpty()
+            // Telegram/Web 13.2.2 computes the certificate hash inline in the
+            // ConnectionsManager constructor. Replace only the SHA-256 hex call's
+            // result register, leaving the surrounding X.509 parsing and TLS setup intact.
+            val currentMatches = TelegramR8ConnectionManagerCertificateFingerprint.matchAllOrNull().orEmpty()
+            val callMatches = if (currentMatches.isNotEmpty()) currentMatches
+                else plusCertificateFingerprintCallSite.matchAllOrNull().orEmpty()
             if (callMatches.isEmpty()) {
                 error("Certificate fingerprint method/call-site not found for '$detectedPackageName'")
             }

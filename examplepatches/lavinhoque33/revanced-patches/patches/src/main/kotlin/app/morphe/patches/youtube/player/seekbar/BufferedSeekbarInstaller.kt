@@ -2,6 +2,7 @@
  * Copyright (C) 2026 lavinhoque33
  * Licensed under the GNU General Public License v3.0.
  * Modified by lavinhoque33, 2026-11-23.
+ * Modified by lavinhoque33, 2026-11-24.
  * Written by lavinhoque33, 2026-11-22.
  */
 
@@ -43,6 +44,7 @@ private const val FADE_BRIDGE = "patch_hiddenPortraitBufferFade"
 private const val CHAPTER_ZERO = "patch_hiddenPortraitChapterBufferZero"
 private const val HIDDEN_PORTRAIT_VIEW = "patch_hiddenPortraitSeekbar"
 private const val PLAYED_PAINT = "patch_hiddenPortraitPlayedPaint"
+private const val LEGACY_BUFFER_GATE = "patch_legacyMiniplayerBuffer"
 
 // Obfuscated callback/field roles differ even within the supported versions. The draw sites are checked
 // against these shapes before installing anything; do not apply them to forced, untraced versions.
@@ -94,6 +96,15 @@ internal fun BytecodePatchContext.installBufferedSeekbar() {
             printWarn("Hidden portrait seekbar gradient is not supported: native played painter not found.")
         } else {
             installGradient()
+        }
+    }
+
+    if (packageMetadata.versionName == "20.05.46") {
+        val installLegacyMiniplayer = runCatching { prepareLegacyMiniplayerBuffer() }.getOrNull()
+        if (installLegacyMiniplayer == null) {
+            printWarn("Legacy miniplayer buffer is not supported: native geometry or painter gate not found.")
+        } else {
+            installLegacyMiniplayer()
         }
     }
 }
@@ -226,6 +237,104 @@ private fun BytecodePatchContext.prepareBufferedSeekbar(layout: BufferedPainterL
         chapter.replaceInvoke(zeroCalls.last(), bufferedZero.toString(), direct = true)
         flatBufferReads.forEach { flat.replaceInvoke(it, bridge) }
     }
+}
+
+/**
+ * Both legacy layouts use the floaty bar. Its controller supplies the real buffered position but
+ * sets the model's buffer flag to false when the modern miniplayer is off.
+ */
+private fun BytecodePatchContext.prepareLegacyMiniplayerBuffer(): (() -> Unit)? {
+    val timebar = mutableClassDefBy("Lhcw;")
+    val painter = mutableClassDefBy("Lhda;")
+    val model = mutableClassDefBy("Lahwk;")
+    val timebarBase = mutableClassDefBy("Lahwi;")
+    val animator = mutableClassDefBy("Lhcs;")
+    val drawState = mutableClassDefBy("Lhdg;")
+    val paintState = mutableClassDefBy("Lhcz;")
+    val geometry = timebar.methods.single { it.toString() == "Lhcw;->fr()V" }
+    val selectPainter = painter.methods.single { it.toString() == "Lhda;->a(Ljava/lang/Object;)V" }
+    val bufferFlag = model.fields.single { it.name == "o" && it.type == "Z" }
+    val modelField = timebarBase.fields.single { it.name == "L" && it.type == "Lahwp;" }
+    val liveWindow = model.methods.single { it.toString() == "Lahwk;->p()Z" }
+    val scrubbing = timebarBase.methods.single { it.toString() == "Lahwi;->ft()Z" }
+    val painterState = painter.fields.single { it.type == drawState.type }
+    val painterStyle = drawState.fields.single { it.type == paintState.type }
+    val painterAnimator = paintState.fields.single { it.name == "j" && it.type == animator.superclass }
+    val animatorView = animator.fields.single { it.type == timebar.type }
+
+    fun MutableMethod.bufferFlagReads() = implementation!!.instructions.withIndex().filter { (_, instruction) ->
+        instruction.opcode == Opcode.IGET_BOOLEAN &&
+            instruction.getReference<FieldReference>()?.toString() == bufferFlag.toString()
+    }
+
+    val geometryRead = geometry.bufferFlagReads().singleOrNull() ?: return null
+    val painterReads = selectPainter.bufferFlagReads()
+    val geometryCode = geometry.implementation!!.instructions
+    val painterCode = selectPainter.implementation!!.instructions
+    if (timebar.superclass != "Lhcm;" || mutableClassDefBy("Lhcm;").superclass != timebarBase.type ||
+        painterReads.size != 3 || painterReads.any { painterCode[it.index + 1].opcode != Opcode.IF_EQZ } ||
+        geometryCode.none { it.calls("Lahwi;->fx()J") } || geometryCode.none { it.calls("Lahwi;->fy()J") } ||
+        !geometryCode[geometryRead.index - 1].loadsField("Lhcw;->R:$RECT") ||
+        geometryCode[geometryRead.index + 1].opcode != Opcode.IF_EQZ ||
+        geometry.implementation!!.registerCount > 16 || selectPainter.implementation!!.registerCount > 16
+    ) return null
+
+    val viewGate = makeLegacyBufferGate(timebar.type, AccessFlags.PUBLIC.value or AccessFlags.FINAL.value).apply {
+        addInstructions(0, """
+            if-nez p1, :done
+            invoke-virtual {p0}, $scrubbing
+            move-result v0
+            if-nez v0, :done
+            iget-object v0, p0, $modelField
+            instance-of v1, v0, ${model.type}
+            if-eqz v1, :done
+            check-cast v0, ${model.type}
+            invoke-virtual {v0}, $liveWindow
+            move-result v0
+            if-nez v0, :done
+            const v0, 0x7f0b0799
+            invoke-static {p0, v0}, $EXTENSION->allowLegacyMiniplayerBuffer(${VIEW}I)Z
+            move-result p1
+            :done
+            return p1
+        """)
+    }
+    val painterGate = makeLegacyBufferGate(painter.type, AccessFlags.PRIVATE.value).apply {
+        addInstructions(0, """
+            if-nez p1, :done
+            iget-object v0, p0, $painterState
+            iget-object v0, v0, $painterStyle
+            iget-object v0, v0, $painterAnimator
+            instance-of v1, v0, ${animator.type}
+            if-eqz v1, :done
+            check-cast v0, ${animator.type}
+            iget-object v0, v0, $animatorView
+            invoke-virtual {v0, p1}, $viewGate
+            move-result p1
+            :done
+            return p1
+        """)
+    }
+
+    return {
+        timebar.methods.add(viewGate)
+        painter.methods.add(painterGate)
+        geometry.wrapBufferFlagRead(geometryRead, "virtual", viewGate.toString())
+        painterReads.asReversed().forEach { selectPainter.wrapBufferFlagRead(it, "direct", painterGate.toString()) }
+    }
+}
+
+private fun makeLegacyBufferGate(owner: String, access: Int) = ImmutableMethod(
+    owner, LEGACY_BUFFER_GATE, listOf(ImmutableMethodParameter("Z", null, null)), "Z",
+    access, null, null, MutableMethodImplementation(4),
+).toMutable()
+
+private fun MutableMethod.wrapBufferFlagRead(read: IndexedValue<Instruction>, invoke: String, gate: String) {
+    val register = (read.value as TwoRegisterInstruction).registerA
+    addInstructions(read.index + 1, """
+        invoke-$invoke {p0, v$register}, $gate
+        move-result v$register
+    """)
 }
 
 private fun BytecodePatchContext.prepareHiddenPlayedGradient(layout: BufferedPainterLayout): (() -> Unit)? {

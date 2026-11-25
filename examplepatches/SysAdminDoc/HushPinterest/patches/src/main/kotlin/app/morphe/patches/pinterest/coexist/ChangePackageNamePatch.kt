@@ -136,7 +136,9 @@ private val changePackageNameManifestPatch = resourcePatch {
  * with every component that requires one of those permissions. Pinterest's code also spells its
  * FileProvider's authority out when it shares or saves its own files, and that goes through the
  * extension, which answers the running app's own. The copy also gets a name of its own under its
- * icon, so the launcher doesn't show two apps called Pinterest.
+ * icon, so the launcher doesn't show two apps called Pinterest. And the reCAPTCHA check in
+ * Pinterest's sign-in reports Pinterest's package from the copy, since Pinterest's key refuses any
+ * other and the copy's email sign-in would fail.
  */
 @Suppress("unused")
 val changePackageNamePatch = bytecodePatch(
@@ -172,6 +174,9 @@ val changePackageNamePatch = bytecodePatch(
         val routed = routeOwnAuthorities(CHANGE_PACKAGE_NAME, PINTEREST_PACKAGE, stockAuthorities)
         if (routed == 0) throw PatchException("$CHANGE_PACKAGE_NAME: Pinterest's code no longer names any of its own providers")
         patchLog.info("$CHANGE_PACKAGE_NAME: $routed of Pinterest's own provider addresses now follow the running package.")
+        val reported = reportPinterestToRecaptcha()
+        if (reported == 0) throw PatchException("$CHANGE_PACKAGE_NAME: Pinterest's reCAPTCHA no longer reports the app's package where the patch looks")
+        patchLog.info("$CHANGE_PACKAGE_NAME: reCAPTCHA reports Pinterest's package at $reported spot(s), so email sign-in works on the copy.")
         enableStatus("changePackageName")
     }
 }

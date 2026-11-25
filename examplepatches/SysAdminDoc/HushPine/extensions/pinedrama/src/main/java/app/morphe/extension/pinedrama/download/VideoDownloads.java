@@ -23,7 +23,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicBoolean;
 import org.json.JSONObject;
 
-final class VideoDownloads {
+public final class VideoDownloads {
     private static final Set<String> ACTIVE = Collections.newSetFromMap(new ConcurrentHashMap<String, Boolean>());
     /** The videos whose already-saved choice is on screen, a subset of {@link #ACTIVE}. */
     private static final Set<String> ASKING = Collections.newSetFromMap(new ConcurrentHashMap<String, Boolean>());
@@ -286,7 +286,9 @@ final class VideoDownloads {
         List<String> videoUrls = List.copyOf(selectedUrls);
         List<String> stampedUrls = stampedFallback ? stampedFallbackUrls(video, videoUrls) : Collections.emptyList();
         boolean dash = selected != null && Boolean.TRUE.equals(Reflect.invoke(video, "hasDashBitrate"));
-        List<String> audioUrls = dash ? List.copyOf(audioUrls(video, selected)) : Collections.emptyList();
+        // A rendition that isn't PineDrama's file may have a dub mixed in, so its sound comes from
+        // that file instead, the way a DASH picture gets its sound from the stream beside it.
+        List<String> audioUrls = dash ? List.copyOf(audioUrls(video, selected)) : originalSoundUrls(video, selected);
         boolean unavailable = videoUrls.isEmpty() || (dash && !muted && audioUrls.isEmpty());
         if (unavailable && !checkSaved) {
             // A details file can't come from PineDrama's own save, so that save is refused here. A
@@ -374,12 +376,12 @@ final class VideoDownloads {
                             picture[0] = temp(app, temporary);
                             // Whether the picture and the sound are separate files to be put
                             // together. PineDrama's stamped copy is one file with both in it.
-                            boolean separate = dash;
+                            boolean separate = dash || !audioUrls.isEmpty();
                             try {
                                 RemoteMedia.fetch(videoUrls, picture[0], RemoteMedia.Kind.VIDEO, progress::transfer);
                                 progress.transfer(0, -1);
-                                if (dash && !muted) {
-                                    // The sound is a separate stream here and the save is not
+                                if (separate && !muted) {
+                                    // The sound is a separate file here and the save is not
                                     // finished without it, so a failure to fetch it fails the whole thing.
                                     sound[0] = temp(app, temporary);
                                     RemoteMedia.fetch(audioUrls, sound[0], RemoteMedia.Kind.VIDEO);
@@ -400,20 +402,24 @@ final class VideoDownloads {
                             if (separate && !muted) {
                                 result = temp(app, temporary);
                                 TrackMuxer.combine(picture[0], sound[0], result);
-                            } else if (separate && AudioDownloads.enabled() && !audioUrls.isEmpty()) {
-                                // Muted, but the sound is wanted beside it as an .m4a. That is a
-                                // second file, so losing it is not a reason to lose the video as well.
-                                try {
-                                    File soundFile = temp(app, temporary);
-                                    RemoteMedia.fetch(audioUrls, soundFile, RemoteMedia.Kind.VIDEO);
-                                    sound[0] = soundFile;
-                                } catch (IOException | RuntimeException exception) {
-                                    Logger.printException(() -> "Could not fetch the sound to save beside a muted video", exception);
+                            } else {
+                                if (separate && AudioDownloads.enabled() && !audioUrls.isEmpty()) {
+                                    // Muted, but the sound is wanted beside it as an .m4a. That is a
+                                    // second file, so losing it is not a reason to lose the video as well.
+                                    try {
+                                        File soundFile = temp(app, temporary);
+                                        RemoteMedia.fetch(audioUrls, soundFile, RemoteMedia.Kind.VIDEO);
+                                        sound[0] = soundFile;
+                                    } catch (IOException | RuntimeException exception) {
+                                        Logger.printException(() -> "Could not fetch the sound to save beside a muted video", exception);
+                                    }
                                 }
-                            } else if (!separate && muted) {
-                                // One file with both tracks in it, so the picture is copied out on its own.
-                                result = temp(app, temporary);
-                                TrackMuxer.videoOnly(picture[0], result);
+                                if (muted && !(separate && dash)) {
+                                    // One file with both tracks in it, so the picture is copied out on
+                                    // its own. Only a DASH picture has no sound to leave behind.
+                                    result = temp(app, temporary);
+                                    TrackMuxer.videoOnly(picture[0], result);
+                                }
                             }
                             // Before the tags, so they land on the file that's published.
                             if (burnCaption) result = captioned(app, temporary, result, facts, progress);
@@ -631,6 +637,40 @@ final class VideoDownloads {
         return null;
     }
 
+    /**
+     * Where the original sound is when this rendition's own sound can't be trusted: PineDrama's
+     * download file, if the rendition is a different file from it. Empty when it's the same file,
+     * when either has no file id to compare, and for DASH, whose pictures carry no sound at all.
+     *
+     * <p>In a non-English app language the taller renditions of many dramas are a copy made for
+     * that language, with the dub mixed in and subtitles drawn into the picture, and nothing on
+     * the video calls them dubbed (#10). The download file keeps the original sound. Both address
+     * fields are read directly because with a chosen quality their getters answer with the
+     * rendition ({@link QualitySelector#download}), and a clean address equal to the rendition is
+     * passed over because Remove watermark fills a missing one from the play address.
+     */
+    static List<String> originalSoundUrls(Object video, Object gear) {
+        if (gear == null) return Collections.emptyList();
+        Object original = originalAddress(video, Reflect.property(gear, "getPlayAddr", "playAddr"));
+        return original == null ? Collections.emptyList() : List.copyOf(urls(original));
+    }
+
+    /**
+     * PineDrama's download file when {@code played} is an address of a different file, or null.
+     * Playback reads it too: Force original dub plays this file in place of the copy (#8).
+     */
+    public static Object originalAddress(Object video, Object played) {
+        if (Boolean.TRUE.equals(Reflect.invoke(video, "hasDashBitrate"))) return null;
+        String own = Reflect.string(played, "getUri", "uri");
+        if (own == null) return null;
+        for (String field : new String[]{"downloadNoWatermarkAddr", "downloadAddr"}) {
+            Object address = Reflect.readField(video, field);
+            String uri = Reflect.string(address, "getUri", "uri");
+            if (uri != null && !uri.equals(own) && !urls(address).isEmpty()) return address;
+        }
+        return null;
+    }
+
     static List<String> audioUrls(Object video, Object gear) {
         Object raw = Reflect.readField(video, "bitRateAudio");
         if (!(raw instanceof List<?>)) return Collections.emptyList();
@@ -659,7 +699,7 @@ final class VideoDownloads {
     }
 
     /** The https addresses inside a UrlModel, in the order it lists them. */
-    static List<String> urls(Object address) {
+    public static List<String> urls(Object address) {
         Object raw = Reflect.property(address, "getUrlList", "urlList");
         List<String> result = new ArrayList<>();
         if (raw instanceof List<?>) for (Object url : (List<?>) raw) {

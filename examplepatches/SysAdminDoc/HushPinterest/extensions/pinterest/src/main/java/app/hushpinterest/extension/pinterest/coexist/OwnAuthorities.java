@@ -9,6 +9,7 @@
 package app.hushpinterest.extension.pinterest.coexist;
 
 import android.app.Application;
+import android.content.Context;
 
 import androidx.annotation.Nullable;
 
@@ -76,6 +77,22 @@ public final class OwnAuthorities {
         } catch (Throwable failure) {
             return false;
         }
+    }
+
+    /**
+     * The package the reCAPTCHA check in Pinterest's sign-in reports for [context]. Pinterest's
+     * reCAPTCHA key accepts only Pinterest's own package, so a renamed copy reporting its new one
+     * gets every email sign-in refused with "Something went wrong". The copy reports Pinterest's
+     * package there; Pinterest itself, and every build without Change package name, report their own.
+     */
+    public static String reportedPackage(Context context) {
+        String own = context.getPackageName();
+        try {
+            if (renamed() && isRunningCopy(own)) return PINTEREST;
+        } catch (Throwable failure) {
+            // The real package is what the stock app reports, and it's never wrong to send.
+        }
+        return own;
     }
 
     /** Whether this build was patched with Change package name. */

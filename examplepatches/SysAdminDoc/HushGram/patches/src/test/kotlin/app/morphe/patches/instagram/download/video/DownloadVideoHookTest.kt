@@ -362,6 +362,42 @@ class DownloadVideoHookTest {
         assertEquals("nine separate actions in the builder", 9, code.count { it.referenceText()?.startsWith("Lapp/hushgram/") == true })
     }
 
+    /**
+     * 457's x86_64 386314286 inlines the share sheet's check: a 0 flag jumps to a skip past the row on
+     * a register set to 0 right before, which runs on into the row. ownPostRow() still answers in the
+     * flag's register right after it's read (#57).
+     */
+    @Test
+    fun anInlinedShareSheetCheckStillLeadsToTheRow() {
+        val context = PatchContexts.of(classes(inlinedSheet = true))
+
+        context.offerDownloadOnEveryVideo()
+
+        val code = context.method(lambda, "invoke").code()
+        val flagged = code.indexOfFirst { it.referenceText() == "$state->flagged:Z" }
+        val row = code[flagged + 3] as Instruction35c
+        assertEquals(OWN_POST_ROW, row.referenceText())
+        assertEquals("ownPostRow()'s flag", 1, row.registerC)
+        assertHelperRead(code, flagged + 3, row.registerD)
+        assertEquals("the answer goes back where the branch reads it", 1, (code[flagged + 4] as OneRegisterInstruction).registerA)
+        val branch = (flagged + 5 until code.size).first { code[it].opcode == Opcode.IF_EQZ }
+        assertEquals("the branch reads the answer", 1, (code[branch] as OneRegisterInstruction).registerA)
+        val skip = code.target(branch)
+        assertEquals("a 0 lands on the skip", Opcode.IF_NEZ, code[skip].opcode)
+        assertEquals("which runs on into the row", DOWNLOAD, code[skip + 1].referenceText())
+        assertEquals("one ownPost() call", 1, code.count { it.referenceText() == OWN_POST })
+        assertEquals("one ownPostRow() call", 1, code.count { it.referenceText() == OWN_POST_ROW })
+    }
+
+    /** An inlined check whose skip is set before the branch skips the row on a 0 too, and nothing changes. */
+    @Test
+    fun anInlinedShareSheetCheckThatSkipsTheRowFailsBeforeAnythingChanges() {
+        val context = PatchContexts.of(classes(inlinedSheet = true, flagSkipsRow = true))
+        val failure = assertThrows(PatchException::class.java) { context.offerDownloadOnEveryVideo() }
+        assertTrue(failure.message!!, failure.message!!.contains("doesn't lead to the Download row"))
+        assertUntouched(context)
+    }
+
     /** A share sheet check that doesn't answer no on a 0 flag would hide the row the hook keeps, and nothing changes. */
     @Test
     fun aShareSheetCheckThatAsksFirstFailsBeforeAnythingChanges() {
@@ -970,6 +1006,13 @@ class DownloadVideoHookTest {
         }
         val lithoTypes = (rowBuilders.map { it.definingClass } + rowComposers.map { it.definingClass } + specs).filter { type -> classes.none { it.type == type } }.toSet()
         if (lithoTypes.isNotEmpty()) classes += FixtureDex.classes(bundle, lithoTypes).values
+        // The drawable Save's icon spec draws its glyph with, and the class it extends (#840).
+        val iconTypes = classes.filter { it.type in specs }.flatMap { it.methods }.flatMap { it.code() }
+            .mapNotNull { (it as? ReferenceInstruction)?.reference as? MethodReference }
+            .filter { it.name == "<init>" && it.parameterTypes.size == 6 && it.parameterTypes[0].toString() == "Landroid/content/Context;" }
+            .map { it.definingClass }
+        load(bundle, classes, iconTypes)
+        load(bundle, classes, classes.filter { it.type in iconTypes }.mapNotNull { it.superclass })
         // Save's modifier and the styles the builder gives it, then what the modifier is made of: its
         // part, its empty one, and the parts and kinds the styles (and the calls they make) build.
         val modifiers = rowBuilders.flatMap { it.code() }.mapNotNull { (it as? ReferenceInstruction)?.reference as? MethodReference }
@@ -995,7 +1038,8 @@ class DownloadVideoHookTest {
         val page = context.offerDownloadOnEveryVideo()
         if (hide == HideRow.AFTER) requireNotNull(context.hideAccountRowOrWarn()) { "$label: no row found after Download" }.write()
         assertFeedDownloadButton(context, page, label)
-        assertLithoDownloadButton(context, page, label)
+        val litho = assertLithoDownloadButton(context, page, label)
+        assertRowIconsKeepTheirSize(context, litho, label)
 
         // Copy caption reads Media's caption, then the comment's text through its interface,
         // by the name the tree-backed class that holds the text's hash gives the getter.
@@ -1180,7 +1224,7 @@ class DownloadVideoHookTest {
      * carrying the list, the spec and the state, each still holding what the hook reads. The bridges
      * go through the build's own post and feed state fields and its own modifier styles.
      */
-    private fun assertLithoDownloadButton(context: BytecodePatchContext, page: PageIndex, label: String) {
+    private fun assertLithoDownloadButton(context: BytecodePatchContext, page: PageIndex, label: String): LithoSaveSite {
         val button = context.findFeedButtonSite(page)
         val site = context.findLithoSaveSite(button, page)
         context.addLithoDownloadButton(site)
@@ -1215,6 +1259,34 @@ class DownloadVideoHookTest {
             instructions.any { (it as? NarrowLiteralInstruction)?.narrowLiteral == SAVE_BUTTON_ID }
         }
         assertDownloadModifierHasNoneOfSavesOwnParts(context, site, saveCode, label)
+        return site
+    }
+
+    /**
+     * #840: in each build Save's icon spec makes one drawable for its glyph, whose superclass hands
+     * the glyph the box in its bounds change. The hook goes in there first, once: instance-of tells
+     * the row's drawable from any other of the class, the call takes this, the bounds and that answer,
+     * and its answer is the bounds the glyph is then given.
+     */
+    private fun assertRowIconsKeepTheirSize(context: BytecodePatchContext, site: LithoSaveSite, label: String) {
+        val icons = requireNotNull(context.findRowIconBounds(site.specType)) { "$label: no row icon drawable found" }
+        assertEquals("$label: the drawable extends the class hooked", icons.wrapperType, context.classDefBy(icons.iconType).superclass)
+        context.keepRowIconsAtTheirSize(icons)
+        val method = context.method(icons.wrapperType, "onBoundsChange", listOf("Landroid/graphics/Rect;"))
+        val code = method.code()
+        val locals = method.implementation!!.registerCount - 2
+        val (self, bounds) = locals to locals + 1
+        assertEquals("$label: one hook", 1, code.count { it.referenceText() == ICON_BOUNDS })
+        val instanceOf = code[0] as TwoRegisterInstruction
+        assertEquals("$label: first, the row's own drawable", Opcode.INSTANCE_OF to icons.iconType, code[0].opcode to code[0].referenceText())
+        assertEquals("$label: asked of this", self, instanceOf.registerB)
+        val call = code[1] as Instruction35c
+        assertEquals("$label: then the hook", ICON_BOUNDS, call.referenceText())
+        assertEquals("$label: this, the bounds and the answer", listOf(self, bounds, instanceOf.registerA), listOf(call.registerC, call.registerD, call.registerE))
+        assertEquals("$label: its answer replaces the bounds", Opcode.MOVE_RESULT_OBJECT to bounds, code[2].opcode to (code[2] as OneRegisterInstruction).registerA)
+        val handed = code.single { it.referenceText() == "Landroid/graphics/drawable/Drawable;->setBounds(Landroid/graphics/Rect;)V" } as Instruction35c
+        assertEquals("$label: the glyph gets the hook's answer", bounds, handed.registerD)
+        assertTrue("$label: low registers", listOf(self, bounds, instanceOf.registerA).all { it < 16 })
     }
 
     /**
@@ -1325,6 +1397,7 @@ class DownloadVideoHookTest {
         branchBeforeSplit: Boolean = false,
         flagSkipsRow: Boolean = false,
         inlineRow: Boolean = false,
+        inlinedSheet: Boolean = false,
         sheetNoOnANo: Boolean = true,
         earlyExit: Boolean = false,
         optionEnum: Boolean = true,
@@ -1374,8 +1447,26 @@ class DownloadVideoHookTest {
         // line; anyone else's jumps past it. Some builds make the list and read the label through
         // methods R8 outlined, and some call nothing of the menu's past reading it. From 456 the row
         // is in line ([inlineRow]): the flag goes to the share sheet's check, whose yes skips the row.
+        // 457's x86_64 inlines that check ([inlinedSheet]): a 0 flag jumps to a skip past the row on a
+        // register set to 0 just before, so it runs on into the row.
         val finalField = AccessFlags.PUBLIC.value or AccessFlags.FINAL.value
-        val ownRows = if (inlineRow) """
+        val ownRows = if (inlinedSheet) """
+            const/4 v5, 0x0
+            iget-boolean v1, v0, $state->flagged:Z
+            const/4 v9, ${if (flagSkipsRow) "0x1" else "0x0"}
+            if-eqz v1, :skip
+            const-wide v6, 0x81030600060b90L
+            invoke-static { v2, v6, v7 }, $flag
+            move-result v1
+            if-eqz v1, :skip
+            const/4 v9, 0x1
+            :skip
+            if-nez v9, :mine
+            ${rowSmali(outlinedLabel)}
+            :mine
+            ${if (builderUsesMenu) "invoke-static { v13 }, $helper->A00($helper)$MEDIA" else "nop"}
+            return-object v3
+        """ else if (inlineRow) """
             const/4 v5, 0x0
             iget-boolean v1, v0, $state->flagged:Z
             invoke-static { v2, v1 }, $sheet

@@ -6,7 +6,6 @@
  */
 package app.morphe.patches.threads.feed.swipesearch
 
-import app.morphe.patcher.StringComparisonType
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
 import app.morphe.patcher.patch.BytecodePatchContext
 import app.morphe.patcher.patch.PatchException
@@ -15,13 +14,14 @@ import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod
 import app.morphe.patches.shared.compat.AppCompatibilities
 import app.morphe.patches.threads.ads.sourceOrNull
 import app.morphe.patches.threads.misc.extension.EXTENSION_PACKAGE
+import app.morphe.patches.threads.misc.extension.classesNoted
 import app.morphe.patches.threads.misc.extension.enableStatus
+import app.morphe.patches.threads.misc.extension.holdsNote
 import app.morphe.patches.threads.misc.extension.parameterRegister
 import app.morphe.patches.threads.misc.extension.parameterRegisterNumber
 import app.morphe.patches.threads.misc.extension.requireParameterIntact
 import app.morphe.patches.threads.misc.extension.requireStatusMethod
 import app.morphe.patches.threads.misc.extension.threadsExtensionPatch
-import app.morphe.patches.threads.misc.settings.EXTENSION_ROOT
 import app.morphe.patches.threads.misc.settings.settingsPatch
 import app.morphe.util.ControlFlow
 import app.morphe.util.argumentRegister
@@ -31,7 +31,6 @@ import com.android.tools.smali.dexlib2.AccessFlags
 import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.iface.Method
 import com.android.tools.smali.dexlib2.iface.instruction.FiveRegisterInstruction
-import com.android.tools.smali.dexlib2.iface.instruction.Instruction
 import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.TwoRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.reference.FieldReference
@@ -115,11 +114,10 @@ private fun FieldReference.descriptor() = "$definingClass->$name:$type"
 
 /** The home pager's check and the constructor that stores what it reads. Throws unless each is the only one. */
 internal fun BytecodePatchContext.swipePage(): SwipePage {
-    val sites = classDefByStrings(TABS_NOTE, StringComparisonType.STARTS_WITH)
-        .filterNot { it.type.startsWith(EXTENSION_ROOT) }
+    val sites = classesNoted(TABS_NOTE)
         .flatMap { it.methods }
         .distinctBy { it.signature() }
-        .filter { method -> method.implementation?.instructions?.any { it.isTabsNote() } == true }
+        .filter { it.holdsNote(TABS_NOTE) }
         .flatMap { method -> method.searchPageChecks().map { (guard, array) -> Triple(method, guard, array) } }
     val (screen, guard, array) = sites.singleOrPatchException("$PATCH: the home pager's check on its Search page")
     requirePages(screen, guard, array)
@@ -127,9 +125,6 @@ internal fun BytecodePatchContext.swipePage(): SwipePage {
     val (constructor, store) = flagStore(flag)
     return SwipePage(screen, guard, flag, constructor, constructor.storedParameter(store), store)
 }
-
-internal fun Instruction.isTabsNote(): Boolean =
-    opcode == Opcode.CONST_STRING && getReference<StringReference>()?.string?.startsWith(TABS_NOTE) == true
 
 /**
  * The `if-eqz` instructions in this method that test a boolean just read from a field and skip the

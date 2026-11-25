@@ -926,6 +926,7 @@ Not seen,Not seen
 Not seen yet,Not seen yet
 "Nothing has been checked yet, so there's nothing to report.","Nothing has been checked yet, so there's nothing to report."
 "Nothing has been looked up yet. Use the app for a moment, then come back.","Nothing has been looked up yet. Use the app for a moment, then come back."
+Nothing in this list matches,Nothing in this list matches
 Nothing is playing to seek,Nothing is playing to seek
 Nothing is playing to speed up,Nothing is playing to speed up
 Nothing is saving right now,Nothing is saving right now
@@ -1109,6 +1110,7 @@ Put back the settings saved before the last restore or reset.,Put back the setti
 Put every setting back to its default straight away. Your current settings are kept for Undo.,Put every setting back to its default straight away. Your current settings are kept for Undo.
 Put the comment search away,Put the comment search away
 "Puts a circle on each video in a profile, Liked or Favorites grid. Pick up to %1$s, then tap Save to save them one after another, with a count and Cancel.","Puts a circle on each video in a profile, Liked or Favorites grid. Pick up to %1$s, then tap Save to save them one after another, with a count and Cancel."
+"Puts a search bar above these lists. It looks through the whole list, loading the rest as it goes, and tapping a result opens it.","Puts a search bar above these lists. It looks through the whole list, loading the rest as it goes, and tapping a result opens it."
 "Puts a ✓ by videos and photo posts you saved with HushPine, on profile grids and next to the time in the feed. Works only while Check for already-saved videos is on.","Puts a ✓ by videos and photo posts you saved with HushPine, on profile grids and next to the time in the feed. Works only while Check for already-saved videos is on."
 "Puts your time zone after the time to the second, like EDT.","Puts your time zone after the time to the second, like EDT."
 Putting seen videos back,Putting seen videos back
@@ -1284,6 +1286,7 @@ Screen time,Screen time
 Scrolling comments on videos,Scrolling comments on videos
 Search,Search
 Search Activity notifications already loaded on this screen. Loading more pauses while you search.,Search Activity notifications already loaded on this screen. Loading more pauses while you search.
+Search History and Favorites,Search History and Favorites
 Search by name or gate key,Search by name or gate key
 "Search by name, description or category.","Search by name, description or category."
 Search countries or operators,Search countries or operators
@@ -1293,6 +1296,7 @@ Search is unavailable on this screen,Search is unavailable on this screen
 Search loaded activity,Search loaded activity
 Search settings,Search settings
 Search these comments,Search these comments
+Search this list,Search this list
 Seconds per photo,Seconds per photo
 "Seconds. Zero keeps every length. If everything the feed just sent would be filtered out, the video closest to your limit is kept so the feed isn't empty.","Seconds. Zero keeps every length. If everything the feed just sent would be filtered out, the video closest to your limit is kept so the feed isn't empty."
 "Seconds. Zero keeps every length. Photo posts and videos without a known length stay. If everything the feed just sent would be filtered out, the video closest to your limit is kept.","Seconds. Zero keeps every length. Photo posts and videos without a known length stay. If everything the feed just sent would be filtered out, the video closest to your limit is kept."
@@ -1511,9 +1515,11 @@ Tap Stop or leave the room to save it.,Tap Stop or leave the room to save it.
 Tap again to follow,Tap again to follow
 Tap again to like,Tap again to like
 Tap again to repost,Tap again to repost
+Tap the tab you're on to go back to the top,Tap the tab you're on to go back to the top
 "Tap to start, then scroll until the feed problem shows up and come back here to save it. The file has no captions or names, and videos and creators appear only as short codes. Read it before you share it.","Tap to start, then scroll until the feed problem shows up and come back here to save it. The file has no captions or names, and videos and creators appear only as short codes. Read it before you share it."
 "Tap, then go to the screen with what you want hidden. After %1$d seconds HushPine records how that screen is built, without any of its text, for the diagnostic report.","Tap, then go to the screen with what you want hidden. After %1$d seconds HushPine records how that screen is built, without any of its text, for the diagnostic report."
 Tapping a sticker someone sent you in a chat opens a box with Save media. Turn this off to skip it.,Tapping a sticker someone sent you in a chat opens a box with Save media. Turn this off to skip it.
+Tapping the tab you're already on in History or Favorites takes that list back to its first row.,Tapping the tab you're already on in History or Favorites takes that list back to its first row.
 Technical details,Technical details
 "Technical details, %1$s","Technical details, %1$s"
 Text sticker words,Text sticker words

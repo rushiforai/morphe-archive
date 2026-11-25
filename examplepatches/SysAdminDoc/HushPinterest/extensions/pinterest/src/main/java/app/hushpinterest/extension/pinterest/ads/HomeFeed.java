@@ -84,4 +84,24 @@ public final class HomeFeed {
         Logger.printDebug(() -> "Home feed: Back left Home without the jump to the top");
         return true;
     }
+
+    /**
+     * Injected into Home's handler for the time-away event, right after Pinterest takes the event
+     * off the bus (#48). True returns there, so the pill that offers new pins never inflates, and
+     * neither its analytics nor its 15 second hide timer start. Off, paused or unreadable, the pill
+     * shows as before. Never throws.
+     */
+    public static boolean hideRefreshPill() {
+        HookStatus.invoked(FamilyNames.KEEP_HOME_FEED);
+        boolean on;
+        try {
+            on = Utils.settingsReady() && Settings.HIDE_REFRESH_PILL.get();
+        } catch (Throwable t) {
+            HookStatus.threw(FamilyNames.KEEP_HOME_FEED, "refresh pill switch read", t);
+            return false;
+        }
+        if (!on) return false;
+        HookStatus.counted(FamilyNames.KEEP_HOME_FEED, "refresh pill hidden");
+        return true;
+    }
 }

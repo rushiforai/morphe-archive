@@ -58,6 +58,29 @@ def wait_until_ready(limit=300):
     return False
 
 
+def no_install_checks():
+    """Turns off Play Protect's check of apps installed over adb. On a Google APIs image it can stop
+    an install with a dialog nobody answers (for example an app with a Google package name and our
+    signature), and adb install then waits until the job's time limit."""
+    for setting in ("verifier_verify_adb_installs", "package_verifier_enable"):
+        adb("shell", "settings", "put", "global", setting, "0")
+    # The one-time "Viewing full screen ... Got it" hint over an app that hides the system bars (YouTube
+    # Kids does) would cover the screen the check looks for.
+    adb("shell", "settings", "put", "secure", "immersive_mode_confirmations", "confirmed")
+
+
+def why_emulator_failed():
+    """What the runner says about an emulator that went away: its memory, and the kernel's lines
+    about killed processes (an emulator the out-of-memory killer stops leaves no message itself)."""
+    for command in ("free -m", "sudo dmesg | grep -iE 'killed process|out of memory|oom|qemu|emulator' | tail -20",
+                    "ps -eo pid,rss,etime,comm --sort=-rss | head -8"):
+        print(f"$ {command}", flush=True)
+        try:
+            print(subprocess.run(command, shell=True, capture_output=True, text=True, timeout=30).stdout, flush=True)
+        except subprocess.TimeoutExpired:
+            print("(no answer)", flush=True)
+
+
 def run(command):
     """Runs one check command, shows its output as it comes, and returns (code, output)."""
     process = subprocess.Popen(command, shell=True, cwd=ROOT, stdout=subprocess.PIPE,
@@ -75,10 +98,12 @@ def main():
     settings = json.loads((ROOT / ".github" / "apps" / f"{sys.argv[1]}.json").read_text(encoding="utf-8"))
     for command in settings["check"]:
         wait_until_ready()
+        no_install_checks()
         print(f"$ {command}", flush=True)
         code, output = run(command)
         if code != 0 and EMULATOR_TROUBLE.search(output):
             print("::warning::The emulator failed, not the app: waiting for it and trying once more.", flush=True)
+            why_emulator_failed()
             adb("reconnect")
             wait_until_ready()
             code, output = run(command)

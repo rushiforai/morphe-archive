@@ -18,6 +18,7 @@ Every patch is on by default. Morphe Manager groups them by category.
 | Feature | Redirect Gold purchase | Opens `connect.idn.media/my-account/gold` in the browser instead of the in-app Gold top up. |
 | Feature | Allow Developer options | Lets short movies play while Developer options are turned on, instead of asking to turn them off. |
 | Fix | Fix server error after idle | Retries a request with a fresh login when the saved one has expired. Without it the first open after a long break shows "Maaf, kesalahan server kami" until Muat Ulang is pressed. |
+| Theme | Themed icon | Adds the themed (monochrome) app icon of Android 13 and later, which follows the wallpaper colors. |
 
 ## Fakh Patches page
 

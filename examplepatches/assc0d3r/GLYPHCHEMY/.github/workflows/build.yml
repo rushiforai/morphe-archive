@@ -1,0 +1,62 @@
+name: Build
+
+# release.yml only runs on a tag or a manual dispatch, so a broken build or a stale
+# inventory is discovered after the tag has been pushed, as a failed release. This runs the
+# same two gates on every change to main and on every pull request, before any tag exists.
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+
+concurrency:
+  group: build-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    name: Build and verify the patch inventory
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v7
+
+      - name: Setup Java 21
+        uses: actions/setup-java@v6
+        with:
+          distribution: 'temurin'
+          java-version: '21'
+
+      - name: Make scripts executable
+        run: chmod +x ./build.sh
+
+      # build.sh names the bundle from gradle.properties, so the version comes from there
+      # instead of a tag. A pull request that forgets to bump it still builds; that is the
+      # release workflow's business, not this one's.
+      - name: Build Patch Package (.mpp)
+        run: ./build.sh
+
+      # Same gate as the release workflow: the committed inventory must describe the bundle
+      # that was just built. The regenerated file is compared, never moved into place, so a
+      # failing run leaves the checkout untouched.
+      - name: Verify the patch inventory matches the bundle
+        run: |
+          set -euo pipefail
+          VERSION="$(grep -m1 '^version=' gradle.properties | cut -d'=' -f2 | tr -d ' ')"
+          REGENERATED="build/patches-list.regenerated.json"
+          java -cp "libs/morphe-cli.jar:libs/gson.jar" tools/bindings/Inventory.java \
+            "dist/patches-${VERSION}.mpp" "${VERSION}" "${REGENERATED}"
+          # The version is stamped from the current gradle.properties and the entry order
+          # follows the previous file, so compare the patch entries themselves, name by name.
+          jq -S '.patches | sort_by(.name)' patches-list.json > build/inventory.committed.json
+          jq -S '.patches | sort_by(.name)' "${REGENERATED}" > build/inventory.built.json
+          if ! diff -u build/inventory.committed.json build/inventory.built.json; then
+            echo "::error::patches-list.json does not describe dist/patches-${VERSION}.mpp."
+            echo "::error::Regenerate and commit it before merging:"
+            echo "::error::java -cp \"libs/morphe-cli.jar:libs/gson.jar\" tools/bindings/Inventory.java dist/patches-${VERSION}.mpp ${VERSION} patches-list.json"
+            exit 1
+          fi
+          echo "Inventory matches the bundle: $(jq '.patches | length' patches-list.json) patches"

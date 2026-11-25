@@ -5,13 +5,11 @@
 Package: `sp0n.citizen`  
 Patch: **Unlock Pro**
 
-## Supported versions
+## Supported version
 
-| Citizen version | Version code | Status |
-| --- | --- | --- |
-| 0.1319.0 | 1152 | All 34 required targets checked against the supplied DEX; device verification pending |
-| 0.1318.0 | 1151 | Updated fingerprints and regression tests; reported working on a user device |
-| 0.1307.0 | 1139 | Legacy implementation retained; not revalidated against the old APK |
+Citizen **0.1320.0**, version code **1153**. All 34 required targets have been checked against the supplied DEX files; device verification is pending.
+
+Only the latest supported Citizen version is maintained. Compatibility declarations and code for older versions are removed when support is updated.
 
 Use the original APKM bundle, including its splits, when patching in Morphe Manager. You do not need to extract DEX files.
 
@@ -19,14 +17,12 @@ Use the original APKM bundle, including its splits, when patching in Morphe Mana
 
 The patch overrides local Plus/Protect checks and suppresses paywalls. It does not create a subscription on Citizen's servers or establish server-side eligibility for paid services. Successful patching does not guarantee that every server-backed feature is available.
 
-The 0.1318.0 and 0.1319.0 implementations each use 34 required targets. It preserves invitation and challenge event handlers, changes only the family collector's entitlement flag, and calls superclass initialization before dismissing paywall activities. Their five paywall Activity fingerprints match the exact `public final` access flags required by Morphe.
+The implementation uses 34 required targets and fails visibly if any cannot be matched. It preserves invitation, education, and challenge handlers, changes only the family collector's entitlement flag, and calls superclass initialization before dismissing the five paywall activities.
 
-For 0.1319.0, 31 targets retain their signatures. The purchase helper moved to `hcd`, the Protect button helper moved to `gcd` with updated parameter types, and the family-plan collector now uses `xx3` as its continuation type. Those three hooks are selected by app version; the older hooks remain intact.
-
-Old Superwall and obfuscated collector hooks execute only for the legacy version.
+The purchase and Protect button helper fingerprints include a paywall-call anchor. The family-plan collector matches its current continuation type and entitlement field, preserving invitation routing and Safety Network navigation.
 
 ## Attribution
 
-Adapted from the [Citizen patch in rushiranpise/morphe-patches](https://github.com/rushiranpise/morphe-patches/tree/main/patches/src/main/kotlin/app/template/patches/citizen), commit `92c0fca0ae103a419c7fc61f9c5b8b38b7d6b82a`, with compatibility updates for 0.1318.0 and 0.1319.0.
+Adapted from the [Citizen patch in rushiranpise/morphe-patches](https://github.com/rushiranpise/morphe-patches/tree/main/patches/src/main/kotlin/app/template/patches/citizen), commit `92c0fca0ae103a419c7fc61f9c5b8b38b7d6b82a`, with compatibility updates for 0.1320.0.
 
 See the repository's [license](../../LICENSE) and [notices](../../NOTICE).

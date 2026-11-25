@@ -25,6 +25,7 @@ import java.security.cert.Certificate;
 import java.security.cert.CertificateFactory;
 import java.security.cert.X509Certificate;
 import java.security.spec.ECGenParameterSpec;
+import java.util.ArrayDeque;
 import java.util.Arrays;
 import java.util.Base64;
 import java.util.List;
@@ -305,8 +306,9 @@ final class V2RayFakes {
                 OutputStream out = open.getOutputStream();
                 if (ws) {
                     if (!upgrade(in, out, heard)) return;
-                    out = new FrameOut(out);
-                    in = new FrameIn(in, heard);
+                    FrameIn frames = new FrameIn(in, heard);
+                    out = new FrameOut(out, frames);
+                    in = frames;
                 }
                 switch (kind) {
                     case V2RayLinks.SS:
@@ -692,7 +694,12 @@ final class V2RayFakes {
 
     /** A client's frames: masked, as RFC 6455 has them. A pong is counted, a close ends the stream. */
     static final class FrameIn extends Chunks {
+        /** What {@link #frame} gives for a frame with no data: a pong or an empty data frame. */
+        private static final byte[] NOTHING = new byte[0];
         private final Heard heard;
+        /** Data read while waiting for the pong, given out by {@link #next} before anything newer. */
+        private final ArrayDeque<byte[]> kept = new ArrayDeque<>();
+        private boolean closed;
 
         FrameIn(InputStream wire, Heard heard) {
             super(wire);
@@ -702,34 +709,58 @@ final class V2RayFakes {
         @Override
         byte[] next() throws IOException {
             while (true) {
-                byte[] head = readOrEnd(wire, 2);
-                if (head == null) return null;
-                if ((head[1] & 0x80) == 0) throw new IOException("a client frame came unmasked");
-                long length = head[1] & 0x7f;
-                if (length == 126) {
-                    byte[] more = readN(wire, 2);
-                    length = (more[0] & 0xff) << 8 | (more[1] & 0xff);
-                } else if (length == 127) {
-                    byte[] more = readN(wire, 8);
-                    length = 0;
-                    for (byte b : more) length = length << 8 | (b & 0xff);
-                }
-                byte[] mask = readN(wire, 4);
-                byte[] payload = readN(wire, (int) length);
-                for (int i = 0; i < payload.length; i++) payload[i] ^= mask[i & 3];
-                switch (head[0] & 0x0f) {
-                    case 0x0:
-                    case 0x2:
-                        if (payload.length > 0) return payload;
-                        break;
-                    case 0xA:
-                        heard.ponged();
-                        break;
-                    case 0x8:
-                        return null;
-                    default:
-                        throw new IOException("a frame of kind " + (head[0] & 0x0f));
-                }
+                if (!kept.isEmpty()) return kept.poll();
+                byte[] one = frame();
+                if (one != NOTHING) return one;
+            }
+        }
+
+        /**
+         * Reads on until the client has answered the ping, keeping any data for {@link #next}. A pong
+         * left unread when the server closes makes Windows reset the connection, and the reset throws
+         * away whatever the client hasn't read yet, the end of the stream included.
+         */
+        void untilPonged() throws IOException {
+            while (heard.pongs == 0) {
+                byte[] one = frame();
+                if (one == null) return;
+                if (one != NOTHING) kept.add(one);
+            }
+        }
+
+        /** One frame: its data, {@link #NOTHING}, or null once the client has closed. */
+        private byte[] frame() throws IOException {
+            if (closed) return null;
+            byte[] head = readOrEnd(wire, 2);
+            if (head == null) {
+                closed = true;
+                return null;
+            }
+            if ((head[1] & 0x80) == 0) throw new IOException("a client frame came unmasked");
+            long length = head[1] & 0x7f;
+            if (length == 126) {
+                byte[] more = readN(wire, 2);
+                length = (more[0] & 0xff) << 8 | (more[1] & 0xff);
+            } else if (length == 127) {
+                byte[] more = readN(wire, 8);
+                length = 0;
+                for (byte b : more) length = length << 8 | (b & 0xff);
+            }
+            byte[] mask = readN(wire, 4);
+            byte[] payload = readN(wire, (int) length);
+            for (int i = 0; i < payload.length; i++) payload[i] ^= mask[i & 3];
+            switch (head[0] & 0x0f) {
+                case 0x0:
+                case 0x2:
+                    return payload.length > 0 ? payload : NOTHING;
+                case 0xA:
+                    heard.ponged();
+                    return NOTHING;
+                case 0x8:
+                    closed = true;
+                    return null;
+                default:
+                    throw new IOException("a frame of kind " + (head[0] & 0x0f));
             }
         }
     }
@@ -737,10 +768,13 @@ final class V2RayFakes {
     /** A server's frames, unmasked. A ping goes first, so the client has one to answer; a close goes last. */
     static final class FrameOut extends OutputStream {
         private final OutputStream wire;
+        /** The same connection's frames, read for the pong before the close. */
+        private final FrameIn frames;
         private boolean pinged;
 
-        FrameOut(OutputStream wire) {
+        FrameOut(OutputStream wire, FrameIn frames) {
             this.wire = wire;
+            this.frames = frames;
         }
 
         @Override
@@ -765,6 +799,7 @@ final class V2RayFakes {
 
         @Override
         public void close() throws IOException {
+            if (pinged) frames.untilPonged();
             wire.write(frame(0x8, new byte[]{0x03, (byte) 0xe8}, 0, 2));
             wire.flush();
             wire.close();

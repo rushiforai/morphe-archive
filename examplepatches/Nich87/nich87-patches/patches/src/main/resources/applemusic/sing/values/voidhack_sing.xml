@@ -9,6 +9,6 @@
     <string name="voidhack_sing_download">Prepare model</string>
     <string name="voidhack_sing_setup">Download the 30 MB model once to separate vocals on this device.</string>
     <string name="voidhack_sing_preparing">Preparing the separation model…</string>
-    <string name="voidhack_sing_format">Separation requires stereo PCM at 32, 44.1, 48, 88.2, 96, 176.4 or 192 kHz.</string>
+    <string name="voidhack_sing_format">Separation requires decoded PCM audio (stereo or multichannel/Dolby Atmos) at 32 to 192 kHz.</string>
     <string name="voidhack_sing_failed">The model could not be prepared. Tap Prepare model to retry.</string>
 </resources>

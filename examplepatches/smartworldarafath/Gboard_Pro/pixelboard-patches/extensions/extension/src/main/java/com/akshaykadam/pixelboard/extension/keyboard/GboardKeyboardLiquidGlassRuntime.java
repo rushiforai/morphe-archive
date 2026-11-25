@@ -1726,15 +1726,17 @@ public final class GboardKeyboardLiquidGlassRuntime {
             if (role == OrbRole.BLUE_GLOW) {
                 bodyColors = new int[]{0xFFCBD4FF, 0xFF8899FF, 0xFF6A7EF8};
             } else if (role == OrbRole.SMOKED_DARK) {
-                bodyColors = new int[]{0xFF7B8197, 0xFF595E73, 0xFF474C5F};
+                bodyColors = palette.isNight
+                        ? new int[]{0xFF565F7A, 0xFF282F44, 0xFF3E4760}
+                        : new int[]{0xFF7B8197, 0xFF595E73, 0xFF474C5F};
             } else if (role == OrbRole.SMOKED_LIGHT) {
                 bodyColors = palette.isNight
-                        ? new int[]{0xFF3E445A, 0xFF282D40, 0xFF343A50}
+                        ? new int[]{0xFF454E69, 0xFF1F2538, 0xFF333B54}
                         : new int[]{0xFFB5B9CB, 0xFF9EA2B6, 0xFFC8CBE0};
             } else if (palette.isAmoled) {
-                bodyColors = new int[]{0xFF1A2030, 0xFF0A0D16, 0xFF151928};
+                bodyColors = new int[]{0xFF273046, 0xFF06080E, 0xFF1B2336};
             } else if (palette.isNight) {
-                bodyColors = new int[]{0xFF2D3348, 0xFF1E2233, 0xFF282E42};
+                bodyColors = new int[]{0xFF394466, 0xFF111522, 0xFF2D3754};
             } else {
                 bodyColors = new int[]{0xFFDFDDF0, 0xFFEFEFF9, 0xFFFFFFFF};
             }
@@ -1757,27 +1759,59 @@ public final class GboardKeyboardLiquidGlassRuntime {
             clip.addCircle(cx, cy, radius, Path.Direction.CW);
             canvas.clipPath(clip);
 
-            glossPaint.setShader(new RadialGradient(
-                    cx - radius * 0.35f, cy - radius * 0.4f, radius * 0.85f,
-                    new int[]{(role == OrbRole.SMOKED_DARK || role == OrbRole.SMOKED_LIGHT) ? 0x52FFFFFF : (palette.isNight ? 0x2CFFFFFF : 0xACFFFFFF), 0x00FFFFFF},
-                    new float[]{0f, 1f}, Shader.TileMode.CLAMP));
-            canvas.drawCircle(cx - radius * 0.22f, cy - radius * 0.3f, radius * 0.8f, glossPaint);
+            if ((palette.isNight || palette.isAmoled) && role != OrbRole.BLUE_GLOW) {
+                int domeTop = palette.isAmoled ? 0x6AFFFFFF : 0x7AFFFFFF;
+                glossPaint.setShader(new RadialGradient(
+                        cx - radius * 0.35f, cy - radius * 0.37f, radius * 0.78f,
+                        new int[]{domeTop, 0x26FFFFFF, 0x00FFFFFF},
+                        new float[]{0f, 0.48f, 1f}, Shader.TileMode.CLAMP));
+                canvas.drawCircle(cx - radius * 0.24f, cy - radius * 0.28f, radius * 0.78f, glossPaint);
 
-            glossPaint.setShader(new RadialGradient(
-                    cx, cy + radius * 0.72f, radius * 0.5f,
-                    new int[]{role == OrbRole.BLUE_GLOW ? 0x44C8D4FF : 0x58FFFFFF, 0x00FFFFFF},
-                    new float[]{0f, 1f}, Shader.TileMode.CLAMP));
-            canvas.drawCircle(cx, cy + radius * 0.68f, radius * 0.5f, glossPaint);
+                float glintX = cx - radius * 0.34f;
+                float glintY = cy - radius * 0.36f;
+                canvas.save();
+                canvas.rotate(-36f, glintX, glintY);
+                glossPaint.setShader(new RadialGradient(
+                        glintX, glintY, radius * 0.32f,
+                        new int[]{0xB2FFFFFF, 0x3EFFFFFF, 0x00FFFFFF},
+                        new float[]{0f, 0.55f, 1f}, Shader.TileMode.CLAMP));
+                canvas.drawOval(glintX - radius * 0.28f, glintY - radius * 0.14f,
+                        glintX + radius * 0.28f, glintY + radius * 0.14f, glossPaint);
+                canvas.restore();
+
+                int caustic = GboardM3Helper.blendAlpha(
+                        GboardM3Helper.blendColor(palette.accent, 0xFFFFFFFF, 0.48f),
+                        palette.isAmoled ? 0.40f : 0.46f);
+                glossPaint.setShader(new RadialGradient(
+                        cx + radius * 0.22f, cy + radius * 0.56f, radius * 0.60f,
+                        new int[]{caustic, 0x22FFFFFF, 0x00FFFFFF},
+                        new float[]{0f, 0.55f, 1f}, Shader.TileMode.CLAMP));
+                canvas.drawCircle(cx + radius * 0.18f, cy + radius * 0.54f, radius * 0.60f, glossPaint);
+            } else {
+                glossPaint.setShader(new RadialGradient(
+                        cx - radius * 0.35f, cy - radius * 0.4f, radius * 0.85f,
+                        new int[]{(role == OrbRole.SMOKED_DARK || role == OrbRole.SMOKED_LIGHT) ? 0x52FFFFFF : 0xACFFFFFF, 0x00FFFFFF},
+                        new float[]{0f, 1f}, Shader.TileMode.CLAMP));
+                canvas.drawCircle(cx - radius * 0.22f, cy - radius * 0.3f, radius * 0.8f, glossPaint);
+
+                glossPaint.setShader(new RadialGradient(
+                        cx, cy + radius * 0.72f, radius * 0.5f,
+                        new int[]{role == OrbRole.BLUE_GLOW ? 0x44C8D4FF : 0x58FFFFFF, 0x00FFFFFF},
+                        new float[]{0f, 1f}, Shader.TileMode.CLAMP));
+                canvas.drawCircle(cx, cy + radius * 0.68f, radius * 0.5f, glossPaint);
+            }
             canvas.restore();
 
             float strokeW = 1.45f * d;
             rimPaint.setStrokeWidth(strokeW);
             int[] rimColors = (role == OrbRole.SMOKED_DARK || role == OrbRole.SMOKED_LIGHT)
-                    ? new int[]{0xF0FFFFFF, 0x448088A4, 0xB8FFFFFF}
+                    ? (palette.isNight
+                    ? new int[]{0xD8FFFFFF, 0x28FFFFFF, GboardM3Helper.blendAlpha(GboardM3Helper.blendColor(palette.accent, 0xFFFFFFFF, 0.45f), 0.64f)}
+                    : new int[]{0xF0FFFFFF, 0x448088A4, 0xB8FFFFFF})
                     : (role == OrbRole.BLUE_GLOW
                     ? new int[]{0xF8FFFFFF, 0x668494FF, 0xE6C6D0FF}
-                    : (palette.isNight
-                    ? new int[]{0x55FFFFFF, 0x1AFFFFFF, 0x40A8C7FA}
+                    : (palette.isNight || palette.isAmoled
+                    ? new int[]{0xCCFFFFFF, 0x24FFFFFF, GboardM3Helper.blendAlpha(GboardM3Helper.blendColor(palette.accent, 0xFFFFFFFF, 0.48f), 0.62f)}
                     : new int[]{0xFCFFFFFF, 0x468894B8, 0xEEFFFFFF}));
             rimPaint.setShader(new LinearGradient(
                     cx - radius, cy - radius, cx + radius, cy + radius,

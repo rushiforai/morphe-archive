@@ -26,6 +26,7 @@ public final class ForwardingMessage {
                 protectedContent, true, nativeMessage);
     }
 
+    /** Full constructor used by the Telegram runtime adapter. */
     public ForwardingMessage(int accountId, long sourceChatId, int messageId, String text,
                              boolean outgoing, boolean secretChat, boolean serviceMessage,
                              boolean protectedContent, boolean forwardable, Object nativeMessage) {

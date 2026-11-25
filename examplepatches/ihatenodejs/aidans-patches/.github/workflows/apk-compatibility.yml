@@ -140,6 +140,17 @@ jobs:
       - name: Build native apk-lab
         run: cargo build --release --locked --manifest-path tools/apk-lab/Cargo.toml --bin apk-lab
 
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+
+      # `apkmirror_runner.cjs` requires the pinned `apkmirror-downloader`
+      # package from the root lockfile. Without this the APKMirror fallback
+      # fails on every package and acquisition silently shifts to APKPure.
+      - name: Install APKMirror runner dependencies
+        run: bun install --frozen-lockfile --ignore-scripts
+
       - name: Sync native apk-lab and tools
         run: |
           tools/apk-lab/target/release/apk-lab setup --profile ci

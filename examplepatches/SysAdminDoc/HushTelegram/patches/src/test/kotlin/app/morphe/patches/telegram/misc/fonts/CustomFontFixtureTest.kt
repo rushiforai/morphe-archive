@@ -237,7 +237,9 @@ class CustomFontFixtureTest {
         return (named + utilities).associateBy { it.type }.values.map(ImmutableClassDef::of)
     }
 
-    private fun Instruction.operand() = listOf(opcode, namedRegisters(), origRef(), (this as? WideLiteralInstruction)?.wideLiteral)
+    // A hook can push a branch past a plain goto's reach, and dexlib2 widens it: still the same jump.
+    private fun Instruction.operand() = listOf(if (opcode == Opcode.GOTO_16 || opcode == Opcode.GOTO_32) Opcode.GOTO else opcode,
+        namedRegisters(), origRef(), (this as? WideLiteralInstruction)?.wideLiteral)
     private fun key(m: Method) = "${m.definingClass}->${m.name}(${m.parameterTypes.joinToString("")})${m.returnType}"
 
     companion object {

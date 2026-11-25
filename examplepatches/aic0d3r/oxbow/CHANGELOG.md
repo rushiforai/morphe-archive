@@ -4,6 +4,56 @@ All notable changes to Oxbow are documented in this file. Oxbow is a fork of
 [FeurStagram](https://github.com/jean-voila/FeurStagram); its history before the fork is
 kept below, unchanged.
 
+## Oxbow v456-1-0-56-78, patch bundle 1.3.5
+
+### Fixed
+- **Download media failed to patch on some builds of Instagram 456.1.0.56.78** (the larger
+  APKMirror bundle): the post menu builder is an instance method there, and the patch only looked
+  for a static one. Both shapes are found now.
+
+## Oxbow v456-1-0-56-78, patch bundle 1.3.4
+
+### Changed
+- **Based on Instagram 456.1.0.56.78.** All 19 patches apply to it. Instagram removed most of the
+  diagnostic markers Oxbow's patches anchored on, so the Reels comment button, the reel pager, the
+  Reels menu and the post menu are now found by their code shape; the post menu builds its list a
+  new way, and the hook follows.
+- **A ready cooldown request lapses.** A request can be applied for as long as its wait was; after
+  that it cancels itself. Until now every request could be banked and applied at any time, which
+  defeated the wait.
+- **The landing page applies when you open Instagram.** It no longer fires when the screen is
+  rebuilt (folding a foldable, switching dark mode), when Instagram rebuilds its tab bar, or when
+  a notification or a shared link opens the app.
+- **Hide screenshots says what else it does:** screens Instagram blocks screenshots on become
+  capturable too.
+
+### Fixed
+- **Suggested accounts with a story stay out of the story tray.** Instagram 456 marks them with
+  a new type the tray filter did not know, so they showed up even with *Suggested accounts*
+  blocked.
+- **A cooldown request survives a restart.** A reboot used to reset the count: once the phone had
+  been on longer than at the time of the request, the wait jumped back to almost its full length,
+  and with regular restarts a 72-hour wait could never end.
+- **An update started in the background no longer disappears.** If you left Instagram while the
+  update was being prepared, Android dropped its install prompt without a word. The prompt now
+  arrives as a notification you tap to install, or opens as soon as you return to Instagram when
+  notifications are off.
+- **The update page shows the download's full size from the start.** GitHub writes its sizes
+  with a space after the colon, which the updater's parser never got past, so the total only
+  appeared once the download had begun.
+- **No more stuck "Updating Oxbow" notification** after Instagram was closed mid-download; it is
+  cleared at the next launch.
+- **Cancel is honoured while the update is being prepared,** instead of the install prompt
+  appearing anyway.
+- **Clear cache and restart runs once** even if Done is tapped twice, and stops Instagram's other
+  processes before clearing, so caches and databases are not refilled mid-delete.
+- **Home can no longer be hidden on a layout without a Messages tab,** which would have left no
+  way into the settings.
+- **Ghost mode's record of what you read fills three times slower,** so it is wiped far less often.
+- **Updater hardening on Android 9 to 12:** another app can no longer send Oxbow's updater a fake
+  install status, which could show a screen in Instagram's name or delete the downloaded update;
+  an APK swapped on storage for one of another package is refused.
+
 ## Oxbow v455-0-0-51-72, patch bundle 1.3.3
 
 ### Added

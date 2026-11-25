@@ -80,15 +80,15 @@ internal class PostGapPlan(
 )
 
 /**
- * Tumblr's timeline spacing (`mxl` in 47.0.0.108) is the one list decoration that leaves a gap above
+ * Tumblr's timeline spacing (`c0m` in 47.3.0.110) is the one list decoration that leaves a gap above
  * each row. Its draw goes over every row's gap only for a debug switch, painting it with a debug
  * red. The switch's answer goes through the extension here, and so does the paint call, so that
  * existing loop gives the line its place without any of the list's own obfuscated methods.
  *
  * The spacing leaves the same gap above a heading, a carousel or a button between posts, and a line
- * there doesn't divide two posts (#15). The spacing's getItemOffsets (`mxl.d`) reads the timeline
- * item above a row and the row's own (`w4a.G0`) to pick the gap's size (`lxl.b`); the extension gets
- * the row first and then both items' payloads (`a2k.l`), and the draw says which row it's on before
+ * there doesn't divide two posts (#15). The spacing's getItemOffsets (`c0m.d`) reads the timeline
+ * item above a row and the row's own (`m4a.G0`) to pick the gap's size (`b0m.b`); the extension gets
+ * the row first and then both items' payloads (`b5k.l`), and the draw says which row it's on before
  * each gap, so the line goes only where a post sits on both sides.
  */
 @Suppress("unused")

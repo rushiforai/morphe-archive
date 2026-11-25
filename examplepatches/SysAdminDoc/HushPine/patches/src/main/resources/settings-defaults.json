@@ -288,6 +288,10 @@
     "Limit background traffic": [
       "limit_background_traffic"
     ],
+    "List search and tap to top": [
+      "list_search",
+      "list_tab_to_top"
+    ],
     "Location access governor": [
       "block_location"
     ],
@@ -1511,6 +1515,18 @@
       "key": "limit_background_traffic",
       "type": "boolean",
       "default": false
+    },
+    "list_search": {
+      "field": "LIST_SEARCH",
+      "key": "list_search",
+      "type": "boolean",
+      "default": true
+    },
+    "list_tab_to_top": {
+      "field": "LIST_TAB_TO_TOP",
+      "key": "list_tab_to_top",
+      "type": "boolean",
+      "default": true
     },
     "live_feed_filter": {
       "field": "LIVE_FEED_FILTER",

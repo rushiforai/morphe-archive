@@ -4,8 +4,8 @@ on:
   workflow_dispatch:
   push:
     branches:
-      - main
-      - dev
+      - release/main
+      - release/dev
     paths:
       - 'patches/**'
       - 'extensions/**'
@@ -24,11 +24,19 @@ on:
       - '.github/workflows/release.yml'
 
 concurrency:
-  group: release-${{ github.ref }}
+  # Per-target with promote-release.yml: a promotion to a release branch and a
+  # release run on that branch serialize, while release/main and release/dev do
+  # not starve each other.
+  group: release-publication-${{ github.ref_name }}
   cancel-in-progress: false
 jobs:
   verify:
     name: Verify Pre-Release Gate
+    # workflow_dispatch can select any ref; publication is only ever allowed
+    # from the protected release branches.
+    if: >-
+      github.ref == 'refs/heads/release/main' ||
+      github.ref == 'refs/heads/release/dev'
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -39,6 +47,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v7
         with:
+          ref: ${{ github.sha }}
           fetch-depth: 0
 
       - name: Setup Java
@@ -89,6 +98,21 @@ jobs:
       - name: Install root dependencies
         run: bun install --frozen-lockfile
 
+      - name: Setup Node.js
+        uses: actions/setup-node@v7
+        with:
+          node-version: '24'
+
+      # The release job publishes from this exact lockfile. Prove it installs
+      # in an isolated directory so bun's node_modules stays canonical here.
+      - name: Verify release dependency lock
+        run: |
+          release_deps=$(mktemp -d)
+          trap 'rm -rf "$release_deps"' EXIT
+          cp package.json package-lock.json "$release_deps"/
+          cd "$release_deps"
+          npm ci --ignore-scripts --no-audit --no-fund
+
       - name: Audit android domain
         run: bun scripts/audit.ts all --domain android
 
@@ -106,7 +130,10 @@ jobs:
   release:
     name: Release
     needs: [verify]
-    if: needs.verify.result == 'success'
+    if: >-
+      needs.verify.result == 'success' &&
+      (github.ref == 'refs/heads/release/main' ||
+      github.ref == 'refs/heads/release/dev')
     outputs:
       new_release_published: ${{ steps.release.outputs.new_release_published }}
     permissions:
@@ -116,34 +143,27 @@ jobs:
       id-token: write
       attestations: write
     runs-on: ubuntu-latest
-    env:
-      GITHUB_ACTOR: ${{ github.actor }}
     steps:
+      # Release commits are created locally and pushed from this job, so the
+      # push identity must be a ruleset bypass actor. The dedicated GitHub App
+      # provides an individually scoped identity. Add it as a bypass actor on
+      # the release branch rulesets and on the verification gate ruleset so
+      # the release-driven backmerge to dev is accepted.
+      - name: Create release identity token
+        id: release-token
+        uses: actions/create-github-app-token@v2
+        with:
+          app-id: ${{ secrets.RELEASE_APP_ID }}
+          private-key: ${{ secrets.RELEASE_APP_PRIVATE_KEY }}
+          permission-contents: write
+          permission-workflows: write
+
       - name: Checkout
         uses: actions/checkout@v7
         with:
+          ref: ${{ github.sha }}
           fetch-depth: 0
-
-      # Release commits are created locally, so they can never carry the
-      # `Test & Build Gate` check before being pushed. Authenticate git with the
-      # deploy key registered as a bypass actor on the verification ruleset.
-      - name: Configure release push key
-        env:
-          RELEASE_DEPLOY_KEY: ${{ secrets.RELEASE_DEPLOY_KEY }}
-        run: |
-          install -d -m 700 "$HOME/.ssh"
-          printf '%s\n' "$RELEASE_DEPLOY_KEY" > "$HOME/.ssh/release_deploy_key"
-          chmod 600 "$HOME/.ssh/release_deploy_key"
-          ssh-keyscan -t ed25519 github.com >> "$HOME/.ssh/known_hosts"
-          test -s "$HOME/.ssh/known_hosts"
-          chmod 600 "$HOME/.ssh/known_hosts"
-          {
-            echo 'Host github.com'
-            echo '  IdentityFile ~/.ssh/release_deploy_key'
-            echo '  IdentitiesOnly yes'
-          } >> "$HOME/.ssh/config"
-          chmod 600 "$HOME/.ssh/config"
-          git remote set-url origin "git@github.com:${GITHUB_REPOSITORY}.git"
+          token: ${{ steps.release-token.outputs.token }}
 
       - name: Setup Java
         uses: actions/setup-java@v6.3.0
@@ -177,45 +197,58 @@ jobs:
           echo "ANDROID_NDK_HOME=${{ steps.setup-ndk.outputs.ndk-path }}" >> "$GITHUB_ENV"
           echo "ANDROID_NDK_ROOT=${{ steps.setup-ndk.outputs.ndk-path }}" >> "$GITHUB_ENV"
           echo "ANDROID_NDK=${{ steps.setup-ndk.outputs.ndk-path }}" >> "$GITHUB_ENV"
+
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+
+      # Publication must use the verified SHA, never a fast-forwarded newer
+      # tree. A moved branch fails here so a fresh run verifies the new tip.
+      # Release branches are protected so only the release identity (the app
+      # token above) may update them, and the concurrency group serializes
+      # runs for this ref. This guard rejects movement that already existed,
+      # but it does not hold a lock between this read and the release push;
+      # any other writer is blocked by branch protection instead.
+      - name: Verify triggering revision is still the branch tip
+        env:
+          RELEASE_BRANCH: ${{ github.ref_name }}
+          VERIFIED_SHA: ${{ github.sha }}
+        run: |
+          # Keep a local branch name for semantic-release, but pin it to the
+          # verified SHA instead of following the remote tip.
+          git checkout -B "$RELEASE_BRANCH" "$VERIFIED_SHA"
+          bun scripts/verify-release-revision.ts \
+            --branch "$RELEASE_BRANCH" \
+            --sha "$VERIFIED_SHA" \
+            --remote origin
+
       - name: Setup Node.js
         uses: actions/setup-node@v7
         with:
-          node-version: 'lts/*'
+          node-version: '24'
           cache: 'npm'
 
-      - name: Setup Bun
-        uses: oven-sh/setup-bun@v2
-        with:
-          bun-version: latest
+      - name: Install locked release dependencies
+        run: npm ci --ignore-scripts --no-audit --no-fund
 
-      - name: Install dependencies
-        run: npm install
-
-      - name: Fast-forward to remote ref
-        run: |
-          PREV_HEAD=$(git rev-parse HEAD)
-          git pull --ff-only origin "${{ github.ref_name }}"
-          if ! git diff --quiet "$PREV_HEAD" HEAD -- package.json package-lock.json; then
-            npm install
-          fi
-
-      - name: Setup Bun
-        uses: oven-sh/setup-bun@v2
-        with:
-          bun-version: latest
-
-      # Semantic release runs its own Gradle build command on main.
+      # Semantic release runs its own Gradle build command on release branches.
       - name: Reconcile release channel notes
         run: bun scripts/reconcile-release-notes.ts --ref "${{ github.ref_name }}" --remote origin
 
+      # The release push is a machine-generated commit already covered by the
+      # Verify Pre-Release Gate, and this job installs root dependencies only.
+      # Point Git at an empty hooks directory instead of half-running the
+      # pre-push audit in a checkout that cannot satisfy it.
+      - name: Disable repository hooks for the automated release push
+        run: git config --local core.hooksPath "$(mktemp -d)"
+
       - name: Release
-        uses: cycjimmy/semantic-release-action@v8
         id: release
-        with:
-          extra_plugins: |
-            @semantic-release/github@latest
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ steps.release-token.outputs.token }}
+          RELEASE_MAVEN_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: bun scripts/run-release.ts
 
       - name: Attest
         if: steps.release.outputs.new_release_published == 'true'
@@ -227,18 +260,28 @@ jobs:
   deploy-site:
     name: Deploy Website
     needs: release
-    if: github.ref == 'refs/heads/main' && needs.release.outputs.new_release_published == 'true'
+    if: github.ref == 'refs/heads/release/main' && needs.release.outputs.new_release_published == 'true'
     permissions:
       contents: read
     uses: ./.github/workflows/deploy-site.yml
+    with:
+      # The branch tip now includes semantic-release's release commit. The
+      # release tag points at the pre-prepare gitHead, so it would miss the
+      # generated CHANGELOG/patches-list changes.
+      ref: ${{ github.ref_name }}
     secrets: inherit
   deploy-worker:
     name: Deploy Worker
     needs: release
-    if: github.ref == 'refs/heads/main' && needs.release.outputs.new_release_published == 'true'
+    if: github.ref == 'refs/heads/release/main' && needs.release.outputs.new_release_published == 'true'
     permissions:
       contents: read
     uses: ./.github/workflows/deploy-worker.yml
+    with:
+      # The branch tip now includes semantic-release's release commit. The
+      # release tag points at the pre-prepare gitHead, so it would miss the
+      # generated CHANGELOG/patches-list changes.
+      ref: ${{ github.ref_name }}
     secrets:
       CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
       CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}

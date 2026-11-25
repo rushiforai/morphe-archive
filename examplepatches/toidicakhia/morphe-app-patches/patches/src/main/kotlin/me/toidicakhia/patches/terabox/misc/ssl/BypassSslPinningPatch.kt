@@ -66,6 +66,7 @@ val teraboxBypassSslPinningPatch = bytecodePatch(
             ApplovinCertificatePinnerCheckOkHttpFingerprint,
             BaiduCertificatePinnerCheckFingerprint,
             TencentTrustManagerFingerprint,
+            TencentPinnedTrustManagerFingerprint,
         ).forEach { fingerprint ->
             fingerprint.match().method.returnEarly()
         }

@@ -274,7 +274,7 @@ public final class PlayerOverlay {
 
     /** Called on the activity's layout changes (Screens): once a player's controls are there, ours follow them. */
     public static void scan(Activity activity, View root) {
-        if (!Included.songRemoval() && !Included.adBlock() && !Included.qualityUnlock()) return;
+        if (!Included.songRemoval() && !Included.adBlock() && !Included.qualityUnlock() && !Included.highestQuality()) return;
         if (testIdKey == 0) {
             testIdKey = activity.getResources().getIdentifier("react_test_id", "id", activity.getPackageName());
             if (testIdKey == 0) testIdKey = -1;
@@ -850,8 +850,10 @@ public final class PlayerOverlay {
     /** Whether the touch is on the lock button as it shows on screen (a little slack around it, as a finger). */
     private boolean onButton(MotionEvent event) {
         if (!lockButton.isAttachedToWindow()) return false;
-        lockButton.getLocationOnScreen(at);
         decor.getLocationOnScreen(other);
+        // The log window, dragged over the button, is above it: the touch is the window's.
+        if (LogWindow.covers(event.getX() + other[0], event.getY() + other[1])) return false;
+        lockButton.getLocationOnScreen(at);
         int slack = theme.dp(6);
         buttonRect.set(at[0] - slack, at[1] - slack, at[0] + lockButton.getWidth() + slack,
                 at[1] + lockButton.getHeight() + slack);

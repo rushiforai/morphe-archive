@@ -590,6 +590,7 @@ Hide Repost under posts	Reposten unter Beiträgen ausblenden
 Hide Share under posts	Teilen unter Beiträgen ausblenden
 # context: switch title under News feed; Send is Facebook's own button under a post that sends it in a chat
 Hide Send under posts	Senden unter Beiträgen ausblenden
+Hide Stars and gifts under posts	Sterne und Geschenke unter Beiträgen ausblenden
 Hide Save under posts	Speichern unter Beiträgen ausblenden
 # context: summary shared by those five switches
 Takes this button out of the row under posts in the feed. The other buttons stay, and a post with all of its buttons hidden shows no row.	Entfernt diesen Button aus der Leiste unter Beiträgen im Feed. Die anderen Buttons bleiben, und ein Beitrag, dessen Buttons alle ausgeblendet sind, zeigt keine Leiste.
@@ -1004,6 +1005,7 @@ Hide the Create tab	Erstellen-Tab ausblenden
 Hide the Explore tab	Erkunden-Tab ausblenden
 Hide the Jobs tab	Jobs-Tab ausblenden
 Removes this tab from the tab bar. Its page is still in the Menu. Restart Facebook to see the change.	Entfernt diesen Tab aus der Tab-Leiste. Seine Seite bleibt im Menü. Starte Facebook neu, um die Änderung zu sehen.
+Removes this tab from the tab bar. Its page is still in the Menu, unless you pick it in Menu tiles to hide. Restart Facebook to see the change.	Entfernt diesen Tab aus der Tab-Leiste. Seine Seite bleibt im Menü, außer du wählst sie unter Menükacheln zum Ausblenden. Starte Facebook neu, um die Änderung zu sehen.
 Facebook opens on Home while %1$s is on, since %2$s is off the tab bar. Your choice stays saved.	Facebook öffnet auf der Startseite, solange „%1$s“ an ist, da %2$s dann nicht in der Tab-Leiste ist. Deine Auswahl bleibt gespeichert.
 # context: summary of that switch; Video is Facebook's name for the tab on some accounts
 No dot or new count on the Reels tab, called Video on some accounts. Other tabs keep theirs.	Kein Punkt und keine Neu-Zahl am Reels-Tab, bei manchen Konten Video genannt. Andere Tabs behalten ihre.
@@ -1244,15 +1246,6 @@ Turn off haptics	Haptik ausschalten
 Stops the small vibrations Facebook makes when you tap or swipe. Your keyboard and phone vibrations aren't affected.	Stoppt die kleinen Vibrationen, die Facebook beim Tippen oder Wischen macht. Tastatur und Telefon vibrieren weiterhin.
 Turn off screen transitions	Bildschirmübergänge ausschalten
 Tabs, the Menu, photos and screens that open over Facebook appear at once instead of sliding or zooming in. Swiping between tabs still works.	Tabs, das Menü, Fotos und Seiten, die sich über Facebook öffnen, erscheinen sofort, ohne einzugleiten oder heranzuzoomen. Das Wischen zwischen Tabs funktioniert weiterhin.
-Unlock app icons	App-Symbole freischalten
-Lets you pick the app icons Facebook keeps for Facebook Plus, on Facebook's App icon page. The Pick an app icon row opens that page. Your pick stays if you turn this off, so pick the blue one first to go back.	Du kannst auch die App-Symbole wählen, die Facebook für Facebook Plus vorbehält, auf Facebooks Seite „App-Symbol“. Die Zeile „App-Symbol wählen“ öffnet sie. Deine Wahl bleibt, wenn du das ausschaltest. Wähle also zuerst das blaue, um zurückzuwechseln.
-# context: settings row under Appearance, right below the Unlock app icons switch; opens Facebook's own App icon page, so use Facebook's name for that page in this language
-Pick an app icon	App-Symbol wählen
-Opens Facebook's App icon page, even on accounts where Facebook doesn't list it in Settings and privacy.	Öffnet Facebooks Seite „App-Symbol“, auch bei Konten, bei denen Facebook sie nicht unter Einstellungen und Privatsphäre anzeigt.
-Use the icon at the top of Home	Symbol oben auf der Startseite verwenden
-Shows the app icon you picked at the top of Home instead of the Facebook wordmark. Needs Unlock app icons and a pick other than the blue one. Restart Facebook to see the change.	Zeigt oben auf der Startseite das gewählte App-Symbol statt des Facebook-Schriftzugs. Braucht „App-Symbole freischalten“ und eine andere Wahl als das blaue Symbol. Starte Facebook neu, um die Änderung zu sehen.
-# context: toast when the row above finds no App icon page in this Facebook build
-This Facebook build has no App icon page.	Diese Facebook-Version hat keine Seite „App-Symbol“.
 # context: switch title under Playback; Android's own name for the floating video window
 Picture-in-picture	Bild im Bild
 # context: summary of that switch
@@ -1984,8 +1977,10 @@ Show reactions on the Like button	Reaktionen auf der Schaltfläche Gefällt mir 
 Moves a post's reaction faces from the end of its button row onto the Like button, right before the count. The Like button likes and reacts as before. A video showing its views there gets one Like face, or your own reaction once you react. Hide the reaction preview on posts overrules it. A change shows on the posts drawn after it.	Verschiebt die Reaktionssymbole eines Beitrags vom Ende seiner Schaltflächenzeile auf die Schaltfläche Gefällt mir, direkt vor die Zahl. Die Schaltfläche Gefällt mir funktioniert für Gefällt mir und Reaktionen wie bisher. Ein Video, das dort seine Aufrufe zeigt, bekommt ein Gefällt-mir-Symbol oder deine eigene Reaktion, sobald du reagierst. Reaktionsvorschau bei Beiträgen ausblenden hat Vorrang. Eine Änderung gilt für die Beiträge, die danach angezeigt werden.
 # context: switch title under Comments; the reaction preview is the stack of reaction icons in the corner of a comment
 Hide the reaction preview on comments	Reaktionsvorschau bei Kommentaren ausblenden
+Hide reaction counts on comments	Reaktionsanzahl bei Kommentaren ausblenden
 # context: summary of that switch; "reactions" are Facebook's Like, Love, Haha and other reactions
 Hides the stacked reaction icons in the corner of a comment. The space stays, so a tap where they were still opens the list of reactions.	Blendet die gestapelten Reaktionssymbole in der Ecke eines Kommentars aus. Der Platz bleibt, daher öffnet ein Tippen dorthin weiterhin die Liste der Reaktionen.
+Hides the number next to the reaction icons on a comment. The icons stay, and a tap on them still opens the list of reactions.	Blendet die Zahl neben den Reaktionssymbolen eines Kommentars aus. Die Symbole bleiben, und ein Tippen darauf öffnet weiterhin die Liste der Reaktionen.
 # context: switch title under Downloads; "Download" is the post menu row "Download to phone" and "post menus" are the three-dot menus under posts
 Download first in post menus	Download zuerst in Beitragsmenüs
 # context: summary of that switch; "Download to phone" and "Save photo" are the menu rows, translate them as elsewhere; "More options" is the title of Facebook's own page, use Facebook's wording
@@ -2728,7 +2723,9 @@ Your tab bar will go in this order: %1$s.	Deine Tab-Leiste bekommt diese Reihenf
 Show only watched stories	Nur angesehene Stories zeigen
 The Stories tray keeps only the stories you've already watched, so you can find one again. Turn it off to see the new ones. Hide seen stories waits while this is on. Applies when Facebook next loads the tray.	Die Stories-Leiste behält nur Stories, die du schon angesehen hast, damit du eine wiederfindest. Schalte es aus, um die neuen zu sehen. Gesehene Stories ausblenden pausiert, solange das an ist. Gilt, wenn Facebook die Leiste das nächste Mal lädt.
 Show Posts in search	Beiträge in der Suche anzeigen
+Show Videos in search	Videos in der Suche anzeigen
 Puts Posts back in the row over search results, after Reels, so you can see only posts for what you searched.	Bringt „Beiträge“ zurück in die Leiste über den Suchergebnissen, nach Reels, damit du nur Beiträge zu deiner Suche sehen kannst.
+Puts Videos in the row over search results, next to Posts, so you can see only videos for what you searched.	Setzt „Videos“ in die Leiste über den Suchergebnissen, neben Beiträge, damit du nur Videos zu deiner Suche siehst.
 Saved button in search	Gespeichert-Schaltfläche in der Suche
 Puts a Saved button at the end of the search bar, so your saved posts and videos are one tap away. Restart Facebook to see the change.	Setzt eine Schaltfläche für „Gespeichert“ ans Ende der Suchleiste, damit deine gespeicherten Beiträge und Videos nur einen Tipp entfernt sind. Starte Facebook neu, um die Änderung zu sehen.
 Restore feed sound after opened videos	Feed-Ton nach geöffneten Videos wiederherstellen
@@ -3164,3 +3161,27 @@ All your notifications are marked as read.	Alle deine Benachrichtigungen sind al
 Nothing was marked, since Facebook didn't say who's signed in. Open the Notifications tab once, then try again.	Nichts wurde markiert, weil Facebook nicht gemeldet hat, wer angemeldet ist. Öffne einmal den Tab „Benachrichtigungen“ und versuche es dann noch einmal.
 This build can't mark notifications as read.	Dieser Build kann Benachrichtigungen nicht als gelesen markieren.
 Facebook couldn't mark your notifications as read. Try again in a moment.	Facebook konnte deine Benachrichtigungen nicht als gelesen markieren. Versuche es gleich noch einmal.
+# context: Share to Facebook chats, a switch on the Chats page and the share target it adds; the notes are short toasts
+Share to Facebook chats	In Facebook-Chats teilen
+Adds Facebook chats to Android's share menu. A photo or video you share there is saved to your gallery and text is copied, then your chats open so you can pick one and send it.	Fügt Facebook-Chats zum Teilen-Menü von Android hinzu. Ein Foto oder Video, das du dort teilst, wird in deiner Galerie gespeichert und Text wird kopiert. Danach öffnen sich deine Chats, damit du einen auswählen und es senden kannst.
+Share to Facebook chats is off.	In Facebook-Chats teilen ist aus.
+Nothing in it to send.	Nichts zum Senden dabei.
+Couldn't save it to your gallery.	Speichern in der Galerie fehlgeschlagen.
+Copied and saved. Pick a chat.	Kopiert und gespeichert. Wähle einen Chat.
+In your gallery now. Pick a chat.	Jetzt in deiner Galerie. Wähle einen Chat.
+Copied. Pick a chat and paste it.	Kopiert. Wähle einen Chat und füge es ein.
+Open your chats to pick one.	Öffne deine Chats und wähle einen.
+Post date after the caption	Veröffentlichungsdatum nach der Beschreibung
+With Show the post date on reels on, puts the date at the end of the caption instead of under the name, where the song and other labels crowd it. A change shows from the next reel.	Wenn „Veröffentlichungsdatum bei Reels anzeigen“ an ist, steht das Datum am Ende der Beschreibung statt unter dem Namen, wo der Song und andere Hinweise es verdrängen. Eine Änderung gilt ab dem nächsten Reel.
+Fill every reel	Jedes Reel bildschirmfüllend zeigen
+With Fill the screen with reels on, every reel fills the screen, even when that cuts a lot off the edges. Made for foldables and tablets, where most reels would keep their bars.	Wenn „Reels bildschirmfüllend zeigen“ an ist, füllt jedes Reel den Bildschirm, auch wenn dafür viel an den Rändern abgeschnitten wird. Gedacht für Foldables und Tablets, wo die meisten Reels sonst ihre Balken behalten würden.
+Chat background	Chat-Hintergrund
+Last chat's background	Hintergrund des letzten Chats
+A color code (#RRGGBB) for the space behind the messages in every chat, like #1E3A5F. Two codes, like #1E3A5F #6A1B9A, fade from one to the other. Only this phone sees it. Leave it blank for Facebook's own.	Ein Farbcode (#RRGGBB) für den Bereich hinter den Nachrichten in jedem Chat, etwa #1E3A5F. Zwei Codes, etwa #1E3A5F #6A1B9A, gehen ineinander über. Nur dieses Handy zeigt ihn an. Lass das Feld leer für den von Facebook.
+A color code (#RRGGBB) for %1$s only, like #1E3A5F. Two codes fade from one to the other. Leave it blank and it takes the chat background above.	Ein Farbcode (#RRGGBB) nur für %1$s, etwa #1E3A5F. Zwei Codes gehen ineinander über. Lass das Feld leer, dann gilt der Chat-Hintergrund oben.
+Chats keep Facebook's background. Type a color code to change it on this phone only.	Chats behalten den Hintergrund von Facebook. Gib einen Farbcode ein, um ihn nur auf diesem Handy zu ändern.
+Chats are %1$s behind the messages, on this phone only. Nobody in the chat is told.	Chats sind hinter den Nachrichten %1$s, nur auf diesem Handy. Niemand im Chat erfährt davon.
+Open a chat, then come back here to give it a color of its own.	Öffne einen Chat und komm dann hierher zurück, um ihm eine eigene Farbe zu geben.
+%1$s, the last chat you opened, takes the chat background above. Type a color code to give it its own.	%1$s, der zuletzt geöffnete Chat, nutzt den Chat-Hintergrund oben. Gib einen Farbcode ein, um ihm einen eigenen zu geben.
+%1$s, the last chat you opened, is %2$s.	%1$s, der zuletzt geöffnete Chat, ist %2$s.
+Type one color code, or two for a fade from top to bottom.	Gib einen Farbcode ein, oder zwei für einen Verlauf von oben nach unten.

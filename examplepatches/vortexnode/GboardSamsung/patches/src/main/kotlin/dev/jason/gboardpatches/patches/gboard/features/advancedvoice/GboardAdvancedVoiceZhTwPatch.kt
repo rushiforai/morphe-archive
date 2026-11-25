@@ -28,6 +28,7 @@ internal val gboardAdvancedVoice1803ZhTwPatch = bytecodePatch(
             listOf("Landroid/content/Context;", "Lsju;", "Lsjo;", "Laclu;"), "V").resolve(this)
         val formatter = GboardMethodTarget("Lsmo;", "<init>", listOf("Ljava/util/Locale;", "Letg;",
             "Lszc;", "I", "Z", "Lsmr;", "Ltey;", "Lvec;", "Ljava/util/concurrent/Executor;"), "V").resolve(this)
+        val voiceSoundPlay = GboardMethodTarget("Lshf;", "c", listOf("I"), "V").resolve(this)
         listOf(GboardFieldTarget("Lssi;", "b", "Lwhq;"), GboardFieldTarget("Lsjt;", "d", "Laclu;"),
             GboardFieldTarget("Letg;", "c", "Leta;"), GboardFieldTarget("Leta;", "a", "Leta;"),
             GboardFieldTarget("Leta;", "H", "Z")).forEach { it.resolve(this) }
@@ -67,6 +68,13 @@ internal val gboardAdvancedVoice1803ZhTwPatch = bytecodePatch(
         formatter.addInstructions(0, """
             invoke-static {p1, p2, p5}, Lsmo;->morpheZhTwFormatter(Ljava/util/Locale;Letg;Z)Z
             move-result p5
+        """)
+        voiceSoundPlay.addInstructions(0, """
+            ${RuntimeCallEmitter.invoke(RuntimeCallId.ADVANCED_VOICE_RUNTIME_SHOULD_SUPPRESS_VOICE_BEEP, "")}
+            move-result v0
+            if-eqz v0, :gboard_voice_sound_continue
+            return-void
+            :gboard_voice_sound_continue
         """)
     }
 }

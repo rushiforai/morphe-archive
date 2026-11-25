@@ -1,0 +1,413 @@
+{
+  "format": 1,
+  "source_version": "15.0/1289",
+  "outer_raw_sha256": "a31212b6cf564faf63234578f90899c060b425847af98fd4e781d2c4428506a2",
+  "runs": [
+    {
+      "receiver": "maps",
+      "target_package": "org.ungoogled.android.apps.maps",
+      "source_version": "15.0/1289",
+      "installed_sha256": {
+        "nl.flitsmeister": "13dc9673fa32e662b20c7e3afadd03d3e230a18814027cd1d86a45ea19eef765",
+        "org.ungoogled.android.apps.maps": "3285d836bfb7caefd361fec42d7ed080017021f885eabf331b02b88287fb8839",
+        "app.vela": "958bd90f477c45d8210f797b34e8649162d4153238419ab2ab7af856cd9edf19"
+      },
+      "helper_sha256": {
+        "maps": "7ea890e55700f06331d4452eb77343b555a63049d1270cfeb953e65e759c016e",
+        "vela": "e054595d0ca88e05ee9b8d7b175a1ce6be37a5ec6c5b1ecd05ff273d5fff857b",
+        "source": "8f7fb189caae0b024b24ccf0a752b6faabe3ff27ef6126cc8b9908c3186d98e1"
+      },
+      "raw_sha256": {
+        ".analysis/native-warning-bindings/fm15-port/integrated-runtime-03/maps/result.json": "e5833448a72d6e209b84de89b82dfbbc4769a975957135ea29b3a0fceaaf84e1",
+        "/Users/jneerdael/Scripts/nl-morphe-patches/.tools/worktrees/navigation-startup/.analysis/native-warning-bindings/fm15-port/integrated-runtime-03/maps/seed-source/6ac9ffe0-15c2-427f-afd8-c63d3375aca0/result.json": "1b737cf513f018088c565fe2266551bdb4e7c475238ac3feab787ae5eafb0862",
+        ".analysis/native-warning-bindings/fm15-port/integrated-runtime-03/maps/seed-receiver-result.json": "dff7007164890b417e0449992b70be976ce08b8d9234f3686f998ab59afcabb8"
+      },
+      "cases": [
+        {
+          "native_subtype": "SPEED_50",
+          "event_key": "c6f92139a63e9f5bf088ffd1fe667d72622466fd980eb0119cdff95668ca1f6e",
+          "attempt_id": "029951aa-f3d3-4f54-bba5-112120195e77",
+          "message": "Speed cam 50",
+          "language_tag": "en-US",
+          "issued_to_start_ms": 901,
+          "actual_start_elapsed_ms": 33198259,
+          "actual_complete_elapsed_ms": 33199763,
+          "source_ack_outcomes": [
+            "GRANTED",
+            "STARTED",
+            "COMPLETED"
+          ]
+        },
+        {
+          "native_subtype": "SPEED_100",
+          "event_key": "fa2e4aa2bce8e7f42ce7d6fa76bf35ab30b033c9647afea63c18994026dd5d85",
+          "attempt_id": "a80ef89d-0413-402e-9ea7-51d41a1b1ff8",
+          "message": "Speed cam 100",
+          "language_tag": "en-US",
+          "issued_to_start_ms": 106,
+          "actual_start_elapsed_ms": 33199884,
+          "actual_complete_elapsed_ms": 33201646,
+          "source_ack_outcomes": [
+            "GRANTED",
+            "STARTED",
+            "COMPLETED"
+          ]
+        },
+        {
+          "native_subtype": "SPEED_130",
+          "event_key": "a8d5bcaa2b6c49881ae5f15357d40a7446d3c20bbc164c0a0c75ddf579bd6c79",
+          "attempt_id": "6c85b9c8-ab82-45a5-8255-0b970fa9c09b",
+          "message": "Speed cam 130",
+          "language_tag": "en-US",
+          "issued_to_start_ms": 162,
+          "actual_start_elapsed_ms": 33201825,
+          "actual_complete_elapsed_ms": 33204048,
+          "source_ack_outcomes": [
+            "GRANTED",
+            "STARTED",
+            "COMPLETED"
+          ]
+        },
+        {
+          "native_subtype": "WRONG_WAY_DRIVER",
+          "event_key": "ec0591308b3dd0b7faa66b15bcb3149fa4fb77682daacb59a33aab57bd6d6ca4",
+          "attempt_id": "0ee4c846-d85d-43cb-bc87-6c21634e9924",
+          "message": "Caution, Wrong-way driver nearby! Keep right!",
+          "language_tag": "en-US",
+          "issued_to_start_ms": 104,
+          "actual_start_elapsed_ms": 33204165,
+          "actual_complete_elapsed_ms": 33207809,
+          "source_ack_outcomes": [
+            "GRANTED",
+            "STARTED",
+            "COMPLETED"
+          ]
+        },
+        {
+          "native_subtype": "PERSON_ON_ROAD",
+          "event_key": "3ccebbd1c60d6aeeb92c95ffbc6b79e7d230f6b457287dc827ecccfeddba09f2",
+          "attempt_id": "dc5582cd-3c15-41cc-9d4d-ae5851240f99",
+          "message": "Caution, Person on the road",
+          "language_tag": "en-US",
+          "issued_to_start_ms": 115,
+          "actual_start_elapsed_ms": 33207934,
+          "actual_complete_elapsed_ms": 33210221,
+          "source_ack_outcomes": [
+            "GRANTED",
+            "STARTED",
+            "COMPLETED"
+          ]
+        },
+        {
+          "native_subtype": "STATIONARY_VEHICLE",
+          "event_key": "262153178ef6ac82b70edf05c2306e281ec89f56a7c5ff544cd42feff67d0610",
+          "attempt_id": "1c7fd3db-33f6-46e2-95e8-010d8aeb7664",
+          "message": "Caution, Stationary vehicle",
+          "language_tag": "en-US",
+          "issued_to_start_ms": 112,
+          "actual_start_elapsed_ms": 33210346,
+          "actual_complete_elapsed_ms": 33212724,
+          "source_ack_outcomes": [
+            "GRANTED",
+            "STARTED",
+            "COMPLETED"
+          ]
+        },
+        {
+          "native_subtype": "OBSTACLE",
+          "event_key": "639f887574e70c4007ad4e57aa0e4868f0d24fc4ce75b1c9aa6f07d0bdbaf164",
+          "attempt_id": "0ef2d970-2768-42cf-9220-c3f760fe4603",
+          "message": "Caution, Object on the road",
+          "language_tag": "en-US",
+          "issued_to_start_ms": 140,
+          "actual_start_elapsed_ms": 33212876,
+          "actual_complete_elapsed_ms": 33215192,
+          "source_ack_outcomes": [
+            "GRANTED",
+            "STARTED",
+            "COMPLETED"
+          ]
+        },
+        {
+          "native_subtype": "AMBULANCE",
+          "event_key": "6bb565061a5ee6c2b975127f570f3b970dd400256537261e889babdf4f9e2463",
+          "attempt_id": "78f61e47-8b8b-4df3-85fe-9a7f6a1a8139",
+          "message": "Caution, ambulance!",
+          "language_tag": "en-US",
+          "issued_to_start_ms": 102,
+          "actual_start_elapsed_ms": 33215309,
+          "actual_complete_elapsed_ms": 33217150,
+          "source_ack_outcomes": [
+            "GRANTED",
+            "STARTED",
+            "COMPLETED"
+          ]
+        },
+        {
+          "native_subtype": "FIRE_DEPARTMENT",
+          "event_key": "dc80bdca4d06af790fe095909645b54d74470318d06f0002a4bda062e3c68e20",
+          "attempt_id": "6fe6b20e-1441-46c1-a92a-7979fd04d3cf",
+          "message": "Caution, fire brigade!",
+          "language_tag": "en-US",
+          "issued_to_start_ms": 97,
+          "actual_start_elapsed_ms": 33217265,
+          "actual_complete_elapsed_ms": 33219235,
+          "source_ack_outcomes": [
+            "GRANTED",
+            "STARTED",
+            "COMPLETED"
+          ]
+        },
+        {
+          "native_subtype": "POLICE",
+          "event_key": "cd2a6fe243130a715a03e0611e0b9c659b61294f2fedcb9f81d1fd7dc413976f",
+          "attempt_id": "0f7c17db-352b-4589-af89-88fc6ca909d0",
+          "message": "Caution, police!",
+          "language_tag": "en-US",
+          "issued_to_start_ms": 94,
+          "actual_start_elapsed_ms": 33219340,
+          "actual_complete_elapsed_ms": 33220980,
+          "source_ack_outcomes": [
+            "GRANTED",
+            "STARTED",
+            "COMPLETED"
+          ]
+        },
+        {
+          "native_subtype": "ROAD_SERVICE",
+          "event_key": "527ea16f215e84892aefc1ea5813faf5211bac98c6d0ae49b9e95735db7ce467",
+          "attempt_id": "b82532fa-ee3b-4c6e-8d14-840e35a6df0b",
+          "message": "Caution, emergency service!",
+          "language_tag": "en-US",
+          "issued_to_start_ms": 113,
+          "actual_start_elapsed_ms": 33221109,
+          "actual_complete_elapsed_ms": 33223507,
+          "source_ack_outcomes": [
+            "GRANTED",
+            "STARTED",
+            "COMPLETED"
+          ]
+        }
+      ],
+      "actual_starts": 11,
+      "actual_completions": 11,
+      "duplicate_starts": 0,
+      "exact_cleanup_verified": true,
+      "source_uid": 10192,
+      "receiver_uid": 10194
+    },
+    {
+      "receiver": "vela",
+      "target_package": "app.vela",
+      "source_version": "15.0/1289",
+      "installed_sha256": {
+        "nl.flitsmeister": "13dc9673fa32e662b20c7e3afadd03d3e230a18814027cd1d86a45ea19eef765",
+        "org.ungoogled.android.apps.maps": "3285d836bfb7caefd361fec42d7ed080017021f885eabf331b02b88287fb8839",
+        "app.vela": "958bd90f477c45d8210f797b34e8649162d4153238419ab2ab7af856cd9edf19"
+      },
+      "helper_sha256": {
+        "maps": "7ea890e55700f06331d4452eb77343b555a63049d1270cfeb953e65e759c016e",
+        "vela": "e054595d0ca88e05ee9b8d7b175a1ce6be37a5ec6c5b1ecd05ff273d5fff857b",
+        "source": "8f7fb189caae0b024b24ccf0a752b6faabe3ff27ef6126cc8b9908c3186d98e1"
+      },
+      "raw_sha256": {
+        ".analysis/native-warning-bindings/fm15-port/integrated-runtime-03/vela/result.json": "e4ff0ab7184a6962abe673b92df821f30b8706190aa6a9fb8baf766ee1911426",
+        "/Users/jneerdael/Scripts/nl-morphe-patches/.tools/worktrees/navigation-startup/.analysis/native-warning-bindings/fm15-port/integrated-runtime-03/vela/seed-source/6ba9d4e6-105f-46d4-aa8a-0ed43e072d13/result.json": "758ffeb9eb238cd44b7f0b92ca67f549ddc81344fb769d6d0407bc5c25b100c3",
+        ".analysis/native-warning-bindings/fm15-port/integrated-runtime-03/vela/seed-receiver-result.json": "5f6cfa631f07f757204d789368925d578adcc4a645b37b4ec69d26db589619b6"
+      },
+      "cases": [
+        {
+          "native_subtype": "SPEED_50",
+          "event_key": "1d5ac213822acc0cc63f6f9ae98cd5e6039c5f279b6dc6d6b59459dd83abb802",
+          "attempt_id": "c22ae45c-481b-4bd6-a2ab-4f52aedc86ee",
+          "message": "Speed cam 50",
+          "language_tag": "en-US",
+          "issued_to_start_ms": 1025,
+          "actual_start_elapsed_ms": 33250032,
+          "actual_complete_elapsed_ms": 33251573,
+          "source_ack_outcomes": [
+            "GRANTED",
+            "STARTED",
+            "COMPLETED"
+          ]
+        },
+        {
+          "native_subtype": "SPEED_100",
+          "event_key": "7d17799893f734cf49c1d97c60b738975c376ae2880b50055ccd3e48eac9e093",
+          "attempt_id": "98ba10e8-786c-4592-9f86-e836a05a49e3",
+          "message": "Speed cam 100",
+          "language_tag": "en-US",
+          "issued_to_start_ms": 503,
+          "actual_start_elapsed_ms": 33252087,
+          "actual_complete_elapsed_ms": 33253826,
+          "source_ack_outcomes": [
+            "GRANTED",
+            "STARTED",
+            "COMPLETED"
+          ]
+        },
+        {
+          "native_subtype": "SPEED_130",
+          "event_key": "ddbda08306857dd03303d796880da6c82144deec26c5ddaeba026084a3d5bc40",
+          "attempt_id": "98a483f4-6057-4400-8089-5af2150408ea",
+          "message": "Speed cam 130",
+          "language_tag": "en-US",
+          "issued_to_start_ms": 468,
+          "actual_start_elapsed_ms": 33254302,
+          "actual_complete_elapsed_ms": 33256558,
+          "source_ack_outcomes": [
+            "GRANTED",
+            "STARTED",
+            "COMPLETED"
+          ]
+        },
+        {
+          "native_subtype": "WRONG_WAY_DRIVER",
+          "event_key": "eb50a52a267127d5f7cdc155cde7b1a4896734d4982f2befe8c4cd2d2e8082ec",
+          "attempt_id": "ea24269b-98c7-4ed1-ad9b-f511b51b4183",
+          "message": "Caution, Wrong-way driver nearby! Keep right!",
+          "language_tag": "en-US",
+          "issued_to_start_ms": 218,
+          "actual_start_elapsed_ms": 33256789,
+          "actual_complete_elapsed_ms": 33260528,
+          "source_ack_outcomes": [
+            "GRANTED",
+            "STARTED",
+            "COMPLETED"
+          ]
+        },
+        {
+          "native_subtype": "PERSON_ON_ROAD",
+          "event_key": "13fc5f457811d7d7edb9d9035a79161799fe0e81dbb040265152191ecf41807c",
+          "attempt_id": "e8b0c5bb-a48b-4e67-934c-f750d451c91d",
+          "message": "Caution, Person on the road",
+          "language_tag": "en-US",
+          "issued_to_start_ms": 176,
+          "actual_start_elapsed_ms": 33260722,
+          "actual_complete_elapsed_ms": 33263003,
+          "source_ack_outcomes": [
+            "GRANTED",
+            "STARTED",
+            "COMPLETED"
+          ]
+        },
+        {
+          "native_subtype": "STATIONARY_VEHICLE",
+          "event_key": "d732b96575fe10c2c966f82e0b948fca8c1afc8d78c9aa240adf97ec80382f01",
+          "attempt_id": "f05b6716-9d77-4016-a559-50edaa79284b",
+          "message": "Caution, Stationary vehicle",
+          "language_tag": "en-US",
+          "issued_to_start_ms": 446,
+          "actual_start_elapsed_ms": 33263464,
+          "actual_complete_elapsed_ms": 33265838,
+          "source_ack_outcomes": [
+            "GRANTED",
+            "STARTED",
+            "COMPLETED"
+          ]
+        },
+        {
+          "native_subtype": "OBSTACLE",
+          "event_key": "11ec2c4199ed5cd3b81aff56c77ada67d95b7b7dd167cb6bcd1b1df40a33aa87",
+          "attempt_id": "0a0d1d3d-885b-4190-a2cc-b997f60f9bfe",
+          "message": "Caution, Object on the road",
+          "language_tag": "en-US",
+          "issued_to_start_ms": 489,
+          "actual_start_elapsed_ms": 33266345,
+          "actual_complete_elapsed_ms": 33268686,
+          "source_ack_outcomes": [
+            "GRANTED",
+            "STARTED",
+            "COMPLETED"
+          ]
+        },
+        {
+          "native_subtype": "AMBULANCE",
+          "event_key": "12d79342df2fad90fd7d5cf606aebe30c19627ef5b3112099ef4afaf03f62e0c",
+          "attempt_id": "58d460ba-8daa-4aef-a2b2-94850f1a9efc",
+          "message": "Caution, ambulance!",
+          "language_tag": "en-US",
+          "issued_to_start_ms": 172,
+          "actual_start_elapsed_ms": 33268872,
+          "actual_complete_elapsed_ms": 33270703,
+          "source_ack_outcomes": [
+            "GRANTED",
+            "STARTED",
+            "COMPLETED"
+          ]
+        },
+        {
+          "native_subtype": "FIRE_DEPARTMENT",
+          "event_key": "ffaf2f84f4251d01257e3314a8ba938f761fa1b3b2326c7d48c25fc843570d7f",
+          "attempt_id": "49856d7d-3b84-4d91-8fd4-83eb8007ff04",
+          "message": "Caution, fire brigade!",
+          "language_tag": "en-US",
+          "issued_to_start_ms": 204,
+          "actual_start_elapsed_ms": 33270921,
+          "actual_complete_elapsed_ms": 33272957,
+          "source_ack_outcomes": [
+            "GRANTED",
+            "STARTED",
+            "COMPLETED"
+          ]
+        },
+        {
+          "native_subtype": "POLICE",
+          "event_key": "4807dd6460582135b1147632ba65424178abd10669427c9ea3178de079bd7f20",
+          "attempt_id": "75bbc7d5-f399-42c8-8ddc-e0ad2ce3c866",
+          "message": "Caution, police!",
+          "language_tag": "en-US",
+          "issued_to_start_ms": 192,
+          "actual_start_elapsed_ms": 33273158,
+          "actual_complete_elapsed_ms": 33274820,
+          "source_ack_outcomes": [
+            "GRANTED",
+            "STARTED",
+            "COMPLETED"
+          ]
+        },
+        {
+          "native_subtype": "ROAD_SERVICE",
+          "event_key": "d26cf564c3be1ab86028c8179250604fcac28425fae92b53a649e7a10f0dc00c",
+          "attempt_id": "c4fa9837-8c00-4ffc-a233-43c02495c0cb",
+          "message": "Caution, emergency service!",
+          "language_tag": "en-US",
+          "issued_to_start_ms": 187,
+          "actual_start_elapsed_ms": 33275021,
+          "actual_complete_elapsed_ms": 33277469,
+          "source_ack_outcomes": [
+            "GRANTED",
+            "STARTED",
+            "COMPLETED"
+          ]
+        }
+      ],
+      "actual_starts": 11,
+      "actual_completions": 11,
+      "duplicate_starts": 0,
+      "exact_cleanup_verified": true,
+      "source_uid": 10192,
+      "receiver_uid": 10193
+    }
+  ],
+  "actual_starts": 22,
+  "actual_completions": 22,
+  "exact_cleanup_verified": true,
+  "scope": "Controlled original accepted native warning entries through actual Maps/Vela phone speakers. Native text/language, authority identity, unique callbacks and source acknowledgements joined. No natural detector, moving lead/route, car-output or physical-audibility acceptance is claimed.",
+  "excluded_failed_runs": [
+    {
+      "folder": ".analysis/native-warning-bindings/fm15-port/integrated-runtime-01",
+      "raw_result_sha256": "76d4f7b2f922a3651dd75b9aa9565108f2f1717de66ec2a5f81806542175375a",
+      "completed": false,
+      "failure": "RuntimeError('maps FM15 integrated warning suite failed')",
+      "scope": "Excluded failed observation. Receiver lifetime loss was observed; the cause of external Activity pause is unproved."
+    },
+    {
+      "folder": ".analysis/native-warning-bindings/fm15-port/integrated-runtime-02",
+      "raw_result_sha256": "d18fe53fe97b7d6b07d46182c1524f98fa3831bb031525a7b5b227ce330d87c2",
+      "completed": false,
+      "failure": "RuntimeError('maps FM15 integrated warning suite failed')",
+      "scope": "Excluded failed observation. Receiver lifetime loss was observed; the cause of external Activity pause is unproved."
+    }
+  ]
+}

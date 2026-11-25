@@ -32,6 +32,8 @@ public final class GboardClipboardSettings {
             "pref_clipboard_show_order_index";
     public static final String PREF_KEY_CLIPBOARD_SAMSUNG_MODE =
             "pref_clipboard_samsung_mode";
+    public static final String PREF_KEY_CLIPBOARD_CLEAR_ALL_BUTTON =
+            "pref_clipboard_clear_all_button";
     public static final String PREF_KEY_CLIPBOARD_SHOW_SENSITIVE_CONTENT =
             "pref_clipboard_show_sensitive_content";
     public static final String PREF_KEY_CLIPBOARD_CARD_PREVIEW_LIMIT_ENABLED =
@@ -56,6 +58,7 @@ public final class GboardClipboardSettings {
     public static final boolean DEFAULT_CLIPBOARD_SHOW_CREATION_TIME = false;
     public static final boolean DEFAULT_CLIPBOARD_SHOW_ORDER_INDEX = true;
     public static final boolean DEFAULT_CLIPBOARD_SAMSUNG_MODE = false;
+    public static final boolean DEFAULT_CLIPBOARD_CLEAR_ALL_BUTTON = false;
     public static final boolean DEFAULT_CLIPBOARD_SHOW_SENSITIVE_CONTENT = false;
     public static final boolean DEFAULT_CLIPBOARD_CARD_PREVIEW_LIMIT_ENABLED = false;
     public static final String DEFAULT_CLIPBOARD_ORDER_INDEX_MODE =
@@ -102,6 +105,9 @@ public final class GboardClipboardSettings {
         editor = putBooleanPreferenceIfMissing(editor, preferences,
                 PREF_KEY_CLIPBOARD_SAMSUNG_MODE,
                 DEFAULT_CLIPBOARD_SAMSUNG_MODE);
+        editor = putBooleanPreferenceIfMissing(editor, preferences,
+                PREF_KEY_CLIPBOARD_CLEAR_ALL_BUTTON,
+                DEFAULT_CLIPBOARD_CLEAR_ALL_BUTTON);
         editor = putBooleanPreferenceIfMissing(editor, preferences,
                 PREF_KEY_CLIPBOARD_SHOW_SENSITIVE_CONTENT,
                 DEFAULT_CLIPBOARD_SHOW_SENSITIVE_CONTENT);
@@ -193,6 +199,19 @@ public final class GboardClipboardSettings {
                 preferences,
                 PREF_KEY_CLIPBOARD_SAMSUNG_MODE,
                 DEFAULT_CLIPBOARD_SAMSUNG_MODE);
+    }
+
+    public static boolean readClipboardClearAllButton(Context context) {
+        SharedPreferences preferences = preferences(context);
+        ensureDefaults(preferences);
+        return readClipboardClearAllButton(preferences);
+    }
+
+    public static boolean readClipboardClearAllButton(SharedPreferences preferences) {
+        return readBooleanPreference(
+                preferences,
+                PREF_KEY_CLIPBOARD_CLEAR_ALL_BUTTON,
+                DEFAULT_CLIPBOARD_CLEAR_ALL_BUTTON);
     }
 
     public static boolean readClipboardShowSensitiveContent(Context context) {

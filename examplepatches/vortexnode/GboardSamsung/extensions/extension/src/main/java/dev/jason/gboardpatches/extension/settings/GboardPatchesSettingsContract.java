@@ -110,6 +110,12 @@ public final class GboardPatchesSettingsContract {
         void showPositiveIntegerDialog(String title, String hint, int initialValue,
                 PositiveIntegerConsumer consumer);
 
+        default void showSliderDialog(String title, int minValue, int maxValue,
+                int defaultValue, int currentValue, String zeroLabel,
+                PositiveIntegerConsumer consumer) {
+            throw new UnsupportedOperationException("Slider dialog is unavailable");
+        }
+
         void showTextInputDialog(String title, String hint, String initialValue,
                 TextValueConsumer consumer);
 
@@ -210,6 +216,13 @@ public final class GboardPatchesSettingsContract {
             int initialValue, PositiveIntegerConsumer consumer) {
         submit(host, adapter ->
                 adapter.showPositiveIntegerDialog(title, hint, initialValue, consumer));
+    }
+
+    public static void showSliderDialog(FeatureHost host, String title, int minValue, int maxValue,
+            int defaultValue, int currentValue, String zeroLabel,
+            PositiveIntegerConsumer consumer) {
+        submit(host, adapter -> adapter.showSliderDialog(
+                title, minValue, maxValue, defaultValue, currentValue, zeroLabel, consumer));
     }
 
     public static void showTextInputDialog(FeatureHost host, String title, String hint,
@@ -566,6 +579,7 @@ public final class GboardPatchesSettingsContract {
         private int leadingIcon = GboardPatchesIcons.NONE;
         private String leadingTone;
         private ToggleRow entryToggle;
+        private boolean highlightDot;
 
         public RowDecoration leadingIcon(int icon, String tone) {
             this.leadingIcon = icon;
@@ -588,6 +602,15 @@ public final class GboardPatchesSettingsContract {
 
         public ToggleRow getEntryToggle() {
             return entryToggle;
+        }
+
+        public RowDecoration highlightDot(boolean highlightDot) {
+            this.highlightDot = highlightDot;
+            return this;
+        }
+
+        public boolean hasHighlightDot() {
+            return highlightDot;
         }
     }
 

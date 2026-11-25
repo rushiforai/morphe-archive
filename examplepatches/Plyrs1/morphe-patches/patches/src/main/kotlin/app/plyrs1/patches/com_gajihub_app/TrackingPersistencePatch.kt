@@ -52,12 +52,13 @@ val trackingPersistencePatch = bytecodePatch(
             invoke-static {v0, p1}, Lapp/plyrs1/extension/TrackingPersistenceHelper;->onModuleStart(Ljava/lang/Object;Ljava/lang/Object;)V
             """.trimIndent()
         )
-
-        // 3. Mark intentional stops (clock-out, break) so we do not auto-restart legitimate stops.
+        // 3. Mark intentional stops (clock-out, break) so we cancel notification and never auto-restart.
         BackgroundActionsModuleStopFingerprint.method.addInstructions(
             0,
             """
-            invoke-static {}, Lapp/plyrs1/extension/TrackingPersistenceHelper;->onExplicitStop()V
+            invoke-virtual {p0}, Lcom/facebook/react/bridge/ReactContextBaseJavaModule;->getReactApplicationContext()Lcom/facebook/react/bridge/ReactApplicationContext;
+            move-result-object v0
+            invoke-static {v0}, Lapp/plyrs1/extension/TrackingPersistenceHelper;->onExplicitStop(Landroid/content/Context;)V
             """.trimIndent()
         )
 

@@ -1,0 +1,273 @@
+
+¨,
+hImageFrameExtractionCalculatorCONTEXT:sampled_framesLAYOUT:debug_layouts"IMAGE:image_from_context
+cImageFrameToGpuBufferCalculatorsampled_framesimage_from_context"
+gpu_buffer:í»ê–
+
+context1
+:ToImageCalculatorIMAGE_GPU:gpu_buffer"IMAGE:image_gpu
+∑,InitializePageLayoutMutatorContextCalculatorIMAGE:sampled_framesCONTEXT:sampled_framesLAYOUT:debug_layoutsIMAGE_GPU:image_gpu"CONTEXT:image*RUNTIME_OPTIONS:runtime_options
+oPageLayoutMutationCalculatorCONTEXT:image"CONTEXT:taser_detection*rpn_text_detection_mutator:˙ˆèÜÄ
+kPageLayoutMutationCalculatorCONTEXT:image"CONTEXT:taser_detection*joint_detector_mutator:˙ˆèÜÄ
+tPageLayoutMutationCalculatorCONTEXT:image"CONTEXT:taser_detection*gocr_group_rpn_detector_mutator:˙ˆèÜÄ
+ãPageLayoutMutationCalculatorCONTEXT:taser_detection"CONTEXT:taser_identification*'script_direction_identification_mutator:˙ˆèÜÄ
+öPageLayoutMutationCalculatorCONTEXT:taser_identification"5CONTEXT:taser_identification_with_script_support_info*script_supported_mutator:˙ˆèÜÄ
+jScriptSupportCalculator5CONTEXT:taser_identification_with_script_support_info"supported_script_boolean
+ÇGateCalculator!DISALLOW:supported_script_boolean-taser_identification_with_script_support_info"intermediate_script_id_context
+GateCalculatorALLOW:supported_script_boolean-taser_identification_with_script_support_info"taser_identification_supported
+ﬁPageLayoutMutationCalculatorCONTEXT:taser_identificationCONTEXT:taser_detection&CONTEXT:taser_identification_supported"CONTEXT:taser_prelayout"CONTEXT:taser_recognition*taser_line_recognition_mutator:˙ˆèÜÄ
+sPageLayoutMutationCalculatorCONTEXT:taser_recognition"CONTEXT:taser_prelayout*taser_line_selection_mutatorÄ
+éPageLayoutMutationCalculatorCONTEXT:taser_prelayout"CONTEXT:layout"CONTEXT:layout_taser*"taser_page_layout_analysis_mutator:˙ˆèÜÄ
+mPageLayoutMutationCalculatorCONTEXT:layout_taser"CONTEXT:layout*'page_layout_mutator_paragraph_detection
+yPageLayoutMutationCalculatorCONTEXT:taser_prelayout"CONTEXT:layout*#aksara_page_layout_analysis_mutator:˙ˆèÜÄ
+ÉPageLayoutMutationCalculatorCONTEXT:taser_prelayout"CONTEXT:layout_aksara1*%aksara_page_layout_analysis_mutator_1:˙ˆèÜÄ
+|PageLayoutMutationCalculatorCONTEXT:layout_aksara1"CONTEXT:layout_dp*'page_layout_mutator_paragraph_detection:˙ˆèÜ
+^PageLayoutMutationCalculatorCONTEXT:layout_aksara1"CONTEXT:layout_dp*standalone_combiner
+uPageLayoutMutationCalculatorCONTEXT:layout_dp"CONTEXT:layout*%aksara_page_layout_analysis_mutator_2:˙ˆèÜÄ
+jPageLayoutMutationCalculatorCONTEXT:layout"CONTEXT:layout_dro*&page_layout_mutator_deep_reading_order
+TMergeCalculator
+layout_drolayoutintermediate_script_id_context"final_context
+|.PageLayoutMutatorContextToPageLayoutCalculatorCONTEXT:layout_droCONTEXT:layoutCONTEXT:final_context"sampled_layouts
+O%PageLayoutToPageLayoutProtoCalculatorsampled_layouts"sampled_layouts_proto
+FPageLayoutToTextImageCalculatorsampled_layouts"sampled_textimages2H
+GlobalResourceManagerFactoryresource_manager‚ ≥Ñ(0 @H:è
+PageLayoutMutatorGeneratorresource_managerrpn_text_detection_mutator"C∫Àå–=
+PhotoOcrTextDetectionMutatorrpn_text_detection_mutator"1:â
+PageLayoutMutatorGeneratorresource_managerjoint_detector_mutator"A∫Àå–;
+PageLayoutMutatorJointDetectorjoint_detector_mutator"1:£
+PageLayoutMutatorGeneratorresource_managergocr_group_rpn_detector_mutator"R∫Àå–L
+ GocrGroupRpnTextDetectionMutator%gocr_group_rpn_text_detection_mutator"1:¨
+PageLayoutMutatorGeneratorresource_manager'script_direction_identification_mutator"S∫Àå–M
+#PhotoOcrScriptIdentificationMutator#taser_script_identification_mutator"1:Ö
+PageLayoutMutatorGeneratorresource_managerscript_supported_mutator";∫Àå–5
+ScriptSupportedMutatorscript_supported_mutator"1:ö
+PageLayoutMutatorGeneratorresource_managertaser_line_recognition_mutator"J∫Àå–D
+MultiPassLineRecognitionMutatortaser_line_recognition_mutator"1:ã
+PageLayoutMutatorGeneratorresource_managertaser_line_selection_mutator"=∫Àå–7
+LineSelectionMutatortaser_line_selection_mutator"1:§
+PageLayoutMutatorGeneratorresource_manager"taser_page_layout_analysis_mutator"P∫Àå–J
+!PhotoOcrPageLayoutAnalysisMutator"taser_page_layout_analysis_mutator"1:¢
+PageLayoutMutatorGeneratorresource_manager'page_layout_mutator_paragraph_detection"I∫Àå–C
+#PageLayoutMutatorParagraphDetectiondeep_paragraphing_mutator"1:ó
+PageLayoutMutatorGeneratorresource_manager#aksara_page_layout_analysis_mutator"B∫Àå–<
+PageLayoutAnalysisMutatorpage_layout_analysis_mutator"1:õ
+PageLayoutMutatorGeneratorresource_manager%aksara_page_layout_analysis_mutator_1"D∫Àå–>
+PageLayoutAnalysisMutatorpage_layout_analysis_mutator_1"1:¢
+PageLayoutMutatorGeneratorresource_manager'page_layout_mutator_paragraph_detection"I∫Àå–C
+#PageLayoutMutatorParagraphDetectiondeep_paragraphing_mutator"1:Ñ
+PageLayoutMutatorGeneratorresource_managerstandalone_combiner"?∫Àå–9
+"PageLayoutMutatorParagraphCombinerstandalone_combiner:õ
+PageLayoutMutatorGeneratorresource_manager%aksara_page_layout_analysis_mutator_2"D∫Àå–>
+PageLayoutAnalysisMutatorpage_layout_analysis_mutator_2"1:ñ
+PageLayoutMutatorGeneratorresource_manager&page_layout_mutator_deep_reading_order">∫Àå–8
+DeepReadingOrderMutatordeep_reading_order_mutator"1Rsampled_framesRdebug_layoutszsampled_layoutszsampled_layouts_protozsampled_textimageszsupported_script_booleanÇruntime_optionsÇresource_manager!param
+
+data_dir
+.literal:param
+use_external_resource_manager
+falseliteral1param
+use_pagelayout_input
+falseliteral9param
+use_pagelayout_context_input
+falseliteral7param
+disable_lazy_initialization
+trueliteral/param
+use_line_selection
+falseliteral-param
+use_aksara_layout
+trueliteral/param
+use_deep_paragraph
+falseliteralQparam
+script_id_mutator_name.
+#PhotoOcrScriptIdentificationMutatorliteralRparam
+script_id_instance_name.
+#taser_script_identification_mutatorliteral9param"
+ tflite_interpreter_pool_min_size
+4literal&param
+max_in_flight
+1literal4param
+use_shared_pool_executor
+trueliteral8param
+use_pagelayout_proto_output
+falseliteral1param
+use_textimage_output
+falseliteral3param
+use_deep_reading_order
+falseliteral+param
+skip_script_id
+falseliteral5param
+use_joint_detector_model
+falseliteral>param#
+!use_break_if_language_unsupported
+falseliteral$param	
+use_gpu
+falseliteral>param#
+!use_gocr_group_rpn_detector_model
+falseliteral)param
+init_image_width
+0literal*param
+init_image_height
+0literal&if
+use_pagelayout_input"/10[1](	/if
+use_external_resource_manager"/16[1](	Pif@!;||
+use_textimage_output
+use_pagelayout_proto_output"/15[0](	-if
+use_pagelayout_proto_output"/15[1](	&if
+use_textimage_output"/15[2](	3if#
+!use_break_if_language_unsupported"/15[3](	eifV&&	
+use_gpuEparen<||
+use_pagelayout_context_input
+use_pagelayout_input"/1[0](2if
+use_pagelayout_context_input"
+/1[0]/3[0](	*if
+use_pagelayout_input"
+/1[0]/3[1](	if	
+use_gpu"/1[1](ZifF&&#!
+use_pagelayout_context_input!
+use_pagelayout_input"
+/1[1]/3[0](	Pif<||
+use_pagelayout_context_input
+use_pagelayout_input"
+/1[1]/3[1](	if	
+use_gpu"/1[2](7if#!
+use_pagelayout_context_input"
+/1[3]/3[0](	2if
+use_pagelayout_context_input"
+/1[3]/3[1](	*if
+use_pagelayout_input"
+/1[3]/3[2](	if	
+use_gpu"
+/1[3]/3[3](	3if$!
+use_external_resource_manager"/6[0](=
+disable_lazy_initialization"/6[0]/3[0]/236035244[0]/1[0](:
+use_shared_pool_executor"/6[0]/3[0]/236035244[0]/3[0](B
+ tflite_interpreter_pool_min_size"/6[0]/3[0]/236035244[0]/4[0](2
+init_image_width"/6[0]/3[0]/236035244[0]/9[0](3
+init_image_height"/6[0]/3[0]/236035244[0]/8[0](G
+ tflite_interpreter_pool_min_size"!/6[0]/3[0]/236035244[0]/2[0]/5[0](4
+max_in_flight"!/6[0]/3[0]/236035244[0]/2[0]/6[0](^ifO&&!
+use_joint_detector_model(!#
+!use_gocr_group_rpn_detector_model"/7[0](vconcat
+
+data_dir@
+5/taser/rpn_text_detection_tflite_mobile_mbv2.binarypbliteral"/7[0]/4[0]/222323895[0]/4[0](	^ifO&&!
+use_joint_detector_model(!#
+!use_gocr_group_rpn_detector_model"/1[4](
+max_in_flight"/1[4]/16[0]()if
+use_joint_detector_model"/7[1](vconcat
+
+data_dir@
+5/taser/rpn_text_detection_tflite_mobile_mbv2.binarypbliteral"/7[1]/4[0]/222323895[0]/4[0](	)if
+use_joint_detector_model"/1[5](
+max_in_flight"/1[5]/16[0](2if#
+!use_gocr_group_rpn_detector_model"/7[2](vconcat
+
+data_dir@
+5/taser/rpn_text_detection_tflite_mobile_mbv2.binarypbliteral"/7[2]/4[0]/222323895[0]/4[0](	2if#
+!use_gocr_group_rpn_detector_model"/1[6](
+max_in_flight"/1[6]/16[0]($if!
+skip_script_id"/7[3](zconcat
+
+data_dirD
+9/taser/taser_script_identification_tflite_mobile.binarypbliteral"/7[3]/4[0]/222323895[0]/4[0](	$if!
+skip_script_id"/1[7](
+max_in_flight"/1[7]/16[0](2if#
+!use_break_if_language_unsupported"/7[4](Yconcat
+
+data_dir#
+/{SCRIPTSUPPORTED_PBTXT}literal"/7[4]/4[0]/222323895[0]/4[0](	2if#
+!use_break_if_language_unsupported"/1[8](
+max_in_flight"/1[8]/16[0](2if#
+!use_break_if_language_unsupported"/1[9](3if#
+!use_break_if_language_unsupported"/1[10](3if#
+!use_break_if_language_unsupported"/1[11](ìconcat
+
+data_dir]
+R/taser_tflite_gocrlatin_mbv2_scriptid_aksara_layout_gcn_mobile_recognizer.binarypbliteral"/7[5]/4[0]/222323895[0]/4[0](	ZifE&&(!#
+!use_break_if_language_unsupported!
+skip_script_id"/1[12]/3[0](	Uif@&&(!#
+!use_break_if_language_unsupported
+skip_script_id"/1[12]/3[1](	8if#
+!use_break_if_language_unsupported"/1[12]/3[2](	.if!
+use_line_selection"/1[12]/4[0](	)if
+use_line_selection"/1[12]/4[1](	
+max_in_flight"/1[12]/16[0](#if
+use_line_selection"/7[6](Wconcat
+
+data_dir!
+/{LINESELECTION_PBTXT}literal"/7[6]/4[0]/222323895[0]/4[0](	$if
+use_line_selection"/1[13](
+max_in_flight"/1[13]/16[0]('if!
+use_aksara_layout"/7[7](uconcat
+
+data_dir?
+4/aksara/aksara_page_layout_analysis_rpn_gcn.binarypbliteral"/7[7]/4[0]/222323895[0]/4[0](	(if!
+use_aksara_layout"/1[14](.if!
+use_deep_paragraph"/1[14]/4[0](	)if
+use_deep_paragraph"/1[14]/4[1](	
+max_in_flight"/1[14]/16[0](Cif4&&!
+use_aksara_layout
+use_deep_paragraph"/7[8]([concat
+
+data_dir%
+/{DEEP_PARAGRAPHING_PBTXT}literal"/7[8]/4[0]/222323895[0]/4[0](	Dif4&&!
+use_aksara_layout
+use_deep_paragraph"/1[15](jif[&&4&&
+use_aksara_layout!
+use_deep_paragraph!
+use_joint_detector_model"/7[9](uconcat
+
+data_dir?
+4/aksara/aksara_page_layout_analysis_rpn_gcn.binarypbliteral"/7[9]/4[0]/222323895[0]/4[0](	kif[&&4&&
+use_aksara_layout!
+use_deep_paragraph!
+use_joint_detector_model"/1[16](
+max_in_flight"/1[16]/16[0](jifZ&&
+use_aksara_layout?paren6||
+use_deep_paragraph
+use_joint_detector_model"/7[10](Sconcat
+
+data_dir
+/{LAYOUT_1_PBTXT}literal"/7[10]/4[0]/222323895[0]/4[0](	jifZ&&
+use_aksara_layout?paren6||
+use_deep_paragraph
+use_joint_detector_model"/1[17](
+max_in_flight"/1[17]/16[0](?if/&&
+use_aksara_layout
+use_deep_paragraph"/7[11](\concat
+
+data_dir%
+/{DEEP_PARAGRAPHING_PBTXT}literal"/7[11]/4[0]/222323895[0]/4[0](	?if/&&
+use_aksara_layout
+use_deep_paragraph"/1[18](fifV&&5&&
+use_aksara_layout
+use_joint_detector_model!
+use_deep_paragraph"/7[12](fifV&&5&&
+use_aksara_layout
+use_joint_detector_model!
+use_deep_paragraph"/1[19](jifZ&&
+use_aksara_layout?paren6||
+use_deep_paragraph
+use_joint_detector_model"/7[13](Sconcat
+
+data_dir
+/{LAYOUT_2_PBTXT}literal"/7[13]/4[0]/222323895[0]/4[0](	jifZ&&
+use_aksara_layout?paren6||
+use_deep_paragraph
+use_joint_detector_model"/1[20](
+max_in_flight"/1[20]/16[0]((if
+use_deep_reading_order"/7[14](]concat
+
+data_dir&
+/{DEEP_READING_ORDER_PBTXT}literal"/7[14]/4[0]/222323895[0]/4[0](	(if
+use_deep_reading_order"/1[21](3if#
+!use_break_if_language_unsupported"/1[22](-if
+use_deep_reading_order"/1[22]/3[0](	2if!
+use_deep_reading_order"/1[22]/3[1](	]ifH&&(!#
+!use_break_if_language_unsupported
+use_deep_reading_order"/1[23]/3[0](	bifM&&(!#
+!use_break_if_language_unsupported!
+use_deep_reading_order"/1[23]/3[1](	8if#
+!use_break_if_language_unsupported"/1[23]/3[2](	-if
+use_pagelayout_proto_output"/1[24](&if
+use_textimage_output"/1[25](

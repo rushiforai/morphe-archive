@@ -53,9 +53,9 @@ internal fun BytecodePatchContext.resolvePostJsonPresence(): PostJsonPresencePla
     requireShape(PATCH, model != null && model.fields.none { it.name in setOf("hushRootTrailPresent", "hushPaidContextKnown") }
         && model.methods.none { it.name == "hushSetJsonPresence" }, "the shared presence bridge already exists or Post is missing")
     val reader = classDefByOrNull(ADAPTER)?.methods?.singleOrNull {
-        it.name == "fromJson" && it.hasShape(listOf("Ladb;"), "Ljava/lang/Object;") && !it.isStatic()
+        it.name == "fromJson" && it.hasShape(listOf("Lkcb;"), "Ljava/lang/Object;") && !it.isStatic()
     }
-    requireShape(PATCH, reader?.implementation?.registerCount == 178, "the erased Post JSON reader changed")
+    requireShape(PATCH, reader?.implementation?.registerCount == 180, "the erased Post JSON reader changed")
     val method = reader!!
     val body = method.instructionList()
     fun one(at: Int, opcode: Opcode, register: Int) = body.getOrNull(at)?.let {
@@ -80,30 +80,34 @@ internal fun BytecodePatchContext.resolvePostJsonPresence(): PostJsonPresencePla
     val allocations = body.indices.filter { body[it].opcode == Opcode.NEW_INSTANCE &&
         (body[it] as? ReferenceInstruction)?.reference.toString() == POST }
     val returns = body.indices.filter { body[it].opcode == Opcode.RETURN_OBJECT }
-    val ctor = body.getOrNull(2166) as? RegisterRangeInstruction
-    val ctorRef = body.getOrNull(2166)?.methodRef()
-    val shape = body.size == 2183 && literal(10, Opcode.CONST_4, 10, -1)
+    // Tumblr 47.3.0.110: two more Post fields than 47.0.0.108 put every pin past the start 16 further on,
+    // the first and trail masks reach the constructor in v156 and v160, and the missing-fields branch
+    // returns its null through v0 (copied from v159) instead of straight from its const.
+    val ctor = body.getOrNull(2184) as? RegisterRangeInstruction
+    val ctorRef = body.getOrNull(2184)?.methodRef()
+    val shape = body.size == 2202 && literal(10, Opcode.CONST_4, 10, -1)
         && move(66, Opcode.MOVE, 4, 10) && (67..69).all { move(it, Opcode.MOVE, it - 62, it - 63) }
         && literal(168, Opcode.CONST, 161, 0x80000.inv()) && literal(175, Opcode.CONST, 168, 0x4000000.inv())
-        && and(1732, 168) && and(1865, 161) && move(1713, Opcode.MOVE, 10, 3)
-        && literal(394, Opcode.AND_INT_LIT8, 3, -2) && (body[394] as TwoRegisterInstruction).registerB == 7
-        && move(211, Opcode.MOVE, 7, 3) && move(2126, Opcode.MOVE_FROM16, 154, 10)
-        && move(2070, Opcode.MOVE_FROM16, 158, 7) && untouched(154, 2127, 2167) && untouched(158, 2071, 2167)
-        && allocations == listOf(2098) && one(2098, Opcode.NEW_INSTANCE, 4) && constructors == listOf(2166)
-        && ctor?.opcode == Opcode.INVOKE_DIRECT_RANGE && ctor.startRegister == 4 && ctor.registerCount == 156
-        && ctorRef?.parameterTypes?.takeLast(6)?.map { it.toString() } == listOf("I", "I", "I", "I", "I", "Lh47;")
-        && returns == listOf(2167, 2181) && one(2167, Opcode.RETURN_OBJECT, 4)
-        && literal(2065, Opcode.CONST_16, 157, 0) && one(2181, Opcode.RETURN_OBJECT, 157)
-        && untouched(157, 2066, 2070) && untouched(157, 2168, 2182) && one(2069, Opcode.IF_NEZ, 0)
-        && body[2180].methodRef().toString() == "Lbbb;->a(Ljava/lang/String;)V"
+        && and(1748, 168) && and(1881, 161) && move(1729, Opcode.MOVE, 10, 3)
+        && literal(410, Opcode.AND_INT_LIT8, 3, -2) && (body[410] as TwoRegisterInstruction).registerB == 7
+        && move(227, Opcode.MOVE, 7, 3) && move(2142, Opcode.MOVE_FROM16, 156, 10)
+        && move(2154, Opcode.MOVE_FROM16, 160, 7) && untouched(156, 2143, 2185) && untouched(160, 2155, 2185)
+        && allocations == listOf(2115) && one(2115, Opcode.NEW_INSTANCE, 4) && constructors == listOf(2184)
+        && ctor?.opcode == Opcode.INVOKE_DIRECT_RANGE && ctor.startRegister == 4 && ctor.registerCount == 158
+        && ctorRef?.parameterTypes?.takeLast(6)?.map { it.toString() } == listOf("I", "I", "I", "I", "I", "Lc47;")
+        && returns == listOf(2185, 2200) && one(2185, Opcode.RETURN_OBJECT, 4)
+        && literal(2081, Opcode.CONST_16, 159, 0) && move(2186, Opcode.MOVE_OBJECT_FROM16, 0, 159)
+        && one(2200, Opcode.RETURN_OBJECT, 0) && untouched(159, 2082, 2086) && untouched(0, 2187, 2201)
+        && one(2085, Opcode.IF_NEZ, 0)
+        && body[2199].methodRef().toString() == "Llab;->a(Ljava/lang/String;)V"
     requireShape(PATCH, shape, "the explicit followed, can_edit and trail masks or complete Post return paths changed")
     val flow = ControlFlow.of(method)
-    val predecessors = body.indices.filter { 2167 in flow.normal[it] || 2167 in flow.exceptional[it] }
-    requireShape(PATCH, predecessors == listOf(2166), "the successful Post return no longer follows its only constructor")
-    requireShape(PATCH, 2168 in flow.normal[2069] && (2168..2181).all { target ->
-        body.indices.filter { target in flow.normal[it] || target in flow.exceptional[it] } == listOf(if (target == 2168) 2069 else target - 1)
+    val predecessors = body.indices.filter { 2185 in flow.normal[it] || 2185 in flow.exceptional[it] }
+    requireShape(PATCH, predecessors == listOf(2184), "the successful Post return no longer follows its only constructor")
+    requireShape(PATCH, 2186 in flow.normal[2085] && (2186..2200).all { target ->
+        body.indices.filter { target in flow.normal[it] || target in flow.exceptional[it] } == listOf(if (target == 2186) 2085 else target - 1)
     }, "the null error return no longer follows only its missing-fields branch")
-    val scratch = method.freeLocalsAt(PATCH, 2167, 3, reads = listOf(4, 154, 158))
+    val scratch = method.freeLocalsAt(PATCH, 2185, 3, reads = listOf(4, 156, 160))
     return PostJsonPresencePlan(mutableOf(method), scratch)
 }
 
@@ -133,10 +137,10 @@ internal fun BytecodePatchContext.applyPostJsonPresence(plan: PostJsonPresencePl
         """)
     })
     val (post, first, trail) = plan.scratch
-    plan.reader.addInstructionsAtControlFlowLabel(2167, """
+    plan.reader.addInstructionsAtControlFlowLabel(2185, """
         move-object/from16 v$post, v4
-        move/from16 v$first, v154
-        move/from16 v$trail, v158
+        move/from16 v$first, v156
+        move/from16 v$trail, v160
         invoke-virtual { v$post, v$first, v$trail }, $POST_JSON_SET
     """)
 }

@@ -52,6 +52,12 @@ The updater covers all direct software dependencies and version-sensitive toolch
 | Embedded In-Repo Assets | `OsmMapView.java` (Leaflet CDN)                                                                                                         | Coupled asset URLs                                                  |
 | C++ / Native            | `extensions/adobescan-pdf-native/CMakeLists.txt`                                                                                        | CMake FetchContent archives and integrity hashes                    |
 
+The release workflow uses root `package-lock.json` as its lock owner: it
+installs with `npm ci --ignore-scripts` and runs the locked local
+`semantic-release` executable. `bun.lock` remains canonical for Bun CI
+commands, so a release dependency change must update both lockfiles and the
+`@semantic-release/*` versions must satisfy `package.json`.
+
 Repository hooks use Bun (`scripts/hooks.ts` and `scripts/install-hooks.ts`), not the
 Python pre-commit framework. `toml-eslint-parser` is required for TOML 1.0 syntax
 validation, including integers beyond JavaScript's safe-number range; Bun's built-in

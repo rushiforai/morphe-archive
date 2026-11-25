@@ -50,7 +50,11 @@ public class AdvancedDownloadsTest {
         private final long size;
         private int width, height;
         private List<String> encodings;
+        private String uri;
         Address(String url, long size) { this.url = url; this.size = size; }
+        /** The id of the file behind the address, which every rendition of one file shares. */
+        Address uri(String id) { uri = id; return this; }
+        @Override public String getUri() { return uri; }
         /** The frame size 47.0.3's UrlModel carries (getWidth, getHeight); 0 is unknown. */
         Address frame(int w, int h) { width = w; height = h; return this; }
         /** One photo in several encodings, listed the way PineDrama lists them. */
@@ -71,6 +75,7 @@ public class AdvancedDownloadsTest {
         public int isBytevc1;
         public Gear(String name, int rate, String url) { gearName = name; bitRate = rate; playAddr = new Address(url, rate * 10L); }
         Gear codec(int code) { isBytevc1 = code; return this; }
+        Gear uri(String id) { ((Address) playAddr).uri(id); return this; }
     }
     public static final class VideoData {
         public final List<Gear> bitRate;
@@ -615,6 +620,74 @@ public class AdvancedDownloadsTest {
         assertTrue(VideoDownloads.audioUrls(video, gear).isEmpty());
         gear.videoExtra = null;
         assertEquals("https://example.com/unrelated", VideoDownloads.audioUrls(video, gear).get(0));
+    }
+
+    /** #10: a rendition cut for the app's language has its dub mixed in, PineDrama's file doesn't. */
+    @Test public void aRenditionOfAnotherFileTakesItsSoundFromPineDramasOwnFile() {
+        Gear dubbed = new Gear("lower_1080_1", 900, "https://example.com/dubbed").uri("v1c836g5000cdubbed");
+        VideoData video = new VideoData(List.of(dubbed));
+        video.downloadNoWatermarkAddr = new Address("https://example.com/clean", 10).uri("v1c025g50000source");
+        video.downloadAddr = new Address("https://example.com/stamped", 10).uri("v1c025g50000source");
+        assertEquals(List.of("https://example.com/clean"), VideoDownloads.originalSoundUrls(video, dubbed));
+
+        video.downloadNoWatermarkAddr = null;
+        assertEquals("the stamped copy has the same sound",
+                List.of("https://example.com/stamped"), VideoDownloads.originalSoundUrls(video, dubbed));
+
+        // Remove watermark fills a missing clean address with the play address, the dubbed file.
+        video.downloadNoWatermarkAddr = new Address("https://example.com/dubbed", 10).uri("v1c836g5000cdubbed");
+        assertEquals(List.of("https://example.com/stamped"), VideoDownloads.originalSoundUrls(video, dubbed));
+
+        video.downloadAddr = null;
+        assertTrue("nothing else to take it from", VideoDownloads.originalSoundUrls(video, dubbed).isEmpty());
+    }
+
+    @Test public void aRenditionOfPineDramasOwnFileKeepsTheSoundItHas() {
+        Gear gear = new Gear("adapt_lower_720_1", 900, "https://example.com/gear").uri("v14044g50000same");
+        VideoData video = new VideoData(List.of(gear));
+        video.downloadNoWatermarkAddr = new Address("https://example.com/clean", 10).uri("v14044g50000same");
+        assertTrue("the same file", VideoDownloads.originalSoundUrls(video, gear).isEmpty());
+        assertTrue("no rendition", VideoDownloads.originalSoundUrls(video, null).isEmpty());
+
+        video.downloadNoWatermarkAddr = new Address("https://example.com/clean", 10);
+        assertTrue("PineDrama's file has no id to compare", VideoDownloads.originalSoundUrls(video, gear).isEmpty());
+
+        video.downloadNoWatermarkAddr = new Address("https://example.com/clean", 10).uri("v1c025g50000source");
+        video.dash = true;
+        assertTrue("split tracks pair their own sound", VideoDownloads.originalSoundUrls(video, gear).isEmpty());
+    }
+
+    /** With a chosen quality PineDrama's download getters answer with the rendition. */
+    public static final class VideoWithChosenQuality {
+        public final List<Gear> bitRateList;
+        public Address downloadNoWatermarkAddr;
+        VideoWithChosenQuality(List<Gear> gears) { bitRateList = gears; }
+        public List<Gear> getRawBitRate() { return bitRateList; }
+        public UrlModel getDownloadNoWatermarkAddr() { return bitRateList.get(0).playAddr; }
+        public boolean hasDashBitrate() { return false; }
+    }
+
+    @Test public void aChosenQualityStillFindsTheOriginalFileBehindTheGetter() {
+        Gear dubbed = new Gear("lower_1080_1", 900, "https://example.com/dubbed").uri("v1c836g5000cdubbed");
+        VideoWithChosenQuality video = new VideoWithChosenQuality(List.of(dubbed));
+        video.downloadNoWatermarkAddr = new Address("https://example.com/clean", 10).uri("v1c025g50000source");
+        assertEquals(List.of("https://example.com/clean"), VideoDownloads.originalSoundUrls(video, dubbed));
+    }
+
+    /** PineDrama's own save can't pair tracks, so it keeps its file rather than take the dub. */
+    @Test public void pineDramasOwnSaveIsNotHandedADubbedRendition() {
+        Settings.DOWNLOAD_VIDEO_QUALITY.save("1080");
+        try {
+            Gear gear = new Gear("lower_1080_1", 900, "https://example.com/gear").uri("v1c836g5000cdubbed");
+            VideoData video = new VideoData(List.of(gear));
+            video.downloadNoWatermarkAddr = new Address("https://example.com/clean", 10).uri("v1c025g50000source");
+            assertNull(QualitySelector.download(video));
+
+            ((Address) gear.playAddr).uri("v1c025g50000source");
+            assertSame("the same file is still the chosen quality's", gear.playAddr, QualitySelector.download(video));
+        } finally {
+            Settings.DOWNLOAD_VIDEO_QUALITY.resetToDefault();
+        }
     }
 
     @Test public void muxerCopiesBothCompressedTracksAndRejectsMissingAudio() throws Exception {

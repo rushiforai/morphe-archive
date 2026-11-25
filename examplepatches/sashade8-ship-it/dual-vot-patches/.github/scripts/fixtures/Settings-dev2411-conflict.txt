@@ -1,0 +1,30 @@
+    <<<<<<< HEAD
+        // Dual VoT - Yandex engine. Keep every key independent from the official
+        // caption-plus-TTS engine so users can enable both buttons safely.
+        public static final BooleanSetting DUAL_VOT_YANDEX_ENABLED = new BooleanSetting("dualvot_yandex_enabled", FALSE);
+        public static final StringSetting DUAL_VOT_YANDEX_TIMER_POSITION = new StringSetting("dualvot_yandex_timer_position", "inside", false, parent(DUAL_VOT_YANDEX_ENABLED));
+        public static final BooleanSetting DUAL_VOT_YANDEX_PROGRESS_RING_ENABLED = new BooleanSetting("dualvot_yandex_progress_ring_enabled", TRUE, false, parent(DUAL_VOT_YANDEX_ENABLED));
+        public static final StringSetting DUAL_VOT_YANDEX_PROGRESS_RING_COLOR = new StringSetting("dualvot_yandex_progress_ring_color", "#FFC107", false, parent(DUAL_VOT_YANDEX_PROGRESS_RING_ENABLED));
+        public static final IntegerSetting DUAL_VOT_YANDEX_PROGRESS_RING_THICKNESS = new IntegerSetting("dualvot_yandex_progress_ring_thickness", 2, false, parent(DUAL_VOT_YANDEX_PROGRESS_RING_ENABLED));
+        public static final StringSetting DUAL_VOT_YANDEX_SOURCE_LANGUAGE = new StringSetting("dualvot_yandex_source_language", "auto", false, parent(DUAL_VOT_YANDEX_ENABLED));
+        public static final StringSetting DUAL_VOT_YANDEX_TARGET_LANGUAGE = new StringSetting("dualvot_yandex_target_language", "ru", false, parent(DUAL_VOT_YANDEX_ENABLED));
+        public static final IntegerSetting DUAL_VOT_YANDEX_TRANSLATION_VOLUME = new IntegerSetting("dualvot_yandex_translation_volume", 100, false, parent(DUAL_VOT_YANDEX_ENABLED));
+        public static final IntegerSetting DUAL_VOT_YANDEX_ORIGINAL_AUDIO_VOLUME = new IntegerSetting("dualvot_yandex_original_audio_volume", 30, false, parent(DUAL_VOT_YANDEX_ENABLED));
+        public static final BooleanSetting DUAL_VOT_YANDEX_AUDIO_PROXY_ENABLED = new BooleanSetting("dualvot_yandex_audio_proxy_enabled", TRUE, false, parent(DUAL_VOT_YANDEX_ENABLED));
+        public static final StringSetting DUAL_VOT_YANDEX_PROXY_URL = new StringSetting("dualvot_yandex_proxy_url", "vot-worker.eu.cc", false, parent(DUAL_VOT_YANDEX_ENABLED));
+        public static final BooleanSetting DUAL_VOT_YANDEX_USE_LIVE_VOICES = new BooleanSetting("dualvot_yandex_use_live_voices", TRUE, false, parent(DUAL_VOT_YANDEX_ENABLED));
+        public static final StringSetting DUAL_VOT_YANDEX_OAUTH_TOKEN = new StringSetting("dualvot_yandex_oauth_token", "", false, parent(DUAL_VOT_YANDEX_ENABLED));
+    =======
+        // Ghost mode
+        public static final BooleanSetting GHOST_PLAY_ENABLED = new BooleanSetting("morphe_ghost_play_enabled", FALSE, true);
+        public static final BooleanSetting GHOST_PLAY_MODE_ACTIVE = new BooleanSetting("morphe_ghost_play_mode_active", FALSE, parent(GHOST_PLAY_ENABLED));
+        public static final BooleanSetting GHOST_PLAY_PERSIST_MODE = new BooleanSetting("morphe_ghost_play_persist_mode", FALSE, parent(GHOST_PLAY_ENABLED));
+        public static final BooleanSetting GHOST_PLAY_TOOLBAR_BUTTON = new BooleanSetting("morphe_ghost_play_toolbar_button", TRUE, parent(GHOST_PLAY_ENABLED));
+        public static final BooleanSetting GHOST_PLAY_FLYOUT_BUTTON = new BooleanSetting("morphe_ghost_play_flyout_button", TRUE, parent(GHOST_PLAY_ENABLED));
+        public static final BooleanSetting GHOST_PLAY_PLAYER_BUTTON = new BooleanSetting("morphe_ghost_play_player_button", TRUE, true, parent(GHOST_PLAY_ENABLED));
+        public static final BooleanSetting GHOST_PLAY_ANONYMIZE_REQUESTS = new BooleanSetting("morphe_ghost_play_anonymize_requests", TRUE, parent(GHOST_PLAY_ENABLED));
+        public static final BooleanSetting GHOST_PLAY_AUTO_SHORTS = new BooleanSetting("morphe_ghost_play_auto_shorts", FALSE, parent(GHOST_PLAY_ENABLED));
+        public static final BooleanSetting GHOST_PLAY_AUTO_SEARCH = new BooleanSetting("morphe_ghost_play_auto_search", FALSE, parent(GHOST_PLAY_ENABLED));
+        public static final BooleanSetting GHOST_PLAY_LOCAL_HISTORY = new BooleanSetting("morphe_ghost_play_local_history", TRUE, parent(GHOST_PLAY_ENABLED));
+        public static final IntegerSetting GHOST_PLAY_HISTORY_LIMIT = new IntegerSetting("morphe_ghost_play_history_limit", 500, parent(GHOST_PLAY_LOCAL_HISTORY));
+    >>>>>>> refs/tags/v2.4.0-dev.11

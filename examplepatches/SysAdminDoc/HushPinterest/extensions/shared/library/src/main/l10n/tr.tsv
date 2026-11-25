@@ -152,7 +152,7 @@ AI-labeled pins in lists	listelerdeki yapay zeka etiketli pinler
 Android sends pinterest.com and pin.it links to a patched Pinterest only after you select those addresses for it. Selecting them sends their links here. Your other link settings stay as they are.	Android, pinterest.com ve pin.it bağlantılarını yamalı Pinterest'e ancak bu adresleri onun için seçtikten sonra gönderir. Adresleri seçersen bağlantıları buraya gelir. Diğer bağlantı ayarların aynı kalır.
 Feed	Akış
 Hide AI-labeled pins	Yapay zeka etiketli pinleri gizle
-Removes pins that Pinterest labels as made or changed with AI from your home feed, search, related pins and boards. AI images without the label still show.	Pinterest'in yapay zekayla üretilmiş veya değiştirilmiş olarak etiketlediği pinleri ana akışından, aramadan, ilgili pinlerden ve panolardan kaldırır. Etiketsiz yapay zeka görselleri görünmeye devam eder.
+Removes pins that Pinterest labels as made or changed with AI from your home feed, search, related pins and other people's boards. AI images without the label still show.	Pinterest'in yapay zekayla üretilmiş veya değiştirilmiş olarak etiketlediği pinleri ana akışından, aramadan, ilgili pinlerden ve başkalarının panolarından kaldırır. Etiketsiz yapay zeka görselleri görünmeye devam eder.
 # context: a Feed switch right under Hide AI-labeled pins. It removes pins Pinterest doesn't label as AI when their own title or description says they're AI art, or when they come from a website that only hosts AI images. It has its own switch.
 Hide pins that say they're AI	Yapay zeka olduğunu söyleyen pinleri gizle
 Removes pins without the label whose title or description calls them AI art, or that come from an AI image site. It goes by their words, so some still show.	Etiketi olmayan ama başlığı veya açıklaması kendini yapay zeka sanatı olarak tanıtan ya da bir yapay zeka görsel sitesinden gelen pinleri kaldırır. Kelimelerine göre karar verir, bu yüzden bazıları yine görünür.
@@ -171,7 +171,7 @@ Hide shopping and product pins	Alışveriş ve ürün Pinlerini gizle
 Hides product pins, shopping stories, featured boards and Shop the look under pins. Visit and Paid link stay.	Ürün pinlerini, alışveriş hikayelerini, öne çıkan panoları ve pinlerin altındaki Shop the look bölümünü gizler. Ziyaret bağlantısı ve ücretli bağlantı etiketi kalır.
 # context: a Feed switch under Hide shopping and product pins, from the Filter feed patch. It removes pins that play a video (video pins and idea pins with video) from the lists Pinterest shows. Photos and animated GIFs stay. The title is also the name of that part of the patch in the build report.
 Hide video pins	Video pinlerini gizle
-Removes pins that play a video from your home feed, search, related pins and boards. Photos and GIFs stay.	Video oynatan pinleri ana akışından, aramadan, ilgili pinlerden ve panolardan kaldırır. Fotoğraflar ve GIF'ler kalır.
+Removes pins that play a video from your home feed, search, related pins and other people's boards. Photos and GIFs stay.	Video oynatan pinleri ana akışından, aramadan, ilgili pinlerden ve başkalarının panolarından kaldırır. Fotoğraflar ve GIF'ler kalır.
 Disable analytics	Analizleri devre dışı bırak
 Stops usage reports and analytics tasks. Restart after turning off or pausing. Google's analytics stays off until you patch again without Disable analytics.	Kullanım raporlarını ve analiz görevlerini durdurur. Kapattıktan veya duraklattıktan sonra yeniden başlat. Google'ın analizleri, Analizleri devre dışı bırak yaması olmadan yeniden yamalayana kadar kapalı kalır.
 Firebase and Google Analytics collection is turned off	Firebase ve Google Analytics veri toplama kapalı
@@ -824,3 +824,68 @@ Show related pins	İlgili pinleri göster
 # context: a Pin page switch on the Interface page, from the Let the screen sleep patch. Pinterest keeps the phone's screen on while one of its videos is on the screen. When this is on, the screen turns off after the phone's normal screen timeout instead. The title is also the patch's name in the build report and in the settings import preview
 Let the screen sleep	Ekranın kapanmasına izin ver
 Pinterest keeps the screen on while a video is on it, playing or not, so an open pin can keep the phone awake. With this on, the screen turns off after your phone's usual timeout, videos included. The change shows on the next pin you open.	Pinterest, ekranda bir video olduğu sürece, oynasın ya da oynamasın, ekranı açık tutar. Bu yüzden açık bir pin telefonu uyanık tutabilir. Bu açıkken ekran, videolarda da telefonunun her zamanki süresi dolunca kapanır. Değişiklik açtığın bir sonraki pinde görünür.
+Hide the refresh pill	Yenileme hapını gizle
+Home no longer shows the pill that offers new pins after you've been away. Pull down on Home when you want them.	Bir süre uzak kaldıktan sonra Ana Sayfa yeni pinler öneren hapı artık göstermez. İstediğinde Ana Sayfa'da aşağı çek.
+Hide offline banner	Çevrimdışı çubuğunu gizle
+The bar at the top that says you're offline, then back online, no longer shows. The change shows the next time your connection drops.	Üstte çevrimdışı olduğunu, sonra yeniden çevrimiçi olduğunu söyleyen çubuk artık görünmez. Değişiklik, bağlantın bir sonraki kopuşunda görünür.
+Hide suggested searches	Önerilen aramaları gizle
+The colored searches under the search bar on search results no longer show. The filter button stays. The change shows the next time you search.	Arama sonuçlarında arama çubuğunun altındaki renkli aramalar artık görünmez. Filtre düğmesi kalır. Değişiklik bir sonraki aramanda görünür.
+Swipe down to close pins	Pinleri kapatmak için aşağı kaydır
+Close a pin you opened by pulling it down. Pinterest built this gesture but only gives it to some accounts. Back and the back arrow work as before. The change shows on the next pin you open.	Açtığın bir pini aşağı çekerek kapat. Pinterest bu hareketi yaptı ama yalnızca bazı hesaplara veriyor. Geri ve geri oku eskisi gibi çalışır. Değişiklik açtığın bir sonraki pinde görünür.
+Full-size profile photos	Tam boyutlu profil fotoğrafları
+Tap someone's profile photo on their profile to see it full size. Pinterest already does this for some accounts. The change shows on the next profile you open.	Birinin profilinde profil fotoğrafına dokunarak onu tam boyutta gör. Pinterest bunu bazı hesaplar için zaten yapıyor. Değişiklik açtığın bir sonraki profilde görünür.
+Best video quality	En iyi video kalitesi
+Plays videos at the largest size Pinterest has instead of capping them. Pinterest already does this for some accounts. It uses more data. The change shows on the next video you open.	Videoları sınırlamak yerine Pinterest'teki en büyük boyutta oynatır. Pinterest bunu bazı hesaplar için zaten yapıyor. Daha fazla veri kullanır. Değişiklik açtığın bir sonraki videoda görünür.
+Board order when saving	Kaydederken pano sırası
+Lists your boards in the Save to sheet in the order your profile shows them, a custom order included, instead of A to Z. The change shows the next time you save a pin.	Kaydet sayfasında panolarını A'dan Z'ye yerine profilindeki sırayla, özel sıralama dahil, gösterir. Değişiklik bir sonraki pin kaydedişinde görünür.
+Don't autoplay pin videos	Pin videolarını otomatik oynatma
+A video on a pin you open or swipe to waits for you to tap play instead of starting on its own. A pin you go back to stays paused too. The change shows on the next pin you open.	Açtığın ya da kaydırarak geçtiğin bir pindeki video kendiliğinden başlamak yerine oynat'a dokunmanı bekler. Geri döndüğün bir pin de duraklatılmış kalır. Değişiklik açtığın bir sonraki pinde görünür.
+Start pin videos muted	Pin videolarını sessiz başlat
+Every pin video you open or swipe to starts with the sound off, even if you turned it on for the last one. Tap the speaker to hear it. The change shows on the next pin you open.	Açtığın ya da kaydırarak geçtiğin her pin videosu, bir öncekinde sesi açmış olsan bile sessiz başlar. Duymak için hoparlöre dokun. Değişiklik açtığın bir sonraki pinde görünür.
+Pinch to zoom only	Sıkıştırınca yalnızca yakınlaştır
+Pinching a pin's picture opens it full screen, where you can zoom in and drag it around, instead of loading pins that look like it. The change shows the next time you pinch a pin.	Bir pinin resmini iki parmakla sıkıştırmak, benzer pinleri yüklemek yerine resmi tam ekranda açar. Orada yakınlaştırıp sürükleyebilirsin. Değişiklik bir pini bir sonraki sıkıştırışında görünür.
+Black buttons	Siyah düğmeler
+In dark mode, paints Pinterest's gray buttons, such as Message and Edit profile on a profile, pure black and keeps their labels. The chips over search results and the Refine your search rows go black too, and so does your account card in settings. Light mode stays as it is. The change shows the next time Pinterest draws a button.	Karanlık modda, Pinterest'in bir profildeki Mesaj ve Profili düzenle gibi gri düğmelerini tamamen siyaha boyar, yazıları yerinde kalır. Arama sonuçlarının üstündeki çipler ve "Aramanı daralt" satırları da siyah olur, ayarlardaki hesap kartın da öyle. Aydınlık mod olduğu gibi kalır. Değişiklik Pinterest bir sonraki düğmeyi çizdiğinde görünür.
+Save color on other red buttons	Diğer kırmızı düğmelerde Kaydet rengi
+Paints Pinterest's other red buttons, such as Follow and Done, the color you picked for the Save button. Pick that color first. The change shows the next time Pinterest draws a button.	Pinterest'in Takip et ve Bitti gibi diğer kırmızı düğmelerini, Kaydet düğmesi için seçtiğin renge boyar. Önce o rengi seç. Değişiklik Pinterest bir sonraki düğmeyi çizdiğinde görünür.
+Like and comment history	Beğeni ve yorum geçmişi
+Keeps a list of the pins you like and the comments you post. Open it from Your likes and comments below. The list stays on this phone.	Beğendiğin pinlerin ve yazdığın yorumların listesini tutar. Aşağıdaki Beğenilerin ve yorumların satırından aç. Liste bu telefonda kalır.
+Your likes and comments	Beğenilerin ve yorumların
+See the pins you liked and commented on, newest first. The list keeps the newest 500.	Beğendiğin ve yorum yaptığın pinleri en yeniden başlayarak gör. Liste en yeni 500 kaydı tutar.
+All	Tümü
+Likes	Beğeniler
+Comments	Yorumlar
+Liked	Beğendin
+Commented	Yorum yaptın
+Replied	Yanıtladın
+One entry. Tap it to open its pin.	Bir kayıt. Pinini açmak için dokun.
+%1$d entries, newest first. Tap one to open its pin.	%1$d kayıt, en yeniler önce. Pinini açmak için birine dokun.
+Nothing here yet. Pins you like and comments you post show up here.	Henüz bir şey yok. Beğendiğin pinler ve yazdığın yorumlar burada görünür.
+Nothing here yet. Turn on Like and comment history to start a list.	Henüz bir şey yok. Liste başlatmak için Beğeni ve yorum geçmişi'ni aç.
+No likes in the list.	Listede beğeni yok.
+No comments in the list.	Listede yorum yok.
+Couldn't open the list. Try again.	Liste açılamadı. Yeniden dene.
+Cleared your likes and comments.	Beğenilerin ve yorumların temizlendi.
+Couldn't clear the list. Try again.	Liste temizlenemedi. Yeniden dene.
+likes	beğeniler
+comments and replies	yorumlar ve yanıtlar
+# context: the name of a part of the AMOLED black patch in the build report and patch status, under the Black buttons switch. In dark mode it paints the gray chips over search results, such as Filter and the suggested searches, black.
+Black search filters	Siyah arama filtreleri
+# context: a Feed switch from the Filter feed patch, under Hide Home suggestions. It takes the lists Pinterest puts between search results under its own "Refine your search" heading (rows of suggested searches, each with a picture) out of the results. Use the words Pinterest shows for that heading in this language. The title is also the name of that part of the patch in the build report.
+Hide Refine your search	"Aramanı daralt" bölümünü gizle
+# context: the summary under Hide Refine your search.
+Takes the "Refine your search" lists of suggested searches out of search results, and the pins close up where they were. The change shows the next time results load.	Önerilen aramaların bulunduğu "Aramanı daralt" listelerini arama sonuçlarından kaldırır ve Pinler boşluğu kapatır. Değişiklik sonuçlar bir sonraki yüklendiğinde görünür.
+# context: the name of a part of the AMOLED black patch in the build report and patch status, under the Black buttons switch. In dark mode it paints the gray "Your account" card at the top of Pinterest's own settings (your photo, name, View profile and Share profile) black.
+Black account card in settings	Ayarlarda siyah hesap kartı
+# context: the name of a part of the AMOLED black patch in the build report and patch status, under the Black buttons switch. In dark mode it paints the gray rows of the "Refine your search" lists between search results black. Use the words Pinterest shows for that heading in this language.
+Black Refine your search rows	Siyah "Aramanı daralt" satırları
+Font file	Yazı tipi dosyası
+Copying the font file	Yazı tipi dosyası kopyalanıyor
+No font picked yet. Pick a .ttf or .otf file.	Henüz yazı tipi seçilmedi. Bir .ttf veya .otf dosyası seç.
+A font file is picked. Tap to pick another.	Bir yazı tipi dosyası seçili. Başkasını seçmek için dokun.
+%1$s is picked. Tap to pick another.	%1$s seçili. Başkasını seçmek için dokun.
+Font file saved. Restart Pinterest to see it.	Yazı tipi dosyası kaydedildi. Görmek için Pinterest'i yeniden başlat.
+That file is too large to be a font. Nothing was changed.	Bu dosya bir yazı tipi olamayacak kadar büyük. Hiçbir şey değiştirilmedi.
+That isn't a font file Android can use. Nothing was changed.	Android bu yazı tipi dosyasını kullanamıyor. Hiçbir şey değişmedi.
+Custom font	Özel yazı tipi
+Shows Pinterest's text in the font file you pick below. Icons keep their own font. Restart Pinterest to see the change.	Pinterest'teki yazıları aşağıda seçtiğin yazı tipi dosyasıyla gösterir. Simgeler kendi yazı tiplerini korur. Değişikliği görmek için Pinterest'i yeniden başlat.

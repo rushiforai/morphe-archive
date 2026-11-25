@@ -20,7 +20,7 @@ public final class AdMarkers {
             "twitch-stitched",
             // vaft matches these only when CLASS is the first DATERANGE attribute; match any position.
             "CLASS=\"twitch-maf-ad\"",
-            "CLASS=\"twitch-trigger\"",
+            // (not twitch-trigger: every stream carries it from its start, ad or not, as Purple AdBlock found)
     };
 
     /** Always an ad. */
@@ -36,7 +36,7 @@ public final class AdMarkers {
      * markers are ad tracking beacons that can outlive the ad they belong to.
      */
     private static final Set<String> NON_AD_CLASSES = new HashSet<>(Arrays.asList(
-            "twitch-session", "twitch-stream-source", "twitch-assignment", "twitch-ad-quartile"));
+            "twitch-session", "twitch-stream-source", "twitch-assignment", "twitch-ad-quartile", "twitch-trigger"));
     private static final Set<String> AD_WORDS = new HashSet<>(Arrays.asList(
             "ad", "ads", "advert", "stitched", "maf", "break", "midroll", "preroll", "sponsor", "cue",
             "scte35", "splice", "commercial", "quartile", "trigger"));
@@ -65,6 +65,51 @@ public final class AdMarkers {
      */
     public static boolean hasStitchedAdTags(String text) {
         return text.contains("stitched-ad") || text.contains("twitch-stitched") || text.contains("EXT-X-CUE-OUT");
+    }
+
+    private static final java.util.regex.Pattern START_DATE = java.util.regex.Pattern.compile("START-DATE=\"([^\"]+)\"");
+
+    /**
+     * Whether a stitched ad break is announced to start after the newest segment (its start {@code newestMs}, epoch
+     * ms): the prefetch hints then point at the break's first ad segments, so they go. A break announced without a
+     * readable start, or one that has begun, doesn't count: its ad segments, once there, say so themselves.
+     */
+    public static boolean breakAhead(String text, long newestMs) {
+        if (newestMs == MediaPlaylist.UNKNOWN_TIME || !hasStitchedAdTags(text)) return false;
+        for (String line : Lines.of(text)) {
+            if (!line.startsWith("#EXT-X-DATERANGE") || !hasStitchedAdTags(line)) continue;
+            java.util.regex.Matcher start = START_DATE.matcher(line);
+            if (!start.find()) continue;
+            long at = MediaPlaylist.parseTime(start.group(1));
+            if (at != MediaPlaylist.UNKNOWN_TIME && at > newestMs) return true;
+        }
+        return false;
+    }
+
+    /**
+     * Twitch's playlist as it is, without the lines that tell the app an ad is on (it would start its own), and
+     * without the prefetch hints when {@code dropPrefetch}. Everything else (numbering, low latency hints, parts)
+     * stays exactly as Twitch sent it.
+     */
+    public static String withoutAdTags(String text, boolean dropPrefetch) {
+        StringBuilder out = new StringBuilder(text.length());
+        boolean changed = false;
+        for (String line : Lines.of(text)) {
+            // The trigger marker stays: it isn't an ad (it's there all stream long, from its start), and the
+            // player is given its playlist as Twitch sent it outside ads, as Purple AdBlock does.
+            boolean adLine = isAdTagLine(line) && !isTriggerLine(line);
+            if (adLine || (dropPrefetch && MediaPlaylist.isPrefetchTag(line))) {
+                changed = true;
+                continue;
+            }
+            out.append(line).append('\n');
+        }
+        return changed ? out.toString() : text;
+    }
+
+    /** Twitch's trigger marker: a session marker every stream carries, not an ad. */
+    static boolean isTriggerLine(String line) {
+        return line.contains("CLASS=\"twitch-trigger\"") && !hasStitchedAdTags(line) && !line.contains("twitch-maf-ad");
     }
 
     /**

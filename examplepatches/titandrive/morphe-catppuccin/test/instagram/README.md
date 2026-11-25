@@ -26,7 +26,7 @@ Build locally with:
 
 ```sh
 CATPPUCCIN_INCLUDE_INSTAGRAM=1 CATPPUCCIN_VERSION=0.7.0-instagram-test \
-JAVA_HOME=/opt/android-studio/jbr ANDROID_HOME=/home/jake/Android/Sdk \
+JAVA_HOME=/opt/android-studio/jbr ANDROID_HOME=$HOME/Android/Sdk \
 python3 tools/build_catppuccin.py
 ```
 

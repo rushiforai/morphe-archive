@@ -53,6 +53,9 @@ public final class ExpressiveProgressiveBlurOverlayView extends View {
 
     private final ViewTreeObserver.OnPreDrawListener preDrawListener = () -> {
         try {
+            if (ExpressiveMiniPlayerExpandOverlayView.isOverlayActive()) {
+                return true;
+            }
             syncGeometryAndVisibility();
             if (getVisibility() != VISIBLE) {
                 waitingForOwnDraw = false;
@@ -299,7 +302,9 @@ public final class ExpressiveProgressiveBlurOverlayView extends View {
             }
 
             float bleedPx = 24f * density;
-            if (renderer.canUseHardwareBlur(canvas) && !ExpressiveBlurKit.CAPTURING_BACKDROP) {
+            if (!ExpressiveMiniPlayerExpandOverlayView.isOverlayActive()
+                    && renderer.canUseHardwareBlur(canvas)
+                    && !ExpressiveBlurKit.CAPTURING_BACKDROP) {
                 RecordingCanvas rc = renderer.beginBackdropCapture(w, h, bleedPx, 0.5f, baseColor);
                 if (rc != null) {
                     int dx = (getLeft() + Math.round(getTranslationX()))

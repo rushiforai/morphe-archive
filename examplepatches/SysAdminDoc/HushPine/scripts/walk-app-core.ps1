@@ -154,8 +154,9 @@ function Find-UiNode {
         The nodes whose text or content description matches -Label (a regex), with a usable area.
     #>
     param([AllowEmptyCollection()][object[]]$Nodes = @(), [Parameter(Mandatory = $true)][string]$Label, [string]$Id)
+    # A restore that left the app hands over no screen at all, which pipes one $null through.
     @($Nodes | Where-Object {
-            ($_.Text -match $Label -or $_.Desc -match $Label) -and
+            $null -ne $_ -and ($_.Text -match $Label -or $_.Desc -match $Label) -and
             (-not $Id -or $_.Id -ceq $Id) -and $_.Right -gt $_.Left -and $_.Bottom -gt $_.Top
         })
 }

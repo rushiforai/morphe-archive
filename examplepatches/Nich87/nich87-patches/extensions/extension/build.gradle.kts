@@ -5,3 +5,7 @@ extension {
 android {
     namespace = "app.voidhack.extension"
 }
+
+dependencies {
+    implementation(libs.kuromoji.ipadic)
+}

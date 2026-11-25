@@ -179,7 +179,7 @@ public class RegistrationDateTest {
     @Test public void theCopiedToastFitsTwoLinesInEveryLanguage() {
         String text = "Registration date copied";
         assertFitsATwoLineToast("en", text);
-        for (String language : new String[]{"bg", "de", "es", "in", "pt-rbr", "tr", "zh-hans"}) {
+        for (String language : new String[]{"bg", "de", "es", "in", "it", "pt-rbr", "tr", "zh-hans"}) {
             String row = L10nTablesForTests.of(language).get(text);
             assertNotNull(language + ": " + text, row);
             assertFitsATwoLineToast(language, row);

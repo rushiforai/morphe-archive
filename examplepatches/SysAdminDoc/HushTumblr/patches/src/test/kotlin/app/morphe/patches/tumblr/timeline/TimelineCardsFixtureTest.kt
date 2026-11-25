@@ -50,6 +50,10 @@ class TimelineCardsFixtureTest {
     fun `Hide Watch it rows reads carousels and turns its switch on`() =
         check(hideWatchItRowsPatch, "hideWatchItRows", "watchItRows")
 
+    @Test
+    fun `Hide More posts like this turns its switch on`() =
+        check(hideMorePostsLikeThisPatch, "hideMorePostsLikeThis", "morePostsLikeThis")
+
     /**
      * What tells a feed from a page of search results, in each declared build. The suggested blogs
      * and communities rules read the adapter that's parsing a page off the call stack, so each adapter

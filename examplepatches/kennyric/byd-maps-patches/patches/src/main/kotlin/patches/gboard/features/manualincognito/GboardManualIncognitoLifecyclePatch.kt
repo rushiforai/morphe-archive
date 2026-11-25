@@ -1,0 +1,89 @@
+package patches.gboard.features.manualincognito
+
+import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
+import app.morphe.patcher.patch.bytecodePatch
+import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod
+import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
+import patches.gboard.shared.findMutableMethodOrThrow
+import patches.gboard.shared.gboardPatchesExtensionCarrierPatch
+import patches.gboard.shared.applyVoidExitLifecycleDelegate
+import patches.gboard.shared.isInvoke
+import patches.gboard.shared.isMethodReference
+import patches.gboard.shared.isOpcode
+import patches.gboard.shared.isRegisterOperation
+import patches.gboard.shared.returnInstructionIndices
+import patches.gboard.shared.runtimeabi.RuntimeAbiCatalog
+import patches.gboard.shared.runtimeabi.RuntimeCallEmitter
+import patches.gboard.shared.runtimeabi.RuntimeCallId
+import patches.gboard.Constants.COMPATIBILITY_GBOARD
+
+internal val gboardManualIncognitoLifecyclePatch = bytecodePatch(
+    description = "Add a thin delegate to the input session lifecycle and incognito predicate.",
+) {
+    compatibleWith(COMPATIBILITY_GBOARD)
+    dependsOn(gboardPatchesExtensionCarrierPatch)
+
+    execute {
+        findMutableMethodOrThrow(GboardManualIncognitoTargets.onStartInput)
+            .applyManualIncognitoEntryDelegate(
+                RuntimeCallId.MANUAL_INCOGNITO_RUNTIME_ON_INPUT_STARTING,
+            )
+        findMutableMethodOrThrow(GboardManualIncognitoTargets.onStartInputView)
+            .applyManualIncognitoEntryDelegate(
+                RuntimeCallId.MANUAL_INCOGNITO_RUNTIME_ON_INPUT_VIEW_STARTING,
+            )
+        findMutableMethodOrThrow(GboardManualIncognitoTargets.onWindowHidden)
+            .applyVoidExitLifecycleDelegate(
+                RuntimeCallId.MANUAL_INCOGNITO_RUNTIME_ON_INPUT_WINDOW_HIDDEN,
+                "p0",
+            )
+        findMutableMethodOrThrow(GboardManualIncognitoTargets.incognitoPredicate)
+            .applyManualIncognitoBooleanReturnDelegate(
+                RuntimeCallId.MANUAL_INCOGNITO_RUNTIME_APPLY_INCOGNITO_PREDICATE,
+            )
+    }
+}
+
+internal fun MutableMethod.applyManualIncognitoEntryDelegate(call: RuntimeCallId) {
+    val abi = RuntimeAbiCatalog.abi(call)
+    val instructions = implementation?.instructions
+        ?: error("No instructions in $definingClass->$name")
+    val existing = instructions.count { it.isMethodReference(abi.reference) }
+    if (existing > 0) {
+        check(existing == 1 && instructions[0].isMethodReference(abi.reference)) {
+            "Malformed manual incognito entry delegate in $definingClass->$name"
+        }
+        return
+    }
+    addInstructions(0, RuntimeCallEmitter.invoke(call, "p0 .. p1"))
+}
+
+internal fun MutableMethod.applyManualIncognitoBooleanReturnDelegate(call: RuntimeCallId) {
+    val abi = RuntimeAbiCatalog.abi(call)
+    val instructions = implementation?.instructions
+        ?: error("No instructions in $definingClass->$name")
+    val returns = returnInstructionIndices().filter { instructions[it].isOpcode("RETURN") }
+    check(returns.isNotEmpty()) { "No boolean RETURN in $definingClass->$name" }
+    val existing = instructions.count { it.isMethodReference(abi.reference) }
+    if (existing > 0) {
+        check(existing == returns.size && returns.all { returnIndex ->
+            val register = (instructions[returnIndex] as OneRegisterInstruction).registerA
+            instructions.getOrNull(returnIndex - 2)
+                ?.isInvoke("INVOKE_STATIC", abi.reference, register) == true &&
+                instructions.getOrNull(returnIndex - 1)
+                    ?.isRegisterOperation("MOVE_RESULT", register) == true
+        }) { "Malformed manual incognito boolean delegate in $definingClass->$name" }
+        return
+    }
+    returns.asReversed().forEach { returnIndex ->
+        val register = (instructions[returnIndex] as OneRegisterInstruction).registerA
+        addInstructions(
+            returnIndex,
+            """
+                ${RuntimeCallEmitter.invoke(call, "v$register")}
+
+                move-result v$register
+            """.trimIndent(),
+        )
+    }
+}

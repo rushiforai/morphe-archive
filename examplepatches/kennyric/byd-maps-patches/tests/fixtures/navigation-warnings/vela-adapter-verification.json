@@ -1,0 +1,291 @@
+{
+  "format": 1,
+  "target_package": "app.vela",
+  "target_version": "0.5.2621",
+  "target_version_code": 46210,
+  "original_sha256": "f168bc730568b98ee8132131658d9220ef5be3557af41fd373bdaf104c31b20f",
+  "candidate_sha256": "016d7fed122219024a75678de85a6fa468c2ad4fcccf6e87942645b805be1e6b",
+  "mpp_sha256": "2a24c047b6730b7afd4cd2cba21c1224c2e9d1b341d317d6aa058861688a6cb5",
+  "probe_sha256": "3f59ec22fdcc9f95e51cb9bb8c73450d1e80cf1577c32039d0e92f73428eac2f",
+  "raw_result_sha256": "f0eb01937d819cb2b44c2ce58beb602f81f9d46d9e61db04d058d2b0ceb264c9",
+  "device": {
+    "serial": "emulator-5582",
+    "avd": "native_warnings_vela_api34",
+    "android_sdk": 34,
+    "abi": "arm64-v8a",
+    "target_uid": 10192,
+    "fresh_data_image": true
+  },
+  "native_model": {
+    "voice_id": "en_US-hfc_female-medium",
+    "archive_sha256": "3fffdceb0c65bd9415a085d09c3cb88cc82f9d74a6ca453f8ce7fc5eaee81ff8",
+    "onnx_sha256": "a8a935660c1d719e170312da2833f1e651ee29149b55087f89be7b44c3dfba52",
+    "source": "https://github.com/k2-fsa/sherpa-onnx/releases/download/tts-models/vits-piper-en_US-hfc_female-medium.tar.bz2",
+    "genuine_native_model": true
+  },
+  "probe_status": "passed",
+  "case_count": 14,
+  "cases": [
+    {
+      "name": "system_baseline",
+      "accepted": true,
+      "started": true,
+      "terminal": "COMPLETED",
+      "quiescent": true,
+      "cancel_at_ms": 0,
+      "maximum_observed_head": 0,
+      "callbacks": [
+        {
+          "at_ms": 2704135,
+          "state": "STARTED",
+          "quiescent": false
+        },
+        {
+          "at_ms": 2709069,
+          "state": "COMPLETED",
+          "quiescent": true
+        }
+      ]
+    },
+    {
+      "name": "system_cancel_pending",
+      "accepted": true,
+      "started": false,
+      "terminal": "CANCELLED",
+      "quiescent": true,
+      "cancel_at_ms": 2709158,
+      "maximum_observed_head": 0,
+      "callbacks": [
+        {
+          "at_ms": 2709158,
+          "state": "UNCERTAIN",
+          "quiescent": false
+        },
+        {
+          "at_ms": 2709158,
+          "state": "CANCELLED",
+          "quiescent": true
+        }
+      ]
+    },
+    {
+      "name": "system_cancel_active",
+      "accepted": true,
+      "started": true,
+      "terminal": "CANCELLED",
+      "quiescent": true,
+      "cancel_at_ms": 2710364,
+      "maximum_observed_head": 0,
+      "callbacks": [
+        {
+          "at_ms": 2710361,
+          "state": "STARTED",
+          "quiescent": false
+        },
+        {
+          "at_ms": 2710364,
+          "state": "UNCERTAIN",
+          "quiescent": false
+        },
+        {
+          "at_ms": 2710367,
+          "state": "CANCELLED",
+          "quiescent": true
+        }
+      ]
+    },
+    {
+      "name": "system_regenerate_current_step",
+      "synthetic_route": true,
+      "original_nav_session_used": true,
+      "fresh_fix_only_native_session_call": true,
+      "regenerated_text": "In 110 meters, Turn left onto Synthetic Left Road",
+      "native_tts_id": "vela--757298345",
+      "step_index": 1,
+      "travelled_m": 222.38985328911747,
+      "held_text_started": false
+    },
+    {
+      "name": "system_regenerate_after_passage",
+      "synthetic_route": true,
+      "original_nav_session_used": true,
+      "fresh_fix_only_native_session_call": true,
+      "regenerated_text": "In 110 meters, Turn right onto Synthetic Right Road",
+      "native_tts_id": "vela-1590748551",
+      "step_index": 2,
+      "travelled_m": 555.9746332227937,
+      "held_text_started": false
+    },
+    {
+      "name": "neural_baseline",
+      "accepted": true,
+      "started": true,
+      "terminal": "COMPLETED",
+      "quiescent": true,
+      "cancel_at_ms": 0,
+      "maximum_observed_head": 94462,
+      "callbacks": [
+        {
+          "at_ms": 2720594,
+          "state": "STARTED",
+          "quiescent": false
+        },
+        {
+          "at_ms": 2724607,
+          "state": "COMPLETED",
+          "quiescent": true
+        }
+      ]
+    },
+    {
+      "name": "neural_cancel_pending",
+      "accepted": true,
+      "started": false,
+      "terminal": "CANCELLED",
+      "quiescent": true,
+      "cancel_at_ms": 2724609,
+      "maximum_observed_head": 0,
+      "callbacks": [
+        {
+          "at_ms": 2724609,
+          "state": "CANCELLED",
+          "quiescent": true
+        }
+      ]
+    },
+    {
+      "name": "neural_cancel_active",
+      "accepted": true,
+      "started": true,
+      "terminal": "CANCELLED",
+      "quiescent": true,
+      "cancel_at_ms": 2726289,
+      "maximum_observed_head": 6997,
+      "callbacks": [
+        {
+          "at_ms": 2726280,
+          "state": "STARTED",
+          "quiescent": false
+        },
+        {
+          "at_ms": 2726289,
+          "state": "CANCELLED",
+          "quiescent": true
+        }
+      ]
+    },
+    {
+      "name": "tone_without_tts",
+      "system_engine_absent": true,
+      "neural_engine_absent": true,
+      "speech_initialized": false,
+      "tone_ready": true
+    },
+    {
+      "name": "tone_baseline",
+      "accepted": true,
+      "started": true,
+      "terminal": "COMPLETED",
+      "quiescent": true,
+      "cancel_at_ms": 0,
+      "maximum_observed_head": 5511,
+      "callbacks": [
+        {
+          "at_ms": 2726326,
+          "state": "STARTED",
+          "quiescent": false
+        },
+        {
+          "at_ms": 2726582,
+          "state": "COMPLETED",
+          "quiescent": true
+        }
+      ]
+    },
+    {
+      "name": "tone_cancel_pending",
+      "accepted": true,
+      "started": false,
+      "terminal": "CANCELLED",
+      "quiescent": true,
+      "cancel_at_ms": 2726592,
+      "maximum_observed_head": 0,
+      "callbacks": [
+        {
+          "at_ms": 2726592,
+          "state": "CANCELLED",
+          "quiescent": true
+        }
+      ]
+    },
+    {
+      "name": "tone_cancel_active",
+      "accepted": true,
+      "started": true,
+      "terminal": "CANCELLED",
+      "quiescent": true,
+      "cancel_at_ms": 2727416,
+      "maximum_observed_head": 499,
+      "callbacks": [
+        {
+          "at_ms": 2727412,
+          "state": "STARTED",
+          "quiescent": false
+        },
+        {
+          "at_ms": 2727416,
+          "state": "CANCELLED",
+          "quiescent": true
+        }
+      ]
+    },
+    {
+      "name": "tone_native_mute_caps",
+      "alerts_only_voice_cap": "TONE",
+      "fully_muted_cap": "SILENT",
+      "fully_muted_rejected": true,
+      "fully_muted_started": false,
+      "voice_on_cap": "VOICE"
+    },
+    {
+      "name": "tone_focus_balance",
+      "native_count": 0,
+      "native_focus_held": false,
+      "speech_engine_still_absent": true
+    }
+  ],
+  "diagnostic_observer": {
+    "hidden_api_policy_during": "1",
+    "hidden_api_policy_before": "null",
+    "hidden_api_policy_restored": "null",
+    "same_original_vy4_forwarded": true,
+    "product_code_changed_for_observer": false
+  },
+  "runtime_defects_found_and_fixed": [
+    {
+      "name": "engine_switch_lost_observed_focus_identity",
+      "failing_candidate_sha256": "d5563068496d3ef26c2a372346fdd8e1bc06ddc7993b644ce3627d0db357e8f7",
+      "symptom": "System/regeneration passed then selected neural baseline returned NOT_STARTED while the real native focus request remained granted",
+      "fix": "Separate engine-change generation invalidation from focus-counter reset; restore only the same previously observed granted request after original engine selection returns"
+    },
+    {
+      "name": "static_tone_before_initial_data",
+      "failing_candidate_sha256": "c8a06085969e30f37913ee69851ed075bcdc18533b4c77c3a01815093edae105",
+      "symptom": "MODE_STATIC began STATE_NO_STATIC_DATA; pre-write INITIALIZED check rejected real tone",
+      "fix": "Accept legitimate pre-write state, require complete write and post-write INITIALIZED before play"
+    }
+  ],
+  "host_validation": {
+    "vela_tests": 63,
+    "failures": 0,
+    "original_vela_guard_tests": 11,
+    "guard_failures": 0
+  },
+  "scope": "Actual native system/neural/tone output APIs, cancellation, mode caps, native focus and current-route regeneration with synthetic input",
+  "not_proven": [
+    "FM-to-Vela integrated transport/scheduler/UI is recorded separately",
+    "physical phone/head-unit routing",
+    "acoustic output or human hearing",
+    "natural detector accuracy"
+  ]
+}

@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- iOS "123" (NORMAL) and "#+=" (SUB_CATEGORY_1) pages for the English symbol keyboard.
+     The softkeys are the ones Gboard itself maps for English, only placed differently.
+     The number row of the first page is left as it is. -->
+<framework>
+    <key_mapping>
+        <!-- - / : ; ( ) $ & @ " -->
+        <mapping key_id="{{0x7f0b14f0}}" view_id="@id/C01" />
+        <mapping key_id="{{0x7f0b240e}}" view_id="@id/C02" />
+        <mapping key_id="{{0x7f0b0ccc}}" view_id="@id/C03" />
+        <mapping key_id="{{0x7f0b239f}}" view_id="@id/C04" />
+        <mapping key_id="{{0x7f0b1a2f}}" view_id="@id/C05" />
+        <mapping key_id="{{0x7f0b234b}}" view_id="@id/C06" />
+        <mapping key_id="{{0x7f0b0fce}}" view_id="@id/C07" />
+        <mapping key_id="{{0x7f0b088f}}" view_id="@id/C08" />
+        <mapping key_id="{{0x7f0b0cf9}}" view_id="@id/C09" />
+        <mapping key_id="{{0x7f0b2308}}" view_id="@id/C10" />
+        <!-- . , ? ! ' -->
+        <mapping key_id="{{0x7f0b22de}}" view_id="@id/B01" />
+        <mapping key_id="{{0x7f0b0cf4}}" view_id="@id/B02" />
+        <mapping key_id="{{0x7f0b2305}}" view_id="@id/B03" />
+        <mapping key_id="{{0x7f0b103a}}" view_id="@id/B04" />
+        <mapping key_id="{{0x7f0b0892}}" view_id="@id/B05" />
+        <!-- bottom left: emoji key, or the globe key when several languages are enabled -->
+        <mapping key_id="{{0x7f0b246f}}" view_id="@id/A02" />
+    </key_mapping>
+    <key_mapping state="SHOW_LANGUAGE_SWITCH_KEY">
+        <mapping key_id="{{0x7f0b247d}}" view_id="@id/A02" />
+    </key_mapping>
+    <key_mapping state="SUB_CATEGORY_1">
+        <!-- [ ] { } # % ^ * + = -->
+        <mapping key_id="{{0x7f0b1a33}}" view_id="@id/D01" />
+        <mapping key_id="{{0x7f0b2350}}" view_id="@id/D02" />
+        <mapping key_id="{{0x7f0b1a25}}" view_id="@id/D03" />
+        <mapping key_id="{{0x7f0b2342}}" view_id="@id/D04" />
+        <mapping key_id="{{0x7f0b21b8}}" view_id="@id/D05" />
+        <mapping key_id="{{0x7f0b22dc}}" view_id="@id/D06" />
+        <mapping key_id="{{0x7f0b0cc1}}" view_id="@id/D07" />
+        <mapping key_id="{{0x7f0b098a}}" view_id="@id/D08" />
+        <mapping key_id="{{0x7f0b22fd}}" view_id="@id/D09" />
+        <mapping key_id="{{0x7f0b0fee}}" view_id="@id/D10" />
+        <!-- _ \ | ~ < > € £ ¥ • -->
+        <mapping key_id="{{0x7f0b1f98}}" view_id="@id/C01" />
+        <mapping key_id="{{0x7f0b232f}}" view_id="@id/C02" />
+        <mapping key_id="{{0x7f0b287e}}" view_id="@id/C03" />
+        <mapping key_id="{{0x7f0b2837}}" view_id="@id/C04" />
+        <mapping key_id="{{0x7f0b0cb9}}" view_id="@id/C05" />
+        <mapping key_id="{{0x7f0b0cb8}}" view_id="@id/C06" />
+        <mapping key_id="{{0x7f0b1038}}" view_id="@id/C07" />
+        <mapping key_id="{{0x7f0b2302}}" view_id="@id/C08" />
+        <mapping key_id="{{0x7f0b2887}}" view_id="@id/C09" />
+        <mapping key_id="{{0x7f0b0b34}}" view_id="@id/C10" />
+        <!-- . , ? ! ' -->
+        <mapping key_id="{{0x7f0b22de}}" view_id="@id/B01" />
+        <mapping key_id="{{0x7f0b0cf4}}" view_id="@id/B02" />
+        <mapping key_id="{{0x7f0b2305}}" view_id="@id/B03" />
+        <mapping key_id="{{0x7f0b103a}}" view_id="@id/B04" />
+        <mapping key_id="{{0x7f0b0892}}" view_id="@id/B05" />
+        <mapping key_id="{{0x7f0b246f}}" view_id="@id/A02" />
+    </key_mapping>
+    <key_mapping state="SUB_CATEGORY_1+SHOW_LANGUAGE_SWITCH_KEY">
+        <mapping key_id="{{0x7f0b247d}}" view_id="@id/A02" />
+    </key_mapping>
+</framework>

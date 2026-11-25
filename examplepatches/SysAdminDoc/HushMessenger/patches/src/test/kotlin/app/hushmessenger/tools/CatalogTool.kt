@@ -71,7 +71,7 @@ object CatalogTool {
 
     /** Visible patches that are neither a settings control nor one of the always-on fixes. */
     val NON_CONTROL_PATCHES = setOf("Install beside Meta apps", "Keep chat pop-ups", "Fix videos in chat heads", "Open settings from menu", "Restore screens on re-signed builds",
-        "Spoof package version", "Clone install under another package name", "Custom new-message sound", "Custom launcher icon",
+        "Spoof package version", "Clone install under another package name", "Custom new-message sound", "Custom chat sounds", "Custom launcher icon",
         "GmsCore support", "Keep a renamed copy working")
 
     fun catalog(version: String, patches: Set<Patch>): JsonObject = JsonObject(linkedMapOf(

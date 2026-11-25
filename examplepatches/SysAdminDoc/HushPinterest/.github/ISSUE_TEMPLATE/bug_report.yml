@@ -70,7 +70,10 @@ body:
       multiple: true
       options:
         - AMOLED black
+        - Best video quality
+        - Board order when saving
         - Change package name
+        - Custom font
         - Custom save sound
         - Custom splash logo
         - Customize board tabs
@@ -83,6 +86,7 @@ body:
         - Expand board list
         - Fix push notifications
         - Fold related pins
+        - Full-size profile photos
         - GmsCore support
         - Hide AI-labeled pins
         - Hide ads
@@ -108,16 +112,20 @@ body:
         - Hide visual search thumbnails
         - HushPinterest settings
         - Keep Home feed
+        - Like and comment history
         - Long-press download
         - No screenshot share menu
         - Open links in your browser
         - Original-quality images
+        - Pin video playback
+        - Pinch to zoom only
         - Quiet email reminders
         - Remove ad tracking permissions
         - Show image size
         - Show posted date
         - Spoof signature for Google sign-in
         - Strip link tracking
+        - Swipe down to close pins
         - System share sheet
     validations:
       required: true

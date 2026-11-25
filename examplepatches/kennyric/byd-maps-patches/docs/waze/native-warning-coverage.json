@@ -1,0 +1,1658 @@
+{
+  "schema_version": 1,
+  "profile": "waze-native-warnings-v1",
+  "package": "com.waze",
+  "version": "5.26.90.901",
+  "version_code": 1030746,
+  "source_apkm_sha256": "62418bf0898ea1cc6c6926a136bb08bedcfcbff31de3bbc357afc6ef579db1d3",
+  "source_base_sha256": "b1504af4bcbe50325195774a891f50f7189cdef7ad38ee67a2f5b7af00f29e4d",
+  "authority": "Normative product capture and receiving-semantics contract. Binding support is separate from live controller availability and runtime acceptance.",
+  "runtime_acceptance_required": true,
+  "required_semantic_capabilities": [
+    "waze/output/receiver_choices_v1",
+    "waze/semantic/enforcement_zone_v1",
+    "waze/semantic/roadside_safety_crash_history_v1",
+    "waze/relevance/fresh_receiver_route_v1"
+  ],
+  "native_types": [
+    {
+      "name": "CHITCHAT",
+      "value": 0
+    },
+    {
+      "name": "POLICE",
+      "value": 1
+    },
+    {
+      "name": "ACCIDENT",
+      "value": 2
+    },
+    {
+      "name": "TRAFFIC_JAM",
+      "value": 3
+    },
+    {
+      "name": "TRAFFIC_INFO",
+      "value": 4
+    },
+    {
+      "name": "HAZARD",
+      "value": 5
+    },
+    {
+      "name": "OTHER",
+      "value": 6
+    },
+    {
+      "name": "CONSTRUCTION",
+      "value": 7
+    },
+    {
+      "name": "PARKING",
+      "value": 8
+    },
+    {
+      "name": "DYNAMIC",
+      "value": 9
+    },
+    {
+      "name": "CAMERA",
+      "value": 10
+    },
+    {
+      "name": "PARKED",
+      "value": 11
+    },
+    {
+      "name": "CLOSURE",
+      "value": 12
+    },
+    {
+      "name": "SOS",
+      "value": 15
+    },
+    {
+      "name": "REROUTE",
+      "value": 16
+    },
+    {
+      "name": "GUARDIAN",
+      "value": 17
+    },
+    {
+      "name": "ECO",
+      "value": 18
+    },
+    {
+      "name": "BLOCKED_LANE",
+      "value": 19
+    },
+    {
+      "name": "BAD_WEATHER",
+      "value": 20
+    },
+    {
+      "name": "PERMANENT_HAZARD",
+      "value": 21
+    },
+    {
+      "name": "SPEED_LIMIT_DECREASE",
+      "value": 23
+    },
+    {
+      "name": "PERSONAL_SAFETY",
+      "value": 24
+    },
+    {
+      "name": "DANGER_ZONE",
+      "value": 25
+    },
+    {
+      "name": "ANIMAL",
+      "value": 26
+    },
+    {
+      "name": "SUDDEN_SLOWDOWN",
+      "value": 32
+    },
+    {
+      "name": "UNRECOGNIZED",
+      "value": -1
+    }
+  ],
+  "native_ui_subtypes": [
+    {
+      "type": "UNSPECIFIED",
+      "value": -1,
+      "name": "UNSPECIFIED"
+    },
+    {
+      "type": "HAZARD",
+      "value": 0,
+      "name": "HAZARD_TYPE_ON_ROAD"
+    },
+    {
+      "type": "HAZARD",
+      "value": 1,
+      "name": "HAZARD_TYPE_ON_SHOULDER"
+    },
+    {
+      "type": "HAZARD",
+      "value": 2,
+      "name": "HAZARD_TYPE_WEATHER"
+    },
+    {
+      "type": "HAZARD",
+      "value": 3,
+      "name": "HAZARD_TYPE_ON_ROAD_OBJECT"
+    },
+    {
+      "type": "HAZARD",
+      "value": 4,
+      "name": "HAZARD_TYPE_ON_ROAD_POT_HOLE"
+    },
+    {
+      "type": "HAZARD",
+      "value": 5,
+      "name": "HAZARD_TYPE_ON_ROAD_ROAD_KILL"
+    },
+    {
+      "type": "HAZARD",
+      "value": 6,
+      "name": "HAZARD_TYPE_ON_SHOULDER_CAR_STOPPED"
+    },
+    {
+      "type": "HAZARD",
+      "value": 7,
+      "name": "HAZARD_TYPE_ON_SHOULDER_ANIMALS"
+    },
+    {
+      "type": "HAZARD",
+      "value": 8,
+      "name": "HAZARD_TYPE_ON_SHOULDER_MISSING_SIGN"
+    },
+    {
+      "type": "HAZARD",
+      "value": 18,
+      "name": "HAZARD_TYPE_WEATHER_FREEZING_RAIN"
+    },
+    {
+      "type": "HAZARD",
+      "value": 19,
+      "name": "HAZARD_TYPE_ON_ROAD_LANE_CLOSED"
+    },
+    {
+      "type": "HAZARD",
+      "value": 20,
+      "name": "HAZARD_TYPE_ON_ROAD_OIL"
+    },
+    {
+      "type": "HAZARD",
+      "value": 22,
+      "name": "HAZARD_TYPE_ON_ROAD_CONSTRUCTION"
+    },
+    {
+      "type": "HAZARD",
+      "value": 23,
+      "name": "HAZARD_TYPE_ON_ROAD_CAR_STOPPED"
+    },
+    {
+      "type": "HAZARD",
+      "value": 24,
+      "name": "HAZARD_TYPE_ON_ROAD_BROKEN_TRAFFIC_LIGHT"
+    },
+    {
+      "type": "HAZARD",
+      "value": 25,
+      "name": "HAZARD_TYPE_DEFAULT"
+    },
+    {
+      "type": "HAZARD",
+      "value": 28,
+      "name": "HAZARD_TYPE_EMERGENCY_VEHICLE"
+    },
+    {
+      "type": "BAD_WEATHER",
+      "value": 9,
+      "name": "BAD_WEATHER_TYPE_FOG"
+    },
+    {
+      "type": "BAD_WEATHER",
+      "value": 10,
+      "name": "BAD_WEATHER_TYPE_HAIL"
+    },
+    {
+      "type": "BAD_WEATHER",
+      "value": 11,
+      "name": "BAD_WEATHER_TYPE_HEAVY_RAIN"
+    },
+    {
+      "type": "BAD_WEATHER",
+      "value": 12,
+      "name": "BAD_WEATHER_TYPE_HEAVY_SNOW"
+    },
+    {
+      "type": "BAD_WEATHER",
+      "value": 13,
+      "name": "BAD_WEATHER_TYPE_FLOOD"
+    },
+    {
+      "type": "BAD_WEATHER",
+      "value": 14,
+      "name": "BAD_WEATHER_TYPE_MONSOON"
+    },
+    {
+      "type": "BAD_WEATHER",
+      "value": 15,
+      "name": "BAD_WEATHER_TYPE_TORNADO"
+    },
+    {
+      "type": "BAD_WEATHER",
+      "value": 16,
+      "name": "BAD_WEATHER_TYPE_HEAT_WAVE"
+    },
+    {
+      "type": "BAD_WEATHER",
+      "value": 17,
+      "name": "BAD_WEATHER_TYPE_HURRICANE"
+    },
+    {
+      "type": "BAD_WEATHER",
+      "value": 21,
+      "name": "BAD_WEATHER_TYPE_ON_ROAD_ICE"
+    },
+    {
+      "type": "BAD_WEATHER",
+      "value": 26,
+      "name": "BAD_WEATHER_TYPE_DEFAULT"
+    },
+    {
+      "type": "BAD_WEATHER",
+      "value": 27,
+      "name": "BAD_WEATHER_TYPE_SLIPPERY_ROAD"
+    },
+    {
+      "type": "BLOCKED_LANE",
+      "value": 0,
+      "name": "BLOCKED_LANE_TYPE_DEFAULT"
+    },
+    {
+      "type": "BLOCKED_LANE",
+      "value": 1,
+      "name": "BLOCKED_LANE_TYPE_LEFT"
+    },
+    {
+      "type": "BLOCKED_LANE",
+      "value": 2,
+      "name": "BLOCKED_LANE_TYPE_CENTER"
+    },
+    {
+      "type": "BLOCKED_LANE",
+      "value": 3,
+      "name": "BLOCKED_LANE_TYPE_RIGHT"
+    },
+    {
+      "type": "PERMANENT_HAZARD",
+      "value": 0,
+      "name": "PERMANENT_HAZARD_TYPE_SPEED_BUMP"
+    },
+    {
+      "type": "PERMANENT_HAZARD",
+      "value": 1,
+      "name": "PERMANENT_HAZARD_TYPE_TOPES"
+    },
+    {
+      "type": "PERMANENT_HAZARD",
+      "value": 2,
+      "name": "PERMANENT_HAZARD_TYPE_TOLL_BOOTH"
+    },
+    {
+      "type": "PERMANENT_HAZARD",
+      "value": 3,
+      "name": "PERMANENT_HAZARD_TYPE_DANGEROUS_CURVE"
+    },
+    {
+      "type": "PERMANENT_HAZARD",
+      "value": 4,
+      "name": "PERMANENT_HAZARD_TYPE_FORK"
+    },
+    {
+      "type": "PERMANENT_HAZARD",
+      "value": 5,
+      "name": "PERMANENT_HAZARD_TYPE_LANES_MERGING"
+    },
+    {
+      "type": "PERMANENT_HAZARD",
+      "value": 6,
+      "name": "PERMANENT_HAZARD_TYPE_INTERSECTION"
+    },
+    {
+      "type": "PERMANENT_HAZARD",
+      "value": 7,
+      "name": "PERMANENT_HAZARD_TYPE_SCHOOL_ZONE"
+    },
+    {
+      "type": "PERMANENT_HAZARD",
+      "value": 8,
+      "name": "PERMANENT_HAZARD_TYPE_LEFT_LANE_ENDING"
+    },
+    {
+      "type": "PERMANENT_HAZARD",
+      "value": 9,
+      "name": "PERMANENT_HAZARD_TYPE_RIGHT_LANE_ENDING"
+    },
+    {
+      "type": "PERMANENT_HAZARD",
+      "value": 10,
+      "name": "PERMANENT_HAZARD_TYPE_RAISED_CROSSWALK"
+    },
+    {
+      "type": "PERMANENT_HAZARD",
+      "value": 11,
+      "name": "PERMANENT_HAZARD_TYPE_HIGHWAY_CROSSWALK"
+    },
+    {
+      "type": "PERMANENT_HAZARD",
+      "value": 12,
+      "name": "PERMANENT_HAZARD_TYPE_LEFT_SHOULDER_ENDING"
+    },
+    {
+      "type": "PERMANENT_HAZARD",
+      "value": 13,
+      "name": "PERMANENT_HAZARD_TYPE_RIGHT_SHOULDER_ENDING"
+    },
+    {
+      "type": "PERMANENT_HAZARD",
+      "value": 14,
+      "name": "PERMANENT_HAZARD_TYPE_BOTH_SHOULDER_ENDING"
+    },
+    {
+      "type": "PERMANENT_HAZARD",
+      "value": 15,
+      "name": "PERMANENT_HAZARD_TYPE_NARROW_BRIDGE"
+    },
+    {
+      "type": "SPEED_LIMIT_DECREASE",
+      "value": 1,
+      "name": "SPEED_LIMIT_DECREASE_TYPE_DEFAULT"
+    },
+    {
+      "type": "PERSONAL_SAFETY",
+      "value": 1,
+      "name": "PERSONAL_SAFETY_TYPE_DEFAULT"
+    },
+    {
+      "type": "CLOSURE",
+      "value": 0,
+      "name": "CLOSURE_TYPE_HAZARD"
+    },
+    {
+      "type": "CLOSURE",
+      "value": 1,
+      "name": "CLOSURE_TYPE_CONSTRUCTION"
+    },
+    {
+      "type": "CLOSURE",
+      "value": 2,
+      "name": "CLOSURE_TYPE_EVENT"
+    },
+    {
+      "type": "CLOSURE",
+      "value": 3,
+      "name": "CLOSURE_TYPE_DEFAULT"
+    },
+    {
+      "type": "SOS",
+      "value": 4,
+      "name": "SOS_TYPE_GENERAL_ASSISTANCE"
+    },
+    {
+      "type": "SOS",
+      "value": 1,
+      "name": "SOS_TYPE_EMPTY_TANK"
+    },
+    {
+      "type": "SOS",
+      "value": 0,
+      "name": "SOS_TYPE_FLAT_TIRE"
+    },
+    {
+      "type": "SOS",
+      "value": 5,
+      "name": "SOS_TYPE_BATTERY_ISSUE"
+    },
+    {
+      "type": "SOS",
+      "value": 2,
+      "name": "SOS_TYPE_MEDICAL_ISSUE"
+    },
+    {
+      "type": "GUARDIAN",
+      "value": 0,
+      "name": "GUARDIAN_SHORT"
+    },
+    {
+      "type": "GUARDIAN",
+      "value": 1,
+      "name": "GUARDIAN_LONG"
+    },
+    {
+      "type": "TRAFFIC_JAM",
+      "value": 0,
+      "name": "JAM_TYPE_MODERATE_TRAFFIC"
+    },
+    {
+      "type": "TRAFFIC_JAM",
+      "value": 1,
+      "name": "JAM_TYPE_HEAVY_TRAFFIC"
+    },
+    {
+      "type": "TRAFFIC_JAM",
+      "value": 2,
+      "name": "JAM_TYPE_STAND_STILL_TRAFFIC"
+    },
+    {
+      "type": "TRAFFIC_JAM",
+      "value": 3,
+      "name": "JAM_TYPE_LIGHT_TRAFFIC"
+    },
+    {
+      "type": "TRAFFIC_JAM",
+      "value": 5,
+      "name": "JAM_TYPE_CLOSED_ROAD"
+    },
+    {
+      "type": "TRAFFIC_JAM",
+      "value": 6,
+      "name": "JAM_TYPE_DEFAULT"
+    },
+    {
+      "type": "CAMERA",
+      "value": -1,
+      "name": "CAMERA_TYPE_UNKNOWN"
+    },
+    {
+      "type": "CAMERA",
+      "value": 0,
+      "name": "CAMERA_TYPE_SPEED"
+    },
+    {
+      "type": "CAMERA",
+      "value": 1,
+      "name": "CAMERA_TYPE_REDLIGHT"
+    },
+    {
+      "type": "CAMERA",
+      "value": 2,
+      "name": "CAMERA_TYPE_DUMMY"
+    },
+    {
+      "type": "CAMERA",
+      "value": 3,
+      "name": "CAMERA_TYPE_RAILROAD"
+    },
+    {
+      "type": "CAMERA",
+      "value": 4,
+      "name": "CAMERA_TYPE_HOV_LANE"
+    },
+    {
+      "type": "CAMERA",
+      "value": 5,
+      "name": "CAMERA_TYPE_HOV_LANE_BUS"
+    },
+    {
+      "type": "CAMERA",
+      "value": 6,
+      "name": "CAMERA_TYPE_HOV_LANE_CARPOOL"
+    },
+    {
+      "type": "CAMERA",
+      "value": 7,
+      "name": "CAMERA_TYPE_RED_LIGHT_AND_SPEED"
+    },
+    {
+      "type": "CAMERA",
+      "value": 8,
+      "name": "CAMERA_TYPE_ROAD_SAFETY_PHONE"
+    },
+    {
+      "type": "CAMERA",
+      "value": 9,
+      "name": "CAMERA_TYPE_ROAD_SAFETY_SEAT_BELT"
+    },
+    {
+      "type": "CAMERA",
+      "value": 10,
+      "name": "CAMERA_TYPE_ROAD_SAFETY_DISTANCE_BETWEEN_VEHICLES"
+    },
+    {
+      "type": "CAMERA",
+      "value": 11,
+      "name": "CAMERA_TYPE_ROAD_SAFETY_STOP_SIGN"
+    },
+    {
+      "type": "CAMERA",
+      "value": 12,
+      "name": "CAMERA_TYPE_ROAD_SAFETY_NOISE"
+    },
+    {
+      "type": "ACCIDENT",
+      "value": 0,
+      "name": "ACCIDENT_TYPE_MINOR"
+    },
+    {
+      "type": "ACCIDENT",
+      "value": 1,
+      "name": "ACCIDENT_TYPE_MAJOR"
+    },
+    {
+      "type": "ACCIDENT",
+      "value": 2,
+      "name": "ACCIDENT_TYPE_DEFAULT"
+    },
+    {
+      "type": "ACCIDENT",
+      "value": 3,
+      "name": "ACCIDENT_TYPE_PILE_UP"
+    },
+    {
+      "type": "POLICE",
+      "value": 0,
+      "name": "POLICE_TYPE_VISIBLE"
+    },
+    {
+      "type": "POLICE",
+      "value": 1,
+      "name": "POLICE_TYPE_HIDDEN"
+    },
+    {
+      "type": "POLICE",
+      "value": 2,
+      "name": "POLICE_TYPE_MOBILE_CAMERA"
+    },
+    {
+      "type": "MID_DRIVE_TOAST",
+      "value": 0,
+      "name": "MID_DRIVE_TOAST_TYPE_GENERAL"
+    },
+    {
+      "type": "MID_DRIVE_TOAST",
+      "value": 1,
+      "name": "MID_DRIVE_TOAST_TYPE_THANK_YOU"
+    },
+    {
+      "type": "OTHER",
+      "value": 0,
+      "name": "MISC_HEADLIGHTS_REMINDER"
+    },
+    {
+      "type": "ECO",
+      "value": 0,
+      "name": "ECO_TYPE_DEFAULT"
+    },
+    {
+      "type": "DANGER_ZONE",
+      "value": 0,
+      "name": "DANGER_ZONE_TYPE_NORMAL"
+    },
+    {
+      "type": "DANGER_ZONE",
+      "value": 1,
+      "name": "DANGER_ZONE_TYPE_ISRAEL"
+    }
+  ],
+  "policies": {
+    "announcement_authority": "correlated_valid_native_sound_request_or_selected_zone_phase",
+    "snapshots": "state_only",
+    "source_eligibility": [
+      "native_validity",
+      "native_warning_enablement",
+      "native_selection",
+      "familiar_grouped_experiment_silence",
+      "identity_correlation"
+    ],
+    "managed_output": "receiver_reviewed_categories_and_voice_tone_silent",
+    "local_waze_camera_sound_and_below_limit_settings": "apply_to_local_waze_playback_only",
+    "native_source_route": "never_started_by_this_integration",
+    "receiving_point_relevance": "fresh_and_replayed_directed_route_check; ambiguous_context_waits_within_original_deadline",
+    "nonspatial_warnings": "exempt_from_point_geometry_and_minimum_speed",
+    "native_priority": "preserved_as_metadata; card_preemption_is_not_speech_urgency",
+    "native_osm_equivalence": "only_exact_type_and_verified_directed_road_context; insufficient_context_remains_unresolved",
+    "native_zone_phase_authority": "Native valid selected zone entry/exit publication, independent of UI queue insertion or presentation acknowledgement; preserve original native callbacks and deduplicate selector/presentation observations.",
+    "expired_zone_queue_reconciliation": "Retire only tracked zone identities after real native exit/removal, on the main looper, while API-managed and without started source Activities or a live source car service. Recheck that the current native model is absent or LeftZone before removing its local queue ID. Temporary invalidity/silence is not retirement authority. Never invoke native presentation/start/timeout acknowledgements.",
+    "uuidless_native_sound_identity": "Preserve full provider/unique/UUID event identity. A native sound request omitting UUID may correlate only a unique current provider+unique match, or its synchronous captured zone controller; reject ambiguity and conflicting explicit UUIDs.",
+    "native_measurement_clocks": "A new native sound/zone decision creates fresh announcement authority, not a fresh distance, trigger, position or validation measurement. Preserve the latest real repository observation clock for cached descriptor fields, including decisions after display-state expiry."
+  },
+  "family_account": {
+    "enforcement": {
+      "types": [
+        "CAMERA",
+        "POLICE"
+      ],
+      "priority": 1,
+      "capture": "native_sound_request"
+    },
+    "road_danger": {
+      "types": [
+        "ACCIDENT",
+        "HAZARD",
+        "CONSTRUCTION",
+        "CLOSURE",
+        "BLOCKED_LANE",
+        "BAD_WEATHER",
+        "ANIMAL",
+        "SUDDEN_SLOWDOWN",
+        "PERSONAL_SAFETY"
+      ],
+      "priority": 1,
+      "capture": "native_sound_request"
+    },
+    "road_features": {
+      "types": [
+        "PERMANENT_HAZARD",
+        "SPEED_LIMIT_DECREASE",
+        "GUARDIAN"
+      ],
+      "priority": 2,
+      "capture": "native_sound_request"
+    },
+    "traffic_and_roadside": {
+      "types": [
+        "TRAFFIC_JAM",
+        "TRAFFIC_INFO",
+        "SOS"
+      ],
+      "priority": 2,
+      "capture": "native_sound_request"
+    },
+    "danger_zones": {
+      "types": [
+        "DANGER_ZONE"
+      ],
+      "capture": "native_selected_zone_phase",
+      "exit_priority": 2
+    },
+    "native_text_fallback": {
+      "types": [
+        "OTHER",
+        "DYNAMIC",
+        "UNRECOGNIZED"
+      ],
+      "priority": 2,
+      "missing_usable_text": "unsupported_no_invented_instruction"
+    },
+    "excluded_content": {
+      "types": [
+        "CHITCHAT",
+        "PARKING",
+        "PARKED",
+        "ECO",
+        "REROUTE"
+      ],
+      "reason": "social_personal_parking_or_separate_source_route_content"
+    },
+    "segments": {
+      "types": [
+        "TRAFFIC",
+        "SPEED_BUMP",
+        "DANGEROUS_CURVE",
+        "HOV_LANE",
+        "CARPOOL_LANE",
+        "BUS_LANE",
+        "ENFORCEMENT_ZONE",
+        "AVERAGE_SPEED_CAMERA",
+        "SCHOOL_ZONE"
+      ],
+      "capture": "state_only_correlate_without_duplicate_announcement",
+      "requires_source_route": [
+        "HOV_LANE",
+        "CARPOOL_LANE",
+        "BUS_LANE"
+      ]
+    },
+    "notifications": {
+      "features": [
+        "FEATURE_CYCLISTS",
+        "FEATURE_UNSPECIFIED",
+        "UNRECOGNIZED"
+      ],
+      "capture": "visual_state_only_add_remove",
+      "car_text": "native_variants_and_native_car_exclusion",
+      "unknown_feature": "unsupported_diagnostic_without_private_text_export"
+    },
+    "osm": {
+      "layers": [
+        "speedCameras",
+        "flockCameras"
+      ],
+      "capture": "patch_owned_ahead_decision_with_exact_kind_and_provenance"
+    }
+  },
+  "abstract_and_field_abi": [
+    "Lcom/waze/alerters/b/a;->a()Lcom/waze/alerters/b/b;",
+    "Lcom/waze/alerters/b/b;->a()Lkotlinx/coroutines/b/cc;",
+    "Lcom/waze/alerters/b/i;->b:Lcom/waze/alerters/a/ab;",
+    "Lcom/waze/alerters/a/i;->b(Lcom/waze/j;)V",
+    "Lcom/waze/alerters/a/i;->c(Lcom/waze/alerters/a/c;)Z"
+  ],
+  "exact_native_method_contracts": [
+    {
+      "method": "Lcom/waze/AlerterController$Alerter$Subtype;-><clinit>()V",
+      "registers": 16,
+      "instructions": 647,
+      "access_flags": 65544,
+      "instruction_sha256": "ba7f75bef887879b44eb93921e6e9995ab092999a44a60f8507406a8fb1539f7"
+    },
+    {
+      "method": "Lcom/waze/AlerterController$Alerter$Subtype;->getOfType()Lcom/waze/AlerterController$Alerter$Type;",
+      "registers": 1,
+      "instructions": 2,
+      "access_flags": 17,
+      "instruction_sha256": "aa6b4c9087fb50bbb5d5bce2ad1324cee69b6e50cf3ec39a212e5d10602411a8"
+    },
+    {
+      "method": "Lcom/waze/AlerterController$Alerter$Subtype;->getValueInAlerter()I",
+      "registers": 1,
+      "instructions": 2,
+      "access_flags": 17,
+      "instruction_sha256": "8ea575337bf10bd5ad185d7d932f55903e2600ef8aa6e6a440de6670603cc9f0"
+    },
+    {
+      "method": "Lcom/waze/AlerterController$Alerter$Subtype;->values()[Lcom/waze/AlerterController$Alerter$Subtype;",
+      "registers": 1,
+      "instructions": 5,
+      "access_flags": 9,
+      "instruction_sha256": "7339012049d62525783900e84ab621db436970b8a45b53de347c75486f2c188a"
+    },
+    {
+      "method": "Lcom/waze/AlerterController$Alerter$SubtypeTrait;-><clinit>()V",
+      "registers": 5,
+      "instructions": 35,
+      "access_flags": 65544,
+      "instruction_sha256": "df7781a92546941cc844187e0bfc27a9722090ca97463365c534e7f676dfcb77"
+    },
+    {
+      "method": "Lcom/waze/AlerterController$Alerter$SubtypeTrait;->getValueForStats()J",
+      "registers": 3,
+      "instructions": 2,
+      "access_flags": 17,
+      "instruction_sha256": "852c5c1cbfce0f5d7643523c52fcac4d66b0b964bf77139842a4ad1d2d96f703"
+    },
+    {
+      "method": "Lcom/waze/AlerterController$Alerter$SubtypeTrait;->values()[Lcom/waze/AlerterController$Alerter$SubtypeTrait;",
+      "registers": 1,
+      "instructions": 5,
+      "access_flags": 9,
+      "instruction_sha256": "571fc88042fb87df808dbc4116fe5aad6aeab6b769fc4b48093919dc2747b2ec"
+    },
+    {
+      "method": "Lcom/waze/AlerterController$Alerter$Type;-><clinit>()V",
+      "registers": 5,
+      "instructions": 194,
+      "access_flags": 65544,
+      "instruction_sha256": "955f9050bf90650e93e21187391854fddabbcef4fdbb850c39f60b7910e9abeb"
+    },
+    {
+      "method": "Lcom/waze/AlerterController$Alerter$Type;->getValueForStats()J",
+      "registers": 3,
+      "instructions": 2,
+      "access_flags": 17,
+      "instruction_sha256": "22c6e02983335d3d4ac3ddffd287e77334b52b41d0a75d8c26066ebf518d0b9a"
+    },
+    {
+      "method": "Lcom/waze/AlerterController$Alerter$Type;->values()[Lcom/waze/AlerterController$Alerter$Type;",
+      "registers": 1,
+      "instructions": 5,
+      "access_flags": 9,
+      "instruction_sha256": "5d0bd7d77d6107294b9af66b2ede5a16f5c32d1cea3159622c7a3437fd1f2175"
+    },
+    {
+      "method": "Lcom/waze/alerters/AlerterNativeManager;->b(Lcom/waze/jni/protos/alerters/NativeAlertRepositoryUpdate;)V",
+      "registers": 3,
+      "instructions": 5,
+      "access_flags": 17,
+      "instruction_sha256": "1849b5c2d741eab32397c82f6db8285f92918c4bbde1b30aa84adf62457f91e3"
+    },
+    {
+      "method": "Lcom/waze/alerters/AlerterNativeManagerBase;->h(Lcom/waze/jni/protos/alerters/AlerterId;)V",
+      "registers": 5,
+      "instructions": 9,
+      "access_flags": 17,
+      "instruction_sha256": "464d3e39678eaf382e22742bed99a2ffe1142b47eca9a91c6d26686312533e9b"
+    },
+    {
+      "method": "Lcom/waze/alerters/AlerterNativeManagerBase;->i()V",
+      "registers": 3,
+      "instructions": 7,
+      "access_flags": 17,
+      "instruction_sha256": "178421c88911e7cf64e10d6d377687d6d96f86d44d55745ea9565d5fc79c3f26"
+    },
+    {
+      "method": "Lcom/waze/alerters/a/ab;-><clinit>()V",
+      "registers": 4,
+      "instructions": 24,
+      "access_flags": 65544,
+      "instruction_sha256": "8c60c4c2a10c66ad5b622ed817e692425a2614862d17795e40de1c5f1f53c4b4"
+    },
+    {
+      "method": "Lcom/waze/alerters/a/m;->f(Lcom/waze/j;)V",
+      "registers": 3,
+      "instructions": 9,
+      "access_flags": 17,
+      "instruction_sha256": "d66bd53f13381f9ae7d39bec28204e6305032aabb4f47d3047900e818db4690c"
+    },
+    {
+      "method": "Lcom/waze/alerters/a/m;->g()V",
+      "registers": 1,
+      "instructions": 4,
+      "access_flags": 17,
+      "instruction_sha256": "878557add0e204867661b72031e94eb2865cb717d91c2a14a0edb5185a39139a"
+    },
+    {
+      "method": "Lcom/waze/alerters/b/i;->a()Lcom/waze/j;",
+      "registers": 1,
+      "instructions": 2,
+      "access_flags": 17,
+      "instruction_sha256": "5c519d98fdd84ea2d4e9bb257ddc830ae9357edbb9ac3a71725e9e65e7cbf1dc"
+    },
+    {
+      "method": "Lcom/waze/alerters/b/i;->k()V",
+      "registers": 3,
+      "instructions": 21,
+      "access_flags": 17,
+      "instruction_sha256": "c37190ff57b56d03c8473de178f8462ce59dd4e6e012e936981bde230a2b6b43"
+    },
+    {
+      "method": "Lcom/waze/insights_infra/InsightsInfraNativeManager;->a()Lkotlinx/coroutines/b/bm;",
+      "registers": 1,
+      "instructions": 2,
+      "access_flags": 17,
+      "instruction_sha256": "9e6b05aa204cc29be9c4da415ba7fafc444931241e67b1c8e9ab6d936587601b"
+    },
+    {
+      "method": "Lcom/waze/insights_infra/NotificationInsightsNativeManager;->a(Lcom/waze/jni/protos/insights_infra/Notification;)V",
+      "registers": 4,
+      "instructions": 8,
+      "access_flags": 17,
+      "instruction_sha256": "6737f765dbdc07a50733d5b7af0dbd50e2d4f6159c296318e1c000f4cdc179c3"
+    },
+    {
+      "method": "Lcom/waze/insights_infra/NotificationInsightsNativeManager;->b(Lcom/waze/jni/protos/insights_infra/NotificationId;)V",
+      "registers": 3,
+      "instructions": 5,
+      "access_flags": 17,
+      "instruction_sha256": "2093ab4b882860618af87e91fbd27f18d237264f21e4d97fad361886590d003e"
+    },
+    {
+      "method": "Lcom/waze/j;->a()Ljava/lang/String;",
+      "registers": 1,
+      "instructions": 2,
+      "access_flags": 17,
+      "instruction_sha256": "3724d44d7f2493886826e6db2c177db94cd58ce8e6834b280a81299043c9cc1d"
+    },
+    {
+      "method": "Lcom/waze/j;->b()Ljava/lang/String;",
+      "registers": 1,
+      "instructions": 2,
+      "access_flags": 17,
+      "instruction_sha256": "137556fa8439b9a166016dace2d438ac528d1f3975ff47fe42371c48848031e4"
+    },
+    {
+      "method": "Lcom/waze/j;->c()Ljava/lang/String;",
+      "registers": 1,
+      "instructions": 2,
+      "access_flags": 17,
+      "instruction_sha256": "f2035716ed99bf9152e5ab728fdc8021860c26a238d64bcc5fa2c3a3d142310f"
+    },
+    {
+      "method": "Lcom/waze/jni/protos/InsightPriority;->getPreemptive()Z",
+      "registers": 1,
+      "instructions": 2,
+      "access_flags": 1,
+      "instruction_sha256": "cc01b4f66bafe4902db7393c328571b603642f742a4cf779af36ff173d344bdd"
+    },
+    {
+      "method": "Lcom/waze/jni/protos/InsightPriority;->getValue()I",
+      "registers": 1,
+      "instructions": 2,
+      "access_flags": 1,
+      "instruction_sha256": "02765581fc834df33d01ec9450bb2ce68594e1dde57771fa050d2dbf4e26c2d1"
+    },
+    {
+      "method": "Lcom/waze/jni/protos/Position$IntPosition;->getLatitude()I",
+      "registers": 1,
+      "instructions": 2,
+      "access_flags": 1,
+      "instruction_sha256": "ab05497d5f5b72ed9120101fbe900dd0a05a52aadc2416503be4ee95d3ff9e4a"
+    },
+    {
+      "method": "Lcom/waze/jni/protos/Position$IntPosition;->getLongitude()I",
+      "registers": 1,
+      "instructions": 2,
+      "access_flags": 1,
+      "instruction_sha256": "7d7f2864bd5b5fbf53e27b990bb351e74e11f5f4ecee4257b8fac774bbda95b3"
+    },
+    {
+      "method": "Lcom/waze/jni/protos/alerters/AlertValidationResult;->getDistanceMeters()I",
+      "registers": 1,
+      "instructions": 2,
+      "access_flags": 1,
+      "instruction_sha256": "8436477723a30fde7f14c1e02bb90233ccc4a5a028165bccead1f8d69022a5b5"
+    },
+    {
+      "method": "Lcom/waze/jni/protos/alerters/AlertValidationResult;->getIsValid()Z",
+      "registers": 1,
+      "instructions": 2,
+      "access_flags": 1,
+      "instruction_sha256": "d017cb829d0283cd46e90597bc181f7718739f8013151de3a4b774973611e285"
+    },
+    {
+      "method": "Lcom/waze/jni/protos/alerters/AlertValidationResult;->getTimeToAlertSec()I",
+      "registers": 1,
+      "instructions": 2,
+      "access_flags": 1,
+      "instruction_sha256": "b90710b298af099c6135ba91839cd59f2e7614bd73fbc3265fa6520adfd1d2e2"
+    },
+    {
+      "method": "Lcom/waze/jni/protos/alerters/AlertValidationResult;->hasDistanceMeters()Z",
+      "registers": 2,
+      "instructions": 6,
+      "access_flags": 1,
+      "instruction_sha256": "5977fa5a78fda30a446c52efd03f7ee117632de2ad4a5fe488ec5c0285b1dfab"
+    },
+    {
+      "method": "Lcom/waze/jni/protos/alerters/AlertValidationResult;->hasTimeToAlertSec()Z",
+      "registers": 1,
+      "instructions": 7,
+      "access_flags": 1,
+      "instruction_sha256": "1e3458db927820f97783a4854c3ff728c894ed32c8c8f7d5954c7fa666047eef"
+    },
+    {
+      "method": "Lcom/waze/jni/protos/alerters/AlerterId;->getProviderId()Ljava/lang/String;",
+      "registers": 1,
+      "instructions": 2,
+      "access_flags": 1,
+      "instruction_sha256": "12f38b481afbd0a3230c3c0fe33560ee8013530a6ed048fa230840243574e93f"
+    },
+    {
+      "method": "Lcom/waze/jni/protos/alerters/AlerterId;->getUniqueId()Ljava/lang/String;",
+      "registers": 1,
+      "instructions": 2,
+      "access_flags": 1,
+      "instruction_sha256": "55e5092659daeaaf8beaf176f403c8fd5b70749f5c993d7c211df55cf890c5c4"
+    },
+    {
+      "method": "Lcom/waze/jni/protos/alerters/AlerterId;->getUuid()Ljava/lang/String;",
+      "registers": 1,
+      "instructions": 2,
+      "access_flags": 1,
+      "instruction_sha256": "beec238a746a83718650b37cf695092292928cc0e140451332c4b2c9ded726c7"
+    },
+    {
+      "method": "Lcom/waze/jni/protos/alerters/AlerterInfo;->getCloseDistanceSameAlertsCappingEnabled()Z",
+      "registers": 1,
+      "instructions": 2,
+      "access_flags": 1,
+      "instruction_sha256": "c701a55f33a80ad38bc0463350df4d787d67d9cf39816dca8ed033fec579d5ad"
+    },
+    {
+      "method": "Lcom/waze/jni/protos/alerters/AlerterInfo;->getDescription()Ljava/lang/String;",
+      "registers": 1,
+      "instructions": 2,
+      "access_flags": 1,
+      "instruction_sha256": "c1c23109b74395dff8bceeb5186ba851f695723cef45af11976121f9b75fb42e"
+    },
+    {
+      "method": "Lcom/waze/jni/protos/alerters/AlerterInfo;->getDistanceString()Ljava/lang/String;",
+      "registers": 1,
+      "instructions": 2,
+      "access_flags": 1,
+      "instruction_sha256": "eafaded9900e0153a2bef4e2418196b6917bce2c3aecccdd3cb8752bd334bc37"
+    },
+    {
+      "method": "Lcom/waze/jni/protos/alerters/AlerterInfo;->getIsApproachingWithValidation()Z",
+      "registers": 1,
+      "instructions": 2,
+      "access_flags": 1,
+      "instruction_sha256": "9e8cd185cdc4602eb581ef620bb2be43e53c297827986283c52b208a6756d441"
+    },
+    {
+      "method": "Lcom/waze/jni/protos/alerters/AlerterInfo;->getPosition()Lcom/waze/jni/protos/Position$IntPosition;",
+      "registers": 1,
+      "instructions": 5,
+      "access_flags": 1,
+      "instruction_sha256": "fce2b5e5d56c30af2bc76c6b8d216bbb82b55e711da60bc178a56987cea0c64b"
+    },
+    {
+      "method": "Lcom/waze/jni/protos/alerters/AlerterInfo;->getRequireDistanceInRange()Z",
+      "registers": 1,
+      "instructions": 2,
+      "access_flags": 1,
+      "instruction_sha256": "7fa35acaece6c5b3605bcd05477f01e6e7a298572e72656005e0a317dec94ebc"
+    },
+    {
+      "method": "Lcom/waze/jni/protos/alerters/AlerterInfo;->getSilentActivation()Lcom/waze/jni/protos/alerters/SilentActivation;",
+      "registers": 1,
+      "instructions": 6,
+      "access_flags": 1,
+      "instruction_sha256": "2ff505584b73ab61ec4df78eaab400bc3d20bff83c955f6ca21695bf7b27b7ac"
+    },
+    {
+      "method": "Lcom/waze/jni/protos/alerters/AlerterInfo;->getSubType()I",
+      "registers": 1,
+      "instructions": 2,
+      "access_flags": 1,
+      "instruction_sha256": "936b117b8a788eff7f08ea1408c0b8702e1d6665cfd9364520c718daf9164d6c"
+    },
+    {
+      "method": "Lcom/waze/jni/protos/alerters/AlerterInfo;->getSubtypeTrait()J",
+      "registers": 3,
+      "instructions": 2,
+      "access_flags": 1,
+      "instruction_sha256": "0209e040fc92f6d1a3153e65dd1a22356bc324363be14cf5524f339f162df0d6"
+    },
+    {
+      "method": "Lcom/waze/jni/protos/alerters/AlerterInfo;->getTitle()Ljava/lang/String;",
+      "registers": 1,
+      "instructions": 2,
+      "access_flags": 1,
+      "instruction_sha256": "0a38009d592b72e42eca24aab100f620399f24d635f52a19068ba75b57ad1bdd"
+    },
+    {
+      "method": "Lcom/waze/jni/protos/alerters/AlerterInfo;->getTitleWithDistance()Ljava/lang/String;",
+      "registers": 1,
+      "instructions": 2,
+      "access_flags": 1,
+      "instruction_sha256": "72ad266041ac527faecaa509556bf1f649c0d597a38e52e82f444d2a20235bb1"
+    },
+    {
+      "method": "Lcom/waze/jni/protos/alerters/AlerterInfo;->getType()Lcom/waze/jni/protos/alerters/AlerterType;",
+      "registers": 1,
+      "instructions": 6,
+      "access_flags": 1,
+      "instruction_sha256": "bc953f0c877beced5c3f096c8c629ca710a43196fa454a103839dc85b022176d"
+    },
+    {
+      "method": "Lcom/waze/jni/protos/alerters/AlerterInfo;->getTypeValue()I",
+      "registers": 1,
+      "instructions": 2,
+      "access_flags": 1,
+      "instruction_sha256": "7bb4d3eb8f9764ae9bb2a096c51c05592000b0c30ce91dc58edd70d1b83f1dfd"
+    },
+    {
+      "method": "Lcom/waze/jni/protos/alerters/AlerterInfo;->getValidationResult()Lcom/waze/jni/protos/alerters/AlertValidationResult;",
+      "registers": 1,
+      "instructions": 5,
+      "access_flags": 1,
+      "instruction_sha256": "5e16b5fe264ad2b5880086f9840785962c125a304283d9375d1e0d1f6bd213bf"
+    },
+    {
+      "method": "Lcom/waze/jni/protos/alerters/AlerterInfo;->hasPosition()Z",
+      "registers": 2,
+      "instructions": 8,
+      "access_flags": 1,
+      "instruction_sha256": "2773dae8595222ca21e2c0501b51286d600e9a28c0b5597ab484e9b0fb2df1e7"
+    },
+    {
+      "method": "Lcom/waze/jni/protos/alerters/AlerterInfo;->hasSilentActivation()Z",
+      "registers": 2,
+      "instructions": 8,
+      "access_flags": 1,
+      "instruction_sha256": "8550cbb92a87bd53e6c2af4ee879d16f68652c94af1a3ff2af5f60b1e7388627"
+    },
+    {
+      "method": "Lcom/waze/jni/protos/alerters/AlerterInfo;->hasSubType()Z",
+      "registers": 2,
+      "instructions": 8,
+      "access_flags": 1,
+      "instruction_sha256": "e65729c6fd9816979d3027d029ce049c5164137155e36aa092da05deb7e736d6"
+    },
+    {
+      "method": "Lcom/waze/jni/protos/alerters/AlerterInfo;->hasSubtypeTrait()Z",
+      "registers": 2,
+      "instructions": 8,
+      "access_flags": 1,
+      "instruction_sha256": "6c2abda9fde973584e5272ea4b6bb669622ffcec34727a747b9bd4a5cf6ac988"
+    },
+    {
+      "method": "Lcom/waze/jni/protos/alerters/AlerterInfo;->hasValidationResult()Z",
+      "registers": 2,
+      "instructions": 8,
+      "access_flags": 1,
+      "instruction_sha256": "b24566bea03300a34c6106b41226698ba7a90c0f49ffbae6e6f64bf81840360d"
+    },
+    {
+      "method": "Lcom/waze/jni/protos/alerters/AlerterType;-><clinit>()V",
+      "registers": 6,
+      "instructions": 140,
+      "access_flags": 65544,
+      "instruction_sha256": "f106145b0ec30f53b9c7ec731537ed56ec8003685509d65dd79d8e54b6be90f9"
+    },
+    {
+      "method": "Lcom/waze/jni/protos/alerters/AlerterType;->getNumber()I",
+      "registers": 2,
+      "instructions": 7,
+      "access_flags": 17,
+      "instruction_sha256": "d66c0686133225e7350e07e805801ec32c22882de60422fa22f0641f06e5a6e1"
+    },
+    {
+      "method": "Lcom/waze/jni/protos/alerters/AlerterType;->values()[Lcom/waze/jni/protos/alerters/AlerterType;",
+      "registers": 1,
+      "instructions": 5,
+      "access_flags": 9,
+      "instruction_sha256": "9248829960350a1d6f3a95c917a5d68de2b106a041a72c38af349a75cdcac4db"
+    },
+    {
+      "method": "Lcom/waze/jni/protos/alerters/NativeAlertDescriptor;->getAbortImmediatelyOnRemoval()Z",
+      "registers": 1,
+      "instructions": 2,
+      "access_flags": 1,
+      "instruction_sha256": "3bc57f582281f7e1fda7169ef81cf0901aa80fbaa38404acc02c6a8e102e2494"
+    },
+    {
+      "method": "Lcom/waze/jni/protos/alerters/NativeAlertDescriptor;->getAlertId()Lcom/waze/jni/protos/alerters/AlerterId;",
+      "registers": 1,
+      "instructions": 5,
+      "access_flags": 1,
+      "instruction_sha256": "c0eef54c2abe9e884cd5053be524c6b76da0d41b95af2562556399f078540b52"
+    },
+    {
+      "method": "Lcom/waze/jni/protos/alerters/NativeAlertDescriptor;->getInfo()Lcom/waze/jni/protos/alerters/AlerterInfo;",
+      "registers": 1,
+      "instructions": 5,
+      "access_flags": 1,
+      "instruction_sha256": "c9b2ecd830087bc8afe6bcd263fe05ea4ff8030cdadfbe05896c9fd478db280d"
+    },
+    {
+      "method": "Lcom/waze/jni/protos/alerters/NativeAlertDescriptor;->getInsightPriority()Lcom/waze/jni/protos/InsightPriority;",
+      "registers": 1,
+      "instructions": 5,
+      "access_flags": 1,
+      "instruction_sha256": "b25edcea51e6e881c500ddb98f2a6eb7e0e6d16883b340c806d83fcf6941ea34"
+    },
+    {
+      "method": "Lcom/waze/jni/protos/alerters/NativeAlertDescriptor;->getTriggerDistanceMeters()I",
+      "registers": 1,
+      "instructions": 2,
+      "access_flags": 1,
+      "instruction_sha256": "4627ff79196741ee6675401217a3fc244dfe39dcab6a255712c81f0768da4a52"
+    },
+    {
+      "method": "Lcom/waze/jni/protos/alerters/NativeAlertDescriptor;->getZoneAlertData()Lcom/waze/jni/protos/alerters/ZoneAlertData;",
+      "registers": 1,
+      "instructions": 5,
+      "access_flags": 1,
+      "instruction_sha256": "810db4beb376a3b2f8884bfd8a1908896f9adefc39338797a81b20b4958eb6f9"
+    },
+    {
+      "method": "Lcom/waze/jni/protos/alerters/NativeAlertDescriptor;->hasAlertId()Z",
+      "registers": 2,
+      "instructions": 6,
+      "access_flags": 1,
+      "instruction_sha256": "8dfd270d4e9cac1d943f619a0f567b2450eda6266969ca240502ed6d8296f65e"
+    },
+    {
+      "method": "Lcom/waze/jni/protos/alerters/NativeAlertDescriptor;->hasInfo()Z",
+      "registers": 1,
+      "instructions": 7,
+      "access_flags": 1,
+      "instruction_sha256": "c7a71453c360418e3435a961a764f17ac6152ee62e21c96ceee74ea559453f86"
+    },
+    {
+      "method": "Lcom/waze/jni/protos/alerters/NativeAlertDescriptor;->hasInsightPriority()Z",
+      "registers": 1,
+      "instructions": 7,
+      "access_flags": 1,
+      "instruction_sha256": "f05116ad828d319855cf5de3cd166e4d6de4fcace09321d9bdd190274d9d59ea"
+    },
+    {
+      "method": "Lcom/waze/jni/protos/alerters/NativeAlertDescriptor;->hasZoneAlertData()Z",
+      "registers": 1,
+      "instructions": 7,
+      "access_flags": 1,
+      "instruction_sha256": "2b6a10af5ad693386ee5444b964b94001134b0a7931d46a9b2b7583aa1ee38a7"
+    },
+    {
+      "method": "Lcom/waze/jni/protos/alerters/NativeAlertRepositoryUpdate;->getDescriptorsList()Ljava/util/List;",
+      "registers": 1,
+      "instructions": 2,
+      "access_flags": 1,
+      "instruction_sha256": "2fec4aae79899cbee11b353c04e3e6ed58fa015f8fbdd494a5dc7e83050d1588"
+    },
+    {
+      "method": "Lcom/waze/jni/protos/alerters/SilentActivation;-><clinit>()V",
+      "registers": 4,
+      "instructions": 28,
+      "access_flags": 65544,
+      "instruction_sha256": "ae9ed8f8a174ee34af6d292c29b3e63346514d5d1973f502e6720104377795db"
+    },
+    {
+      "method": "Lcom/waze/jni/protos/alerters/SilentActivation;->getNumber()I",
+      "registers": 2,
+      "instructions": 7,
+      "access_flags": 17,
+      "instruction_sha256": "387675244d5522f9d3c6b04e8fa960fdf37c5e25220eee5e8cf6211a4ea10f41"
+    },
+    {
+      "method": "Lcom/waze/jni/protos/alerters/SilentActivation;->values()[Lcom/waze/jni/protos/alerters/SilentActivation;",
+      "registers": 1,
+      "instructions": 5,
+      "access_flags": 9,
+      "instruction_sha256": "2fc04d0e446190ae6b3a08e61a9cedee202fcba769049a1ecaa4a82b52fdb00c"
+    },
+    {
+      "method": "Lcom/waze/jni/protos/alerters/ZoneAlertData$State;-><clinit>()V",
+      "registers": 4,
+      "instructions": 28,
+      "access_flags": 65544,
+      "instruction_sha256": "5958bf57a18781c4858b61415ab0aa0ed9a532d8b95bd6dfde6279cdd77c7759"
+    },
+    {
+      "method": "Lcom/waze/jni/protos/alerters/ZoneAlertData$State;->getNumber()I",
+      "registers": 2,
+      "instructions": 7,
+      "access_flags": 17,
+      "instruction_sha256": "ed5ebfdb9cc47f8749d04f71c6b233cebd40500588f69ad5d206dfd34ccf7792"
+    },
+    {
+      "method": "Lcom/waze/jni/protos/alerters/ZoneAlertData$State;->values()[Lcom/waze/jni/protos/alerters/ZoneAlertData$State;",
+      "registers": 1,
+      "instructions": 5,
+      "access_flags": 9,
+      "instruction_sha256": "85f87d76e43b8394499a7f9b9b1ba2fc7a3cbcd2b52a0e8f2d396dc52bc61be5"
+    },
+    {
+      "method": "Lcom/waze/jni/protos/alerters/ZoneAlertData;->getState()Lcom/waze/jni/protos/alerters/ZoneAlertData$State;",
+      "registers": 1,
+      "instructions": 6,
+      "access_flags": 1,
+      "instruction_sha256": "d1fba897a2500bf8e4577fed13078bb18c2bbc1224d2a3372d4b921dc94c547e"
+    },
+    {
+      "method": "Lcom/waze/jni/protos/alerters/ZoneAlertData;->getStateValue()I",
+      "registers": 1,
+      "instructions": 2,
+      "access_flags": 1,
+      "instruction_sha256": "b1bef959d11818edcfc27c8c5061157df7301ccc7310af242b32d9d8e4e6f512"
+    },
+    {
+      "method": "Lcom/waze/jni/protos/alerters/ZoneAlertData;->getZonePercent()I",
+      "registers": 1,
+      "instructions": 2,
+      "access_flags": 1,
+      "instruction_sha256": "e0a290f348f95165ddaf11e6f1feca01a94b1e2778c4e28bd20676bb0520063f"
+    },
+    {
+      "method": "Lcom/waze/jni/protos/insights_infra/Feature;-><clinit>()V",
+      "registers": 4,
+      "instructions": 23,
+      "access_flags": 65544,
+      "instruction_sha256": "5bf74db05cca857b74565bc94b52e631c656c07128320dd543fe405b65850d29"
+    },
+    {
+      "method": "Lcom/waze/jni/protos/insights_infra/Feature;->getNumber()I",
+      "registers": 2,
+      "instructions": 7,
+      "access_flags": 17,
+      "instruction_sha256": "a4a1c74ca94c83ac26914cd39d281bed5a20fff3bcd6fab5aa83f162f725d4a5"
+    },
+    {
+      "method": "Lcom/waze/jni/protos/insights_infra/Feature;->values()[Lcom/waze/jni/protos/insights_infra/Feature;",
+      "registers": 1,
+      "instructions": 5,
+      "access_flags": 9,
+      "instruction_sha256": "e520ab6d862416e67d7e1e76e72cf0056698bdc41a38ed02460c21e919136a5d"
+    },
+    {
+      "method": "Lcom/waze/jni/protos/insights_infra/Notification;->getBody()Ljava/lang/String;",
+      "registers": 1,
+      "instructions": 2,
+      "access_flags": 1,
+      "instruction_sha256": "f8be3073c10614ae4f79a5077cdb20935e9c78d2e8e346a61f5cd29595f520bf"
+    },
+    {
+      "method": "Lcom/waze/jni/protos/insights_infra/Notification;->getId()Lcom/waze/jni/protos/insights_infra/NotificationId;",
+      "registers": 1,
+      "instructions": 5,
+      "access_flags": 1,
+      "instruction_sha256": "2ef3b587013b49c7a9df4f10ade8aa26ed2fd16b1145300cb8d7ed15cedc7f88"
+    },
+    {
+      "method": "Lcom/waze/jni/protos/insights_infra/Notification;->getInCarBodyVariantsList()Ljava/util/List;",
+      "registers": 1,
+      "instructions": 2,
+      "access_flags": 1,
+      "instruction_sha256": "18ab64a75109e67cf956b53959250eb87c3bf6e64aa127f0ccba5313b0b72aca"
+    },
+    {
+      "method": "Lcom/waze/jni/protos/insights_infra/Notification;->getInCarTitleVariantsList()Ljava/util/List;",
+      "registers": 1,
+      "instructions": 2,
+      "access_flags": 1,
+      "instruction_sha256": "bd6f906cbe2b0b52cae62712222000c18ec6ef49e893a899e3fa8f0ee4510b94"
+    },
+    {
+      "method": "Lcom/waze/jni/protos/insights_infra/Notification;->getPriority()I",
+      "registers": 1,
+      "instructions": 2,
+      "access_flags": 1,
+      "instruction_sha256": "085e93ae5278028ee4c03f3d892eadb587f5fec9ac211296ac736858c67f11e2"
+    },
+    {
+      "method": "Lcom/waze/jni/protos/insights_infra/Notification;->getTimeoutMs()J",
+      "registers": 3,
+      "instructions": 2,
+      "access_flags": 1,
+      "instruction_sha256": "ea4faef356992fd4a5ed993055c60d825c02cd019bdaa213a0865222c5a7dd0f"
+    },
+    {
+      "method": "Lcom/waze/jni/protos/insights_infra/Notification;->getTitle()Ljava/lang/String;",
+      "registers": 1,
+      "instructions": 2,
+      "access_flags": 1,
+      "instruction_sha256": "2bf90d13e18a9c35ccc80565860801bfc30630781190868b09d9531210ed5ae8"
+    },
+    {
+      "method": "Lcom/waze/jni/protos/insights_infra/Notification;->hasId()Z",
+      "registers": 2,
+      "instructions": 6,
+      "access_flags": 1,
+      "instruction_sha256": "5b8abc8e800e775cc76dc049162fa19cd9e27d0267b9c444403a05736b2719d3"
+    },
+    {
+      "method": "Lcom/waze/jni/protos/insights_infra/Notification;->hasPriority()Z",
+      "registers": 1,
+      "instructions": 7,
+      "access_flags": 1,
+      "instruction_sha256": "68767a5ba828b2c9d9972d098c7cec7183d4dd036c0224803535cfbd5a9d4c39"
+    },
+    {
+      "method": "Lcom/waze/jni/protos/insights_infra/Notification;->hasTimeoutMs()Z",
+      "registers": 1,
+      "instructions": 7,
+      "access_flags": 1,
+      "instruction_sha256": "763be2fd85665dfcf7d918482522dd92eb63b80a36720f66752c90abdc79d904"
+    },
+    {
+      "method": "Lcom/waze/jni/protos/insights_infra/NotificationId;->getFeature()Lcom/waze/jni/protos/insights_infra/Feature;",
+      "registers": 1,
+      "instructions": 6,
+      "access_flags": 1,
+      "instruction_sha256": "9ebc977c7db61a4d7b10f8ccb15f865625ac68cd92662226374d457026c6ffbe"
+    },
+    {
+      "method": "Lcom/waze/jni/protos/insights_infra/NotificationId;->getFeatureValue()I",
+      "registers": 1,
+      "instructions": 2,
+      "access_flags": 1,
+      "instruction_sha256": "786e507950c4b1c1267a7fac501730042bf34eaae8b82cf24b13e204f2bfdc3d"
+    },
+    {
+      "method": "Lcom/waze/jni/protos/insights_infra/NotificationId;->getId()Ljava/lang/String;",
+      "registers": 1,
+      "instructions": 2,
+      "access_flags": 1,
+      "instruction_sha256": "e399ae093060a40a10f1af2b6c57d6459a9f951369f2fd40129fb39bc759d7e9"
+    },
+    {
+      "method": "Lcom/waze/jni/protos/insights_infra/SegmentInsightInfo$AlertInfo;->getAlerterType()Lcom/waze/jni/protos/alerters/AlerterType;",
+      "registers": 1,
+      "instructions": 6,
+      "access_flags": 1,
+      "instruction_sha256": "8421ce1a9c9cb89dcbebfa780fdf840c66b398a5765fe918d023957d1480835d"
+    },
+    {
+      "method": "Lcom/waze/jni/protos/insights_infra/SegmentInsightInfo$AlertInfo;->getAlerterTypeValue()I",
+      "registers": 1,
+      "instructions": 2,
+      "access_flags": 1,
+      "instruction_sha256": "c882fca80a717a1137b0b96c876dc74524963834c2ea0ac8a95f3ce39227ccbf"
+    },
+    {
+      "method": "Lcom/waze/jni/protos/insights_infra/SegmentInsightInfo$AlertInfo;->getFamiliar()Z",
+      "registers": 1,
+      "instructions": 2,
+      "access_flags": 1,
+      "instruction_sha256": "584e8c1b797d605b2db9fd718318ad6b32fdeca4c482564cc49cfe8640e43af2"
+    },
+    {
+      "method": "Lcom/waze/jni/protos/insights_infra/SegmentInsightInfo$AlertInfo;->getId()J",
+      "registers": 3,
+      "instructions": 2,
+      "access_flags": 1,
+      "instruction_sha256": "b822c5b2d19e8ac4a74dd53dcd5df474fa31511f485ad3ccac9a229303ce1ca2"
+    },
+    {
+      "method": "Lcom/waze/jni/protos/insights_infra/SegmentInsightInfo$AlertInfo;->getSubtype()I",
+      "registers": 1,
+      "instructions": 2,
+      "access_flags": 1,
+      "instruction_sha256": "b51fc17c0099f111b5f25e1e20f78cbff4dc60fd0742cb7b6d1deab3efb95a4c"
+    },
+    {
+      "method": "Lcom/waze/jni/protos/insights_infra/SegmentInsightInfo$AlertInfo;->getUuid()Ljava/lang/String;",
+      "registers": 1,
+      "instructions": 2,
+      "access_flags": 1,
+      "instruction_sha256": "cb1c635a563b0f9186a5dad0d8b9e17cb32a72d3673c6b6e293c18c6773394de"
+    },
+    {
+      "method": "Lcom/waze/jni/protos/insights_infra/SegmentInsightInfo$Id;->getSegmentId()Ljava/lang/String;",
+      "registers": 1,
+      "instructions": 2,
+      "access_flags": 1,
+      "instruction_sha256": "f268f680bf0b90452b6452ef054173e27d153f0acbd15fcaadc23836aae13693"
+    },
+    {
+      "method": "Lcom/waze/jni/protos/insights_infra/SegmentInsightInfo$Id;->getSegmentType()Lcom/waze/jni/protos/insights_infra/SegmentInsightInfo$Type;",
+      "registers": 1,
+      "instructions": 6,
+      "access_flags": 1,
+      "instruction_sha256": "ed6053f3bbad4aad4aea28ae07f920ca12ee6bc7991761f6c929be70f15634c8"
+    },
+    {
+      "method": "Lcom/waze/jni/protos/insights_infra/SegmentInsightInfo$Id;->getSegmentTypeValue()I",
+      "registers": 1,
+      "instructions": 2,
+      "access_flags": 1,
+      "instruction_sha256": "ee075f5a5403844a0045a2292a31bec766c506af3eff9acf0e20f12e41cd96c2"
+    },
+    {
+      "method": "Lcom/waze/jni/protos/insights_infra/SegmentInsightInfo$PositionRelativeToSegment;-><clinit>()V",
+      "registers": 4,
+      "instructions": 23,
+      "access_flags": 65544,
+      "instruction_sha256": "893b8dc4525c248b6dbd890f58e3517b07f8dd4cee2fe432f7beab64cea5db53"
+    },
+    {
+      "method": "Lcom/waze/jni/protos/insights_infra/SegmentInsightInfo$PositionRelativeToSegment;->getNumber()I",
+      "registers": 2,
+      "instructions": 7,
+      "access_flags": 17,
+      "instruction_sha256": "a3c9aedfe940c58bd317848da1f81f78a45814ec4331d0c9ea268a34e4b3ad88"
+    },
+    {
+      "method": "Lcom/waze/jni/protos/insights_infra/SegmentInsightInfo$PositionRelativeToSegment;->values()[Lcom/waze/jni/protos/insights_infra/SegmentInsightInfo$PositionRelativeToSegment;",
+      "registers": 1,
+      "instructions": 5,
+      "access_flags": 9,
+      "instruction_sha256": "e480ca55a548027b3ea0b259024d248c58cd10b8c5cdced0209db8f19c7bc8fa"
+    },
+    {
+      "method": "Lcom/waze/jni/protos/insights_infra/SegmentInsightInfo$Type;-><clinit>()V",
+      "registers": 4,
+      "instructions": 58,
+      "access_flags": 65544,
+      "instruction_sha256": "0d0b975fe56a826589c13ce45d45336ad60be7b06ff1519eede9ba1b648b9a1c"
+    },
+    {
+      "method": "Lcom/waze/jni/protos/insights_infra/SegmentInsightInfo$Type;->getNumber()I",
+      "registers": 2,
+      "instructions": 7,
+      "access_flags": 17,
+      "instruction_sha256": "1e6b5828d763e01b3ea6e34c695f36259a48f8835dd18565319d0b0c2b156e3e"
+    },
+    {
+      "method": "Lcom/waze/jni/protos/insights_infra/SegmentInsightInfo$Type;->values()[Lcom/waze/jni/protos/insights_infra/SegmentInsightInfo$Type;",
+      "registers": 1,
+      "instructions": 5,
+      "access_flags": 9,
+      "instruction_sha256": "09118087eaedf3559b31c8d3a76abfedba1268ccb076a7e4b2533a267c194df0"
+    },
+    {
+      "method": "Lcom/waze/jni/protos/insights_infra/SegmentInsightInfo;->getId()Lcom/waze/jni/protos/insights_infra/SegmentInsightInfo$Id;",
+      "registers": 1,
+      "instructions": 5,
+      "access_flags": 1,
+      "instruction_sha256": "3bf6a1c218aeb0558053efcf1b9c493be58f1d466c4e41d0aa12627746ff8c6c"
+    },
+    {
+      "method": "Lcom/waze/jni/protos/insights_infra/SegmentInsightInfo;->getPositionRelativeToSegment()Lcom/waze/jni/protos/insights_infra/SegmentInsightInfo$PositionRelativeToSegment;",
+      "registers": 1,
+      "instructions": 6,
+      "access_flags": 1,
+      "instruction_sha256": "4e84c30dd7345adf52cdc5862082538448dbc8dd9c42487d0c9bb84a4275af45"
+    },
+    {
+      "method": "Lcom/waze/jni/protos/insights_infra/SegmentInsightInfo;->getPositionRelativeToSegmentValue()I",
+      "registers": 1,
+      "instructions": 2,
+      "access_flags": 1,
+      "instruction_sha256": "d3e110085aefc36343cdae787eb17c43ee139c588064068b102f58fd1123f4cb"
+    },
+    {
+      "method": "Lcom/waze/jni/protos/insights_infra/SegmentInsightInfo;->getPriority()Lcom/waze/jni/protos/InsightPriority;",
+      "registers": 1,
+      "instructions": 5,
+      "access_flags": 1,
+      "instruction_sha256": "c3b3e4c305cb09d557bccbfcf24996ddb93b54ee498ea28e50a6e82985f75622"
+    },
+    {
+      "method": "Lcom/waze/jni/protos/insights_infra/SegmentInsightInfo;->getRemainingDistanceMeters()I",
+      "registers": 1,
+      "instructions": 2,
+      "access_flags": 1,
+      "instruction_sha256": "ce7950145e71b2b4455d5dc38064fcee1baac77f63a484deb112e016ec369da3"
+    },
+    {
+      "method": "Lcom/waze/jni/protos/insights_infra/SegmentInsightInfo;->getRemainingDurationSeconds()I",
+      "registers": 1,
+      "instructions": 2,
+      "access_flags": 1,
+      "instruction_sha256": "ef78b5c64fc101e4d170d569c282452cafe1562b5b8a1e22cd844b1611ae3088"
+    },
+    {
+      "method": "Lcom/waze/jni/protos/insights_infra/SegmentInsightInfo;->getSourceAlertInfosList()Ljava/util/List;",
+      "registers": 1,
+      "instructions": 2,
+      "access_flags": 1,
+      "instruction_sha256": "9c8095a872b98fdfcd780aef5cf7bcd5f87e227c289d1271ac1d67d37e89ba6c"
+    },
+    {
+      "method": "Lcom/waze/jni/protos/insights_infra/SegmentInsightInfo;->hasId()Z",
+      "registers": 1,
+      "instructions": 7,
+      "access_flags": 1,
+      "instruction_sha256": "9bdd59fcb4d863699bc9229e2277d9755eb2551232c5acbc90fedd7da7ad3c2c"
+    },
+    {
+      "method": "Lcom/waze/jni/protos/insights_infra/SegmentInsightInfo;->hasPriority()Z",
+      "registers": 1,
+      "instructions": 7,
+      "access_flags": 1,
+      "instruction_sha256": "87cc0b97fc865f2b48086adbc278f0ffedeae7c5910b2e884b1cd640fab3185a"
+    },
+    {
+      "method": "Lcom/waze/jni/protos/insights_infra/SegmentInsightInfo;->hasRemainingDurationSeconds()Z",
+      "registers": 2,
+      "instructions": 6,
+      "access_flags": 1,
+      "instruction_sha256": "32875f47bc304bfc43af14c679d320be39b0f4332ca9e17a4853e8c007504972"
+    },
+    {
+      "method": "Lcom/waze/jni/protos/insights_infra/SegmentInsightUpdate;->getInfoList()Ljava/util/List;",
+      "registers": 1,
+      "instructions": 2,
+      "access_flags": 1,
+      "instruction_sha256": "b8954bbc4478f3b2095cab4e834a6669926dcd3ec8cf2e6e2f0da783c98d85dc"
+    },
+    {
+      "method": "Lcom/waze/insights_infra/InsightsInfraNativeManager;->c(Lcom/waze/jni/protos/insights_infra/SegmentInsightUpdate;)V",
+      "registers": 3,
+      "instructions": 5,
+      "access_flags": 17,
+      "instruction_sha256": "6851bca3b8cb9f0cb436dc56230e805a382d0c6fbeba8dfe1299c9226aab5682"
+    },
+    {
+      "method": "Lcom/waze/NativeManager;->getInstance()Lcom/waze/NativeManager;",
+      "registers": 1,
+      "instructions": 5,
+      "access_flags": 9,
+      "instruction_sha256": "1fe5ed2dc2fbda82b2c59eb1dd4b46df1db9d0b4c1a8ce12b0bc4ebf7cb1e075"
+    },
+    {
+      "method": "Lcom/waze/NativeManager;->getLocale()Ljava/util/Locale;",
+      "registers": 4,
+      "instructions": 47,
+      "access_flags": 1,
+      "instruction_sha256": "39b33b9ad1625b03fc4851a353d747b04828946ed6c5827679fc62e438bbc7c8"
+    },
+    {
+      "method": "Lcom/waze/alerters/b/i;->i()V",
+      "registers": 1,
+      "instructions": 1,
+      "access_flags": 17,
+      "instruction_sha256": "e3048e9287e27d266e29057b4db257dd107ecf925d9e05e55b38c65159cd8b07"
+    },
+    {
+      "method": "Lkotlinx/coroutines/a/ab;->l(Ljava/lang/Class;)Ljava/lang/Object;",
+      "registers": 2,
+      "instructions": 6,
+      "access_flags": 25,
+      "instruction_sha256": "499c8c8b834ca3ce3002df03eeacba1f05cf2f4dbef35b32a8cc605f2f405414"
+    },
+    {
+      "method": "Lcom/waze/alerters/b/j;->invokeSuspend(Ljava/lang/Object;)Ljava/lang/Object;",
+      "registers": 8,
+      "instructions": 170,
+      "access_flags": 17,
+      "instruction_sha256": "fa86d832f03bab0699af75d157a3dbb8778b430c9ef430f76f12a7059835b958"
+    },
+    {
+      "method": "Lcom/waze/alerters/b/o;->d(Lcom/waze/alerters/b/o;Lcom/waze/alerters/b/h;)Lcom/waze/alerters/b/h;",
+      "registers": 14,
+      "instructions": 84,
+      "access_flags": 4121,
+      "instruction_sha256": "9865a60869044ebcb03b61367eca647702652c3dbeebc42556acc28509c6f20e"
+    },
+    {
+      "method": "Lcom/waze/alerters/a/aa;->b(Lcom/waze/j;)V",
+      "registers": 8,
+      "instructions": 42,
+      "access_flags": 17,
+      "instruction_sha256": "4a6af478a468e2d1fcd6fd260a9f79f4199895357335914b2686a3e972378728"
+    },
+    {
+      "method": "Lcom/waze/car_lib/WazeCarAppService;->onCreate()V",
+      "registers": 6,
+      "instructions": 87,
+      "access_flags": 17,
+      "instruction_sha256": "8492ba8de006cee955ebd711841c12946aa1c714a0b987eeb8002a2498018e24"
+    },
+    {
+      "method": "Lcom/waze/car_lib/WazeCarAppService;->onDestroy()V",
+      "registers": 3,
+      "instructions": 6,
+      "access_flags": 17,
+      "instruction_sha256": "c9a507fde973ff6e0df9d7400cae9e1ef12cbc93488f0a365b026d1d90eee388"
+    }
+  ],
+  "accepted_prior_edits": [
+    {
+      "method": "Lcom/waze/insights_infra/InsightsInfraNativeManager;->c(Lcom/waze/jni/protos/insights_infra/SegmentInsightUpdate;)V",
+      "source_patch": "Average speed zone bar",
+      "instruction_sha256": "ccb4455b0197dc4213b0f776e50ffdc686dee2c5ed7c9ba94be89f5d70e282f3"
+    }
+  ]
+}

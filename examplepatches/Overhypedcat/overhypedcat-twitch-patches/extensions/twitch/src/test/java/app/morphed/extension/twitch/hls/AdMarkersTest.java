@@ -60,8 +60,16 @@ public class AdMarkersTest {
     @Test
     public void adClassesMatchWhereverClassStandsInTheLine() {
         assertTrue(AdMarkers.hasAdTags("#EXT-X-DATERANGE:ID=\"m\",CLASS=\"twitch-maf-ad\",START-DATE=\"2026-10-28T12:00:00Z\""));
-        assertTrue(AdMarkers.hasAdTags("#EXT-X-DATERANGE:CLASS=\"twitch-trigger\",ID=\"t\""));
-        assertTrue(AdMarkers.hasAdTags("#EXT-X-DATERANGE:ID=\"t\",CLASS=\"twitch-trigger\""));
+        assertTrue(AdMarkers.hasAdTags("#EXT-X-DATERANGE:CLASS=\"twitch-maf-ad\",ID=\"m\""));
+    }
+
+    @Test
+    public void theTriggerMarkerEveryStreamCarriesIsNoAd() {
+        String trigger = "#EXT-X-DATERANGE:ID=\"t\",CLASS=\"twitch-trigger\",START-DATE=\"2026-10-28T12:00:00Z\","
+                + "X-TV-TWITCH-TRIGGER-URL=\"https://euc13.playlist.ttvnw.net/trigger/x\"";
+        assertFalse(AdMarkers.hasAdTags(trigger));
+        assertFalse(AdMarkers.isAdTagLine(trigger));
+        assertTrue("nor a marker to report as unknown", AdMarkers.suspiciousMarkers(trigger).isEmpty());
     }
 
     @Test

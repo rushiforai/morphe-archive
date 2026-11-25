@@ -464,15 +464,21 @@ public final class DuressWipe {
         });
         // Each of these is kept per account by its user id, so it shows which accounts used this phone.
         step("duress account picks", () -> {
-            for (String name : new String[]{SongDates.PREFS, LocalEmojiStatus.PREFS, LaunchFolder.PREFS,
-                    AllChatsPlace.PREFS, AdminFolder.PREFS, ChatTypeFolders.PREFS}) {
+            // Emoji status on this phone, Move All Chats and Keep more favorite stickers are gone, but a phone
+            // that used them still holds their picks.
+            for (String name : new String[]{SongDates.PREFS, "hushtelegram_local_emoji_status", LaunchFolder.PREFS,
+                    "hushtelegram_all_chats_place", AdminFolder.PREFS, ChatTypeFolders.PREFS, "hushtelegram_kept_favorites"}) {
                 clearPrefs(context, name);
             }
         });
         step("duress saved lists", () -> {
-            for (Setting<?> list : new Setting<?>[]{Settings.KEPT_REMOVED_CHATS,
-                    Settings.LOCAL_PINNED_CHATS, Settings.AUTO_FORWARDING_RULES}) {
+            for (Setting<?> list : new Setting<?>[]{Settings.KEPT_REMOVED_CHATS, Settings.AUTO_FORWARDING_RULES,
+                    Settings.LOCAL_NAME_LIST}) {
                 list.resetToDefault();
+            }
+            // Pin chats on this phone is gone, but a phone that used it still holds the chats it pinned and their order.
+            for (String key : new String[]{"hushtelegram_local_pinned_chats", "hushtelegram_local_pins_order"}) {
+                Setting.preferences.removeKey(key);
             }
         });
     }

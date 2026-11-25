@@ -77,6 +77,21 @@ class VerifyPatchedApk {
             require(body.get(0).getOpcode() == Opcode.SGET_OBJECT && body.get(1).getOpcode() == Opcode.RETURN_OBJECT,
                 "Telemetry upload was not short-circuited: " + name);
         }
-        System.out.println("Verified emitted DEX: native editor entry, toolbar View receiver, editor, telemetry dispatcher and both upload methods.");
+        // Each KeyboardService lifecycle method must start by calling its Mac clipboard sync hook.
+        for (String[] hook : new String[][]{{"onCreate", "start"}, {"onDestroy", "stop"},
+                {"onWindowShown", "shown"}, {"onWindowHidden", "hidden"}}) {
+            Method service = method(classes, "Lcom/touchtype/KeyboardService;", hook[0], 0);
+            Instruction firstCall = instructions(service).get(0);
+            require(firstCall.getOpcode() == Opcode.INVOKE_STATIC && firstCall instanceof ReferenceInstruction reference
+                && reference.getReference() instanceof MethodReference call
+                && call.getDefiningClass().equals("Lapp/morphe/extension/swiftkey/MacClipboardSync;")
+                && call.getName().equals(hook[1]), "Mac clipboard sync hook is missing: " + hook[0]);
+            if (hook[0].equals("onCreate")) {
+                require(((FiveRegisterInstruction) firstCall).getRegisterC() == service.getImplementation().getRegisterCount() - 1,
+                    "Mac clipboard sync start does not receive the keyboard service");
+            }
+        }
+        require(classes.containsKey("Lapp/morphe/extension/swiftkey/MacClipboardSettingsActivity;"), "Mac sync settings are missing");
+        System.out.println("Verified emitted DEX: native editor entry, toolbar View receiver, editor, telemetry dispatcher, both upload methods and Mac clipboard sync hooks.");
     }
 }

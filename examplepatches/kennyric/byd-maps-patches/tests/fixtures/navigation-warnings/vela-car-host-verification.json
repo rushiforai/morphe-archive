@@ -1,0 +1,47 @@
+{
+  "format": 1,
+  "scope": "Real DriveDeck1.0.18 local car-preview host bound original VelaCarAppService/CarSession with no Vela phone Activity; actual car canvas warning, native selected system speech, source acknowledgement and cleanup. This is not a physical head-unit or Bluetooth/projection audio-routing claim.",
+  "avd": "native_warnings_car_api34",
+  "serial": "emulator-5584",
+  "apps": {
+    "nl.flitsmeister": "3e3c2e987bb6e9b28bc5692e52828ee03d317cf925f719ed4aece29f11614ac8",
+    "app.vela": "72012bd0dd02ee3b3eb31a35df55d24de5fea79ba830906568c0d029c101aeab",
+    "nl.johninnl.warningprobe.integration.vela.car": "ceb7802b825275377fde84abd3dd9d92df45348a632e18ddebeb2029e3fad1ac"
+  },
+  "host_package": "app.johninnl.drivedeck",
+  "host_apk_sha256": "353ee236646f71acffcca4e7560a563b8730cb3a41773bf223514287bdd0d7b4",
+  "actual_graph": {
+    "session": "nl.johninnl.navigation.alerts.WarningSession",
+    "connection": "nl.johninnl.navigation.alerts.WarningConnection",
+    "speaker": "nl.johninnl.vela.VelaWarningSpeaker",
+    "scheduler": "nl.johninnl.navigation.alerts.WarningScheduler",
+    "provider_uid": 10193
+  },
+  "phone_activities_created": 0,
+  "native_guide_prepared_by_product": true,
+  "warning_text": "Flitsmeister\nSpeed cam 50",
+  "source_ack_outcomes": [
+    "GRANTED",
+    "STARTED",
+    "COMPLETED"
+  ],
+  "provider_managed_mute": true,
+  "actual_speaker_started_and_completed": true,
+  "visible_host_warning_frame": true,
+  "raw_result": ".analysis/native-warning-bindings/vela-car-isolated-final-01/result.json",
+  "raw_receiver": ".analysis/native-warning-bindings/vela-car-isolated-final-01/receiver-result.json",
+  "raw_source": ".analysis/native-warning-bindings/vela-car-isolated-final-01/source/e2769a29-b329-48f6-be7c-66909aa4c6f0/result.json",
+  "screenshot": ".analysis/native-warning-bindings/vela-car-isolated-final-01/vela-car-warning.png",
+  "screenshot_sha256": "419b328c371677ec10c6dd311b8e8c06bd3e1ec13dace1bb5b211574a96d59b3",
+  "cleanup": {
+    "vela_location_permissions_restored_exactly": true,
+    "car_host_and_vela_force_stopped_after_quiescent_source_off": true,
+    "host_app_onboarding_preferences_retained_on_new_task_owned_AVD": true
+  },
+  "remaining": [
+    "Actual Android Auto/DHU projection",
+    "Actual car-only output routing",
+    "Physical head-unit/passenger acceptance",
+    "Other engine modes/car layouts and warning families"
+  ]
+}

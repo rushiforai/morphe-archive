@@ -2,11 +2,21 @@ package app.voidhack.extension.applemusic.lyrics;
 
 import android.content.Context;
 
+import java.util.concurrent.ConcurrentHashMap;
+
 final class LrclibStrings {
+    private static final ConcurrentHashMap<String, Integer> ID_CACHE = new ConcurrentHashMap<>();
+
     private LrclibStrings() {}
 
     static int id(Context context, String type, String name) {
-        return context.getResources().getIdentifier(name, type, context.getPackageName());
+        if (context == null || type == null || name == null) return 0;
+        String key = type + ':' + name;
+        Integer cached = ID_CACHE.get(key);
+        if (cached != null) return cached;
+        int resolved = context.getResources().getIdentifier(name, type, context.getPackageName());
+        ID_CACHE.putIfAbsent(key, resolved);
+        return resolved;
     }
 
     static String text(Context context, String key, Object... args) {
@@ -30,6 +40,7 @@ final class LrclibStrings {
             case "badge_short": return "LRC";
             case "pill_official": return "Official";
             case "pill_lrclib": return "LRCLIB";
+            case "pill_local": return "Local LRC";
             case "pill_loading": return "LRCLIB…";
             case "pill_search": return "Search LRCLIB";
             case "instrumental_message": return "Instrumental track (LRCLIB)";

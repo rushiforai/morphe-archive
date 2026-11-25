@@ -15,6 +15,7 @@ import app.morphe.patcher.extensions.InstructionExtensions.getInstruction
 import app.morphe.patcher.patch.BytecodePatchContext
 import app.morphe.patcher.patch.PatchException
 import app.morphe.patcher.util.smali.ExternalLabel
+import app.morphe.patches.threads.misc.extension.holdsNote
 import app.morphe.util.RegisterLiveness
 import app.morphe.util.addInstructionsAtControlFlowLabel
 import app.morphe.util.getReference
@@ -30,7 +31,6 @@ import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.WideLiteralInstruction
 import com.android.tools.smali.dexlib2.iface.reference.MethodReference
-import com.android.tools.smali.dexlib2.iface.reference.StringReference
 import com.android.tools.smali.dexlib2.iface.reference.TypeReference
 import com.android.tools.smali.dexlib2.immutable.ImmutableClassDef
 import com.android.tools.smali.dexlib2.immutable.ImmutableMethod
@@ -52,9 +52,9 @@ internal object ProfileSuggestionsFixture {
 
     fun classes(build: File): List<ClassDef> = loaded.getOrPut(build) {
         val noted = FixtureDex.classesWhere(build, { true }) { method ->
-            method.strings().any { it.startsWith(SUGGESTED_ROW_NOTE) || it.startsWith(PROFILE_UI) }
+            method.holdsNote(SUGGESTED_ROW_NOTE) || method.holdsNote(PROFILE_UI)
         }
-        val rows = noted.filter { classDef -> classDef.methods.any { method -> method.strings().any { it.startsWith(SUGGESTED_ROW_NOTE) } } }
+        val rows = noted.filter { classDef -> classDef.methods.any { it.holdsNote(SUGGESTED_ROW_NOTE) } }
             .map { it.type }.toSet()
         // Search, Activity, topic pages and the rest of the row's callers.
         val callers = FixtureDex.classesWhere(build, { dex -> dex.methodSection.any { it.definingClass in rows } }) { method ->
@@ -64,8 +64,6 @@ internal object ProfileSuggestionsFixture {
         (noted + callers + viewModel).distinctBy { it.type }
     }
 
-    private fun Method.strings(): List<String> =
-        implementation?.instructions?.mapNotNull { it.getReference<StringReference>()?.string }.orEmpty()
 }
 
 /**
@@ -79,15 +77,16 @@ internal object ProfileSuggestionsFixture {
 class ProfileSuggestionsFixtureTest {
     /** The carousel's read, its check and the check's landing, then the view model's check, by version code. */
     private val buildOffsets = mapOf(
-        "512508344" to intArrayOf(571, 572, 1039, 271),
-        "512508348" to intArrayOf(571, 572, 1039, 271),
-        "512508358" to intArrayOf(573, 574, 1041, 270),
-        "512508359" to intArrayOf(575, 576, 1042, 271),
-        "512508360" to intArrayOf(577, 578, 1044, 270),
-        "512508368" to intArrayOf(569, 570, 1036, 271),
-        "512508369" to intArrayOf(571, 572, 1039, 271),
-        "512508370" to intArrayOf(571, 572, 1039, 271),
-        "512508371" to intArrayOf(571, 572, 1039, 271),
+        "512708483" to intArrayOf(614, 615, 655, 250),
+        "512708484" to intArrayOf(614, 615, 655, 249),
+        "512708486" to intArrayOf(613, 614, 654, 249),
+        "512708487" to intArrayOf(614, 615, 655, 250),
+        "512708497" to intArrayOf(612, 613, 653, 249),
+        "512708498" to intArrayOf(614, 615, 655, 250),
+        "512708507" to intArrayOf(613, 614, 654, 249),
+        "512708508" to intArrayOf(614, 615, 655, 250),
+        "512708509" to intArrayOf(614, 615, 655, 249),
+        "512708510" to intArrayOf(614, 615, 655, 250),
     )
 
     @Test
@@ -104,18 +103,18 @@ class ProfileSuggestionsFixtureTest {
             val context = context(build)
             val targets = context.profileSuggestionTargets()
 
-            // One call under each profile file's note, both to the same overload of the row. A merged
-            // lambda that also holds profile code calls the row for Activity, and that call keeps the
-            // note right above it. Through 453 another one called it for Search too.
+            // One call under each profile file's note, both to the same overload of the row, and no
+            // others among the classes holding profile code. On 455 a merged lambda there called the
+            // row for Activity too, and through 453 another one called it for Search.
             assertTrue(where, targets.screen.note.orEmpty().contains("($PROFILE_SCREEN_FILE:"))
             assertTrue(where, targets.infoRows.note.orEmpty().contains("($PROFILE_INFO_ROWS_FILE:"))
             assertEquals(where, targets.screen.callee.toString(), targets.infoRows.callee.toString())
             assertEquals(
-                where, listOf("ActivityFeedContent.kt:966", "ProfileInfoRows.kt:473", "ProfileScreen.kt:1649"),
+                where, listOf("ProfileInfoRows.kt:473", "ProfileScreen.kt:1649"),
                 targets.calls.map { it.note.orEmpty().substringAfterLast('(').removeSuffix(")") }.sorted(),
             )
 
-            // Read off each 455 build apart from the patch: the profile screen reads the profile's
+            // Read off each 456 build apart from the patch: the profile screen reads the profile's
             // carousel list at the read below, the only read of that field outside its own class,
             // checks it just after, and builds the carousel from the landing below.
             val carousel = targets.carousel
@@ -133,7 +132,7 @@ class ProfileSuggestionsFixtureTest {
             assertEquals(where, offsets[2], landing)
             assertTrue(where, screenStock[landing + 2].isNewInstanceOf(targets.screen.method.definingClass))
 
-            // The view model checks for Threads' suggestions at 271 (270 on 358 and 360), makes the row from the
+            // The view model checks for Threads' suggestions at 288 (286 on ARMv7), makes the row from the
             // next instruction on, and goes 12 past the check without them. What the check compared,
             // and the hook's register, are dead there.
             val rowAt = offsets[3]

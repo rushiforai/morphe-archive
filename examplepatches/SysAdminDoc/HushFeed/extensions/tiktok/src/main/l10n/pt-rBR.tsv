@@ -1734,6 +1734,8 @@ Long-press menu on every post	Menu de toque longo em todas as publicações
 TikTok's hold to speed up	Segurar para acelerar do TikTok
 TikTok's background play and Auto scroll	Reprodução em segundo plano e rolagem automática do TikTok
 Post dates in the feed	Datas das publicações no feed
+# context: a line of the Account facts sheet, the number of posts the account has
+Posts	Publicações
 Show exact counts	Mostrar números exatos
 Show counts as full numbers, like 1,234,567 instead of 1.2M.	Mostra os números completos, como 1.234.567 em vez de 1.2M.
 Play SDR instead of HDR	Reproduzir em SDR em vez de HDR
@@ -3001,7 +3003,9 @@ Find and reopen the videos you liked only on this phone	Encontre e reabra os ví
 Videos you like on this phone show up here	Os vídeos que você curte neste celular aparecem aqui
 Likes cleared	Curtidas limpas
 Export followers and following	Exportar seguidores e quem você segue
-Saves the accounts that follow you, or the ones you follow, as a CSV file in Download/Hushfeed. They're read at about the pace of scrolling the list, up to %1$s at a time.	Salva as contas que seguem você, ou as que você segue, como um arquivo CSV em Download/Hushfeed. Elas são lidas mais ou menos no ritmo de rolar a lista, até %1$s por vez.
+Saves the accounts that follow you, or the ones you follow, as a CSV, JSON or plain text file in Download/Hushfeed. They're read at about the pace of scrolling the list, up to %1$s at a time.	Salva as contas que seguem você, ou as que você segue, como um arquivo CSV, JSON ou de texto simples em Download/Hushfeed. Elas são lidas mais ou menos no ritmo de rolar a lista, até %1$s por vez.
+# context: a file type on the Export followers and following list, as in "Followers (Plain text)"
+Plain text	Texto simples
 A list is already being read	Uma lista já está sendo lida
 Reading your followers (%1$s)	Lendo seus seguidores (%1$s)
 Reading who you follow (%1$s)	Lendo quem você segue (%1$s)
@@ -3139,7 +3143,7 @@ Gives each video on profile grids rounded corners, on your own profile and on Li
 Gifter level	Nível de doador
 SecUID	SecUID
 Unknown (TikTok didn't send it)	Desconhecido (o TikTok não enviou)
-A profile's share sheet gets an Account facts button. It shows what TikTok already sent about the account: when it joined, its region and language, its gifter level and SecUID, when its username and display name last changed, whether it's private and whether its liked videos are public. Nothing extra is fetched.	O menu de compartilhar de um perfil ganha um botão Dados da conta. Ele mostra o que o TikTok já enviou sobre a conta: quando ela entrou, a região e o idioma, o nível de doador e o SecUID, quando o nome de usuário e o nome de exibição mudaram pela última vez, se ela é privada e se os vídeos curtidos são públicos. Nada a mais é baixado.
+A profile's share sheet gets an Account facts button. It shows what TikTok already sent about the account: when it joined, its region and language, its gifter level and SecUID, how many posts, liked videos, favorites and reposts it has, when its username and display name last changed, whether it's private and whether its liked videos are public. Nothing extra is fetched.	O menu de compartilhar de um perfil ganha um botão Dados da conta. Ele mostra o que o TikTok já enviou sobre a conta: quando ela entrou, a região e o idioma, o nível de doador e o SecUID, quantas publicações, vídeos curtidos, favoritos e republicações ela tem, quando o nome de usuário e o nome de exibição mudaram pela última vez, se ela é privada e se os vídeos curtidos são públicos. Nada a mais é baixado.
 # context: LIVE controls: a small line in a LIVE room with the room ID and the viewer's own connection (ping, latency, download speed) from TikTok's player; a tap copies the room ID
 Show the room ID and your connection	Mostrar o ID da sala e sua conexão
 Adds a small line to LIVE rooms with the room's ID and how your own connection to the stream is doing, as TikTok's player measures it: ping, latency and download speed. Tap the line to copy the room ID.	Adiciona uma linha pequena às salas LIVE com o ID da sala e como está a sua própria conexão com a transmissão, como o player do TikTok mede: ping, latência e velocidade de download. Toque na linha para copiar o ID da sala.
@@ -3232,3 +3236,13 @@ Posts to delete: %1$d. Starting in %2$d	Publicações para excluir: %1$d. Começ
 Posts deleted: %1$d of %2$d	Publicações excluídas: %1$d de %2$d
 Swipe LIVEs in your Following row's order	Passar os LIVEs na ordem da sua fileira de Seguindo
 After a LIVE you open from the row at the top of Following, swiping takes you through the row's other LIVEs in the order they sit there, starting with the next one. TikTok's own picks come after them.	Depois de um LIVE que você abre pela fileira no topo de Seguindo, deslizar leva você pelos outros LIVEs dessa fileira na ordem em que aparecem, começando pelo próximo. As sugestões do TikTok vêm depois deles.
+Remember saved videos	Lembrar os vídeos salvos
+Keeps the cover, creator, caption and post date of each video in your Favorites on this phone as the grid loads it. If one is later deleted or made private, its tile shows the kept cover and creator instead of a grey box, and a tap shows the rest. Videos that were already gone can't be recovered.	Guarda neste celular a capa, o criador, a legenda e a data de publicação de cada vídeo dos seus Favoritos conforme a grade o carrega. Se depois algum for excluído ou ficar privado, o bloco dele mostra a capa guardada e o criador no lugar de um quadro cinza, e um toque mostra o resto. Vídeos que já tinham sumido não podem ser recuperados.
+Unavailable saved videos	Vídeos salvos indisponíveis
+See the saved videos that went away after Hushfeed remembered them	Veja os vídeos salvos que sumiram depois que o Hushfeed se lembrou deles
+Saved videos that go away show up here	Os vídeos salvos que sumirem aparecem aqui
+Unavailable saved videos cleared	Vídeos indisponíveis limpos
+Unavailable saved video	Vídeo salvo indisponível
+Posted %1$s	Publicado em %1$s
+Remembered %1$s	Lembrado em %1$s
+Unavailable since %1$s	Indisponível desde %1$s

@@ -6,6 +6,7 @@ import android.graphics.Canvas;
 import android.graphics.Insets;
 import android.graphics.RectF;
 import android.os.SystemClock;
+import android.view.Choreographer;
 import android.view.HapticFeedbackConstants;
 import android.view.MotionEvent;
 import android.view.View;
@@ -43,25 +44,30 @@ public final class ExpressiveMiniPlayerExpandOverlayView extends View {
     private final int[] tempLocRoot = new int[2];
 
     private WeakReference<ViewGroup> rootRef = new WeakReference<>(null);
+    private WeakReference<View> coordinatorRef = new WeakReference<>(null);
     private WeakReference<ExpressiveMiniPlayerView> sourceMiniRef = new WeakReference<>(null);
 
     private int state = STATE_IDLE;
     private float startArtRadiusPx;
+    private float startCardScale = 1f;
     private float expandProgress = 0f;
     private float expandVel = 0f;
     private boolean openDispatched = false;
     private boolean realPlayerDrawn = false;
     private int framesSinceRealPlayerDrawn = 0;
+    private long realPlayerDrawnUptimeMs = 0L;
+    private long settleStartUptimeMs = 0L;
     private long handoffStartUptimeMs = 0L;
-    private long lastFrameUptimeMs = 0L;
+    private long lastFrameNanos = 0L;
     private boolean isLoopRunning = false;
 
-    private final Runnable frameCallback = this::stepAnimation;
+    private final Choreographer.FrameCallback choreoCallback = this::onChoreographerFrame;
 
-    private ExpressiveMiniPlayerExpandOverlayView(Context context, ViewGroup root) {
+    private ExpressiveMiniPlayerExpandOverlayView(Context context, ViewGroup root, View coordinator) {
         super(context);
         this.density = context.getResources().getDisplayMetrics().density;
         this.rootRef = new WeakReference<>(root);
+        this.coordinatorRef = new WeakReference<>(coordinator);
         this.previewPlayer = new ExpressivePlayerView(context);
         this.previewPlayer.setPreviewInstance(true);
 
@@ -91,6 +97,7 @@ public final class ExpressiveMiniPlayerExpandOverlayView extends View {
             Resources res = ctx.getResources();
             String pkg = ctx.getPackageName();
             int scaffoldId = res.getIdentifier("appScaffold", "id", pkg);
+            int coordId = res.getIdentifier("coordinatorLayout", "id", pkg);
 
             View cursor = miniPlayer;
             View appScaffold = null;
@@ -117,6 +124,8 @@ public final class ExpressiveMiniPlayerExpandOverlayView extends View {
                 return null;
             }
 
+            View coordinator = coordId != 0 ? root.findViewById(coordId) : null;
+
             ExpressiveMiniPlayerExpandOverlayView existing = null;
             for (int i = 0; i < root.getChildCount(); i++) {
                 View child = root.getChildAt(i);
@@ -126,17 +135,24 @@ public final class ExpressiveMiniPlayerExpandOverlayView extends View {
                 }
             }
             if (existing == null) {
-                existing = new ExpressiveMiniPlayerExpandOverlayView(root.getContext(), root);
+                existing = new ExpressiveMiniPlayerExpandOverlayView(root.getContext(), root, coordinator);
                 FrameLayout.LayoutParams lp = new FrameLayout.LayoutParams(
                         ViewGroup.LayoutParams.MATCH_PARENT,
                         ViewGroup.LayoutParams.MATCH_PARENT);
                 root.addView(existing, lp);
+            } else if (coordinator != null) {
+                existing.coordinatorRef = new WeakReference<>(coordinator);
             }
             activeOverlayRef = new WeakReference<>(existing);
             return existing;
         } catch (Throwable ignored) {
             return null;
         }
+    }
+
+    public static boolean isOverlayActive() {
+        ExpressiveMiniPlayerExpandOverlayView overlay = activeOverlayRef.get();
+        return overlay != null && overlay.state != STATE_IDLE;
     }
 
     public static boolean beginInteractiveDrag(ExpressiveMiniPlayerView miniPlayer) {
@@ -180,7 +196,10 @@ public final class ExpressiveMiniPlayerExpandOverlayView extends View {
         ExpressiveMiniPlayerExpandOverlayView overlay = activeOverlayRef.get();
         if (overlay != null && (overlay.state == STATE_WAITING_HANDOFF
                 || overlay.state == STATE_SETTLING_OPEN)) {
-            overlay.realPlayerDrawn = true;
+            if (!overlay.realPlayerDrawn) {
+                overlay.realPlayerDrawn = true;
+                overlay.realPlayerDrawnUptimeMs = SystemClock.uptimeMillis();
+            }
             overlay.startAnimationLoop();
         }
     }
@@ -190,7 +209,7 @@ public final class ExpressiveMiniPlayerExpandOverlayView extends View {
         if (root == null || miniPlayer == null || root.getWidth() <= 0 || root.getHeight() <= 0) {
             return false;
         }
-        removeCallbacks(frameCallback);
+        Choreographer.getInstance().removeFrameCallback(choreoCallback);
         isLoopRunning = false;
 
         this.sourceMiniRef = new WeakReference<>(miniPlayer);
@@ -203,7 +222,12 @@ public final class ExpressiveMiniPlayerExpandOverlayView extends View {
                     WindowInsets.Type.statusBars() | WindowInsets.Type.displayCutout());
             Insets navBars = insets.getInsetsIgnoringVisibility(
                     WindowInsets.Type.navigationBars());
-            previewPlayer.setWindowInsetsPx(topBars.top, navBars.bottom);
+            previewPlayer.setWindowInsetsPx(
+                    Math.max(topBars.left, navBars.left),
+                    topBars.top,
+                    Math.max(topBars.right, navBars.right),
+                    navBars.bottom
+            );
         }
 
         previewPlayer.syncPreviewFromMiniPlayer(
@@ -228,6 +252,7 @@ public final class ExpressiveMiniPlayerExpandOverlayView extends View {
         startArtRect.offset(dx, dy);
 
         startArtRadiusPx = miniPlayer.getCurrentArtCornerRadiusPx();
+        startCardScale = miniPlayer.getCurrentCardScale();
 
         state = STATE_DRAGGING;
         expandProgress = 0f;
@@ -235,23 +260,40 @@ public final class ExpressiveMiniPlayerExpandOverlayView extends View {
         openDispatched = false;
         realPlayerDrawn = false;
         framesSinceRealPlayerDrawn = 0;
+        realPlayerDrawnUptimeMs = 0L;
+        settleStartUptimeMs = 0L;
+        handoffStartUptimeMs = 0L;
 
         if (getVisibility() != VISIBLE) {
             setVisibility(VISIBLE);
         }
         miniPlayer.setExpandOverlayActive(true);
+        applyBackdropDepth(0f);
         ExpressiveScaffoldBridge.notifyMiniPlayerPullUp(0f);
         invalidate();
         return true;
+    }
+
+    private float mapDragPxToProgress(float rawDragUpPx) {
+        float travelPx = getTravelDistancePx();
+        if (rawDragUpPx >= 0f) {
+            if (rawDragUpPx <= travelPx) {
+                return rawDragUpPx / travelPx;
+            }
+            float excess = rawDragUpPx - travelPx;
+            return 1f + 0.045f * (excess / (excess + 120f * density));
+        }
+        float below = -rawDragUpPx;
+        return -0.045f * (below / (below + 90f * density));
     }
 
     private void updateDragInternal(float dragUpPx) {
         if (state != STATE_DRAGGING) {
             return;
         }
-        float travelPx = getTravelDistancePx();
-        expandProgress = Math.max(0f, Math.min(1f, dragUpPx / travelPx));
-        ExpressiveScaffoldBridge.notifyMiniPlayerPullUp(expandProgress);
+        expandProgress = mapDragPxToProgress(dragUpPx);
+        applyBackdropDepth(expandProgress);
+        ExpressiveScaffoldBridge.notifyMiniPlayerPullUp(Math.max(0f, expandProgress));
         invalidate();
     }
 
@@ -260,28 +302,34 @@ public final class ExpressiveMiniPlayerExpandOverlayView extends View {
             return;
         }
         float travelPx = getTravelDistancePx();
-        expandProgress = Math.max(0f, Math.min(1f, dragUpPx / travelPx));
+        float releaseProgress = mapDragPxToProgress(dragUpPx);
         float normVel = -velocityYpxPerSec / travelPx;
 
-        boolean flingUp = velocityYpxPerSec < -460f * density && dragUpPx > 22f * density;
-        boolean flingDown = velocityYpxPerSec > 520f * density;
-        boolean shouldOpen = !flingDown && (flingUp || expandProgress >= 0.18f || dragUpPx >= 86f * density);
+        boolean flingUp = velocityYpxPerSec < -380f * density
+                && (dragUpPx > 14f * density || expandProgress > 0.015f);
+        boolean flingDown = velocityYpxPerSec > 560f * density;
+        boolean shouldOpen = !flingDown && (flingUp || expandProgress >= 0.16f || dragUpPx >= 72f * density);
 
         ExpressiveMiniPlayerView mp = sourceMiniRef.get();
         if (shouldOpen) {
+            expandProgress = Math.max(expandProgress, releaseProgress);
             if (mp != null) {
                 mp.performHapticFeedback(HapticFeedbackConstants.CONFIRM);
             }
             state = STATE_SETTLING_OPEN;
-            expandVel = Math.max(0.45f, normVel);
-            if (expandProgress >= 0.90f && !openDispatched) {
+            settleStartUptimeMs = SystemClock.uptimeMillis();
+            expandVel = Math.max(1.20f, Math.min(5.2f, normVel));
+            if (expandProgress >= 0.994f && expandVel < 0.25f && !openDispatched) {
                 openDispatched = true;
                 ExpressiveScaffoldBridge.dispatchMiniPlayerOpenFullInstant();
             }
         } else {
+            expandProgress = releaseProgress;
             state = STATE_SETTLING_CLOSE;
-            expandVel = Math.min(-0.35f, normVel);
+            expandVel = Math.min(-0.65f, Math.max(-4.5f, normVel));
         }
+        applyBackdropDepth(expandProgress);
+        ExpressiveScaffoldBridge.notifyMiniPlayerPullUp(Math.max(0f, expandProgress));
         startAnimationLoop();
     }
 
@@ -290,7 +338,7 @@ public final class ExpressiveMiniPlayerExpandOverlayView extends View {
             return;
         }
         state = STATE_SETTLING_CLOSE;
-        expandVel = -0.5f;
+        expandVel = -0.65f;
         startAnimationLoop();
     }
 
@@ -298,39 +346,64 @@ public final class ExpressiveMiniPlayerExpandOverlayView extends View {
         return Math.max(140f * density, startCardRect.top);
     }
 
-    private void startAnimationLoop() {
-        if (!isLoopRunning) {
-            isLoopRunning = true;
-            lastFrameUptimeMs = SystemClock.uptimeMillis();
-            postOnAnimation(frameCallback);
+    private void applyBackdropDepth(float progress) {
+        View coord = coordinatorRef.get();
+        if (coord == null) {
+            return;
+        }
+        float p = Math.max(0f, Math.min(1f, progress));
+        float inv = 1f - p;
+        float ease = 1f - inv * inv * inv;
+        float scale = 1f - 0.032f * ease;
+        if (coord.getWidth() > 0 && coord.getHeight() > 0) {
+            coord.setPivotX(coord.getWidth() * 0.5f);
+            coord.setPivotY(coord.getHeight() * 0.5f);
+        }
+        coord.setScaleX(scale);
+        coord.setScaleY(scale);
+    }
+
+    private void resetBackdropDepth() {
+        View coord = coordinatorRef.get();
+        if (coord != null) {
+            coord.setScaleX(1f);
+            coord.setScaleY(1f);
         }
     }
 
-    private void stepAnimation() {
+    private void startAnimationLoop() {
+        if (!isLoopRunning) {
+            isLoopRunning = true;
+            lastFrameNanos = 0L;
+            Choreographer.getInstance().postFrameCallback(choreoCallback);
+        }
+    }
+
+    private void onChoreographerFrame(long frameTimeNanos) {
         if (!isLoopRunning || state == STATE_IDLE || state == STATE_DRAGGING) {
             isLoopRunning = false;
             return;
         }
 
+        float dt = lastFrameNanos > 0L
+                ? Math.min(0.033f, Math.max(0.001f, (frameTimeNanos - lastFrameNanos) / 1_000_000_000f))
+                : 0.016f;
+        lastFrameNanos = frameTimeNanos;
         long now = SystemClock.uptimeMillis();
-        float dt = Math.min(0.032f, Math.max(0.004f, (now - lastFrameUptimeMs) / 1000f));
-        lastFrameUptimeMs = now;
 
         if (state == STATE_SETTLING_OPEN) {
-            float[] res = stepSpring(expandProgress, expandVel, 1f, 420f, 0.86f, dt);
-            expandProgress = Math.max(0f, Math.min(1f, res[0]));
-            expandVel = res[1];
-            ExpressiveScaffoldBridge.notifyMiniPlayerPullUp(expandProgress);
+            stepSpringSubstepped(1f, 390f, 0.74f, dt);
+            expandProgress = Math.max(-0.04f, Math.min(1.075f, expandProgress));
+            applyBackdropDepth(expandProgress);
+            ExpressiveScaffoldBridge.notifyMiniPlayerPullUp(Math.max(0f, expandProgress));
 
-            if (expandProgress >= 0.90f && !openDispatched) {
-                openDispatched = true;
-                ExpressiveScaffoldBridge.dispatchMiniPlayerOpenFullInstant();
-            }
             if (realPlayerDrawn) {
                 framesSinceRealPlayerDrawn++;
             }
 
-            if (expandProgress >= 0.988f) {
+            boolean settledAtTop = Math.abs(expandProgress - 1f) < 0.005f && Math.abs(expandVel) < 0.14f;
+            boolean settleTimedOut = settleStartUptimeMs > 0L && (now - settleStartUptimeMs) > 460L;
+            if (settledAtTop || settleTimedOut) {
                 expandProgress = 1f;
                 expandVel = 0f;
                 state = STATE_WAITING_HANDOFF;
@@ -341,35 +414,54 @@ public final class ExpressiveMiniPlayerExpandOverlayView extends View {
                 }
             }
             invalidate();
-            postOnAnimation(frameCallback);
+            Choreographer.getInstance().postFrameCallback(choreoCallback);
         } else if (state == STATE_WAITING_HANDOFF) {
             if (realPlayerDrawn) {
                 framesSinceRealPlayerDrawn++;
             }
-            if ((realPlayerDrawn && framesSinceRealPlayerDrawn >= 3)
-                    || (now - handoffStartUptimeMs > 520L)) {
+            boolean ready = realPlayerDrawn
+                    && framesSinceRealPlayerDrawn >= 4
+                    && realPlayerDrawnUptimeMs > 0L
+                    && (now - realPlayerDrawnUptimeMs) >= 50L;
+            if (ready || (now - handoffStartUptimeMs > 650L)) {
                 finishAndReset();
             } else {
                 invalidate();
-                postOnAnimation(frameCallback);
+                Choreographer.getInstance().postFrameCallback(choreoCallback);
             }
         } else if (state == STATE_SETTLING_CLOSE) {
-            float[] res = stepSpring(expandProgress, expandVel, 0f, 400f, 0.82f, dt);
-            expandProgress = Math.max(0f, Math.min(1f, res[0]));
-            expandVel = res[1];
-            ExpressiveScaffoldBridge.notifyMiniPlayerPullUp(expandProgress);
+            stepSpringSubstepped(0f, 460f, 0.76f, dt);
+            expandProgress = Math.max(-0.035f, Math.min(1.05f, expandProgress));
+            applyBackdropDepth(expandProgress);
+            ExpressiveScaffoldBridge.notifyMiniPlayerPullUp(Math.max(0f, expandProgress));
             invalidate();
 
-            if (expandProgress <= 0.004f && Math.abs(expandVel) < 0.04f) {
+            if (Math.abs(expandProgress) < 0.003f && Math.abs(expandVel) < 0.05f) {
                 finishAndReset();
             } else {
-                postOnAnimation(frameCallback);
+                Choreographer.getInstance().postFrameCallback(choreoCallback);
             }
         }
     }
 
+    private void stepSpringSubstepped(float target, float stiffness, float dampingRatio, float dt) {
+        final float maxSubStep = 0.004f;
+        int steps = Math.max(1, (int) Math.ceil(dt / maxSubStep));
+        float subDt = dt / steps;
+        float damping = 2f * dampingRatio * (float) Math.sqrt(stiffness);
+        float pos = expandProgress;
+        float vel = expandVel;
+        for (int i = 0; i < steps; i++) {
+            float force = -stiffness * (pos - target) - damping * vel;
+            vel += force * subDt;
+            pos += vel * subDt;
+        }
+        expandProgress = pos;
+        expandVel = vel;
+    }
+
     private void finishAndReset() {
-        removeCallbacks(frameCallback);
+        Choreographer.getInstance().removeFrameCallback(choreoCallback);
         isLoopRunning = false;
         state = STATE_IDLE;
         expandProgress = 0f;
@@ -377,7 +469,12 @@ public final class ExpressiveMiniPlayerExpandOverlayView extends View {
         openDispatched = false;
         realPlayerDrawn = false;
         framesSinceRealPlayerDrawn = 0;
+        realPlayerDrawnUptimeMs = 0L;
+        settleStartUptimeMs = 0L;
+        handoffStartUptimeMs = 0L;
+        lastFrameNanos = 0L;
 
+        resetBackdropDepth();
         ExpressiveMiniPlayerView mp = sourceMiniRef.get();
         if (mp != null) {
             mp.setExpandOverlayActive(false);
@@ -386,21 +483,6 @@ public final class ExpressiveMiniPlayerExpandOverlayView extends View {
         if (getVisibility() != GONE) {
             setVisibility(GONE);
         }
-    }
-
-    private static float[] stepSpring(
-            float pos,
-            float vel,
-            float target,
-            float stiffness,
-            float dampingRatio,
-            float dt
-    ) {
-        float damping = 2f * dampingRatio * (float) Math.sqrt(stiffness);
-        float force = -stiffness * (pos - target) - damping * vel;
-        vel += force * dt;
-        pos += vel * dt;
-        return new float[]{pos, vel};
     }
 
     @Override
@@ -422,6 +504,7 @@ public final class ExpressiveMiniPlayerExpandOverlayView extends View {
                 startCardRect,
                 startArtRect,
                 startArtRadiusPx,
+                startCardScale,
                 sourceMiniRef.get()
         );
     }

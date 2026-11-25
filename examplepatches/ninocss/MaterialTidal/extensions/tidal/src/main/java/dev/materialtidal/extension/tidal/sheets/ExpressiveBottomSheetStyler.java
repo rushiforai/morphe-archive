@@ -19,14 +19,20 @@ import android.graphics.drawable.Drawable;
 import android.graphics.drawable.GradientDrawable;
 import android.graphics.drawable.RippleDrawable;
 import android.os.Build;
+import android.util.SparseArray;
 import android.util.TypedValue;
+import android.view.Gravity;
+import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.ViewOutlineProvider;
 import android.view.Window;
 import android.view.WindowInsets;
+import android.view.WindowManager;
+import android.view.animation.DecelerateInterpolator;
 import android.webkit.WebView;
 import android.widget.Button;
+import android.widget.FrameLayout;
 import android.widget.ImageView;
 import android.widget.SeekBar;
 import android.widget.TextView;
@@ -54,10 +60,18 @@ final class ExpressiveBottomSheetStyler {
     private static final int ROLE_LAST = 3;
 
     private static final WeakHashMap<View, Integer> ROW_STYLE_CACHE = new WeakHashMap<>();
+    private static final WeakHashMap<View, Boolean> FLOATING_MENU_RECYCLERS = new WeakHashMap<>();
+    private static final WeakHashMap<Object, Boolean> FLOATING_MENU_ADAPTERS = new WeakHashMap<>();
+    private static final WeakHashMap<Dialog, Boolean> FLOATING_MENU_DIALOGS = new WeakHashMap<>();
+    private static final WeakHashMap<View, Boolean> POPPED_FLOATING_MENUS = new WeakHashMap<>();
+    private static final WeakHashMap<Dialog, Boolean> DISMISSING_MENUS = new WeakHashMap<>();
+    private static final WeakHashMap<View, Boolean> TOUCH_EFFECT_ROWS = new WeakHashMap<>();
+    private static final SparseArray<String> DRAWABLE_NAME_CACHE = new SparseArray<>();
 
     // Cached view/adapter IDs
     private static String cachedPackageName;
     private static int idDesignBottomSheet;
+    private static int idTouchOutside;
     private static int idShadowView;
     private static int idHeaderContainer;
     private static int idRecyclerView;
@@ -70,11 +84,27 @@ final class ExpressiveBottomSheetStyler {
     private static int idExtraIcon;
     private static int idCheckIcon;
 
-    // Cached reflection handles for ViewHolder / Adapter without importing androidx.*
+    // Cached reflection handles for ViewHolder / Adapter / Lgs3 / BottomSheetBehavior without importing androidx/material
     private static volatile Field vhItemViewField;
     private static volatile boolean vhFieldLookupAttempted;
     private static volatile Class<?> cachedAdapterClass;
     private static volatile Method cachedGetItemCountMethod;
+    private static volatile Method cachedGetCurrentListMethod;
+    private static volatile Method cachedGetItemMethod;
+    private static volatile Field cachedItemIconField;
+    private static volatile boolean itemIconLookupAttempted;
+    private static volatile Class<?> cachedRvClass;
+    private static volatile Method cachedRvGetAdapterMethod;
+    private static volatile Class<?> cachedAdapterOwnerClass;
+    private static volatile Field cachedAdapterDialogField;
+    private static volatile Class<?> cachedBehaviorClass;
+    private static volatile Method behaviorSetSkipCollapsed;
+    private static volatile Method behaviorSetDraggable;
+    private static volatile Method behaviorSetHideable;
+    private static volatile Method behaviorSetPeekHeight;
+    private static volatile Method behaviorSetMaxWidth;
+    private static volatile Method behaviorSetMaxHeight;
+    private static volatile Method behaviorSetState;
 
     private ExpressiveBottomSheetStyler() {
     }
@@ -206,6 +236,80 @@ final class ExpressiveBottomSheetStyler {
         }
     }
 
+    /** Crisp all-4-corners rounded M3 Expressive floating menu card with full-perimeter border. */
+    private static final class ExpressiveFloatingMenuSurfaceDrawable extends Drawable {
+        private final Paint fillPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
+        private final Paint strokePaint = new Paint(Paint.ANTI_ALIAS_FLAG);
+        private final RectF rect = new RectF();
+        private final float radiusPx;
+        private final float strokeWidthPx;
+
+        ExpressiveFloatingMenuSurfaceDrawable(int fillColor, int strokeColor, float radiusPx, float strokeWidthPx) {
+            this.radiusPx = radiusPx;
+            this.strokeWidthPx = strokeWidthPx;
+            fillPaint.setStyle(Paint.Style.FILL);
+            fillPaint.setColor(fillColor);
+            strokePaint.setStyle(Paint.Style.STROKE);
+            strokePaint.setColor(strokeColor);
+            strokePaint.setStrokeWidth(strokeWidthPx);
+        }
+
+        @Override
+        public void draw(Canvas canvas) {
+            Rect b = getBounds();
+            if (b.isEmpty()) {
+                return;
+            }
+            float r = Math.min(radiusPx, Math.min(b.width(), b.height()) * 0.5f);
+            rect.set(b.left, b.top, b.right, b.bottom);
+            canvas.drawRoundRect(rect, r, r, fillPaint);
+            if (Color.alpha(strokePaint.getColor()) > 0 && strokeWidthPx > 0f && r > 1f) {
+                float half = strokeWidthPx * 0.5f;
+                rect.set(b.left + half, b.top + half, b.right - half, b.bottom - half);
+                float sr = Math.max(0f, r - half);
+                canvas.drawRoundRect(rect, sr, sr, strokePaint);
+            }
+        }
+
+        @Override
+        public void setAlpha(int alpha) {
+            fillPaint.setAlpha(alpha);
+            invalidateSelf();
+        }
+
+        @Override
+        public void setColorFilter(ColorFilter colorFilter) {
+            fillPaint.setColorFilter(colorFilter);
+            strokePaint.setColorFilter(colorFilter);
+            invalidateSelf();
+        }
+
+        @Override
+        public int getOpacity() {
+            return PixelFormat.TRANSLUCENT;
+        }
+    }
+
+    private static boolean isTrackOrPlaylistHeader(View v) {
+        if (v == null) {
+            return false;
+        }
+        String name = v.getClass().getName();
+        return name.endsWith(".BottomSheetTrackHeader") || name.endsWith(".BottomSheetPlaylistHeader");
+    }
+
+    private static boolean hasTrackOrPlaylistHeader(ViewGroup headerContainer) {
+        if (headerContainer == null) {
+            return false;
+        }
+        for (int i = 0; i < headerContainer.getChildCount(); i++) {
+            if (isTrackOrPlaylistHeader(headerContainer.getChildAt(i))) {
+                return true;
+            }
+        }
+        return false;
+    }
+
     static void styleBottomSheetDialog(Dialog dialog) {
         if (dialog == null || !MaterialYouConfig.isExpressiveSheetsEnabled()) {
             return;
@@ -230,6 +334,25 @@ final class ExpressiveBottomSheetStyler {
         }
 
         float density = ctx.getResources().getDisplayMetrics().density;
+        View headerView = idHeaderContainer != 0 ? bottomSheet.findViewById(idHeaderContainer) : null;
+        View recyclerView = idRecyclerView != 0 ? bottomSheet.findViewById(idRecyclerView) : null;
+        View shadowView = idShadowView != 0 ? bottomSheet.findViewById(idShadowView) : null;
+        View footerView = idFooter != 0 ? bottomSheet.findViewById(idFooter) : null;
+
+        if (headerView instanceof ViewGroup && recyclerView instanceof ViewGroup
+                && footerView == null && hasTrackOrPlaylistHeader((ViewGroup) headerView)) {
+            styleAsFloatingExpressiveMenu(
+                    dialog,
+                    bottomSheet,
+                    (ViewGroup) headerView,
+                    (ViewGroup) recyclerView,
+                    shadowView,
+                    ctx,
+                    density
+            );
+            return;
+        }
+
         float topR = dpf(density, ExpressiveSheetsBridge.getSheetCornerRadiusDp());
 
         Window window = dialog.getWindow();
@@ -266,13 +389,9 @@ final class ExpressiveBottomSheetStyler {
         });
         bottomSheet.setClipToOutline(true);
 
-        View headerView = idHeaderContainer != 0 ? bottomSheet.findViewById(idHeaderContainer) : null;
-        View recyclerView = idRecyclerView != 0 ? bottomSheet.findViewById(idRecyclerView) : null;
-        View shadowView = idShadowView != 0 ? bottomSheet.findViewById(idShadowView) : null;
-        View footerView = idFooter != 0 ? bottomSheet.findViewById(idFooter) : null;
-
         if (headerView instanceof ViewGroup && recyclerView instanceof ViewGroup) {
             styleContextOrBroadcastSheet(
+                    dialog,
                     bottomSheet,
                     (ViewGroup) headerView,
                     (ViewGroup) recyclerView,
@@ -286,7 +405,421 @@ final class ExpressiveBottomSheetStyler {
         }
     }
 
+    private static void styleAsFloatingExpressiveMenu(
+            Dialog dialog,
+            View bottomSheet,
+            ViewGroup headerContainer,
+            ViewGroup recyclerView,
+            View shadowView,
+            Context ctx,
+            float density
+    ) {
+        if (!(bottomSheet instanceof ViewGroup) || ((ViewGroup) bottomSheet).getChildCount() == 0) {
+            return;
+        }
+        final View contentRoot = ((ViewGroup) bottomSheet).getChildAt(0);
+        if (contentRoot == null) {
+            return;
+        }
+
+        // Pre-register floating menu ownership BEFORE adapter items bind asynchronously,
+        // and pre-hide contentRoot BEFORE Frame 0 renders to eliminate opening flicker.
+        FLOATING_MENU_DIALOGS.put(dialog, Boolean.TRUE);
+        FLOATING_MENU_RECYCLERS.put(recyclerView, Boolean.TRUE);
+        Object rvAdapter = extractRecyclerAdapter(recyclerView);
+        if (rvAdapter != null) {
+            FLOATING_MENU_ADAPTERS.put(rvAdapter, Boolean.TRUE);
+        }
+        DISMISSING_MENUS.remove(dialog);
+        POPPED_FLOATING_MENUS.remove(contentRoot);
+        contentRoot.animate().cancel();
+        contentRoot.setAlpha(0f);
+        contentRoot.setScaleX(0.92f);
+        contentRoot.setScaleY(0.92f);
+
+        // Guarantee Back button, gesture back, and outside tap ALWAYS dismiss immediately.
+        dialog.setCancelable(true);
+        dialog.setCanceledOnTouchOutside(true);
+        try {
+            Method setDismissAnim = findMethodSafe(dialog.getClass(), "setDismissWithAnimation", boolean.class);
+            if (setDismissAnim != null) {
+                setDismissAnim.invoke(dialog, false);
+            }
+        } catch (Throwable ignored) {
+        }
+
+        Window window = dialog.getWindow();
+        if (window != null) {
+            window.setWindowAnimations(0);
+            window.setStatusBarColor(Color.TRANSPARENT);
+            window.setNavigationBarColor(Color.TRANSPARENT);
+            window.clearFlags(WindowManager.LayoutParams.FLAG_BLUR_BEHIND);
+            WindowManager.LayoutParams wlp = window.getAttributes();
+            if (wlp != null) {
+                wlp.dimAmount = 0.14f;
+                if (Build.VERSION.SDK_INT >= 31) {
+                    wlp.setBlurBehindRadius(0);
+                }
+                window.setAttributes(wlp);
+                window.addFlags(WindowManager.LayoutParams.FLAG_DIM_BEHIND);
+            }
+            MaterialYouColorEngine.applySystemBarAppearance(window, MaterialYouColorEngine.isLightMode(ctx));
+            View decor = window.getDecorView();
+            if (decor != null && Build.VERSION.SDK_INT >= 29) {
+                decor.setForceDarkAllowed(false);
+            }
+        }
+
+        final View touchOutside = idTouchOutside != 0 ? dialog.findViewById(idTouchOutside) : null;
+        if (touchOutside != null) {
+            touchOutside.setOnClickListener(v -> dismissAnchoredMenu(dialog, contentRoot));
+        }
+
+        final int screenW = ctx.getResources().getDisplayMetrics().widthPixels;
+        final int screenH = ctx.getResources().getDisplayMetrics().heightPixels;
+
+        // Keep BottomSheetBehavior attached (Lsr3/rr3 OnGlobalLayout accesses it) with hideable=true.
+        ViewGroup.LayoutParams bsLp = bottomSheet.getLayoutParams();
+        if (bsLp != null) {
+            bsLp.width = ViewGroup.LayoutParams.MATCH_PARENT;
+            bsLp.height = ViewGroup.LayoutParams.MATCH_PARENT;
+            bottomSheet.setLayoutParams(bsLp);
+        }
+        configureFloatingMenuBehavior(bottomSheet, screenH);
+        bottomSheet.post(() -> configureFloatingMenuBehavior(bottomSheet, screenH));
+
+        bottomSheet.setBackground(null);
+        bottomSheet.setElevation(0f);
+        bottomSheet.setClipToOutline(false);
+        bottomSheet.setOutlineProvider(null);
+        bottomSheet.setPadding(0, 0, 0, 0);
+        bottomSheet.setClickable(false);
+        bottomSheet.setFocusable(false);
+        bottomSheet.setOnClickListener(null);
+        // Replace BottomSheetDialog$4 touch-swallowing listener so outside taps ALWAYS dismiss the menu.
+        bottomSheet.setOnTouchListener((v, event) -> {
+            if (event == null) {
+                return false;
+            }
+            if (Boolean.TRUE.equals(DISMISSING_MENUS.get(dialog))) {
+                return true;
+            }
+            if (contentRoot.getWidth() > 0 && contentRoot.getHeight() > 0) {
+                float ex = event.getX();
+                float ey = event.getY();
+                boolean outside = ex < contentRoot.getLeft() || ex > contentRoot.getRight()
+                        || ey < contentRoot.getTop() || ey > contentRoot.getBottom();
+                if (outside) {
+                    if (event.getActionMasked() == MotionEvent.ACTION_DOWN) {
+                        dismissAnchoredMenu(dialog, contentRoot);
+                    }
+                    return true;
+                }
+            }
+            return false;
+        });
+
+        // Turn contentRoot into a true sleek Material 3 Expressive anchored menu.
+        clearOpaqueDarkBackground(contentRoot);
+        final int edgePad = dp(density, 12f);
+        final int menuWidth = Math.min(dp(density, 328f), Math.max(dp(density, 260f), screenW - dp(density, 24f)));
+        final int[] safeInsets = new int[]{dp(density, 32f), dp(density, 32f)};
+        WindowInsets rootInsets = bottomSheet.getRootWindowInsets();
+        if (rootInsets == null && window != null && window.getDecorView() != null) {
+            rootInsets = window.getDecorView().getRootWindowInsets();
+        }
+        if (rootInsets != null) {
+            int topBar = rootInsets.getInsets(WindowInsets.Type.statusBars() | WindowInsets.Type.displayCutout()).top;
+            int navBar = rootInsets.getInsets(WindowInsets.Type.navigationBars()).bottom;
+            safeInsets[0] = topBar + dp(density, 10f);
+            safeInsets[1] = navBar + dp(density, 10f);
+        }
+
+        float[] tapPt = new float[2];
+        boolean hasTap = MaterialYouColorEngine.getLastTouchScreenPoint(tapPt, 1200L);
+        final float anchorX = hasTap ? tapPt[0] : (screenW - dp(density, 20f));
+        final float anchorY = hasTap ? tapPt[1] : (safeInsets[0] + dp(density, 44f));
+        final boolean openFromRight = anchorX >= screenW * 0.45f;
+        final int rawLeft = openFromRight
+                ? Math.round(anchorX - menuWidth + dp(density, 12f))
+                : Math.round(anchorX - dp(density, 12f));
+        final int leftMargin = Math.max(edgePad, Math.min(screenW - menuWidth - edgePad, rawLeft));
+        final float pivotX = Math.max(dpf(density, 16f), Math.min(menuWidth - dpf(density, 16f), anchorX - leftMargin));
+
+        FrameLayout.LayoutParams initialLp = new FrameLayout.LayoutParams(
+                menuWidth,
+                ViewGroup.LayoutParams.WRAP_CONTENT,
+                Gravity.TOP | Gravity.LEFT
+        );
+        initialLp.leftMargin = leftMargin;
+        initialLp.topMargin = Math.max(safeInsets[0], Math.min(screenH - safeInsets[1] - dp(density, 80f), Math.round(anchorY + dp(density, 4f))));
+        initialLp.bottomMargin = safeInsets[1];
+        contentRoot.setLayoutParams(initialLp);
+
+        contentRoot.setClickable(true);
+        contentRoot.setFocusable(false);
+        contentRoot.setPadding(0, 0, 0, 0);
+
+        final float menuR = dpf(density, ExpressiveSheetsBridge.getMenuCornerRadiusDp());
+        int surfaceHigh = MaterialYouColorEngine.getSurfaceContainerHigh();
+        boolean lightMode = MaterialYouColorEngine.isLightMode(ctx);
+        int outlineBorder = MaterialYouColorEngine.withAlpha(
+                MaterialYouColorEngine.getOutlineVariant(),
+                lightMode ? 0x52 : 0x46
+        );
+        contentRoot.setBackground(new ExpressiveFloatingMenuSurfaceDrawable(
+                surfaceHigh,
+                outlineBorder,
+                menuR,
+                dpf(density, 1f)
+        ));
+        contentRoot.setElevation(dpf(density, 14f));
+        contentRoot.setOutlineProvider(new ViewOutlineProvider() {
+            @Override
+            public void getOutline(View view, Outline outline) {
+                int w = view.getWidth();
+                int h = view.getHeight();
+                if (w > 0 && h > 0) {
+                    outline.setRoundRect(0, 0, w, h, menuR);
+                }
+            }
+        });
+        contentRoot.setClipToOutline(true);
+
+        if (shadowView != null) {
+            shadowView.setVisibility(View.GONE);
+        }
+
+        headerContainer.setBackgroundColor(Color.TRANSPARENT);
+        for (int i = 0; i < headerContainer.getChildCount(); i++) {
+            styleContextMenuHeader(headerContainer, headerContainer.getChildAt(i), density, true);
+        }
+        headerContainer.setOnHierarchyChangeListener(new ViewGroup.OnHierarchyChangeListener() {
+            @Override
+            public void onChildViewAdded(View parent, View child) {
+                styleContextMenuHeader(headerContainer, child, density, true);
+            }
+
+            @Override
+            public void onChildViewRemoved(View parent, View child) {
+            }
+        });
+
+        FLOATING_MENU_RECYCLERS.put(recyclerView, Boolean.TRUE);
+        recyclerView.setBackgroundColor(Color.TRANSPARENT);
+        recyclerView.setOnApplyWindowInsetsListener(null);
+        recyclerView.setOverScrollMode(View.OVER_SCROLL_IF_CONTENT_SCROLLS);
+        try {
+            Method setClip = recyclerView.getClass().getMethod("setClipToPadding", boolean.class);
+            setClip.invoke(recyclerView, false);
+        } catch (Throwable ignored) {
+        }
+        recyclerView.setPadding(dp(density, 8f), dp(density, 6f), dp(density, 8f), dp(density, 10f));
+        for (int i = 0; i < recyclerView.getChildCount(); i++) {
+            ROW_STYLE_CACHE.remove(recyclerView.getChildAt(i));
+        }
+
+        final boolean[] forceReveal = new boolean[]{false};
+        final Runnable repositionMenu = () -> {
+            if (Boolean.TRUE.equals(DISMISSING_MENUS.get(dialog))) {
+                return;
+            }
+            if (bottomSheet.getPaddingLeft() != 0 || bottomSheet.getPaddingTop() != 0
+                    || bottomSheet.getPaddingRight() != 0 || bottomSheet.getPaddingBottom() != 0) {
+                bottomSheet.setPadding(0, 0, 0, 0);
+            }
+            if (bottomSheet.getTop() > 0) {
+                configureFloatingMenuBehavior(bottomSheet, screenH);
+            }
+            boolean alreadyRevealed = Boolean.TRUE.equals(POPPED_FLOATING_MENUS.get(contentRoot));
+            if (!alreadyRevealed) {
+                boolean ready = (recyclerView.getChildCount() > 0 && bottomSheet.getHeight() > 0) || forceReveal[0];
+                if (!ready) {
+                    contentRoot.setAlpha(0f);
+                    return;
+                }
+            }
+
+            int availScreenH = bottomSheet.getHeight() > dp(density, 200f) ? bottomSheet.getHeight() : screenH;
+            int minTop = safeInsets[0];
+            int maxBottom = Math.max(minTop + dp(density, 120f), availScreenH - safeInsets[1]);
+            int maxMenuH = Math.min(maxBottom - minTop, Math.round(availScreenH * 0.76f));
+
+            int wSpec = View.MeasureSpec.makeMeasureSpec(menuWidth, View.MeasureSpec.EXACTLY);
+            int hSpec = View.MeasureSpec.makeMeasureSpec(maxMenuH, View.MeasureSpec.AT_MOST);
+            contentRoot.measure(wSpec, hSpec);
+            int measuredH = contentRoot.getMeasuredHeight();
+            int desiredH = Math.max(dp(density, 56f), Math.min(maxMenuH, measuredH));
+
+            int availBelow = maxBottom - Math.round(anchorY + dp(density, 4f));
+            int availAbove = Math.round(anchorY - dp(density, 4f)) - minTop;
+            boolean openDown = availBelow >= desiredH || availBelow >= availAbove;
+
+            int desiredTop;
+            float pivotY;
+            if (openDown) {
+                desiredTop = Math.max(minTop, Math.min(maxBottom - desiredH, Math.round(anchorY + dp(density, 4f))));
+                pivotY = Math.max(0f, Math.min(desiredH, anchorY - desiredTop));
+            } else {
+                desiredTop = Math.max(minTop, Math.round(anchorY - dp(density, 4f)) - desiredH);
+                pivotY = desiredH;
+            }
+
+            int desiredLpH = (measuredH >= maxMenuH) ? maxMenuH : ViewGroup.LayoutParams.WRAP_CONTENT;
+            if (contentRoot.getLayoutParams() instanceof FrameLayout.LayoutParams) {
+                FrameLayout.LayoutParams clp = (FrameLayout.LayoutParams) contentRoot.getLayoutParams();
+                if (clp.width != menuWidth || clp.height != desiredLpH
+                        || clp.leftMargin != leftMargin || clp.topMargin != desiredTop
+                        || clp.bottomMargin != safeInsets[1]) {
+                    clp.gravity = Gravity.TOP | Gravity.LEFT;
+                    clp.width = menuWidth;
+                    clp.height = desiredLpH;
+                    clp.leftMargin = leftMargin;
+                    clp.topMargin = desiredTop;
+                    clp.bottomMargin = safeInsets[1];
+                    contentRoot.setLayoutParams(clp);
+                }
+            }
+
+            contentRoot.setPivotX(pivotX);
+            contentRoot.setPivotY(pivotY);
+            if (!alreadyRevealed) {
+                POPPED_FLOATING_MENUS.put(contentRoot, Boolean.TRUE);
+                contentRoot.animate().cancel();
+                contentRoot.setAlpha(0f);
+                contentRoot.setScaleX(0.92f);
+                contentRoot.setScaleY(0.92f);
+                contentRoot.animate()
+                        .alpha(1f)
+                        .scaleX(1f)
+                        .scaleY(1f)
+                        .setDuration(145L)
+                        .setInterpolator(new DecelerateInterpolator(2.2f))
+                        .start();
+            }
+        };
+
+        bottomSheet.addOnLayoutChangeListener((v, l, t, r, b, ol, ot, or, ob) -> {
+            if (Boolean.TRUE.equals(DISMISSING_MENUS.get(dialog))) {
+                return;
+            }
+            if (v.getPaddingLeft() != 0 || v.getPaddingTop() != 0
+                    || v.getPaddingRight() != 0 || v.getPaddingBottom() != 0) {
+                v.setPadding(0, 0, 0, 0);
+            }
+            if (t > 0) {
+                configureFloatingMenuBehavior(bottomSheet, screenH);
+            }
+            if ((b - t) != (ob - ot)) {
+                contentRoot.post(repositionMenu);
+            }
+        });
+
+        contentRoot.setOnApplyWindowInsetsListener((v, insets) -> {
+            if (insets != null) {
+                int topBar = insets.getInsets(WindowInsets.Type.statusBars() | WindowInsets.Type.displayCutout()).top;
+                int navBar = insets.getInsets(WindowInsets.Type.navigationBars()).bottom;
+                safeInsets[0] = topBar + dp(density, 10f);
+                safeInsets[1] = navBar + dp(density, 10f);
+                contentRoot.post(repositionMenu);
+            }
+            return insets;
+        });
+        contentRoot.requestApplyInsets();
+
+        recyclerView.addOnLayoutChangeListener((rv, l, t, r, b, ol, ot, or, ob) -> {
+            if ((b - t) != (ob - ot) || (!Boolean.TRUE.equals(POPPED_FLOATING_MENUS.get(contentRoot)) && recyclerView.getChildCount() > 0)) {
+                contentRoot.post(repositionMenu);
+            }
+        });
+        contentRoot.postDelayed(() -> {
+            if (!Boolean.TRUE.equals(POPPED_FLOATING_MENUS.get(contentRoot))
+                    && !Boolean.TRUE.equals(DISMISSING_MENUS.get(dialog))) {
+                forceReveal[0] = true;
+                repositionMenu.run();
+            }
+        }, 90L);
+        contentRoot.post(repositionMenu);
+    }
+
+    private static void configureFloatingMenuBehavior(View bottomSheet, int screenH) {
+        if (bottomSheet == null) {
+            return;
+        }
+        try {
+            ViewGroup.LayoutParams lp = bottomSheet.getLayoutParams();
+            if (lp == null) {
+                return;
+            }
+            Method getBehavior = lp.getClass().getMethod("getBehavior");
+            Object behavior = getBehavior.invoke(lp);
+            if (behavior == null) {
+                return;
+            }
+            Class<?> cls = behavior.getClass();
+            if (cachedBehaviorClass != cls) {
+                cachedBehaviorClass = cls;
+                behaviorSetSkipCollapsed = findMethodSafe(cls, "setSkipCollapsed", boolean.class);
+                behaviorSetDraggable = findMethodSafe(cls, "setDraggable", boolean.class);
+                behaviorSetHideable = findMethodSafe(cls, "setHideable", boolean.class);
+                behaviorSetPeekHeight = findMethodSafe(cls, "setPeekHeight", int.class);
+                behaviorSetMaxWidth = findMethodSafe(cls, "setMaxWidth", int.class);
+                behaviorSetMaxHeight = findMethodSafe(cls, "setMaxHeight", int.class);
+                behaviorSetState = findMethodSafe(cls, "setState", int.class);
+            }
+            if (behaviorSetSkipCollapsed != null) behaviorSetSkipCollapsed.invoke(behavior, true);
+            if (behaviorSetDraggable != null) behaviorSetDraggable.invoke(behavior, false);
+            if (behaviorSetHideable != null) behaviorSetHideable.invoke(behavior, true);
+            if (behaviorSetMaxWidth != null) behaviorSetMaxWidth.invoke(behavior, -1);
+            if (behaviorSetMaxHeight != null) behaviorSetMaxHeight.invoke(behavior, -1);
+            if (behaviorSetPeekHeight != null) behaviorSetPeekHeight.invoke(behavior, screenH);
+            if (behaviorSetState != null) behaviorSetState.invoke(behavior, 3);
+        } catch (Throwable ignored) {
+        }
+    }
+
+    private static Method findMethodSafe(Class<?> cls, String name, Class<?>... params) {
+        try {
+            Method m = cls.getMethod(name, params);
+            m.setAccessible(true);
+            return m;
+        } catch (Throwable ignored) {
+            return null;
+        }
+    }
+
+    private static void dismissAnchoredMenu(Dialog dialog, View contentRoot) {
+        if (dialog == null || Boolean.TRUE.equals(DISMISSING_MENUS.get(dialog))) {
+            return;
+        }
+        DISMISSING_MENUS.put(dialog, Boolean.TRUE);
+        if (contentRoot == null) {
+            safeDismissDialog(dialog);
+            return;
+        }
+        contentRoot.animate().cancel();
+        contentRoot.animate()
+                .alpha(0f)
+                .scaleX(0.90f)
+                .scaleY(0.90f)
+                .setDuration(110L)
+                .setInterpolator(new DecelerateInterpolator(2f))
+                .withEndAction(() -> safeDismissDialog(dialog))
+                .start();
+        contentRoot.postDelayed(() -> safeDismissDialog(dialog), 140L);
+    }
+
+    private static void safeDismissDialog(Dialog dialog) {
+        try {
+            if (dialog.isShowing()) {
+                dialog.dismiss();
+            }
+        } catch (Throwable ignored) {
+        }
+    }
+
     private static void styleContextOrBroadcastSheet(
+            Dialog dialog,
             View bottomSheet,
             ViewGroup headerContainer,
             ViewGroup recyclerView,
@@ -319,12 +852,24 @@ final class ExpressiveBottomSheetStyler {
 
         headerContainer.setBackgroundColor(Color.TRANSPARENT);
         for (int i = 0; i < headerContainer.getChildCount(); i++) {
-            styleContextMenuHeader(headerContainer, headerContainer.getChildAt(i), density);
+            styleContextMenuHeader(headerContainer, headerContainer.getChildAt(i), density, false);
         }
         headerContainer.setOnHierarchyChangeListener(new ViewGroup.OnHierarchyChangeListener() {
             @Override
             public void onChildViewAdded(View parent, View child) {
-                styleContextMenuHeader(headerContainer, child, density);
+                if (footerView == null && isTrackOrPlaylistHeader(child)) {
+                    styleAsFloatingExpressiveMenu(
+                            dialog,
+                            bottomSheet,
+                            headerContainer,
+                            recyclerView,
+                            shadowView,
+                            parent.getContext(),
+                            density
+                    );
+                    return;
+                }
+                styleContextMenuHeader(headerContainer, child, density, false);
             }
 
             @Override
@@ -535,14 +1080,19 @@ final class ExpressiveBottomSheetStyler {
         return false;
     }
 
-    private static void styleContextMenuHeader(ViewGroup headerContainer, View headerChild, float density) {
+    private static void styleContextMenuHeader(
+            ViewGroup headerContainer,
+            View headerChild,
+            float density,
+            boolean inFloatingMenu
+    ) {
         if (headerChild == null) {
             return;
         }
         clearOpaqueDarkBackground(headerChild);
 
         int surfaceHigh = MaterialYouColorEngine.getSurfaceContainerHigh();
-        int outline = MaterialYouColorEngine.withAlpha(MaterialYouColorEngine.getOutlineVariant(), 0x45);
+        int outline = MaterialYouColorEngine.withAlpha(MaterialYouColorEngine.getOutlineVariant(), inFloatingMenu ? 0x38 : 0x45);
         int onSurface = MaterialYouColorEngine.getOnSurface();
         int onSurfaceVar = MaterialYouColorEngine.getOnSurfaceVariant();
 
@@ -555,7 +1105,12 @@ final class ExpressiveBottomSheetStyler {
                 View child = hg.getChildAt(i);
                 if (child.getClass() == View.class && child.getLayoutParams() != null
                         && child.getLayoutParams().height > 0 && child.getLayoutParams().height <= dp(density, 2f)) {
-                    child.setVisibility(View.GONE);
+                    if (inFloatingMenu) {
+                        child.setVisibility(View.VISIBLE);
+                        child.setBackgroundColor(outline);
+                    } else {
+                        child.setVisibility(View.GONE);
+                    }
                 }
                 if (child.getClass().getName().contains("CardView")) {
                     cardView = child;
@@ -565,60 +1120,96 @@ final class ExpressiveBottomSheetStyler {
         }
 
         boolean hasArtwork = false;
+        float artCorner = dpf(density, inFloatingMenu ? 12f : 14f);
         for (ImageView iv : imageViews) {
-            ExpressiveMediaStyleKit.setShapeableImageCornerRadiusIfSquare(iv, dpf(density, 14f), density);
+            ExpressiveMediaStyleKit.setShapeableImageCornerRadiusIfSquare(iv, artCorner, density);
             ViewGroup.LayoutParams lp = iv.getLayoutParams();
             int w = lp != null ? lp.width : iv.getWidth();
             if (w >= dp(density, 32f) || w == ViewGroup.LayoutParams.WRAP_CONTENT) {
                 hasArtwork = true;
+                if (inFloatingMenu && lp != null) {
+                    int compactArt = dp(density, 48f);
+                    if (lp.width != compactArt || lp.height != compactArt) {
+                        lp.width = compactArt;
+                        lp.height = compactArt;
+                        if (lp instanceof ViewGroup.MarginLayoutParams) {
+                            ViewGroup.MarginLayoutParams mlp = (ViewGroup.MarginLayoutParams) lp;
+                            mlp.setMarginStart(dp(density, 14f));
+                            mlp.leftMargin = dp(density, 14f);
+                        }
+                        iv.setLayoutParams(lp);
+                    }
+                }
             }
         }
 
-        if (cardView != null) {
-            hasArtwork = true;
-            ExpressiveMediaStyleKit.setCardViewRadius(cardView, dpf(density, 20f));
-            GradientDrawable cardBg = new GradientDrawable();
-            cardBg.setShape(GradientDrawable.RECTANGLE);
-            cardBg.setCornerRadius(dpf(density, 20f));
-            cardBg.setColor(surfaceHigh);
-            cardBg.setStroke(Math.max(1, dp(density, 1f)), outline);
-            cardView.setBackground(cardBg);
-        }
-
-        if (hasArtwork) {
-            headerContainer.setPadding(dp(density, 12f), dp(density, 2f), dp(density, 12f), dp(density, 10f));
-            if (cardView == null) {
-                float cardR = dpf(density, 20f);
-                GradientDrawable headerCard = new GradientDrawable();
-                headerCard.setShape(GradientDrawable.RECTANGLE);
-                headerCard.setCornerRadius(cardR);
-                headerCard.setColor(surfaceHigh);
-                headerCard.setStroke(Math.max(1, dp(density, 1f)), outline);
-                headerChild.setBackground(headerCard);
-                headerChild.setClipToOutline(true);
-                headerChild.setPadding(
-                        headerChild.getPaddingLeft(),
-                        Math.max(headerChild.getPaddingTop(), dp(density, 8f)),
-                        Math.max(headerChild.getPaddingRight(), dp(density, 12f)),
-                        Math.max(headerChild.getPaddingBottom(), dp(density, 8f))
-                );
+        if (inFloatingMenu) {
+            headerContainer.setPadding(0, dp(density, 4f), 0, 0);
+            headerChild.setBackgroundColor(Color.TRANSPARENT);
+            headerChild.setClipToOutline(false);
+            headerChild.setPadding(0, 0, dp(density, 14f), 0);
+            ViewGroup.LayoutParams hlp = headerChild.getLayoutParams();
+            if (hlp != null) {
+                int compactH = dp(density, 72f);
+                if (hlp.height != compactH) {
+                    hlp.height = compactH;
+                    headerChild.setLayoutParams(hlp);
+                }
             }
         } else {
-            // Clean open header for title-only sheets (e.g. Sleep Timer)
-            headerContainer.setPadding(dp(density, 16f), dp(density, 4f), dp(density, 16f), dp(density, 8f));
-            headerChild.setBackgroundColor(Color.TRANSPARENT);
+            if (cardView != null) {
+                hasArtwork = true;
+                ExpressiveMediaStyleKit.setCardViewRadius(cardView, dpf(density, 20f));
+                GradientDrawable cardBgDrawable = new GradientDrawable();
+                cardBgDrawable.setShape(GradientDrawable.RECTANGLE);
+                cardBgDrawable.setCornerRadius(dpf(density, 20f));
+                cardBgDrawable.setColor(surfaceHigh);
+                cardBgDrawable.setStroke(Math.max(1, dp(density, 1f)), outline);
+                cardView.setBackground(cardBgDrawable);
+            }
+
+            if (hasArtwork) {
+                headerContainer.setPadding(dp(density, 12f), dp(density, 2f), dp(density, 12f), dp(density, 10f));
+                if (cardView == null) {
+                    float cardCorner = dpf(density, 20f);
+                    GradientDrawable headerCard = new GradientDrawable();
+                    headerCard.setShape(GradientDrawable.RECTANGLE);
+                    headerCard.setCornerRadius(cardCorner);
+                    headerCard.setColor(surfaceHigh);
+                    headerCard.setStroke(Math.max(1, dp(density, 1f)), outline);
+                    headerChild.setBackground(headerCard);
+                    headerChild.setClipToOutline(true);
+                    headerChild.setPadding(
+                            headerChild.getPaddingLeft(),
+                            Math.max(headerChild.getPaddingTop(), dp(density, 8f)),
+                            Math.max(headerChild.getPaddingRight(), dp(density, 12f)),
+                            Math.max(headerChild.getPaddingBottom(), dp(density, 8f))
+                    );
+                }
+            } else {
+                headerContainer.setPadding(dp(density, 16f), dp(density, 4f), dp(density, 16f), dp(density, 8f));
+                headerChild.setBackgroundColor(Color.TRANSPARENT);
+            }
         }
 
         for (int i = 0; i < textViews.size(); i++) {
             TextView tv = textViews.get(i);
+            if (inFloatingMenu) {
+                tv.setIncludeFontPadding(false);
+            }
             if (i == 0) {
                 tv.setTextColor(onSurface);
                 if (!hasArtwork) {
                     tv.setTextSize(TypedValue.COMPLEX_UNIT_SP, 18f);
+                } else if (inFloatingMenu) {
+                    tv.setTextSize(TypedValue.COMPLEX_UNIT_SP, 16.5f);
                 }
                 tv.setTypeface(Typeface.create("sans-serif-medium", Typeface.BOLD));
             } else {
                 tv.setTextColor(onSurfaceVar);
+                if (inFloatingMenu) {
+                    tv.setTextSize(TypedValue.COMPLEX_UNIT_SP, 13.5f);
+                }
             }
         }
     }
@@ -636,16 +1227,40 @@ final class ExpressiveBottomSheetStyler {
         ensureIds(ctx);
         float density = ctx.getResources().getDisplayMetrics().density;
 
+        boolean inFloatingMenu = Boolean.TRUE.equals(FLOATING_MENU_ADAPTERS.get(adapter))
+                || (itemView.getParent() instanceof View
+                    && Boolean.TRUE.equals(FLOATING_MENU_RECYCLERS.get((View) itemView.getParent())))
+                || isAdapterOwnedByFloatingDialog(adapter);
+
         ImageView iconIv = idIcon != 0 ? itemView.findViewById(idIcon) : null;
         TextView titleTv = idTitle != 0 ? itemView.findViewById(idTitle) : null;
         ImageView extraIv = idExtraIcon != 0 ? itemView.findViewById(idExtraIcon) : null;
         ImageView checkIv = idCheckIcon != 0 ? itemView.findViewById(idCheckIcon) : null;
 
-        boolean grouped = MaterialYouConfig.isGroupedContextMenuCardsEnabled();
+        Object boundItem = extractAdapterItem(adapter, position);
+        boolean isCrossfadeItem = boundItem != null
+                && boundItem.getClass().getName().endsWith("CrossfadeContextMenuItemAdapter");
+        int iconResId = extractItemIconResId(boundItem);
+        String drawableName = resolveResourceEntryName(ctx, iconResId);
+        String titleText = titleTv != null && titleTv.getText() != null ? titleTv.getText().toString() : null;
+
+        boolean grouped = !inFloatingMenu && MaterialYouConfig.isGroupedContextMenuCardsEnabled();
         boolean selected = itemView.isSelected();
-        boolean destructive = isDestructiveTextOrIcon(titleTv, iconIv);
+        boolean accentActive = selected || ExpressiveContextMenuIcons.isAccentFilledDrawableName(drawableName);
+        boolean destructive = ExpressiveContextMenuIcons.isDestructiveDrawableName(drawableName)
+                || isDestructiveTextOrIcon(titleTv, iconIv);
         boolean disabled = !destructive && isDisabledMutedText(titleTv);
         boolean iconVisible = iconIv != null && iconIv.getVisibility() == View.VISIBLE;
+
+        if (inFloatingMenu) {
+            if (Boolean.TRUE.equals(TOUCH_EFFECT_ROWS.get(itemView))) {
+                TOUCH_EFFECT_ROWS.remove(itemView);
+                itemView.setOnTouchListener(null);
+            }
+        } else if (!Boolean.TRUE.equals(TOUCH_EFFECT_ROWS.get(itemView))) {
+            TOUCH_EFFECT_ROWS.put(itemView, Boolean.TRUE);
+            ExpressiveMediaStyleKit.attachSpringPressEffect(itemView);
+        }
 
         int role;
         if (!grouped || itemCount <= 1) {
@@ -667,7 +1282,7 @@ final class ExpressiveBottomSheetStyler {
         int onSurfaceVar = MaterialYouColorEngine.getOnSurfaceVariant();
         int outlineVar = MaterialYouColorEngine.getOutlineVariant();
         boolean lightMode = MaterialYouColorEngine.isLightMode(ctx);
-        int destructiveFg = lightMode ? 0xFFBA1A1A : 0xFFFFB4AB;
+        int destructiveFg = lightMode ? 0xFFB3261E : 0xFFE8A29E;
 
         int styleKey = (role & 0x3)
                 | (grouped ? 0x4 : 0)
@@ -675,18 +1290,22 @@ final class ExpressiveBottomSheetStyler {
                 | (destructive ? 0x10 : 0)
                 | (disabled ? 0x20 : 0)
                 | (lightMode ? 0x40 : 0)
-                | ((primary & 0xFFFFFF) << 7);
+                | (inFloatingMenu ? 0x80 : 0)
+                | (accentActive ? 0x100 : 0)
+                | ((primary & 0x3FFFFF) << 9);
 
-        float outerR = dpf(density, grouped ? 20f : 16f);
-        float innerR = dpf(density, grouped ? 6f : 16f);
+        float outerR = dpf(density, inFloatingMenu ? 14f : (grouped ? 20f : 16f));
+        float innerR = dpf(density, grouped ? 6f : (inFloatingMenu ? 14f : 16f));
         float topR = (role == ROLE_SINGLE || role == ROLE_FIRST) ? outerR : innerR;
         float botR = (role == ROLE_SINGLE || role == ROLE_LAST) ? outerR : innerR;
         float[] radii = new float[]{topR, topR, topR, topR, botR, botR, botR, botR};
 
-        int targetHeight = dp(density, grouped ? 58f : 56f);
-        int targetBottomMargin = (!grouped)
+        int targetHeight = dp(density, inFloatingMenu ? 52f : (grouped ? 58f : 56f));
+        int targetBottomMargin = inFloatingMenu
                 ? dp(density, 2f)
-                : ((role == ROLE_LAST || role == ROLE_SINGLE) ? 0 : dp(density, 3f));
+                : ((!grouped)
+                ? dp(density, 2f)
+                : ((role == ROLE_LAST || role == ROLE_SINGLE) ? 0 : dp(density, 3f)));
 
         ViewGroup.LayoutParams rawLp = itemView.getLayoutParams();
         if (rawLp instanceof ViewGroup.MarginLayoutParams) {
@@ -711,20 +1330,15 @@ final class ExpressiveBottomSheetStyler {
                 if (selected) {
                     fillColor = MaterialYouColorEngine.blendRgb(surfaceHigh, primary, 0.22f);
                     strokeColor = MaterialYouColorEngine.withAlpha(primary, 0x66);
-                } else if (destructive) {
-                    fillColor = lightMode
-                            ? MaterialYouColorEngine.blendRgb(surfaceHigh, 0xFFFFDAD6, 0.55f)
-                            : MaterialYouColorEngine.blendRgb(surfaceHigh, 0xFF4A1818, 0.35f);
-                    strokeColor = MaterialYouColorEngine.withAlpha(destructiveFg, lightMode ? 0x38 : 0x42);
                 } else {
                     fillColor = surfaceHigh;
                     strokeColor = MaterialYouColorEngine.withAlpha(outlineVar, 0x26);
                 }
             } else {
                 fillColor = selected
-                        ? MaterialYouColorEngine.blendRgb(surfaceHigh, primary, 0.18f)
+                        ? MaterialYouColorEngine.blendRgb(surfaceHigh, primary, 0.22f)
                         : Color.TRANSPARENT;
-                strokeColor = selected
+                strokeColor = (selected && !inFloatingMenu)
                         ? MaterialYouColorEngine.withAlpha(primary, 0x45)
                         : Color.TRANSPARENT;
             }
@@ -743,48 +1357,103 @@ final class ExpressiveBottomSheetStyler {
             mask.setCornerRadii(radii);
             mask.setColor(0xFFFFFFFF);
             int rippleTint = destructive
-                    ? MaterialYouColorEngine.withAlpha(destructiveFg, lightMode ? 0x28 : 0x33)
-                    : MaterialYouColorEngine.withAlpha(primary, 0x2C);
+                    ? MaterialYouColorEngine.withAlpha(destructiveFg, inFloatingMenu ? 0x20 : (lightMode ? 0x22 : 0x28))
+                    : MaterialYouColorEngine.withAlpha(primary, inFloatingMenu ? 0x26 : 0x2C);
             itemView.setForeground(new RippleDrawable(ColorStateList.valueOf(rippleTint), null, mask));
         }
         itemView.setTag(MaterialYouColorEngine.TAG_EXPRESSIVE_STYLED, Boolean.TRUE);
 
         if (iconIv != null) {
             if (iconVisible) {
-                int badgeSize = dp(density, 36f);
-                int iconMarginStart = dp(density, 14f);
-                int pad = dp(density, 7f);
-                if (iconIv.getPaddingLeft() != pad) {
-                    iconIv.setPadding(pad, pad, pad, pad);
-                }
-                iconIv.setScaleType(ImageView.ScaleType.CENTER_INSIDE);
-                ViewGroup.LayoutParams ilp = iconIv.getLayoutParams();
-                if (ilp instanceof ViewGroup.MarginLayoutParams) {
-                    ViewGroup.MarginLayoutParams imlp = (ViewGroup.MarginLayoutParams) ilp;
-                    if (imlp.width != badgeSize || imlp.height != badgeSize
-                            || imlp.getMarginStart() != iconMarginStart) {
-                        imlp.width = badgeSize;
-                        imlp.height = badgeSize;
-                        imlp.setMarginStart(iconMarginStart);
-                        iconIv.setLayoutParams(imlp);
-                    }
-                }
-                GradientDrawable badge = new GradientDrawable();
-                badge.setShape(GradientDrawable.OVAL);
-                badge.setColor(selected ? primaryCtr : (destructive ? (lightMode ? 0x26BA1A1A : 0x38FF5252) : surfaceHighest));
-                iconIv.setBackground(badge);
-
-                int iconTint;
-                if (disabled) {
-                    iconTint = MaterialYouColorEngine.withAlpha(onSurfaceVar, 0x66);
-                } else if (destructive) {
-                    iconTint = destructiveFg;
-                } else if (selected) {
-                    iconTint = onPrimaryCtr;
+                Drawable expressiveIcon = ExpressiveContextMenuIcons.createIcon(
+                        density, drawableName, titleText, isCrossfadeItem);
+                if (expressiveIcon != null) {
+                    iconIv.setImageDrawable(expressiveIcon);
+                    iconIv.setScaleType(ImageView.ScaleType.FIT_CENTER);
                 } else {
-                    iconTint = MaterialYouColorEngine.blendRgb(onSurface, primary, 0.28f);
+                    iconIv.setScaleType(ImageView.ScaleType.CENTER_INSIDE);
                 }
-                iconIv.setImageTintList(ColorStateList.valueOf(iconTint));
+
+                if (inFloatingMenu) {
+                    int iconSize = dp(density, 23f);
+                    int iconMarginStart = dp(density, 14f);
+                    if (iconIv.getPaddingLeft() != 0 || iconIv.getPaddingTop() != 0) {
+                        iconIv.setPadding(0, 0, 0, 0);
+                    }
+                    ViewGroup.LayoutParams ilp = iconIv.getLayoutParams();
+                    if (ilp instanceof ViewGroup.MarginLayoutParams) {
+                        ViewGroup.MarginLayoutParams imlp = (ViewGroup.MarginLayoutParams) ilp;
+                        if (imlp.width != iconSize || imlp.height != iconSize
+                                || imlp.getMarginStart() != iconMarginStart) {
+                            imlp.width = iconSize;
+                            imlp.height = iconSize;
+                            imlp.setMarginStart(iconMarginStart);
+                            iconIv.setLayoutParams(imlp);
+                        }
+                    }
+                    iconIv.setBackground(null);
+
+                    int iconTint;
+                    if (disabled) {
+                        iconTint = MaterialYouColorEngine.withAlpha(onSurfaceVar, 0x66);
+                    } else if (destructive) {
+                        iconTint = destructiveFg;
+                    } else if (accentActive) {
+                        iconTint = primary;
+                    } else {
+                        iconTint = onSurface;
+                    }
+                    iconIv.clearColorFilter();
+                    iconIv.setImageTintList(ColorStateList.valueOf(iconTint));
+                } else {
+                    int badgeSize = dp(density, 38f);
+                    int iconMarginStart = dp(density, 12f);
+                    int pad = dp(density, 7.5f);
+                    if (iconIv.getPaddingLeft() != pad || iconIv.getPaddingTop() != pad) {
+                        iconIv.setPadding(pad, pad, pad, pad);
+                    }
+                    ViewGroup.LayoutParams ilp = iconIv.getLayoutParams();
+                    if (ilp instanceof ViewGroup.MarginLayoutParams) {
+                        ViewGroup.MarginLayoutParams imlp = (ViewGroup.MarginLayoutParams) ilp;
+                        if (imlp.width != badgeSize || imlp.height != badgeSize
+                                || imlp.getMarginStart() != iconMarginStart) {
+                            imlp.width = badgeSize;
+                            imlp.height = badgeSize;
+                            imlp.setMarginStart(iconMarginStart);
+                            iconIv.setLayoutParams(imlp);
+                        }
+                    }
+                    GradientDrawable badge = new GradientDrawable();
+                    badge.setShape(GradientDrawable.RECTANGLE);
+                    badge.setCornerRadius(dpf(density, 13f));
+                    if (accentActive) {
+                        badge.setColor(primaryCtr);
+                    } else if (destructive) {
+                        badge.setColor(lightMode ? 0x16B3261E : 0x22E8A29E);
+                    } else {
+                        badge.setColor(MaterialYouColorEngine.blendRgb(
+                                surfaceHighest,
+                                primary,
+                                lightMode ? 0.08f : 0.12f
+                        ));
+                        badge.setStroke(Math.max(1, dp(density, 1f)),
+                                MaterialYouColorEngine.withAlpha(outlineVar, 0x32));
+                    }
+                    iconIv.setBackground(badge);
+
+                    int iconTint;
+                    if (disabled) {
+                        iconTint = MaterialYouColorEngine.withAlpha(onSurfaceVar, 0x66);
+                    } else if (destructive) {
+                        iconTint = destructiveFg;
+                    } else if (accentActive) {
+                        iconTint = onPrimaryCtr;
+                    } else {
+                        iconTint = onSurface;
+                    }
+                    iconIv.clearColorFilter();
+                    iconIv.setImageTintList(ColorStateList.valueOf(iconTint));
+                }
                 iconIv.setTag(MaterialYouColorEngine.TAG_EXPRESSIVE_STYLED, Boolean.TRUE);
             } else {
                 iconIv.setBackground(null);
@@ -804,10 +1473,10 @@ final class ExpressiveBottomSheetStyler {
             }
             titleTv.setTextColor(titleColor);
             titleTv.setTag(MaterialYouColorEngine.TAG_EXPRESSIVE_STYLED, Boolean.TRUE);
-            titleTv.setTextSize(TypedValue.COMPLEX_UNIT_SP, 15.5f);
+            titleTv.setTextSize(TypedValue.COMPLEX_UNIT_SP, 16f);
             titleTv.setTypeface(Typeface.create("sans-serif-medium", selected ? Typeface.BOLD : Typeface.NORMAL));
 
-            int desiredMarginStart = dp(density, iconVisible ? 62f : 18f);
+            int desiredMarginStart = dp(density, inFloatingMenu ? (iconVisible ? 50f : 16f) : (iconVisible ? 62f : 16f));
             ViewGroup.LayoutParams tlp = titleTv.getLayoutParams();
             if (tlp instanceof ViewGroup.MarginLayoutParams) {
                 ViewGroup.MarginLayoutParams tmlp = (ViewGroup.MarginLayoutParams) tlp;
@@ -924,6 +1593,56 @@ final class ExpressiveBottomSheetStyler {
         }
     }
 
+    private static Object extractRecyclerAdapter(View recyclerView) {
+        if (recyclerView == null) {
+            return null;
+        }
+        try {
+            Class<?> cls = recyclerView.getClass();
+            if (cachedRvClass != cls) {
+                cachedRvGetAdapterMethod = findMethodSafe(cls, "getAdapter");
+                cachedRvClass = cls;
+            }
+            if (cachedRvGetAdapterMethod != null) {
+                return cachedRvGetAdapterMethod.invoke(recyclerView);
+            }
+        } catch (Throwable ignored) {
+        }
+        return null;
+    }
+
+    private static boolean isAdapterOwnedByFloatingDialog(Object adapter) {
+        if (adapter == null) {
+            return false;
+        }
+        try {
+            Class<?> cls = adapter.getClass();
+            if (cachedAdapterOwnerClass != cls) {
+                Field found = null;
+                Class<?> cur = cls;
+                while (cur != null && cur != Object.class && found == null) {
+                    for (Field f : cur.getDeclaredFields()) {
+                        if (Dialog.class.isAssignableFrom(f.getType())) {
+                            f.setAccessible(true);
+                            found = f;
+                            break;
+                        }
+                    }
+                    cur = cur.getSuperclass();
+                }
+                cachedAdapterDialogField = found;
+                cachedAdapterOwnerClass = cls;
+            }
+            Field f = cachedAdapterDialogField;
+            if (f != null && f.getDeclaringClass().isAssignableFrom(cls)) {
+                Object owner = f.get(adapter);
+                return owner instanceof Dialog && Boolean.TRUE.equals(FLOATING_MENU_DIALOGS.get((Dialog) owner));
+            }
+        } catch (Throwable ignored) {
+        }
+        return false;
+    }
+
     private static View extractItemView(Object viewHolder) {
         try {
             if (!vhFieldLookupAttempted) {
@@ -954,20 +1673,114 @@ final class ExpressiveBottomSheetStyler {
     private static int getAdapterItemCount(Object adapter) {
         try {
             Class<?> cls = adapter.getClass();
-            Method m = cachedGetItemCountMethod;
-            if (m == null || cachedAdapterClass != cls) {
-                m = cls.getMethod("getItemCount");
-                m.setAccessible(true);
-                cachedAdapterClass = cls;
-                cachedGetItemCountMethod = m;
-            }
-            Object res = m.invoke(adapter);
-            if (res instanceof Integer) {
-                return (Integer) res;
+            ensureAdapterReflection(cls);
+            if (cachedGetItemCountMethod != null) {
+                Object res = cachedGetItemCountMethod.invoke(adapter);
+                if (res instanceof Integer) {
+                    return (Integer) res;
+                }
             }
         } catch (Throwable ignored) {
         }
         return 0;
+    }
+
+    private static void ensureAdapterReflection(Class<?> cls) {
+        if (cachedAdapterClass == cls) {
+            return;
+        }
+        try {
+            Method countM = findMethodSafe(cls, "getItemCount");
+            Method listM = findMethodSafe(cls, "getCurrentList");
+            Method getItemM = null;
+            Class<?> cur = cls;
+            while (cur != null && cur != Object.class && getItemM == null) {
+                try {
+                    getItemM = cur.getDeclaredMethod("getItem", int.class);
+                    getItemM.setAccessible(true);
+                } catch (NoSuchMethodException ignored) {
+                    cur = cur.getSuperclass();
+                }
+            }
+            cachedGetItemCountMethod = countM;
+            cachedGetCurrentListMethod = listM;
+            cachedGetItemMethod = getItemM;
+            cachedAdapterClass = cls;
+        } catch (Throwable ignored) {
+        }
+    }
+
+    private static Object extractAdapterItem(Object adapter, int position) {
+        if (adapter == null || position < 0) {
+            return null;
+        }
+        try {
+            ensureAdapterReflection(adapter.getClass());
+            if (cachedGetCurrentListMethod != null) {
+                Object listObj = cachedGetCurrentListMethod.invoke(adapter);
+                if (listObj instanceof List<?>) {
+                    List<?> list = (List<?>) listObj;
+                    if (position < list.size()) {
+                        return list.get(position);
+                    }
+                }
+            }
+            if (cachedGetItemMethod != null) {
+                return cachedGetItemMethod.invoke(adapter, position);
+            }
+        } catch (Throwable ignored) {
+        }
+        return null;
+    }
+
+    private static int extractItemIconResId(Object item) {
+        if (item == null) {
+            return 0;
+        }
+        try {
+            Class<?> cls = item.getClass();
+            if (!itemIconLookupAttempted || (cachedItemIconField != null && !cachedItemIconField.getDeclaringClass().isAssignableFrom(cls))) {
+                itemIconLookupAttempted = true;
+                Field found = null;
+                Class<?> cur = cls;
+                while (cur != null && cur != Object.class) {
+                    try {
+                        Field f = cur.getDeclaredField("b");
+                        if (f.getType() == int.class) {
+                            f.setAccessible(true);
+                            found = f;
+                            break;
+                        }
+                    } catch (NoSuchFieldException ignored) {
+                    }
+                    cur = cur.getSuperclass();
+                }
+                cachedItemIconField = found;
+            }
+            if (cachedItemIconField != null && cachedItemIconField.getDeclaringClass().isAssignableFrom(cls)) {
+                return cachedItemIconField.getInt(item);
+            }
+        } catch (Throwable ignored) {
+        }
+        return 0;
+    }
+
+    private static String resolveResourceEntryName(Context ctx, int resId) {
+        if (ctx == null || resId == 0) {
+            return null;
+        }
+        String cached = DRAWABLE_NAME_CACHE.get(resId);
+        if (cached != null) {
+            return cached.isEmpty() ? null : cached;
+        }
+        try {
+            String name = ctx.getResources().getResourceEntryName(resId);
+            DRAWABLE_NAME_CACHE.put(resId, name != null ? name : "");
+            return name;
+        } catch (Throwable ignored) {
+            DRAWABLE_NAME_CACHE.put(resId, "");
+            return null;
+        }
     }
 
     private static void ensureIds(Context ctx) {
@@ -984,6 +1797,7 @@ final class ExpressiveBottomSheetStyler {
         }
         cachedPackageName = pkg;
         idDesignBottomSheet = res.getIdentifier("design_bottom_sheet", "id", pkg);
+        idTouchOutside = res.getIdentifier("touch_outside", "id", pkg);
         idShadowView = res.getIdentifier("shadowView", "id", pkg);
         idHeaderContainer = res.getIdentifier("headerContainer", "id", pkg);
         idRecyclerView = res.getIdentifier("recyclerView", "id", pkg);

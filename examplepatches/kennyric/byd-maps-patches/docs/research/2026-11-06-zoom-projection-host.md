@@ -1,0 +1,40 @@
+# Zoom Workplace projection compatibility
+
+Target: `us.zoom.videomeetings` 7.2.1.43844 / 6702010, minSdk 28, targetSdk 36, ARM64. Use the complete original base, ARM64 and xxxhdpi split archive. Original base SHA-256: `587464a1a657ae7beb02c0de6f74fa56ed3ac7f94a139eb06a51985497320f2b`. Original signing certificate SHA-256: `60b75724b34686e52bde944969de120f16bd6d959788d54384494caedd4e445d`.
+
+## Findings and scoped repairs
+
+1. **Host admission:** `ZmAutoServiceV3.createHostValidator()` loads six certificate/package entries covering only Google's Android Auto and automotive template hosts. Original Zoom accepted Google's host and rejected a real DriveDeck Binder handshake before any template. The addon returns the bundled `HostValidator.ALLOW_ALL_HOSTS_VALIDATOR`, removing host package, certificate and caller-policy checks for this car service. Direct policy cases accepted stable/development DriveDeck, Google Android Auto and an arbitrary missing host package. The final APK's independently decompiled service confirms the same unconditional validator.
+2. **Re-signed startup:** Zoom's own ARM64 native loader reads the APK certificate's MD5 fingerprint, compares it with four decoded fingerprints, then sends SIGKILL to its process on rejection. This is not PairIP. The exact original `libzLoader.so` is 216824 bytes with SHA-256 `5d786d3078128958dad193c97581cc3aaf1b8d67591f14bd9197994e3761a2b6`. The local Boolean predicate is at virtual/file offset `0x17508`; its resolved caller is `Java_us_zoom_component_sdk_loader_jni_ZmMainboardNative_initMainboardImpl`. The executable PT_LOAD maps file zero to virtual zero. Replace only the predicate's first eight bytes (`ff 43 02 d1 fd 7b 06 a9`) with `mov w0, #1; ret` (`20 00 80 52 c0 03 5f d6`), after pinning the entire original image and preimage. Preserve mainboard initialization, crash handling and account/network code.
+3. **Reopen with optional hardware data:** Zoom copies nullable `Model.manufacturer.value` and `Model.name.value` into static tracking fields, then passes them to non-null protobuf setters. Reopening reproduced a real NullPointerException at `CarPlayInteractInfo.Builder.setCarMake`. Normalize only null values in the exact setters `AutoEventTracking.e(String)` and `f(String)` to Zoom's existing `Android_Auto_make` and `Android_Auto_model` defaults. Preserve non-null values and the original field stores. Validate exact method signatures, static flags, parameter registers and SPUT_OBJECT field identities (`b` and `c`) before editing.
+4. **Host list rendering:** Zoom's car screens use existing ListTemplate/TabTemplate contracts. DriveDeck treated an empty, non-null section collection as the sectioned view, hiding a normal single list and its no-items message. The companion DriveDeck source fix enters that branch only for non-empty sections. No new drawing surface or Zoom-specific renderer is required.
+
+The native/source preflight rejects other builds, unexpected ABI sets, unknown native images and already patched inputs. The native check repair changes exactly eight loader bytes; all other 125 native libraries remain identical to the supplied ARM64 split. This implements unrestricted projection-host access, not account entitlement changes or video meeting surfaces.
+
+## PairIP result
+
+All three original APKs were scanned, including their DEX entries and all 126 ARM64 native libraries. No PairIP classes, assets, DEX/native markers or `libpairipcore.so` were found. The actual startup blocker was the independently decompiled Zoom certificate predicate. The final re-signed APK then passed cold startup and native car-screen acceptance with Frida process-lifecycle observation attached throughout.
+
+## Verification
+
+### Discovery limitation found on the owner's phone
+
+The earlier emulator setup explicitly ran `pm enable` for `ZmAutoServiceV3`; consequently, its rendering/startup evidence did not verify normal fresh-install discovery. The owner's patched installation subsequently had this service explicitly disabled and the normal CarAppService query returned no results. The original manifest sets this service disabled by default. Both application startup and PTUI call `com.zipow.videobox.auto.w.a(boolean)`, which writes the enabled or disabled component state according to Zoom's availability condition. The correction enables this one exported CALLING service in the manifest and pins only that component updater's Boolean input to true, retaining its other guards, handler, component and PackageManager call. It does not change account or meeting authorization.
+
+The corrected candidate passed the complete affected Android/JVM and bilingual-documentation gates. Applying it to the exact original APKS passed rebuilding, signing and independent output inspection; all 126 native libraries remained identical to the previously accepted candidate. One 175.45-second API 34 acceptance session proved normal PackageManager discovery immediately after a clean installation, after first startup and after a cold restart, without any `pm enable`. A separate step within that session explicitly disabled the service to reproduce the phone's stored component state, then proved that ordinary Zoom startup restored discovery. Passive Frida lifecycle observation covered all three Zoom processes; no unexpected exit occurred and the owned runtime stopped cleanly.
+
+The physical phone's shell denied the attempted one-time component enable with `SecurityException`. Its installed APK was not replaced and its data was not cleared. The corrected signed MPP was copied to the phone's Download directory for application through the owner's Morphe Manager signing identity. Phone/Android Auto acceptance of the corrected APK remains pending that in-place Manager update.
+
+- Complete initial repository verification passed. The native and optional-metadata batches reran all affected Android/JVM, generated-catalogue and bilingual documentation gates through the shared verifier, reusing passing Git/release/Python/Medium evidence whose inputs were unchanged.
+- Real-input tests passed without skips for the host validator, native preimage/preservation/rejection behavior and optional car metadata binding/control flow.
+- Morphe Desktop merged the complete three-APK original archive and applied exactly `Allow all Android Auto hosts`, with no failed patches. Rebuild/sign steps passed. Independent final-output inspection confirmed the Java validator and both null-handling setters, the exact native instructions and all unrelated library bytes.
+- DriveDeck's complete managed local check passed, including its existing Robolectric section tests and the added SDK single-list/no-items contracts. The acceptance host was separately built with the original signing configuration and verified against certificate `1C:45:E9:72:F3:87:16:0E:69:94:39:19:54:D0:F1:EB:D9:83:A2:B0:AB:50:6E:44:46:45:F4:CA:9F:47:BD:C4`.
+- The final API 34 ARM64 emulator acceptance ran for 189.55 seconds within its eight-minute deadline. The re-signed Zoom app reached Welcome; DriveDeck opened its native Meetings screen and displayed Zoom's own sign-in message. Closing returned to the drawer, reopening passed, and a planned cold restart followed by reopening passed. Frida heartbeats covered both processes and the restarted Zoom process with no unexpected detach or crash. The owned runtime stopped and its cleanup receipt passed.
+
+Final APK SHA-256: `b5bc2b4350aa87476ec51423152cb13aee80f8a7d19345ef92c37083d6bb51e6`.
+
+Local MPP candidate SHA-256: `b77bbf0e394457ca8b2f9ba9664617c3204cf5b4645c8d443b16d10a731c4aee`.
+
+Original-signed DriveDeck candidate SHA-256: `a0ac6b5b1d3de00e2bd2395e4bf806d1befb72b87f274aa2536cd431c0ea147b`.
+
+The original phone installation and data were preserved. Account login, authenticated meetings, licensed Zoom Phone calling, physical-car projection/audio and a physical head unit's Back transport were not exercised. Local candidates are not published releases; this checkpoint did not promote main or publish a release.

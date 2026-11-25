@@ -50,6 +50,32 @@ fun main(args: Array<String>) = runBlocking {
                 dexCount++
             }
             check(dexCount > 0)
+            val originals = DexFileFactory.loadDexContainer(input, Opcodes.getDefault())
+            val protectedTypes = setOf("LX/Ail9;",
+                "LX/gΨ丷Ж乁π丂θ临丄Ν串丣丰д丵κأЭΕΓ丯δг;",
+                "LX/z丳ظر乂ЕΣΔ乓Ь业九ΛЦΥПεНβ丐ؤح么乆;")
+            val protectedOriginals = originals.dexEntryNames.flatMap { name ->
+                originals.getEntry(name)!!.dexFile.classes.filter { it.type in protectedTypes }
+            }.associateBy { it.type }
+            val emitted = result.dexFiles.flatMap { dex ->
+                DexFileFactory.loadDexFile(File(destination, dex.name), Opcodes.getDefault()).classes
+                    .filter { it.type in protectedTypes }
+            }
+            check(emitted.size == protectedTypes.size && protectedOriginals.keys == protectedTypes)
+            for (def in emitted) {
+                val original = protectedOriginals.getValue(def.type)
+                for (native in original.methods.filter { it.accessFlags and 0x100 != 0 }) {
+                    val method = def.methods.single { it.name == native.name &&
+                        it.parameterTypes == native.parameterTypes && it.returnType == native.returnType }
+                    check(method.accessFlags == native.accessFlags && method.implementation == null) {
+                        "Native declaration changed: ${def.type}->${native.name}"
+                    }
+                }
+                if (def.type == "LX/Ail9;") check(canonical(def) == canonical(original)) {
+                    "Native startup loader must remain unchanged"
+                }
+            }
+            println("PASS: Original native loader and native UI method declarations preserved")
             val asset = File(result.resources!!.otherResources!!, "assets/local-startup-module.dex")
             check(asset.readBytes().contentEquals(java.util.zip.ZipFile(bundle).use {
                 it.getInputStream(it.getEntry("honista/startup-module.dex")).readBytes()

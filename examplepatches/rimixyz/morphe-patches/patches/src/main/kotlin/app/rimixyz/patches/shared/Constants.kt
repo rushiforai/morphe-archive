@@ -56,4 +56,19 @@ object Constants {
             AppTarget(version = "4.16.2", versionCode = 4016002)
         )
     )
+
+    val COMPATIBILITY_HABITNOW = Compatibility(
+        name = "HabitNow",
+        packageName = "com.habitnow",
+        apkFileType = ApkFileType.APKS,
+        appIconColor = 0x4A90E2,
+        signatures = setOf(
+            // SHA-256 do certificado do base.apk analisado (v2/v3 + Source Stamp).
+            "9ef69083e4d204e7efd51a1f8146fad98680979144e699cafb37a8d246fd5375"
+        ),
+        targets = listOf(
+            // APKS analisado: SHA-256 0FD4E0BC0E6A00331FEE7AE1DAC188A46F07935EE46CEB9A2F7CD43E6B57DE6E.
+            AppTarget(version = "2.5.5", versionCode = 229)
+        )
+    )
 }

@@ -131,6 +131,8 @@ public final class MonetCatalogChannels {
 
     public static String selection(Object row) {
         try {
+            // 1.1.2's native selection is null for Seerr media rows; keep that.
+            if (NativeLayout.v112 && "SEERR".equals(String.valueOf(row.getClass().getField("v").get(row)))) return null;
             List<?> packages = (List<?>) row.getClass().getField("g").get(row);
             return packages.isEmpty() ? null : (String) packages.get(0);
         } catch (ReflectiveOperationException failure) { throw new IllegalStateException(failure); }
@@ -143,9 +145,16 @@ public final class MonetCatalogChannels {
         return new ArrayList<>(channel == null ? Collections.emptyList() : channel.items);
     }
 
+    /** 1.1.2 may pass Kotlin's shared empty list (not an ArrayList); native code only iterates it. */
+    public static List<?> rowItems112(List<?> original, Object selected) {
+        if (!(selected instanceof String) || !((String) selected).startsWith(PREFIX)) return original;
+        Channel channel = snapshot.channels.get(selected);
+        return new ArrayList<>(channel == null ? Collections.emptyList() : channel.items);
+    }
+
     public static LinkedHashSet<?> hidden(Set<?> original, Object row) {
         try {
-            List<?> own = (List<?>) row.getClass().getField("A").get(row);
+            List<?> own = (List<?>) row.getClass().getField(NativeLayout.v112 ? "D" : "A").get(row);
             LinkedHashSet<Object> result = new LinkedHashSet<>();
             String selected = selection(row);
             if (selected == null || !selected.startsWith(PREFIX)) result.addAll(original);
@@ -206,6 +215,23 @@ public final class MonetCatalogChannels {
     public static void contentPicker110(String title, String subtitle, List options, Object selected, Object label,
             boolean enabled, Object secondary, Object first, Object second, Set checked, Set disabled,
             Object predicate, Object onSelect, Object dismiss, Object composer, int changed, int changed1, int defaults) {
+        modernPicker(title, subtitle, options, selected, label, enabled, secondary, first, second, checked, disabled,
+            true, predicate, onSelect, dismiss, composer, defaults);
+    }
+
+    /** 1.1.2's generic picker (H1) no longer takes the 1.1.0/1.1.1 item predicate. */
+    @SuppressWarnings({"rawtypes"})
+    public static void contentPicker112(String title, String subtitle, List options, Object selected, Object label,
+            boolean enabled, Object secondary, Object first, Object second, Set checked, Set disabled,
+            Object onSelect, Object dismiss, Object composer, int changed, int changed1, int defaults) {
+        modernPicker(title, subtitle, options, selected, label, enabled, secondary, first, second, checked, disabled,
+            false, null, onSelect, dismiss, composer, defaults);
+    }
+
+    @SuppressWarnings({"rawtypes", "unchecked"})
+    private static void modernPicker(String title, String subtitle, List options, Object selected, Object label,
+            boolean enabled, Object secondary, Object first, Object second, Set checked, Set disabled,
+            boolean hasPredicate, Object predicate, Object onSelect, Object dismiss, Object composer, int defaults) {
         Object row = PICKER_ROW.get(); PICKER_ROW.remove();
         try {
             Class<?> labels = Class.forName(NativeLayout.type("a.lv1")), action = Class.forName(NativeLayout.type("a.wu1")), click = Class.forName(NativeLayout.type("a.uu1"));
@@ -259,16 +285,21 @@ public final class MonetCatalogChannels {
                     Object actions = onSelect.getClass().getField("l").get(onSelect);
                     String rowId = (String)onSelect.getClass().getField("m").get(onSelect);
                     Method update = Class.forName(NativeLayout.type("a.kv1")).getMethod("f",Object.class,Object.class);
-                    if (choice instanceof String) update.invoke(actions.getClass().getField("F").get(actions),rowId,null);
-                    update.invoke(actions.getClass().getField("M").get(actions),rowId,
+                    if (choice instanceof String) update.invoke(actions.getClass().getField(NativeLayout.v112 ? "H" : "F").get(actions),rowId,null);
+                    update.invoke(actions.getClass().getField(NativeLayout.v112 ? "P" : "M").get(actions),rowId,
                         Collections.singletonList(choice instanceof String ? choice : app));
                 }
                 return result;
             });
-            Class.forName(NativeLayout.type("a.f24")).getMethod(NativeLayout.v111 ? "E1" : "D1",String.class,String.class,List.class,Object.class,labels,boolean.class,
-                labels,action,action,Set.class,Set.class,Class.forName(NativeLayout.type("a.nv1")),action,click,Class.forName(NativeLayout.type("a.jw1")),int.class,int.class,int.class)
-                .invoke(null,title,subtitle,choices,selected,primary,enabled,secondaryLabels,
-                    pickerAction(first,action,recommendations,true),pickerAction(second,action,recommendations,false),checked,disabled,predicate,
+            Object firstAction = pickerAction(first,action,recommendations,true), secondAction = pickerAction(second,action,recommendations,false);
+            Class<?> picker = Class.forName(NativeLayout.type("a.f24")), composerType = Class.forName(NativeLayout.type("a.jw1"));
+            if (hasPredicate) picker.getMethod(NativeLayout.v111 ? "E1" : "D1",String.class,String.class,List.class,Object.class,labels,boolean.class,
+                labels,action,action,Set.class,Set.class,Class.forName(NativeLayout.type("a.nv1")),action,click,composerType,int.class,int.class,int.class)
+                .invoke(null,title,subtitle,choices,selected,primary,enabled,secondaryLabels,firstAction,secondAction,checked,disabled,predicate,
+                    callback,dismiss,composer,0,0,defaults);
+            else picker.getMethod("H1",String.class,String.class,List.class,Object.class,labels,boolean.class,
+                labels,action,action,Set.class,Set.class,action,click,composerType,int.class,int.class,int.class)
+                .invoke(null,title,subtitle,choices,selected,primary,enabled,secondaryLabels,firstAction,secondAction,checked,disabled,
                     callback,dismiss,composer,0,0,defaults);
         } catch (ReflectiveOperationException failure) { throw new IllegalStateException("Monet 1.1.0 content picker contract changed",failure); }
     }
@@ -297,12 +328,12 @@ public final class MonetCatalogChannels {
         try {
             boolean modern = NativeLayout.modern;
             Class<?> flow = Class.forName(NativeLayout.type(modern ? "a.in1" : "a.nj1")), transform = Class.forName(NativeLayout.type(modern ? "a.mv1" : "a.ar1"));
-            if (revisionFlow == null) revisionFlow = Class.forName(NativeLayout.type(modern ? "a.k88" : "a.sx")).getMethod(modern ? "g" : "a", Object.class).invoke(null, revision);
+            if (revisionFlow == null) revisionFlow = Class.forName(NativeLayout.type(modern ? "a.k88" : "a.sx")).getMethod(modern ? (NativeLayout.v112 ? "a" : "g") : "a", Object.class).invoke(null, revision);
             Object callback = Proxy.newProxyInstance(transform.getClassLoader(), new Class<?>[]{transform}, (proxy, method, args) -> {
                 if (method.getDeclaringClass() == Object.class) return proxyObject(proxy, method, args);
                 return new CatalogList((List<?>) args[0], Math.max(((Number) args[1]).longValue(), ((Number) args[2]).longValue()));
             });
-            return Class.forName(NativeLayout.type(modern ? "a.p35" : "a.yg2")).getMethod(modern ? (NativeLayout.v111 ? "q" : "s") : "o", flow, flow, flow, transform)
+            return Class.forName(NativeLayout.type(modern ? "a.p35" : "a.yg2")).getMethod(modern ? (NativeLayout.v112 ? "z" : NativeLayout.v111 ? "q" : "s") : "o", flow, flow, flow, transform)
                 .invoke(null, nativeFlow, revisionFlow, revisionFlow, callback);
         } catch (ReflectiveOperationException failure) { throw new IllegalStateException("Monet catalog flow contract changed", failure); }
     }
@@ -322,7 +353,7 @@ public final class MonetCatalogChannels {
     static Object channel(Context context, String owner, String provider, String title, long id) throws ReflectiveOperationException {
         Channel channel = new Channel(owner, provider, title, id);
         boolean modern = NativeLayout.modern;
-        Object result = Class.forName(NativeLayout.type(modern ? "a.vt5" : "a.fi5")).getMethod(modern ? "l" : "k", Context.class, Uri.class, int.class, Long.class)
+        Object result = Class.forName(NativeLayout.type(modern ? "a.vt5" : "a.fi5")).getMethod(modern ? (NativeLayout.v112 ? "m" : "l") : "k", Context.class, Uri.class, int.class, Long.class)
             .invoke(null, context, Uri.parse("content://android.media.tv/preview_program?channel=" + id), 101, id);
         if (result == null) throw new IllegalStateException("Catalog program query returned null");
         List<?> raw = (List<?>) result.getClass().getField("a").get(result);
@@ -348,8 +379,8 @@ public final class MonetCatalogChannels {
         snapshot = new Snapshot(mapped);
         int itemCount = 0;
         for (Channel channel : mapped.values()) itemCount += channel.items.size();
-        Log.i("SantodanMonet", (NativeLayout.v111 ? "Catalog content 1.1.1" : NativeLayout.modern ? "Catalog content 1.1.0" : "Catalog content v2") + ": published " + mapped.size() + " channels / " + itemCount + " entries");
-        if (revisionFlow != null) revisionFlow.getClass().getMethod(NativeLayout.v111 ? "j" : "k", Object.class).invoke(revisionFlow, ++revision);
+        Log.i("SantodanMonet", (NativeLayout.v112 ? "Catalog content 1.1.2" : NativeLayout.v111 ? "Catalog content 1.1.1" : NativeLayout.modern ? "Catalog content 1.1.0" : "Catalog content v2") + ": published " + mapped.size() + " channels / " + itemCount + " entries");
+        if (revisionFlow != null) revisionFlow.getClass().getMethod(NativeLayout.v111 || NativeLayout.v112 ? "j" : "k", Object.class).invoke(revisionFlow, ++revision);
     }
 
     /** Preserve normal app matching; catalog selections use the unmerged membership snapshot. */
@@ -369,7 +400,7 @@ public final class MonetCatalogChannels {
     /** Preserve 1.1.0's additional native channel filter while resolving only catalog ownership. */
     public static boolean matches110(Object item, String selected, Object filter) {
         try {
-            boolean nativeMatch = (boolean)Class.forName(NativeLayout.type("a.yp7")).getMethod(NativeLayout.v111 ? "d0" : "M",Class.forName(NativeLayout.type("a.vs0")),String.class,Class.forName(NativeLayout.type("a.ip4")))
+            boolean nativeMatch = (boolean)Class.forName(NativeLayout.type("a.yp7")).getMethod(NativeLayout.v112 ? "D" : NativeLayout.v111 ? "d0" : "M",Class.forName(NativeLayout.type("a.vs0")),String.class,Class.forName(NativeLayout.type("a.ip4")))
                 .invoke(null,item,owner(selected),filter);
             return nativeMatch && (!selected.startsWith(PREFIX) || matches(item,selected));
         } catch (ReflectiveOperationException failure) { throw new IllegalStateException("Monet native channel filter contract changed",failure); }
@@ -413,11 +444,11 @@ public final class MonetCatalogChannels {
             Class<?> optionType = Class.forName(NativeLayout.type(modern ? "a.gt4" : "a.sj4"));
             option = optionType.getConstructor(int.class, String.class, String.class, boolean.class);
             optionId = optionType.getField("a");
-            convert = modern ? Class.forName(NativeLayout.type("a.vt5")).getMethod("m",raw,label,List.class,long.class,Map.class)
+            convert = modern ? Class.forName(NativeLayout.type("a.vt5")).getMethod(NativeLayout.v112 ? "n" : "m",raw,label,List.class,long.class,Map.class)
                 : Class.forName(NativeLayout.type("a.fi5")).getMethod("l", raw, label, List.class, long.class);
-            sources = Class.forName(NativeLayout.type(modern ? "a.c32" : "a.rx3")).getMethod(modern ? (NativeLayout.v111 ? "n" : "q") : "i", List.class, LinkedHashMap.class, Set.class, Locale.class);
+            sources = Class.forName(NativeLayout.type(modern ? "a.c32" : "a.rx3")).getMethod(modern ? (NativeLayout.v112 ? "z" : NativeLayout.v111 ? "n" : "q") : "i", List.class, LinkedHashMap.class, Set.class, Locale.class);
             channel = raw.getField("c"); artwork = raw.getField("f"); programOwner = raw.getField("b");
-            key = item.getField(modern ? "n" : "k"); owner = item.getField("b");
+            key = item.getField(modern ? (NativeLayout.v112 ? "o" : "n") : "k"); owner = item.getField("b");
         }
         Object convert(Object program, Object labels, Channel source) throws ReflectiveOperationException {
             return NativeLayout.modern ? convert.invoke(null,program,labels,artwork.get(program),0L,

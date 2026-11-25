@@ -39,13 +39,16 @@ public final class AdBlocker {
      * URL; a playlist polled closer than this to the stream's own poll is another player's.
      */
     private static final long CONCURRENT_POLL_MS = 1_000;
+    /** A stream's old URL not polled this long (a poll's time and more) has stopped: the stream moved. */
+    private static final long MOVED_AFTER_MS = 2_500;
+    private static final long STANDALONE_MAX_IDLE_MS = 2 * 60 * 1000;
     /** A watched stream polls every ~2 seconds; quiet this long means no stream is open. */
     private static final long WATCHING_MS = 6_000;
     private static final int MAX_PREVIEW_VARIANTS = 500;
     private static final Pattern TOKEN_PARAMETER = Pattern.compile("[?&]token=([^&]+)");
     private static final Pattern PLAYER_TYPE = Pattern.compile("\"player_type\"\\s*:\\s*\"([^\"]+)\"");
 
-    /** Follows ad breaks, for the on-screen notice and the post-break player refresh. */
+    /** Follows ad breaks, for the on-screen notice. */
     public interface BreakListener {
         BreakListener NONE = new BreakListener() {
             @Override
@@ -65,7 +68,7 @@ public final class AdBlocker {
          */
         void onBlocking(String quality);
 
-        /** The ad segments are gone and the original stream plays again; the player may need a refresh. */
+        /** The ad segments are gone and the original stream plays again. */
         void onBreakOver();
     }
 
@@ -124,7 +127,7 @@ public final class AdBlocker {
     public boolean isWatching() {
         long now = clock.getAsLong();
         for (StreamSession session : sessionsByVariant.values()) {
-            if (session.lastVariantUrl != null && now - session.lastSeen < WATCHING_MS) return true;
+            if (!session.quiet && session.lastVariantUrl != null && now - session.lastSeen < WATCHING_MS) return true;
         }
         return false;
     }
@@ -189,39 +192,61 @@ public final class AdBlocker {
             return body;
         }
         StreamSession session = sessionsByVariant.get(UrlKey.of(url));
-        if (session != null) return onMediaPlaylist(session, url, body);
-        if (!isLiveMediaPlaylist(url)) return body;
+        if (session != null && !session.standalone) return onMediaPlaylist(session, url, body);
+        if (session == null && !isLiveMediaPlaylist(url)) return body;
 
         long now = clock.getAsLong();
         StreamSession latest = latestSession(now);
+        // The stream watched moving to another playlist server: its old URL has stopped being polled (a first
+        // poll a second after its last; a playlist blocked on its own so far, a whole poll's time after), and
+        // only the same stream shares segments with it. Anything else (picture-by-picture, another player, a
+        // preview that wasn't recognised) must not mix its segments and ads into the stream watched.
+        long quietFor = latest == null ? 0 : now - latest.lastSeen;
+        if (latest != null && quietFor >= (session == null ? CONCURRENT_POLL_MS : MOVED_AFTER_MS)) {
+            boolean sameStream;
+            synchronized (latest) {
+                sameStream = latest.stitcherFor(latest.lastVariantUrl).recognises(MediaPlaylist.parse(body, url));
+            }
+            if (sameStream) return onMediaPlaylist(adoptMovedPlaylist(latest, url), url, body);
+        }
+        if (session != null) return onMediaPlaylist(session, url, body);
+        // Blocked on its own: its ads cut out (a backup needs the playlist list).
         if (latest == null) {
-            // A live playlist with no stream it could belong to: Twitch changed how streams are loaded.
-            problems.report(Problem.UNRECOGNIZED_PLAYLIST, UrlKey.of(url));
-            return body;
+            // Its stream's playlist list wasn't seen: a stream picked up again after a long pause or from the
+            // background, or loaded past the player's client. Likely the one on screen: it shows the label.
+            return onMediaPlaylist(standaloneSession(url, now, "its playlist list wasn't seen", false), url, body);
         }
-        if (now - latest.lastSeen < CONCURRENT_POLL_MS) {
-            // Polled together with the stream at its own URL: another player of it, not the stream moving.
-            if (logger.detailed()) logger.log("Leaving another player's playlist alone: " + UrlKey.of(url));
-            return body;
-        }
-        // Only the same stream shares segments with it; anything else (picture-by-picture, a preview
-        // that was not recognised) must not mix its segments and ads into the stream being watched.
-        boolean sameStream;
-        synchronized (latest) {
-            sameStream = latest.stitcherFor(latest.lastVariantUrl).recognises(MediaPlaylist.parse(body, url));
-        }
-        if (!sameStream) {
-            if (logger.detailed()) logger.log("Leaving unrelated playlist alone (no shared segments): " + UrlKey.of(url));
-            return body;
-        }
-        return onMediaPlaylist(adoptMovedPlaylist(latest, url), url, body);
+        return onMediaPlaylist(standaloneSession(url, now, quietFor < CONCURRENT_POLL_MS ? "another player"
+                : "no segments shared with the stream watched", true), url, body);
+    }
+
+    /**
+     * A live playlist none of the streams it knows owns, made a stream of its own: its ads are cut out (no backup:
+     * that needs its playlist list), its playlist otherwise handed on as Twitch sent it.
+     */
+    private StreamSession standaloneSession(String url, long now, String why, boolean quiet) {
+        forgetIdleSessions(now); // (the masters that would tidy up may never come here)
+        String key = UrlKey.of(url);
+        StreamSession made = new StreamSession(hostOf(key), url, MasterPlaylist.parse(""), now);
+        made.standalone = true;
+        made.quiet = quiet;
+        StreamSession session = sessionsByVariant.putIfAbsent(key, made);
+        if (session != null) return session; // (another poll of it made one first)
+        logger.log("Blocking a playlist on its own (" + why + "): " + key);
+        return made;
+    }
+
+    private static String hostOf(String key) {
+        int start = key.indexOf("://");
+        int end = key.indexOf('/', start + 3);
+        return start < 0 ? "a stream" : "a stream on " + key.substring(start + 3, end < 0 ? key.length() : end);
     }
 
     /** The stream polled most recently within the reassignment window, or null. */
     private StreamSession latestSession(long now) {
         StreamSession latest = null;
         for (StreamSession session : sessionsByVariant.values()) {
-            if (session.lastVariantUrl == null || now - session.lastSeen > REASSIGNMENT_WINDOW_MS) continue;
+            if (session.standalone || session.lastVariantUrl == null || now - session.lastSeen > REASSIGNMENT_WINDOW_MS) continue;
             if (latest == null || session.lastSeen > latest.lastSeen) latest = session;
         }
         return latest;
@@ -313,6 +338,8 @@ public final class AdBlocker {
     /** Called with the session locked. */
     private String handleMediaPlaylist(StreamSession session, String url, String body, MediaPlaylist playlist,
                                        BackupStreamFinder.Result backup, String searchNote) {
+        // A playlist of another player (not the stream on screen) is blocked without a label.
+        BreakListener breaks = session.quiet ? BreakListener.NONE : this.breaks;
         session.lastSeen = clock.getAsLong();
         session.lastVariantUrl = session.variantUrlFor(url);
         PlaylistStitcher stitcher = session.stitcherFor(url);
@@ -351,19 +378,32 @@ public final class AdBlocker {
         // Ad markers can stay in the playlist a while after the ad itself, so the break follows the
         // ad segments. It ends after two clean polls in a row, so a single clean window (for example
         // between two ads) does not end it and start it again moments later.
-        String output = stitcher.process(playlist, body, PlaylistStitcher.NATIVE);
-        if (quality.swappingAds && ++quality.cleanPolls >= 2) {
+        if (quality.swappingAds) {
+            // Still in this quality's break: stitched on until it's over, so the player's numbering carries on.
+            String output = stitcher.process(playlist, body, PlaylistStitcher.NATIVE);
             // Another quality still in the break (polled moments ago) keeps it open: the label and
             // the player refresh wait for the break as a whole to end.
-            if (session.endAdSwap(url, clock.getAsLong())) {
+            if (++quality.cleanPolls >= 2 && session.endAdSwap(url, clock.getAsLong())) {
                 logger.log("Ad break over on " + session.channel);
                 breaks.onBreakOver();
             }
-        } else if (!quality.swappingAds && session.endLeftBreaks(clock.getAsLong())) {
+            return output;
+        }
+        if (session.endLeftBreaks(clock.getAsLong())) {
             // The player switched to this (clean) quality during the break and left the other one.
             logger.log("Ad break over on " + session.channel + " (quality changed)");
             breaks.onBreakOver();
         }
+        // No ad on this quality: Twitch's own playlist, only its ad markers taken out (a break announced ahead
+        // takes the prefetch hints too). Its numbering, low latency hints and parts stay as Twitch sent them.
+        boolean wasStitched = stitcher.isRewriting();
+        if (wasStitched && !stitcher.readyToHandBack(playlist)) {
+            // Twitch's playlist still holds what the player was given otherwise (an ad cut, a backup's
+            // segments): stitched on until it doesn't, so no number goes back or skips.
+            return stitcher.process(playlist, body, PlaylistStitcher.NATIVE);
+        }
+        String output = stitcher.passThrough(playlist, body);
+        if (wasStitched) logger.log("Back to Twitch's own playlist on " + session.channel);
         return output;
     }
 
@@ -394,7 +434,10 @@ public final class AdBlocker {
     private void forgetIdleSessions(long now) {
         Iterator<StreamSession> iterator = sessionsByVariant.values().iterator();
         while (iterator.hasNext()) {
-            if (now - iterator.next().lastSeen > SESSION_MAX_IDLE_MS) iterator.remove();
+            StreamSession session = iterator.next();
+            // (one blocked on its own goes sooner: nothing else tidies up after the playlists it stands for)
+            long idle = session.standalone ? STANDALONE_MAX_IDLE_MS : SESSION_MAX_IDLE_MS;
+            if (now - session.lastSeen > idle) iterator.remove();
         }
     }
 }

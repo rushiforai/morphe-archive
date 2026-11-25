@@ -1,0 +1,322 @@
+{
+  "format": 1,
+  "scope": "Actual app-created Vela route/session/current navigation state and existing selected system guide. Controlled long untagged native guide text reaches real content onStart before a source-produced no-coordinate/zero-speed road-service P0. Native content stops before external start; exactly one external completion/source ACK is followed by a distinct untagged native content start after a fresh emulator fix on the same actual route. No guide/session/route/owner or navigation/audio state is constructed/replaced. Natural maneuver triggering, next-step transitions and physical/car routing remain separate.",
+  "serial": "emulator-5590",
+  "avd": "native_warnings_ui_api34",
+  "apps": {
+    "nl.flitsmeister": "f76a1afc4e971cd81ad1a4f8aae8bed367a6b3f2391b78f6e1a15d599e0b622c",
+    "org.ungoogled.android.apps.maps": "d8557e9562776729f67c86070d19444f1f985f0f4cc7b173116b22a8db06c0e7",
+    "app.vela": "72012bd0dd02ee3b3eb31a35df55d24de5fea79ba830906568c0d029c101aeab"
+  },
+  "helpers": {
+    "maps": "e2cb55972862a4dd9f540b4a23acaf9a0df0fd69a23b1d2b3702a11b425238f1",
+    "vela": "27a52aaad0193c33ce219844e109268858fd52c68c7592d453d1df011c7d36fe",
+    "source": "1103b1e1e3f4b6e709724766c2de0369d72c49951aa58ee0c60f1644f95eb4b4"
+  },
+  "actual_route": {
+    "native_session_present": true,
+    "actual_route_ready": true,
+    "session_class": "xo2",
+    "state_class": "no2",
+    "native_navigation_active": true,
+    "native_navigation_paused": false,
+    "native_arrived": false,
+    "current_route_present": true,
+    "current_step_present": true,
+    "current_instruction": "Head west on Raamgracht",
+    "route_class": "app.vela.core.model.Route",
+    "route_identity": 106552486,
+    "polyline_points": 143,
+    "nav_state_class": "yo2",
+    "spoken_indices": "[]"
+  },
+  "native_before_warning": {
+    "actual_route": {
+      "native_session_present": true,
+      "actual_route_ready": true,
+      "session_class": "xo2",
+      "state_class": "no2",
+      "native_navigation_active": true,
+      "native_navigation_paused": false,
+      "native_arrived": false,
+      "current_route_present": true,
+      "current_step_present": true,
+      "current_instruction": "Turn right onto Kloveniersburgwal",
+      "route_class": "app.vela.core.model.Route",
+      "route_identity": 106552486,
+      "polyline_points": 143,
+      "nav_state_class": "yo2",
+      "spoken_indices": "[0, 1]"
+    },
+    "controlled_native_id": "vela-950855300",
+    "regenerated_native_id": "",
+    "external_done_elapsed_ms": -1,
+    "events": [
+      {
+        "id": "vela-lead-950855300",
+        "event": "start",
+        "elapsed_ms": 7431716
+      },
+      {
+        "id": "vela-lead-950855300",
+        "event": "done",
+        "elapsed_ms": 7432017
+      },
+      {
+        "id": "vela-950855300",
+        "event": "start",
+        "elapsed_ms": 7432017
+      }
+    ],
+    "original_listener_restored": false
+  },
+  "native_after_warning": {
+    "actual_route": {
+      "native_session_present": true,
+      "actual_route_ready": true,
+      "session_class": "xo2",
+      "state_class": "no2",
+      "native_navigation_active": true,
+      "native_navigation_paused": false,
+      "native_arrived": false,
+      "current_route_present": true,
+      "current_step_present": true,
+      "current_instruction": "Turn right onto Kloveniersburgwal",
+      "route_class": "app.vela.core.model.Route",
+      "route_identity": 106552486,
+      "polyline_points": 143,
+      "nav_state_class": "yo2",
+      "spoken_indices": "[0, 1]"
+    },
+    "controlled_native_id": "vela-950855300",
+    "regenerated_native_id": "vela-21983012",
+    "external_done_elapsed_ms": 7434932,
+    "events": [
+      {
+        "id": "vela-lead-950855300",
+        "event": "start",
+        "elapsed_ms": 7431716
+      },
+      {
+        "id": "vela-lead-950855300",
+        "event": "done",
+        "elapsed_ms": 7432017
+      },
+      {
+        "id": "vela-950855300",
+        "event": "start",
+        "elapsed_ms": 7432017
+      },
+      {
+        "id": "vela-950855300",
+        "event": "stop_interrupted",
+        "elapsed_ms": 7432389
+      },
+      {
+        "id": "vela-warning-cb12d958-e2fa-40c2-9d83-2b1cfdf7c99d",
+        "event": "start",
+        "elapsed_ms": 7432485
+      },
+      {
+        "id": "vela-warning-cb12d958-e2fa-40c2-9d83-2b1cfdf7c99d",
+        "event": "done",
+        "elapsed_ms": 7434932
+      },
+      {
+        "id": "vela-lead-21983012",
+        "event": "start",
+        "elapsed_ms": 7435731
+      },
+      {
+        "id": "vela-lead-21983012",
+        "event": "done",
+        "elapsed_ms": 7436032
+      },
+      {
+        "id": "vela-21983012",
+        "event": "start",
+        "elapsed_ms": 7436032
+      }
+    ],
+    "original_listener_restored": false
+  },
+  "source_authority": {
+    "language_tag": "en-US",
+    "native_local_mute_bypass": false,
+    "issued_elapsed_ms": 7432146,
+    "native_family": "EarlyWarningReport",
+    "priority": 0,
+    "protocol_version": 1,
+    "native_announce_observed": true,
+    "relationship": "unknown",
+    "revision": 1,
+    "category": "emergency_vehicle",
+    "phase": "notice",
+    "relevance": "moving_emergency",
+    "capture_path": "early",
+    "state_until_elapsed_ms": 7462146,
+    "native_subtype": "ROAD_SERVICE",
+    "message_origin": "native_resource",
+    "native_text_key": "0174f8d81aeb347b7c62266bf4c808542a146bacdfeed119206a70f08653fb87",
+    "message": "Caution, emergency service!",
+    "announcement_index": 1,
+    "provider_session": "40968453-37c2-46aa-9e6b-6423ecb586a2",
+    "sequence": 1,
+    "native_early_type_argument": "ROAD_SERVICE",
+    "observed_elapsed_ms": 7432146,
+    "operation": "ANNOUNCE",
+    "native_type": "INCIDENT",
+    "warning_id": "early/ROAD_SERVICE:probe-restart-cad21350a7de40478c29c8e64a2cad92-native-guidance",
+    "announce_until_elapsed_ms": 7437146
+  },
+  "actual_warning_speaker_payload": {
+    "attempt_id": "ccf9ece5-8ed2-4bf3-bb85-a4fd217afcf4",
+    "event_key": "f951af1e88037f8eb7aa49a91ef8634c3bfdcc66086bcd5751e4f0dee231f70a",
+    "payload": {
+      "language_tag": "en-US",
+      "native_local_mute_bypass": false,
+      "issued_elapsed_ms": 7432151,
+      "native_family": "EarlyWarningReport",
+      "priority": 0,
+      "protocol_version": 1,
+      "relationship": "unknown",
+      "revision": 1,
+      "category": "emergency_vehicle",
+      "phase": "notice",
+      "relevance": "moving_emergency",
+      "capture_path": "report_state",
+      "state_until_elapsed_ms": 7462151,
+      "native_subtype": "ROAD_SERVICE",
+      "message_origin": "native_resource",
+      "native_text_key": "0174f8d81aeb347b7c62266bf4c808542a146bacdfeed119206a70f08653fb87",
+      "message": "Caution, emergency service!",
+      "announcement_index": 1,
+      "provider_session": "40968453-37c2-46aa-9e6b-6423ecb586a2",
+      "sequence": 2,
+      "observed_elapsed_ms": 7432151,
+      "operation": "UPSERT",
+      "native_type": "INCIDENT",
+      "warning_id": "early/ROAD_SERVICE:probe-restart-cad21350a7de40478c29c8e64a2cad92-native-guidance"
+    },
+    "started": true
+  },
+  "actual_warning_start": {
+    "preview": false,
+    "native_type": "INCIDENT",
+    "observed_ms": 7432146,
+    "priority": 0,
+    "issued_ms": 7432146,
+    "sequence": 1,
+    "provider_session": "40968453-37c2-46aa-9e6b-6423ecb586a2",
+    "deadline_ms": 7437146,
+    "stage": "SCHEDULER_STARTED",
+    "elapsed_ms": 7432487,
+    "category": "emergency_vehicle",
+    "event_key": "f951af1e88037f8eb7aa49a91ef8634c3bfdcc66086bcd5751e4f0dee231f70a"
+  },
+  "actual_warning_completion": {
+    "preview": false,
+    "native_type": "INCIDENT",
+    "observed_ms": 7432146,
+    "priority": 0,
+    "issued_ms": 7432146,
+    "sequence": 1,
+    "provider_session": "40968453-37c2-46aa-9e6b-6423ecb586a2",
+    "deadline_ms": 7437146,
+    "stage": "SCHEDULER_COMPLETED",
+    "elapsed_ms": 7434936,
+    "category": "emergency_vehicle",
+    "event_key": "f951af1e88037f8eb7aa49a91ef8634c3bfdcc66086bcd5751e4f0dee231f70a"
+  },
+  "controlled_content_start": {
+    "id": "vela-950855300",
+    "event": "start",
+    "elapsed_ms": 7432017
+  },
+  "controlled_content_stop": {
+    "id": "vela-950855300",
+    "event": "stop_interrupted",
+    "elapsed_ms": 7432389
+  },
+  "current_route_content_resume": {
+    "id": "vela-21983012",
+    "event": "start",
+    "elapsed_ms": 7436032
+  },
+  "native_content_stop_before_external_start": true,
+  "native_content_resume_after_external_completion": true,
+  "silent_leads_excluded_from_content_proof": true,
+  "original_listener_restored_exactly": true,
+  "hidden_api_policy_before": "null",
+  "hidden_api_policy_after": "null",
+  "fresh_fix": {
+    "latitude": 52.3701,
+    "longitude": 4.9
+  },
+  "source_acknowledgements": [
+    {
+      "receiver_uid": 10193,
+      "outcome": "GRANTED",
+      "started": false,
+      "mode": "VOICE"
+    },
+    {
+      "receiver_uid": 10193,
+      "outcome": "STARTED",
+      "started": true,
+      "mode": "VOICE"
+    },
+    {
+      "receiver_uid": 10193,
+      "outcome": "COMPLETED",
+      "started": true,
+      "mode": "VOICE"
+    }
+  ],
+  "provider_managed_mute": true,
+  "all_exact_preference_permission_policy_source_network_lease_and_window_cleanup_passed": true,
+  "raw_result": ".analysis/native-warning-bindings/vela-source-native-guidance-02/result.json",
+  "source_result": ".analysis/native-warning-bindings/vela-source-native-guidance-02/seed-source/49240e15-ade1-4c00-bec6-9bbce4bbf197/result.json",
+  "receiver_result": ".analysis/native-warning-bindings/vela-source-native-guidance-02/seed-receiver-result.json",
+  "rejected_baseline": {
+    "raw_result": ".analysis/native-warning-bindings/vela-source-native-guidance-01/result.json",
+    "reason": "Observer counted vela-lead-* silent preambles as native content. The underlying trace contains actual controlled content stop, but that run ended before resumed content was proven. Its original positive coordinator result is retained but rejected for content-regeneration acceptance."
+  },
+  "remaining": [
+    "Actual next-maneuver/passage transitions and moving source lead",
+    "Other modes/lifecycle/compatibility and actual car routing",
+    "Final review/CI and authorized delivery"
+  ],
+  "strict_controlled_text_hash_rerun": {
+    "raw_result": ".analysis/native-warning-bindings/vela-source-native-guidance-03/result.json",
+    "source_result": ".analysis/native-warning-bindings/vela-source-native-guidance-03/seed-source/0775ed84-e74c-44cb-ac83-1784ba3a2b9d/result.json",
+    "receiver_result": ".analysis/native-warning-bindings/vela-source-native-guidance-03/seed-receiver-result.json",
+    "controlled_native_content_start": {
+      "id": "vela-950855300",
+      "event": "start",
+      "elapsed_ms": 7667595
+    },
+    "controlled_native_content_stop": {
+      "id": "vela-950855300",
+      "event": "stop_interrupted",
+      "elapsed_ms": 7668103
+    },
+    "external_native_start": {
+      "id": "vela-warning-3a87eb7f-a005-468a-8a76-dbeda8814694",
+      "event": "start",
+      "elapsed_ms": 7668188
+    },
+    "external_native_done": {
+      "id": "vela-warning-3a87eb7f-a005-468a-8a76-dbeda8814694",
+      "event": "done",
+      "elapsed_ms": 7670622
+    },
+    "regenerated_native_content_start": {
+      "id": "vela-21983012",
+      "event": "start",
+      "elapsed_ms": 7671537
+    },
+    "same_actual_route": true,
+    "original_listener_and_all_cleanup_restored": true
+  }
+}

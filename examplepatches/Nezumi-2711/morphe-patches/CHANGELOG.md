@@ -1,3 +1,12 @@
+## [1.8.0-dev.1](https://github.com/Nezumi-2711/morphe-patches/compare/v1.7.0...v1.8.0-dev.1) (2026-11-24)
+
+### ✨ New Features
+
+* **zalo:** add call recording for 1-1 voice and video calls ([414d585](https://github.com/Nezumi-2711/morphe-patches/commit/414d585ce26af182408c46ec5006e7c7cdbf21ae))
+* **zalo:** bypass conversation protection to unblock sharing ([1371ef3](https://github.com/Nezumi-2711/morphe-patches/commit/1371ef34617a01dc0652dd017f94d651a326c48a)), closes [#45](https://github.com/Nezumi-2711/morphe-patches/issues/45)
+* **zalo:** save profile avatar, cover, Story and Zalo Video to gallery ([e530781](https://github.com/Nezumi-2711/morphe-patches/commit/e530781699167fa53d64d2c3aa4deb8e54140c77)), closes [#46](https://github.com/Nezumi-2711/morphe-patches/issues/46)
+* **zalo:** unlimited local quick messages ([832c908](https://github.com/Nezumi-2711/morphe-patches/commit/832c908bacd467d37e4fc58b9000d06705abf00d)), closes [#48](https://github.com/Nezumi-2711/morphe-patches/issues/48)
+
 ## [1.7.0](https://github.com/Nezumi-2711/morphe-patches/compare/v1.6.0...v1.7.0) (2026-11-23)
 
 ### 🐛 Bug Fixes

@@ -139,7 +139,18 @@ historical fixtures, share complete native references with runtime reflection,
 and audit the delivered APK's reflected bindings. Nuvio evidence routing is in
 `E:\Morphe\Skills\morphe-inspection-evidence\references\nuvio-migrations.md`.
 
-Latest Monet target: **1.1.1** (code 135). Read [Monet111.md](docs/Monet111.md)
+Latest Monet target: **1.1.2** (code 136) for premium, displayed cards and catalog rows.
+Read [Monet112.md](docs/Monet112.md). The regular premium patch derives its targets from
+`MonetPremiumPatch.REVIEWED`; the shared matcher proves billing ownership and semantics
+independent of names, flags, field order or branch layout. Cards/catalog use separate
+`MonetDisplayedCards112` / `MonetCatalogChannels112` contracts and `NativeLayout.v112`
+runtime bindings; 1.1.2 changed registers (picker scratch is now v44), row/item fields
+(`sx0.D`, `iv0.o`), the generic picker (no predicate) and added custom row labels and Seerr
+rows. Unversioned card/catalog tasks run the `112` checks; `verifyMonet111` and the `111`
+card/catalog tasks keep 1.1.1 coverage. Port tooling is in
+`E:\Morphe\Skills\inspection-evidence\.inspect-monet-1.1.2`.
+
+Previous Monet target: **1.1.1** (code 135). Read [Monet111.md](docs/Monet111.md)
 for the premium/card/catalog migration, exact original evidence, latest verifier
 commands and startup-app investigation. The unversioned card/catalog tasks now
 run the `111` checks. Historical `110` contracts and fixtures remain unchanged.

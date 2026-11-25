@@ -1,7 +1,7 @@
 {
-  "created_at": "2026-11-22T16:46:09",
-  "description": "## [1.27.0](https://github.com/ahmedyarub/morphe-patches/compare/v1.26.0...v1.27.0) (2026-11-22)\n\n### 🐛 Bug Fixes\n\n* **Claude:** Show internal settings on non-employee accounts ([a0f8b03](https://github.com/ahmedyarub/morphe-patches/commit/a0f8b0336bee54c9a27e1a2a3fb3cf308f72139f))\n\n### ✨ New Features\n\n* **Claude:** Add Show employee-only items patch ([8ef9e79](https://github.com/ahmedyarub/morphe-patches/commit/8ef9e7958e2b628c595ddec4951460016c9c1187))\n* **Claude:** Add Show internal settings patch ([2b33ebf](https://github.com/ahmedyarub/morphe-patches/commit/2b33ebfef93ee42bb460becd41a64024d9ae90e3))\n* **Claude:** Show Copy session ID and Debug in cloud Code sessions ([ecb6ee4](https://github.com/ahmedyarub/morphe-patches/commit/ecb6ee4c02d3171883f32e0a2bd7d3241f61ab8e))",
-  "download_url": "https://github.com/ahmedyarub/morphe-patches/releases/download/v1.27.0/patches-1.27.0.mpp",
+  "created_at": "2026-11-24T19:38:30",
+  "description": "## [1.29.0](https://github.com/ahmedyarub/morphe-patches/compare/v1.28.0...v1.29.0) (2026-11-24)\n\n### ✨ New Features\n\n* **X:** Support 12.46.1 ([91ffc17](https://github.com/ahmedyarub/morphe-patches/commit/91ffc17d3c2a07104e719b8c707d505f3ccfe78e))",
+  "download_url": "https://github.com/ahmedyarub/morphe-patches/releases/download/v1.29.0/patches-1.29.0.mpp",
   "signature_download_url": "",
-  "version": "1.27.0"
+  "version": "1.29.0"
 }

@@ -39,12 +39,12 @@ get in each other's way:
     texts (see `.github/scripts/app_versions.py`). `add_version.py`, `watch_version.py` and `fetch_apk.py`
     take the app's name.
 
-  An app is tested on the emulators after a merge into dev changes its code (`emulator-tests.yml`), and the
-  release tests whatever wasn't (`.github/scripts/tested.py` keeps track). The release writes the README
-  table, its owners line and the issue forms' app lists from these files (`.github/scripts/sync_apps.py`).
-- `.github/workflows/emulator-<app>.yml`: runs `emulator-app.yml` for the app's own pull requests.
-- `.github/workflows/<app>-version.yml`, if it has one: a short wrapper with its own schedule around
-  `app-version.yml`.
+  An app is tested on the emulators by the pull requests that change its code (`emulator-pr.yml`) and
+  after a merge into main (`emulator-tests.yml`), and the release tests whatever wasn't
+  (`.github/scripts/tested.py` keeps track). `versions.yml` checks every app with `versions` settings for
+  new versions once a day. The release writes the README table, its owners line and the issue forms' app
+  lists from these files (`.github/scripts/sync_apps.py`). None of the workflows name the apps, so a new
+  app needs no workflow of its own.
 - `docs/<app>/README.md` and `docs/<app>/CONTRIBUTING.md`.
 
 ## Building
@@ -59,6 +59,7 @@ The bundle, with every app's patches, is written to `patches/build/libs/patches-
 
 ## Pull requests
 
-Work on a branch from `dev` and open the pull request against `dev`: the weekly pre-release is made from it, and
-the stable release from main. Give the pull request a [Conventional Commit](https://www.conventionalcommits.org/)
+Work on a branch from `main` and open the pull request against `main`: the release is made from it every
+Saturday, or right away by hand for an urgent fix. The `dev` branch is only a copy of `main` that the release
+keeps up to date (Morphe Manager reads it for "Pre-release patches"); don't work on it. Give the pull request a [Conventional Commit](https://www.conventionalcommits.org/)
 title (`feat:`, `fix:`, `docs:` ...), as the release notes are made from it.

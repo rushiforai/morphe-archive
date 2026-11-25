@@ -430,7 +430,8 @@ val hideCloseupButtonsPatch = bytecodePatch(
         "the visual search (lens) button that float over the picture, the like, comment, share and more buttons under it, " +
         "the Remix button and the Visit site button. Another switch keeps the lens but drops its glow and the Search " +
         "image label Pinterest puts on it for your first pins each day. Two more rows draw the red Save button smaller " +
-        "or paint it a color you pick. Your phone's back gesture still leaves the pin, and Search image in the pin menu " +
+        "or paint it a color you pick, and another gives Pinterest's other red buttons, like Follow, that color too. " +
+        "Your phone's back gesture still leaves the pin, and Search image in the pin menu " +
         "still works. They all start off. Turn them on in HushPinterest settings > Interface.",
 ) {
     category("Interface")

@@ -6,6 +6,7 @@ import app.morphe.patcher.patch.bytecodePatch
 import app.morphe.patcher.extensions.InstructionExtensions.replaceInstruction
 import app.morphe.util.getReference
 import com.android.tools.smali.dexlib2.AccessFlags
+import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.iface.Method
 import com.android.tools.smali.dexlib2.iface.instruction.FiveRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
@@ -173,10 +174,14 @@ val ghostModePatch = bytecodePatch(
         // Instagram rebuilds the inbox from the server, which never hears about these receipts, so
         // a ghosted chat comes back unread after a sync. Keep what you read locally here...
         val queued = DmThreadSeenQueueFingerprint.method
+        // (UserSession, task, client_context, message_id, thread_id): only the message id is what the
+        // unread check asks about, and the other two filled the set three times as fast. Any other
+        // shape keeps every String, as before.
+        val texts = queued.parameterTypes.indices.filter { queued.parameterTypes[it].toString() == TEXT }
         queued.rememberStringsIf(
             "isDmSeenHidden",
             "rememberSeenItem",
-            queued.parameterTypes.indices.filter { queued.parameterTypes[it].toString() == TEXT },
+            if (texts == listOf(2, 3, 4)) listOf(3) else texts,
         )
         // ...and let the chat summary's own "has this account seen that message" check answer for
         // it, so the chat still reads as read with the receipt never having left.
@@ -248,6 +253,9 @@ val ghostModePatch = bytecodePatch(
             for (method in classDef.methods) {
                 val calls = method.implementation?.instructions?.toList()?.withIndex()
                     ?.mapNotNull { (index, insn) ->
+                        // A Window subclass's own super.setFlags call must stay: routed to the stand-in,
+                        // which calls back into that subclass, it would never return.
+                        if (insn.opcode == Opcode.INVOKE_SUPER) return@mapNotNull null
                         when ((insn as? ReferenceInstruction)?.reference.toString()) {
                             SET_WINDOW_FLAGS, ADD_WINDOW_FLAGS -> index to insn
                             else -> null

@@ -14,6 +14,8 @@ import app.morphe.patcher.extensions.InstructionExtensions.removeInstruction
 import app.morphe.patcher.patch.BytecodePatchContext
 import app.morphe.patcher.patch.PatchException
 import app.morphe.patches.threads.misc.extension.SETTINGS_STATUS
+import app.morphe.patches.threads.misc.extension.holdsNote
+import app.morphe.patches.threads.misc.extension.noteSmali
 import app.morphe.util.findMutableMethodOf
 import app.morphe.util.getReference
 import com.android.tools.smali.dexlib2.AccessFlags
@@ -27,7 +29,6 @@ import com.android.tools.smali.dexlib2.iface.instruction.OffsetInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.RegisterRangeInstruction
 import com.android.tools.smali.dexlib2.iface.reference.MethodReference
-import com.android.tools.smali.dexlib2.iface.reference.StringReference
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertThrows
@@ -59,7 +60,7 @@ class ExactPostTimesFixtureTest {
             // Read apart from the patch: one method holds the note, and it calls one static
             // function of its own class that takes a context and a double, answers a string
             // and builds a date from milliseconds.
-            val holders = classes(build).flatMap { it.methods }.filter { method -> method.body().any { it.isNote() } }
+            val holders = classes(build).flatMap { it.methods }.filter { it.holdsNote(POST_TIMESTAMP_NOTE) }
             assertEquals("$where: methods holding the note", 1, holders.size)
             val composable = holders.single()
             val owned = composable.body().mapNotNull { it.getReference<MethodReference>() }.filter {
@@ -179,7 +180,7 @@ class ExactPostTimesFixtureTest {
         for (build in Fixtures.declaredBuilds()) {
             val context = context(build)
             val formatter = context.mutable(context.postTimeFormatter())
-            formatter.addInstructions(0, "const-string v0, \"${POST_TIMESTAMP_NOTE}99)\"")
+            formatter.addInstructions(0, noteSmali(POST_TIMESTAMP_NOTE))
             val error = assertThrows(build.name, PatchException::class.java) { exactPostTimesPatch.execute(context) }
             assertTrue(error.message.orEmpty(), error.message.orEmpty().contains("expected exactly one match, found 2"))
             assertEquals(build.name, 0, status(context))
@@ -206,17 +207,12 @@ class ExactPostTimesFixtureTest {
 
     private fun Method.signature() = "$definingClass->$name(${parameterTypes.joinToString("")})$returnType"
 
-    private fun Instruction.isNote() =
-        opcode == Opcode.CONST_STRING && getReference<StringReference>()?.string?.startsWith(POST_TIMESTAMP_NOTE) == true
-
     private fun BytecodePatchContext.mutable(method: Method) = mutableClassDefBy(method.definingClass).findMutableMethodOf(method)
 
     private fun context(build: File) = PatchContexts.of(ExtensionDex.classes() + classes(build))
 
     private fun classes(build: File): List<ClassDef> = fixtures.getOrPut(build) {
-        FixtureDex.classesWhere(build, { dex -> dex.stringSection.any { it.startsWith(POST_TIMESTAMP_NOTE) } }) { method ->
-            method.implementation?.instructions?.any { it.isNote() } == true
-        }
+        FixtureDex.classesWhere(build, { true }) { it.holdsNote(POST_TIMESTAMP_NOTE) }
     }
 
     private fun status(context: BytecodePatchContext) = (context.mutableClassDefBy(SETTINGS_STATUS).methods

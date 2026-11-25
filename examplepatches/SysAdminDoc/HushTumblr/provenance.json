@@ -240,6 +240,17 @@
       "via": [],
       "license": "GPL-3.0-only",
       "changes": "Persistent feedback for settings actions, with exact link copying and one polite update for each result. SpokenLine is the status line a screen reader reads once per answer."
+    },
+    {
+      "paths": [
+        "extensions/tumblr/src/main/java/app/hushtumblr/extension/tumblr/ui/TextSize.java"
+      ],
+      "origin": "ported",
+      "upstream": "https://github.com/SysAdminDoc/Hushfacebook",
+      "commit": "e332bd2b322e13dc648ba76cf3dc25a8748ef6bd",
+      "via": [],
+      "license": "GPL-3.0-only",
+      "changes": "Hushfacebook's text size, ported for Tumblr in 2026 (#23): package app.hushtumblr.extension.tumblr.ui. The size is its own text setting read only while the Text size switch is on, the row offers every size but 100%, and the settings entry's activity callbacks call it as each Tumblr screen is created, resumes and is destroyed. The font scale math and the configuration callbacks are unchanged."
     }
   ]
 }

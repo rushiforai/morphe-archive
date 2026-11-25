@@ -25,6 +25,7 @@ import android.os.Handler;
 import android.os.Looper;
 import android.text.TextUtils;
 import android.util.TypedValue;
+import android.view.Gravity;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.MotionEvent;
@@ -61,8 +62,12 @@ public final class ExpressiveMediaStyleKit {
     private static final Handler MAIN_HANDLER = new Handler(Looper.getMainLooper());
     private static final WeakHashMap<View, Boolean> ROUNDED_ROW_ARTWORK = new WeakHashMap<>();
     private static final WeakHashMap<View, Integer> STYLED_CLEAN_ROW_ACCENT = new WeakHashMap<>();
+    private static final WeakHashMap<View, ViewGroup> CONNECTED_PRESS_ROWS = new WeakHashMap<>();
 
-    // Cached reflection handles
+    // Cached resource & reflection handles
+    private static String cachedDlSpacePkg;
+    private static int cachedIdDlSpace;
+
     private static Class<?> crossfadeDrawableClass;
     private static Method crossfadeGetEndMethod;
     private static Field crossfadeEndField;
@@ -85,6 +90,9 @@ public final class ExpressiveMediaStyleKit {
 
     private static Method setIndicatorColorMethod;
     private static Method setTrackColorMethod;
+    private static Method setIndicatorSizeMethod;
+    private static Method setIndicatorInsetMethod;
+    private static Method setTrackThicknessMethod;
     private static boolean progressReflectionResolved;
 
     private static Method switchSetThumbTintMethod;
@@ -720,10 +728,17 @@ public final class ExpressiveMediaStyleKit {
             return;
         }
         container.setVisibility(View.VISIBLE);
+        container.setClipChildren(false);
+        container.setClipToPadding(false);
 
-        float outerR = dpf(density, 22f);
-        float innerR = dpf(density, 10f);
-        float activeR = dpf(density, 18f);
+        boolean lightMode = MaterialYouColorEngine.isLightMode(container.getContext());
+        float outerR = dpf(density, 20f);
+        float innerR = dpf(density, 8f);
+        float activeR = dpf(density, 20f);
+        int tileHeightPx = dp(density, 56f);
+        int hPad = dp(density, 4f);
+        int tPad = dp(density, 9f);
+        int bPad = dp(density, 8f);
 
         int count = visible.size();
         for (int i = 0; i < count; i++) {
@@ -731,11 +746,25 @@ public final class ExpressiveMediaStyleKit {
             boolean isFirst = i == 0;
             boolean isLast = i == count - 1;
 
+            attachConnectedExpressivePressEffect(container, btn);
+            btn.setMinimumWidth(0);
+            btn.setPadding(hPad, tPad, hPad, bPad);
+            btn.setElevation(0f);
+            btn.setStateListAnimator(null);
+
             if (btn.getLayoutParams() instanceof LinearLayout.LayoutParams) {
                 LinearLayout.LayoutParams lp = (LinearLayout.LayoutParams) btn.getLayoutParams();
-                int marginStart = isFirst ? 0 : dp(density, 4f);
+                int marginStart = isFirst ? 0 : dp(density, 5f);
+                boolean lpChanged = false;
                 if (lp.getMarginStart() != marginStart) {
                     lp.setMarginStart(marginStart);
+                    lpChanged = true;
+                }
+                if (lp.height != tileHeightPx) {
+                    lp.height = tileHeightPx;
+                    lpChanged = true;
+                }
+                if (lpChanged) {
                     btn.setLayoutParams(lp);
                 }
             }
@@ -758,23 +787,26 @@ public final class ExpressiveMediaStyleKit {
                 radii = new float[]{tl, tl, tr, tr, br, br, bl, bl};
             }
 
-            int tileBg = isActive ? palette.secondaryActiveBg : palette.secondaryTileBg;
+            int tileBg = isActive
+                    ? MaterialYouColorEngine.blendRgb(palette.surfaceContainerHigh, palette.primaryAccent, lightMode ? 0.20f : 0.28f)
+                    : palette.surfaceContainer;
             int strokeColor = isActive
-                    ? MaterialYouColorEngine.withAlpha(palette.primaryAccent, 0x5C)
-                    : palette.secondaryOutline;
+                    ? MaterialYouColorEngine.withAlpha(palette.primaryAccent, 0x99)
+                    : MaterialYouColorEngine.withAlpha(palette.outlineVariant, lightMode ? 0x4E : 0x42);
+            int strokeWidthPx = Math.max(1, dp(density, 1f));
 
             GradientDrawable shape = new GradientDrawable();
             shape.setShape(GradientDrawable.RECTANGLE);
             shape.setCornerRadii(radii);
             shape.setColor(tileBg);
-            shape.setStroke(Math.max(1, dp(density, 1f)), strokeColor);
+            shape.setStroke(strokeWidthPx, strokeColor);
 
             GradientDrawable mask = new GradientDrawable();
             mask.setShape(GradientDrawable.RECTANGLE);
             mask.setCornerRadii(radii);
             mask.setColor(0xFFFFFFFF);
 
-            int rippleColor = MaterialYouColorEngine.withAlpha(palette.primaryAccent, 0x2E);
+            int rippleColor = MaterialYouColorEngine.withAlpha(palette.primaryAccent, 0x34);
             btn.setBackground(new RippleDrawable(ColorStateList.valueOf(rippleColor), shape, mask));
             btn.setTag(MaterialYouColorEngine.TAG_EXPRESSIVE_STYLED, Boolean.TRUE);
             btn.setAlpha(enabled ? 1f : 0.42f);
@@ -804,29 +836,60 @@ public final class ExpressiveMediaStyleKit {
             radial.setAlpha(0f);
         }
 
-        int fgColor;
+        boolean lightMode = btn != null && MaterialYouColorEngine.isLightMode(btn.getContext());
+        float btnDensity = btn != null ? btn.getResources().getDisplayMetrics().density : 3f;
+
+        int activeTileBg = MaterialYouColorEngine.blendRgb(
+                palette.surfaceContainerHigh, palette.primaryAccent, lightMode ? 0.20f : 0.28f);
+
+        int iconColor;
         if (!enabled) {
-            fgColor = MaterialYouColorEngine.withAlpha(palette.onSurfaceVariant, 0x70);
+            iconColor = MaterialYouColorEngine.withAlpha(palette.onSurfaceVariant, 0x66);
         } else if (isActive) {
-            fgColor = palette.primaryAccent;
+            iconColor = ensureTextContrast(palette.primaryAccent, activeTileBg);
         } else {
-            fgColor = palette.onSurface;
+            iconColor = palette.onSurface;
         }
 
         View icon = findView(btn, idIcon);
         if (icon instanceof ImageView) {
-            ((ImageView) icon).setImageTintList(ColorStateList.valueOf(fgColor));
-            icon.setTag(MaterialYouColorEngine.TAG_EXPRESSIVE_STYLED, Boolean.TRUE);
+            ImageView iv = (ImageView) icon;
+            iv.setBackground(null);
+            if (iv.getPaddingLeft() != 0 || iv.getPaddingTop() != 0
+                    || iv.getPaddingRight() != 0 || iv.getPaddingBottom() != 0) {
+                iv.setPadding(0, 0, 0, 0);
+            }
+            iv.clearColorFilter();
+            iv.setImageTintList(ColorStateList.valueOf(iconColor));
+            iv.setTag(MaterialYouColorEngine.TAG_EXPRESSIVE_STYLED, Boolean.TRUE);
+            iv.setScaleType(ImageView.ScaleType.FIT_CENTER);
+            int iconSize = dp(btnDensity, 20f);
+            ViewGroup.LayoutParams ilp = iv.getLayoutParams();
+            if (ilp != null) {
+                boolean changed = ilp.width != iconSize || ilp.height != iconSize;
+                ilp.width = iconSize;
+                ilp.height = iconSize;
+                if (ilp instanceof ViewGroup.MarginLayoutParams) {
+                    ViewGroup.MarginLayoutParams imlp = (ViewGroup.MarginLayoutParams) ilp;
+                    if (imlp.topMargin != 0 || imlp.bottomMargin != 0) {
+                        imlp.topMargin = 0;
+                        imlp.bottomMargin = 0;
+                        changed = true;
+                    }
+                }
+                if (changed) {
+                    iv.setLayoutParams(ilp);
+                }
+            }
         }
 
         View text = findView(btn, idText);
         if (text instanceof TextView) {
-            TextView tv = (TextView) text;
-            tv.setTextColor(isActive ? palette.primaryAccent : palette.onSurfaceVariant);
-            tv.setTag(MaterialYouColorEngine.TAG_EXPRESSIVE_STYLED, Boolean.TRUE);
-            tv.setTextSize(TypedValue.COMPLEX_UNIT_SP, 11f);
-            tv.setMaxLines(1);
-            tv.setEllipsize(TextUtils.TruncateAt.END);
+            int activeText = ensureTextContrast(palette.primaryAccent, activeTileBg);
+            int textColor = isActive
+                    ? activeText
+                    : (enabled ? palette.onSurface : MaterialYouColorEngine.withAlpha(palette.onSurfaceVariant, 0x70));
+            styleSecondaryTileLabel((TextView) text, textColor, isActive, btnDensity);
         }
     }
 
@@ -845,33 +908,159 @@ public final class ExpressiveMediaStyleKit {
             radial.setAlpha(0f);
         }
 
-        boolean completed = dlPercent != null && dlPercent == 100;
-        View dlIcon = findView(btn, idDlIconState);
-        if (dlIcon instanceof ImageView) {
-            int iconColor = completed ? palette.primaryAccent : palette.onSurface;
-            ((ImageView) dlIcon).setImageTintList(ColorStateList.valueOf(iconColor));
-            dlIcon.setTag(MaterialYouColorEngine.TAG_EXPRESSIVE_STYLED, Boolean.TRUE);
+        if (btn != null) {
+            int spaceId = getDownloadSpaceId(btn.getContext());
+            View topSpace = findView(btn, spaceId);
+            if (topSpace != null) {
+                topSpace.setVisibility(View.GONE);
+                if (topSpace.getLayoutParams() != null && topSpace.getLayoutParams().height != 0) {
+                    ViewGroup.LayoutParams slp = topSpace.getLayoutParams();
+                    slp.height = 0;
+                    topSpace.setLayoutParams(slp);
+                }
+            }
         }
+
+        boolean lightMode = btn != null && MaterialYouColorEngine.isLightMode(btn.getContext());
+        float btnDensity = btn != null ? btn.getResources().getDisplayMetrics().density : 3f;
+        boolean enabled = btn == null || btn.isEnabled();
+        boolean isCompleted = dlPercent != null && dlPercent == 100;
+        boolean isDownloading = dlPercent != null && dlPercent > 0 && dlPercent < 100;
+        boolean activeOrDownloading = isCompleted || isDownloading;
+
+        int activeTileBg = MaterialYouColorEngine.blendRgb(
+                palette.surfaceContainerHigh, palette.primaryAccent, lightMode ? 0.20f : 0.28f);
 
         View pb = findView(btn, idDlProgressBar);
         if (pb != null) {
-            tintCircularProgressIndicator(
-                    pb,
-                    palette.primaryAccent,
-                    MaterialYouColorEngine.withAlpha(palette.onSurfaceVariant, 0x3A)
-            );
+            int iconSize = dp(btnDensity, 20f);
+            configureCircularProgressBadgeGeometry(pb, iconSize, 0, dp(btnDensity, 2f));
+            pb.setBackground(null);
+            if (pb.getPaddingLeft() != 0 || pb.getPaddingTop() != 0
+                    || pb.getPaddingRight() != 0 || pb.getPaddingBottom() != 0) {
+                pb.setPadding(0, 0, 0, 0);
+            }
+            ViewGroup.LayoutParams plpRaw = pb.getLayoutParams();
+            if (plpRaw != null) {
+                boolean changed = plpRaw.width != iconSize || plpRaw.height != iconSize;
+                plpRaw.width = iconSize;
+                plpRaw.height = iconSize;
+                if (plpRaw instanceof ViewGroup.MarginLayoutParams) {
+                    ViewGroup.MarginLayoutParams plp = (ViewGroup.MarginLayoutParams) plpRaw;
+                    if (plp.topMargin != 0 || plp.bottomMargin != 0) {
+                        plp.topMargin = 0;
+                        plp.bottomMargin = 0;
+                        changed = true;
+                    }
+                }
+                if (changed) {
+                    pb.setLayoutParams(plpRaw);
+                }
+            }
+            int indColor = isCompleted ? Color.TRANSPARENT : palette.primaryAccent;
+            int trkColor = isCompleted
+                    ? Color.TRANSPARENT
+                    : (isDownloading
+                    ? MaterialYouColorEngine.withAlpha(palette.onSurfaceVariant, 0x3A)
+                    : MaterialYouColorEngine.withAlpha(palette.onSurface, 0x68));
+            tintCircularProgressIndicator(pb, indColor, trkColor);
             pb.setTag(MaterialYouColorEngine.TAG_EXPRESSIVE_STYLED, Boolean.TRUE);
+        }
+
+        View dlIcon = findView(btn, idDlIconState);
+        if (dlIcon instanceof ImageView) {
+            ImageView div = (ImageView) dlIcon;
+            int iconColor;
+            if (!enabled) {
+                iconColor = MaterialYouColorEngine.withAlpha(palette.onSurfaceVariant, 0x66);
+            } else if (isCompleted) {
+                iconColor = pickHighContrastForeground(palette.primaryAccent, 0xFF0E1412, 0xFFFEFFFE);
+            } else if (isDownloading) {
+                iconColor = palette.primaryAccent;
+            } else {
+                iconColor = palette.onSurface;
+            }
+            // Must clear TIDAL's PorterDuffColorFilter and raise Z-order above ProgressBar ring/dot.
+            div.clearColorFilter();
+            div.setBackground(null);
+            div.setImageTintList(ColorStateList.valueOf(iconColor));
+            div.setScaleType(ImageView.ScaleType.FIT_CENTER);
+            div.setElevation(dpf(btnDensity, 1f));
+            div.setTag(MaterialYouColorEngine.TAG_EXPRESSIVE_STYLED, Boolean.TRUE);
+            ViewGroup.LayoutParams ilp = div.getLayoutParams();
+            int innerIconSize = dp(btnDensity, 11f);
+            if (ilp != null && (ilp.width != innerIconSize || ilp.height != innerIconSize)) {
+                ilp.width = innerIconSize;
+                ilp.height = innerIconSize;
+                div.setLayoutParams(ilp);
+            }
+            if (btn instanceof ViewGroup && pb != null) {
+                ViewGroup vg = (ViewGroup) btn;
+                if (vg.indexOfChild(div) < vg.indexOfChild(pb)) {
+                    div.bringToFront();
+                }
+            } else {
+                div.bringToFront();
+            }
         }
 
         View text = findView(btn, idDlText);
         if (text instanceof TextView) {
-            TextView tv = (TextView) text;
-            tv.setTextColor(completed ? palette.primaryAccent : palette.onSurfaceVariant);
-            tv.setTag(MaterialYouColorEngine.TAG_EXPRESSIVE_STYLED, Boolean.TRUE);
-            tv.setTextSize(TypedValue.COMPLEX_UNIT_SP, 11f);
-            tv.setMaxLines(1);
-            tv.setEllipsize(TextUtils.TruncateAt.END);
+            int activeText = ensureTextContrast(palette.primaryAccent, isCompleted ? activeTileBg : palette.surfaceContainer);
+            int textColor = activeOrDownloading
+                    ? activeText
+                    : (enabled ? palette.onSurface : MaterialYouColorEngine.withAlpha(palette.onSurfaceVariant, 0x70));
+            styleSecondaryTileLabel((TextView) text, textColor, activeOrDownloading, btnDensity);
         }
+    }
+
+    private static void styleSecondaryTileLabel(TextView tv, int textColor, boolean bold, float density) {
+        tv.setTextColor(textColor);
+        tv.setTag(MaterialYouColorEngine.TAG_EXPRESSIVE_STYLED, Boolean.TRUE);
+        tv.setGravity(Gravity.CENTER);
+        tv.setTextAlignment(View.TEXT_ALIGNMENT_CENTER);
+        tv.setIncludeFontPadding(false);
+        tv.setTextSize(TypedValue.COMPLEX_UNIT_SP, 11f);
+        tv.setLetterSpacing(0.01f);
+        tv.setTypeface(bold ? Typeface.DEFAULT_BOLD : Typeface.create("sans-serif-medium", Typeface.NORMAL));
+        tv.setMaxLines(1);
+        tv.setEllipsize(TextUtils.TruncateAt.END);
+        if (tv.getLayoutParams() instanceof ViewGroup.MarginLayoutParams) {
+            ViewGroup.MarginLayoutParams mlp = (ViewGroup.MarginLayoutParams) tv.getLayoutParams();
+            int topGap = dp(density, 4f);
+            if (mlp.width != 0 || mlp.topMargin != topGap || mlp.bottomMargin != 0) {
+                mlp.width = 0;
+                mlp.topMargin = topGap;
+                mlp.bottomMargin = 0;
+                tv.setLayoutParams(mlp);
+            }
+        }
+    }
+
+    private static int pickHighContrastForeground(int bgArgb, int darkOption, int lightOption) {
+        return relativeLuminance(bgArgb) > 0.36 ? darkOption : lightOption;
+    }
+
+    private static int ensureTextContrast(int fgArgb, int bgArgb) {
+        double fgLum = relativeLuminance(fgArgb);
+        double bgLum = relativeLuminance(bgArgb);
+        double contrast = (Math.max(fgLum, bgLum) + 0.05) / (Math.min(fgLum, bgLum) + 0.05);
+        if (contrast >= 4.2) {
+            return fgArgb;
+        }
+        int target = bgLum > 0.36 ? 0xFF0E1412 : 0xFFFEFFFE;
+        return MaterialYouColorEngine.blendRgb(fgArgb, target, 0.50f);
+    }
+
+    private static double relativeLuminance(int argb) {
+        double r = linearizeChannel(Color.red(argb) / 255.0);
+        double g = linearizeChannel(Color.green(argb) / 255.0);
+        double b = linearizeChannel(Color.blue(argb) / 255.0);
+        return 0.2126 * r + 0.7152 * g + 0.0722 * b;
+    }
+
+    private static double linearizeChannel(double c) {
+        return c <= 0.04045 ? (c / 12.92) : Math.pow((c + 0.055) / 1.055, 2.4);
     }
 
     public static void styleToolbarChrome(
@@ -1191,6 +1380,144 @@ public final class ExpressiveMediaStyleKit {
         });
     }
 
+    /**
+     * Attaches an expressive horizontal-expand press micro-pop tailored for connected
+     * secondary action tiles, keeping vertical footprint compact while springing smoothly back.
+     */
+    public static void attachExpressiveTilePressEffect(View view) {
+        if (view == null) {
+            return;
+        }
+        ViewGroup parentRow = view.getParent() instanceof ViewGroup ? (ViewGroup) view.getParent() : null;
+        attachConnectedExpressivePressEffect(parentRow, view);
+    }
+
+    /**
+     * Attaches Material 3 Expressive connected button-group press physics: the pressed tile
+     * expands slightly while immediate visible siblings gently yield aside, then all tiles
+     * spring back with overshoot on release.
+     */
+    public static void attachConnectedExpressivePressEffect(ViewGroup row, View btn) {
+        if (btn == null) {
+            return;
+        }
+        ViewGroup existingRow = CONNECTED_PRESS_ROWS.get(btn);
+        if (CONNECTED_PRESS_ROWS.containsKey(btn) && existingRow == row) {
+            return;
+        }
+        CONNECTED_PRESS_ROWS.put(btn, row);
+        btn.setOnTouchListener((v, event) -> {
+            if (!v.isEnabled()) {
+                return false;
+            }
+            int action = event.getActionMasked();
+            ViewGroup parentRow = row != null ? row
+                    : (v.getParent() instanceof ViewGroup ? (ViewGroup) v.getParent() : null);
+            float density = v.getResources().getDisplayMetrics().density;
+            if (action == MotionEvent.ACTION_DOWN) {
+                v.animate().cancel();
+                v.animate()
+                        .scaleX(1.03f)
+                        .scaleY(0.965f)
+                        .setDuration(90L)
+                        .setInterpolator(new DecelerateInterpolator(1.5f))
+                        .start();
+                animateTileInnerBadge(v, 1.08f, 90L);
+                if (parentRow != null) {
+                    animateConnectedSiblingsOnPress(parentRow, v, dpf(density, 2.0f));
+                }
+            } else if (action == MotionEvent.ACTION_UP || action == MotionEvent.ACTION_CANCEL) {
+                v.animate().cancel();
+                v.animate()
+                        .scaleX(1.0f)
+                        .scaleY(1.0f)
+                        .translationX(0f)
+                        .setDuration(210L)
+                        .setInterpolator(new OvershootInterpolator(1.25f))
+                        .start();
+                animateTileInnerBadge(v, 1.0f, 200L);
+                if (parentRow != null) {
+                    resetConnectedSiblings(parentRow, v);
+                }
+            }
+            return false;
+        });
+    }
+
+    private static void animateTileInnerBadge(View tile, float scale, long durationMs) {
+        if (!(tile instanceof ViewGroup)) {
+            return;
+        }
+        ViewGroup vg = (ViewGroup) tile;
+        for (int i = 0; i < vg.getChildCount(); i++) {
+            View c = vg.getChildAt(i);
+            if (c instanceof ImageView || c instanceof ProgressBar) {
+                c.animate().cancel();
+                c.animate()
+                        .scaleX(scale)
+                        .scaleY(scale)
+                        .setDuration(durationMs)
+                        .setInterpolator(scale > 1f
+                                ? new DecelerateInterpolator(1.5f)
+                                : new OvershootInterpolator(1.3f))
+                        .start();
+            }
+        }
+    }
+
+    private static void animateConnectedSiblingsOnPress(ViewGroup row, View pressed, float pushPx) {
+        List<View> visible = new ArrayList<>(row.getChildCount());
+        int pressedIdx = -1;
+        for (int i = 0; i < row.getChildCount(); i++) {
+            View c = row.getChildAt(i);
+            if (c != null && c.getVisibility() == View.VISIBLE) {
+                if (c == pressed) {
+                    pressedIdx = visible.size();
+                }
+                visible.add(c);
+            }
+        }
+        if (pressedIdx < 0) {
+            return;
+        }
+        if (pressedIdx - 1 >= 0) {
+            View left = visible.get(pressedIdx - 1);
+            left.animate().cancel();
+            left.animate()
+                    .translationX(-pushPx)
+                    .scaleX(0.98f)
+                    .setDuration(90L)
+                    .setInterpolator(new DecelerateInterpolator(1.5f))
+                    .start();
+        }
+        if (pressedIdx + 1 < visible.size()) {
+            View right = visible.get(pressedIdx + 1);
+            right.animate().cancel();
+            right.animate()
+                    .translationX(pushPx)
+                    .scaleX(0.98f)
+                    .setDuration(90L)
+                    .setInterpolator(new DecelerateInterpolator(1.5f))
+                    .start();
+        }
+    }
+
+    private static void resetConnectedSiblings(ViewGroup row, View pressed) {
+        for (int i = 0; i < row.getChildCount(); i++) {
+            View c = row.getChildAt(i);
+            if (c != null && c != pressed && c.getVisibility() == View.VISIBLE) {
+                c.animate().cancel();
+                c.animate()
+                        .scaleX(1.0f)
+                        .scaleY(1.0f)
+                        .translationX(0f)
+                        .setDuration(190L)
+                        .setInterpolator(new DecelerateInterpolator(2.0f))
+                        .start();
+            }
+        }
+    }
+
     public static void disableSlidingTextMarquee(TextView tv) {
         if (tv == null) {
             return;
@@ -1352,19 +1679,82 @@ public final class ExpressiveMediaStyleKit {
         return null;
     }
 
+    private static int getDownloadSpaceId(Context ctx) {
+        if (ctx == null) {
+            return 0;
+        }
+        String pkg = ctx.getPackageName();
+        if (pkg != null && pkg.equals(cachedDlSpacePkg)) {
+            return cachedIdDlSpace;
+        }
+        try {
+            cachedIdDlSpace = ctx.getResources().getIdentifier("downloadSecondaryActionButton_space", "id", pkg);
+            cachedDlSpacePkg = pkg;
+        } catch (Throwable ignored) {
+        }
+        return cachedIdDlSpace;
+    }
+
+    private static void ensureProgressReflection(Class<?> cls) {
+        if (progressReflectionResolved || cls == null) {
+            return;
+        }
+        try {
+            try {
+                setIndicatorColorMethod = cls.getMethod("setIndicatorColor", int[].class);
+            } catch (Throwable ignored) {
+            }
+            try {
+                setTrackColorMethod = cls.getMethod("setTrackColor", int.class);
+            } catch (Throwable ignored) {
+            }
+            try {
+                setIndicatorSizeMethod = cls.getMethod("setIndicatorSize", int.class);
+            } catch (Throwable ignored) {
+            }
+            try {
+                setIndicatorInsetMethod = cls.getMethod("setIndicatorInset", int.class);
+            } catch (Throwable ignored) {
+            }
+            try {
+                setTrackThicknessMethod = cls.getMethod("setTrackThickness", int.class);
+            } catch (Throwable ignored) {
+            }
+            progressReflectionResolved = true;
+        } catch (Throwable ignored) {
+        }
+    }
+
+    public static void configureCircularProgressBadgeGeometry(
+            View progressBar,
+            int indicatorSizePx,
+            int indicatorInsetPx,
+            int trackThicknessPx
+    ) {
+        if (progressBar == null) {
+            return;
+        }
+        try {
+            ensureProgressReflection(progressBar.getClass());
+            if (setIndicatorSizeMethod != null) {
+                setIndicatorSizeMethod.invoke(progressBar, indicatorSizePx);
+            }
+            if (setIndicatorInsetMethod != null) {
+                setIndicatorInsetMethod.invoke(progressBar, indicatorInsetPx);
+            }
+            if (setTrackThicknessMethod != null) {
+                setTrackThicknessMethod.invoke(progressBar, trackThicknessPx);
+            }
+        } catch (Throwable ignored) {
+        }
+    }
+
     public static void tintCircularProgressIndicator(View progressBar, int indicatorColor, int trackColor) {
         if (progressBar == null) {
             return;
         }
         try {
-            if (!progressReflectionResolved) {
-                Class<?> cls = progressBar.getClass();
-                Method indM = cls.getMethod("setIndicatorColor", int[].class);
-                Method trkM = cls.getMethod("setTrackColor", int.class);
-                setIndicatorColorMethod = indM;
-                setTrackColorMethod = trkM;
-                progressReflectionResolved = true;
-            }
+            ensureProgressReflection(progressBar.getClass());
             if (setIndicatorColorMethod != null) {
                 setIndicatorColorMethod.invoke(progressBar, (Object) new int[]{indicatorColor});
             }

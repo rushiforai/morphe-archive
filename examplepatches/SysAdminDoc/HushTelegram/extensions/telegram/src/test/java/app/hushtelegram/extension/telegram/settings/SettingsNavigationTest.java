@@ -140,7 +140,7 @@ public class SettingsNavigationTest {
 
     /** Each task has its own section that opens in place, while search still reaches every original control. */
     @Test public void pauseBackupAndDiagnosticsSectionsOpenInPlaceInEveryShippedLanguage() {
-        String[][] languages = {{"en", null}, {"bg", "bg"}, {"de", "de"}, {"es", "es"}, {"in-rID", "in"}, {"pt-rBR", "pt-rbr"}, {"tr", "tr"}};
+        String[][] languages = {{"en", null}, {"bg", "bg"}, {"de", "de"}, {"es", "es"}, {"in-rID", "in"}, {"it", "it"}, {"pt-rBR", "pt-rbr"}, {"tr", "tr"}};
         for (String[] language : languages) {
             controller.close();
             org.robolectric.RuntimeEnvironment.setQualifiers("+" + language[0]);
@@ -178,7 +178,7 @@ public class SettingsNavigationTest {
     /** The screen title is spoken once as a heading, each section keeps its localized name, and every control wraps at either text size. */
     @Test @GraphicsMode(GraphicsMode.Mode.NATIVE)
     public void groupedPagesKeepTheirHeadingsAndAllControlsAtNormalAndDoubleText() {
-        String[] languages = {"en", "bg", "de", "es", "in-rID", "pt-rBR", "tr"};
+        String[] languages = {"en", "bg", "de", "es", "in-rID", "it", "pt-rBR", "tr"};
         try {
             for (String language : languages) for (float scale : new float[]{1f, 2f}) {
                 controller.close();
@@ -284,7 +284,9 @@ public class SettingsNavigationTest {
         }
         page.navigation.navigate(PatchFamily.Page.CONVERSATIONS.title);
         assertEquals(position(Settings.HIDE_TRANSLATE_BAR.key) + 1, position(Settings.HIDE_PINNED_BAR.key));
-        assertEquals(position(Settings.HIDE_PINNED_BAR.key) + 1, position(Settings.OUTSIDE_TRANSLATE.key));
+        assertEquals(position(Settings.HIDE_PINNED_BAR.key) + 1, position(Settings.ALWAYS_SHOW_TRANSLATE_BAR.key));
+        assertEquals(position(Settings.ALWAYS_SHOW_TRANSLATE_BAR.key) + 1, position(Settings.OUTSIDE_TRANSLATE.key));
+        assertEquals(position(Settings.MESSAGE_MENU_EDIT_COPY.key) + 1, position(Settings.LINK_PREVIEW_PHOTO.key));
         assertEquals(position(Settings.HIDE_BY_KEYWORD.key) + 1, position(FilterEditor.GROUPS));
         assertEquals(position(FilterEditor.GROUPS) + 1, position(FilterEditor.CHANNELS));
         assertEquals(position(Settings.KEEP_DELETED_MESSAGES.key) + 1, position(Settings.RED_DELETED_LABEL.key));
@@ -298,6 +300,7 @@ public class SettingsNavigationTest {
         assertEquals(position(Settings.KEEP_SECRET_TIMED.key) + 1, position(Settings.KEEP_REMOVED_CHATS.key));
         page.navigation.navigate(PatchFamily.Page.LOOK.title);
         assertEquals(position(Settings.CHANGE_STICKER_SIZE.key) + 1, position(HushTelegramPreferenceFragment.STICKER_SIZE_ROW));
+        assertEquals(position(Settings.KEEP_STICKER_CACHE.key) + 1, position(HushTelegramPreferenceFragment.STICKER_PANEL_ROW));
         assertEquals(position(Settings.HOLIDAY_LOOK.key) + 1, position(TitleEmojiEditor.KEY));
         assertEquals(position(TitleEmojiEditor.KEY) + 1, position(Settings.CHAT_LIST_TITLE.key));
         assertEquals(position(Settings.CHAT_LIST_TITLE.key) + 1, position(TitleEmojiEditor.TITLE_KEY));
@@ -1830,7 +1833,8 @@ public class SettingsNavigationTest {
             // emoji and title text, the translation service and language, the push app, Open a chat by ID, the proxy
             // lists, the V2Ray links and server, the device in Active sessions and the link preview rules. The background
             // picture row takes Android 13, so HushTelegramPreferenceFragmentTest tries it locked there.
-            for (String key : Arrays.asList(HushTelegramPreferenceFragment.STICKER_SIZE_ROW, HushTelegramPreferenceFragment.AVATAR_SIZE_ROW,
+            for (String key : Arrays.asList(HushTelegramPreferenceFragment.STICKER_SIZE_ROW, HushTelegramPreferenceFragment.STICKER_PANEL_ROW,
+                    HushTelegramPreferenceFragment.AVATAR_SIZE_ROW,
                     HushTelegramPreferenceFragment.CHAT_LIST_BANNER_ROW,
                     HushTelegramPreferenceFragment.FONT_FILE_ROW, FilterEditor.GROUPS,
                     FilterEditor.CHANNELS, TitleEmojiEditor.KEY, TitleEmojiEditor.TITLE_KEY, StorageFolderEditor.KEY, TranslateServiceEditor.KEY, TranslateTargetPicker.KEY,
@@ -1847,6 +1851,8 @@ public class SettingsNavigationTest {
             }
             page.showStickerSizes(controller.get(), page.findPreference(HushTelegramPreferenceFragment.STICKER_SIZE_ROW));
             assertSame("sticker sizes opened while locked", shown, org.robolectric.shadows.ShadowDialog.getLatestDialog());
+            page.showStickerPanelSizes(controller.get(), page.findPreference(HushTelegramPreferenceFragment.STICKER_PANEL_ROW));
+            assertSame("sticker panel sizes opened while locked", shown, org.robolectric.shadows.ShadowDialog.getLatestDialog());
             page.showAvatarSizes(controller.get(), page.findPreference(HushTelegramPreferenceFragment.AVATAR_SIZE_ROW));
             assertSame("avatar sizes opened while locked", shown, org.robolectric.shadows.ShadowDialog.getLatestDialog());
             // Every setting that was loaded when the lock went on holds what it held then.
@@ -2164,7 +2170,7 @@ public class SettingsNavigationTest {
      * all three in search.
      */
     @Test public void theAccountScopeIsSearchableInEveryShippedLanguage() {
-        String[][] languages = {{"en", null}, {"bg", "bg"}, {"de", "de"}, {"es", "es"}, {"in-rID", "in"}, {"pt-rBR", "pt-rbr"}, {"tr", "tr"}};
+        String[][] languages = {{"en", null}, {"bg", "bg"}, {"de", "de"}, {"es", "es"}, {"in-rID", "in"}, {"it", "it"}, {"pt-rBR", "pt-rbr"}, {"tr", "tr"}};
         for (String[] language : languages) {
             controller.close();
             org.robolectric.RuntimeEnvironment.setQualifiers("+" + language[0]);

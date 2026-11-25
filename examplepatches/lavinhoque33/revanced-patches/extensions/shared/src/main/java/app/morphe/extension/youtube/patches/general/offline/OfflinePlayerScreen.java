@@ -65,6 +65,7 @@ import app.morphe.extension.youtube.patches.player.SeekbarColorPatch;
 import app.morphe.extension.youtube.patches.video.CustomPlaybackSpeedPatch;
 import app.morphe.extension.youtube.patches.video.CustomPlaybackSpeedPatch.PlaybackSpeedMenuType;
 import app.morphe.extension.youtube.settings.Settings;
+import app.morphe.extension.youtube.swipecontrols.misc.Rectangle;
 import app.morphe.extension.youtube.utils.PlaybackSpeedControls;
 import app.morphe.extension.youtube.videoplayer.PlayerIcons;
 
@@ -85,6 +86,7 @@ final class OfflinePlayerScreen implements OfflineScreens.Screen, OfflinePlayer.
     private final int scrimColor;
     @Nullable
     private final OfflineSwipeControls swipes;
+    private final OfflineFullscreenSwipe fullscreenSwipe;
     private final SurfaceView surfaceView;
     /** Stands in for the picture of an audio-only download. */
     private final ImageView artworkView;
@@ -300,6 +302,7 @@ final class OfflinePlayerScreen implements OfflineScreens.Screen, OfflinePlayer.
         // endregion
 
         swipes = OfflineSwipeControls.create(activity, root);
+        fullscreenSwipe = new OfflineFullscreenSwipe(activity);
         seekHint.setTranslationY(-Utils.dipToPixels(56));
         root.addView(seekHint, new FrameLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT,
                 ViewGroup.LayoutParams.WRAP_CONTENT, Gravity.CENTER));
@@ -318,6 +321,7 @@ final class OfflinePlayerScreen implements OfflineScreens.Screen, OfflinePlayer.
 
             @Override
             public void onLongPress(MotionEvent event) {
+                fullscreenSwipe.cancel();
                 if (swipes != null) swipes.onLongPress();
             }
 
@@ -381,10 +385,14 @@ final class OfflinePlayerScreen implements OfflineScreens.Screen, OfflinePlayer.
         switch (event.getActionMasked()) {
             case MotionEvent.ACTION_DOWN -> {
                 swipeClaimed = false;
-                if (swipes != null) swipes.begin(view, event, fullscreen);
+                Rectangle viewport = fullscreenSwipe.viewport(view);
+                boolean verticalZoneReserved = swipes != null && swipes.begin(view, event, fullscreen, viewport);
+                fullscreenSwipe.begin(event, viewport, fullscreen, verticalZoneReserved);
             }
             case MotionEvent.ACTION_MOVE -> {
-                if (swipes != null && swipes.move(event) && !swipeClaimed) {
+                boolean zoneClaimed = swipes != null && swipes.move(event);
+                if (zoneClaimed) fullscreenSwipe.cancel();
+                if (!swipeClaimed && (zoneClaimed || fullscreenSwipe.move(event))) {
                     swipeClaimed = true;
                     cancelTaps(event, taps);
                 }
@@ -393,9 +401,11 @@ final class OfflinePlayerScreen implements OfflineScreens.Screen, OfflinePlayer.
                 if (!swipeClaimed) cancelTaps(event, taps);
                 swipeClaimed = true;
                 if (swipes != null) swipes.finish(false);
+                fullscreenSwipe.finish(event);
             }
             case MotionEvent.ACTION_UP, MotionEvent.ACTION_CANCEL -> {
                 if (swipes != null) swipes.finish(event.getActionMasked() == MotionEvent.ACTION_UP && swipeClaimed);
+                if (fullscreenSwipe.finish(event)) toggleFullscreen();
             }
             default -> { }
         }
@@ -722,10 +732,13 @@ final class OfflinePlayerScreen implements OfflineScreens.Screen, OfflinePlayer.
 
     private void setFullscreen(boolean fullscreen, int orientation) {
         // LicenseActivity may be recreated; the new screen restores presentation and reattaches.
-        if (swipes != null && this.fullscreen != fullscreen) {
-            swipes.finish(false);
-            if (!fullscreen) swipes.saveBrightness();
-            else if (resumed) swipes.restoreBrightness(true);
+        if (this.fullscreen != fullscreen) {
+            fullscreenSwipe.cancel();
+            if (swipes != null) {
+                swipes.finish(false);
+                if (!fullscreen) swipes.saveBrightness();
+                else if (resumed) swipes.restoreBrightness(true);
+            }
         }
 
         this.fullscreen = fullscreen;
@@ -837,6 +850,7 @@ final class OfflinePlayerScreen implements OfflineScreens.Screen, OfflinePlayer.
     @Override
     public void onPause() {
         resumed = false;
+        fullscreenSwipe.cancel();
         if (swipes != null) {
             swipes.finish(false);
             swipes.saveBrightness();

@@ -18,8 +18,8 @@ import app.morphe.patcher.patch.PatchException
 import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod
 import app.morphe.patcher.util.smali.ExternalLabel
 import app.morphe.patches.threads.misc.extension.THREADS_APPLICATION
+import app.morphe.patches.threads.misc.extension.holdsNote
 import app.morphe.patches.threads.misc.extension.patchLog
-import app.morphe.patches.threads.misc.theme.holdsNote
 import app.morphe.util.getReference
 import com.android.tools.smali.dexlib2.AccessFlags
 import com.android.tools.smali.dexlib2.Opcode

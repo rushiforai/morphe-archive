@@ -54,7 +54,7 @@ private const val MEDIA_TYPE = "Lcom/instagram/feed/media/Media;"
 // strings, field numbers reshuffled every release) is found from inside it,
 // and calling it is also what singles the entry point out from helpers that
 // share the two strings (Instagram 450 had eleven of them). Instagram 454.0.0.54.77
-// is back on this path.
+// is back on this path; 456.1.0.56.78 is not, it has the inline shape again.
 internal object MediaParseFromJsonFingerprint : Fingerprint(
     returnType = MEDIA_TYPE,
     strings = listOf(
@@ -76,7 +76,7 @@ internal object MediaParseWrapperFingerprint : Fingerprint(
     },
 )
 
-// Instagram 453 folded the codec back into the parser itself: the (parser, Z)
+// Instagram 453, and again 456.1.0.56.78, folded the codec back into the parser itself: the (parser, Z)
 // entry point reads each field name and hashes it inline, and calls itself for
 // carousel children. The hash call is what tells it apart from the other
 // helpers sharing the two error strings.
@@ -215,7 +215,7 @@ val feedItemFilterPatch = bytecodePatch(
                     "$BLOCK_CLASS->onMediaField(Ljava/lang/String;)V",
             )
         } else if (MediaParseWrapperFingerprint.methodOrNull == null) {
-            // Instagram 453 inlined the codec into the one parser method that carries the two
+            // Instagram 453, and again 456.1, inlined the codec into the one parser method that carries the two
             // error strings, and it calls itself for carousel children. Hook its field-name
             // hash like the codec's, open an ad flag at entry and close it at every return,
             // which also filters the media: that replaces the dead wrapper's feed-unit filter.

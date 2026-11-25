@@ -7,6 +7,7 @@ import {
   HYGIENE_EXCLUDE_PATTERN,
   STAGE_AUDITS,
   STAGE_CHECKS,
+  auditEnvironment,
   findCaseConflicts,
   findMergeConflictLines,
   hasTrailingWhitespace,
@@ -255,6 +256,46 @@ describe('pure hygiene transforms', () => {
     ).toThrow();
     expect(() => validateToml(Buffer.from('a = 1\r'))).toThrow();
     expect(() => validateToml(Buffer.from('a = 1\r\n'))).not.toThrow();
+  });
+
+  test('audit environment drops release identity and Git config overrides', () => {
+    const env = auditEnvironment('/snapshot', {
+      HOME: '/home/test',
+      PATH: '/usr/bin',
+      GIT_DIR: '/repo/.git',
+      GIT_CONFIG_NOSYSTEM: '1',
+      GIT_AUTHOR_NAME: 'semantic-release-bot',
+      GIT_AUTHOR_EMAIL: 'semantic-release-bot@martynus.net',
+      GIT_AUTHOR_DATE: '2000-01-01T00:00:00Z',
+      GIT_COMMITTER_NAME: 'semantic-release-bot',
+      GIT_COMMITTER_EMAIL: 'semantic-release-bot@martynus.net',
+      GIT_COMMITTER_DATE: '2000-01-01T00:00:00Z',
+      GIT_CONFIG_COUNT: '1',
+      GIT_CONFIG_KEY_0: 'user.name',
+      GIT_CONFIG_VALUE_0: 'semantic-release-bot',
+      GIT_CONFIG_PARAMETERS: "'user.name=bot'",
+    });
+    for (const key of [
+      'GIT_DIR',
+      'GIT_AUTHOR_NAME',
+      'GIT_AUTHOR_EMAIL',
+      'GIT_AUTHOR_DATE',
+      'GIT_COMMITTER_NAME',
+      'GIT_COMMITTER_EMAIL',
+      'GIT_COMMITTER_DATE',
+      'GIT_CONFIG_COUNT',
+      'GIT_CONFIG_KEY_0',
+      'GIT_CONFIG_VALUE_0',
+      'GIT_CONFIG_PARAMETERS',
+    ]) {
+      expect(env[key]).toBeUndefined();
+    }
+    expect(env.HOME).toBe('/home/test');
+    expect(env.GIT_CONFIG_NOSYSTEM).toBe('1');
+    expect(env.GIT_OPTIONAL_LOCKS).toBe('0');
+    expect(env.UV_PROJECT_ENVIRONMENT).toBe(
+      path.join('/snapshot', 'tools', 'apk-lab', '.venv'),
+    );
   });
 });
 

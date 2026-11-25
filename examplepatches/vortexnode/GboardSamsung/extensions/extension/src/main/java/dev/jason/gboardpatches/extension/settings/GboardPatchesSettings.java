@@ -14,6 +14,16 @@ public final class GboardPatchesSettings {
     public static final String DEFAULT_SETTINGS_UI_LANGUAGE =
             GboardSettingsLocaleManager.LANGUAGE_SYSTEM;
 
+    public static final String PREF_KEY_HIGHLIGHT_NEW_SETTINGS_DAYS =
+            "pref_highlight_new_settings_days";
+    public static final String PREF_KEY_NEW_SETTINGS_SEEN_IDS =
+            "pref_new_settings_seen_ids";
+    public static final String PREF_KEY_NEW_SETTINGS_VERSION_TIMESTAMPS =
+            "pref_new_settings_version_timestamps";
+    public static final int HIGHLIGHT_NEW_SETTINGS_MIN_DAYS = 0;
+    public static final int HIGHLIGHT_NEW_SETTINGS_MAX_DAYS = 10;
+    public static final int HIGHLIGHT_NEW_SETTINGS_DEFAULT_DAYS = 7;
+
     private GboardPatchesSettings() {
     }
 
@@ -42,6 +52,66 @@ public final class GboardPatchesSettings {
                     dev.jason.gboardpatches.extension.keypresshaptics.GboardKeypressHapticsSettings
                             .PREF_KEY_ENABLED, enabled).commit();
         } catch (Throwable unavailable) { return false; }
+    }
+
+    public static int getHighlightNewSettingsDays(Context context) {
+        int raw = readRuntimeSetting(
+                context,
+                prefs -> prefs.getInt(
+                        PREF_KEY_HIGHLIGHT_NEW_SETTINGS_DAYS,
+                        HIGHLIGHT_NEW_SETTINGS_DEFAULT_DAYS),
+                HIGHLIGHT_NEW_SETTINGS_DEFAULT_DAYS);
+        return clampHighlightNewSettingsDays(raw);
+    }
+
+    public static void setHighlightNewSettingsDays(Context context, int days) {
+        SharedPreferences preferences = preferencesOrNull(context);
+        if (preferences == null) {
+            return;
+        }
+        preferences.edit()
+                .putInt(PREF_KEY_HIGHLIGHT_NEW_SETTINGS_DAYS, clampHighlightNewSettingsDays(days))
+                .apply();
+    }
+
+    public static int clampHighlightNewSettingsDays(int days) {
+        return Math.max(
+                HIGHLIGHT_NEW_SETTINGS_MIN_DAYS,
+                Math.min(HIGHLIGHT_NEW_SETTINGS_MAX_DAYS, days));
+    }
+
+    public static String getNewSettingsSeenIdsRaw(Context context) {
+        return readRuntimeSetting(
+                context,
+                prefs -> prefs.getString(PREF_KEY_NEW_SETTINGS_SEEN_IDS, ""),
+                "");
+    }
+
+    public static void setNewSettingsSeenIdsRaw(Context context, String raw) {
+        SharedPreferences preferences = preferencesOrNull(context);
+        if (preferences == null) {
+            return;
+        }
+        preferences.edit()
+                .putString(PREF_KEY_NEW_SETTINGS_SEEN_IDS, raw == null ? "" : raw)
+                .apply();
+    }
+
+    public static String getNewSettingsVersionTimestampsRaw(Context context) {
+        return readRuntimeSetting(
+                context,
+                prefs -> prefs.getString(PREF_KEY_NEW_SETTINGS_VERSION_TIMESTAMPS, ""),
+                "");
+    }
+
+    public static void setNewSettingsVersionTimestampsRaw(Context context, String raw) {
+        SharedPreferences preferences = preferencesOrNull(context);
+        if (preferences == null) {
+            return;
+        }
+        preferences.edit()
+                .putString(PREF_KEY_NEW_SETTINGS_VERSION_TIMESTAMPS, raw == null ? "" : raw)
+                .apply();
     }
 
     public static void ensureDefaults(Context context) {

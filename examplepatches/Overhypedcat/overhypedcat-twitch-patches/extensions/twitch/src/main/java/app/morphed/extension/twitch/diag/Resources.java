@@ -150,7 +150,8 @@ public final class Resources {
             File speed = new File("/sys/devices/system/cpu/cpu" + i + "/cpufreq/" + file);
             try (BufferedReader reader = new BufferedReader(new FileReader(speed))) {
                 String line = reader.readLine();
-                if (line == null || Long.parseLong(line.trim()) <= 0) continue; // (a phone that says 0: not a speed)
+                // (under 100 MHz is no real speed: some phones and emulators put 0 or a token value there)
+                if (line == null || Long.parseLong(line.trim()) < 100_000) continue;
                 if (out.length() > 0) out.append(' ');
                 out.append(String.format(Locale.US, "%.1f", Long.parseLong(line.trim()) / 1_000_000.0));
             } catch (Throwable unreadable) {

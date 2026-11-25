@@ -52,7 +52,6 @@ internal const val DIAMOND_ROOM_HOOK = "$STORE_BUTTONS->diamondRoom(I)I"
 /** The preference the diamond's drawer reads to pick its icon. Only the diamond's class names it. */
 internal const val DIAMOND_CLICKED = "arg_has_clicked_on_premium_diamond"
 
-internal const val DRAWEE = "Lcom/facebook/drawee/view/SimpleDraweeView;"
 internal const val IMAGE_VIEW = "Landroid/widget/ImageView;"
 
 /** Tumblr's view IDs. R8 keeps the field names, and the patch reads them. */
@@ -82,8 +81,9 @@ internal class SearchBarRoom(val method: MutableMethod, val at: Int, val registe
  * on. Two hooks, each its own capability.
  *
  * The diamond: one method draws it and its credit dot for the dashboard, Explore and
- * notifications, the only instance method taking (SimpleDraweeView, ImageView, ...) and returning
- * void in the one class whose methods load [DIAMOND_CLICKED]. `StoreButtons.hideDiamond` goes
+ * notifications, the only instance method taking (ImageView, ImageView, ...) and returning void in
+ * the one class whose methods load [DIAMOND_CLICKED]. Tumblr 47.3.0.110 gives it a plain ImageView
+ * for the diamond, where 47.0.0.108 gave it Fresco's SimpleDraweeView. `StoreButtons.hideDiamond` goes
  * first, gets the two views, hides them and answers true, and the method returns before it sets
  * up the icon or its tap. When Tumblr's own premium flag is off it hides the diamond itself.
  *
@@ -143,7 +143,7 @@ internal fun BytecodePatchContext.resolveDiamondDrawer(): MutableMethod {
         .flatMap { it.methods }
         .filter { method ->
             !method.isStatic() && method.returnType == "V" && method.parameterTypes.size >= 2 &&
-                method.parameterTypes[0].toString() == DRAWEE && method.parameterTypes[1].toString() == IMAGE_VIEW &&
+                method.parameterTypes[0].toString() == IMAGE_VIEW && method.parameterTypes[1].toString() == IMAGE_VIEW &&
                 DIAMOND_CLICKED in method.strings()
         }
         .only(PATCH, "the method that draws the Premium diamond")

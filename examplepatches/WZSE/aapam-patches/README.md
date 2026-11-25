@@ -9,7 +9,7 @@ Click here to add these patches to Morphe: https://morphe.software/add-source?gi
 ## 🩹 Patches list
 
 <!-- PATCHES_START EXPANDED -->
-> **[v1.6.0](https://github.com/WZSE/aapam-patches/releases/tag/v1.6.0)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;20 patches total
+> **[v1.7.0](https://github.com/WZSE/aapam-patches/releases/tag/v1.7.0)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;25 patches total
 <details open>
 <summary>📦 Telegram&nbsp;&nbsp;•&nbsp;&nbsp;1 patch</summary>
 <br>
@@ -31,6 +31,40 @@ Click here to add these patches to Morphe: https://morphe.software/add-source?gi
 | 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
 |----------|----------------|-----------|
 | [Anti-disappearing media](#anti-disappearing-media) | Keeps view-once and self-destructing media viewable forever; the sender sees them as expired. |  |
+
+</details>
+
+</details>
+
+<details open>
+<summary>📦 SonyLIV Android TV&nbsp;&nbsp;•&nbsp;&nbsp;5 patches</summary>
+<br>
+
+<details open>
+<summary>🎯 6.23.1&nbsp;&nbsp;•&nbsp;&nbsp;5 patches</summary>
+<br>
+
+| 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
+|----------|----------------|-----------|
+| [Auto skip intro and recap](#auto-skip-intro-and-recap) | Automatically skips the intro, recap and song segments as soon as the 'Skip' button would appear, without waiting for a tap. |  |
+| [Auto-skip Up Next](#auto-skip-up-next) | Plays the next episode immediately when the "Up Next" card appears, skipping the auto-play countdown. |  |
+| [Disable tracking](#disable-tracking) | Disables CleverTap, Firebase Analytics/Crashlytics, and AppsFlyer tracking and telemetry exfiltration. |  |
+| [Disable video ads](#disable-video-ads) | Disables client-side Google IMA video ads in the SonyLIV player by forcing the ad eligibility check to false and returning an empty ad tag URL. |  |
+| [Hide promo banners](#hide-promo-banners) | Hides the CleverTap-driven subscribe/premium promo banners and promo trays on the home screen. Content rows and CleverTap pop-ups/overlays are not affected. |  |
+
+</details>
+
+<details open>
+<summary>🎯 6.29.13&nbsp;&nbsp;•&nbsp;&nbsp;5 patches</summary>
+<br>
+
+| 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
+|----------|----------------|-----------|
+| [Auto skip intro and recap](#auto-skip-intro-and-recap) | Automatically skips the intro, recap and song segments as soon as the 'Skip' button would appear, without waiting for a tap. |  |
+| [Auto-skip Up Next](#auto-skip-up-next) | Plays the next episode immediately when the "Up Next" card appears, skipping the auto-play countdown. |  |
+| [Disable tracking](#disable-tracking) | Disables CleverTap, Firebase Analytics/Crashlytics, and AppsFlyer tracking and telemetry exfiltration. |  |
+| [Disable video ads](#disable-video-ads) | Disables client-side Google IMA video ads in the SonyLIV player by forcing the ad eligibility check to false and returning an empty ad tag URL. |  |
+| [Hide promo banners](#hide-promo-banners) | Hides the CleverTap-driven subscribe/premium promo banners and promo trays on the home screen. Content rows and CleverTap pop-ups/overlays are not affected. |  |
 
 </details>
 

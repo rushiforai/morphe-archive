@@ -6,11 +6,12 @@ Morphe patch source for Ekşi Sözlük.
 
 - **Hide ads**: removes Ekşi Sözlük ad placements, including Ekşi Şeyler recommendations, and disables ad loading.
 - **Open external links in browser**: opens external web links in the default browser instead of a Chrome Custom Tab. Instagram, Facebook, X, and YouTube links still open in their apps if the apps are installed.
+- **Relative entry timestamps**: shows the age of entries younger than 48 hours next to the entry date, for example `21.11.2026 11:12 · 12 sa 3 dk`.
 
 ## Supported App
 
 - Package: `com.eksiteknoloji.eksisozluk`
-- Version: `2.5.1` (patch bundle 0.1.6). Older bundles support older app versions.
+- Version: `2.5.1` (patch bundle 0.1.7). Older bundles support older app versions.
 - APK type: regular APK
 
 ## Morphe Manager Source

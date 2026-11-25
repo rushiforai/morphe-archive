@@ -25,6 +25,7 @@ import java.util.TreeSet;
 import java.util.WeakHashMap;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicLong;
 import java.util.zip.GZIPInputStream;
 
 /**
@@ -53,6 +54,12 @@ public final class AdBlockHelper {
         "amazon-adsystem.com", "criteo.com", "criteo.net", "taboola.com", "outbrain.com"
     };
     private static final AtomicBoolean STARTED = new AtomicBoolean(false);
+    private static final AtomicLong LAST_POLL = new AtomicLong(0L);
+
+    private static boolean hoshioriEnabled(Context context, String key) {
+        return context.getSharedPreferences("hoshiori_settings", Context.MODE_PRIVATE)
+                .getBoolean(key, true);
+    }
     // Null means background loading is in progress: all subrequests are allowed.
     private static volatile Rules active;
     // Freeze rules per WebView: already-displayed pages never change during an update.
@@ -80,6 +87,8 @@ public final class AdBlockHelper {
                                                 boolean update) {
         try {
             if (view == null || request == null || request.isForMainFrame()) return null;
+            if (!hoshioriEnabled(view.getContext(), "blockInAppBrowserAds")) return null;
+            update = update && hoshioriEnabled(view.getContext(), "updateAdBlockLists");
             start(view.getContext().getApplicationContext(), update);
             Rules rules = rulesFor(view);
             if (rules == null || request.getUrl() == null) return null;
@@ -96,6 +105,8 @@ public final class AdBlockHelper {
     public static void injectCss(WebView view, boolean update) {
         try {
             if (view == null) return;
+            if (!hoshioriEnabled(view.getContext(), "blockInAppBrowserAds")) return;
+            update = update && hoshioriEnabled(view.getContext(), "updateAdBlockLists");
             start(view.getContext().getApplicationContext(), update);
             Rules rules = rulesFor(view);
             // No CSS until the asynchronous initial read is complete.
@@ -111,7 +122,11 @@ public final class AdBlockHelper {
     }
 
     private static void start(Context app, boolean update) {
-        if (!STARTED.compareAndSet(false, true)) return;
+        if (!STARTED.compareAndSet(false, true)) {
+            if (update) maybeRefresh(app);
+            return;
+        }
+        if (update) LAST_POLL.set(System.currentTimeMillis());
         new Thread(() -> {
             try {
                 Rules loaded = update ? readSnapshot(new File(app.getFilesDir(), PRIMARY)) : null;
@@ -129,6 +144,22 @@ public final class AdBlockHelper {
                         new HashSet<>(), SEED_CSS);
             }
         }, "HatenaAdBlock").start();
+    }
+
+    // When the user enables updates after startup, check again off the UI thread.
+    // Throttle this inexpensive request-path check; disk/network still obey 24h.
+    private static void maybeRefresh(Context app) {
+        long now = System.currentTimeMillis();
+        long last = LAST_POLL.get();
+        if (now >= last && now - last < 60_000L) return;
+        if (!LAST_POLL.compareAndSet(last, now)) return;
+        new Thread(() -> {
+            try {
+                if (hoshioriEnabled(app, "blockInAppBrowserAds") &&
+                        hoshioriEnabled(app, "updateAdBlockLists"))
+                    updateIfDue(app);
+            } catch (RuntimeException ignored) { }
+        }, "HoshioriFilterRefresh").start();
     }
 
     // Merge only after the snapshot has passed all original integrity checks.
@@ -252,6 +283,8 @@ public final class AdBlockHelper {
     }
 
     private static void updateIfDue(Context app) {
+        if (!hoshioriEnabled(app, "blockInAppBrowserAds") ||
+                !hoshioriEnabled(app, "updateAdBlockLists")) return;
         SharedPreferences prefs = app.getSharedPreferences("morphe_adblock", Context.MODE_PRIVATE);
         long now = System.currentTimeMillis();
         long previous = prefs.getLong("checked_at", 0L);

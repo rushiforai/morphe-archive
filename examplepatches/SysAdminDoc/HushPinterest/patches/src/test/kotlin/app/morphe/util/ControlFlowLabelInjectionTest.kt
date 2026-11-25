@@ -1,7 +1,9 @@
 package app.morphe.util
 
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructionsWithLabels
+import app.morphe.patcher.extensions.InstructionExtensions.getInstruction
 import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod
+import app.morphe.patcher.util.smali.ExternalLabel
 import com.android.tools.smali.dexlib2.AccessFlags
 import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.iface.instruction.OffsetInstruction
@@ -36,6 +38,30 @@ class ControlFlowLabelInjectionTest {
 
         assertEquals(Opcode.INVOKE_STATIC, instructions[targetIndex].opcode)
         assertEquals(1, execute(method, parameter = 0))
+        assertEquals(1, execute(method, parameter = 1))
+    }
+
+    @Test
+    fun `a hook that jumps past itself lands on the instruction it went in front of`() {
+        // The label on that instruction used to slide onto the hook's first line with the rest of the
+        // instruction's labels, so the jump went back to itself, a loop (#48's board order hook).
+        val method = branchTargetReturn()
+        val returnIndex = method.implementation!!.instructions.indexOfFirst { it.opcode == Opcode.RETURN_VOID }
+
+        method.addInstructionsAtControlFlowLabel(
+            returnIndex,
+            "if-eqz p0, :skip\ninvoke-static {}, Lcom/example/Probe;->hit()V",
+            ExternalLabel("skip", method.getInstruction(returnIndex)),
+        )
+
+        val instructions = method.implementation!!.instructions.toList()
+        val addresses = codeAddresses(method)
+        fun target(index: Int) = addresses.indexOf(addresses[index] + (instructions[index] as OffsetInstruction).codeOffset)
+        val gotoIndex = instructions.indexOfFirst { it.opcode == Opcode.GOTO }
+        assertEquals("the branch onto the return runs the hook", returnIndex, target(gotoIndex))
+        assertEquals("the hook's skip lands on the return", returnIndex + 2, target(returnIndex))
+        assertEquals(Opcode.RETURN_VOID, instructions[returnIndex + 2].opcode)
+        assertEquals(0, execute(method, parameter = 0))
         assertEquals(1, execute(method, parameter = 1))
     }
 
@@ -131,8 +157,11 @@ class ControlFlowLabelInjectionTest {
         }
         var index = 0
         var calls = 0
+        var steps = 0
 
         while (true) {
+            // A jump back onto itself would otherwise hang the test instead of failing it.
+            if (++steps > 100) error("no return after 100 steps, a loop at instruction $index")
             val instruction = instructions[index]
             when (instruction.opcode) {
                 Opcode.IF_EQZ -> {

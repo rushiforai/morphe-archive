@@ -1,0 +1,92 @@
+{
+  "name": "Wikipedia",
+  "patches": "patches/src/main/kotlin/app/jofslash/patches/wikipedia",
+  "docs": "docs/wikipedia/README.md",
+  "readme": {
+    "style": "generated",
+    "order": [
+      "Donations",
+      "Privacy",
+      "App",
+      "Reading"
+    ],
+    "intro": {
+      "Donations": "Fundraising banners and donation prompts. You can still donate from the menu.",
+      "Privacy": "Usage analytics, the install ID and permissions. They change nothing you see.",
+      "App": "Surveys and prompts the app shows by itself, and parts of the app you may not want.",
+      "Reading": "Small changes to reading articles."
+    }
+  },
+  "store": "https://play.google.com/store/apps/details?id=org.wikipedia",
+  "package": "org.wikipedia",
+  "store_note": "(Wikimedia Foundation)",
+  "summary": "Hide the fundraising banners and pop-up prompts, and stop the usage analytics and the install ID sent with every request, without an account.",
+  "owners": [
+    "Wikimedia Foundation"
+  ],
+  "apk": {
+    "release": "wikipedia",
+    "version": "first",
+    "asset": "*.apkm",
+    "file": "wikipedia.apkm"
+  },
+  "android": {
+    "note": "Wikipedia needs Android 7 (minSdk 24). The universal APK bundle has x86_64 libraries, so the emulator runs it natively. The release tries the oldest Android version tested here, the newest stable one and the next one; a pull request the oldest and the newest stable.",
+    "pull_request": [
+      {
+        "api": "26",
+        "android": "8",
+        "channel": "stable"
+      },
+      {
+        "api": "36",
+        "android": "16",
+        "channel": "stable"
+      }
+    ],
+    "full": [
+      {
+        "api": "26",
+        "android": "8",
+        "channel": "stable"
+      },
+      {
+        "api": "36",
+        "android": "16",
+        "channel": "stable"
+      },
+      {
+        "api": "37.0",
+        "android": "17",
+        "channel": "canary"
+      }
+    ]
+  },
+  "checks": {
+    "screen": "All the world's knowledge|Learn more about Wikipedia",
+    "screen_shown": "The welcome screen (All the world's knowledge) is showing.",
+    "screen_missing": "The welcome screen (All the world's knowledge) didn't show within a minute.",
+    "grant": [
+      "android.permission.POST_NOTIFICATIONS"
+    ]
+  },
+  "check": [
+    "python3 .github/scripts/check_app.py wikipedia \"$APK\" --cli \"$CLI\" --install --expect-screen --compare-original --adb adb"
+  ],
+  "versions": {
+    "pattern": "(?P<code>\\d+)-r-\\d{4}-\\d{2}-\\d{2}",
+    "feed_pattern": "Wikipedia (?P<code>\\d+)",
+    "example": "50620-r-2026-11-25",
+    "source": "apkmirror",
+    "apkmirror": "/apk/wikimedia-foundation/wikipedia/",
+    "file": "apkm",
+    "signer": "the Wikimedia Foundation",
+    "bundle_cpus": [
+      "universal[^<]*Android 7\\.0\\+",
+      "universal",
+      "x86_64"
+    ],
+    "shows": "shows its welcome screen",
+    "phone_test": "read an article, search and open the More menu on a phone: the emulator test only starts the app."
+  }
+}

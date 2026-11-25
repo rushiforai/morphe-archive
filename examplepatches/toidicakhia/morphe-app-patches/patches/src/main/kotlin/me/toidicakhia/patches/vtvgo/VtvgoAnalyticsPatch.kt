@@ -32,7 +32,7 @@ val vtvgoDisableAnalyticsPatch = bytecodePatch(
             val flagIndex = indexOfFirstInstructionOrThrow {
                 opcode == Opcode.IGET_BOOLEAN &&
                     getReference<FieldReference>()?.let { reference ->
-                        reference.definingClass == "Lcs1;" && reference.name == "I"
+                        reference.definingClass == "Lbs1;" && reference.name == "I"
                     } == true
             }
             val flagRegister = getInstruction<OneRegisterInstruction>(flagIndex).registerA

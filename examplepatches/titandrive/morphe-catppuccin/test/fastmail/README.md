@@ -16,7 +16,7 @@ Build an isolated test bundle locally:
 ```
 CATPPUCCIN_FASTMAIL_TEST=1 \
 CATPPUCCIN_VERSION=0.6.0-fastmail-test \
-JAVA_HOME=/opt/android-studio/jbr ANDROID_HOME=/home/jake/Android/Sdk \
+JAVA_HOME=/opt/android-studio/jbr ANDROID_HOME=$HOME/Android/Sdk \
 python3 tools/build_catppuccin.py
 ```
 

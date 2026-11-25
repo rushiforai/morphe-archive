@@ -1277,6 +1277,7 @@ public class SettingsNavigationTest {
         summaryContains(Settings.HIDE_NAV_SEARCH.key, "Search in the bottom bar", "next time the bar updates");
         summaryContains(Settings.SEARCH_TAB_KEYBOARD.key, "pressing Search in the bottom bar again", "opens the keyboard");
         summaryContains(Settings.BLANK_SEARCH_PAGE.key, "only the search bar", "Searching works as usual", "next time the page updates");
+        summaryContains(Settings.HIDE_SEARCH_SUGGESTIONS.key, "colored searches under the search bar", "filter button stays", "next time you search");
         summaryContains(Settings.HIDE_HOME_TABS.key, "row of tabs", "top of Home", "next time Home updates");
         summaryContains(Settings.HIDE_HEADER_BUTTONS.key, "icon buttons at the end of the top bar", "next time the bar updates", "account controls stay");
         summaryContains(Settings.BLACK_BOTTOM_BAR.key, "In dark mode", "bottom bar pure black", "Light mode stays", "next time the bar redraws");
@@ -1286,6 +1287,7 @@ public class SettingsNavigationTest {
         summaryContains(Settings.BLACK_SHEETS.key, "In dark mode", "menus and sheets that slide up pure black", "Light mode stays", "next time you open one");
         summaryContains(Settings.BLACK_BOARDS.key, "In dark mode", "floats over a board", "Light mode stays", "next time you open a board or your profile");
         summaryContains(Settings.BLACK_TOASTS.key, "In dark mode", "save or download a pin", "Light mode stays", "next message");
+        summaryContains(Settings.BLACK_BUTTONS.key, "In dark mode", "gray buttons", "keeps their labels", "next time Pinterest draws a button");
         summaryContains(Settings.HIDE_DOWNLOAD_TOASTS.key, "started or finished", "Errors still show", "download notification stays");
         summaryContains(Settings.HIDE_CLOSEUP_BACK.key, "back arrow that floats over a pin", "back gesture or button", "next pin you open");
         summaryContains(Settings.HIDE_CLOSEUP_LENS.key, "visual search button", "Search image in the pin menu still works", "next pin you open");
@@ -1297,6 +1299,7 @@ public class SettingsNavigationTest {
         summaryContains(Settings.HIDE_CLOSEUP_REMIX.key, "Remix button on a pin you open", "next pin you open");
         summaryContains(Settings.HIDE_CLOSEUP_VISIT_SITE.key, "Visit site button under a pin that links to a website", "next pin you open");
         summaryContains(Settings.SMALLER_SAVE_BUTTON.key, "red Save button on a pin you open", "four fifths of its size", "next pin you open");
+        summaryContains(Settings.SAVE_COLOR_ON_RED_BUTTONS.key, "other red buttons", "Follow and Done", "Pick that color first");
         summaryContains(Settings.HIDE_PIN_MENU_COLLAGE.key, "Add to collage and Remix collage", "pin menus you open from now on", "already open won't change");
         summaryContains(Settings.HIDE_PIN_MENU_VISUAL_SEARCH.key, "Search image", "pin menus you open from now on", "already open won't change");
         summaryContains(Settings.HIDE_PIN_MENU_PIN_BOOST.key, "Promote pin", "pin menus you open from now on", "already open won't change");
@@ -1316,9 +1319,14 @@ public class SettingsNavigationTest {
         summaryContains(Settings.HIDE_TOPIC_SUGGESTIONS.key, "\"Ideas you might love\" row of topic bubbles under pins", "next time Pinterest shows it", "Comments and related pins stay");
         summaryContains(Settings.HIDE_INBOX_UPDATES.key, "Updates section out of your Inbox", "Pinterest doesn't load it", "Your messages stay");
         summaryContains(Settings.HIDE_HOME_SUGGESTIONS.key, "\"More ideas for your board\"", "\"See more like this?\" bubble off pins", "next time Home loads");
+        summaryContains(Settings.HIDE_REFINE_SEARCH.key, "\"Refine your search\" lists of suggested searches", "pins close up", "next time results load");
         summaryContains(Settings.HIDE_SAVED_PINS.key, "out of your home feed", "Your boards still show them");
         summaryContains(Settings.BACK_LEAVES_HOME.key, "scrolled down Home", "Back leaves Pinterest",
                 "instead of jumping to the top");
+        summaryContains(Settings.HIDE_REFRESH_PILL.key, "pill that offers new pins", "after you've been away",
+                "Pull down on Home");
+        summaryContains(Settings.HIDE_OFFLINE_BANNER.key, "says you're offline, then back online",
+                "next time your connection drops");
         summaryContains(Settings.HIDE_SAVED_PINS_ELSEWHERE.key, "out of search results", "More to explore pins under a pin you open",
                 "Your boards still show them");
         summaryContains(Settings.QUIET_EMAIL_REMINDER.key, "optional reminder to confirm your email", "already open stays", "sign-in still work as usual");
@@ -1332,6 +1340,14 @@ public class SettingsNavigationTest {
         summaryContains(Settings.HIDE_PIN_AUTHOR.key, "creator's whole row", "picture and name", "next pin you open");
         summaryContains(Settings.HIDE_PIN_DESCRIPTION.key, "title and description", "likes and comments bar stays", "posted date and image size");
         summaryContains(Settings.SHOW_IMAGE_SIZE.key, "width and height", "largest copy", "Videos show nothing");
+        summaryContains(Settings.SWIPE_TO_CLOSE_PINS.key, "pulling it down", "Back and the back arrow", "next pin you open");
+        summaryContains(Settings.FULL_SIZE_PROFILE_PHOTOS.key, "profile photo", "full size", "next profile you open");
+        summaryContains(Settings.BEST_VIDEO_QUALITY.key, "largest size", "more data", "next video you open");
+        summaryContains(Settings.BOARD_ORDER_WHEN_SAVING.key, "Save to sheet", "custom order", "A to Z");
+        summaryContains(Settings.LIKE_COMMENT_HISTORY.key, "pins you like", "comments you post", "stays on this phone");
+        summaryContains(Settings.NO_PIN_VIDEO_AUTOPLAY.key, "tap play", "go back to", "next pin you open");
+        summaryContains(Settings.START_PIN_VIDEOS_MUTED.key, "sound off", "speaker", "next pin you open");
+        summaryContains(Settings.PINCH_TO_ZOOM_ONLY.key, "full screen", "look like it", "next time you pinch");
         summaryContains(Settings.HIDE_HIGHLIGHT_RING.key, "thick blue ring", "buttons such as Save");
         summaryContains(Settings.HIDE_VISUAL_SEARCH_THUMBNAILS.key, "lens button", "stack of cropped pictures", "next pin you open");
         summaryContains(Settings.FOLD_RELATED_PINS.key, "arrow under a pin", "don't load until you tap it", "last choice is kept", "Hide related pins wins");
@@ -1339,6 +1355,8 @@ public class SettingsNavigationTest {
                 "next pin you open");
         summaryContains(Settings.CUSTOM_SAVE_SOUND.key, "sound you pick below", "when you save a pin",
                 "With no sound picked, Pinterest's plays");
+        summaryContains(Settings.CUSTOM_FONT.key, "font file you pick below", "Icons keep their own font",
+                "Restart Pinterest");
         summaryContains(Settings.CUSTOM_SPLASH_LOGO.key, "logo picked when patching", "Android 13 and newer",
                 "from the next start");
         summaryContains(Settings.HIDE_BOARD_TAB_BUTTON.key, "See board button", "board tab on Home", "next time the tab opens");

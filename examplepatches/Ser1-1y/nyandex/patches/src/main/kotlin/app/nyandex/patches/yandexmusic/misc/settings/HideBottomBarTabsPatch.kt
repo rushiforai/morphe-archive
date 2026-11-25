@@ -99,13 +99,47 @@ private fun hookBottomBar() {
     var insertAt = lastAdd + 1
     if (instructions.getOrNull(insertAt)?.opcode == Opcode.MOVE_RESULT) insertAt++
 
+    // The bar registers itself with the extension on every collect (p0 is the bar), so the settings
+    // page can make it collect again. The range form reaches p0 even when it is a high register.
     method.addInstructions(
         insertAt,
-        "invoke-static {v$setRegister}, $BOTTOM_TABS_HOOK->filterTabs(Ljava/util/Set;)V",
+        """
+            invoke-static {v$setRegister}, $BOTTOM_TABS_HOOK->filterTabs(Ljava/util/Set;)V
+            invoke-static/range {p0 .. p0}, $BOTTOM_TABS_HOOK->register(Landroid/view/View;)V
+        """.trimIndent(),
     )
     logger.info("Hooked bottom bar tabs in ${ownerClass.type}.${method.name} (${adds.size} tab adds)")
 
+    addRefreshMethod(ownerClass.type, method)
     addTouchOverride(ownerClass.type)
+}
+
+/**
+ * `nyandexRefreshTabs()` on the bar runs its tab collection again. The extension calls it through
+ * reflection when a tab is hidden or shown on the settings page, so the change applies at once.
+ */
+private fun addRefreshMethod(barType: String, collect: Method) {
+    if (collect.parameterTypes.isNotEmpty() || collect.returnType != "V") {
+        throw PatchException("Unexpected bottom bar method signature: ${collect.name}(${collect.parameterTypes})V")
+    }
+    val refresh = ImmutableMethod(
+        barType,
+        "nyandexRefreshTabs",
+        emptyList(),
+        "V",
+        AccessFlags.PUBLIC.value,
+        null,
+        null,
+        MutableMethodImplementation(1), // p0 = v0
+    ).toMutable()
+    refresh.addInstructions(
+        0,
+        """
+            invoke-virtual {p0}, $barType->${collect.name}()V
+            return-void
+        """.trimIndent(),
+    )
+    mutableClassDefBy(barType).methods.add(refresh)
 }
 
 /**

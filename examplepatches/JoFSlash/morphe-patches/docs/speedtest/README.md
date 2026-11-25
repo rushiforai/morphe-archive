@@ -53,7 +53,7 @@ need a subscription; the patches don't change what your subscription gives you.
 ## Patches
 
 <!-- PATCHES_START -->
-Version 1.11.0, 4 patches. Supported Speedtest versions: 7.1.5.
+Version 1.13.0, 4 patches. Supported Speedtest versions: 7.1.5.
 
 <details>
 <summary><b>Ads</b> (1)</summary>

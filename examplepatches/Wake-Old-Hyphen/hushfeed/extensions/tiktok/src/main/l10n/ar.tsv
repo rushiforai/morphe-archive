@@ -1921,6 +1921,8 @@ Long-press menu on every post	قائمة الضغط المطول على كل م�
 TikTok's hold to speed up	الضغط المستمر للتسريع من TikTok
 TikTok's background play and Auto scroll	التشغيل في الخلفية والتمرير التلقائي في TikTok
 Post dates in the feed	تواريخ المنشورات في الخلاصة
+# context: a line of the Account facts sheet, the number of posts the account has
+Posts	المنشورات
 Show exact counts	إظهار الأعداد الدقيقة
 Show counts as full numbers, like 1,234,567 instead of 1.2M.	عرض الأعداد كأرقام كاملة، مثل 1,234,567 بدلا من 1.2M.
 Play SDR instead of HDR	تشغيل SDR بدلا من HDR
@@ -3256,7 +3258,9 @@ Find and reopen the videos you liked only on this phone	اعثر على الفي
 Videos you like on this phone show up here	الفيديوهات التي تعجبك على هذا الهاتف تظهر هنا
 Likes cleared	تم مسح الإعجابات
 Export followers and following	تصدير المتابِعين والمتابَعين
-Saves the accounts that follow you, or the ones you follow, as a CSV file in Download/Hushfeed. They're read at about the pace of scrolling the list, up to %1$s at a time.	يحفظ الحسابات التي تتابعك، أو التي تتابعها، كملف CSV في Download/Hushfeed. تُقرأ بسرعة تقارب سرعة تمرير القائمة، حتى %1$s في المرة الواحدة.
+Saves the accounts that follow you, or the ones you follow, as a CSV, JSON or plain text file in Download/Hushfeed. They're read at about the pace of scrolling the list, up to %1$s at a time.	يحفظ الحسابات التي تتابعك، أو التي تتابعها، كملف CSV أو JSON أو نص عادي في Download/Hushfeed. تُقرأ بسرعة تقارب سرعة تمرير القائمة، حتى %1$s في المرة الواحدة.
+# context: a file type on the Export followers and following list, as in "Followers (Plain text)"
+Plain text	نص عادي
 A list is already being read	تجري قراءة قائمة بالفعل
 Reading your followers (%1$s)	جارٍ قراءة متابِعيك (%1$s)
 Reading who you follow (%1$s)	جارٍ قراءة من تتابعهم (%1$s)
@@ -3410,7 +3414,7 @@ Gives each video on profile grids rounded corners, on your own profile and on Li
 Gifter level	مستوى الإهداء
 SecUID	SecUID
 Unknown (TikTok didn't send it)	غير معروف (لم يرسله TikTok)
-A profile's share sheet gets an Account facts button. It shows what TikTok already sent about the account: when it joined, its region and language, its gifter level and SecUID, when its username and display name last changed, whether it's private and whether its liked videos are public. Nothing extra is fetched.	تحصل ورقة مشاركة الملف الشخصي على زر حقائق الحساب. يعرض ما أرسله TikTok بالفعل عن الحساب: تاريخ انضمامه، ومنطقته ولغته، ومستوى الإهداء ومعرّف SecUID، وآخر تغيير لاسم المستخدم واسم العرض، وما إذا كان خاصًا وما إذا كانت مقاطع الفيديو التي أعجبته عامة. لا يتم جلب أي شيء إضافي.
+A profile's share sheet gets an Account facts button. It shows what TikTok already sent about the account: when it joined, its region and language, its gifter level and SecUID, how many posts, liked videos, favorites and reposts it has, when its username and display name last changed, whether it's private and whether its liked videos are public. Nothing extra is fetched.	تحصل ورقة مشاركة الملف الشخصي على زر حقائق الحساب. يعرض ما أرسله TikTok بالفعل عن الحساب: تاريخ انضمامه، ومنطقته ولغته، ومستوى الإهداء ومعرّف SecUID، وعدد منشوراته والفيديوهات التي أعجبته والمفضلة وإعادات النشر، وآخر تغيير لاسم المستخدم واسم العرض، وما إذا كان خاصًا وما إذا كانت مقاطع الفيديو التي أعجبته عامة. لا يتم جلب أي شيء إضافي.
 # context: LIVE controls: a small line in a LIVE room with the room ID and the viewer's own connection (ping, latency, download speed) from TikTok's player; a tap copies the room ID
 Show the room ID and your connection	إظهار معرّف الغرفة واتصالك
 Adds a small line to LIVE rooms with the room's ID and how your own connection to the stream is doing, as TikTok's player measures it: ping, latency and download speed. Tap the line to copy the room ID.	يضيف سطرًا صغيرًا إلى غرف LIVE فيه معرّف الغرفة وحالة اتصالك أنت بالبث، كما يقيسها مشغّل TikTok: البينغ والتأخير وسرعة التنزيل. اضغط على السطر لنسخ معرّف الغرفة.
@@ -3488,3 +3492,28 @@ Random time each day	وقت عشوائي كل يوم
 Sends at a different time each day, somewhere between When to send and Latest time.	يرسل في وقت مختلف كل يوم، في وقت ما بين وقت الإرسال وآخر وقت.
 Latest time	آخر وقت
 The end of the random window, on the same day as When to send. If it isn't later, the message goes at When to send.	نهاية النافذة العشوائية، في نفس يوم وقت الإرسال. إذا لم يكن لاحقًا، تُرسل الرسالة في وقت الإرسال.
+# context: Jump to a date on Favorites grids (#508): the Favorites tab holds the videos you saved with the bookmark icon
+Jump to a date on Favorites grids	الانتقال إلى تاريخ في شبكات المفضلات
+Adds a button to the Favorites grid's top corner that starts your saved videos at a year or month you pick, so older saves load without scrolling past newer ones. Pick Newest saves there to go back.	يضيف زرًا إلى الزاوية العلوية لشبكة المفضلات يبدأ عرض فيديوهاتك المحفوظة من سنة أو شهر تختاره، بحيث يتم تحميل المحفوظات القديمة دون التمرير عبر الأحدث. اختر أحدث المحفوظات هناك للعودة.
+Newest saves	أحدث المحفوظات
+# context: App > Use system font: fonts that come with Hushfeed (#487); a picked one becomes the imported font
+Pick a built-in font	اختر خطًا مدمجًا
+Pick one of %1$s fonts that come with Hushfeed. Each is shown in its own style.	اختر واحدًا من %1$s خطًا مضمّنة مع Hushfeed. يظهر كل خط بأسلوبه الخاص.
+Built-in fonts	الخطوط المدمجة
+Delete	حذف
+Delete your picked posts	حذف منشوراتك المختارة
+Adds a trash button to the picking bar while every picked post is your own. It counts down from 5 so you can stop it, then deletes them from your account one at a time. A deleted post can't be brought back.	يضيف زر سلة المهملات إلى شريط الاختيار عندما تكون كل المنشورات المختارة منشوراتك. يعدّ تنازليًا من 5 لتتمكن من إيقافه، ثم يحذفها من حسابك واحدًا تلو الآخر. لا يمكن استعادة المنشور المحذوف.
+Posts to delete: %1$d. Starting in %2$d	منشورات للحذف: %1$d. البدء خلال %2$d
+Posts deleted: %1$d of %2$d	المنشورات المحذوفة: %1$d من %2$d
+Swipe LIVEs in your Following row's order	التمرير بين LIVE بترتيب صف أتابعه
+After a LIVE you open from the row at the top of Following, swiping takes you through the row's other LIVEs in the order they sit there, starting with the next one. TikTok's own picks come after them.	بعد LIVE تفتحه من الصف أعلى أتابعه، ينقلك التمرير بين بقية LIVE في ذلك الصف بالترتيب الذي تظهر به، بدءًا من التالي. تأتي اختيارات TikTok بعدها.
+Remember saved videos	تذكر الفيديوهات المحفوظة
+Keeps the cover, creator, caption and post date of each video in your Favorites on this phone as the grid loads it. If one is later deleted or made private, its tile shows the kept cover and creator instead of a grey box, and a tap shows the rest. Videos that were already gone can't be recovered.	يحتفظ على هذا الهاتف بغلاف كل فيديو في مفضلاتك وصانعه ووصفه وتاريخ نشره عند تحميله في الشبكة. إذا حُذف أحدها لاحقًا أو أصبح خاصًا، يعرض مربعه الغلاف المحفوظ واسم الصانع بدل مربع رمادي، والنقر عليه يعرض الباقي. الفيديوهات التي اختفت من قبل لا يمكن استرجاعها.
+Unavailable saved videos	الفيديوهات المحفوظة غير المتاحة
+See the saved videos that went away after Hushfeed remembered them	اعرض الفيديوهات المحفوظة التي اختفت بعد أن تذكرها Hushfeed
+Saved videos that go away show up here	الفيديوهات المحفوظة التي تختفي تظهر هنا
+Unavailable saved videos cleared	تم مسح الفيديوهات غير المتاحة
+Unavailable saved video	فيديو محفوظ غير متاح
+Posted %1$s	نُشر في %1$s
+Remembered %1$s	تم تذكره في %1$s
+Unavailable since %1$s	غير متاح منذ %1$s

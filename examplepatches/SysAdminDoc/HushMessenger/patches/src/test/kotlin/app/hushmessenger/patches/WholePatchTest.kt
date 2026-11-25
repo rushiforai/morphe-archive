@@ -1,5 +1,6 @@
 package app.hushmessenger.patches
 
+import app.hushmessenger.patches.controls.AI_USER_ROUTE
 import app.hushmessenger.patches.controls.AUTO_REPLY_PICTURES
 import app.hushmessenger.patches.controls.AUTO_REPLY_PICTURE_MESSAGES
 import app.hushmessenger.patches.controls.AUTO_REPLY_SEND_MESSAGE
@@ -69,7 +70,7 @@ import kotlin.test.assertTrue
 class WholePatchTest {
     /** The extension stubs default patches fill in with this build's code on purpose. Anything else that differs was rewritten by mistake. */
     private val intendedWrites = setOf(
-        BUNDLED_CONTROLS, ORIGINAL_BUILD, LOGOUT_ROUTE, HIDDEN_CHAT_ROUTE, PINNED_CHAT_ROUTE, INBOX_REFRESH_ROUTE,
+        BUNDLED_CONTROLS, ORIGINAL_BUILD, LOGOUT_ROUTE, AI_USER_ROUTE, HIDDEN_CHAT_ROUTE, PINNED_CHAT_ROUTE, INBOX_REFRESH_ROUTE,
         TAB_SWIPE_ROUTE, NATIVE_BUBBLE_ROUTES, JOINED_COMMUNITY_ROW, MAIN_INBOX_SCOPE,
         MARK_READ_BUILD, MARK_READ_BUTTON_BUILD, MESSAGE_LOG_BUTTON_BUILD, MESSAGE_LOG_BUTTON_ID_OF,
         SAVE_VOICE_MENU_ADD_ROW, SAVE_VOICE_MENU_FETCH, SAVE_VOICE_MENU_FETCH_URI, SAVE_VOICE_MENU_HELD,

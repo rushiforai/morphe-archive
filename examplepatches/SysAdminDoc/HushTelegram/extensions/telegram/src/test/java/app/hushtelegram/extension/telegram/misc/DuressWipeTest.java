@@ -30,6 +30,7 @@ import app.hushtelegram.extension.shared.Utils;
 import app.hushtelegram.extension.shared.diagnostics.HookStatus;
 import app.hushtelegram.extension.shared.settings.HushTelegramPause;
 import app.hushtelegram.extension.shared.settings.PauseForTests;
+import app.hushtelegram.extension.shared.settings.Setting;
 import app.hushtelegram.extension.telegram.settings.Settings;
 import org.junit.After;
 import org.junit.Before;
@@ -111,7 +112,11 @@ public class DuressWipeTest {
             "hushtelegram_hidden_chats", "hushtelegram_hidden_messages", "hushtelegram_hidden_accounts",
             "hushtelegram_ghost_exceptions", "hushtelegram_record_chats", "hushtelegram_saved_downloads",
             "hushtelegram_song_dates", "hushtelegram_local_emoji_status", "hushtelegram_launch_folders",
-            "hushtelegram_all_chats_place", "hushtelegram_admin_folder", "hushtelegram_chat_type_folders"};
+            "hushtelegram_all_chats_place", "hushtelegram_admin_folder", "hushtelegram_chat_type_folders",
+            "hushtelegram_kept_favorites"};
+
+    /** The settings keys the removed Pin chats on this phone kept its chats and their order under. */
+    private static final String[] OLD_PIN_KEYS = {"hushtelegram_local_pinned_chats", "hushtelegram_local_pins_order"};
 
     private final HookedTelegram hooked = new HookedTelegram(REAL);
     private final FakeTelegram telegram = new FakeTelegram();
@@ -139,7 +144,8 @@ public class DuressWipeTest {
         Settings.GHOST_MODE.resetToDefault();
         Settings.BOOKMARKS.resetToDefault();
         Settings.KEPT_REMOVED_CHATS.resetToDefault();
-        Settings.LOCAL_PINNED_CHATS.resetToDefault();
+        for (String key : OLD_PIN_KEYS) prefs(Setting.PREFERENCES_NAME).edit().remove(key).commit();
+        Settings.LOCAL_NAME_LIST.resetToDefault();
         Settings.AUTO_FORWARDING_RULES.resetToDefault();
         Settings.RECEIVE_ONLY_ACCOUNTS.resetToDefault();
         Settings.POWERED_OFF_ACCOUNTS.resetToDefault();
@@ -243,7 +249,8 @@ public class DuressWipeTest {
         for (String name : KEPT) assertTrue(name + " is cleared", prefs(name).getAll().isEmpty());
         assertEquals("", Settings.BOOKMARKS.savedValue());
         assertEquals("", Settings.KEPT_REMOVED_CHATS.savedValue());
-        assertEquals("", Settings.LOCAL_PINNED_CHATS.savedValue());
+        for (String key : OLD_PIN_KEYS) assertFalse(key + " is cleared", prefs(Setting.PREFERENCES_NAME).contains(key));
+        assertEquals("", Settings.LOCAL_NAME_LIST.savedValue());
         assertEquals("", Settings.AUTO_FORWARDING_RULES.savedValue());
         assertEquals("", Settings.RECEIVE_ONLY_ACCOUNTS.savedValue());
         assertEquals("", Settings.POWERED_OFF_ACCOUNTS.savedValue());
@@ -400,7 +407,8 @@ public class DuressWipeTest {
             assertEquals(name + " stays", "kept", prefs(name).getString("kept", ""));
         }
         assertEquals(Collections.singleton(42L), GhostChats.chats());
-        assertEquals("42", Settings.LOCAL_PINNED_CHATS.savedValue());
+        for (String key : OLD_PIN_KEYS) assertEquals(key + " stays", "42", prefs(Setting.PREFERENCES_NAME).getString(key, ""));
+        assertEquals("42\tAnn", Settings.LOCAL_NAME_LIST.savedValue());
         assertEquals("1 2 3", Settings.AUTO_FORWARDING_RULES.savedValue());
         assertEquals("0", Settings.RECEIVE_ONLY_ACCOUNTS.savedValue());
         assertEquals("the open account was powered off and isn't now", "", Settings.POWERED_OFF_ACCOUNTS.savedValue());
@@ -434,7 +442,9 @@ public class DuressWipeTest {
                 .putStringSet("owner_chats", Collections.singleton("7:42")).commit();
         Settings.BOOKMARKS.save("1:2:3");
         Settings.KEPT_REMOVED_CHATS.save("42");
-        Settings.LOCAL_PINNED_CHATS.save("42");
+        // Pin chats on this phone is gone, but a phone that used it still holds its two lists.
+        for (String key : OLD_PIN_KEYS) prefs(Setting.PREFERENCES_NAME).edit().putString(key, "42").commit();
+        Settings.LOCAL_NAME_LIST.save("42\tAnn");
         Settings.AUTO_FORWARDING_RULES.save("1 2 3");
         Settings.RECEIVE_ONLY_ACCOUNTS.save("0");
         Settings.POWERED_OFF_ACCOUNTS.save("2");

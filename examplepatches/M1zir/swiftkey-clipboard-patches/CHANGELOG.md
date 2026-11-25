@@ -1,3 +1,12 @@
+# 0.4.0 Mac clipboard sync (2026-11-24)
+
+- Add the optional Mac clipboard sync patch for SyncClipboard on macOS.
+- Text copied on the phone goes to the Mac in the background. Text copied on the Mac reaches the phone when the keyboard opens.
+- HTTPS with a pinned certificate key and a password. Works over Wi-Fi or Tailscale.
+- Clips Android marks as sensitive are not sent.
+- Add Mac setup and pairing QR scripts in scripts/mac.
+- Experimental: Android device validation pending.
+
 # 0.3.1 — Correct Arabic legacy variant (2026-11-11)
 
 - Fix the restored variant: SwiftKey has two layouts with the same Arabic 123 - Legacy label.

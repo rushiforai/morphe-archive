@@ -5,12 +5,13 @@
 //! `uv`, `goopdl`, a real device, a network service, or an Android build tool.
 
 use apk_lab::acquisition::{
-    acquire_artifact, apkmirror_mapping, build_apkeep_args, build_apkmirror_args, load_accounts,
-    normalize_apks_to_apkm, parse_accounts_document, percent_encode, sanitize_diagnostic,
-    AccountConfig, AccountsEnvironment, AcquiredArtifact, Acquirer, ApkBadger, ApkeepAcquirer,
-    ApkeepProvider, ApkeepTool, ApkmirrorAcquirer, ApkmirrorProvider, ArtifactInspector,
-    ArtifactVersion, CommandOutcome, CommandRunner, NodeRuntime, PlayAcquirer, PlayAuth,
-    PlayProvider, ProviderRequest, Redactor, RetryPolicy, STDERR_DIAGNOSTIC_LIMIT,
+    acquire_artifact, apkmirror_mapping, build_apkeep_args, build_apkmirror_args,
+    build_apkpure_args, load_accounts, normalize_apks_to_apkm, parse_accounts_document,
+    percent_encode, sanitize_diagnostic, AccountConfig, AccountsEnvironment, AcquiredArtifact,
+    Acquirer, ApkBadger, ApkeepAcquirer, ApkeepProvider, ApkeepTool, ApkmirrorAcquirer,
+    ApkmirrorProvider, ApkpureAcquirer, ApkpureProvider, ArtifactInspector, ArtifactVersion,
+    CommandOutcome, CommandRunner, NodeRuntime, PlayAcquirer, PlayAuth, PlayProvider,
+    ProviderRequest, Redactor, RetryPolicy, STDERR_DIAGNOSTIC_LIMIT,
 };
 use apk_lab::error::Error;
 use apk_lab::models::{AndroidManifestInfo, ExitCode};
@@ -223,6 +224,7 @@ impl FakeInspector {
 enum RunnerBehavior {
     WriteBase,
     WriteBundle,
+    WriteXapk,
     Fail(String),
     Timeout,
 }
@@ -293,6 +295,16 @@ impl CommandRunner for RecordingRunner {
                     zip_bytes(&[("nested/base.apk", b"nested-base")]),
                 )
                 .expect("write bundle");
+                Ok(success())
+            }
+            RunnerBehavior::WriteXapk => {
+                let attempt = Path::new(args.last().expect("attempt arg"));
+                fs::create_dir_all(attempt).expect("attempt dir");
+                fs::write(
+                    attempt.join("com.test.pkg@1.0.0.xapk"),
+                    zip_bytes(&[("nested/base.apk", b"nested-base")]),
+                )
+                .expect("write xapk");
                 Ok(success())
             }
             RunnerBehavior::Fail(stderr) => Ok(CommandOutcome {
@@ -435,6 +447,31 @@ impl ApkmirrorProvider for ScriptedApkmirror {
             .out_dir
             .join(format!("{}.apkm", request.package_name));
         write_apk(&path, b"mirror");
+        Ok(path)
+    }
+}
+
+struct FailingApkpure;
+
+impl ApkpureProvider for FailingApkpure {
+    fn download(&self, _request: &ProviderRequest) -> Result<PathBuf, Error> {
+        Err(Error::infrastructure("apkpure unavailable"))
+    }
+}
+
+struct ScriptedApkpure {
+    outcome: Result<(), Error>,
+    calls: Cell<usize>,
+}
+
+impl ApkpureProvider for ScriptedApkpure {
+    fn download(&self, request: &ProviderRequest) -> Result<PathBuf, Error> {
+        self.calls.set(self.calls.get() + 1);
+        self.outcome.clone()?;
+        let path = request
+            .out_dir
+            .join(format!("{}.apkm", request.package_name));
+        write_apk(&path, b"apkpure");
         Ok(path)
     }
 }
@@ -647,6 +684,7 @@ fn account_rotation_uses_enabled_order_and_stops_on_success() {
         apkeep: Some(&apkeep),
         play: None,
         apkmirror: None,
+        apkpure: None,
         retry: RetryPolicy::default(),
     };
     let acquired: AcquiredArtifact = acquirer
@@ -670,6 +708,7 @@ fn disabled_accounts_are_skipped() {
         apkeep: Some(&apkeep),
         play: None,
         apkmirror: None,
+        apkpure: None,
         retry: RetryPolicy::default(),
     };
     acquirer
@@ -692,6 +731,7 @@ fn direct_tokens_rotate_and_dispenser_runs_only_without_direct_tokens() {
         apkeep: None,
         play: Some(&play),
         apkmirror: None,
+        apkpure: None,
         retry: RetryPolicy::default(),
     };
     let acquired = acquirer
@@ -709,6 +749,7 @@ fn direct_tokens_rotate_and_dispenser_runs_only_without_direct_tokens() {
         apkeep: None,
         play: Some(&play),
         apkmirror: None,
+        apkpure: None,
         retry: RetryPolicy::default(),
     };
     acquirer
@@ -937,6 +978,7 @@ fn timed_out_first_account_rotates_to_the_second() {
         apkeep: None,
         play: Some(&provider),
         apkmirror: None,
+        apkpure: None,
         retry: RetryPolicy::default(),
     };
     let acquired = acquirer
@@ -971,6 +1013,7 @@ fn timed_out_play_attempt_falls_back_to_apkmirror() {
         apkeep: None,
         play: Some(&provider),
         apkmirror: Some(&mirror),
+        apkpure: None,
         retry: RetryPolicy::default(),
     };
     let acquired = acquirer
@@ -1139,7 +1182,7 @@ fn apkeep_credentials_file_is_private_and_contains_expected_fields() {
     );
     #[cfg(unix)]
     assert_eq!(*runner.private_modes.borrow(), vec![0o600]);
-    assert_eq!(build_apkeep_args(PACKAGE, ini_path, &out).len(), 9);
+    assert_eq!(build_apkeep_args(PACKAGE, None, ini_path, &out).len(), 9);
 }
 
 // ---------------------------------------------------------------------------
@@ -1379,6 +1422,133 @@ fn apkmirror_timeout_is_infrastructure_failure_and_leaves_no_output() {
 }
 
 // ---------------------------------------------------------------------------
+// Tests: APKPure fallback provider
+// ---------------------------------------------------------------------------
+
+#[test]
+fn apkpure_extracts_xapk_and_pins_the_requested_version() {
+    let dir = TempDir::new().expect("temp dir");
+    let out = dir.path().join("out");
+    fs::create_dir_all(&out).expect("out dir");
+    let runner = RecordingRunner::new(RunnerBehavior::WriteXapk);
+    let tool = FakeApkeepTool { available: true };
+    let badger = FakeBadger::base("base.apk");
+    let inspector = FakeInspector::new("1.0.0", 100);
+    let provider = ApkpureAcquirer {
+        tool: &tool,
+        commands: &runner,
+        badger: &badger,
+        inspector: &inspector,
+        timeout: Duration::from_secs(5),
+    };
+    let mut req = request(&out);
+    req.expected_version = Some("1.0.0");
+    let path = provider.download(&req).expect("apkpure bundle");
+    assert_eq!(
+        path.file_name().and_then(|name| name.to_str()),
+        Some("com.test.pkg.apkm")
+    );
+    assert_eq!(entry_names(&path), vec!["base.apk".to_string()]);
+    assert_eq!(read_member(&path, "base.apk"), b"nested-base");
+
+    let args = &runner.args.borrow()[0];
+    assert_eq!(
+        args,
+        &build_apkpure_args(PACKAGE, Some("1.0.0"), Path::new(args.last().unwrap()))
+    );
+    let joined = args.join(" ");
+    assert!(!joined.contains("credentials.ini"));
+    assert!(!joined.contains(" -i "));
+    assert!(joined.contains("acknowledge_dangers=true"));
+    assert_eq!(
+        *runner.programs.borrow(),
+        vec!["/fake/bin/apkeep".to_string()]
+    );
+}
+
+#[test]
+fn apkpure_version_mismatch_leaves_no_output() {
+    let dir = TempDir::new().expect("temp dir");
+    let out = dir.path().join("out");
+    fs::create_dir_all(&out).expect("out dir");
+    let runner = RecordingRunner::new(RunnerBehavior::WriteXapk);
+    let tool = FakeApkeepTool { available: true };
+    let badger = FakeBadger::base("base.apk");
+    let inspector = FakeInspector::new("9.9.9", 999);
+    let provider = ApkpureAcquirer {
+        tool: &tool,
+        commands: &runner,
+        badger: &badger,
+        inspector: &inspector,
+        timeout: Duration::from_secs(5),
+    };
+    let mut req = request(&out);
+    req.expected_version = Some("1.0.0");
+    let error = provider.download(&req).expect_err("version mismatch");
+    assert!(
+        error
+            .message()
+            .contains("APKPure downloaded version '9.9.9'"),
+        "{error}"
+    );
+    assert_eq!(error.exit_code(), ExitCode::InvalidArtifact);
+    assert_eq!(dir_entries(&out), Vec::<String>::new());
+}
+
+#[test]
+fn apkpure_is_the_final_fallback_and_reports_its_source() {
+    let dir = TempDir::new().expect("temp dir");
+    let out = dir.path().join("out");
+    fs::create_dir_all(&out).expect("out dir");
+    let accounts = vec![account("primary", "aas_et/token", true)];
+
+    let apkeep = ScriptedApkeep::new(vec![Err(Error::infrastructure("apkeep down"))]);
+    let play = ScriptedPlay::new(vec![Err(Error::infrastructure("play down"))]);
+    let mirror = ScriptedApkmirror {
+        outcome: Err(Error::invalid_artifact("no mapping configured")),
+        calls: Cell::new(0),
+    };
+    let pure = ScriptedApkpure {
+        outcome: Ok(()),
+        calls: Cell::new(0),
+    };
+    let acquirer = Acquirer {
+        apkeep: Some(&apkeep),
+        play: Some(&play),
+        apkmirror: Some(&mirror),
+        apkpure: Some(&pure),
+        retry: RetryPolicy::default(),
+    };
+    let acquired = acquirer
+        .acquire(&request(&out), Some(&accounts), None)
+        .expect("apkpure fallback");
+    assert_eq!(acquired.source.label(), "apkpure");
+    assert_eq!(mirror.calls.get(), 1);
+    assert_eq!(pure.calls.get(), 1);
+
+    let mirror_ok = ScriptedApkmirror {
+        outcome: Ok(()),
+        calls: Cell::new(0),
+    };
+    let unused_pure = ScriptedApkpure {
+        outcome: Ok(()),
+        calls: Cell::new(0),
+    };
+    let acquirer = Acquirer {
+        apkeep: None,
+        play: None,
+        apkmirror: Some(&mirror_ok),
+        apkpure: Some(&unused_pure),
+        retry: RetryPolicy::default(),
+    };
+    let acquired = acquirer
+        .acquire(&request(&out), Some(&accounts), None)
+        .expect("mirror wins");
+    assert_eq!(acquired.source.label(), "apkmirror");
+    assert_eq!(unused_pure.calls.get(), 0);
+}
+
+// ---------------------------------------------------------------------------
 // Tests: normalization
 // ---------------------------------------------------------------------------
 
@@ -1536,6 +1706,7 @@ fn all_provider_failures_are_aggregated_with_last_class() {
         apkeep: Some(&apkeep),
         play: Some(&play),
         apkmirror: Some(&FailingApkmirror),
+        apkpure: Some(&FailingApkpure),
         retry: RetryPolicy::default(),
     };
     let error = acquirer
@@ -1556,7 +1727,12 @@ fn all_provider_failures_are_aggregated_with_last_class() {
         "{message}"
     );
     assert!(message.contains("apkmirror:"), "{message}");
-    assert_eq!(error.exit_code(), ExitCode::InvalidArtifact);
+    // The aggregate keeps the class of the final attempt, and APKPure is last.
+    assert!(
+        message.contains("apkpure: apkpure unavailable"),
+        "{message}"
+    );
+    assert_eq!(error.exit_code(), ExitCode::InfrastructureFailure);
     assert_eq!(dir_entries(&out), Vec::<String>::new());
 }
 
@@ -1572,6 +1748,7 @@ fn retry_policy_retries_only_infrastructure_failures() {
         apkeep: Some(&apkeep),
         play: None,
         apkmirror: None,
+        apkpure: None,
         retry: RetryPolicy::new(2),
     };
     acquirer
@@ -1584,6 +1761,7 @@ fn retry_policy_retries_only_infrastructure_failures() {
         apkeep: Some(&apkeep),
         play: None,
         apkmirror: None,
+        apkpure: None,
         retry: RetryPolicy::new(2),
     };
     let error = acquirer
@@ -1611,6 +1789,7 @@ fn routing_prefers_apkeep_then_play_then_apkmirror() {
         apkeep: Some(&apkeep),
         play: Some(&play),
         apkmirror: Some(&apkmirror),
+        apkpure: None,
         retry: RetryPolicy::default(),
     };
     let acquired = acquirer
@@ -1625,6 +1804,7 @@ fn routing_prefers_apkeep_then_play_then_apkmirror() {
         apkeep: Some(&apkeep),
         play: Some(&play),
         apkmirror: Some(&apkmirror),
+        apkpure: None,
         retry: RetryPolicy::default(),
     };
     let acquired = acquirer
@@ -1739,6 +1919,7 @@ fn missing_badging_tool_is_a_usage_failure_not_an_invalid_artifact() {
         apkeep: None,
         play: Some(&provider),
         apkmirror: None,
+        apkpure: None,
         retry: RetryPolicy::default(),
     };
     let error = acquirer
@@ -1778,6 +1959,7 @@ fn host_inspection_failure_stays_infrastructure() {
         apkeep: None,
         play: Some(&provider),
         apkmirror: None,
+        apkpure: None,
         retry: RetryPolicy::default(),
     };
     let error = acquirer
@@ -1849,6 +2031,7 @@ fn package_names_are_validated_before_output_paths_are_created() {
         apkeep: None,
         play: None,
         apkmirror: None,
+        apkpure: None,
         retry: RetryPolicy::default(),
     };
     let invalid = ProviderRequest {

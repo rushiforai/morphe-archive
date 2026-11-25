@@ -42,6 +42,9 @@ internal const val TARGET_WIDTH = "$IMAGE_QUALITY->targetWidth(I)I"
 /** One size of a photo: its address, width and height. A kept class. */
 internal const val EXTENDED_IMAGE_URL = "Lcom/instagram/model/mediasize/ExtendedImageUrl;"
 
+/** What the chooser answers since 456, the plain image URL its callers cast back to [EXTENDED_IMAGE_URL]. */
+internal const val CHOSEN_IMAGE_URL = "Lcom/instagram/common/typedurl/ImageUrl;"
+
 /** The chooser's parameters: which shapes count, the sizes the server sent, and the width to aim for. */
 internal val CHOOSER_PARAMETERS = listOf("Ljava/lang/Integer;", "Ljava/util/List;", "I")
 
@@ -103,7 +106,7 @@ private fun MethodReference.signature() = "$definingClass->$name(${parameterType
 
 /** Whether [this] has the chooser's signature: static, answering one size for a shape, a list and a width. */
 internal fun Method.isSizeChooserShape(): Boolean =
-    AccessFlags.STATIC.isSet(accessFlags) && returnType == EXTENDED_IMAGE_URL &&
+    AccessFlags.STATIC.isSet(accessFlags) && returnType == CHOSEN_IMAGE_URL &&
         parameterTypes.map { it.toString() } == CHOOSER_PARAMETERS
 
 /** Whether [this] has the generic chooser's signature: an instance method answering one of the sizes it's handed. */

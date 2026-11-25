@@ -391,7 +391,12 @@ class ThreadsLogoFixtureTest {
         val keys = holders.flatMap { it.methods }.filter { it.name == "<clinit>" }.mapNotNull { init ->
             val body = init.body()
             val at = body.indexOfFirst { it.string() == CONTENT_DESCRIPTION }
-            if (at < 0) null else body.drop(at + 1).firstOrNull { it.opcode == Opcode.SPUT_OBJECT }?.getReference<FieldReference>()?.name()
+            if (at < 0) return@mapNotNull null
+            val store = (at + 1 until body.size).firstOrNull { body[it].opcode == Opcode.SPUT_OBJECT } ?: return@mapNotNull null
+            val field = body[store].getReference<FieldReference>()!!
+            // The key is an object built from its name. 457 also files the name in a set of
+            // property names, stored the same way, which isn't a key.
+            field.name().takeIf { field.type in body.subList(at + 1, store).made() }
         }.distinct()
         assertEquals("$where: one field is stored after \"$CONTENT_DESCRIPTION\": $keys", 1, keys.size)
         val key = keys.single()
@@ -466,7 +471,7 @@ class ThreadsLogoFixtureTest {
     private fun fixture(build: File): Fixture = fixtures.getOrPut(build) {
         val where = build.name
         val noted = FixtureDex.classesWhere(build, { true }) { method ->
-            method.holdsString(MAIN_FEED_SCREEN_NOTE) || method.name == "<clinit>" && method.body().any { it.string() == LOGO_TAP }
+            method.name == "<clinit>" && method.body().any { it.string() == LOGO_TAP }
         }
         // The reason is the field the enum's static initializer stores after it builds LogoTap.
         val initializer = noted.flatMap { it.methods }.single { it.name == "<clinit>" && it.body().any { i -> i.string() == LOGO_TAP } }
@@ -485,8 +490,6 @@ class ThreadsLogoFixtureTest {
         val header = FixtureDex.methodsWhere(build, { true }) { method ->
             method.body().any { it.opcode == Opcode.NEW_INSTANCE && it.getReference<TypeReference>()?.type == tap }
         }.single()
-        assertTrue("$where: ${header.signature()} holds the main feed's note",
-            header.body().any { it.string()?.let { s -> s.startsWith(MAIN_FEED_SCREEN_NOTE) && "(MainFeedScreen.kt:" in s } == true })
         val body = header.body()
         val built = body.indexOfFirst { it.opcode == Opcode.NEW_INSTANCE && it.getReference<TypeReference>()?.type == tap }
         val call = (built + 1 until body.size).first {
@@ -511,8 +514,6 @@ class ThreadsLogoFixtureTest {
 
     private fun BytecodePatchContext.header(fixture: Fixture) =
         mutableClassDefBy(fixture.header.definingClass).methods.single { it.signature() == fixture.header.signature() }
-
-    private fun Method.holdsString(prefix: String) = body().any { it.string()?.startsWith(prefix) == true }
 
     private fun Instruction.string(): String? = getReference<StringReference>()?.string
 

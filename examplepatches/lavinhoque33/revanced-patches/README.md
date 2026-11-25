@@ -7,53 +7,53 @@
 [![Static Badge](https://img.shields.io/badge/Telegram-Community-gray?logo=telegram&color=%2326A5E4)](https://t.me/AnddeaChat)   [![Static Badge](https://img.shields.io/badge/Reddit-YTAdvanced-gray?logo=reddit&color=red)](https://www.reddit.com/r/YTadvanced)
 </div>
 
-<!-- modified by lavinhoque33, 2026-11-10: Morphe Manager stable and dev source instructions. -->
-## Morphe Manager
+<!-- modified by lavinhoque33, 2026-11-25: shared Manager source instructions. -->
+## Patch Managers
 
-### Stable builds
-
-To add this fork as an updatable patch source:
-
-1. Open **Sources** on Morphe Manager's home screen, tap **+**, and choose **Remote**.
-2. Paste this patch source URL:
-
-   ```text
-   https://raw.githubusercontent.com/lavinhoque33/revanced-patches/rvx-latest/patches-bundle.json
-   ```
-
-3. Tap **Add**. The source appears as **RVX Patches**.
-4. When patching YouTube or YouTube Music, select this source. Do not combine its patches with Morphe's
-   patches for the same app.
-
-Use the source's **Update** button to fetch newer bundles, then patch and install the app again.
-Updating the source alone does not update an installed app.
-
-Use the full URL above. A bare repository link resolves to upstream metadata on `main`. If Manager 2.7.x
-shows v4.3.0 release notes for RVX, add the URL above as a separate source and select it instead. The older
-`refs/heads/rvx-latest` URL still downloads the right bundle, but Manager reads the wrong changelog.
-
-### Dev builds (prereleases)
-
-For dev builds, add this URL as a **second source** using **Sources > + > Remote**:
+Add this repository as one remote patch source:
 
 ```text
-https://raw.githubusercontent.com/lavinhoque33/revanced-patches/rvx-dev/patches-bundle.json
+https://github.com/lavinhoque33/revanced-patches
 ```
 
-Select the dev source instead of the stable source when patching if you want dev builds.
-Do not combine the two sources' patches for the same app.
+### Morphe Manager
 
-Manager's own **Pre-release patches** switch does not appear for this source. The dev feed is a separate
-source, not a switch on the stable source.
+1. Open **Sources**, tap **+**, paste the repository URL into **Source URL**, and tap **Add**.
+2. Leave **Pre-release patches** off on the RVX source for stable releases. Turn it on to
+   follow the newest bundle from either channel. You do not need a second source.
+3. Select **RVX Patches** when patching YouTube or YouTube Music. Do not combine it with
+   another patch source for the same app.
 
-These bundles declare **YouTube 21.45.90** and **YouTube Music 9.45.51** as experimental app targets.
-Manager's **Experimental app versions** switch is available for this source. Suggested versions remain
-**YouTube 21.39.525** and **YouTube Music 9.40.51**.
-If a download search offers `21.45.90-EXTENDED`, choose the plain `21.45.90` APK instead. The two
-manifest versions are different; do not override the compatibility warning.
+The existing [stable](https://raw.githubusercontent.com/lavinhoque33/revanced-patches/rvx-latest/patches-bundle.json)
+and [dev](https://raw.githubusercontent.com/lavinhoque33/revanced-patches/rvx-dev/patches-bundle.json)
+JSON links still work as separate, fixed-channel sources in Morphe Manager. To use the
+channel switch, add the repository URL above and select that source instead.
 
-You can also download a `.mpp` from a release and import it via **Sources > + > Local**.
-Local imports do not update automatically; import the new `.mpp` for each update.
+Both bundles declare **YouTube 21.45.90** and **YouTube Music 9.45.51** as experimental app
+targets. On the repository source, Morphe offers **Experimental app versions** when
+**Pre-release patches** is on. Suggested versions remain **YouTube 21.39.525** and
+**YouTube Music 9.40.51**. If a download search offers `21.45.90-EXTENDED`, choose plain
+`21.45.90`; the APK manifest versions differ.
+
+### UP Manager
+
+Open **Patch Bundles → Add**, then enter the same repository URL. In the bundle settings,
+leave **Use latest** and **Use pre-releases** off for stable. Enable **Use latest** to
+follow the most recently published stable or dev release. **Use pre-releases** by itself
+follows dev releases only.
+
+Published patch bundles reach the Manager feeds automatically. To use an update, refresh the
+source, then repatch and reinstall your app. Refreshing a source alone does not update installed apps.
+For a local import in Morphe Manager, open **Sources → + → Select patch source files** and choose the `.mpp`.
+Local sources must be updated manually.
+
+<!--
+Fork release maintenance: attach patches-<version>.mpp before publishing vX.Y.Z (stable) or vX.Y.Z-dev.N (prerelease).
+Sync Manager feeds runs on publication and checks again every 30 minutes. It mirrors GitHub Latest to main/rvx-latest
+and the newest higher-version prerelease, or stable if none is newer, to dev/rvx-dev.
+Use Actions > Sync Manager feeds > Run workflow on rvx-latest to sync on demand.
+main/dev are Manager metadata mirrors, not source or release build branches.
+-->
 
 ## 📋 List of patches in this repository
 
@@ -103,6 +103,7 @@ Local imports do not update automatically; import the new `.mpp` for each update
 | `Fullscreen components` | Adds options to hide or change components related to fullscreen. | 21.39.525 ~ 20.05.46 |
 | `Fullscreen video scale` | Adds options to stretch or zoom videos to fill the screen in fullscreen mode. | 21.39.525 ~ 20.05.46 |
 | `Gemini` | Adds options to use Gemini for video summaries, transcription, and settings search. | 21.39.525 ~ 20.05.46 |
+| `Glass menus` | Adds an optional frosted glass effect to menus on Android 12 and newer when the device supports window blur. | 21.39.525 ~ 20.05.46 |
 | `GmsCore support` | Allows the app to work without root by using a different package name when patched using a GmsCore instead of Google Play Services. | 21.39.525 ~ 20.05.46 |
 | `Hide Shorts dimming` | Adds settings to hide the stock Shorts dimming, adjust the overlay opacity, and hide the status bar in Shorts. | 21.39.525 ~ 20.05.46 |
 | `Hide accessibility controls dialog` | Removes, at compile time, accessibility controls dialog 'Turn on accessibility controls for the video player?'. | 21.39.525 ~ 20.05.46 |
@@ -165,6 +166,7 @@ Local imports do not update automatically; import the new `.mpp` for each update
 | `Toolbar components` | Adds options to hide or change components located on the toolbar, such as the search bar, header, and toolbar buttons. | 21.39.525 ~ 20.05.46 |
 | `Translate live chat` | Adds an option to translate live chat and live chat replay messages. | 21.39.525 ~ 20.05.46 |
 | `Translations for YouTube` | Add translations or remove string resources. | 21.39.525 ~ 20.05.46 |
+| `Ungroup notifications` | Adds an option to show each video in grouped uploads as a separate entry in YouTube's Notifications tab. | 21.39.525 ~ 20.05.46 |
 | `Unlock queue` | Adds an option to unlock YouTube’s video queue. | 21.39.525 ~ 20.05.46 |
 | `Video delay` | Adds an option to delay the video, to keep it in sync with laggy Bluetooth audio. | 21.39.525 ~ 20.05.46 |
 | `Video playback` | Adds options to customize settings related to video playback, such as default video quality and playback speed. | 21.39.525 ~ 20.05.46 |
@@ -203,6 +205,7 @@ Local imports do not update automatically; import the new `.mpp` for each update
 | `Flyout menu components` | Adds options to hide or change flyout menu components. | 9.40.51 ~ 8.12.54 |
 | `Force original audio` | Adds an option to disable audio tracks from being automatically enabled. | 9.40.51 ~ 8.12.54 |
 | `Force portrait orientation` | Adds an option to keep the app in portrait orientation when the device is rotated. | 9.40.51 ~ 8.12.54 |
+| `Glass menus` | Adds an optional frosted glass effect to menus on Android 12 and newer when the device supports window blur. | 9.40.51 ~ 8.12.54 |
 | `Glass player and navigation bar` | Adds independent glass styles for the miniplayer and navigation bar, with live previews. | 9.40.51 ~ 8.12.54 |
 | `GmsCore support` | Allows the app to work without root by using a different package name when patched using a GmsCore instead of Google Play Services. | 9.40.51 ~ 8.12.54 |
 | `Hide account components` | Adds options to hide components related to the account menu. | 9.40.51 ~ 8.12.54 |

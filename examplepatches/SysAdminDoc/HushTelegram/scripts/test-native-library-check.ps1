@@ -22,7 +22,7 @@ if (-not $Root) { $Root = Split-Path -Parent $PSScriptRoot }
 $Java = Resolve-Java -Explicit $Java
 if (-not $FixtureDir) { $FixtureDir = $env:HUSHTELEGRAM_FIXTURE_DIR }
 if (-not $FixtureDir) { $FixtureDir = Join-Path $Root 'fixtures' }
-$fixtures = @('telegram-web-13.2.2-73039.apk', 'telegram-play-13.2.2-73031.apk') |
+$fixtures = @('telegram-web-13.3.1-73469.apk', 'telegram-play-13.3.1-73461.apk') |
     ForEach-Object { Join-Path $FixtureDir $_ }
 foreach ($fixturePath in $fixtures) {
     if (-not (Test-Path -LiteralPath $fixturePath -PathType Leaf)) { throw "Missing read-only native fixture: $fixturePath" }
@@ -394,9 +394,10 @@ try {
     # Both builds carry libtmessages, liblanguage_id_l2c_jni, libdatastore_shared_counter and libtwidget for four ABIs.
     # The web build gained libdatastore_shared_counter in 13.2.1 (72919); before that only Play had it.
     # 13.2.2 added libtwidget, the engine behind its isolated :widgets process; its x86_64 RELRO ends mid-page.
+    # 13.3.1 ships the same sixteen libraries with the same alignment and RELRO layout.
     $pinned = @{
-        'telegram-web-13.2.2-73039' = @{ Entries = 16; Aligned16Kb = 8; Relros64 = 8; MidPage = 5 }
-        'telegram-play-13.2.2-73031' = @{ Entries = 16; Aligned16Kb = 8; Relros64 = 8; MidPage = 5 }
+        'telegram-web-13.3.1-73469' = @{ Entries = 16; Aligned16Kb = 8; Relros64 = 8; MidPage = 5 }
+        'telegram-play-13.3.1-73461' = @{ Entries = 16; Aligned16Kb = 8; Relros64 = 8; MidPage = 5 }
     }
     foreach ($fixturePath in $fixtures) {
         $before = (Get-FileHash -LiteralPath $fixturePath -Algorithm SHA256).Hash

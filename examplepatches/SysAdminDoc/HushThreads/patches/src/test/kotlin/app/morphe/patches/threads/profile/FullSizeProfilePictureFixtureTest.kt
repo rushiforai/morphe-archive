@@ -15,6 +15,7 @@ import app.morphe.patcher.patch.PatchException
 import app.morphe.patches.threads.download.IMAGE_URL
 import app.morphe.patches.threads.download.USER
 import app.morphe.patches.threads.misc.extension.SETTINGS_STATUS
+import app.morphe.patches.threads.misc.extension.holdsNote
 import app.morphe.patches.threads.misc.extension.parameterRegisterNumber
 import app.morphe.util.findMutableMethodOf
 import app.morphe.util.getReference
@@ -58,7 +59,7 @@ class FullSizeProfilePictureFixtureTest {
             // Read apart from the patch: one static void method carries the note, takes one String
             // and one callback, and reads the session from a parameter once.
             val holders = classes(build).flatMap { it.methods }.filter { method ->
-                AccessFlags.STATIC.isSet(method.accessFlags) && method.returnType == "V" && method.body().any { it.isFocusedPictureNote() }
+                AccessFlags.STATIC.isSet(method.accessFlags) && method.returnType == "V" && method.holdsNote(FOCUSED_PICTURE_NOTE)
             }
             assertEquals("$where: methods with the note", 1, holders.size)
             val stock = holders.single()
@@ -187,9 +188,7 @@ class FullSizeProfilePictureFixtureTest {
     private fun context(build: File) = PatchContexts.of(ExtensionDex.classes() + classes(build))
 
     private fun classes(build: File): List<ClassDef> = fixtures.getOrPut(build) {
-        val picture = FixtureDex.classesWhere(build, { dex -> dex.stringSection.any { it.startsWith(FOCUSED_PICTURE_NOTE) } }) { method ->
-            method.implementation?.instructions?.any { it.isFocusedPictureNote() } == true
-        }
+        val picture = FixtureDex.classesWhere(build, { true }) { it.holdsNote(FOCUSED_PICTURE_NOTE) }
         picture + FixtureDex.classes(build, setOf(USER, USER_CACHE, PROFILE_PIC_URL_INFO, IMAGE_URL)).values
     }
 

@@ -3,7 +3,7 @@
  * https://github.com/hoo-dles/morphe-patches
  *
  * Ported from the Solid Explorer 3.6.1 "Enable Pro" patch in hoo-dles/morphe-patches
- * (GPLv3), re-resolved for 3.6.4.
+ * (GPLv3), re-resolved for 3.6.4 and unchanged in 3.6.5.
  */
 
 package dev.hyzor.patches.solidexplorer.pro

@@ -186,8 +186,10 @@ class ObfuscatedIdentityTest {
 
         /**
          * Names that match a shape above and are nobody's invention: framework and interface
-         * members compared by name, the resource types handed to a lookup, and file extensions.
+         * members compared by name, the resource types handed to a lookup, file extensions, and
+         * the word for monetization PineDrama's own gate keys are written with
+         * (`m10n_coupon_for_pii`), which PaidGates matches.
          */
-        val REAL_NAMES = setOf("get", "put", "run", "key", "id", "raw", "mp3", "mp4", "m4a", "m4v", "jpg", "png")
+        val REAL_NAMES = setOf("get", "put", "run", "key", "id", "raw", "mp3", "mp4", "m4a", "m4v", "jpg", "png", "m10n")
     }
 }

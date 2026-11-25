@@ -48,7 +48,8 @@ public final class MonetCatalogChannelsPatch {
             false, builder -> {
                 builder.compatibleWith(new Compatibility("com.klevico.monet", "Monet", null, ApkFileType.APK,
                     null, null, Arrays.asList(new AppTarget("1.0.97", null, false, 26, null),
-                        new AppTarget("1.1.0", null, false, 26, null), new AppTarget("1.1.1", null, false, 26, null)), FormFactor.TV, false));
+                        new AppTarget("1.1.0", null, false, 26, null), new AppTarget("1.1.1", null, false, 26, null),
+                        new AppTarget("1.1.2", null, false, 26, null)), FormFactor.TV, false));
                 builder.extendWith(() -> {
                     var input = MonetCatalogChannelsPatch.class.getClassLoader().getResourceAsStream("extensions/monet-catalog-channels.mpe");
                     if (input == null) throw new IllegalStateException("Missing Monet catalog channels extension");
@@ -56,9 +57,21 @@ public final class MonetCatalogChannelsPatch {
                 });
                 builder.execute(context -> {
                     if (!"com.klevico.monet".equals(context.getPackageMetadata().getPackageName())
-                        || !Set.of("1.0.97","1.1.0","1.1.1").contains(context.getPackageMetadata().getVersionName())) throw unsupported("Unexpected package/version");
+                        || !Set.of("1.0.97","1.1.0","1.1.1","1.1.2").contains(context.getPackageMetadata().getVersionName())) throw unsupported("Unexpected package/version");
                     List<ClassDef> classes = new ArrayList<>();
                     context.classDefForEach(c -> { classes.add(c); return Unit.INSTANCE; });
+                    if ("1.1.2".equals(context.getPackageMetadata().getVersionName())) {
+                        Map<String,Method> reviewed = MonetCatalogChannels112.validate(classes);
+                        MonetCatalogChannels110.selectLayout(context.mutableClassDefBy(MonetCatalogChannels112.LAYOUT));
+                        MonetCatalogChannels112.selectLayout(context.mutableClassDefBy(MonetCatalogChannels112.LAYOUT));
+                        for (String signature : MonetCatalogChannels112.TARGETS) {
+                            Method original = reviewed.get(signature);
+                            MutableMethod target = context.mutableClassDefBy(original.getDefiningClass()).getMethods().stream()
+                                .filter(m -> m.equals(original)).findFirst().orElseThrow();
+                            MonetCatalogChannels112.apply(target);
+                        }
+                        return Unit.INSTANCE;
+                    }
                     boolean latest = "1.1.1".equals(context.getPackageMetadata().getVersionName());
                     if (latest) {
                         Map<String,Method> reviewed = MonetCatalogChannels111.validate(classes);

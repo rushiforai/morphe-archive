@@ -1,11 +1,11 @@
 ![HushTelegram. Keep the chat. Cut the noise.](assets/readme-hero.png)
 
 <p align="center">
-  <img src="https://img.shields.io/badge/version-0.0.26-7CE6C4" alt="Version 0.0.26">
+  <img src="https://img.shields.io/badge/version-0.0.27-7CE6C4" alt="Version 0.0.27">
   <a href="LICENSE"><img src="https://img.shields.io/badge/license-GPL--3.0-blue" alt="License GPL-3.0"></a>
   <img src="https://img.shields.io/badge/platform-Android%209%2B-3DDC84" alt="Platform Android 9+">
-  <img src="https://img.shields.io/badge/Telegram-13.2.2%20Play%20%7C%20telegram.org-2AABEE" alt="Telegram 13.2.2 from Google Play and telegram.org">
-  <img src="https://img.shields.io/badge/for-Morphe%20Manager%202.6.0%2B-8A2BE2" alt="For Morphe Manager 2.6.0 or newer">
+  <img src="https://img.shields.io/badge/Telegram-13.3.1%20Play%20%7C%20telegram.org-2AABEE" alt="Telegram 13.3.1 from Google Play and telegram.org">
+  <img src="https://img.shields.io/badge/for-Morphe%20Manager%202.7.0%2B-8A2BE2" alt="For Morphe Manager 2.7.0 or newer">
 </p>
 
 <p align="center">
@@ -22,7 +22,7 @@
 
 HushTelegram is a set of [Morphe](https://morphe.software) patches for Telegram on Android. It takes the sponsored messages and search ads out of Telegram and keeps the app's usage reports on your phone. Everything else is a switch in its own settings screen, so you can hide Stories and the Premium upsells, keep messages other people delete, translate a whole chat, get notifications through UnifiedPush, go AMOLED black and plenty more. It doesn't give away paid Premium features. The switches that save, screenshot or keep what a chat doesn't allow (view-once media and secret chats included) all start off.
 
-The latest release is [v0.0.26](https://github.com/SysAdminDoc/HushTelegram/releases/tag/v0.0.26), with 82 patches for Telegram 13.2.2 from Google Play and telegram.org. It needs Morphe Manager 2.6.0 or newer. What changed in each version is in the [changelog](CHANGELOG.md).
+The latest release is [v0.0.27](https://github.com/SysAdminDoc/HushTelegram/releases/tag/v0.0.27), with 81 patches for Telegram 13.3.1 from Google Play and telegram.org. It needs Morphe Manager 2.7.0 or newer. What changed in each version is in the [changelog](CHANGELOG.md).
 
 **[Add HushTelegram to Morphe Manager](https://morphe.software/add-source?github=SysAdminDoc%2FHushTelegram)** | [Download a release](https://github.com/SysAdminDoc/HushTelegram/releases/latest) | [Browse the patches](#patches)
 
@@ -31,9 +31,9 @@ The latest release is [v0.0.26](https://github.com/SysAdminDoc/HushTelegram/rele
 
 ## Install
 
-1. Install [Morphe Manager](https://github.com/MorpheApp/morphe-manager) 2.6.0 or newer.
+1. Install [Morphe Manager](https://github.com/MorpheApp/morphe-manager) 2.7.0 or newer.
 2. Open the [add-source link](https://morphe.software/add-source?github=SysAdminDoc%2FHushTelegram) on your phone to add HushTelegram as a patch source.
-3. Get Telegram 13.2.2 from [Google Play](https://play.google.com/store/apps/details?id=org.telegram.messenger) (version code 73031), or from telegram.org's [Download button](https://telegram.org/android) (version code 73039). [APKMirror](https://www.apkmirror.com/apk/telegram-fz-llc/telegram/) carries the Google Play build too. telegram.org always hands out its newest build, so once it moves past 13.2.2, Telegram's own [Telegram APKs for Android](https://t.me/TAndroidAPK) channel still has this one. Check the [checksum](#supported-telegram-builds) before you patch.
+3. Get Telegram 13.3.1 from [Google Play](https://play.google.com/store/apps/details?id=org.telegram.messenger) (version code 73461), or from telegram.org's [Download button](https://telegram.org/android) (version code 73469). [APKMirror](https://www.apkmirror.com/apk/telegram-fz-llc/telegram/) carries the Google Play build too. telegram.org always hands out its newest build, so once it moves past 13.3.1, Telegram's own [Telegram APKs for Android](https://t.me/TAndroidAPK) channel still has this one. Check the [checksum](#supported-telegram-builds) before you patch.
 4. Pick the file in Morphe Manager, keep the default selection and patch. It has every patch that comes with a switch.
 5. Four patches start unselected: Use registered Telegram API credentials, Use registered Maps API key, HushTelegram icon and name, and Black and white launch logo. To add one, turn on **Settings > Advanced > Expert mode** in Morphe Manager and fill in its options before you patch.
 
@@ -53,9 +53,9 @@ Tap a section to open its switches in place. The **Pause** button at the top tur
 
 ## Patches
 
-The current release has 82 patches. Each description is the one Morphe Manager shows, and it says which page of HushTelegram settings holds the switch and whether it starts on or off. The table runs in the order of those pages.
+The current release has 81 patches. Each description is the one Morphe Manager shows, and it says which page of HushTelegram settings holds the switch and whether it starts on or off. The table runs in the order of those pages.
 
-A few descriptions are behind the app. Since 0.0.20, `Save downloaded files` has a second switch under it, **Also save from chats that don't allow saving**, which starts off. With both on, files and songs from those chats get a copy too, and so does each photo and video you open or auto-download there, so only use it where the owner is fine with that. Secret chats always stay in Telegram, and so does self-destructing media unless **Also save view-once and timed media** is on as well. In ordinary chats, photos and videos still go through Save to Gallery. The **What to copy** row right under the main switch narrows the copies down to the kinds you tick: documents, music, photos, videos and voice messages. Below them, the **Gallery folder** row picks where Save to Gallery puts photos and videos on Android 10 and newer. Telegram's Pictures/Telegram and Movies/Telegram are the default, and you can switch to DCIM/Telegram or to DCIM/Telegram/Photos and DCIM/Telegram/Videos. In the Chat list page, **Move All Chats** starts off and keeps the All Chats tab where you drag it, on this phone only. Under **Keep Telegram's files in internal storage**, the **Folder in internal storage** row names the folder those files go in, like Internal storage/Plus. It's Telegram until you change it, and a new name takes a restart. `Keep videos muted on volume keys` has a **Start videos without sound** switch, off to start, that plays each video you open muted until you press a volume key. `Hide Premium, gifts and Stars` also takes Send a Gift out of the three-dot menu on profiles and channels. `Add Repeat to the message menu` has more switches than its four items now, one of them **Allow screenshots in chats that don't allow saving**, off to start.
+A few descriptions are behind the app. Since 0.0.20, `Save downloaded files` has a second switch under it, **Also save from chats that don't allow saving**, which starts off. With both on, files and songs from those chats get a copy too, and so does each photo and video you open or auto-download there, so only use it where the owner is fine with that. Secret chats always stay in Telegram, and so does self-destructing media unless **Also save view-once and timed media** is on as well. In ordinary chats, photos and videos still go through Save to Gallery. The **What to copy** row right under the main switch narrows the copies down to the kinds you tick: documents, music, photos, videos and voice messages. Below them, the **Gallery folder** row picks where Save to Gallery puts photos and videos on Android 10 and newer. Telegram's Pictures/Telegram and Movies/Telegram are the default, and you can switch to DCIM/Telegram or to DCIM/Telegram/Photos and DCIM/Telegram/Videos. Under **Keep Telegram's files in internal storage**, the **Folder in internal storage** row names the folder those files go in, like Internal storage/Plus. It's Telegram until you change it, and a new name takes a restart. `Keep videos muted on volume keys` has a **Start videos without sound** switch, off to start, that plays each video you open muted until you press a volume key. `Hide Premium, gifts and Stars` also takes Send a Gift out of the three-dot menu on profiles and channels. `Add Repeat to the message menu` has more switches than its four items now, one of them **Allow screenshots in chats that don't allow saving**, off to start.
 
 `Translate with an outside service` also has a **Translate into** row under Translation service. Telegram's language is the default. Tap it to pick any of the 250 or so languages Google's web translate knows, Persian and others Telegram's own list leaves out included. There's a search at the top, and Translate here and Translate this chat both write in the language you pick.
 
@@ -103,7 +103,7 @@ A few descriptions are behind the app. Since 0.0.20, `Save downloaded files` has
 | `Lyrics and song dates` | Adds Lyrics to the music player's menu, found on lrclib.net and scrolling along with the song, and shows when you added each song to your profile. Starts off. Turn it on in HushTelegram settings > Playback. |
 | `Faster downloads` | Downloads files in 512 KB pieces, 8 at a time, the way Telegram already does for accounts its servers pick, instead of 128 KB pieces 4 at a time. If a big piece fails, Telegram still drops back to small ones. A second switch, Hold automatic downloads on Data Saver, keeps Telegram from downloading media on its own while Android's Data Saver is on and the network is metered. A third, Faster uploads, keeps four times as many upload pieces in flight. A fourth, Download manager, runs downloads one at a time in the order you asked and adds a Downloads row to the side menu. A fifth, Send photos and videos in the best quality, sends photos in HD and videos at their own size unless you lower one first. All five start off. Turn them on in HushTelegram settings > Playback. |
 | `Save downloaded files` | Copies each file and song you download to Download/Telegram on your phone, where file managers and other apps can open it, the way Save to Downloads does one at a time. Files from secret chats and from chats that don't allow saving stay in Telegram. Starts off. Turn it on in HushTelegram settings > Playback. |
-| `Repair Firebase push registration` | Tries to help a patched Telegram sign up for push notifications, by giving Google's Firebase service Telegram's original certificate. If Telegram's server still turns the sign-up down, as it does with your own API ID, it turns on Telegram's own Keep-Alive Service and Background Connection instead, unless you've set either one yourself. While Keep-Alive Service is on, it runs with a quiet notification so Android doesn't stop it in the background. On by default. Turn it off in HushTelegram settings > Notifications. |
+| `Repair Firebase push registration` | Tries to help a patched Telegram sign up for push notifications, by giving Google's Firebase service Telegram's original certificate. If Telegram's server still turns the sign-up down, as it does with your own API ID, it turns on Telegram's own Keep-Alive Service and Background Connection instead, unless you've set either one yourself. While Keep-Alive Service is on, it runs with a quiet notification so Android doesn't stop it in the background. On by default, except for a root mount, which keeps Telegram's own certificate. Turn it off in HushTelegram settings > Notifications. |
 | `UnifiedPush notifications` | Lets Telegram get its notifications through a UnifiedPush app like ntfy, for phones where Firebase notifications don't arrive. Telegram's servers wake it through the app, and the messages still come from Telegram. It also turns on Telegram's own Keep-Alive Service and Background Connection, unless you've set either one yourself, so messages keep coming while Telegram is closed. Starts off. Turn it on in HushTelegram settings > Notifications. |
 | `Silence people outside your contacts` | Shows notifications from people who aren't in your contacts without sound or vibration. Bots, reminders and login codes keep their sound. Starts off. Turn it on in HushTelegram settings > Notifications. |
 | `Ignore mentions in muted chats` | Stops mentions and replies in groups or channels you've muted from notifying you. Chats you haven't muted notify as before. Starts off. Turn it on in HushTelegram settings > Notifications. |
@@ -121,7 +121,7 @@ A few descriptions are behind the app. Since 0.0.20, `Save downloaded files` has
 | `Turn off haptic feedback` | Stops Telegram from vibrating for taps, long presses, swipes and wrong entries. Calls and notifications still vibrate. Starts off. Turn it on in HushTelegram settings > Look and feel. |
 | `Turn off reaction effects` | Stops the emoji burst and fly-in when someone reacts. The reaction still shows on the message. Starts off. Turn it on in HushTelegram settings > Look and feel. |
 | `Hide time on stickers` | Removes the time and read checks from stickers and big animated emoji in chats. Starts off. Turn it on in HushTelegram settings > Look and feel. |
-| `Change sticker size` | Shows stickers in chats smaller or larger than Telegram does, at a size you pick. Animated emoji and dice keep their size. Starts off. Turn it on in HushTelegram settings > Look and feel. |
+| `Change sticker size` | Shows stickers in chats smaller or larger than Telegram does, at a size you pick. Animated emoji and dice keep their size. A second switch, Keep downloaded stickers, keeps sticker files out of Telegram's automatic cache cleanup, so packs you've used don't download again. A Sticker panel size row shows fewer, bigger stickers in the sticker panel and its search. All three start off. Change them in HushTelegram settings > Look and feel. |
 | `Hide Telegram Features and Invite Friends` | Removes the Telegram Features row from Settings and the Invite Friends rows from Contacts. Starts off. Turn it on in HushTelegram settings > Look and feel. |
 | `Hide channel bar buttons` | Removes the Search, Direct messages and Info buttons from the bar at the bottom of a channel. Mute and Join stay. Starts off. Turn it on in HushTelegram settings > Look and feel. |
 | `Hide Send as button` | Hides your picture next to the message box in groups and channels where you could post as a channel, while you're posting as yourself. Starts off. Turn it on in HushTelegram settings > Look and feel. |
@@ -134,7 +134,6 @@ A few descriptions are behind the app. Since 0.0.20, `Save downloaded files` has
 | `Open links externally` | Opens ordinary web links in your browser instead of inside Telegram. Telegram links, sign-in and payment pages work as before. On by default. Turn it off in HushTelegram settings > More settings > Links. A second switch there, Keep your location from Mini Apps, starts off. With it on, Mini Apps and web pages opened in Telegram are told your location isn't available. |
 | `Strip link tracking` | Removes tracking tags like utm_source, gclid and fbclid from links you open or share. Links with any other extra part stay unchanged. A second switch, Clean links when you copy or paste, does the same for a link you copy or paste into the message box. A third, No automatic sign-in on Telegram's sites, opens links to Telegram's own websites without the sign-in token Telegram adds for your account. All start off. Turn them on in HushTelegram settings > More settings > Links. |
 | `Suppress screenshot notification` | Stops Telegram from telling the other person you took a screenshot, in regular and secret chats. Starts off. Turn it on in HushTelegram settings > Privacy. |
-| `Unlock Premium features` | Makes Telegram on your phone treat your account as Premium, so the parts the app itself locks behind Premium open up. Telegram's servers still know your real plan, so their limits, like upload size, stay the same. Starts off. Turn it on in HushTelegram settings > Privacy. |
 | `Bypass channel restrictions` | Lets you forward, copy and save from channels and chats that turn those off. A second switch, Open restricted channels, opens channels, groups and messages Telegram marks unavailable for copyright or local law, as long as Telegram still sends them, and offers a channel that banned you on the web. Both start off. Turn them on in HushTelegram settings > Privacy. |
 | `Bypass integrity check` | Makes Telegram's two emulator checks always say your phone isn't an emulator. Starts off. Turn it on in HushTelegram settings > Privacy. |
 | `Auto-forwarding rules` | Forwards new messages others send in one chat to another by rules you set, every message or only messages with media. A forward from any account you're signed in to is never forwarded again, so rules can't loop, and at most 20 go out a minute. Starts off. Turn it on and add rules in HushTelegram settings > Privacy. |
@@ -166,7 +165,9 @@ The Maps key is for the location picker. Make one in a Google Cloud project with
 
 ## Your Telegram account
 
-If sign-in fails with `API_ID_PUBLISHED_FLOOD`, Telegram has refused the API ID that ships with the app, and HushTelegram shows a message on that screen linking here. Register your own app, then patch with Use registered Telegram API credentials and fill in `apiId` and `apiHash`. On the Morphe command line, quote the ID as `-O "apiId='12345'"`, since a bare number never reaches the option. The result installs over your current HushTelegram build. Telegram still picks which login methods you get (a code in Telegram, SMS, email and so on), so keep any copy that's already signed in.
+If sign-in fails with `API_ID_PUBLISHED_FLOOD`, Telegram has refused the API ID that ships with the app, and HushTelegram says so on that screen. Register your own app (the steps are below), tap **Enter your API ID** in that message and type its `App api_id` and `App api_hash`. Telegram restarts and asks for the login code with your ID, no repatching needed. If that pair gets refused too, the same message comes back, and its box has **Remove** to go back to the app's own ID. Telegram still picks which login methods you get (a code in Telegram, SMS, email and so on), so keep any copy that's already signed in.
+
+You can also build your pair into the APK. In Morphe Manager, turn on **Settings > Advanced > Expert mode**, select Use registered Telegram API credentials, open its options, paste the two values into `apiId` and `apiHash` and patch. The result installs over your current HushTelegram build. On the Morphe command line, quote the ID as `-O "apiId='12345'"`, since a bare number never reaches the option.
 
 Filling in the form at [my.telegram.org/apps](https://my.telegram.org/apps):
 
@@ -174,9 +175,9 @@ Filling in the form at [my.telegram.org/apps](https://my.telegram.org/apps):
 2. **App title:** plain words, for example `My HushTelegram`.
 3. **Short name:** 5 to 32 letters and numbers only, for example `myhushtg1`. Spaces, underscores and other symbols usually cause "Incorrect app name!".
 4. **Platform:** Android. URL and Description can stay empty.
-5. Tap Create application, then copy `App api_id` and `App api_hash` into the patch's options.
+5. Tap Create application, then copy `App api_id` and `App api_hash` into the app (or into the patch's options).
 
-A bare "ERROR" page usually goes away with your VPN or ad blocker off, in a private browser window. Your ID and hash end up inside the APK and in Morphe's patching report, so keep both private.
+A bare "ERROR" page usually goes away with your VPN or ad blocker off, in a private browser window. Telegram gives each account one app, so if you made one before with the same number, the page shows it with its `App api_id` and `App api_hash` instead of the form. Typed into the app, your ID and hash stay on the phone, out of settings exports and diagnostic reports. Patched in, they end up inside the APK and in Morphe's patching report. Keep both private either way.
 
 **Can Telegram tell?** Assume it can. Your patched copy is signed with your key, and Telegram reports a fingerprint of that key to its servers. **Could my account be limited?** Nobody can promise it won't be, so try a second account first if that worries you. **More than one account?** Switches belong to the app, so they apply to every account you've added. Your chats and calls still go through Telegram's servers, and HushTelegram doesn't send, read, forward or delete messages on your behalf.
 
@@ -194,13 +195,13 @@ The About and Licenses screens link to `github.com`, `gitlab.com` and `www.gnu.o
 
 ## Supported Telegram builds
 
-The current release patches two Telegram builds, and the patched app needs Android 9 or newer. telegram.org's build is Telegram 13.2.2, `org.telegram.messenger.web` with version code 73039, and its APK carries every phone architecture. The Google Play build is Telegram 13.2.2, `org.telegram.messenger` with version code 73031. Morphe Manager warns about any other build, the public beta included. HushTelegram leaves Telegram's native libraries alone, so fixes for those come only with Telegram's own updates.
+The current release patches two Telegram builds, and the patched app needs Android 9 or newer. telegram.org's build is Telegram 13.3.1, `org.telegram.messenger.web` with version code 73469, and its APK carries every phone architecture. The Google Play build is Telegram 13.3.1, `org.telegram.messenger` with version code 73461. Morphe Manager warns about any other build, the public beta included. HushTelegram leaves Telegram's native libraries alone, so fixes for those come only with Telegram's own updates.
 
 SHA-256 of the stock APKs the release was checked against:
 
 ```text
-web    e0ddeb85227f2e482f674f8e6e8f062dfd870484ed6c98282dc5a49918160ac0
-play   84cf619763e25321ebd945d637f1e20709804fcd3b4db9eee74c68f201bfc28f
+web    402d44cdf7b73bc93fde403e11b43e0b469e290ae168055067eb8a7c1629b394
+play   e4366691e20e143324c7dad6cc03b5d2126197aa97feb799976e9c4ad2dd459e
 ```
 
 On Windows, check yours with `Get-FileHash -Algorithm SHA256 .\Telegram.apk`. Each [release](https://github.com/SysAdminDoc/HushTelegram/releases) also ships `SHA256SUMS.txt` for its `.mpp` bundle, which is a patch bundle and not a Telegram APK.

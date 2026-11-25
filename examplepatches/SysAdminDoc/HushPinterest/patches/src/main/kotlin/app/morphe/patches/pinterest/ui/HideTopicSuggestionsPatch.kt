@@ -169,7 +169,7 @@ val hideTopicSuggestionsPatch = bytecodePatch(
     description = "Hides the Ideas you might love row of topic bubbles under pins, without leaving a gap. Comments " +
         "and related pins stay. Starts off. Turn it on in HushPinterest settings > Interface.",
 ) {
-    category("Interface")
+    category("Pin page")
     dependsOn(settingsPatch, pinterestExtensionPatch)
     compatibleWith(*AppCompatibilities.pinterest())
 

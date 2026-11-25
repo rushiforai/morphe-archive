@@ -13,8 +13,9 @@ import java.lang.reflect.Modifier;
 import java.lang.reflect.Proxy;
 import java.util.Collections;
 import java.util.List;
+import java.util.Locale;
 
-final class LrclibReflection {
+public final class LrclibReflection {
     private static final String TAG = "AppleMusicLrclib";
 
     private static volatile Class<?> cachedPlaybackItemClass;
@@ -92,6 +93,10 @@ final class LrclibReflection {
         }
     }
 
+    static String getCustomLyrics(Object playbackItem) {
+        return asString(callNoArgs(playbackItem, "customLyrics"));
+    }
+
     static Object parseTtmlToSongInfoPtr(String ttml, long adamId, long queueId, String lyricsId, String script) {
         if (ttml == null || ttml.isEmpty()) return null;
         try {
@@ -124,6 +129,31 @@ final class LrclibReflection {
             Log.w(TAG, "TTMLParserNative.songInfoFromTTML failed", t);
             return null;
         }
+    }
+
+    public static boolean sameLyricsLanguage(Object songInfoPtr, boolean sameLanguage) {
+        if (!sameLanguage || songInfoPtr == null) return sameLanguage;
+        Object song = callNoArgs(songInfoPtr, "get");
+        return song == null || pronunciationScriptOverride(callNoArgs(song, "getPronunciationLanguages")) == null;
+    }
+
+    public static String pronunciationScriptOverride(Object languages) {
+        if (languages == null) return null;
+        try {
+            Context context = LrclibController.getAppContext();
+            boolean showRomanGuide = context != null && LrclibPrefs.isRomanizationEnabled(context);
+            long size = asLong(callNoArgs(languages, "size"), 0L);
+            for (long i = 0; i < size; i++) {
+                String tag = asString(callOneArg(languages, "get", long.class, i));
+                if (LrclibParser.PRONUNCIATION_LANGUAGE.equals(tag)
+                        || (showRomanGuide && "Latn".equals(Locale.forLanguageTag(tag).getScript()))) {
+                    return tag;
+                }
+            }
+        } catch (ReflectiveOperationException | RuntimeException e) {
+            Log.w(TAG, "Could not check pronunciation scripts", e);
+        }
+        return null;
     }
 
     static long getSongInfoTiming(Object songInfoPtr) {

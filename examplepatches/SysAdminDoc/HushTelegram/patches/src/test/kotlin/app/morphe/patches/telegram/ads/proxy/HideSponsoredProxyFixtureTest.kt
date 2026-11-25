@@ -99,8 +99,19 @@ class HideSponsoredProxyFixtureTest {
             assertEquals("$PROXY_PROMOTIONS->showSelectedDialog(ZLjava/lang/Object;Ljava/lang/Object;)Z", after[filterAt].reference())
             assertEquals(before[filters.index].namedRegisters(), after[filterAt + 1].namedRegisters())
             assertEquals(before[filters.index].namedRegisters().single(), after[filterAt].namedRegisters().first())
-            assertEquals(before[filters.index - 4].namedRegisters().single(), after[filterAt].namedRegisters()[1])
-            assertEquals(before[filters.index - 2].namedRegisters().last(), after[filterAt].namedRegisters()[2])
+            // The controller the stock account read comes from, and the dialog stock checks for forwarding and adds.
+            val include = filters.index - 2
+            val account = before.subList(0, include).indexOfLast {
+                it.reference() == "Lorg/telegram/messenger/BaseController;->getAccountInstance()Lorg/telegram/messenger/AccountInstance;"
+            }
+            assertEquals("$MESSAGES_CONTROLLER->canAddToForward($PROXY_DIALOG)Z", before[filters.index + 1].reference())
+            val dialog = before[filters.index + 1].namedRegisters().last()
+            assertEquals(before[account].namedRegisters().single(), after[filterAt].namedRegisters()[1])
+            assertEquals(dialog, after[filterAt].namedRegisters()[2])
+            // 13.3.1 checks a copy of that dialog, made between the account read and the check.
+            val checked = before[include].namedRegisters()[4]
+            assertTrue("${build.name}: the folder checks the dialog it adds", checked == dialog ||
+                before.subList(account, include).any { it.opcode in setOf(Opcode.MOVE_OBJECT, Opcode.MOVE_OBJECT_FROM16, Opcode.MOVE_OBJECT_16) && it.namedRegisters() == listOf(checked, dialog) })
             assertEquals(Opcode.IF_EQZ, after[filterAt + 2].opcode)
             assertTrue(newFlow.normal[filterAt + 2].contains(oldToNew.getValue(filters.index + 6)))
             for (hook in plan.hooks) {

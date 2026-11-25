@@ -1,0 +1,232 @@
+{
+  "format": 1,
+  "scope": "Actual Vela phone map and navigation settings after its original welcome/Google-data/voice UI flow, with a real provider-restart unknown-output fence. Actual map warning and honest degraded status are visually inspected and joined to the receiver archive; private parked recovery then permits one new native future authority only. English light freeform layout and system voice on isolated API34 emulator; other layouts/modes/car routing remain separate.",
+  "serial": "emulator-5590",
+  "avd": "native_warnings_ui_api34",
+  "apps": {
+    "nl.flitsmeister": "3e3c2e987bb6e9b28bc5692e52828ee03d317cf925f719ed4aece29f11614ac8",
+    "org.ungoogled.android.apps.maps": "d8557e9562776729f67c86070d19444f1f985f0f4cc7b173116b22a8db06c0e7",
+    "app.vela": "72012bd0dd02ee3b3eb31a35df55d24de5fea79ba830906568c0d029c101aeab"
+  },
+  "helpers": {
+    "maps": "f4d0e8858ea23996904a275cd8bcdb43b10cb85faba64c8cc1ead3356d46294d",
+    "vela": "4c4dba375167a55aeb8b6943186268af1007bee7034008f54a154213ea968fcc",
+    "source": "129fdb536e5689b0cd74d0385923fa990c93d8a73424d2cbd4d55fb9b85d6f84"
+  },
+  "reviewed_onboarding_actions": [
+    {
+      "label": "Get started",
+      "package": "app.vela",
+      "bounds": "[410,1722][670,1793]"
+    },
+    {
+      "label": "No Google",
+      "package": "app.vela",
+      "bounds": "[74,1114][1006,1382]"
+    },
+    {
+      "label": "Continue",
+      "package": "app.vela",
+      "bounds": "[438,1969][643,2040]"
+    },
+    {
+      "label": "Use system voice",
+      "package": "app.vela",
+      "bounds": "[500,1533][897,1644]"
+    },
+    {
+      "label": "Settings",
+      "package": "app.vela",
+      "bounds": "[386,1239][512,1365]"
+    },
+    {
+      "label": "Navigation",
+      "package": "app.vela",
+      "bounds": "[42,2025][1038,2239]"
+    }
+  ],
+  "native_map_warning_visible": true,
+  "native_settings_uncertainty_status_visible": {
+    "text": "Waiting for previous audio to stop",
+    "xml": ".analysis/native-warning-bindings/vela-degraded-ui-isolated-01/fenced-navigation-15.xml",
+    "screenshot": ".analysis/native-warning-bindings/vela-degraded-ui-isolated-01/actual-vela-uncertainty-status.png"
+  },
+  "fenced_receiver_started_count": 0,
+  "fenced_receiver_states": [
+    {
+      "elapsed_ms": 326056,
+      "package": "app.vela",
+      "session": "off",
+      "audio": "OFF"
+    },
+    {
+      "elapsed_ms": 326083,
+      "package": "app.vela",
+      "session": "connecting",
+      "audio": "OFF"
+    },
+    {
+      "elapsed_ms": 326104,
+      "package": "app.vela",
+      "session": "ready",
+      "audio": "AUDIO_UNCERTAIN"
+    }
+  ],
+  "reloaded_pending": {
+    "code": "AUDIO_UNCERTAIN",
+    "owner_present": false,
+    "pending_present": true,
+    "provider_session": "9f4e1169-4733-4c00-9564-b06f7c6d9894",
+    "pending_attempt": "9d607beb-c0ba-4757-b8e9-10c67416a286",
+    "pending_started": true,
+    "pending_outcome": "UNCERTAIN",
+    "pending_event_key": "84ea0dd18f4bade290299e4d28f5327219909d092011aa0c98b34da00d2fe4ac",
+    "pending_provider_session": "5cd0b5f7-0473-4d76-a8ee-64807fae98aa",
+    "stored_attempt": "9d607beb-c0ba-4757-b8e9-10c67416a286",
+    "stored_started": true,
+    "stored_outcome": "STARTED"
+  },
+  "actual_parked_recovery": {
+    "before": {
+      "code": "AUDIO_UNCERTAIN",
+      "owner_present": false,
+      "pending_present": true,
+      "provider_session": "9f4e1169-4733-4c00-9564-b06f7c6d9894",
+      "pending_attempt": "9d607beb-c0ba-4757-b8e9-10c67416a286",
+      "pending_started": true,
+      "pending_outcome": "UNCERTAIN",
+      "pending_event_key": "84ea0dd18f4bade290299e4d28f5327219909d092011aa0c98b34da00d2fe4ac",
+      "pending_provider_session": "5cd0b5f7-0473-4d76-a8ee-64807fae98aa",
+      "stored_attempt": "9d607beb-c0ba-4757-b8e9-10c67416a286",
+      "stored_started": true,
+      "stored_outcome": "STARTED"
+    },
+    "after": {
+      "code": "UNOWNED",
+      "owner_present": false,
+      "pending_present": false,
+      "provider_session": "9f4e1169-4733-4c00-9564-b06f7c6d9894"
+    },
+    "both_confirmations_required": true,
+    "activity_finished": true,
+    "actual_window_screenshot": "/storage/emulated/0/Android/data/nl.flitsmeister/files/probe-restart-81890c5223464faaa55aed34801d0053-recovered.png",
+    "confirmations_screenshot": "/storage/emulated/0/Android/data/nl.flitsmeister/files/probe-restart-81890c5223464faaa55aed34801d0053-uncertain-confirmations.png"
+  },
+  "future_authority": {
+    "language_tag": "en-US",
+    "native_local_mute_bypass": false,
+    "issued_elapsed_ms": 383542,
+    "latitude": 52.001,
+    "native_family": "SpeedCam",
+    "priority": 1,
+    "protocol_version": 1,
+    "native_announce_observed": true,
+    "position_observed_elapsed_ms": 383541,
+    "relationship": "unknown",
+    "revision": 1,
+    "category": "speed_control",
+    "phase": "enter",
+    "relevance": "point_ahead",
+    "longitude": 5,
+    "position_estimated": false,
+    "capture_path": "regular",
+    "state_until_elapsed_ms": 413542,
+    "native_subtype": "SPEED_50",
+    "message_origin": "native_text",
+    "native_text_key": "374708fff7719dd5979ec875d56cd2286f6d3cf7ec317a3b25632aab28ec37bb",
+    "message": "Speed cam 50",
+    "announcement_index": 1,
+    "native_point_target": true,
+    "provider_session": "9f4e1169-4733-4c00-9564-b06f7c6d9894",
+    "sequence": 3,
+    "observed_elapsed_ms": 383542,
+    "operation": "ANNOUNCE",
+    "native_type": "SPEED_CAM",
+    "position_clock_origin": "native_decision",
+    "warning_id": "SpeedCam:probe-restart-81890c5223464faaa55aed34801d0053-future",
+    "announce_until_elapsed_ms": 393542
+  },
+  "future_source_acknowledgements": [
+    {
+      "receiver_uid": 10193,
+      "outcome": "GRANTED",
+      "started": false,
+      "mode": "VOICE"
+    },
+    {
+      "receiver_uid": 10193,
+      "outcome": "STARTED",
+      "started": true,
+      "mode": "VOICE"
+    },
+    {
+      "receiver_uid": 10193,
+      "outcome": "COMPLETED",
+      "started": true,
+      "mode": "VOICE"
+    }
+  ],
+  "future_receiver_starts": [
+    {
+      "preview": false,
+      "native_type": "SPEED_CAM",
+      "observed_ms": 383542,
+      "priority": 1,
+      "issued_ms": 383542,
+      "sequence": 3,
+      "provider_session": "9f4e1169-4733-4c00-9564-b06f7c6d9894",
+      "deadline_ms": 393542,
+      "stage": "SCHEDULER_STARTED",
+      "elapsed_ms": 385142,
+      "category": "speed_control",
+      "event_key": "bb62d1c76e00a26263f05a64ae7d667d8f65171f3e27587f6919e35a2866a176"
+    }
+  ],
+  "future_receiver_completions": [
+    {
+      "preview": false,
+      "native_type": "SPEED_CAM",
+      "observed_ms": 383542,
+      "priority": 1,
+      "issued_ms": 383542,
+      "sequence": 3,
+      "provider_session": "9f4e1169-4733-4c00-9564-b06f7c6d9894",
+      "deadline_ms": 393542,
+      "stage": "SCHEDULER_COMPLETED",
+      "elapsed_ms": 386699,
+      "category": "speed_control",
+      "event_key": "bb62d1c76e00a26263f05a64ae7d667d8f65171f3e27587f6919e35a2866a176"
+    }
+  ],
+  "source_network_and_lease_restored": true,
+  "all_three_app_preference_files_bytes_uid_gid_mode_restored": true,
+  "original_onboarding_state_restored": true,
+  "temporary_vela_and_source_permissions_restored_exactly": true,
+  "temporary_android_window_settings_restored_exactly": true,
+  "raw_result": ".analysis/native-warning-bindings/vela-degraded-ui-isolated-01/result.json",
+  "restarted_source_result": ".analysis/native-warning-bindings/vela-degraded-ui-isolated-01/restarted-source/5f5f4aa4-2e5b-4d23-9cb7-73de58d1ef3f/result.json",
+  "fenced_receiver_result": ".analysis/native-warning-bindings/vela-degraded-ui-isolated-01/fenced-receiver-result.json",
+  "fresh_receiver_result": ".analysis/native-warning-bindings/vela-degraded-ui-isolated-01/recovered-receiver-result.json",
+  "images": {
+    "fenced-map-ui.png": {
+      "path": ".analysis/native-warning-bindings/vela-degraded-ui-isolated-01/fenced-map-ui.png",
+      "sha256": "ffb705751ba5356a0e8018666f06baf22abc490608fae4fae0eae944f2b787d3"
+    },
+    "actual-vela-uncertainty-status.png": {
+      "path": ".analysis/native-warning-bindings/vela-degraded-ui-isolated-01/actual-vela-uncertainty-status.png",
+      "sha256": "c3bf7de97b9d242c7bfaa57f6a955e58513c7a1dc9fedba9225f42e995652413"
+    }
+  },
+  "prior_failed_runs": {
+    "01": "Pre-seed setup tap helper expected a clickable ancestor; original Compose pointer-input controls exposed enabled text without that flag. Exact cleanup passed.",
+    "02": "Original Google-data/Flock setup was mistaken for the map; UI assertion failed. Its exact test pending was subsequently cleared only by real parked UI after positive output-stop checks; original source preference file set was restored.",
+    "03": "Native warning was visible, but the test scrolled the settings index without opening Navigation. The failed run was retained and used actual parked recovery for cleanup.",
+    "04": "Preflight refused a live Vela process. Independent debug DriveDeck installation/relaunch was observed on 5584; no UI test ran and further mutations stopped."
+  },
+  "prior_cleanup_record": ".analysis/native-warning-bindings/vela-ui-02-parked-cleanup/verified-cleanup.json",
+  "remaining": [
+    "Dutch/dark/large-font and other degraded output states",
+    "Parked preview, native warning/route/lifecycle scenarios and other modes",
+    "Actual car output routing and physical acceptance"
+  ]
+}

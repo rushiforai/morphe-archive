@@ -19,7 +19,7 @@
     line, which the difference leaves out.
 
 .EXAMPLE
-    scripts/app-inventory.ps1 -Apk $env:HUSHTUMBLR_FIXTURE_DIR/tumblr-47.0.0.108-1470000108.apk
+    scripts/app-inventory.ps1 -Apk $env:HUSHTUMBLR_FIXTURE_DIR/tumblr-47.3.0.110-1470300110.apk
     scripts/app-inventory.ps1 -Apk new.apk -BaseApk old.apk -Priority Idle
 #>
 [CmdletBinding()]

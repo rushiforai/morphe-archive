@@ -1,0 +1,216 @@
+{
+  "date": "2026-11-24",
+  "baseCommit": "e5730b0d9661fad57ed980cd63687e479df6fa36",
+  "device": "emulator-5554",
+  "scope": "X/Discord only, pre-credential entry; no real login or post",
+  "live": {
+    "apkSha256": "b3580fedca0cdd291fa9575516d9552a873778dd1b8d4a5baef775d858e2dbb6",
+    "initialLaunch": "ANR / input dispatch timeout; one restart rendered official page",
+    "x": {
+      "observedSequence": [
+        "mebuki.moe official X (Twitter) button",
+        "X domain classification, Authorize app / X",
+        "Log in to X to continue.",
+        "Log in clicked; same authorize page still displayed"
+      ],
+      "credentialFieldsReached": false,
+      "warning": "No explicit provider error observed; input screen did not appear",
+      "httpRedirectChain": "Not captured; observed top-level UI sequence only",
+      "cancelReturn": "PASS",
+      "cookies": [
+        {
+          "host": ".x.com",
+          "name": "__cf_bm",
+          "path": "/",
+          "secure": true,
+          "httpOnly": true,
+          "sameSiteChromiumEnum": 0,
+          "persistent": true,
+          "expiresUtc": "2026-11-24T11:32:19.456Z"
+        },
+        {
+          "host": ".x.com",
+          "name": "__cuid",
+          "path": "/",
+          "secure": false,
+          "httpOnly": false,
+          "sameSiteChromiumEnum": -1,
+          "persistent": true,
+          "expiresUtc": "2027-12-29T11:02:24.000Z"
+        },
+        {
+          "host": ".x.com",
+          "name": "gt",
+          "path": "/",
+          "secure": true,
+          "httpOnly": false,
+          "sameSiteChromiumEnum": 1,
+          "persistent": true,
+          "expiresUtc": "2026-11-24T13:32:19.456Z"
+        },
+        {
+          "host": ".x.com",
+          "name": "guest_id",
+          "path": "/",
+          "secure": true,
+          "httpOnly": false,
+          "sameSiteChromiumEnum": 0,
+          "persistent": true,
+          "expiresUtc": "2027-12-29T11:02:19.456Z"
+        },
+        {
+          "host": ".x.com",
+          "name": "guest_id_ads",
+          "path": "/",
+          "secure": true,
+          "httpOnly": false,
+          "sameSiteChromiumEnum": 0,
+          "persistent": true,
+          "expiresUtc": "2027-12-29T11:02:19.456Z"
+        },
+        {
+          "host": ".x.com",
+          "name": "guest_id_marketing",
+          "path": "/",
+          "secure": true,
+          "httpOnly": false,
+          "sameSiteChromiumEnum": 0,
+          "persistent": true,
+          "expiresUtc": "2027-12-29T11:02:19.456Z"
+        },
+        {
+          "host": ".x.com",
+          "name": "personalization_id",
+          "path": "/",
+          "secure": true,
+          "httpOnly": false,
+          "sameSiteChromiumEnum": 0,
+          "persistent": true,
+          "expiresUtc": "2027-12-29T11:02:19.456Z"
+        },
+        {
+          "host": "x.com",
+          "name": "__cuid",
+          "path": "/",
+          "secure": false,
+          "httpOnly": false,
+          "sameSiteChromiumEnum": -1,
+          "persistent": true,
+          "expiresUtc": "2027-12-29T11:02:24.000Z"
+        }
+      ]
+    },
+    "discord": {
+      "observedSequence": [
+        "mebuki.moe official Discord button",
+        "Discord domain classification",
+        "Welcome back!",
+        "Email or Phone Number / Password / Log In"
+      ],
+      "credentialFieldsReached": true,
+      "warning": "No explicit provider error observed before credential entry",
+      "httpRedirectChain": "Not captured; observed top-level UI sequence only",
+      "cancelReturn": "PASS",
+      "cookies": [
+        {
+          "host": ".discord.com",
+          "name": "_cfuvid",
+          "path": "/",
+          "secure": true,
+          "httpOnly": true,
+          "sameSiteChromiumEnum": 0,
+          "persistent": false,
+          "expiresUtc": null
+        },
+        {
+          "host": "discord.com",
+          "name": "__dcfduid",
+          "path": "/",
+          "secure": true,
+          "httpOnly": true,
+          "sameSiteChromiumEnum": 1,
+          "persistent": true,
+          "expiresUtc": "2027-12-29T09:35:53.047Z"
+        },
+        {
+          "host": "discord.com",
+          "name": "__sdcfduid",
+          "path": "/",
+          "secure": true,
+          "httpOnly": true,
+          "sameSiteChromiumEnum": 1,
+          "persistent": true,
+          "expiresUtc": "2027-12-29T09:35:53.047Z"
+        }
+      ]
+    },
+    "firstPartyCookieObserved": {
+      "host": "mebuki.moe",
+      "name": "__Secure-mebuki.state",
+      "path": "/",
+      "secure": true,
+      "httpOnly": true,
+      "sameSiteChromiumEnum": 1,
+      "persistent": true,
+      "expiresUtc": "2026-11-24T11:07:18.858Z"
+    },
+    "sameSiteLegend": {
+      "0": "None",
+      "1": "Lax",
+      "-1": "unspecified"
+    },
+    "cookieObservation": "Metadata-only read-only query; existing and newly issued cookies not distinguished; no values selected. No authenticated session cookie observed."
+  },
+  "fixture": {
+    "loopbackPort": 18768,
+    "uid": 10222,
+    "ipv4Ipv6Blocked": true,
+    "apkSha256": "0d9aec1ba11621306069fb3fb03a13c558a3658d9c3731b732937320421ebfbc",
+    "mppSha256": "44142e675b2b3c33d93c2042d27239d44121a313269f160e9c00b621913270bb",
+    "xSynthetic": {
+      "webViewSave": "PASS",
+      "savedStatus": {
+        "http": 200,
+        "mebuki": true,
+        "state": "AUTHENTICATED"
+      },
+      "restartStatus": {
+        "http": 200,
+        "mebuki": true,
+        "state": "AUTHENTICATED"
+      },
+      "contractProbe": {
+        "session": 200,
+        "catalog": 200,
+        "messages": 200,
+        "rawValuesAbsent": true
+      },
+      "invalidated": {
+        "http": 200,
+        "mebuki": false,
+        "state": "ANONYMOUS"
+      }
+    },
+    "discordSyntheticCurrentApk": "NOT RUN; subsequent tool call blocked by safety check, no retry",
+    "errorUI": "NOT RUN; same blocked call",
+    "previousHostFixture": "Both synthetic provider variants passed at e5730b0d",
+    "logEntries": 12
+  },
+  "restoration": {
+    "privatePrefsShaMatch": true,
+    "normalInstalledApkShaMatch": true,
+    "fixtureStopped": true,
+    "forward18767Removed": true,
+    "reverse18768Removed": true,
+    "existingReverse18766Preserved": true,
+    "ipv4Ipv6RulesRemoved": true,
+    "normalBuild": "PASS",
+    "normalMppBytes": 751052,
+    "normalMppSha256": "047c0ec9fbdc7f2dbde1d6ffcfad9dc993e8556a0f1d00204fc22f224f9e9199",
+    "fixtureWebViewLoopbackCookieRemoval": "Not verified; private saved session restored to pretest, fake cookie scoped to loopback",
+    "appStopped": true
+  },
+  "result": "PARTIAL: Discord live credential-entry and both cancel paths pass; X credential-entry blocked by observed unchanged authorize page; exact redirect chain, provider error UI, Discord current APK synthetic E2E unverified",
+  "version": "0.3.0 unchanged",
+  "release": false
+}

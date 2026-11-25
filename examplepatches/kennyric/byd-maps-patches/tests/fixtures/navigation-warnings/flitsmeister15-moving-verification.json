@@ -1,0 +1,430 @@
+{
+  "format": 1,
+  "source_version": "15.0/1289",
+  "runs": [
+    {
+      "receiver": "maps",
+      "folder": ".analysis/native-warning-bindings/fm15-port/moving-runtime-03/maps",
+      "source_version": "15.0/1289",
+      "moving_camera_path": "fm15-report-events-v3-settling-tail",
+      "installed_sha256": {
+        "nl.flitsmeister": "13dc9673fa32e662b20c7e3afadd03d3e230a18814027cd1d86a45ea19eef765",
+        "org.ungoogled.android.apps.maps": "3285d836bfb7caefd361fec42d7ed080017021f885eabf331b02b88287fb8839",
+        "app.vela": "958bd90f477c45d8210f797b34e8649162d4153238419ab2ab7af856cd9edf19"
+      },
+      "raw_sha256": {
+        ".analysis/native-warning-bindings/fm15-port/moving-runtime-03/maps/result.json": "f5980aa0e9466b82daa15508366b0868dcccd0dd70aaa6b6721068e916a3ce20",
+        ".analysis/native-warning-bindings/fm15-port/moving-runtime-03/maps/seed-receiver-result.json": "57405c2cdf64bd7b19f93a494d82619fd4b6f7ee5719f69cca201715cec85dbf",
+        "/Users/jneerdael/Scripts/nl-morphe-patches/.tools/worktrees/navigation-startup/.analysis/native-warning-bindings/fm15-port/moving-runtime-03/maps/seed-source/302bc26f-93cc-4b5b-b552-2851fba7cf37/result.json": "6e2e973742fcf797303dc45541dd985b67715168707ee8c4e355f13c1d709df1"
+      },
+      "helper_sha256": {
+        "maps": "7ea890e55700f06331d4452eb77343b555a63049d1270cfeb953e65e759c016e",
+        "vela": "e054595d0ca88e05ee9b8d7b175a1ce6be37a5ec6c5b1ecd05ff273d5fff857b",
+        "source": "8b7ba99fb521279f327aa911c9cb1be3e0a4d73edf1681f9f99ba3cc9f742f4d"
+      },
+      "source_uid": 10192,
+      "receiver_uid": 10194,
+      "cases": [
+        {
+          "speed_kmh": 50,
+          "native_decision_distance_m": 268.20038300809216,
+          "decision_to_start_ms": 448,
+          "decision_clock_origin": "journal_observer",
+          "issued_to_start_ms": 466,
+          "receiver_accept_to_start_ms": 464,
+          "started_lead_ms": 20008,
+          "completion_lead_ms": 18515,
+          "native_receiving_gps_samples": 36,
+          "native_clear_sequence": 12,
+          "message": "Speed cam 50",
+          "language_tag": "en-US",
+          "native_text_key": "374708fff7719dd5979ec875d56cd2286f6d3cf7ec317a3b25632aab28ec37bb",
+          "warning_id": "SpeedCam:private-fm15-moving-bc04baab-6cd0-4920-ba11-d73ecf9cbe43-50",
+          "event_key": "91261913fb0be3c93ab2e00ff56787d1209d7d173a6a98746b658ca30a685c0f",
+          "attempt_id": "199c1d49-0a76-4901-a0fc-fb2da45a0a07",
+          "native_source_gps_samples": 17,
+          "native_calculated_radius_m": 277.79974,
+          "native_engine_distance_m": 268.2006,
+          "native_policy": {
+            "default_seconds_radius": 20,
+            "speed_trap_seconds_radius": 30,
+            "traffic_jam_seconds_radius": 30,
+            "toll_max_distance_m": 1000
+          },
+          "native_first_active_elapsed_ms": 34666312,
+          "native_decision_observer_elapsed_ms": 34666491,
+          "native_to_start_ms": 627,
+          "natural_passage_clear_before_input_withdrawal": true,
+          "precision5_tile": "u173z",
+          "receiver_crossing_witness": true,
+          "receiver_before_target_sample": {
+            "observed_elapsed_ms": 34653621,
+            "fix_elapsed_ms": 34653581,
+            "latitude": 52.34551666666667,
+            "longitude": 4.9,
+            "speed_mps": 13.88998794555664,
+            "bearing": 0,
+            "provider": "gps"
+          },
+          "receiver_after_target_sample": {
+            "observed_elapsed_ms": 34685916,
+            "fix_elapsed_ms": 34685895,
+            "latitude": 52.34954833333333,
+            "longitude": 4.9,
+            "speed_mps": 13.88998794555664,
+            "bearing": 0,
+            "provider": "gps"
+          },
+          "receiver_last_fix_relative_to_source_cross_ms": 1992,
+          "source_settling_tail": {
+            "started_elapsed_ms": 34687133,
+            "completed_elapsed_ms": 34691168,
+            "observed_duration_ms": 4035,
+            "after_native_clear_sequence": 12
+          }
+        },
+        {
+          "speed_kmh": 100,
+          "native_decision_distance_m": 545.1110410163154,
+          "decision_to_start_ms": 86,
+          "decision_clock_origin": "journal_observer",
+          "issued_to_start_ms": 106,
+          "receiver_accept_to_start_ms": 105,
+          "started_lead_ms": 20326,
+          "completion_lead_ms": 18551,
+          "native_receiving_gps_samples": 35,
+          "native_clear_sequence": 34,
+          "message": "Speed cam 100",
+          "language_tag": "en-US",
+          "native_text_key": "374708fff7719dd5979ec875d56cd2286f6d3cf7ec317a3b25632aab28ec37bb",
+          "warning_id": "SpeedCam:private-fm15-moving-10e03100-05bc-42f7-adab-9da7bf5cde1b-100",
+          "event_key": "71909f3dcda0f2e7e2d20c4487bf7a0b53216ca3a400951c83da08c17490b3be",
+          "attempt_id": "7c08ec0f-a12f-4867-8598-1f04cd7ecbde",
+          "native_source_gps_samples": 33,
+          "native_calculated_radius_m": 555.5995,
+          "native_engine_distance_m": 545.11145,
+          "native_policy": {
+            "default_seconds_radius": 20,
+            "speed_trap_seconds_radius": 30,
+            "traffic_jam_seconds_radius": 30,
+            "toll_max_distance_m": 1000
+          },
+          "native_first_active_elapsed_ms": 34703598,
+          "native_decision_observer_elapsed_ms": 34703778,
+          "native_to_start_ms": 266,
+          "natural_passage_clear_before_input_withdrawal": true,
+          "precision5_tile": "u173z",
+          "receiver_crossing_witness": true,
+          "receiver_before_target_sample": {
+            "observed_elapsed_ms": 34691965,
+            "fix_elapsed_ms": 34691949,
+            "latitude": 52.34997,
+            "longitude": 4.9,
+            "speed_mps": 27.77997589111328,
+            "bearing": 0,
+            "provider": "gps"
+          },
+          "receiver_after_target_sample": {
+            "observed_elapsed_ms": 34725090,
+            "fix_elapsed_ms": 34725076,
+            "latitude": 52.35825833333333,
+            "longitude": 4.9,
+            "speed_mps": 27.77997589111328,
+            "bearing": 0,
+            "provider": "gps"
+          },
+          "receiver_last_fix_relative_to_source_cross_ms": 1888,
+          "source_settling_tail": {
+            "started_elapsed_ms": 34724401,
+            "completed_elapsed_ms": 34728442,
+            "observed_duration_ms": 4041,
+            "after_native_clear_sequence": 34
+          }
+        },
+        {
+          "speed_kmh": 130,
+          "native_decision_distance_m": 702.0652669923685,
+          "decision_to_start_ms": 44,
+          "decision_clock_origin": "journal_observer",
+          "issued_to_start_ms": 87,
+          "receiver_accept_to_start_ms": 86,
+          "started_lead_ms": 19331,
+          "completion_lead_ms": 17149,
+          "native_receiving_gps_samples": 34,
+          "native_clear_sequence": 55,
+          "message": "Speed cam 130",
+          "language_tag": "en-US",
+          "native_text_key": "374708fff7719dd5979ec875d56cd2286f6d3cf7ec317a3b25632aab28ec37bb",
+          "warning_id": "SpeedCam:private-fm15-moving-06ff7caa-8d09-4d57-9bd6-9e8637a197ff-130",
+          "event_key": "ec8fc6f2b78d6b8274d104559c89ef3347e3b4c374670b32cbf1f6c4e0bc1987",
+          "attempt_id": "56ccb444-fc8c-4745-9793-8d80148cbb13",
+          "native_source_gps_samples": 32,
+          "native_calculated_radius_m": 722.1765,
+          "native_engine_distance_m": 702.0658,
+          "native_policy": {
+            "default_seconds_radius": 20,
+            "speed_trap_seconds_radius": 30,
+            "traffic_jam_seconds_radius": 30,
+            "toll_max_distance_m": 1000
+          },
+          "native_first_active_elapsed_ms": 34742082,
+          "native_decision_observer_elapsed_ms": 34742289,
+          "native_to_start_ms": 251,
+          "natural_passage_clear_before_input_withdrawal": true,
+          "precision5_tile": "u173z",
+          "receiver_crossing_witness": true,
+          "receiver_before_target_sample": {
+            "observed_elapsed_ms": 34730125,
+            "fix_elapsed_ms": 34730094,
+            "latitude": 52.35938,
+            "longitude": 4.9,
+            "speed_mps": 36.10882568359375,
+            "bearing": 0,
+            "provider": "gps"
+          },
+          "receiver_after_target_sample": {
+            "observed_elapsed_ms": 34762268,
+            "fix_elapsed_ms": 34762230,
+            "latitude": 52.36986666666667,
+            "longitude": 4.9,
+            "speed_mps": 36.10882568359375,
+            "bearing": 0,
+            "provider": "gps"
+          },
+          "receiver_last_fix_relative_to_source_cross_ms": 1569,
+          "source_settling_tail": {
+            "started_elapsed_ms": 34761847,
+            "completed_elapsed_ms": 34765895,
+            "observed_duration_ms": 4048,
+            "after_native_clear_sequence": 55
+          }
+        }
+      ],
+      "actual_starts": 3,
+      "actual_completions": 3,
+      "extra_start_from_native_update_or_clear": false,
+      "exact_cleanup_verified": true,
+      "scope": "Existing FM15 report-event pipeline over private candidate augmentation, actual native source/receiving GPS, original configuration/calculated-radius observations and natural passage/CLEAR before input withdrawal. Single stable precision-5 source tile; both source and receiving GPS passage are explicitly witnessed. Not natural repository detection, arbitrary routes, car output or physical driving."
+    },
+    {
+      "receiver": "vela",
+      "folder": ".analysis/native-warning-bindings/fm15-port/moving-runtime-03/vela",
+      "source_version": "15.0/1289",
+      "moving_camera_path": "fm15-report-events-v3-settling-tail",
+      "installed_sha256": {
+        "nl.flitsmeister": "13dc9673fa32e662b20c7e3afadd03d3e230a18814027cd1d86a45ea19eef765",
+        "org.ungoogled.android.apps.maps": "3285d836bfb7caefd361fec42d7ed080017021f885eabf331b02b88287fb8839",
+        "app.vela": "958bd90f477c45d8210f797b34e8649162d4153238419ab2ab7af856cd9edf19"
+      },
+      "raw_sha256": {
+        ".analysis/native-warning-bindings/fm15-port/moving-runtime-03/vela/result.json": "cc0e039266eeb244a63314619c0802b0600056fb698135ebbfd885b12478130d",
+        ".analysis/native-warning-bindings/fm15-port/moving-runtime-03/vela/seed-receiver-result.json": "e0c52e2629a4e185bd78ff9ccab600590248aa24d14326280c99428a6918c7bf",
+        "/Users/jneerdael/Scripts/nl-morphe-patches/.tools/worktrees/navigation-startup/.analysis/native-warning-bindings/fm15-port/moving-runtime-03/vela/seed-source/57e17dc0-7f00-4f7e-8257-fbde5a9bcf13/result.json": "daec548662e094f782addf357e3daa766c5d270feeb09b708c93055b2cecbf6b"
+      },
+      "helper_sha256": {
+        "maps": "7ea890e55700f06331d4452eb77343b555a63049d1270cfeb953e65e759c016e",
+        "vela": "e054595d0ca88e05ee9b8d7b175a1ce6be37a5ec6c5b1ecd05ff273d5fff857b",
+        "source": "8b7ba99fb521279f327aa911c9cb1be3e0a4d73edf1681f9f99ba3cc9f742f4d"
+      },
+      "source_uid": 10192,
+      "receiver_uid": 10193,
+      "cases": [
+        {
+          "speed_kmh": 50,
+          "native_decision_distance_m": 270.05363300815367,
+          "decision_to_start_ms": 1040,
+          "decision_clock_origin": "journal_observer",
+          "issued_to_start_ms": 1046,
+          "receiver_accept_to_start_ms": 1043,
+          "started_lead_ms": 19393,
+          "completion_lead_ms": 17847,
+          "native_receiving_gps_samples": 36,
+          "native_clear_sequence": 12,
+          "message": "Speed cam 50",
+          "language_tag": "en-US",
+          "native_text_key": "374708fff7719dd5979ec875d56cd2286f6d3cf7ec317a3b25632aab28ec37bb",
+          "warning_id": "SpeedCam:private-fm15-moving-cf81309d-0235-4df7-9738-8d4a282cde33-50",
+          "event_key": "71a602bf9c43ad30d34d2200e3e60ba4334c81f32cc6ebe55acdb7744f0f4df9",
+          "attempt_id": "80c23355-dceb-4fbb-b15c-28684810b45d",
+          "native_source_gps_samples": 17,
+          "native_calculated_radius_m": 277.79974,
+          "native_engine_distance_m": 270.05383,
+          "native_policy": {
+            "default_seconds_radius": 20,
+            "speed_trap_seconds_radius": 30,
+            "traffic_jam_seconds_radius": 30,
+            "toll_max_distance_m": 1000
+          },
+          "native_first_active_elapsed_ms": 34808601,
+          "native_decision_observer_elapsed_ms": 34808783,
+          "native_to_start_ms": 1222,
+          "natural_passage_clear_before_input_withdrawal": true,
+          "precision5_tile": "u173z",
+          "receiver_crossing_witness": true,
+          "receiver_before_target_sample": {
+            "observed_elapsed_ms": 34796022,
+            "fix_elapsed_ms": 34796017,
+            "latitude": 52.34538166666667,
+            "longitude": 4.9,
+            "speed_mps": 13.88998794555664,
+            "bearing": 0,
+            "provider": "gps"
+          },
+          "receiver_after_target_sample": {
+            "observed_elapsed_ms": 34828527,
+            "fix_elapsed_ms": 34828512,
+            "latitude": 52.3494,
+            "longitude": 4.9,
+            "speed_mps": 13.88998794555664,
+            "bearing": 0,
+            "provider": "gps"
+          },
+          "receiver_last_fix_relative_to_source_cross_ms": 2274,
+          "source_settling_tail": {
+            "started_elapsed_ms": 34829401,
+            "completed_elapsed_ms": 34833408,
+            "observed_duration_ms": 4007,
+            "after_native_clear_sequence": 12
+          }
+        },
+        {
+          "speed_kmh": 100,
+          "native_decision_distance_m": 546.2229910158783,
+          "decision_to_start_ms": 779,
+          "decision_clock_origin": "journal_observer",
+          "issued_to_start_ms": 830,
+          "receiver_accept_to_start_ms": 828,
+          "started_lead_ms": 19543,
+          "completion_lead_ms": 17839,
+          "native_receiving_gps_samples": 36,
+          "native_clear_sequence": 34,
+          "message": "Speed cam 100",
+          "language_tag": "en-US",
+          "native_text_key": "374708fff7719dd5979ec875d56cd2286f6d3cf7ec317a3b25632aab28ec37bb",
+          "warning_id": "SpeedCam:private-fm15-moving-70e1222f-92ea-4607-b4ec-078a048537b8-100",
+          "event_key": "aa04c5eb6a9fb274268b4657085c6997ca72ca71d7b6b9c2b0165fbffb411c40",
+          "attempt_id": "ade66a4a-573e-4a74-ad9c-9cd338084ea0",
+          "native_source_gps_samples": 33,
+          "native_calculated_radius_m": 555.5995,
+          "native_engine_distance_m": 546.2234,
+          "native_policy": {
+            "default_seconds_radius": 20,
+            "speed_trap_seconds_radius": 30,
+            "traffic_jam_seconds_radius": 30,
+            "toll_max_distance_m": 1000
+          },
+          "native_first_active_elapsed_ms": 34845806,
+          "native_decision_observer_elapsed_ms": 34846028,
+          "native_to_start_ms": 1001,
+          "natural_passage_clear_before_input_withdrawal": true,
+          "precision5_tile": "u173z",
+          "receiver_crossing_witness": true,
+          "receiver_before_target_sample": {
+            "observed_elapsed_ms": 34833446,
+            "fix_elapsed_ms": 34833430,
+            "latitude": 52.349808333333335,
+            "longitude": 4.9,
+            "speed_mps": 27.77997589111328,
+            "bearing": 0,
+            "provider": "gps"
+          },
+          "receiver_after_target_sample": {
+            "observed_elapsed_ms": 34866685,
+            "fix_elapsed_ms": 34866671,
+            "latitude": 52.35807666666667,
+            "longitude": 4.9,
+            "speed_mps": 27.77997589111328,
+            "bearing": 0,
+            "provider": "gps"
+          },
+          "receiver_last_fix_relative_to_source_cross_ms": 2261,
+          "source_settling_tail": {
+            "started_elapsed_ms": 34866531,
+            "completed_elapsed_ms": 34870539,
+            "observed_duration_ms": 4008,
+            "after_native_clear_sequence": 34
+          }
+        },
+        {
+          "speed_kmh": 130,
+          "native_decision_distance_m": 707.0690419923766,
+          "decision_to_start_ms": 818,
+          "decision_clock_origin": "journal_observer",
+          "issued_to_start_ms": 819,
+          "receiver_accept_to_start_ms": 817,
+          "started_lead_ms": 19407,
+          "completion_lead_ms": 17191,
+          "native_receiving_gps_samples": 36,
+          "native_clear_sequence": 56,
+          "message": "Speed cam 130",
+          "language_tag": "en-US",
+          "native_text_key": "374708fff7719dd5979ec875d56cd2286f6d3cf7ec317a3b25632aab28ec37bb",
+          "warning_id": "SpeedCam:private-fm15-moving-3086c465-4ccf-4005-b5bc-26f99bc3b490-130",
+          "event_key": "66249a167e0132330f12c9ffe075637e7fdcef5ea5cc71e9834511090231c87f",
+          "attempt_id": "4d687b56-0b0f-409c-9b42-166431934fc8",
+          "native_source_gps_samples": 33,
+          "native_calculated_radius_m": 722.1765,
+          "native_engine_distance_m": 707.0696,
+          "native_policy": {
+            "default_seconds_radius": 20,
+            "speed_trap_seconds_radius": 30,
+            "traffic_jam_seconds_radius": 30,
+            "toll_max_distance_m": 1000
+          },
+          "native_first_active_elapsed_ms": 34884086,
+          "native_decision_observer_elapsed_ms": 34884245,
+          "native_to_start_ms": 977,
+          "natural_passage_clear_before_input_withdrawal": true,
+          "precision5_tile": "u173z",
+          "receiver_crossing_witness": true,
+          "receiver_before_target_sample": {
+            "observed_elapsed_ms": 34871674,
+            "fix_elapsed_ms": 34871614,
+            "latitude": 52.359181666666665,
+            "longitude": 4.9,
+            "speed_mps": 36.10882568359375,
+            "bearing": 0,
+            "provider": "gps"
+          },
+          "receiver_after_target_sample": {
+            "observed_elapsed_ms": 34904813,
+            "fix_elapsed_ms": 34904801,
+            "latitude": 52.36991166666667,
+            "longitude": 4.9,
+            "speed_mps": 36.10882568359375,
+            "bearing": 0,
+            "provider": "gps"
+          },
+          "receiver_last_fix_relative_to_source_cross_ms": 2247,
+          "source_settling_tail": {
+            "started_elapsed_ms": 34904654,
+            "completed_elapsed_ms": 34908678,
+            "observed_duration_ms": 4024,
+            "after_native_clear_sequence": 56
+          }
+        }
+      ],
+      "actual_starts": 3,
+      "actual_completions": 3,
+      "extra_start_from_native_update_or_clear": false,
+      "exact_cleanup_verified": true,
+      "scope": "Existing FM15 report-event pipeline over private candidate augmentation, actual native source/receiving GPS, original configuration/calculated-radius observations and natural passage/CLEAR before input withdrawal. Single stable precision-5 source tile; both source and receiving GPS passage are explicitly witnessed. Not natural repository detection, arbitrary routes, car output or physical driving."
+    }
+  ],
+  "outer_raw_sha256": "5a9099dfee0ff3154a0a316e9a7c083dcf57b33d4fe0622b9d6f424c5ff49788",
+  "actual_starts": 6,
+  "actual_completions": 6,
+  "exact_outer_rollback_verified": true,
+  "excluded_runs": [
+    {
+      "folder": ".analysis/native-warning-bindings/fm15-port/moving-runtime-01",
+      "outer_raw_sha256": "824473083bb415c534a4a66874a649e8fcbda423e7c3b7485337a5d38876e2ba",
+      "reason": "Failed: source catalogue tile replacement stopped the 100km/h case; not accepted"
+    },
+    {
+      "folder": ".analysis/native-warning-bindings/fm15-port/moving-runtime-02",
+      "outer_raw_sha256": "6483a6cfbdf7c525ce50226ba95576e5e1c46068256d9a434252e6edc2e61ae7",
+      "reason": "Source/lead/speech-positive but incomplete actual receiving GPS passage; not complete moving acceptance"
+    }
+  ]
+}

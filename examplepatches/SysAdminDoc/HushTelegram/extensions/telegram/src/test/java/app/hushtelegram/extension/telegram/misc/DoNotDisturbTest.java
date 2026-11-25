@@ -208,7 +208,7 @@ public class DoNotDisturbTest {
         String[] toasts = {"Do Not Disturb is on.", "Do Not Disturb is off.", "Couldn't save that. Try again."};
         for (String toast : toasts) {
             assertFitsATwoLineToast("en", toast);
-            for (String language : new String[]{"bg", "de", "es", "in", "pt-rbr", "tr", "zh-hans"}) {
+            for (String language : new String[]{"bg", "de", "es", "in", "it", "pt-rbr", "tr", "zh-hans"}) {
                 String row = L10nTablesForTests.of(language).get(toast);
                 assertNotNull(language + ": " + toast, row);
                 assertFitsATwoLineToast(language, row);

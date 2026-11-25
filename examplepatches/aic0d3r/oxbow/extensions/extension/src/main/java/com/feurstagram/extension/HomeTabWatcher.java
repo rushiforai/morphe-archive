@@ -32,6 +32,11 @@ public final class HomeTabWatcher implements ViewTreeObserver.OnGlobalLayoutList
         return true;
     };
 
+    /** Whether the window watched last has a Messages tab: with Home hidden it keeps the settings reachable. */
+    private static boolean directTabPresent;
+
+    public static boolean hasDirectTab() { return directTabPresent; }
+
     private final ViewGroup root;
     private WeakReference<View> armedHome = new WeakReference<>(null);
     private WeakReference<View> armedDirect = new WeakReference<>(null);
@@ -58,6 +63,7 @@ public final class HomeTabWatcher implements ViewTreeObserver.OnGlobalLayoutList
         }
         // Oxbow: Messages opens them too, so Home can be hidden.
         View directTab = find(context, window, "direct_tab");
+        directTabPresent = directTab != null;
         if (directTab != null && directTab != armedDirect.get()) {
             directTab.setOnLongClickListener(OPEN_SETTINGS);
             armedDirect = new WeakReference<>(directTab);

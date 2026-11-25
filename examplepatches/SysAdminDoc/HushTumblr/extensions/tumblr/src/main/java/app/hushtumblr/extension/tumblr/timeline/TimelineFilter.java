@@ -158,6 +158,14 @@ public final class TimelineFilter {
      */
     static final String MARKETING_DISMISSAL = "/dismiss/marketing_post";
 
+    /**
+     * The rows of related posts Tumblr loads under a post you open, under its "More posts like this"
+     * heading. Each {@code CHICLET_ROW} holds a few {@code CHICLET} tiles, and only the answer for an
+     * opened post carries them, so they go wherever they come, with the heading in front.
+     */
+    static final Set<String> MORE_POSTS_TYPES = Collections.unmodifiableSet(new HashSet<>(Arrays.asList(
+            "CHICLET_ROW", "CHICLET")));
+
     /** Containers that hold other items. Each is judged by its first item. */
     static final Set<String> CAROUSEL_TYPES = Collections.unmodifiableSet(new HashSet<>(Arrays.asList(
             "CAROUSEL", "AVATAR_CAROUSEL")));
@@ -270,6 +278,8 @@ public final class TimelineFilter {
         final boolean communities;
         final boolean tags;
         final boolean watchIt;
+        /** Whether Hide More posts like this takes the related posts under an opened post. */
+        final boolean morePosts;
         final boolean featured;
         final boolean mutes;
         /** The post switches, or null when none is on. */
@@ -286,13 +296,14 @@ public final class TimelineFilter {
         private Boolean amongPosts;
 
         private Rules(boolean ads, boolean keepBlaze, boolean blogs, boolean communities, boolean tags, boolean watchIt,
-                      boolean featured, boolean mutes, @Nullable PostRules posts) {
+                      boolean morePosts, boolean featured, boolean mutes, @Nullable PostRules posts) {
             this.ads = ads;
             this.keepBlaze = keepBlaze;
             this.blogs = blogs;
             this.communities = communities;
             this.tags = tags;
             this.watchIt = watchIt;
+            this.morePosts = morePosts;
             this.featured = featured;
             this.mutes = mutes;
             this.posts = posts;
@@ -315,14 +326,18 @@ public final class TimelineFilter {
                 boolean tags = on(PatchFamily.Capability.SUGGESTED_TAG_CARDS, reading, Settings.HIDE_SUGGESTED_TAGS);
                 reading = FamilyNames.HIDE_WATCH_IT_ROWS;
                 boolean watchIt = on(PatchFamily.Capability.WATCH_IT_ROWS, reading, Settings.HIDE_WATCH_IT_ROWS);
+                reading = FamilyNames.HIDE_MORE_POSTS_LIKE_THIS;
+                boolean morePosts = on(PatchFamily.Capability.MORE_POSTS_LIKE_THIS, reading,
+                        Settings.HIDE_MORE_POSTS_LIKE_THIS);
                 reading = FamilyNames.HIDE_FEATURED_POSTS;
                 boolean featured = on(PatchFamily.Capability.FEATURED_POSTS, reading, Settings.HIDE_FEATURED_POSTS);
                 reading = FamilyNames.HIDE_REBLOGS;
                 PostRules posts = PostRules.now();
                 reading = FamilyNames.MUTE_ROOT_POSTS;
                 boolean mutes = RootPostMutes.active();
-                return ads || blogs || communities || tags || watchIt || featured || mutes || posts != null
-                        ? new Rules(ads, keepBlaze, blogs, communities, tags, watchIt, featured, mutes, posts) : null;
+                return ads || blogs || communities || tags || watchIt || morePosts || featured || mutes || posts != null
+                        ? new Rules(ads, keepBlaze, blogs, communities, tags, watchIt, morePosts, featured, mutes, posts)
+                        : null;
             } catch (Throwable failure) {
                 HookStatus.threw(reading, "switch read", failure);
                 return null;
@@ -353,6 +368,7 @@ public final class TimelineFilter {
             if (communities) return FamilyNames.HIDE_SUGGESTED_COMMUNITIES;
             if (tags) return FamilyNames.HIDE_SUGGESTED_TAGS;
             if (watchIt) return FamilyNames.HIDE_WATCH_IT_ROWS;
+            if (morePosts) return FamilyNames.HIDE_MORE_POSTS_LIKE_THIS;
             return null;
         }
 
@@ -455,6 +471,7 @@ public final class TimelineFilter {
                 return amongPosts(FamilyNames.HIDE_SUGGESTED_TAGS) ? suggestion(FamilyNames.HIDE_SUGGESTED_TAGS) : null;
             }
             if (watchIt && WATCH_IT_TYPES.contains(kind)) return FamilyNames.HIDE_WATCH_IT_ROWS;
+            if (morePosts && MORE_POSTS_TYPES.contains(kind)) return FamilyNames.HIDE_MORE_POSTS_LIKE_THIS;
             return null;
         }
     }

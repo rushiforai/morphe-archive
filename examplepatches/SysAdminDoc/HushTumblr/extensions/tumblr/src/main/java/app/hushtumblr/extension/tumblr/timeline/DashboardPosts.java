@@ -5,6 +5,8 @@
  */
 package app.hushtumblr.extension.tumblr.timeline;
 
+import android.os.Bundle;
+
 import androidx.annotation.Nullable;
 
 import java.util.ArrayList;
@@ -23,9 +25,10 @@ import app.hushtumblr.extension.tumblr.settings.PatchFamily;
 import app.hushtumblr.extension.tumblr.settings.Settings;
 
 /**
- * Hide liked posts, Hide your own reblogs and Hide reblogs of your posts, which take posts out of
- * the dashboard and nowhere else. Tumblr reads a dashboard page, a post you open, a review queue
- * and a Blaze list from the same response, so parsing can't tell them apart. Instead the wrapper
+ * Hide liked posts, Hide your own reblogs, Hide reblogs of your posts and Hide followed blogs in
+ * For you, which take posts out of the dashboard and nowhere else. Tumblr reads a dashboard page,
+ * a post you open, a review queue and a Blaze list from the same response, so parsing can't tell
+ * them apart. Instead the wrapper
  * each card keeps its post in notes the post's {@link #facts} as it's built, and the dashboard
  * page hook asks {@link #page} once it knows the screen is the dashboard.
  *
@@ -38,6 +41,12 @@ import app.hushtumblr.extension.tumblr.settings.Settings;
  * ({@link HushAccountBlogs}). That's read when the page comes, since the account's blogs are
  * only known once Tumblr has a fresh user/info response, and a page that comes before keeps
  * every post.
+ *
+ * <p>A followed blog's post is one Tumblr sent with {@code followed} set ({@link HushPaidPost}),
+ * the flag its Follow button starts from. Hide followed blogs in For you takes those out of the
+ * For you tab alone, which {@link #onForYou} tells from the tab's own arguments. Following, Your
+ * tags and every other tab keep them. A blog followed while its post is on screen stays until a
+ * later page brings it again.
  */
 public final class DashboardPosts {
     private DashboardPosts() {}
@@ -46,17 +55,31 @@ public final class DashboardPosts {
     static final int LIKED = 1;
     /** The post is a reblog you made. */
     static final int OWN_REBLOG = 2;
+    /** Tumblr sent the post as one from a blog the signed-in account follows. */
+    static final int FOLLOWED = 4;
 
     /**
-     * Injected into the card wrapper's constructor: what [post] is, as {@link #LIKED} and
-     * {@link #OWN_REBLOG} bits, read whatever the switches say so one turned on later applies to
-     * the next page. Anything that isn't a post, or can't be read, is neither. Never throws.
+     * The arguments Tumblr's dashboard host gives each tab it builds from the server's tab list:
+     * the tab's logging id and the address its pages load from. For you is {@code stuff_for_you},
+     * loading {@code /v2/tabs/for_you}, in the list Tumblr 47.3.0.110 gets from {@code /v2/tabs}.
+     */
+    static final String TAB_ID = "tab_logging_id";
+    static final String TAB_URI = "tab_timeline_uri";
+    static final String FOR_YOU_ID = "stuff_for_you";
+    static final String FOR_YOU_URI = "/tabs/for_you";
+
+    /**
+     * Injected into the card wrapper's constructor: what [post] is, as {@link #LIKED},
+     * {@link #OWN_REBLOG} and {@link #FOLLOWED} bits, read whatever the switches say so one turned
+     * on later applies to the next page. Anything that isn't a post, or can't be read, is none of
+     * them. Never throws.
      */
     public static int facts(@Nullable Object post) {
         try {
             int facts = PostRules.isLiked(post) ? LIKED : 0;
             HushPost value = PostRules.postOf(post);
             if (value != null && PostRules.isOwn(post) && PostRules.isReblog(value, value.hushTrail())) facts |= OWN_REBLOG;
+            if (post instanceof HushPaidPost && ((HushPaidPost) post).hushFollowed()) facts |= FOLLOWED;
             return facts;
         } catch (Throwable unreadable) {
             return 0;
@@ -64,7 +87,7 @@ public final class DashboardPosts {
     }
 
     /**
-     * [items], a page for [fragment], without the posts these three switches take out when the
+     * [items], a page for [fragment], without the posts these four switches take out when the
      * screen is the dashboard. Any other screen, or a page they leave whole, gets [items] itself
      * back. Never throws.
      */
@@ -79,30 +102,59 @@ public final class DashboardPosts {
                     Settings.HIDE_OWN_REBLOGS);
             boolean yours = PostRules.on(PatchFamily.Capability.REBLOGS_OF_YOURS, FamilyNames.HIDE_REBLOGS_OF_YOURS,
                     Settings.HIDE_REBLOGS_OF_YOURS);
-            if (!liked) family = own ? FamilyNames.HIDE_OWN_REBLOGS : FamilyNames.HIDE_REBLOGS_OF_YOURS;
-            if (!liked && !own && !yours || items == null || items.isEmpty() || !RootPostMutes.onDashboard(fragment)) return items;
+            boolean followed = PostRules.on(PatchFamily.Capability.FOLLOWED_IN_FOR_YOU, FamilyNames.HIDE_FOLLOWED_IN_FOR_YOU,
+                    Settings.HIDE_FOLLOWED_IN_FOR_YOU);
+            if (!liked) family = own ? FamilyNames.HIDE_OWN_REBLOGS : yours ? FamilyNames.HIDE_REBLOGS_OF_YOURS
+                    : FamilyNames.HIDE_FOLLOWED_IN_FOR_YOU;
+            if (!liked && !own && !yours && !followed || items == null || items.isEmpty()
+                    || !RootPostMutes.onDashboard(fragment)) return items;
+            // Asked once the screen is known to be the dashboard, and only of the switch that needs it.
+            followed = followed && onForYou(fragment);
             Set<String> blogs = yours ? accountBlogs() : Collections.emptySet();
-            if (!liked && !own && blogs.isEmpty()) return items;
+            if (!liked && !own && !followed && blogs.isEmpty()) return items;
             List<Object> kept = new ArrayList<>(items.size());
-            int likedOut = 0, ownOut = 0, yoursOut = 0;
+            int likedOut = 0, ownOut = 0, yoursOut = 0, followedOut = 0;
             for (Object item : items) {
                 int facts = factsOf(item);
                 if (liked && (facts & LIKED) != 0) likedOut++;
                 else if (own && (facts & OWN_REBLOG) != 0) ownOut++;
                 else if (!blogs.isEmpty() && reblogOfYours(item, blogs)) yoursOut++;
+                else if (followed && (facts & FOLLOWED) != 0) followedOut++;
                 else kept.add(item);
             }
             if (kept.size() == items.size()) return items;
             for (int i = 0; i < likedOut; i++) HookStatus.counted(FamilyNames.HIDE_LIKED_POSTS, "post removed");
             for (int i = 0; i < ownOut; i++) HookStatus.counted(FamilyNames.HIDE_OWN_REBLOGS, "post removed");
             for (int i = 0; i < yoursOut; i++) HookStatus.counted(FamilyNames.HIDE_REBLOGS_OF_YOURS, "post removed");
+            for (int i = 0; i < followedOut; i++) HookStatus.counted(FamilyNames.HIDE_FOLLOWED_IN_FOR_YOU, "post removed");
             // Tumblr takes an empty page for the end of the feed, so the fragment is told to go on.
             if (kept.isEmpty()) TimelinePaging.emptied(likedOut > 0 ? FamilyNames.HIDE_LIKED_POSTS
-                    : ownOut > 0 ? FamilyNames.HIDE_OWN_REBLOGS : FamilyNames.HIDE_REBLOGS_OF_YOURS);
+                    : ownOut > 0 ? FamilyNames.HIDE_OWN_REBLOGS : yoursOut > 0 ? FamilyNames.HIDE_REBLOGS_OF_YOURS
+                    : FamilyNames.HIDE_FOLLOWED_IN_FOR_YOU);
             return kept;
         } catch (Throwable failure) {
             HookStatus.threw(family, "dashboard page", failure);
             return items;
+        }
+    }
+
+    /**
+     * Whether [fragment], a dashboard tab, is For you: its arguments name the tab by
+     * {@link #FOR_YOU_ID} or load it from {@link #FOR_YOU_URI}. Tumblr's fragments are AndroidX
+     * ones, which this code can't name, so the arguments are asked for by the method's kept name.
+     * The Following tab is another class with no such arguments, and a tab that can't be read
+     * isn't For you.
+     */
+    static boolean onForYou(@Nullable Object fragment) {
+        if (fragment == null) return false;
+        try {
+            Object arguments = fragment.getClass().getMethod("getArguments").invoke(fragment);
+            if (!(arguments instanceof Bundle)) return false;
+            Bundle tab = (Bundle) arguments;
+            String uri = tab.getString(TAB_URI);
+            return FOR_YOU_ID.equals(tab.getString(TAB_ID)) || uri != null && uri.contains(FOR_YOU_URI);
+        } catch (ReflectiveOperationException | RuntimeException unreadable) {
+            return false;
         }
     }
 

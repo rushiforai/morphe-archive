@@ -1,0 +1,331 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version to release, without the leading v. Must match gradle.properties on this commit.'
+        required: true
+        type: string
+
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  release:
+    name: Build and Release Morphe Patch
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+
+      - name: Setup Java 21
+        uses: actions/setup-java@v6
+        with:
+          distribution: 'temurin'
+          java-version: '21'
+
+      - name: Setup Kotlin Compiler
+        run: |
+          mkdir -p "$HOME/.local/kotlinc"
+          curl -fSL -o /tmp/kotlinc.zip "https://github.com/JetBrains/kotlin/releases/download/v2.0.21/kotlin-compiler-2.0.21.zip"
+          unzip -q /tmp/kotlinc.zip -d /tmp/kotlinc_extracted
+          cp -r /tmp/kotlinc_extracted/kotlinc/* "$HOME/.local/kotlinc/"
+          echo "$HOME/.local/kotlinc/bin" >> $GITHUB_PATH
+
+      - name: Make scripts executable
+        run: chmod +x ./build.sh
+
+      # The version comes from the ref, never from the working tree, and the tree must already
+      # agree with it: build.sh names the bundle from gradle.properties, so a checkout whose
+      # version differs from the tag ships the artifact under the wrong name. That used to be
+      # papered over with sed, which released a version the commit did not contain; it fails now.
+      #
+      # A dispatch republishes the release for the version it is given, so the version is a
+      # required input rather than something read from gradle.properties: a dispatch without it
+      # would take whatever version the branch happens to carry and rewrite that release's notes
+      # and assets by accident.
+      - name: Resolve version from the ref
+        id: tag_info
+        env:
+          # Passed through the environment; an input is never spliced into the script.
+          INPUT_VERSION: ${{ inputs.version }}
+        run: |
+          set -euo pipefail
+          if [[ "${GITHUB_EVENT_NAME}" == "workflow_dispatch" ]]; then
+            VERSION="${INPUT_VERSION}"
+            if [[ ! "${VERSION}" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+              echo "::error::Input version '${VERSION}' must be <major>.<minor>.<patch>, without the leading v."
+              exit 1
+            fi
+            TAG="v${VERSION}"
+          else
+            TAG="${GITHUB_REF_NAME}"
+            if [[ ! "${TAG}" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+              echo "::error::Tag '${TAG}' must match v<major>.<minor>.<patch>."
+              exit 1
+            fi
+            VERSION="${TAG#v}"
+          fi
+
+          PROP_VERSION="$(grep -m1 '^version=' gradle.properties | cut -d'=' -f2 | tr -d ' ')"
+          if [[ "${PROP_VERSION}" != "${VERSION}" ]]; then
+            echo "::error::gradle.properties says ${PROP_VERSION}, but this run releases ${VERSION}."
+            echo "::error::Bump version= in gradle.properties to ${VERSION}, commit it and re-run."
+            exit 1
+          fi
+
+          echo "== gradle.properties =="
+          grep -m1 '^version=' gradle.properties
+          echo "VERSION=${VERSION}" >> "$GITHUB_OUTPUT"
+          echo "TAG=${TAG}" >> "$GITHUB_OUTPUT"
+
+      # A dispatch names an explicit version, so it can no longer pick up whatever version the
+      # branch carries — but it can still name the version that is already out, and
+      # softprops/action-gh-release would then replace that release's notes and assets. Ask the
+      # release list whether the resolved tag already has one — a draft included — and stop
+      # before spending a build on it.
+      # Tag pushes are deliberately not gated: re-running the workflow for a tag whose release is
+      # half-published is a repair, not an overwrite.
+      - name: Refuse to republish an existing release
+        if: github.event_name == 'workflow_dispatch'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ steps.tag_info.outputs.TAG }}
+        run: |
+          set -euo pipefail
+          # Fail closed: the release list is the only endpoint that reports drafts, so anything
+          # but a 200 stops the run rather than risking an overwrite.
+          STATUS="$(curl -sS -o "${RUNNER_TEMP}/releases.json" -w '%{http_code}' \
+            -H "Authorization: Bearer ${GH_TOKEN}" \
+            -H "Accept: application/vnd.github+json" \
+            "https://api.github.com/repos/${GITHUB_REPOSITORY}/releases?per_page=100")"
+          if [[ "${STATUS}" != "200" ]]; then
+            echo "::error::Cannot check whether ${TAG} already has a release (HTTP ${STATUS})."
+            echo "::error::Check the API response and re-run the dispatch."
+            exit 1
+          fi
+
+          # A draft is returned by the release list but never by /releases/tags/{tag}, which is
+          # exactly how a dispatch used to be able to overwrite a draft waiting to be published.
+          RELEASES="${RUNNER_TEMP}/releases.json"
+          if [[ "$(jq -r --arg tag "${TAG}" '[.[] | select(.tag_name == $tag)] | length' "${RELEASES}")" != "0" ]]; then
+            echo "::error::${TAG} already has a release, so this dispatch would overwrite it."
+            echo "::error::Publish or delete that release first, or dispatch a new version."
+            jq -r --arg tag "${TAG}" '.[] | select(.tag_name == $tag) | "::error::" + (if .draft then "draft" else "published" end) + " since " + (.created_at // "unknown") + " with " + ((.assets | length) | tostring) + " assets"' "${RELEASES}" || true
+            exit 1
+          fi
+          echo "${TAG} has no release yet; continuing."
+
+      - name: Build Patch Package (.mpp)
+        run: ./build.sh
+
+      # The release notes count and the published inventory both read patches-list.json, so a
+      # stale checked-in copy silently under-counts the bundle. Regenerate it from the artefact
+      # that is about to ship and fail instead of publishing a file that describes other patches.
+      - name: Verify the patch inventory matches the bundle
+        run: |
+          set -euo pipefail
+          VERSION="${{ steps.tag_info.outputs.VERSION }}"
+          REGENERATED="build/patches-list.regenerated.json"
+          mkdir -p build
+          java -cp "libs/morphe-cli.jar:libs/gson.jar" tools/bindings/Inventory.java \
+            "dist/patches-${VERSION}.mpp" "${VERSION}" "${REGENERATED}"
+          # The version is stamped from the tag and the entry order follows the previous file, so
+          # compare the patch entries themselves, name by name.
+          jq -S '.patches | sort_by(.name)' patches-list.json > build/inventory.committed.json
+          jq -S '.patches | sort_by(.name)' "${REGENERATED}" > build/inventory.built.json
+          if ! diff -u build/inventory.committed.json build/inventory.built.json; then
+            echo "::error::patches-list.json does not describe dist/patches-${VERSION}.mpp."
+            echo "::error::Regenerate and commit it before tagging:"
+            echo "::error::java -cp \"libs/morphe-cli.jar:libs/gson.jar\" tools/bindings/Inventory.java dist/patches-${VERSION}.mpp ${VERSION} patches-list.json"
+            exit 1
+          fi
+          mv "${REGENERATED}" patches-list.json
+          echo "Inventory matches the bundle: $(jq '.patches | length' patches-list.json) patches"
+
+      # Anything shipped alongside the bundle must describe this release, not a
+      # stale checked-in value.
+      - name: Sync release metadata
+        run: |
+          set -euo pipefail
+          VERSION="${{ steps.tag_info.outputs.VERSION }}"
+          URL="https://github.com/${GITHUB_REPOSITORY}/releases/download/v${VERSION}/patches-${VERSION}.mpp"
+          jq --arg v "${VERSION}" --arg u "${URL}" \
+            '.version = $v | .download_url = $u' patches-bundle.json > patches-bundle.json.tmp
+          mv patches-bundle.json.tmp patches-bundle.json
+          # patches-list.json is regenerated from this bundle in the step above, which stamps
+          # its version already; only the bundle metadata still needs writing here.
+          echo "== patches-bundle.json =="
+          cat patches-bundle.json
+
+      # Fail loudly here instead of publishing an asset-less release.
+      - name: Verify release assets exist
+        run: |
+          set -euo pipefail
+          VERSION="${{ steps.tag_info.outputs.VERSION }}"
+          for asset in "dist/patches-${VERSION}.mpp" "dist/gboard-backspace-haptics.jar"; do
+            if [[ ! -f "${asset}" ]]; then
+              echo "::error::Missing release asset ${asset}"
+              ls -l dist || true
+              exit 1
+            fi
+          done
+          echo "== release assets =="
+          ls -l dist
+
+      - name: Prepare Release Notes
+        run: |
+          set -euo pipefail
+          cat << 'EOF' > release-notes.md
+          ### ✧ Glyphchemy
+
+          Alchemy for Every Key. Glyphchemy is a Morphe/ReVanced bytecode and resource patch suite
+          for Gboard (`com.google.android.inputmethod.latin`). PATCH_COUNT patches are bundled and
+          every one of them can be selected on its own or combined in Morphe Manager.
+
+          #### ✨ Typing, gestures and input
+          - **Per-app profiles**: incognito, no suggestions, toolbar order and theme or keyboard
+            height per app, with a session override for the app in focus.
+          - **Swipe Left to Delete**: sliding left anywhere on the keyboard acts as backspace;
+            keep holding to delete whole words.
+          - **Smart bar case swipe**: swipe a suggested word up to capitalize it, down to lowercase it.
+          - **Spacebar double-tap tab/undo**: double tap the left half of the spacebar to insert a
+            tab, or the right half to undo the last edit; the tapped space is swallowed instead of
+            committing a second one, so a double space becomes one tab.
+          - **Punctuation spacing**: a space typed before a period, comma or ellipsis is pulled back
+            to sit tight against the word (`Hey ` + `.` commits as `Hey.`), while French `;:!?`
+            keep exactly one space before them.
+          - **English QWERTY Flick Case** (up for uppercase, down
+            for lowercase), **Field adaptation** for search, URL, email, password and code fields,
+            **Multilingual Suggestion**, **Swipe Down to Dismiss Keyboard**, **Swipeable Custom Top
+            Row**, **Cursor trackpad mode**, **Keypress Vibration Intensity Control**,
+            **Latin Globe Key Ignore Interval**, **Long-Press Editing Shortcuts**,
+            **Backspace Repeat Haptic Feedback** and **Enter Key Tasker Event** (Intent broadcast to
+            Tasker, `dev.custom.gboard.ENTER_PRESSED`).
+
+          #### 🎨 Themes, keys and visual effects
+          - **Glide Trail Customization** (fade speed, thickness, tail length, Rainbow RGB and an HSV
+            colour wheel), **Gboard Theme Builder**, **Custom Theme** ZIP import and theme packs,
+            **Keyboard Icon Packs**, **Frosted Glass**, **Glass Panel**, **Glass Press Effect**,
+            **Translucent Bottom Bar**, **Rounded Keyboard Panel**, **Key Shape Selection**,
+            **Immersive Keyboard**, **Theme Follows Dark Mode**, **AMOLED Gboard Settings**,
+            **AMOLED dark keyboard**, **G Logo on Spacebar**, **Emoji Key On Right** and
+            **Change emoji size**.
+
+          #### 🎙️ Voice typing
+          - **Parakeet voice typing** on the phone (no Google server round-trip), plus **Rambler
+            voice typing** with **Rambler personal dictionary**, **Rambler contact names**,
+            **Rambler custom instructions**, **Rambler cursor-aware editing**, **Rambler app
+            context** and **Rambler stop after silence**. Also **Parakeet personal dictionary**,
+            **Advanced Voice Typing**, **Use Bluetooth Microphone** and **Enable OCR / Scan Text**.
+
+          #### ✍️ Text, suggestions and editing
+          - **AI Writing Tools** (proofread, rewrite, tone), **Grammar Checker**, **Inline
+            Suggestions**, **Enable Inline Autofill Suggestions**, **Simple Calculator**,
+            **Close Proactive Suggestions** and **Dictionaries & Predictions** resource versions.
+
+          #### 📋 Clipboard, toolbar and quick actions
+          - **Web Clipboard** with browser sync, **Clipboard Enhancements**, **Clipboard Custom
+            Character Limit**, **Quick Insert**, **Top Toolbar Item Count**, **Toolbar Editing
+            Buttons**, **Custom Symbols**, **Access Points menu style**, **Incognito Mode Toggle**,
+            **FTP Server** and **Floating Web Search**.
+
+          #### ⌨️ Layouts
+          - **iOS QWERTY layout**, **iOS flick layout**, **Enable split keyboard**, **Enable
+            accessibility layout**, **Zhuyin Slide Input**, **Zhuyin Bottom Row Key Sizes**,
+            **Zhuyin Quick Traditional/Simplified Toggle** and **Emojis, stickers & GIFs Tab Order**.
+
+          #### ⚙️ Settings and branding
+          - **Keyboard Settings** inside Gboard, **Settings Homepage Override**, **Developer
+            options** and the Flag Editor, **Backup & Restore**, **Change package name** and
+            **Custom branding**.
+
+          #### 🔒 Privacy and clean-up
+          - **Block Trackers**, **Block App Hijacking**, **Stop Remote Updates**, **Stop Background
+            Sync**, **Disable Cloud
+            Backup**, **Remove Permissions**, **Offline Only**, **Remove Extra Files**, **Disable
+            Play Services**, **Remove Translate Limit**, **Key Mapper Watchdog** and **Add Gboard
+            Signature Bypass**.
+
+          #### 🎯 Supported Gboard versions
+          - `18.6.3.1002251336-release-arm64-v8a`: all PATCH_COUNT patches.
+          - `18.5.4.993608717-release-arm64-v8a`: the newer additions, including the per-app
+            profiles, swipe, case-swipe and punctuation patches, glass effects and Field adaptation
+            (12 patches).
+          - `18.0.3.954559732-release-arm64-v8a` and `18.0.3`: the three original patches (Glide
+            Trail Customization, Backspace Repeat Haptic Feedback, Enter Key Tasker Event).
+
+          #### ⚠️ Known limitations
+          - Block Trackers, Keyboard Settings and Stop Remote Updates do not currently apply to
+            18.6.3; selecting them is skipped instead of failing the run.
+
+          #### 📱 Add to Morphe App
+          1. Open the **Morphe** app on your Android device.
+          2. Navigate to **Settings** -> **Sources**.
+          3. Tap **Add Source** and paste:
+             ```
+             https://github.com/${{ github.repository }}
+             ```
+          4. Return to **Patcher**, select Gboard, select your patches, and patch!
+          EOF
+          COUNT="$(jq '.patches | length' patches-list.json)"
+          sed -i "s/PATCH_COUNT/${COUNT}/" release-notes.md
+          grep -n "patches are bundled" release-notes.md
+
+      - name: Publish GitHub Release
+        uses: softprops/action-gh-release@v3
+        with:
+          tag_name: ${{ steps.tag_info.outputs.TAG }}
+          name: Release ${{ steps.tag_info.outputs.TAG }}
+          body_path: release-notes.md
+          prerelease: false
+          fail_on_unmatched_files: true
+          files: |
+            dist/patches-${{ steps.tag_info.outputs.VERSION }}.mpp
+            dist/gboard-backspace-haptics.jar
+            patches-bundle.json
+            patches-list.json
+
+      # The inventory and the bundle metadata are regenerated in the runner, so the copies on main
+      # keep whatever the last manual bump left there and drift from the shipped release after
+      # every tag. Publishing comes first; only then is what the run actually shipped committed
+      # back, which also keeps a failed upload from moving main.
+      - name: Commit the release metadata back to main
+        env:
+          VERSION: ${{ steps.tag_info.outputs.VERSION }}
+        run: |
+          set -euo pipefail
+          if git diff --quiet -- patches-list.json patches-bundle.json; then
+            echo "Release metadata already describes v${VERSION}; nothing to commit."
+            exit 0
+          fi
+
+          # main may have moved while this run was building or uploading. Only push when the
+          # commit this run started from is still the branch head, so a metadata sync can never
+          # rewrite newer work.
+          REMOTE_HEAD="$(git ls-remote origin refs/heads/main | cut -f1)"
+          if [[ "${REMOTE_HEAD}" != "${GITHUB_SHA}" ]]; then
+            echo "::warning::main moved to ${REMOTE_HEAD:-unknown} during the release; leaving the metadata alone."
+            exit 0
+          fi
+
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add patches-list.json patches-bundle.json
+          git commit -m "chore(release): sync release metadata for v${VERSION}" -m "[skip ci]"
+          # The release is already published; a rejected push is a stale copy on main, not a
+          # failed release, so it warns and leaves the run green.
+          if ! git push origin HEAD:main; then
+            echo "::warning::Could not push the release metadata to main."
+            echo "::warning::Commit patches-list.json and patches-bundle.json by hand for v${VERSION}."
+          fi

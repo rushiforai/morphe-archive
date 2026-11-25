@@ -515,7 +515,7 @@ public final class SaveDownloads {
     static final String ENCRYPTED = ".enc";
 
     /** [fileName] without {@link #ENCRYPTED}, so the copy keeps the media's own extension. */
-    private static String plain(String fileName) {
+    static String plain(String fileName) {
         return fileName.endsWith(ENCRYPTED) ? fileName.substring(0, fileName.length() - ENCRYPTED.length()) : fileName;
     }
 

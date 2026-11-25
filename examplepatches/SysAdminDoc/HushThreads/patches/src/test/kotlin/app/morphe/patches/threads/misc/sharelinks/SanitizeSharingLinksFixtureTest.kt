@@ -387,6 +387,36 @@ class SanitizeSharingLinksFixtureTest {
         }
     }
 
+    /**
+     * 456's route for opening a post in an Instagram story reads the link with no post in hand and
+     * answers it as it is. The hook has nothing to keep there, so that coroutine stays as it was.
+     */
+    @Test
+    fun `each declared build leaves the coroutine with no post alone`() {
+        for (build in Fixtures.declaredBuilds()) {
+            clearMatches()
+            val classes = parserClasses(build)
+            val reads = linkReader(classes)
+            val postless = classes.flatMap { it.methods }.filter { method ->
+                val body = method.instructions()
+                method.name == "invokeSuspend" && reads(method).isNotEmpty() &&
+                    body.none { it.opcode == Opcode.CHECK_CAST && it.type() == MEDIA } &&
+                    reads(method).all { read ->
+                        body[read + 1].opcode == Opcode.MOVE_RESULT_OBJECT && body[read + 2].opcode == Opcode.RETURN_OBJECT &&
+                            (body[read + 1] as OneRegisterInstruction).registerA == (body[read + 2] as OneRegisterInstruction).registerA
+                    }
+            }
+            val stock = postless.singleOrNull() ?: throw AssertionError("${build.name}: ${postless.map { it.definingClass }}")
+
+            val context = PatchContexts.of(ExtensionDex.classes() + classes)
+            sanitizeSharingLinksPatch.execute(context)
+
+            val patched = context.mutableClassDefBy(stock.definingClass).methods.single { it.name == stock.name }.instructions()
+            assertEquals(build.name, stock.instructions().counted(), patched.counted())
+            assertTrue(build.name, patched.none { it.method()?.toString() in setOf(REMEMBER_POST, REMEMBERED_POST, POST_LINK) })
+        }
+    }
+
     @Test
     fun `a coroutine whose key or post the hook can't trust is refused`() {
         val send = RESUMED.first()

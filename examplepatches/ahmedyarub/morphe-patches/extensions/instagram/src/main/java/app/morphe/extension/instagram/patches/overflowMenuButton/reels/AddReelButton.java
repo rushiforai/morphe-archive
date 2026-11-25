@@ -80,14 +80,21 @@ public class AddReelButton {
         return true;
     }
 
-    /** Field on the reel menu helper holding the media. Rewritten by the patch. */
+    /**
+     * Fields from the reel menu helper to the media, dot-separated: the helper held the media up
+     * to 456, and holds the reel item holding it from 457. Rewritten by the patch.
+     */
     private static String reelMediaFieldName() { return "fieldName"; }
 
     public static void addReelMenuDownloadRow(Object moreOptionsHelper, Context context, Object sheetHelper) {
         try {
             if (!Pref.enableDownload() || !claimSheet(sheetHelper)) return;
 
-            Object media = new Entity().getField(moreOptionsHelper, reelMediaFieldName());
+            Object media = moreOptionsHelper;
+            for (String field : reelMediaFieldName().split("\\.")) {
+                if (media == null) return;
+                media = new Entity().getField(media, field);
+            }
             if (media == null) return;
 
             AddReelButton.addDownloadButton(context, sheetHelper, media, 0);

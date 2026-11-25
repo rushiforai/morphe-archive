@@ -6,6 +6,7 @@ import static app.morphe.extension.shared.utils.StringRef.sf;
 import static app.morphe.extension.shared.settings.Setting.migrateOldSettingToNew;
 import static app.morphe.extension.shared.settings.Setting.parent;
 import static app.morphe.extension.shared.settings.Setting.parentInverted;
+import static app.morphe.extension.shared.settings.Setting.parentsAll;
 
 import app.morphe.extension.shared.settings.preference.SeekBarPreference;
 import app.morphe.extension.shared.settings.preference.SeekBarPreference.SeekBarConfig;
@@ -13,6 +14,7 @@ import app.morphe.extension.shared.patches.PatchStatus;
 import app.morphe.extension.shared.patches.SkipSilencePatch.MinimumPause;
 import app.morphe.extension.shared.patches.PoTokenProviderPatch.PoTokenProviderAvailability;
 import app.morphe.extension.shared.patches.SkipSilencePatch;
+import app.morphe.extension.shared.patches.glassmenus.GlassMenusPatch.GlassMenusAvailability;
 import app.morphe.extension.shared.spoof.SpoofVideoStreamsPatch;
 import app.morphe.extension.shared.spoof.SpoofVideoStreamsPatch.SpoofVideoStreamsAvailability;
 import app.morphe.extension.shared.spoof.SpoofVideoStreamsPatch.JavaScriptClientAvailability;
@@ -131,6 +133,16 @@ public class SharedYouTubeSettings extends BaseSettings {
     public static final StringSetting APP_REFRESH_RATE = new StringSetting("morphe_app_refresh_rate", "DEFAULT", true);
     public static final EnumSetting<AppRefreshType> APP_REFRESH_RATE_TYPE = new EnumSetting<>("morphe_app_refresh_rate_type", AppRefreshType.ALWAYS, true, new RefreshRateType());
 
+    private static final GlassMenusAvailability GLASS_MENUS_AVAILABILITY = new GlassMenusAvailability();
+    public static final BooleanSetting GLASS_MENUS = new BooleanSetting(
+            "morphe_glass_menus", FALSE, false, GLASS_MENUS_AVAILABILITY);
+    public static final IntegerSetting GLASS_MENUS_OPACITY = new IntegerSetting(
+            "morphe_glass_menus_opacity", 30, false, parentsAll(parent(GLASS_MENUS), GLASS_MENUS_AVAILABILITY));
+    public static final IntegerSetting GLASS_MENUS_BLUR = new IntegerSetting(
+            "morphe_glass_menus_blur", 24, false, parentsAll(parent(GLASS_MENUS), GLASS_MENUS_AVAILABILITY));
+    public static final IntegerSetting GLASS_MENUS_DIM = new IntegerSetting(
+            "morphe_glass_menus_dim", 20, false, parentsAll(parent(GLASS_MENUS), GLASS_MENUS_AVAILABILITY));
+
     // Renamed settings
     private static final BooleanSetting DEPRECATED_REVANCED_SANITIZE_SHARING_LINKS = BaseSettings.SANITIZE_SHARING_LINKS;
     private static final BooleanSetting DEPRECATED_SANITIZE_URL_QUERY = new BooleanSetting("morphe_sanitize_url_query", TRUE);
@@ -139,6 +151,9 @@ public class SharedYouTubeSettings extends BaseSettings {
         // Both apps provide this shared label for the disabled indicator duration.
         SeekBarPreference.register(new SeekBarConfig(SETTINGS_NEW_INDICATOR_DAYS,
                 0, 30, 1, "", 1, sf("morphe_playback_in_feeds_entry_off"), null));
+        SeekBarPreference.register(new SeekBarConfig(GLASS_MENUS_OPACITY, 0, 100, 5, "%"));
+        SeekBarPreference.register(new SeekBarConfig(GLASS_MENUS_BLUR, 4, 60, 2, "dp"));
+        SeekBarPreference.register(new SeekBarConfig(GLASS_MENUS_DIM, 0, 80, 5, "%"));
 
         // Prioritize stream spoofing on upgrades, including installs that already saved
         // both settings as enabled. Otherwise, each setting disables the other's switch.

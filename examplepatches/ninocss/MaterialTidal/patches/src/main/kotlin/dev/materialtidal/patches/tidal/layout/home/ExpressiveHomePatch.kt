@@ -32,7 +32,7 @@ import dev.materialtidal.patches.tidal.theme.materialyou.MarketColorToStringFing
 import dev.materialtidal.patches.tidal.theme.materialyou.materialYouThemePatch
 
 private val HOME_RADIUS_CHOICES = mapOf(
-    "Expressive Squircle (20dp)" to "expressive",
+    "Squircle (20dp, recommended)" to "expressive",
     "Rounded (14dp)" to "rounded",
     "Subtle (8dp)" to "subtle",
 )
@@ -110,8 +110,8 @@ private fun MutableMethod.addEarlyHideGuard(bridgeBooleanGetter: String) {
 
 @Suppress("unused")
 val expressiveHomePatch = patch(
-    name = "Expressive Material 3 homepage",
-    description = "Redesigns TIDAL's Homepage with Material 3 Expressive shortcut cards, rounded carousel artwork, Monet-styled Vibe chips and AppBar, unlocked pull-to-refresh, and promo decluttering.",
+    name = "M3 homepage",
+    description = "Redesigns the Homepage with rounded M3 shortcut and carousel cards, Monet-styled Vibe chips and top bar, pull-to-refresh support, and optional removal of promotional banners.",
     default = true,
 ) {
     dependsOn(materialYouThemePatch)
@@ -124,16 +124,16 @@ val expressiveHomePatch = patch(
         key = "homeCoverRadiusStyle",
         default = "expressive",
         values = HOME_RADIUS_CHOICES,
-        title = "Homepage cover & shortcut shape",
-        description = "Corner radius style for album/playlist carousel cards and quick-access shortcut cards.",
+        title = "Cover & shortcut corner shape",
+        description = "Corner radius style for album/playlist carousel artwork and quick-access shortcut cards (can also be changed in Settings → MaterialTidal; restart recommended).",
         required = true,
     )
 
     val enablePullToRefreshOption by booleanOption(
         key = "enableHomePullToRefresh",
         default = true,
-        title = "Unlock homepage pull-to-refresh",
-        description = "Enables TIDAL's native Material pull-to-refresh gesture on the Homepage feed.",
+        title = "Homepage pull-to-refresh",
+        description = "Enables pull-to-refresh at the top of the Homepage feed (also toggleable in Settings → MaterialTidal).",
         required = true,
     )
 
@@ -141,7 +141,7 @@ val expressiveHomePatch = patch(
         key = "hideHomeHeadlinersBanner",
         default = true,
         title = "Hide Headliners upload banner",
-        description = "Hides the top creator upload promotional banner on the Homepage.",
+        description = "Hides the top creator upload promotional banner on the Homepage (also adjustable live in Settings → MaterialTidal).",
         required = true,
     )
 
@@ -149,7 +149,7 @@ val expressiveHomePatch = patch(
         key = "hideHomePromoModules",
         default = true,
         title = "Hide promo modules",
-        description = "Hides promotional banners injected between Homepage music carousels.",
+        description = "Hides promotional banners shown between Homepage music carousels (also adjustable live in Settings → MaterialTidal).",
         required = true,
     )
 
@@ -157,7 +157,7 @@ val expressiveHomePatch = patch(
         key = "hideHomeMerchModules",
         default = true,
         title = "Hide merch store modules",
-        description = "Hides merchandising shopping carousels from the Homepage.",
+        description = "Hides merchandise shopping carousels from the Homepage (also adjustable live in Settings → MaterialTidal).",
         required = true,
     )
 
@@ -165,17 +165,18 @@ val expressiveHomePatch = patch(
         // 1. Configure MaterialYouConfig homepage options.
         val radiusDp = radiusChoiceToDpInt(homeCoverRadiusStyleOption)
         val configClass = mutableClassDefBy(MATERIAL_YOU_CONFIG_CLASS)
+        configClass.methods.single { it.name == "isExpressiveHomePatchInstalled" }.returnEarly(true)
         configClass.methods.single { it.name == "isExpressiveHomeEnabled" }.returnEarly(true)
-        configClass.methods.single { it.name == "getHomeCoverCornerRadiusInt" }.returnEarly(radiusDp)
-        configClass.methods.single { it.name == "getHomeShortcutCornerRadiusInt" }.returnEarly(radiusDp)
+        configClass.methods.single { it.name == "defaultHomeCoverCornerRadiusInt" }.returnEarly(radiusDp)
+        configClass.methods.single { it.name == "defaultHomeShortcutCornerRadiusInt" }.returnEarly(radiusDp)
         configClass.methods.single { it.name == "getHomeShortcutHeightInt" }.returnEarly(66)
-        configClass.methods.single { it.name == "isHomePullToRefreshEnabled" }
+        configClass.methods.single { it.name == "defaultHomePullToRefreshEnabled" }
             .returnEarly(enablePullToRefreshOption ?: true)
-        configClass.methods.single { it.name == "isHideHomeHeadlinersBanner" }
+        configClass.methods.single { it.name == "defaultHideHomeHeadlinersBanner" }
             .returnEarly(hideHeadlinersBannerOption ?: true)
-        configClass.methods.single { it.name == "isHideHomePromoModules" }
+        configClass.methods.single { it.name == "defaultHideHomePromoModules" }
             .returnEarly(hidePromoModulesOption ?: true)
-        configClass.methods.single { it.name == "isHideHomeMerchModules" }
+        configClass.methods.single { it.name == "defaultHideHomeMerchModules" }
             .returnEarly(hideMerchModulesOption ?: true)
 
         // Resolve Square Market MarketColor descriptor dynamically (Lwha;) & ensure it has <init>(I)V.

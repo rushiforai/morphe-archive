@@ -226,6 +226,19 @@ public class AutoReplyTest {
         assertFalse(AutoReply.oneToOne("GROUP:3"));
     }
 
+    /** Marketplace chats carry their own MARKETPLACE type, not ONE_TO_ONE, and are still one buyer and one seller (#227). */
+    @Test public void answersAMarketplaceChatWithGroupsOff() {
+        String marketplace = "MARKETPLACE:410775001:100012345";
+        replies(false, "", "Away");
+        notification(marketplace);
+        AutoReply.received("is this still available?", marketplace, "mid.1");
+        runQueued();
+        assertEquals("Away", sent());
+        assertTrue(AutoReply.lastReply.containsKey(marketplace));
+        assertFalse(AutoReply.oneToOne("COMMUNITY_CHANNEL:5"));
+        assertFalse(AutoReply.oneToOne("AI_BOT:6"));
+    }
+
     @Test public void neverAnswersAMessageThatIsOneOfItsOwnReplies() {
         replies(false, "", "Away right now");
         notification(CHAT);

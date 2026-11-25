@@ -10,7 +10,7 @@ import java.util.regex.Pattern;
  */
 public final class Readable {
     private static final Pattern REQUEST = Pattern.compile("^(Player|VPN) (\\S+) -> (\\d+|failed: .*) in (\\d+)ms.*$");
-    private static final Pattern PLAYLIST = Pattern.compile("^Playlist (\\S+) -> 200, download (\\d+)ms.*?(\\(rewritten\\))?$");
+    private static final Pattern PLAYLIST = Pattern.compile("^Playlist (\\S+) -> 200, answered in (\\d+)ms.*?(\\(rewritten\\))?$");
     private static final Pattern URL = Pattern.compile("https?://([^/\\s?]+)(/[^\\s?]*)?(\\?\\S*)?");
     private static final Pattern LONG = Pattern.compile("[A-Za-z0-9_\\-=+/.%]{40,}");
     /** The ad blocker's check of each new piece of the playlist, every two seconds: routine while no ad is in it. */

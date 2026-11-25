@@ -6,7 +6,7 @@ import app.fluffy.patches.galaxymaxhz.LicenseRefreshFingerprint
 import app.fluffy.patches.galaxymaxhz.LoadingGateFingerprint
 import app.fluffy.patches.galaxymaxhz.ProfileConfigFetcherFingerprint
 import app.fluffy.patches.galaxymaxhz.RemoteProfilesCallFingerprint
-import app.fluffy.patches.galaxymaxhz.SignedRequestLauncherFingerprint
+import app.fluffy.patches.galaxymaxhz.RequestExecutorFingerprint
 import app.fluffy.patches.galaxymaxhz.VerdictGFingerprint
 import app.fluffy.patches.galaxymaxhz.VerdictHFingerprint
 import app.fluffy.patches.shared.Constants.COMPATIBILITY_GALAXYMAXHZ
@@ -193,7 +193,14 @@ val unlockPremiumPatch = bytecodePatch(
         // Answer every signed request synchronously with the offline premium
         // response; the callers' own parsers store and apply it. The licence
         // type and the update-check keys are computed at runtime.
-        SignedRequestLauncherFingerprint.method.apply {
+        val requestExecutor = RequestExecutorFingerprint.method
+        val launcher = mutableClassDefBy(requestExecutor.definingClass).methods.singleOrNull {
+            it.name == "b" &&
+                it.returnType == "Ljava/lang/Object;" &&
+                it.parameterTypes.size == 6 &&
+                it.parameterTypes.first() == requestExecutor.definingClass
+        } ?: throw PatchException("signed-request launcher not found next to the request executor")
+        launcher.apply {
             ensureRegisters(11)
             clearBody()
             val smaliJson = OFFLINE_LICENSE_BASE_JSON.replace("\"", "\\\"")

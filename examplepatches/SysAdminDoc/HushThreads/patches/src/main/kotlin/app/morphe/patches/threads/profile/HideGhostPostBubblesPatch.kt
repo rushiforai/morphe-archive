@@ -6,7 +6,6 @@
  */
 package app.morphe.patches.threads.profile
 
-import app.morphe.patcher.StringComparisonType
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
 import app.morphe.patcher.patch.BytecodePatchContext
 import app.morphe.patcher.patch.PatchException
@@ -14,7 +13,10 @@ import app.morphe.patcher.patch.bytecodePatch
 import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod
 import app.morphe.patches.shared.compat.AppCompatibilities
 import app.morphe.patches.threads.misc.extension.EXTENSION_PACKAGE
+import app.morphe.patches.threads.misc.extension.classesNoted
 import app.morphe.patches.threads.misc.extension.enableStatus
+import app.morphe.patches.threads.misc.extension.holdsNote
+import app.morphe.patches.threads.misc.extension.noteSites
 import app.morphe.patches.threads.misc.extension.parameterRegister
 import app.morphe.patches.threads.misc.extension.parameterRegisterNumber
 import app.morphe.patches.threads.misc.extension.requireParameterIntact
@@ -22,7 +24,6 @@ import app.morphe.patches.threads.misc.extension.requireStatusMethod
 import app.morphe.patches.threads.misc.extension.threadsExtensionPatch
 import app.morphe.patches.threads.misc.settings.EXTENSION_ROOT
 import app.morphe.patches.threads.misc.settings.settingsPatch
-import app.morphe.patches.threads.misc.theme.holdsNote
 import app.morphe.util.ControlFlow
 import app.morphe.util.argumentRegister
 import app.morphe.util.findMutableMethodOf
@@ -32,7 +33,6 @@ import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.iface.Method
 import com.android.tools.smali.dexlib2.iface.instruction.Instruction
 import com.android.tools.smali.dexlib2.iface.reference.MethodReference
-import com.android.tools.smali.dexlib2.iface.reference.StringReference
 import com.android.tools.smali.dexlib2.iface.reference.TypeReference
 
 private const val PATCH = "Hide ghost post bubbles"
@@ -46,7 +46,6 @@ internal const val PROFILE_BUBBLE_NOTE =
 internal const val FEED_TRAY_NOTE = "com.instagram.barcelona.feed.ui.GhostPostFeedTray (GhostPostFeedTray.kt:"
 internal const val MOVED_FEED_TRAY_NOTE = "com.instagram.barcelona.ghost.tray.ui.GhostPostFeedTray (GhostPostFeedTray.kt:"
 internal val FEED_TRAY_NOTES = listOf(FEED_TRAY_NOTE, MOVED_FEED_TRAY_NOTE)
-internal const val MAIN_FEED_NOTE = "com.instagram.barcelona.feed.ui.MainFeedTabContent"
 internal const val ANIMATED_VISIBILITY_NOTE = "androidx.compose.animation.AnimatedVisibility (AnimatedVisibility.kt:"
 
 /** The call at [call] in [method] to one of Compose's AnimatedVisibility functions, which takes its visible flag in v[flag]. */
@@ -125,22 +124,33 @@ internal fun BytecodePatchContext.profileBubble(): ProfileBubble {
 
 /**
  * The main feed's AnimatedVisibility around its row of ghost post bubbles. The row's function is
- * drawn from one case of a lambda class the feed shares with other screens, and the feed builds
- * that lambda for the row's case in the one place that hands it to AnimatedVisibility.
+ * drawn from one case of a content lambda class the feed shares with other screens, a three
+ * argument invoke, as AnimatedVisibility's content is. Those screens build the class too, and only
+ * the feed hands one to AnimatedVisibility.
  */
 internal fun BytecodePatchContext.feedTray(): VisibilityCall {
     val tray = composable(FEED_TRAY_NOTES, "the feed's row of ghost post bubbles")
-    val feed = classDefByStrings(MAIN_FEED_NOTE, StringComparisonType.STARTS_WITH)
-        .filterNot { it.type.startsWith(EXTENSION_ROOT) }
-        .flatMap { it.methods }
-        .filter { it.holdsNote(MAIN_FEED_NOTE) }
-        .distinctBy { it.signature() }
-    val drawer = feed.filter { method -> method.body().any { it.calls(tray) } }
-        .singleOrPatchException("$PATCH: the main feed's code that draws ${tray.signature()}")
-    val wrapper = feed.filter { method ->
-        method.body().any { it.opcode == Opcode.NEW_INSTANCE && it.getReference<TypeReference>()?.type == drawer.definingClass } &&
-            method.body().any { visibleSlot(it) != null }
-    }.singleOrPatchException("$PATCH: the main feed's AnimatedVisibility around ${drawer.definingClass}")
+    val drawers = HashSet<String>()
+    classDefForEach { classDef ->
+        if (classDef.type.startsWith(EXTENSION_ROOT)) return@classDefForEach
+        val draws = classDef.methods.any { method ->
+            method.name == "invoke" && method.parameterTypes.size == 3 &&
+                method.implementation?.instructions?.any { it.calls(tray) } == true
+        }
+        if (draws) drawers += classDef.type
+    }
+    val builders = mutableListOf<Method>()
+    classDefForEach { classDef ->
+        if (classDef.type.startsWith(EXTENSION_ROOT)) return@classDefForEach
+        classDef.methods.filterTo(builders) { method ->
+            method.implementation?.instructions?.any {
+                it.opcode == Opcode.NEW_INSTANCE && it.getReference<TypeReference>()?.type in drawers
+            } == true
+        }
+    }
+    val wrapper = builders.distinctBy { it.signature() }
+        .filter { method -> method.body().any { visibleSlot(it) != null } }
+        .singleOrPatchException("$PATCH: the AnimatedVisibility around the lambda that draws ${tray.signature()}")
     val call = visibilityCall(mutable(wrapper), "the feed's row of ghost post bubbles")
     // The hook goes in right before the call, so nothing may reach the call past it.
     val flow = ControlFlow.of(call.method)
@@ -158,16 +168,13 @@ private fun BytecodePatchContext.composable(note: String, label: String): Method
 
 /** The tray moved packages in 451. Its two exact notes still have to identify one function once. */
 private fun BytecodePatchContext.composable(notes: List<String>, label: String): Method =
-    notes.flatMap { classDefByStrings(it, StringComparisonType.STARTS_WITH) }
-        .filterNot { it.type.startsWith(EXTENSION_ROOT) }
+    notes.flatMap { classesNoted(it) }
         .flatMap { it.methods }
         .distinctBy { it.signature() }
         .filter { method -> notes.any { method.holdsNote(it) } }
         // Read through the mutable copy, so what's checked is what the hook goes into.
         .map { mutable(it) }
-        .flatMap { method -> method.body().filter { instruction ->
-            instruction.getReference<StringReference>()?.string?.let { text -> notes.any { text.startsWith(it) } } == true
-        }.map { method } }
+        .flatMap { method -> notes.flatMap { method.body().noteSites(it) }.map { method } }
         .singleOrPatchException("$PATCH: $label, the method holding one of $notes")
 
 /** The one call in [method] to an AnimatedVisibility function, and the register its visible flag goes in. */

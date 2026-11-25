@@ -23,7 +23,7 @@ properties.write_text("\n".join(lines + [f"patchRepository={url}"]) + "\n")
 metadata = {
     "created_at": datetime.datetime.now(datetime.timezone.utc).replace(tzinfo=None, microsecond=0).isoformat(),
     "page_url": f"{url}/releases/tag/v{version}",
-    "description": "Persistent clipboard history and Arabic 123 legacy layout for SwiftKey 9.13.19.3. Experimental; Android device validation pending.",
+    "description": "Persistent clipboard history, Mac clipboard sync and Arabic 123 legacy layout for SwiftKey 9.13.19.3. Experimental; Android device validation pending.",
     "download_url": f"{url}/releases/download/v{version}/swiftkey-clipboard-patches-{version}.mpp",
     "signature_download_url": "",
     "version": version,

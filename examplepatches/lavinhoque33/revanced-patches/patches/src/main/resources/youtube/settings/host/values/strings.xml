@@ -1,5 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <string name="morphe_glass_menus_screen_title">Glass menus</string>
+    <string name="morphe_glass_menus_title">Enable glass menus</string>
+    <string name="morphe_glass_menus_summary">Show frosted menus on Android 12+ devices with window blur support.</string>
+    <string name="morphe_glass_menus_opacity_title">Glass opacity</string>
+    <string name="morphe_glass_menus_blur_title">Background blur</string>
+    <string name="morphe_glass_menus_dim_title">Dim behind the menu</string>
     <string name="revanced_patches_update_notice_title">Patches update notice</string>
     <string name="revanced_patches_update_check_title">Check now</string>
     <string name="revanced_patches_update_check_summary">Check for newer patches now, including skipped versions. When notices are off, use the installed patches channel.</string>
@@ -577,8 +583,8 @@ To use this feature, turn off \'Spoof video streams\'"</string>
 Not used while Unlock queue or Premium-style queue is on"</string>
     <string name="morphe_queue_override_flyout_menu_title">Override feed flyout queue button</string>
     <string name="morphe_queue_thumbnail_button_title">Show Add to queue on thumbnails</string>
-    <string name="morphe_queue_thumbnail_button_summary">Adds a button to supported video thumbnails. The button adds the video to the queue without playing it.</string>
-    <string name="morphe_queue_thumbnail_start_playback">Play a video first to use YouTube’s queue.</string>
+    <string name="morphe_queue_thumbnail_button_summary">Adds an upper-left queue button to supported thumbnails.
+        The button queues the selected video, or plays it if no video is open.</string>
     <string name="morphe_queue_thumbnail_unavailable">No queue is available for this video.</string>
     <string name="morphe_reload_video_summary_off">Reload video button is hidden</string>
     <string name="morphe_reload_video_summary_on">Reload video button is shown</string>
@@ -797,6 +803,8 @@ If you are a YouTube Premium user, this setting may not be required"</string>
     <string name="morphe_video_delay_dialog_input_hint">Delay in milliseconds</string>
     <string name="morphe_video_delay_summary">Delays the video to keep it in sync with laggy audio, such as Bluetooth headphones (0-5000 ms)</string>
     <string name="morphe_video_delay_title">Video delay</string>
+    <string name="morphe_ungroup_notifications_summary">Shows each video in grouped uploads as a separate entry in the Notifications tab</string>
+    <string name="morphe_ungroup_notifications_title">Ungroup notifications</string>
     <string name="morphe_unlock_queue_summary">"Unlocks YouTube’s video queue
 
 Turn off Premium-style queue to use Unlock queue"</string>
@@ -3504,6 +3512,8 @@ Adjust brightness by swiping vertically on the left side of the screen"</string>
     <string name="revanced_swipe_overlay_background_color_title">Swipe overlay background color</string>
     <string name="revanced_swipe_overlay_background_opacity_summary">Opacity value between 0-100</string>
     <string name="revanced_swipe_overlay_background_opacity_title">Swipe overlay background opacity</string>
+    <string name="revanced_swipe_overlay_foreground_color_summary">Color of text and icons, not progress bars.</string>
+    <string name="revanced_swipe_overlay_foreground_color_title">Swipe overlay foreground color</string>
     <string name="revanced_swipe_overlay_progress_brightness_color_summary">The color of the progress bar for brightness controls</string>
     <string name="revanced_swipe_overlay_progress_brightness_color_title">Swipe overlay brightness color</string>
     <string name="revanced_swipe_overlay_progress_seek_color_summary">The color of the progress bar for seek controls</string>

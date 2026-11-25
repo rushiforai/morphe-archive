@@ -125,17 +125,19 @@ public final class GboardSpacebarGestureStateTest {
     }
 
     @Test
-    public void cursorModeEmitsHorizontalStepsClampsBurstAndIgnoresVerticalDelta() {
+    public void cursorModeEmits2dStepsClampsBurstsAndSeparatesAxes() {
         GboardSpacebarGestureState state = new GboardSpacebarGestureState();
         state.beginSpaceTracking(0, 500f, 1800f, 1000L);
         Assert.assertTrue(state.onLongPressTimeout().activated);
 
-        // Pure vertical movement must emit 0 DPAD steps while still consuming the event.
+        // Pure vertical upward movement (-150px = -50dp) emits clamped vertical steps and 0 horizontal steps.
         GboardSpacebarGestureState.MoveResult vertical =
                 state.onMove(0, 500f, 1650f, DENSITY, TOUCH_SLOP, 1340L);
         Assert.assertTrue(vertical.consumed);
         Assert.assertFalse(vertical.sendCancel);
         Assert.assertEquals(0, vertical.dpadSteps);
+        Assert.assertEquals(-GboardSpacebarGestureState.MAX_VERTICAL_STEPS_PER_MOVE,
+                vertical.verticalDpadSteps);
 
         // Slow precision right drag: 30px = 10dp -> exactly +1 step (DPAD_RIGHT).
         GboardSpacebarGestureState.MoveResult rightStep =
@@ -278,5 +280,41 @@ public final class GboardSpacebarGestureStateTest {
         Assert.assertEquals(GboardSpacebarGestureState.State.CONSUMED_DRAIN, state.getState());
         Assert.assertTrue(state.onUpOrCancel());
         Assert.assertEquals(GboardSpacebarGestureState.State.IDLE, state.getState());
+    }
+
+    @Test
+    public void cursorModeVerticalPrecisionReversalAndAxisAntiDrift() {
+        GboardSpacebarGestureState state = new GboardSpacebarGestureState();
+        state.beginSpaceTracking(0, 500f, 1800f, 1000L);
+        Assert.assertTrue(state.onLongPressTimeout().activated);
+
+        // Small vertical drag below 22dp threshold (15dp = 45px) accumulates without stepping.
+        GboardSpacebarGestureState.MoveResult partialDown =
+                state.onMove(0, 500f, 1845f, DENSITY, TOUCH_SLOP, 1400L);
+        Assert.assertEquals(0, partialDown.verticalDpadSteps);
+        Assert.assertEquals(0, partialDown.dpadSteps);
+
+        // Horizontal step (+10dp = 30px) resets perpendicular vertical accumulator (anti-drift).
+        GboardSpacebarGestureState.MoveResult rightStep =
+                state.onMove(0, 530f, 1845f, DENSITY, TOUCH_SLOP, 1500L);
+        Assert.assertEquals(1, rightStep.dpadSteps);
+        Assert.assertEquals(0, rightStep.verticalDpadSteps);
+
+        // Another +10dp down must NOT trigger a line jump because vertical accumulator was cleared.
+        GboardSpacebarGestureState.MoveResult smallDown =
+                state.onMove(0, 530f, 1875f, DENSITY, TOUCH_SLOP, 1600L);
+        Assert.assertEquals(0, smallDown.verticalDpadSteps);
+
+        // Immediate upward reversal (-22dp = -66px) emits exactly -1 vertical step (DPAD_UP).
+        GboardSpacebarGestureState.MoveResult upStep =
+                state.onMove(0, 530f, 1809f, DENSITY, TOUCH_SLOP, 1750L);
+        Assert.assertEquals(-1, upStep.verticalDpadSteps);
+        Assert.assertEquals(0, upStep.dpadSteps);
+
+        // Downward step (+22dp = +66px) emits +1 vertical step (DPAD_DOWN).
+        GboardSpacebarGestureState.MoveResult downStep =
+                state.onMove(0, 530f, 1875f, DENSITY, TOUCH_SLOP, 1900L);
+        Assert.assertEquals(1, downStep.verticalDpadSteps);
+        Assert.assertEquals(0, downStep.dpadSteps);
     }
 }

@@ -12,6 +12,7 @@ import dev.jason.gboardpatches.extension.frostedglass.GboardFrostedGlassSettings
 import dev.jason.gboardpatches.extension.settings.GboardPatchesSettingsContract;
 import dev.jason.gboardpatches.extension.settings.GboardPatchesSettings;
 import dev.jason.gboardpatches.extension.settings.GboardPatchesFeatureAvailability;
+import dev.jason.gboardpatches.extension.settings.GboardNewSettingsHighlight;
 import dev.jason.gboardpatches.extension.settings.GboardSettingsText;
 
 /** Settings entry for the Android 12+ live Window blur PoC. */
@@ -48,6 +49,8 @@ public final class GboardFrostedGlassSettingsFeature
     private final String keyOpacitySummary;
     private final String seamlessTitle;
     private final String seamlessSummary;
+    private final String amoledBlackTitle;
+    private final String amoledBlackSummary;
     private final String faqSection;
     private final String faqNotWorkingTitle;
     private final String faqFlickeringTitle;
@@ -79,6 +82,8 @@ public final class GboardFrostedGlassSettingsFeature
         keyOpacitySummary = text(context, R.string.gboard_patches_frosted_glass_key_opacity_summary);
         seamlessTitle = text(context, R.string.gboard_patches_frosted_glass_seamless_nav_bar_title);
         seamlessSummary = text(context, R.string.gboard_patches_frosted_glass_seamless_nav_bar_summary);
+        amoledBlackTitle = text(context, R.string.gboard_patches_amoled_black_title);
+        amoledBlackSummary = text(context, R.string.gboard_patches_amoled_black_summary);
         faqSection = text(context, R.string.gboard_patches_frosted_glass_faq_section);
         faqNotWorkingTitle = text(context, R.string.gboard_patches_frosted_glass_faq_not_working_title);
         faqFlickeringTitle = text(context, R.string.gboard_patches_frosted_glass_faq_flickering_title);
@@ -154,6 +159,24 @@ public final class GboardFrostedGlassSettingsFeature
                         GboardPatchesSettingsContract.refresh(host);
                         requestRestart(host);
                     }));
+            GboardPatchesSettingsContract.ToggleRow amoledBlackRow =
+                    new GboardPatchesSettingsContract.ToggleRow(
+                            amoledBlackTitle, amoledBlackSummary, true,
+                            GboardFrostedGlassSettings.readAmoledBlackEnabled(preferences),
+                            value -> {
+                                GboardNewSettingsHighlight.markItemViewed(
+                                        context,
+                                        GboardNewSettingsHighlight.ITEM_AMOLED_BLACK);
+                                if (!GboardFrostedGlassSettings.writeAmoledBlackEnabled(context, value)) {
+                                    Log.w(TAG, "Failed to persist AMOLED black theme state");
+                                }
+                                GboardPatchesSettingsContract.refresh(host);
+                            });
+            if (GboardNewSettingsHighlight.isItemHighlighted(
+                    context, GboardNewSettingsHighlight.ITEM_AMOLED_BLACK)) {
+                amoledBlackRow.setDecoration(new GboardPatchesSettingsContract.RowDecoration().highlightDot(true));
+            }
+            rows.add(amoledBlackRow);
             return new GboardPatchesSettingsContract.Screen(
                     entryTitle,
                     headerBadge,

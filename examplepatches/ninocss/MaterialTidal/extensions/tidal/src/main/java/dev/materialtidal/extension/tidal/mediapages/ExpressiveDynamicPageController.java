@@ -276,7 +276,7 @@ final class ExpressiveDynamicPageController {
         }
         toolbarBlurView.attach(parent, toolbar, recyclerView);
         float bgFrac = ExpressiveMediaStyleKit.smoothstep(0.52f, 0.94f, lastCollapseFraction);
-        toolbarBlurView.updateAppearance(bgFrac, palette.surfaceContainer);
+        toolbarBlurView.updateAppearance(bgFrac, palette.surfaceBase);
     }
 
     private void refreshToolbarStyling() {
@@ -310,7 +310,7 @@ final class ExpressiveDynamicPageController {
                 && dev.materialtidal.extension.tidal.theme.MaterialYouConfig.isExpressiveBlurEnabled()
                 && !dev.materialtidal.extension.tidal.theme.MaterialYouColorEngine.isEffectiveAmoledBlack();
         if (toolbarBlurView != null) {
-            toolbarBlurView.updateAppearance(useToolbarBlur ? bgFrac : 0f, palette.surfaceContainer);
+            toolbarBlurView.updateAppearance(useToolbarBlur ? bgFrac : 0f, palette.surfaceBase);
         }
         if (toolbarBgDrawable != null) {
             toolbarBgDrawable.setColor(palette.surfaceBase);

@@ -54,6 +54,37 @@ public final class HomeReelHeader {
         }
     }
 
+    static final String SHAPE_HOOK = "home reel shape";
+    static final String COUNT_WHOLE = "home reels shown whole below the name";
+    /** The narrowest a post's media is shown with the switch on, 9:16, a reel's own shape. */
+    static final float NARROWEST = 9f / 16f;
+
+    /**
+     * Injected where Home's media state builder has worked out the shape a post's media is shown at
+     * (#788), with that shape, the media's own width over height and the feed's module name. Instagram
+     * holds a reel it lays out like a post to 4:5, so a 9:16 reel below the name lost its top and
+     * bottom. With the switch on, in Home's own feed, media narrower than Instagram's shape keeps its
+     * own, down to 9:16. The video's frame and the card take the shape from there. Every other answer
+     * stays. Never throws.
+     */
+    public static float wholeReel(float shape, float own, @Nullable String module) {
+        return wholeReel(shape, own, module, HomeReelHeader::wanted);
+    }
+
+    static float wholeReel(float shape, float own, @Nullable String module, BooleanSupplier on) {
+        try {
+            HookStatus.invoked(FamilyNames.HOME_REELS_BELOW_NAME);
+            if (!(own > 0f) || !(own < shape)) return shape;
+            if (!HOME_MODULE.equals(module) && !OLDER_MODULE.equals(module)) return shape;
+            if (!on.getAsBoolean()) return shape;
+            HookStatus.counted(FamilyNames.HOME_REELS_BELOW_NAME, COUNT_WHOLE);
+            return Math.max(own, NARROWEST);
+        } catch (Throwable failure) {
+            HookStatus.threw(FamilyNames.HOME_REELS_BELOW_NAME, SHAPE_HOOK, failure);
+            return shape;
+        }
+    }
+
     static boolean wanted() {
         return Utils.settingsReady() && !HushgramPause.isPaused() && Settings.HOME_REELS_BELOW_NAME.get();
     }

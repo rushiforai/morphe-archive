@@ -18,6 +18,7 @@ import app.morphe.patcher.util.smali.ExternalLabel
 import app.morphe.patches.shared.compat.AppCompatibilities
 import app.morphe.patches.threads.feed.reaching
 import app.morphe.patches.threads.misc.extension.enableStatus
+import app.morphe.patches.threads.misc.extension.parameterRegisterNumber
 import app.morphe.patches.threads.misc.extension.requireStatusMethod
 import app.morphe.patches.threads.misc.extension.threadsExtensionPatch
 import app.morphe.patches.threads.misc.extension.writeStub
@@ -31,11 +32,9 @@ import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.iface.Method
 import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.OffsetInstruction
-import com.android.tools.smali.dexlib2.iface.instruction.TwoRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.reference.FieldReference
 import com.android.tools.smali.dexlib2.iface.reference.MethodReference
 import com.android.tools.smali.dexlib2.iface.reference.StringReference
-import com.android.tools.smali.dexlib2.iface.reference.TypeReference
 
 private const val PATCH = "Hide ads"
 
@@ -76,7 +75,8 @@ internal const val FEED_ITEM_TYPE = "feedItemType"
  *
  * Threads can also put an ad into a For You page it already holds, one item at a position, which
  * passes no merge. The insert asks the extension first, and an ad goes the way the insert goes
- * when the cache holds no page, instead of going in (454, 2026-11-05; 455 inlined the insert).
+ * when the cache holds no page, instead of going in (454, 2026-11-05; 455 inlined the insert, 456
+ * put it back on the cache's handler).
  */
 @Suppress("unused")
 val hideAdsPatch = bytecodePatch(
@@ -151,42 +151,36 @@ val hideAdsPatch = bytecodePatch(
 internal const val INSERT_RESULT = "Ljava/lang/Integer;"
 
 /**
- * Whether [method] is For You's insert of one feed item at a position in a page the cache already
- * holds, as 455 inlines it: a method answering an Integer code, its last parameter the int
- * position, that casts the For You data source it's given to the feed cache's handler.
- */
-internal fun isAdInsert(method: Method): Boolean = method.returnType == INSERT_RESULT &&
-    method.parameterTypes.lastOrNull()?.toString() == "I" &&
-    method.implementation?.instructions?.any {
-        it.opcode == Opcode.CHECK_CAST && it.getReference<TypeReference>()?.type == FEED_CACHE_HANDLER
-    } == true
-
-/**
- * For You's insert of one feed item at a position in a page the cache already holds. Threads
- * places an ad through it apart from any page fetch, so the ad never meets the merge's filter. 455
- * moved it out of the handler into a class holding the data source, which reads the item off its
- * argument, takes the cache's first page and, for none, goes to its own code for having no page.
- * Right before that check the insert asks [FeedAds], and an ad goes the no-page way, which tells
- * the caller nothing went in. Threads logs every code but success as an insert that didn't happen
- * and moves on (it retries only one other code), so the ad reads as one Threads itself declined,
- * never as one to try again.
+ * For You's insert of one feed item at a position in a page the cache already holds: the override
+ * in [FEED_CACHE_HANDLER] of the one method of [FOR_YOU_LOCAL_SOURCE] taking the feed item and an
+ * int and answering an Integer code. Threads places an ad through it apart from any page fetch, so
+ * the ad never meets the merge's filter. 455 inlined the insert into its caller and 456 put it back
+ * on the handler, where it takes the cache's first page and, for none, goes to its own code for
+ * having no page. Right before that check the insert asks [FeedAds], and an ad goes the no-page
+ * way, which tells the caller nothing went in. Threads logs every code but success as an insert
+ * that didn't happen and moves on (it retries only one other code), so the ad reads as one Threads
+ * itself declined, never as one to try again.
  */
 private fun BytecodePatchContext.hookAdInserts(item: String) {
-    val inserts = mutableListOf<String>()
-    classDefForEach { classDef ->
-        if (classDef.fields.none { !AccessFlags.STATIC.isSet(it.accessFlags) && it.type == FOR_YOU_LOCAL_SOURCE }) return@classDefForEach
-        classDef.methods.filter { isAdInsert(it) }.mapTo(inserts) { it.toString() }
+    val declared = classDefBy(FOR_YOU_LOCAL_SOURCE).methods.filter {
+        it.returnType == INSERT_RESULT && it.parameterTypes.size == 2 && it.parameterTypes[1].toString() == "I" &&
+            it.parameterTypes[0].startsWith("L")
+    }.singleOrPatchException("$PATCH: For You's insert of one item at a position")
+    if (declared.parameterTypes[0].toString() != item) {
+        throw PatchException("$PATCH: For You's insert takes ${declared.parameterTypes[0]}, not the feed item $item")
     }
-    val found = inserts.singleOrPatchException("$PATCH: For You's insert of one item at a position")
-    val insert = mutableClassDefBy(found.substringBefore("->")).methods.single { it.toString() == found }
+    val handler = mutableClassDefBy(FEED_CACHE_HANDLER)
+    if (handler.superclass != FOR_YOU_LOCAL_SOURCE) {
+        throw PatchException("$PATCH: $FEED_CACHE_HANDLER no longer extends $FOR_YOU_LOCAL_SOURCE")
+    }
+    val insert = handler.methods.filter {
+        it.name == declared.name && it.returnType == INSERT_RESULT &&
+            it.parameterTypes.map(CharSequence::toString) == declared.parameterTypes.map(CharSequence::toString)
+    }.singleOrPatchException("$PATCH: $FEED_CACHE_HANDLER's insert ${declared.name}")
     val (check, noPage) = insert.noPageCheck()
-    val reads = insert.implementation!!.instructions.withIndex().filter { (_, instruction) ->
-        instruction.opcode == Opcode.IGET_OBJECT && instruction.getReference<FieldReference>()?.type == item
-    }
-    val read = reads.singleOrNull() ?: throw PatchException("$PATCH: the insert reads the feed item $item ${reads.size} times")
-    val held = (read.value as TwoRegisterInstruction).registerA
+    val held = insert.parameterRegisterNumber(0)
     val reaching = insert.reaching(check, setOf(held))
-    if (reaching.fromEntry || reaching.writes != setOf(read.index)) {
+    if (!reaching.fromEntry || reaching.writes.isNotEmpty()) {
         throw PatchException("$PATCH: the insert's item register v$held doesn't hold the item at its page check")
     }
     // A register the ask can borrow: read on neither way on from it.

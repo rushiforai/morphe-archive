@@ -176,6 +176,51 @@ public final class LrclibParserTest {
     }
 
     @Test
+    public void pairsGeneratedPronunciationWithTheOriginalWordSyncedLine() {
+        String lrc = "[00:01.00]<00:01.00>English\n"
+                + "[00:02.00]<00:02.00>見渡せば<00:03.00>一面\n"
+                + "[00:04.00] \n";
+        LrclibModels.LyricsRecord record = new LrclibModels.LyricsRecord(
+                10L, "Track", "Artist", "", 10.0, false, false, null, lrc, null);
+
+        LrclibParser.TtmlResult result = LrclibParser.buildTtml(record, 10, true, true, 250, "ja",
+                (language, lyrics) -> line -> line.equals("見渡せば一面") ? "miwataseba ichimen" : line);
+
+        assertTrue(result.ttml.contains(
+                "<text for=\"L2\"><span begin=\"00:02.250\" end=\"00:04.250\">miwataseba ichimen</span></text>"));
+        assertTrue(result.ttml.contains(
+                "itunes:key=\"L2\"><span begin=\"00:02.250\" end=\"00:03.250\">見渡せば</span>"
+                        + "<span begin=\"00:03.250\" end=\"00:04.250\">一面</span>"));
+        assertTrue(result.ttml.contains(
+                "<text for=\"L1\"><span begin=\"00:01.250\" end=\"00:02.250\"></span></text>"));
+        assertFalse(result.baseTtml.contains("<transliterations>"));
+        assertTrue(result.baseTtml.contains(
+                "itunes:key=\"L2\"><span begin=\"00:02.250\" end=\"00:03.250\">見渡せば</span>"
+                        + "<span begin=\"00:03.250\" end=\"00:04.250\">一面</span>"));
+    }
+
+    @Test
+    public void generatedPronunciationInheritsLrclibWordOffsets() {
+        String lrc = "[00:01.00]<00:01.00>風<00:02.00>の色\n[00:03.00] \n";
+        LrclibModels.LyricsRecord record = new LrclibModels.LyricsRecord(
+                10L, "Track", "Artist", "", 10.0, false, false, null, lrc, null);
+        String reading = "kaze no iro";
+        TimedPronunciation.Romanizer romanize = (line, spans) -> new TimedPronunciation.Reading(
+                reading, TimedPronunciation.align(line, java.util.List.of(
+                        new TimedPronunciation.Part(0, 1, "kaze"),
+                        new TimedPronunciation.Part(1, 2, " no"),
+                        new TimedPronunciation.Part(2, 3, " iro")),
+                        spans, java.util.function.UnaryOperator.identity(), reading));
+
+        LrclibParser.TtmlResult result = LrclibParser.buildTtml(
+                record, 10, true, true, 250, "ja", (language, lyrics) -> romanize);
+
+        assertTrue(result.ttml.contains(
+                "<text for=\"L1\"><span begin=\"00:01.250\" end=\"00:02.250\">kaze</span> "
+                        + "<span begin=\"00:02.250\" end=\"00:03.250\">no iro</span></text>"));
+    }
+
+    @Test
     public void clampsNegativeOffsetAndOutOfBoundsWords() {
         String yaml = "version: '1.0'\n"
                 + "lines:\n"
@@ -241,5 +286,18 @@ public final class LrclibParserTest {
         LrclibParser.TtmlResult res = LrclibParser.buildTtml(rec, 200, true, true, 0, "en");
         assertEquals(LrclibModels.LyricsSource.LRCLIB_INSTRUMENTAL, res.sourceType);
         assertNull(res.ttml);
+    }
+
+    @Test
+    public void parsesTrailingEndTimestampInStandardLrc() {
+        String lrc = "[00:10.00]First line[00:14.25]\n"
+                + "[00:20.00]Second line[00:24.50]\n";
+        LrclibModels.LyricsRecord rec = new LrclibModels.LyricsRecord(
+                9L, "Trail", "Artist", "", 40.0, false, false, null, lrc, null);
+        LrclibParser.TtmlResult res = LrclibParser.buildTtml(rec, 40, true, true, 0, "en");
+        assertEquals(LrclibModels.LyricsSource.LRCLIB_LINE, res.sourceType);
+        assertEquals(2, res.lineCount);
+        assertTrue(res.ttml.contains("<p begin=\"00:10.000\" end=\"00:14.250\" ttm:agent=\"v1\" itunes:key=\"L1\">First line</p>"));
+        assertTrue(res.ttml.contains("<p begin=\"00:20.000\" end=\"00:24.500\" ttm:agent=\"v1\" itunes:key=\"L2\">Second line</p>"));
     }
 }

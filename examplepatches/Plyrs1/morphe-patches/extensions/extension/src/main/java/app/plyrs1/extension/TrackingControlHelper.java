@@ -24,14 +24,16 @@ public final class TrackingControlHelper {
     private static final String ACTION_TOGGLE_PAUSE = "app.plyrs1.gajihub.ACTION_TOGGLE_PAUSE";
     private static final String ACTION_FORCE_SUBMIT = "app.plyrs1.gajihub.ACTION_FORCE_SUBMIT";
 
+    private static final String TARGET_SERVICE_CLASS = "com.asterinet.react.bgactions.RNBackgroundActionsTask";
+
     private static volatile Context appContext = null;
+    private static volatile boolean trackingActive = false;
     private static volatile boolean paused = false;
     private static volatile int pushedCount = 0;
     private static volatile String lastBaseUrl = null;
     private static volatile String lastAuthHeader = null;
     private static volatile Notification lastOriginalNotification = null;
     private static volatile boolean receiverRegistered = false;
-
     private TrackingControlHelper() {}
 
     private static Context safeAppContext(Context context) {
@@ -56,6 +58,10 @@ public final class TrackingControlHelper {
             @Override
             public void onReceive(Context c, Intent intent) {
                 if (intent == null || intent.getAction() == null) return;
+                if (!trackingActive) {
+                    cancelNotification(c);
+                    return;
+                }
                 String action = intent.getAction();
                 if (ACTION_TOGGLE_PAUSE.equals(action)) {
                     paused = !paused;
@@ -86,14 +92,17 @@ public final class TrackingControlHelper {
         }
         appContext = safeAppContext(context);
         ensureReceiverRegistered(appContext);
+        trackingActive = true;
         lastOriginalNotification = notification.clone();
+        return buildDecoratedNotification(appContext, lastOriginalNotification);
+    }
 
+    private static Notification buildDecoratedNotification(Context context, Notification baseNotification) {
         if (Build.VERSION.SDK_INT < 24) {
-            return notification;
+            return baseNotification;
         }
-
         try {
-            Notification base = lastOriginalNotification.clone();
+            Notification base = baseNotification.clone();
             if (paused && base.extras != null) {
                 base.extras.remove(Notification.EXTRA_PROGRESS);
                 base.extras.remove(Notification.EXTRA_PROGRESS_MAX);
@@ -131,23 +140,57 @@ public final class TrackingControlHelper {
             return builder.build();
         } catch (Throwable t) {
             Log.e(TAG, "Failed to decorate notification", t);
-            return notification;
+            return baseNotification;
         }
     }
 
     public static boolean hasLastNotification() {
-        return lastOriginalNotification != null;
+        return trackingActive && lastOriginalNotification != null;
+    }
+
+    public static void cancelNotification(Context context) {
+        Context ctx = safeAppContext(context);
+        if (ctx == null) return;
+        try {
+            NotificationManager nm = (NotificationManager) ctx.getSystemService(Context.NOTIFICATION_SERVICE);
+            if (nm != null) {
+                nm.cancel(NOTIFICATION_ID);
+            }
+        } catch (Throwable t) {
+            Log.e(TAG, "Failed to cancel notification", t);
+        }
+    }
+
+    public static void onExplicitStop(Context context) {
+        trackingActive = false;
+        paused = false;
+        pushedCount = 0;
+        lastOriginalNotification = null;
+        cancelNotification(context);
+    }
+
+    public static void onServiceDestroyed(Context context) {
+        if (context != null && !TARGET_SERVICE_CLASS.equals(context.getClass().getName())) {
+            return;
+        }
+        trackingActive = false;
+        lastOriginalNotification = null;
+        cancelNotification(context);
     }
 
     public static void refreshNotification(Context context) {
         Context ctx = safeAppContext(context);
-        if (ctx == null || lastOriginalNotification == null) {
+        if (ctx == null) {
+            return;
+        }
+        if (!trackingActive || lastOriginalNotification == null) {
+            cancelNotification(ctx);
             return;
         }
         try {
             NotificationManager nm = (NotificationManager) ctx.getSystemService(Context.NOTIFICATION_SERVICE);
             if (nm != null) {
-                nm.notify(NOTIFICATION_ID, decorateNotification(ctx, lastOriginalNotification));
+                nm.notify(NOTIFICATION_ID, buildDecoratedNotification(ctx, lastOriginalNotification));
             }
         } catch (Throwable t) {
             Log.e(TAG, "Failed to refresh notification", t);
@@ -174,7 +217,7 @@ public final class TrackingControlHelper {
                 return true;
             } else {
                 pushedCount++;
-                if (reactContextObj instanceof Context) {
+                if (trackingActive && reactContextObj instanceof Context) {
                     refreshNotification((Context) reactContextObj);
                 }
             }
@@ -284,6 +327,10 @@ public final class TrackingControlHelper {
 
     public static void forceSubmit(final Context context) {
         final Context ctx = safeAppContext(context);
+        if (!trackingActive) {
+            cancelNotification(ctx);
+            return;
+        }
         if (ctx == null || lastBaseUrl == null || lastAuthHeader == null) {
             Log.w(TAG, "Cannot force submit: missing context/baseUrl/authHeader");
             return;

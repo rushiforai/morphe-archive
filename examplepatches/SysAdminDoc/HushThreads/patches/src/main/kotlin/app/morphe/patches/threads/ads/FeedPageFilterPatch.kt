@@ -177,20 +177,20 @@ internal fun BytecodePatchContext.forYouItemWrites(item: String): List<MutableMe
     cacheWrites().filter { it.parameterTypes.firstOrNull()?.toString() == item }
         .ifEmpty { throw PatchException("$PATCH: $FEED_CACHE has no writes of one $item") }
 
+/** What only the feed cache's reads take beside their list: offsets, timestamps, a request's strings and sets. */
+private val CACHE_READ_PARAMETERS = setOf("I", "J", "Ljava/lang/String;", "Ljava/util/Set;")
+
 /**
  * For You's writes of feed items besides its page [merge]: each of the feed cache's writes taking
- * one list and the continuation the merge takes (Redex sorts parameters, so it isn't always last),
- * whose other parameters are only what a write of a page takes besides its items: the merge's page
- * key, a count, a callback, flags. The cache's reads take a list too, beside their request type,
- * offsets and a timestamp.
+ * one list and the continuation the merge takes (Redex sorts parameters, so it isn't always last).
+ * What else a write takes keeps growing, and 456's background prefetch brings a key of its own, so
+ * the writes are told from the cache's reads by what only the reads take.
  */
 internal fun BytecodePatchContext.forYouWrites(merge: Method): List<MutableMethod> {
     val continuation = merge.parameterTypes[MERGE_CONTINUATION].toString()
-    val besides = setOf(merge.parameterTypes[0].toString(), "Ljava/lang/Integer;", "Lkotlin/jvm/functions/Function0;", "Z")
     return cacheWrites().filter { write ->
         val types = write.parameterTypes.map { it.toString() }
-        types.count { it == LIST } == 1 && types.count { it == continuation } == 1 &&
-            types.all { it == LIST || it == continuation || it in besides }
+        types.count { it == LIST } == 1 && types.count { it == continuation } == 1 && types.none { it in CACHE_READ_PARAMETERS }
     }.ifEmpty { throw PatchException("$PATCH: $FEED_CACHE has no list writes besides its merge") }
 }
 

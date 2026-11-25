@@ -96,6 +96,7 @@ public class HushPinterestPreferenceFragmentTest {
         ROW_TITLES.put(PatchFamily.DISABLE_ANALYTICS, "Disable analytics");
         ROW_TITLES.put(PatchFamily.STRIP_LINK_TRACKING, "Strip link tracking");
         ROW_TITLES.put(PatchFamily.HIDE_ADVERTISING_ID, "Hide advertising ID");
+        ROW_TITLES.put(PatchFamily.LIKE_COMMENT_HISTORY, "Like and comment history");
         ROW_TITLES.put(PatchFamily.REMOVE_AD_TRACKING_PERMISSIONS, "Remove ad tracking permissions");
         ROW_TITLES.put(PatchFamily.SPOOF_SIGNATURE, "Spoof signature for Google sign-in");
         ROW_TITLES.put(PatchFamily.GMS_CORE_SUPPORT, "GmsCore support");
@@ -124,18 +125,25 @@ public class HushPinterestPreferenceFragmentTest {
         ROW_TITLES.put(PatchFamily.HIDE_PIN_AUTHOR, "Hide pin author");
         ROW_TITLES.put(PatchFamily.HIDE_PIN_DESCRIPTION, "Hide pin title and description");
         ROW_TITLES.put(PatchFamily.SHOW_IMAGE_SIZE, "Show image size");
+        ROW_TITLES.put(PatchFamily.SWIPE_TO_CLOSE_PINS, "Swipe down to close pins");
+        ROW_TITLES.put(PatchFamily.FULL_SIZE_PROFILE_PHOTOS, "Full-size profile photos");
+        ROW_TITLES.put(PatchFamily.BEST_VIDEO_QUALITY, "Best video quality");
         ROW_TITLES.put(PatchFamily.HIDE_HIGHLIGHT_RING, "Hide blue highlight ring");
         ROW_TITLES.put(PatchFamily.HIDE_VISUAL_SEARCH_THUMBNAILS, "Hide visual search thumbnails");
         ROW_TITLES.put(PatchFamily.FOLD_RELATED_PINS, "Fold related pins");
         ROW_TITLES.put(PatchFamily.LET_SCREEN_SLEEP, "Let the screen sleep");
         ROW_TITLES.put(PatchFamily.CUSTOM_SAVE_SOUND, "Custom save sound");
         ROW_TITLES.put(PatchFamily.CUSTOM_SPLASH_LOGO, "Custom splash logo");
+        ROW_TITLES.put(PatchFamily.CUSTOM_FONT, "Custom font");
         ROW_TITLES.put(PatchFamily.BOARD_TABS, "Hide See board on board tabs");
         ROW_TITLES.put(PatchFamily.HIDE_SAVE_TOASTS, "Hide save toasts");
         ROW_TITLES.put(PatchFamily.ORIGINAL_IMAGES, "Original-quality images");
         ROW_TITLES.put(PatchFamily.SHOW_POSTED_DATE, "Show posted date");
         ROW_TITLES.put(PatchFamily.HIDE_SUGGESTED_BOARDS, "Hide suggested boards");
         ROW_TITLES.put(PatchFamily.EXPAND_BOARD_LIST, "Expand board list");
+        ROW_TITLES.put(PatchFamily.BOARD_ORDER_WHEN_SAVING, "Board order when saving");
+        ROW_TITLES.put(PatchFamily.PIN_VIDEO_PLAYBACK, "Don't autoplay pin videos");
+        ROW_TITLES.put(PatchFamily.PINCH_TO_ZOOM_ONLY, "Pinch to zoom only");
         ROW_TITLES.put(PatchFamily.DISABLE_UPDATE_NAG, "Disable update nag");
         ROW_TITLES.put(PatchFamily.FIX_PUSH_NOTIFICATIONS, "Fix push notifications");
     }
@@ -269,7 +277,7 @@ public class HushPinterestPreferenceFragmentTest {
                     String.valueOf(page.findPreference(Settings.HIDE_ADS.key).getSummary()));
             assertEquals("Hide AI-labeled pins", String.valueOf(page.findPreference(Settings.HIDE_AI_PINS.key).getTitle()));
             assertEquals("Removes pins that Pinterest labels as made or changed with AI from your home feed, search, "
-                + "related pins and boards. AI images without the label still show.",
+                + "related pins and other people's boards. AI images without the label still show.",
                     String.valueOf(page.findPreference(Settings.HIDE_AI_PINS.key).getSummary()));
             // Hide ads was always in Manager's default selection and ships on. Hide AI-labeled pins
             // joined it later, so it starts off and a default build shows Pinterest's own feed.
@@ -299,10 +307,14 @@ public class HushPinterestPreferenceFragmentTest {
                 Map<PatchFamily.Capability, BooleanSetting> own = blackSurfaceRows();
                 if (own.containsKey(missing)) {
                     // A surface with a switch to itself promises nothing for the others, so no row
-                    // is rewritten: its own row goes, and each one that's left keeps what it says.
-                    assertNull(missing.label + " kept a switch with no hook behind it", page.findPreference(own.get(missing).key));
+                    // is rewritten: its own row goes unless another hook still backs it, and each
+                    // one that's left keeps what it says.
+                    BooleanSetting setting = own.get(missing);
+                    boolean backed = own.entrySet().stream().anyMatch(other -> other.getKey() != missing && other.getValue() == setting);
+                    if (backed) assertNotNull(missing.label + " took a switch another hook still backs", page.findPreference(setting.key));
+                    else assertNull(missing.label + " kept a switch with no hook behind it", page.findPreference(setting.key));
                     for (Map.Entry<PatchFamily.Capability, BooleanSetting> other : own.entrySet()) {
-                        if (other.getKey() == missing) continue;
+                        if (other.getKey() == missing || other.getValue() == setting) continue;
                         Preference row = page.findPreference(other.getValue().key);
                         assertTrue(other.getKey().label + " was disabled", row.isEnabled());
                         String kept = String.valueOf(row.getSummary());
@@ -533,7 +545,8 @@ public class HushPinterestPreferenceFragmentTest {
                 Settings.HIDE_CLOSEUP_COMMENTS, Settings.HIDE_CLOSEUP_SHARE, Settings.HIDE_CLOSEUP_MORE));
         rowsOf.put(PatchFamily.Capability.CLOSEUP_REMIX, Collections.singletonList(Settings.HIDE_CLOSEUP_REMIX));
         rowsOf.put(PatchFamily.Capability.CLOSEUP_VISIT_SITE, Collections.singletonList(Settings.HIDE_CLOSEUP_VISIT_SITE));
-        rowsOf.put(PatchFamily.Capability.CLOSEUP_SAVE_BUTTON, Collections.singletonList(Settings.SMALLER_SAVE_BUTTON));
+        rowsOf.put(PatchFamily.Capability.CLOSEUP_SAVE_BUTTON, Arrays.asList(Settings.SMALLER_SAVE_BUTTON,
+                Settings.SAVE_COLOR_ON_RED_BUTTONS));
         for (Map.Entry<PatchFamily.Capability, List<BooleanSetting>> missing : rowsOf.entrySet()) {
             Set<PatchFamily.Capability> withoutIt = EnumSet.allOf(PatchFamily.Capability.class);
             withoutIt.remove(missing.getKey());
@@ -572,6 +585,10 @@ public class HushPinterestPreferenceFragmentTest {
             }
             assertEquals(at + 1 + settings.length, indexOfKey(rows, "action_save_button_color"));
             assertEquals("Save button color", String.valueOf(page.findPreference("action_save_button_color").getTitle()));
+            SwitchPreference red = (SwitchPreference) page.findPreference(Settings.SAVE_COLOR_ON_RED_BUTTONS.key);
+            assertEquals("Save color on other red buttons", String.valueOf(red.getTitle()));
+            assertFalse("Save color on other red buttons starts off", red.isChecked());
+            assertEquals(at + 2 + settings.length, indexOfKey(rows, Settings.SAVE_COLOR_ON_RED_BUTTONS.key));
         }
     }
 
@@ -776,6 +793,10 @@ public class HushPinterestPreferenceFragmentTest {
         barOnly.remove(PatchFamily.Capability.BLACK_SHEETS);
         barOnly.remove(PatchFamily.Capability.BLACK_BOARDS);
         barOnly.remove(PatchFamily.Capability.BLACK_TOASTS);
+        barOnly.remove(PatchFamily.Capability.BLACK_BUTTONS);
+        barOnly.remove(PatchFamily.Capability.BLACK_SEARCH_GUIDES);
+        barOnly.remove(PatchFamily.Capability.BLACK_SETTINGS_CARD);
+        barOnly.remove(PatchFamily.Capability.BLACK_SEARCH_BUBBLES);
         PatchFamily.capabilitiesForTests = barOnly;
         try (ActivityController<Activity> controller = Robolectric.buildActivity(Activity.class).setup()) {
             HushPinterestPreferenceFragment page = pageOf(controller);
@@ -785,7 +806,20 @@ public class HushPinterestPreferenceFragmentTest {
             assertNull(page.findPreference(Settings.BLACK_SHEETS.key));
             assertNull(page.findPreference(Settings.BLACK_BOARDS.key));
             assertNull(page.findPreference(Settings.BLACK_TOASTS.key));
+            assertNull(page.findPreference(Settings.BLACK_BUTTONS.key));
             assertNotNull(page.findPreference(Settings.BLACK_BOTTOM_BAR.key));
+        }
+        // Black buttons paints the buttons, the chips over search results, the settings account card
+        // and the Refine your search rows, each with its own hook, and any one of them keeps the row.
+        for (PatchFamily.Capability alone : EnumSet.of(PatchFamily.Capability.BLACK_SEARCH_GUIDES,
+                PatchFamily.Capability.BLACK_SETTINGS_CARD, PatchFamily.Capability.BLACK_SEARCH_BUBBLES)) {
+            Set<PatchFamily.Capability> one = EnumSet.copyOf(barOnly);
+            one.add(alone);
+            PatchFamily.capabilitiesForTests = one;
+            try (ActivityController<Activity> controller = Robolectric.buildActivity(Activity.class).setup()) {
+                assertNotNull(alone + "'s hook alone keeps Black buttons",
+                        pageOf(controller).findPreference(Settings.BLACK_BUTTONS.key));
+            }
         }
         PatchFamily.capabilitiesForTests = EnumSet.allOf(PatchFamily.Capability.class);
         try (ActivityController<Activity> controller = Robolectric.buildActivity(Activity.class).setup()) {
@@ -817,6 +851,10 @@ public class HushPinterestPreferenceFragmentTest {
             assertEquals("Black toasts", String.valueOf(toasts.getTitle()));
             assertFalse("Black toasts starts off", toasts.isChecked());
             assertEquals(bar + 6, indexOfKey(rows, Settings.BLACK_TOASTS.key));
+            SwitchPreference buttons = (SwitchPreference) page.findPreference(Settings.BLACK_BUTTONS.key);
+            assertEquals("Black buttons", String.valueOf(buttons.getTitle()));
+            assertFalse("Black buttons starts off", buttons.isChecked());
+            assertEquals(bar + 7, indexOfKey(rows, Settings.BLACK_BUTTONS.key));
         }
     }
 
@@ -862,6 +900,7 @@ public class HushPinterestPreferenceFragmentTest {
         assertEquals(words.get(Settings.BLACK_BOTTOM_BAR.key), words.get(Settings.BLACK_SHEETS.key));
         assertEquals(words.get(Settings.BLACK_BOTTOM_BAR.key), words.get(Settings.BLACK_BOARDS.key));
         assertEquals(words.get(Settings.BLACK_BOTTOM_BAR.key), words.get(Settings.BLACK_TOASTS.key));
+        assertEquals(words.get(Settings.BLACK_BOTTOM_BAR.key), words.get(Settings.BLACK_BUTTONS.key));
     }
 
     /** The black surfaces, each with the switch that's its own. */
@@ -874,6 +913,10 @@ public class HushPinterestPreferenceFragmentTest {
         rows.put(PatchFamily.Capability.BLACK_SHEETS, Settings.BLACK_SHEETS);
         rows.put(PatchFamily.Capability.BLACK_BOARDS, Settings.BLACK_BOARDS);
         rows.put(PatchFamily.Capability.BLACK_TOASTS, Settings.BLACK_TOASTS);
+        rows.put(PatchFamily.Capability.BLACK_BUTTONS, Settings.BLACK_BUTTONS);
+        rows.put(PatchFamily.Capability.BLACK_SEARCH_GUIDES, Settings.BLACK_BUTTONS);
+        rows.put(PatchFamily.Capability.BLACK_SETTINGS_CARD, Settings.BLACK_BUTTONS);
+        rows.put(PatchFamily.Capability.BLACK_SEARCH_BUBBLES, Settings.BLACK_BUTTONS);
         return rows;
     }
 

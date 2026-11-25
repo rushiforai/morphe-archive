@@ -1,0 +1,289 @@
+{
+  "format": 1,
+  "overall_status": "incomplete",
+  "source_commit": "d0bc0d1",
+  "source_apk_sha256": "19d40560cb885f868ffeeb936f12a0daa0e7fa666776acf1582e85e63b6c2ecd",
+  "runtime_scope": "One grouped functional final-producer session, owned5590 only. No timing-percentile acceptance during live local-CI overlap.",
+  "repeat_status": "NOT_PROVEN",
+  "repeat_failure": "Natural repeat remains unproved: original repeat10 failed freshness polling; one guard-preserving rerun resolved polling, then original FM replaced the private candidate set and the exact ownership guard aborted.",
+  "runs": {
+    "maps": {
+      "receiver_apk_sha256": "3285d836bfb7caefd361fec42d7ed080017021f885eabf331b02b88287fb8839",
+      "coordinator_passed": false,
+      "observed_first_pass_only": true,
+      "native_entry": true,
+      "native_exit": true,
+      "candidate_restored": true,
+      "receiver_output_quiescent": true,
+      "receiver_preferences_restored_exactly": true,
+      "authorities": [
+        {
+          "phase": "enter",
+          "warning_id": "AvgSpeedCheck:private-fm15-zone-9b7a0f5e-dfa4-4941-aef4-d6e153768045",
+          "announcement_index": 1,
+          "source_sequence": 1,
+          "provider_session": "b51ee3a7-5ccb-4f11-a622-30b612241186",
+          "event_key": "135e8323ff123c6822baabb76fdda01bf56f3752997da9599fc89864c53388fe",
+          "attempt_id": "c11db10e-5aed-4005-a985-c695134eea16",
+          "message": "Average speed check 100 kilometres per hour",
+          "source_outcomes": [
+            "GRANTED",
+            "STARTED",
+            "COMPLETED"
+          ],
+          "receiver_started_count": 1,
+          "receiver_completed_count": 1
+        },
+        {
+          "phase": "exit",
+          "warning_id": "AvgSpeedCheck:private-fm15-zone-9b7a0f5e-dfa4-4941-aef4-d6e153768045",
+          "announcement_index": 2,
+          "source_sequence": 23,
+          "provider_session": "b51ee3a7-5ccb-4f11-a622-30b612241186",
+          "event_key": "db8498252c34fb4fcb5f9ff804f3b8c336f3b79e45d97d0caef9f210c4ab3958",
+          "attempt_id": "ecc9a865-c017-4823-9b31-2ef37c6fca7e",
+          "message": "End of average speed check",
+          "source_outcomes": [
+            "GRANTED",
+            "STARTED",
+            "COMPLETED"
+          ],
+          "receiver_started_count": 1,
+          "receiver_completed_count": 1
+        }
+      ],
+      "trace_sha256": "0abe5da5ab152cbeea1129894ca2eb1cf16b7bae5888d3673234dde4c6748821",
+      "receiver_output_sha256": "3819a14be1d48d16078f0cec273774575044c0500cf142438389395b11263676",
+      "source_apk_sha256": "19d40560cb885f868ffeeb936f12a0daa0e7fa666776acf1582e85e63b6c2ecd"
+    },
+    "vela": {
+      "receiver_apk_sha256": "958bd90f477c45d8210f797b34e8649162d4153238419ab2ab7af856cd9edf19",
+      "coordinator_passed": false,
+      "observed_first_pass_only": true,
+      "native_entry": true,
+      "native_exit": true,
+      "candidate_restored": true,
+      "receiver_output_quiescent": true,
+      "receiver_preferences_restored_exactly": true,
+      "authorities": [
+        {
+          "phase": "enter",
+          "warning_id": "AvgSpeedCheck:private-fm15-zone-4f2fb094-df64-4769-a7a2-8e088e774401",
+          "announcement_index": 1,
+          "source_sequence": 1,
+          "provider_session": "b82c44b9-2a9b-4e4a-bd60-c3ece946fbef",
+          "event_key": "3ba502dbe2ba5353670a4c540159844864d500a75c255e0358d29684b3b07cbb",
+          "attempt_id": "39412de3-a798-401a-8a07-7ce0b3c1f52b",
+          "message": "Average speed check 100 kilometres per hour",
+          "source_outcomes": [
+            "GRANTED",
+            "STARTED",
+            "COMPLETED"
+          ],
+          "receiver_started_count": 1,
+          "receiver_completed_count": 1
+        },
+        {
+          "phase": "exit",
+          "warning_id": "AvgSpeedCheck:private-fm15-zone-4f2fb094-df64-4769-a7a2-8e088e774401",
+          "announcement_index": 2,
+          "source_sequence": 23,
+          "provider_session": "b82c44b9-2a9b-4e4a-bd60-c3ece946fbef",
+          "event_key": "2e3eb3ef716c317eb428939a09b191bd1de91d1b04a0715d22e394f1cae75a75",
+          "attempt_id": "ad61fef5-45cc-419f-a45d-71d38722c161",
+          "message": "End of average speed check",
+          "source_outcomes": [
+            "GRANTED",
+            "STARTED",
+            "COMPLETED"
+          ],
+          "receiver_started_count": 1,
+          "receiver_completed_count": 1
+        }
+      ],
+      "trace_sha256": "4a2b93b58a1cfbb4c35b8a0643155e77fafed77ca3b71cda74172e976ee91aa1",
+      "receiver_output_sha256": "3884b37e65912641e190b4af19d23035612c045592886b7a5059c8af8e177f8d",
+      "source_apk_sha256": "19d40560cb885f868ffeeb936f12a0daa0e7fa666776acf1582e85e63b6c2ecd"
+    }
+  },
+  "cleanup": {
+    "restored_exactly": true,
+    "helpers_removed": true,
+    "snapshot_removed": true,
+    "final_runtime_stopped": true,
+    "cleanup_required": false,
+    "cleanup_errors": [],
+    "owned_scratch_removed": true,
+    "duplicate_artifacts_removed": true
+  },
+  "archive": {
+    "path": ".analysis/native-warning-bindings/fm15-port/final-acceptance-02/evidence.tar.gz",
+    "sha256": "15643bb563ab70dabefd2f7902bbc1a550585349e2dcb7881acfe0f3b667561c",
+    "bytes": 202145,
+    "scope": "Both failed session receipts, original native/receiver traces, frozen runner and source copies, exact cleanup. Duplicate APKs/screenshots/preferences restoration scratch omitted."
+  },
+  "single_affected_group_rerun": {
+    "status": "incomplete",
+    "repeat_status": "NOT_PROVEN",
+    "scope": "One guard-preserving affected-group rerun only; no product/receiver changes and no further reruns.",
+    "source_probe_sha256": "8536690218240131f3a1ed979573a9e47f990bcf32aef2ea5608af2221ad5ae7",
+    "source_fix_admissibility_ms": 2500,
+    "maximum_read_only_poll_wait_ms": 5000,
+    "invalid_clock_motion_ownership_policy_guards": "unchanged admission requirements; invalid clock/motion or lost ownership/policy still aborts",
+    "runs": {
+      "maps": {
+        "coordinator_passed": false,
+        "failure_boundary": "Original FM producer replaced the private candidate set; exact ownership guard aborted before any native repeat. No original set overwritten.",
+        "native_repeat_generated": false,
+        "native_repeat_accepted": false,
+        "first_pass_authorities": [
+          {
+            "phase": "enter",
+            "announcement_index": 1,
+            "warning_id": "AvgSpeedCheck:private-fm15-zone-ec1ce4ee-f7f2-4852-8407-bd5e74afc29d",
+            "provider_session": "4a20fc37-dfe4-4526-8323-b19d8e0b4e54",
+            "source_sequence": 1,
+            "event_key": "4e5e7cb717edf1cfb5ccc20db6dcd728bfa0688eb91a4b4f6e1044b5b343d0f4",
+            "attempt_id": "5c13ab72-1772-4b79-8e00-f3ef2f2ca548",
+            "message": "Average speed check 100 kilometres per hour",
+            "source_outcomes": [
+              "GRANTED",
+              "STARTED",
+              "COMPLETED"
+            ],
+            "receiver_started_count": 1,
+            "receiver_completed_count": 1
+          },
+          {
+            "phase": "exit",
+            "announcement_index": 2,
+            "warning_id": "AvgSpeedCheck:private-fm15-zone-ec1ce4ee-f7f2-4852-8407-bd5e74afc29d",
+            "provider_session": "4a20fc37-dfe4-4526-8323-b19d8e0b4e54",
+            "source_sequence": 23,
+            "event_key": "2afceda871e1c874dd9e2fd8059e50434452d32dfb2c79187a16185ceb779acd",
+            "attempt_id": "5b5e36cf-e47e-4fe2-895f-2d551b8f48ac",
+            "message": "End of average speed check",
+            "source_outcomes": [
+              "GRANTED",
+              "STARTED",
+              "COMPLETED"
+            ],
+            "receiver_started_count": 1,
+            "receiver_completed_count": 1
+          }
+        ],
+        "poll_waits": [
+          {
+            "started_elapsed_ms": 100269,
+            "polls": 11,
+            "last_observed_elapsed_ms": 100786,
+            "last_source_elapsed_ms": 97754,
+            "last_age_ms": 3032,
+            "last_reason": "STALE",
+            "resolved_elapsed_ms": 100836,
+            "admitted_fix_elapsed_ms": 100790,
+            "admitted_age_ms": 46
+          }
+        ],
+        "inner_candidate_restore": "refused after genuine ownership loss; outer VM rollback restores all task state",
+        "receiver_output_quiescent": true,
+        "receiver_preferences_restored_exactly": true,
+        "helper_sha256": {
+          "maps": "902961550ad8c2af21b1c02ce32d8659305daef7890de7714a258969ad217184",
+          "vela": "2445b897d77ac7315fc13840ddcb1b56424b1b65684593842754bec63303e2d0",
+          "source": "8536690218240131f3a1ed979573a9e47f990bcf32aef2ea5608af2221ad5ae7"
+        },
+        "trace_sha256": "8bae89c277c3f49a2896a1adf9a686cdcd74c214ab2299ef8d12e9c92f3e7754"
+      },
+      "vela": {
+        "coordinator_passed": false,
+        "failure_boundary": "Original FM producer replaced the private candidate set; exact ownership guard aborted before any native repeat. No original set overwritten.",
+        "native_repeat_generated": false,
+        "native_repeat_accepted": false,
+        "first_pass_authorities": [
+          {
+            "phase": "enter",
+            "announcement_index": 1,
+            "warning_id": "AvgSpeedCheck:private-fm15-zone-fccc4356-0bdf-4e1b-a428-f55945bd56f2",
+            "provider_session": "e5d03cae-eb96-4f84-b8fb-0ea447699914",
+            "source_sequence": 1,
+            "event_key": "15088e6c387d19c3b8e946140e79bfd5976abcf4c1d7eceb3d9595c8c56edf5b",
+            "attempt_id": "e27ab360-f257-4a74-aa21-d423d918efec",
+            "message": "Average speed check 100 kilometres per hour",
+            "source_outcomes": [
+              "GRANTED",
+              "STARTED",
+              "COMPLETED"
+            ],
+            "receiver_started_count": 1,
+            "receiver_completed_count": 1
+          },
+          {
+            "phase": "exit",
+            "announcement_index": 2,
+            "warning_id": "AvgSpeedCheck:private-fm15-zone-fccc4356-0bdf-4e1b-a428-f55945bd56f2",
+            "provider_session": "e5d03cae-eb96-4f84-b8fb-0ea447699914",
+            "source_sequence": 23,
+            "event_key": "446b835ae37c55a3936d2cd15ed40b1017cfe7cea9a720084c3969fca074e6b8",
+            "attempt_id": "5279b310-226b-4b97-9ad8-e912d7a33f65",
+            "message": "End of average speed check",
+            "source_outcomes": [
+              "GRANTED",
+              "STARTED",
+              "COMPLETED"
+            ],
+            "receiver_started_count": 1,
+            "receiver_completed_count": 1
+          }
+        ],
+        "poll_waits": [
+          {
+            "started_elapsed_ms": 207375,
+            "polls": 11,
+            "last_observed_elapsed_ms": 207886,
+            "last_source_elapsed_ms": 204834,
+            "last_age_ms": 3052,
+            "last_reason": "STALE",
+            "resolved_elapsed_ms": 207937,
+            "admitted_fix_elapsed_ms": 207889,
+            "admitted_age_ms": 48
+          }
+        ],
+        "inner_candidate_restore": "refused after genuine ownership loss; outer VM rollback restores all task state",
+        "receiver_output_quiescent": true,
+        "receiver_preferences_restored_exactly": true,
+        "helper_sha256": {
+          "maps": "902961550ad8c2af21b1c02ce32d8659305daef7890de7714a258969ad217184",
+          "vela": "2445b897d77ac7315fc13840ddcb1b56424b1b65684593842754bec63303e2d0",
+          "source": "8536690218240131f3a1ed979573a9e47f990bcf32aef2ea5608af2221ad5ae7"
+        },
+        "trace_sha256": "d672fbdb9134fa841700a74807badeae3e7dc42652e231d4e6ffc5bc4c90014b"
+      }
+    },
+    "cleanup": {
+      "restored_exactly": true,
+      "helpers_removed": true,
+      "snapshot_removed": true,
+      "final_runtime_stopped": true,
+      "cleanup_required": false,
+      "cleanup_errors": [],
+      "owned_scratch_removed": true,
+      "duplicate_artifacts_removed": true
+    },
+    "archive": {
+      "path": ".analysis/native-warning-bindings/fm15-port/final-acceptance-03/evidence.tar.gz",
+      "sha256": "524e5d1294572b40747bff2a64948b2a8cf7167dbd739c97ae5c88d48cee3321",
+      "bytes": 234721,
+      "scope": "Guard-preserving patch/source, build binding, original first-pass and refusal traces, outer exact rollback receipt. No APK duplicates or restoration scratch."
+    }
+  },
+  "remaining_gates": [
+    "Same-ID original native repeat after state expiry and changed-unsaid source-to-speaker revision",
+    "Coupled delayed point relevance on existing native receiver route: bend/passed/parallel/ambiguous legs",
+    "Targeted actual-source receiver mode/failure/status seams; retain unchanged adapter evidence",
+    "Source switch/screen-off/phone-absent/car-only lifetime and mixed-version/Waze selection seams",
+    "Final producer timing/output disposition; this CI-overlapped functional group is excluded from percentile acceptance",
+    "Separately authorized physical phone, Bluetooth/music ducking and supported actual car acceptance; final review/delivery and promotion approval"
+  ],
+  "full_acceptance_complete": false
+}

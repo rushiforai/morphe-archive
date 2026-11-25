@@ -64,7 +64,7 @@ import app.hushtelegram.extension.telegram.misc.LinkPreviewRules;
 import app.hushtelegram.extension.telegram.misc.Bookmarks;
 import app.hushtelegram.extension.telegram.misc.ChatListBanner;
 import app.hushtelegram.extension.telegram.misc.ListBackground;
-import app.hushtelegram.extension.telegram.misc.LocalPins;
+import app.hushtelegram.extension.telegram.misc.LocalNames;
 import app.hushtelegram.extension.telegram.misc.MessageFilters;
 import app.hushtelegram.extension.telegram.misc.RecordChats;
 import app.hushtelegram.extension.telegram.misc.VoiceChanger;
@@ -483,10 +483,10 @@ public class SettingsBackupPreference extends Preference {
                 lines.add(L10n.f("%1$s: %2$s to %3$s", L10n.t("Calls to record"),
                         HushTelegramPreferenceFragment.recordWhichLabel(RecordChats.scope()),
                         HushTelegramPreferenceFragment.recordWhichLabel((String) change.getValue())));
-            } else if (change.getKey() == Settings.LOCAL_PINNED_CHATS) {
-                // How many, not which: the ids are the person's own chats.
-                lines.add(L10n.f("%1$s: %2$s to %3$s", L10n.t("Chats pinned on this phone"),
-                        chatCount(Settings.LOCAL_PINNED_CHATS.savedValue()), chatCount((String) change.getValue())));
+            } else if (change.getKey() == Settings.LOCAL_NAME_LIST) {
+                // How many, not which: the names are the person's own.
+                lines.add(L10n.f("%1$s: %2$s to %3$s", L10n.t("Names given on this phone"),
+                        nameCount(Settings.LOCAL_NAME_LIST.savedValue()), nameCount((String) change.getValue())));
             } else if (change.getKey() == Settings.KEPT_REMOVED_CHATS) {
                 lines.add(L10n.f("%1$s: %2$s to %3$s", L10n.t("Chats you were removed from"),
                         keptCount(Settings.KEPT_REMOVED_CHATS.savedValue()), keptCount((String) change.getValue())));
@@ -526,6 +526,10 @@ public class SettingsBackupPreference extends Preference {
                 lines.add(L10n.f("%1$s: %2$s to %3$s", L10n.t("Avatar size"),
                         percent.format(ChatListAvatar.percent(Settings.CHAT_LIST_AVATAR_SIZE.savedValue()) / 100.0),
                         percent.format(((Integer) change.getValue()) / 100.0)));
+            } else if (change.getKey() == Settings.STICKER_PANEL_SIZE) {
+                lines.add(L10n.f("%1$s: %2$s to %3$s", L10n.t("Sticker panel size"),
+                        HushTelegramPreferenceFragment.stickerPanelLabel(Settings.STICKER_PANEL_SIZE.savedValue()),
+                        HushTelegramPreferenceFragment.stickerPanelLabel((Integer) change.getValue())));
             } else if (change.getKey() == Settings.LIST_BACKGROUND_DIM) {
                 lines.add(L10n.f("%1$s: %2$s to %3$s", L10n.t("Background dim"),
                         HushTelegramPreferenceFragment.percent(Settings.LIST_BACKGROUND_DIM.savedValue()),
@@ -535,10 +539,10 @@ public class SettingsBackupPreference extends Preference {
         return lines;
     }
 
-    /** "3 chats" for the chats pinned on this phone that [saved] holds. */
-    private static String chatCount(String saved) {
-        int count = LocalPins.count(saved);
-        return L10n.quantity(count, "%1$d chat", "%1$d chats", count);
+    /** "2 names" for the names Rename on this phone gave that [saved] holds. */
+    private static String nameCount(String saved) {
+        int count = LocalNames.count(saved);
+        return L10n.quantity(count, "%1$d name", "%1$d names", count);
     }
 
     /** "2 chats" for the chats Keep chats you're removed from kept that [saved] holds. */

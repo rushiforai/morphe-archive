@@ -207,7 +207,6 @@ public class HushTelegramPreferenceFragmentTest {
         ROW_TITLES.put(PatchFamily.TEST_SERVER_SIGN_IN, "Test server sign-in");
         ROW_TITLES.put(PatchFamily.BOT_TOKEN_SIGN_IN, "Bot token sign-in");
         ROW_TITLES.put(PatchFamily.SUPPRESS_SCREENSHOT_NOTIFICATION, "Suppress screenshot notification");
-        ROW_TITLES.put(PatchFamily.UNLOCK_PREMIUM, "Unlock Premium features");
         ROW_TITLES.put(PatchFamily.BYPASS_CHANNEL_RESTRICTIONS, "Bypass channel restrictions");
         ROW_TITLES.put(PatchFamily.BYPASS_INTEGRITY_CHECK, "Bypass integrity check");
         ROW_TITLES.put(PatchFamily.AUTO_FORWARDING, "Auto-forwarding rules");
@@ -654,7 +653,15 @@ public class HushTelegramPreferenceFragmentTest {
             // The pinned message bar stays until someone turns its own switch on.
             assertFalse(Settings.HIDE_PINNED_BAR.key,
                     ((SwitchPreference) page.findPreference(Settings.HIDE_PINNED_BAR.key)).isChecked());
-            assertEquals("Exact numbers", String.valueOf(page.findPreference(Settings.EXACT_NUMBERS.key).getTitle()));
+            assertEquals("Always show translate bar",
+                    String.valueOf(page.findPreference(Settings.ALWAYS_SHOW_TRANSLATE_BAR.key).getTitle()));
+            assertEquals("Every chat gets the translate bar, even when Telegram doesn't spot another language. It needs "
+                    + "Premium or an outside translation service, and Hide translate bar wins.",
+                    String.valueOf(page.findPreference(Settings.ALWAYS_SHOW_TRANSLATE_BAR.key).getSummary()));
+            // Telegram decides on the bar until someone turns this switch on.
+            assertFalse(Settings.ALWAYS_SHOW_TRANSLATE_BAR.key,
+                    ((SwitchPreference) page.findPreference(Settings.ALWAYS_SHOW_TRANSLATE_BAR.key)).isChecked());
+            assertEquals("Exact numbers",String.valueOf(page.findPreference(Settings.EXACT_NUMBERS.key).getTitle()));
             assertEquals("Member, subscriber, view, reply and reaction counts show in full, like 12,345 instead of "
                     + "12.3K.",
                     String.valueOf(page.findPreference(Settings.EXACT_NUMBERS.key).getSummary()));
@@ -679,6 +686,12 @@ public class HushTelegramPreferenceFragmentTest {
             // The chat's menu and its search stay as Telegram has them until each switch is turned on.
             assertFalse(Settings.REVEAL_MENU.key, ((SwitchPreference) page.findPreference(Settings.REVEAL_MENU.key)).isChecked());
             assertFalse(Settings.SEARCH_OPENS_QUOTES.key, ((SwitchPreference) page.findPreference(Settings.SEARCH_OPENS_QUOTES.key)).isChecked());
+            assertEquals("Show view-once and timed media unblurred", String.valueOf(page.findPreference(Settings.REVEAL_TIMED_MEDIA.key).getTitle()));
+            assertEquals("View-once and self-destructing photos and videos show clearly in the chat, even with Reveal "
+                    + "spoilers off. Tapping one still opens it the way Telegram does. Paid and sensitive media stay covered.",
+                    String.valueOf(page.findPreference(Settings.REVEAL_TIMED_MEDIA.key).getSummary()));
+            // The blur the sender's timer brings stays until this one is turned on (#82).
+            assertFalse(Settings.REVEAL_TIMED_MEDIA.key, ((SwitchPreference) page.findPreference(Settings.REVEAL_TIMED_MEDIA.key)).isChecked());
             assertEquals("Hide keyboard on scroll", String.valueOf(page.findPreference(Settings.HIDE_KEYBOARD_ON_SCROLL.key).getTitle()));
             assertEquals("The keyboard closes when you start scrolling a chat. The emoji and sticker panel stays open.",
                     String.valueOf(page.findPreference(Settings.HIDE_KEYBOARD_ON_SCROLL.key).getSummary()));
@@ -721,6 +734,12 @@ public class HushTelegramPreferenceFragmentTest {
                     String.valueOf(page.findPreference(Settings.VIDEO_TRACKS.key).getSummary()));
             // The video menu stays as Telegram has it until the switch is turned on.
             assertFalse(Settings.VIDEO_TRACKS.key, ((SwitchPreference) page.findPreference(Settings.VIDEO_TRACKS.key)).isChecked());
+            assertEquals("Play videos in another app", String.valueOf(page.findPreference(Settings.EXTERNAL_PLAYER.key).getTitle()));
+            assertEquals("Tapping a video in a chat opens it in a player app like VLC or MX Player. Videos that aren't "
+                    + "downloaded stream as they play. Secret, view-once and protected videos stay in Telegram's player.",
+                    String.valueOf(page.findPreference(Settings.EXTERNAL_PLAYER.key).getSummary()));
+            // Videos open in Telegram's own viewer until the switch is turned on.
+            assertFalse(Settings.EXTERNAL_PLAYER.key, ((SwitchPreference) page.findPreference(Settings.EXTERNAL_PLAYER.key)).isChecked());
             assertEquals("Swipe back on profiles", String.valueOf(page.findPreference(Settings.SWIPE_BACK_ON_PROFILES.key).getTitle()));
             assertEquals("Swiping right on a profile's photos or media tabs goes back, like the rest of the profile, "
                     + "instead of showing the previous photo or tab.",
@@ -884,7 +903,8 @@ public class HushTelegramPreferenceFragmentTest {
             assertEquals("Also save view-once and timed media",
                     String.valueOf(page.findPreference(Settings.SAVE_TIMED_MEDIA.key).getTitle()));
             assertEquals("With Save downloaded files on, view-once and self-destructing photos, videos, voice and video "
-                    + "messages get copied to Download/Telegram when they download. The sender meant them to disappear, "
+                    + "messages get copied to Download/Telegram when they download. The message menu's Save to Downloads "
+                    + "shows up on them too. The sender meant them to disappear, "
                     + "so only use it where they're fine with you keeping a copy. Secret chats need Also save from secret "
                     + "chats too.",
                     String.valueOf(page.findPreference(Settings.SAVE_TIMED_MEDIA.key).getSummary()));
@@ -914,6 +934,16 @@ public class HushTelegramPreferenceFragmentTest {
             // A secret chat stays blocked until this one is turned on as well (#82).
             assertFalse(Settings.SECRET_CHAT_SCREENSHOTS.key,
                     ((SwitchPreference) page.findPreference(Settings.SECRET_CHAT_SCREENSHOTS.key)).isChecked());
+            assertEquals("Also allow screenshots of view-once and timed media",
+                    String.valueOf(page.findPreference(Settings.TIMED_MEDIA_SCREENSHOTS.key).getTitle()));
+            assertEquals("Works with Allow screenshots in chats that don't allow saving on. The screen that opens view-once "
+                    + "and self-destructing photos and videos can be captured too. In a secret chat it also needs Also allow "
+                    + "screenshots in secret chats, and Telegram tells the other person unless Suppress screenshot "
+                    + "notification is on.",
+                    String.valueOf(page.findPreference(Settings.TIMED_MEDIA_SCREENSHOTS.key).getSummary()));
+            // The timed viewer stays blocked until this one is turned on as well (#82).
+            assertFalse(Settings.TIMED_MEDIA_SCREENSHOTS.key,
+                    ((SwitchPreference) page.findPreference(Settings.TIMED_MEDIA_SCREENSHOTS.key)).isChecked());
             assertEquals("Silence people outside your contacts", String.valueOf(page.findPreference(Settings.SILENCE_NON_CONTACTS.key).getTitle()));
             assertEquals("Private messages from people not in your contacts still show a notification, but without "
                     + "sound or vibration. Bots, reminders and login codes keep their sound.",
@@ -958,6 +988,17 @@ public class HushTelegramPreferenceFragmentTest {
             assertEquals("Sticker size", String.valueOf(page.findPreference(HushTelegramPreferenceFragment.STICKER_SIZE_ROW).getTitle()));
             assertEquals("75% of Telegram's size",
                     String.valueOf(page.findPreference(HushTelegramPreferenceFragment.STICKER_SIZE_ROW).getSummary()));
+            assertEquals("Keep downloaded stickers", String.valueOf(page.findPreference(Settings.KEEP_STICKER_CACHE.key).getTitle()));
+            assertEquals("Telegram's automatic cache cleanup leaves sticker files alone, so sticker packs you've used don't "
+                    + "download again. Clearing the cache yourself still removes them.",
+                    String.valueOf(page.findPreference(Settings.KEEP_STICKER_CACHE.key).getSummary()));
+            // The cleanup takes stickers as before until the switch is turned on.
+            assertFalse(((SwitchPreference) page.findPreference(Settings.KEEP_STICKER_CACHE.key)).isChecked());
+            assertEquals("Sticker panel size", String.valueOf(page.findPreference(HushTelegramPreferenceFragment.STICKER_PANEL_ROW).getTitle()));
+            // The panel keeps Telegram's sizes until a bigger one is picked.
+            assertEquals("Telegram's size. A bigger size shows fewer, bigger stickers in the sticker panel and its search. "
+                    + "A chat picks this up the next time you open it.",
+                    String.valueOf(page.findPreference(HushTelegramPreferenceFragment.STICKER_PANEL_ROW).getSummary()));
             assertEquals("Ignore mentions in muted chats", String.valueOf(page.findPreference(Settings.IGNORE_MUTED_MENTIONS.key).getTitle()));
             assertEquals("Mentions and replies in groups or channels you've muted no longer notify you. Chats you "
                     + "haven't muted notify as before.",
@@ -1070,17 +1111,13 @@ public class HushTelegramPreferenceFragmentTest {
                             + "everyone else. A chat picks this up the next time you open it.",
                     String.valueOf(page.findPreference(Settings.HIDE_EMOJI_STATUS.key).getSummary()));
             assertFalse(((SwitchPreference) page.findPreference(Settings.HIDE_EMOJI_STATUS.key)).isChecked());
-            assertEquals("Unlock Premium app icons", String.valueOf(page.findPreference(Settings.UNLOCK_PREMIUM_ICONS.key).getTitle()));
-            assertEquals("Premium, Turbo and Nox in Telegram's App Icon list work without Premium, with no lock and no "
-                            + "Premium sheet. Only the icon on your home screen changes.",
-                    String.valueOf(page.findPreference(Settings.UNLOCK_PREMIUM_ICONS.key).getSummary()));
-            assertFalse(((SwitchPreference) page.findPreference(Settings.UNLOCK_PREMIUM_ICONS.key)).isChecked());
-            assertEquals("Emoji status on this phone", String.valueOf(page.findPreference(Settings.LOCAL_EMOJI_STATUS.key).getTitle()));
-            assertEquals("Tap the star next to Telegram at the top of the chat list and pick any emoji status, animated ones "
-                            + "too, without Premium. It shows there on this phone only. Nobody else sees it, and nothing is sent "
-                            + "to Telegram.",
-                    String.valueOf(page.findPreference(Settings.LOCAL_EMOJI_STATUS.key).getSummary()));
-            assertFalse(((SwitchPreference) page.findPreference(Settings.LOCAL_EMOJI_STATUS.key)).isChecked());
+            assertEquals("Keep emoji statuses moving", String.valueOf(page.findPreference(Settings.MOVING_EMOJI_STATUS.key).getTitle()));
+            assertEquals("Emoji statuses next to names keep playing instead of stopping after two plays. It uses a little "
+                            + "more battery. Restart Telegram to see the change.",
+                    String.valueOf(page.findPreference(Settings.MOVING_EMOJI_STATUS.key).getSummary()));
+            assertFalse(((SwitchPreference) page.findPreference(Settings.MOVING_EMOJI_STATUS.key)).isChecked());
+            assertEquals("right after Hide emoji statuses", page.findPreference(Settings.HIDE_EMOJI_STATUS.key).getOrder() + 1,
+                    page.findPreference(Settings.MOVING_EMOJI_STATUS.key).getOrder());
             assertEquals("Hide trending packs", String.valueOf(page.findPreference(Settings.HIDE_KEYBOARD_FEATURED.key).getTitle()));
             assertEquals("The sticker keyboard's Trending tab and row and the emoji keyboard's trending packs go away, "
                             + "so both list only packs you've added. Search and the Stickers and Emoji screen still show "
@@ -1128,6 +1165,21 @@ public class HushTelegramPreferenceFragmentTest {
                     String.valueOf(page.findPreference(Settings.HIDE_NEW_MESSAGE.key).getSummary()));
             // The pencil button stays until the switch is turned on.
             assertFalse(((SwitchPreference) page.findPreference(Settings.HIDE_NEW_MESSAGE.key)).isChecked());
+            assertEquals("Hide Downloads button", String.valueOf(page.findPreference(Settings.HIDE_DOWNLOADS_BUTTON.key).getTitle()));
+            assertEquals("The Downloads button stays out of the bar at the top of the chat list, even while a file "
+                            + "downloads. Your downloads are still in the Downloads tab when you search.",
+                    String.valueOf(page.findPreference(Settings.HIDE_DOWNLOADS_BUTTON.key).getSummary()));
+            // The Downloads button shows while a file downloads until the switch is turned on.
+            assertFalse(((SwitchPreference) page.findPreference(Settings.HIDE_DOWNLOADS_BUTTON.key)).isChecked());
+            assertEquals("Always show Downloads button",
+                    String.valueOf(page.findPreference(Settings.ALWAYS_SHOW_DOWNLOADS_BUTTON.key).getTitle()));
+            assertEquals("The Downloads button stays in the bar at the top of the chat list even when nothing is "
+                            + "downloading, so your downloads are one tap away. Hide Downloads button wins.",
+                    String.valueOf(page.findPreference(Settings.ALWAYS_SHOW_DOWNLOADS_BUTTON.key).getSummary()));
+            // It sits right under Hide Downloads button, and the button only shows for downloads until it's on.
+            assertEquals(page.findPreference(Settings.HIDE_DOWNLOADS_BUTTON.key).getOrder() + 1,
+                    page.findPreference(Settings.ALWAYS_SHOW_DOWNLOADS_BUTTON.key).getOrder());
+            assertFalse(((SwitchPreference) page.findPreference(Settings.ALWAYS_SHOW_DOWNLOADS_BUTTON.key)).isChecked());
             assertEquals("Test server sign-in", String.valueOf(page.findPreference(Settings.TEST_SERVER_SIGN_IN.key).getTitle()));
             assertEquals("Signing in or adding an account shows Telegram's Test Backend box on the phone number screen. "
                             + "Tick it to sign that account in on Telegram's test servers, kept apart from your other accounts.",
@@ -1572,6 +1624,53 @@ public class HushTelegramPreferenceFragmentTest {
     }
 
     /**
+     * Change sticker size brings a Sticker panel size row after Keep downloaded stickers when the
+     * panel's hooks went in (#110). A tap lists Telegram's size, Large and Larger with the saved one
+     * checked, and a pick saves it at once and closes the list. A build whose panel couldn't take the
+     * hooks has no row.
+     */
+    @Test
+    public void theStickerPanelSizeRowListsTheSizesAndSavesThePick() throws Exception {
+        PatchFamily.inBuildForTests = EnumSet.of(PatchFamily.CHANGE_STICKER_SIZE);
+        PatchFamily.capabilitiesForTests = EnumSet.of(PatchFamily.Capability.KEEP_STICKER_CACHE);
+        try (ActivityController<Activity> controller = Robolectric.buildActivity(Activity.class).setup()) {
+            assertNull(pageOf(controller).findPreference(HushTelegramPreferenceFragment.STICKER_PANEL_ROW));
+        }
+        PatchFamily.capabilitiesForTests = EnumSet.allOf(PatchFamily.Capability.class);
+        try (ActivityController<Activity> controller = Robolectric.buildActivity(Activity.class).setup()) {
+            List<Preference> rows = new ArrayList<>();
+            collect(pageOf(controller).getPreferenceScreen(), rows);
+            int cache = indexOfKey(rows, Settings.KEEP_STICKER_CACHE.key);
+            Preference panel = rows.get(cache + 1);
+            assertEquals(HushTelegramPreferenceFragment.STICKER_PANEL_ROW, panel.getKey());
+            assertEquals("Look and feel", String.valueOf(panel.getParent().getTitle()));
+            assertFalse("it stores nothing itself", panel.isPersistent());
+
+            assertTrue(panel.getOnPreferenceClickListener().onPreferenceClick(panel));
+            ShadowLooper.idleMainLooper();
+            AlertDialog list = (AlertDialog) ShadowAlertDialog.getLatestDialog();
+            assertTrue(list.isShowing());
+            assertEquals("Sticker panel size", String.valueOf(shadowOf(list).getTitle()));
+            ListView choices = list.getListView();
+            List<String> labels = new ArrayList<>();
+            for (int i = 0; i < choices.getCount(); i++) labels.add(String.valueOf(choices.getAdapter().getItem(i)));
+            assertEquals(Arrays.asList("Telegram's size", "Large", "Larger"), labels);
+            assertEquals("the saved size is checked", 0, choices.getCheckedItemPosition());
+
+            shadowOf(list).clickOnItem(2);
+            settle();
+            assertFalse(list.isShowing());
+            assertEquals(120, (int) Settings.STICKER_PANEL_SIZE.savedValue());
+            assertEquals("Larger. A bigger size shows fewer, bigger stickers in the sticker panel and its search. "
+                    + "A chat picks this up the next time you open it.", String.valueOf(panel.getSummary()));
+            assertFalse("picking a size leaves the switch alone", Settings.CHANGE_STICKER_SIZE.savedValue());
+            assertEquals(Integer.valueOf(75), Settings.STICKER_SIZE.savedValue());
+        } finally {
+            Settings.STICKER_PANEL_SIZE.resetToDefault();
+        }
+    }
+
+    /**
      * Save downloaded files brings the gallery folder row under its two switches when its target
      * went in (#30). A tap lists the three choices with the saved one checked, and a pick saves it
      * at once and closes the list.
@@ -1673,6 +1772,27 @@ public class HushTelegramPreferenceFragmentTest {
             assertEquals("and saves nothing", "MUSIC,VIDEOS,VOICE", Settings.SAVE_KINDS_LEFT_OUT.savedValue());
         } finally {
             Settings.SAVE_KINDS_LEFT_OUT.resetToDefault();
+        }
+    }
+
+    /** Send photo in the link preview menu has its own switch, off at first, on builds that can do it (#101). */
+    @Test
+    public void theLinkPreviewPhotoRowIsOffAndOnlyOnBuildsThatCanSendIt() throws Exception {
+        PatchFamily.inBuildForTests = EnumSet.of(PatchFamily.MESSAGE_MENU_REPEAT);
+        PatchFamily.capabilitiesForTests = EnumSet.of(PatchFamily.Capability.LINK_PREVIEW_PHOTO);
+        try (ActivityController<Activity> controller = Robolectric.buildActivity(Activity.class).setup()) {
+            HushTelegramPreferenceFragment page = pageOf(controller);
+            SwitchPreference row = (SwitchPreference) page.findPreference(Settings.LINK_PREVIEW_PHOTO.key);
+            assertNotNull(row);
+            assertEquals("Add Send photo to the link preview menu", String.valueOf(row.getTitle()));
+            assertEquals("When the link preview above the message box has a picture, its menu gets Send photo. The picture "
+                    + "goes to the chat with what you typed as its caption, and the preview is removed. Text too long for "
+                    + "a caption stays in the box.", String.valueOf(row.getSummary()));
+            assertFalse(row.isChecked());
+        }
+        PatchFamily.capabilitiesForTests = EnumSet.noneOf(PatchFamily.Capability.class);
+        try (ActivityController<Activity> controller = Robolectric.buildActivity(Activity.class).setup()) {
+            assertNull(pageOf(controller).findPreference(Settings.LINK_PREVIEW_PHOTO.key));
         }
     }
 
@@ -2237,27 +2357,29 @@ public class HushTelegramPreferenceFragmentTest {
         }
     }
 
-    /** Pin chats on this phone gets its own switch, off until turned on, only in a build where its selection stub went in (#79). */
+    /** Rename on this phone gets its own switch, off until turned on, only in a build where its hooks went in (#104). */
     @Test
-    public void pinChatsOnThisPhoneHasItsOwnSwitchWhenItsStubIsIn() throws Exception {
-        PatchFamily.inBuildForTests = EnumSet.of(PatchFamily.HIDE_FOLDER_COUNTERS);
+    public void renameOnThisPhoneHasItsOwnSwitchWhenItsHooksAreIn() throws Exception {
+        PatchFamily.inBuildForTests = EnumSet.of(PatchFamily.SHOW_LOCAL_IDS);
         try {
-            PatchFamily.capabilitiesForTests = EnumSet.of(PatchFamily.Capability.HIDDEN_CHATS, PatchFamily.Capability.SORT_BY_DATE);
+            PatchFamily.capabilitiesForTests = EnumSet.of(PatchFamily.Capability.PROFILE_LOCAL_IDS, PatchFamily.Capability.SPECIAL_CONTACTS);
             try (ActivityController<Activity> controller = Robolectric.buildActivity(Activity.class).setup()) {
-                assertNull("a build without the stub has no switch", pageOf(controller).findPreference(Settings.LOCAL_PINS.key));
+                assertNull("a build without the hooks has no switch", pageOf(controller).findPreference(Settings.LOCAL_NAMES.key));
             }
-            PatchFamily.capabilitiesForTests = EnumSet.of(PatchFamily.Capability.HIDDEN_CHATS, PatchFamily.Capability.SORT_BY_DATE,
-                    PatchFamily.Capability.LOCAL_PINS);
+            PatchFamily.capabilitiesForTests = EnumSet.of(PatchFamily.Capability.PROFILE_LOCAL_IDS, PatchFamily.Capability.SPECIAL_CONTACTS,
+                    PatchFamily.Capability.LOCAL_NAMES);
             try (ActivityController<Activity> controller = Robolectric.buildActivity(Activity.class).setup()) {
                 HushTelegramPreferenceFragment page = pageOf(controller);
-                SwitchPreference toggle = (SwitchPreference) page.findPreference(Settings.LOCAL_PINS.key);
-                assertEquals("Pin chats on this phone", String.valueOf(toggle.getTitle()));
-                assertEquals("Adds Pin on this phone to the long press menu of the chat list. Those chats sit right under your "
-                        + "pinned chats in All Chats, newest first. Nothing is sent to Telegram, so your other devices and "
-                        + "Telegram's pin limit stay as they are.", String.valueOf(toggle.getSummary()));
+                SwitchPreference toggle = (SwitchPreference) page.findPreference(Settings.LOCAL_NAMES.key);
+                assertEquals("Rename on this phone", String.valueOf(toggle.getTitle()));
+                assertEquals("A profile's menu and the chat list's long press menu get Rename on this phone. The name you give a "
+                        + "person, bot, group or channel shows in place of theirs everywhere in Telegram on this phone. "
+                        + "Telegram and the other person never see it.", String.valueOf(toggle.getSummary()));
                 assertFalse("off until turned on", toggle.isChecked());
-                // It comes right after the date order's two switches.
-                assertSame(page.findPreference(Settings.SORT_OLDEST_FIRST.key).getParent(), toggle.getParent());
+                // It sits right under Special contacts' list.
+                Preference tracked = page.findPreference(HushTelegramPreferenceFragment.SPECIAL_CONTACTS_ROW);
+                assertSame(tracked.getParent(), toggle.getParent());
+                assertEquals(tracked.getOrder() + 1, toggle.getOrder());
             }
         } finally {
             PatchFamily.capabilitiesForTests = null;
@@ -2272,13 +2394,13 @@ public class HushTelegramPreferenceFragmentTest {
     public void changeAvatarSizeHasItsSwitchAndSizeRowWhenItsHookIsIn() throws Exception {
         PatchFamily.inBuildForTests = EnumSet.of(PatchFamily.HIDE_FOLDER_COUNTERS);
         try {
-            PatchFamily.capabilitiesForTests = EnumSet.of(PatchFamily.Capability.HIDDEN_CHATS, PatchFamily.Capability.LOCAL_PINS);
+            PatchFamily.capabilitiesForTests = EnumSet.of(PatchFamily.Capability.HIDDEN_CHATS, PatchFamily.Capability.SORT_BY_DATE);
             try (ActivityController<Activity> controller = Robolectric.buildActivity(Activity.class).setup()) {
                 HushTelegramPreferenceFragment page = pageOf(controller);
                 assertNull("a build without the hook has no switch", page.findPreference(Settings.CHAT_LIST_AVATAR.key));
                 assertNull("and no size row", page.findPreference(HushTelegramPreferenceFragment.AVATAR_SIZE_ROW));
             }
-            PatchFamily.capabilitiesForTests = EnumSet.of(PatchFamily.Capability.HIDDEN_CHATS, PatchFamily.Capability.LOCAL_PINS,
+            PatchFamily.capabilitiesForTests = EnumSet.of(PatchFamily.Capability.HIDDEN_CHATS, PatchFamily.Capability.SORT_BY_DATE,
                     PatchFamily.Capability.CHAT_LIST_AVATAR);
             try (ActivityController<Activity> controller = Robolectric.buildActivity(Activity.class).setup()) {
                 HushTelegramPreferenceFragment page = pageOf(controller);
@@ -2290,7 +2412,7 @@ public class HushTelegramPreferenceFragmentTest {
                 assertEquals("Chat pictures in the chat list show at the size you pick below. Each row keeps its height, "
                         + "and the picture stays centered where Telegram puts it.", String.valueOf(toggle.getSummary()));
                 assertFalse("off until turned on", toggle.isChecked());
-                assertSame("it comes after Pin chats on this phone", page.findPreference(Settings.LOCAL_PINS.key), rows.get(at - 1));
+                assertSame("it comes after the date order's switches", page.findPreference(Settings.SORT_OLDEST_FIRST.key), rows.get(at - 1));
                 Preference size = rows.get(at + 1);
                 assertEquals(HushTelegramPreferenceFragment.AVATAR_SIZE_ROW, size.getKey());
                 assertEquals("Avatar size", String.valueOf(size.getTitle()));
@@ -2317,6 +2439,40 @@ public class HushTelegramPreferenceFragmentTest {
         } finally {
             PatchFamily.capabilitiesForTests = null;
             Settings.CHAT_LIST_AVATAR_SIZE.resetToDefault();
+        }
+    }
+
+    /**
+     * Open Saved Messages on its media sits on the Chat list page after the avatar size, off until
+     * turned on, only in a build where its hook went in (#103).
+     */
+    @Test
+    public void savedMessagesOnItsMediaHasItsSwitchWhenItsHookIsIn() throws Exception {
+        PatchFamily.inBuildForTests = EnumSet.of(PatchFamily.HIDE_FOLDER_COUNTERS);
+        try {
+            PatchFamily.capabilitiesForTests = EnumSet.of(PatchFamily.Capability.CHAT_LIST_AVATAR);
+            try (ActivityController<Activity> controller = Robolectric.buildActivity(Activity.class).setup()) {
+                assertNull("a build without the hook has no switch", pageOf(controller).findPreference(Settings.SAVED_MEDIA_FIRST.key));
+            }
+            PatchFamily.capabilitiesForTests = EnumSet.of(PatchFamily.Capability.CHAT_LIST_AVATAR,
+                    PatchFamily.Capability.SAVED_MEDIA_FIRST);
+            try (ActivityController<Activity> controller = Robolectric.buildActivity(Activity.class).setup()) {
+                HushTelegramPreferenceFragment page = pageOf(controller);
+                List<Preference> rows = new ArrayList<>();
+                collect(page.getPreferenceScreen(), rows);
+                int at = indexOfKey(rows, Settings.SAVED_MEDIA_FIRST.key);
+                SwitchPreference toggle = (SwitchPreference) rows.get(at);
+                assertEquals("Open Saved Messages on its media", String.valueOf(toggle.getTitle()));
+                assertEquals("Tapping Saved Messages in the chat list opens its shared media page, with your saved chats, "
+                        + "media, files, links, music and voice messages. To open the chat itself, tap the menu on the "
+                        + "Chats tab and pick View as Messages.", String.valueOf(toggle.getSummary()));
+                assertFalse("off until turned on", toggle.isChecked());
+                assertEquals("it comes after Avatar size", HushTelegramPreferenceFragment.AVATAR_SIZE_ROW, rows.get(at - 1).getKey());
+                assertEquals(HushTelegramPreferenceFragment.FOLDER_ICON_ROW, rows.get(at + 1).getKey());
+                assertSame(page.findPreference(Settings.CHAT_LIST_AVATAR.key).getParent(), toggle.getParent());
+            }
+        } finally {
+            PatchFamily.capabilitiesForTests = null;
         }
     }
 
@@ -3035,7 +3191,7 @@ public class HushTelegramPreferenceFragmentTest {
                 + "If an account has a cloud password, Telegram waits a week first.";
         String warning = "Typed twice, the duress passcode deletes for good.";
         assertFitsATwoLineToast("en", warning);
-        for (String language : new String[]{"bg", "de", "es", "in", "pt-rbr", "tr", "zh-hans"}) {
+        for (String language : new String[]{"bg", "de", "es", "in", "it", "pt-rbr", "tr", "zh-hans"}) {
             String row = app.hushtelegram.extension.shared.L10nTablesForTests.of(language).get(warning);
             assertNotNull(language, row);
             assertFitsATwoLineToast(language, row);
@@ -3096,7 +3252,7 @@ public class HushTelegramPreferenceFragmentTest {
                         + "Pick one that's different from your Telegram passcode."};
             for (int i = 0; i < messages.length; i++) {
                 assertEquals(messages[i], PasscodePrompt.duressMessage(DuressWipe.ACTIONS.get(i)));
-                for (String language : new String[]{"bg", "de", "es", "in", "pt-rbr", "tr", "zh-hans"}) {
+                for (String language : new String[]{"bg", "de", "es", "in", "it", "pt-rbr", "tr", "zh-hans"}) {
                     assertNotNull(language + ": " + messages[i],
                             app.hushtelegram.extension.shared.L10nTablesForTests.of(language).get(messages[i]));
                 }

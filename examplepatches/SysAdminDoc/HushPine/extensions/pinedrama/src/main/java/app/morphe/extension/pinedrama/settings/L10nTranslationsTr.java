@@ -15,7 +15,7 @@ final class L10nTranslationsTr {
     }
 
     static Map<String, String> build() {
-        Map<String, String> table = new HashMap<>(3668);
+        Map<String, String> table = new HashMap<>(3680);
         fill0(table);
         fill1(table);
         fill2(table);
@@ -1950,6 +1950,8 @@ final class L10nTranslationsTr {
                 "Henüz hiçbir şey denetlenmedi, bu yüzden bildirilecek bir şey yok.");
         table.put("Nothing has been looked up yet. Use the app for a moment, then come back.",
                 "Henüz hiçbir şey sorgulanmadı. Uygulamayı biraz kullan, sonra geri gel.");
+        table.put("Nothing in this list matches",
+                "Bu listede eşleşen bir şey yok");
         table.put("Nothing is playing to seek",
                 "Sarılacak bir şey oynatılmıyor");
         table.put("Nothing is playing to speed up",
@@ -2014,11 +2016,11 @@ final class L10nTranslationsTr {
                 "Biri zaten kaydedilmişti");
         table.put("Only a watermarked copy existed. Saved to %1$s",
                 "Yalnızca filigranlı kopya vardı. Kaydedildi: %1$s");
-        table.put("Only bottom tabs PineDrama has loaded on this device are shown here. This doesn't force unavailable tabs to appear.",
-                "Burada yalnızca PineDrama'nın bu cihazda yüklediği alt sekmeler gösterilir. Bu, kullanılamayan sekmeleri görünmeye zorlamaz.");
     }
 
     private static void fill16(Map<String, String> table) {
+        table.put("Only bottom tabs PineDrama has loaded on this device are shown here. This doesn't force unavailable tabs to appear.",
+                "Burada yalnızca PineDrama'nın bu cihazda yüklediği alt sekmeler gösterilir. Bu, kullanılamayan sekmeleri görünmeye zorlamaz.");
         table.put("Only fields the Lab can check and copy safely are shown.",
                 "Yalnızca Lab'in denetleyip güvenle kopyalayabildiği alanlar gösterilir.");
         table.put("Only from these countries",
@@ -2137,11 +2139,11 @@ final class L10nTranslationsTr {
                 "Fotoğraf kayıt konumu");
         table.put("Photo filename",
                 "Fotoğraf dosya adı");
-        table.put("Photos and stickers",
-                "Fotoğraflar ve çıkartmalar");
     }
 
     private static void fill17(Map<String, String> table) {
+        table.put("Photos and stickers",
+                "Fotoğraflar ve çıkartmalar");
         table.put("Photos can't be saved to the folder in that file, so your photo folder was kept",
                 "Fotoğraflar o dosyadaki klasöre kaydedilemiyor, bu yüzden fotoğraf klasörün korundu");
         table.put("Pick a .ttf or .otf file of up to %1$s MB.",
@@ -2260,11 +2262,11 @@ final class L10nTranslationsTr {
                 "H.264 videoyu tercih et");
         table.put("Preferred dubs",
                 "Tercih edilen dublajlar");
-        table.put("Preferred subtitles",
-                "Tercih edilen altyazılar");
     }
 
     private static void fill18(Map<String, String> table) {
+        table.put("Preferred subtitles",
+                "Tercih edilen altyazılar");
         table.put("Preset applied",
                 "Hazır ayar uygulandı");
         table.put("Preset doesn't match the gates. Nothing changed.",
@@ -2325,6 +2327,8 @@ final class L10nTranslationsTr {
                 "Yorum aramasını kaldır");
         table.put("Puts a circle on each video in a profile, Liked or Favorites grid. Pick up to %1$s, then tap Save to save them one after another, with a count and Cancel.",
                 "Profil, Beğenilenler veya Favoriler ızgarasındaki her videoya bir daire koyar. En fazla %1$s tane seç, sonra Kaydet'e dokun. Hepsi sayaç ve İptal ile sırayla kaydedilir.");
+        table.put("Puts a search bar above these lists. It looks through the whole list, loading the rest as it goes, and tapping a result opens it.",
+                "Bu listelerin üstüne bir arama çubuğu koyar. Listenin tamamına bakar, kalanını yolda yükler ve bir sonuca dokunmak onu açar.");
         table.put("Puts a ✓ by videos and photo posts you saved with HushPine, on profile grids and next to the time in the feed. Works only while Check for already-saved videos is on.",
                 "HushPine ile kaydettiğin videolara ve fotoğraf gönderilerine profil ızgaralarında ve akışta saatin yanında ✓ koyar. Yalnızca “Önceden kaydedilen videoları kontrol et” açıkken çalışır.");
         table.put("Puts your time zone after the time to the second, like EDT.",
@@ -2381,13 +2385,13 @@ final class L10nTranslationsTr {
                 "PineDrama'nın geçerli değerleri yenileniyor…");
         table.put("Region",
                 "Bölge");
+    }
+
+    private static void fill19(Map<String, String> table) {
         table.put("Remember the last speed",
                 "Son hızı hatırla");
         table.put("Remembers up to %1$s videos you saved here. If the file is still there, you get Open or Save again instead of a second copy.",
                 "Burada kaydettiğin en fazla %1$s videoyu hatırlar. Dosya hâlâ duruyorsa ikinci bir kopya yerine Aç veya Yeniden kaydet seçeneğini görürsün.");
-    }
-
-    private static void fill19(Map<String, String> table) {
         table.put("Remind me every",
                 "Hatırlatma aralığı");
         table.put("Remove",
@@ -2504,13 +2508,13 @@ final class L10nTranslationsTr {
                 "Denemek için örnek kategori");
         table.put("Save",
                 "Kaydet");
+    }
+
+    private static void fill20(Map<String, String> table) {
         table.put("Save a profile picture on a long press",
                 "Uzun basınca profil fotoğrafını kaydet");
         table.put("Save again",
                 "Yeniden kaydet");
-    }
-
-    private static void fill20(Map<String, String> table) {
         table.put("Save as video",
                 "Video olarak kaydet");
         table.put("Save box for chat stickers",
@@ -2627,13 +2631,13 @@ final class L10nTranslationsTr {
                 "Aynı anda kayıt sayısı");
         table.put("Saves right now",
                 "Şu anki kayıtlar");
+    }
+
+    private static void fill21(Map<String, String> table) {
         table.put("Saves the caption, creator, link and post date in a text file next to the video, or one file for a photo post's original photos. On Android 10 and later, they go in Download or Documents under the same folder name. Applies to saves made by HushPine.",
                 "Açıklamayı, içerik üreticisini, bağlantıyı ve paylaşım tarihini videonun yanında bir metin dosyasına, fotoğraf gönderisinin orijinal fotoğrafları için ise tek bir dosyaya kaydeder. Android 10 ve üzerinde bunlar aynı klasör adıyla Download veya Documents içine gider. HushPine'in yaptığı kayıtlar için geçerlidir.");
         table.put("Saves the details file in JSON format instead of plain text. Useful if another tool will read it.",
                 "Ayrıntı dosyasını düz metin yerine JSON biçiminde kaydeder. Başka bir araç okuyacaksa işe yarar.");
-    }
-
-    private static void fill21(Map<String, String> table) {
         table.put("Saves wait for Wi-Fi or another network that isn't metered, for up to 30 minutes, and stop if you leave it. Saving a frame still works anywhere.",
                 "Kayıtlar 30 dakikaya kadar Wi-Fi'ı veya kotasız başka bir ağı bekler, ağdan çıkarsan durur. Kare kaydetme her yerde çalışır.");
         table.put("Saves your HushPine settings and Feature Gate Lab rules to a file.",
@@ -2684,6 +2688,8 @@ final class L10nTranslationsTr {
                 "Arama");
         table.put("Search Activity notifications already loaded on this screen. Loading more pauses while you search.",
                 "Bu ekranda zaten yüklenmiş Etkinlik bildirimlerinde arayın. Arama sırasında yeni bildirim yüklenmez.");
+        table.put("Search History and Favorites",
+                "Geçmiş ve Favoriler'de ara");
         table.put("Search by name or gate key",
                 "Ada veya özellik kapısı anahtarına göre ara");
         table.put("Search by name, description or category.",
@@ -2702,6 +2708,8 @@ final class L10nTranslationsTr {
                 "Ayarlarda ara");
         table.put("Search these comments",
                 "Bu yorumlarda ara");
+        table.put("Search this list",
+                "Bu listede ara");
         table.put("Seconds per photo",
                 "Fotoğraf başına saniye");
         table.put("Seconds. Zero keeps every length. If everything the feed just sent would be filtered out, the video closest to your limit is kept so the feed isn't empty.",
@@ -2746,6 +2754,9 @@ final class L10nTranslationsTr {
                 "PineDrama'nın akışını, aramasını, yorumlarını ve diğer uygulama trafiğini aşağıdaki proxy üzerinden gönderir. Videolar ve LIVE yayınları yine doğrudan bağlanır. HushPine'in kaydetme işlemleri ve kısa bağlantı sorguları da kendi adres denetimlerinden sonra doğrudan bağlanır. Diğer uygulamalar etkilenmez.");
         table.put("Sends one message a day to each person below at the time below, so your streaks keep going on days you don't open PineDrama.",
                 "Aşağıdaki herkese belirtilen saatte günde bir mesaj gönderir, böylece PineDrama'yı açmadığın günlerde de serilerin devam eder.");
+    }
+
+    private static void fill22(Map<String, String> table) {
         table.put("Sends today's message right away. The daily one then waits for tomorrow.",
                 "Bugünün mesajını hemen gönderir. Günlük mesaj o zaman yarını bekler.");
         table.put("Sent to %1$d/%2$d chats. The rest still need a message.",
@@ -2754,9 +2765,6 @@ final class L10nTranslationsTr {
                 "%1$d/%2$d sohbete gönderildi. Bugün başka mesaj almayacaklar.");
         table.put("Separate account handles or user IDs with commas. Videos from these accounts are always hidden. An entry between slashes, like /^news_/, is a search pattern checked against the handle and display name.",
                 "Hesap kullanıcı adlarını veya kullanıcı kimliklerini virgülle ayır. Bu hesapların videoları her zaman gizlenir. /^news_/ gibi eğik çizgiler arasındaki bir giriş, kullanıcı adı ve görünen adla karşılaştırılan bir arama desenidir.");
-    }
-
-    private static void fill22(Map<String, String> table) {
         table.put("Separate country codes with commas, like GB, IE. Videos posted from anywhere else are hidden. Leave empty for all countries.",
                 "Ülke kodlarını virgülle ayır, örneğin GB, IE. Başka yerlerden paylaşılan videolar gizlenir. Tüm ülkeler için boş bırak.");
         table.put("Separate country codes with commas. Videos posted from these are hidden, whatever the list above says.",
@@ -2869,6 +2877,9 @@ final class L10nTranslationsTr {
                 "İlerleme çubuğu küçük resmini göster");
         table.put("Show the search entry inside PineDrama's LIVE drawer, where available. This doesn't add a search box to video comments.",
                 "PineDrama'nın CANLI çekmecesindeki arama girişini, mümkün olan yerlerde göster. Bu, video yorumlarına bir arama kutusu eklemez.");
+    }
+
+    private static void fill23(Map<String, String> table) {
         table.put("Show the switch",
                 "Ayarı göster");
         table.put("Show the time beside the progress bar",
@@ -2877,9 +2888,6 @@ final class L10nTranslationsTr {
                 "İlerleme çubuğu ekrandayken oynatılan süreyi ve videonun uzunluğunu çubuğun sonunda göster.");
         table.put("Show the time to the second",
                 "Saati saniyesine kadar göster");
-    }
-
-    private static void fill23(Map<String, String> table) {
         table.put("Show the time zone",
                 "Saat dilimini göster");
         table.put("Show the whole Activity and New followers lists instead of stopping at a View all button.",
@@ -2992,6 +3000,9 @@ final class L10nTranslationsTr {
                 "Günün başlangıç saati");
         table.put("Start today over",
                 "Bugünü baştan başlat");
+    }
+
+    private static void fill24(Map<String, String> table) {
         table.put("Start typing",
                 "Yazmaya başla");
         table.put("Starts after %1$s other saves",
@@ -3000,9 +3011,6 @@ final class L10nTranslationsTr {
                 "Başka bir kayıttan sonra başlar");
         table.put("Stay on the video in full screen",
                 "Tam ekranda videoda kal");
-    }
-
-    private static void fill24(Map<String, String> table) {
         table.put("Staying on a video",
                 "Videoda kalmak");
         table.put("Sticker",
@@ -3115,6 +3123,9 @@ final class L10nTranslationsTr {
                 "Seri");
         table.put("Structured value observed",
                 "Yapılandırılmış değer gözlemlendi");
+    }
+
+    private static void fill25(Map<String, String> table) {
         table.put("Subscriber-only posts",
                 "Abonelere özel gönderiler");
         table.put("Subtitle priority",
@@ -3123,9 +3134,6 @@ final class L10nTranslationsTr {
                 "Altyazılar");
         table.put("Support HushPine",
                 "HushPine'i destekle");
-    }
-
-    private static void fill25(Map<String, String> table) {
         table.put("Swap the website in shared links",
                 "Paylaşılan bağlantılardaki siteyi değiştir");
         table.put("Swipe up for the next episode and down for the previous one without leaving full screen. The next episode starts when one ends, instead of the same one looping.",
@@ -3150,12 +3158,16 @@ final class L10nTranslationsTr {
                 "Beğenmek için yeniden dokun");
         table.put("Tap again to repost",
                 "Yeniden yayınlamak için yeniden dokun");
+        table.put("Tap the tab you're on to go back to the top",
+                "En üste dönmek için bulunduğun sekmeye dokun");
         table.put("Tap to start, then scroll until the feed problem shows up and come back here to save it. The file has no captions or names, and videos and creators appear only as short codes. Read it before you share it.",
                 "Başlatmak için dokun, sonra akıştaki sorun görünene kadar kaydır ve kaydetmek için buraya dön. Dosyada altyazı veya ad bulunmaz, videolar ve içerik üreticileri yalnızca kısa kodlarla görünür. Paylaşmadan önce dosyayı oku.");
         table.put("Tap, then go to the screen with what you want hidden. After %1$d seconds HushPine records how that screen is built, without any of its text, for the diagnostic report.",
                 "Dokun, sonra gizlemek istediğin şeyin olduğu ekrana git. %1$d saniye sonra HushPine o ekranın nasıl kurulduğunu, metnini almadan, tanılama raporu için kaydeder.");
         table.put("Tapping a sticker someone sent you in a chat opens a box with Save media. Turn this off to skip it.",
                 "Sohbette birinin gönderdiği bir çıkartmaya dokununca Medyayı kaydet düğmesi olan bir kutu açılır. Atlamak için bunu kapatın.");
+        table.put("Tapping the tab you're already on in History or Favorites takes that list back to its first row.",
+                "Geçmiş veya Favoriler'de zaten bulunduğun sekmeye dokunmak o listeyi ilk satırına geri götürür.");
         table.put("Technical details",
                 "Teknik ayrıntılar");
         table.put("Technical details, %1$s",
@@ -3234,6 +3246,9 @@ final class L10nTranslationsTr {
                 "Bu ayar değişikliği uygulanamadı. Hiçbir şey değiştirilmedi.");
         table.put("That sticker is in a format HushPine can't read",
                 "Bu çıkartma HushPine'in okuyamadığı bir biçimde");
+    }
+
+    private static void fill26(Map<String, String> table) {
         table.put("That watch-history file is damaged. Nothing was imported.",
                 "İzleme geçmişi dosyası bozuk. Hiçbir şey içe aktarılmadı.");
         table.put("The Activity row of likes and comments on your posts leaves the Inbox. Notifications about them still arrive.",
@@ -3246,9 +3261,6 @@ final class L10nTranslationsTr {
                 "Akışın üstündeki Takip ettiklerim ve Sana özel adları kaybolur. Akışlar arasında kaydırma ve arama düğmesi olduğu gibi kalır.");
         table.put("The Lab can't check this. PineDrama gets it exactly as typed.",
                 "Lab bunu denetleyemiyor. PineDrama bunu tam yazıldığı gibi alır.");
-    }
-
-    private static void fill26(Map<String, String> table) {
         table.put("The Lab couldn't open. Go back and open it again.",
                 "Lab açılamadı. Geri dön ve yeniden aç.");
         table.put("The Message requests row leaves the Inbox. Requests keep arriving and wait there until you turn this off.",
@@ -3357,6 +3369,9 @@ final class L10nTranslationsTr {
                 "Sunucu beklememizi istedi. Daha sonra tekrar deneyin.");
         table.put("The setting couldn't finish updating. Its saved value is shown.",
                 "Ayarın güncellenmesi tamamlanamadı. Kayıtlı değeri gösteriliyor.");
+    }
+
+    private static void fill27(Map<String, String> table) {
         table.put("The settings backup was rejected. Nothing was altered.",
                 "Ayar yedeği reddedildi. Hiçbir şey değiştirilmedi.");
         table.put("The smallest value is above the largest",
@@ -3369,9 +3384,6 @@ final class L10nTranslationsTr {
                 "Çıkartma önerisi bannerı sohbette artık gösterilmez. Kendi çıkartmaların çıkartma seçicide durur.");
         table.put("The story couldn't be saved. Try again.",
                 "Hikaye kaydedilemedi. Yeniden dene.");
-    }
-
-    private static void fill27(Map<String, String> table) {
         table.put("The time of day the message goes out.",
                 "Mesajın gönderileceği saat.");
         table.put("The video you're watching keeps playing to its end after you leave PineDrama or turn the screen off, with PineDrama's own media notification to pause it. PineDrama's background play switch stays on while this is on. Restart PineDrama to apply this.",
@@ -3480,6 +3492,9 @@ final class L10nTranslationsTr {
                 "Bugün: %1$d video");
         table.put("Today: %1$d videos",
                 "Bugün: %1$d video");
+    }
+
+    private static void fill28(Map<String, String> table) {
         table.put("Too late to put the saved videos back",
                 "Kaydedilen videoları geri getirmek için artık çok geç");
         table.put("Too many saves running. Try again soon.",
@@ -3492,9 +3507,6 @@ final class L10nTranslationsTr {
                 "Yorumlarda çeviri düğmesi");
         table.put("Translate comments as they load, using PineDrama's own translator.",
                 "Yorumları yüklenirken PineDrama'nın kendi çevirmeniyle çevir.");
-    }
-
-    private static void fill28(Map<String, String> table) {
         table.put("Translate into",
                 "Şu dile çevir");
         table.put("Try a different word or clear the search. Switches from patches you didn't tick in Morphe Manager aren't listed.",
@@ -3603,6 +3615,9 @@ final class L10nTranslationsTr {
                 "Bu hesabın en fazla %1$s MB ve %2$s kayıt içeren PineDrama JSON dışa aktarımını kullanın. Saat dilimi olmayan tarihler için bu telefonun saat dilimi kullanılır.");
         table.put("Use value",
                 "Değeri kullan");
+    }
+
+    private static void fill29(Map<String, String> table) {
         table.put("Use your own offline videos limit",
                 "Kendi çevrimdışı video sınırını kullan");
         table.put("Use {creator}, {date} and {video_id} to build the name. Start with {creator}/ to put each creator in a folder. The file ending is added for you.",
@@ -3615,9 +3630,6 @@ final class L10nTranslationsTr {
                 "Kullanıcı adları veya grup sohbeti adları, virgülle veya yeni satırlarla ayır. Her sohbet zaten var olmalı. Grup, gelen kutunun gösterdiği adla bulunur.");
         table.put("Using PineDrama's value",
                 "PineDrama'nın değeri kullanılıyor");
-    }
-
-    private static void fill29(Map<String, String> table) {
         table.put("Value",
                 "Değer");
         table.put("Value to return",
@@ -3726,6 +3738,9 @@ final class L10nTranslationsTr {
                 "Kime yazılsın");
         table.put("Wipe PineDrama's data and give it a new Android ID and advertising ID on the next start, so it sees a phone it hasn't met. You'll be signed out and lose your drafts. HushPine's settings stay.",
                 "PineDrama'nın verilerini siler ve bir sonraki açılışta ona yeni bir Android kimliği ve reklam kimliği verir, böylece hiç tanımadığı bir telefon görür. Oturumun kapanır ve taslakların silinir. HushPine ayarları kalır.");
+    }
+
+    private static void fill30(Map<String, String> table) {
         table.put("Word rules only, not every feed filter:",
                 "Yalnızca kelime kuralları, akıştaki her filtre değil:");
         table.put("Words, countries and languages",
@@ -3738,9 +3753,6 @@ final class L10nTranslationsTr {
                 "Kullanıcı adını ve açıklamayı videonun üzerine yaz");
         table.put("Write the video's sound beside it, in the format picked under Sound format. Android 10 and later file audio separately, so it lands in Music under the same folder name as your videos.",
                 "Videonun sesini, Ses biçimi altında seçilen biçimde videonun yanına yaz. Android 10 ve sonrası ses dosyalarını ayrı tutar, bu yüzden dosya Music altında, videolarınla aynı adlı klasöre gider.");
-    }
-
-    private static void fill30(Map<String, String> table) {
         table.put("Writes the date before the time to the second the short way your language does, like 10/7/25.",
                 "Saniyesine kadar gösterilen saatten önceki tarihi dilinin kısa biçimiyle yazar, örneğin 7.10.2025.");
         table.put("Writing",

@@ -1,0 +1,99 @@
+{
+  "format": 1,
+  "scope": "Initial controlled native camera production-path observations on owned API34 emulators; neither complete scenario acceptance nor latency percentiles nor physical/car proof",
+  "original_apk_sha256": {
+    "flitsmeister": "17f622c8072c9fd8bd121b872a3733a9a22aaff041d57560f6f3dd59a33ce1b7",
+    "maps": "81506a2c54fc9a8faca34c18af7619d9c9d26cbfbe799b66884a59ac17791004",
+    "vela": "f168bc730568b98ee8132131658d9220ef5be3557af41fd373bdaf104c31b20f"
+  },
+  "runs": [
+    {
+      "receiver": "maps",
+      "serial": "emulator-5580",
+      "avd": "native_warnings_api34",
+      "source_uid": 10204,
+      "receiver_uid": 10194,
+      "source_apk_sha256": "72cc503223356ecafde51049b66ddb379e16e0eeb497fca1b00afc47aa51d973",
+      "receiver_apk_sha256": "7802e96f69b1070006e41db1ad7c002e63d60d5e4666be3f9bf95107a17e5d4a",
+      "source_helper_sha256": "ea72e187280cd6597344747954a5a372bba548cc6cfc56c4586659c820af2757",
+      "native_root": [
+        "Lfc0;->J"
+      ],
+      "semantic_message": "Speed cam 50",
+      "native_type": "SPEED_CAM",
+      "native_subtype": "SPEED_50",
+      "language": "en-US",
+      "initial_authority_revision": 1,
+      "spoken_payload_revision": 2,
+      "original_deadline_preserved": true,
+      "issue_to_accept_ms": 15,
+      "accept_to_started_ms": 612,
+      "issue_to_completed_ms": 2001,
+      "source_ack_outcomes": [
+        "GRANTED",
+        "STARTED",
+        "COMPLETED"
+      ],
+      "provider_managed_mute_verified": true,
+      "provider_native_queue_empty": true,
+      "receiver_preferences_restored_exactly": true,
+      "source_network_and_lease_restored": true,
+      "attached_widget_semantic_text": "Flitsmeister\nSpeed cam 50",
+      "visible_warning_in_captured_png": true,
+      "png_sha256": "b1589be9c32c94a187873b6a22507be9f8013c4ba16e28ee9749b2263c4941c6",
+      "raw_receiver_result": ".analysis/native-warning-bindings/maps-integrated-coupled-02/receiver-result.json",
+      "raw_receiver_result_sha256": "36ea1207644094eceab7b9f7c6e14f6731def1d758c3cdab59609cfbee102ea9",
+      "raw_source_result": ".analysis/native-warning-bindings/maps-integrated-coupled-02/source/f259012e-b0b0-4d6a-92a6-f9cc8fa32fde/result.json",
+      "raw_source_result_sha256": "f8650966cb98fada311a2b9fed9895e3524a788ff22ea1d54521dc2044bad5be",
+      "limitations": [
+        "A prior cold-start run expired with SPEAKER_UNAVAILABLE; readiness race remains under investigation."
+      ]
+    },
+    {
+      "receiver": "vela",
+      "serial": "emulator-5582",
+      "avd": "native_warnings_vela_api34",
+      "source_uid": 10194,
+      "receiver_uid": 10192,
+      "source_apk_sha256": "72cc503223356ecafde51049b66ddb379e16e0eeb497fca1b00afc47aa51d973",
+      "receiver_apk_sha256": "d29fd1a4d4be00848134739c352db296acb0b34e61f851d966bd9b8c122d0c8e",
+      "source_helper_sha256": "ea72e187280cd6597344747954a5a372bba548cc6cfc56c4586659c820af2757",
+      "native_root": [
+        "Lfc0;->J"
+      ],
+      "semantic_message": "Speed cam 50",
+      "native_type": "SPEED_CAM",
+      "native_subtype": "SPEED_50",
+      "language": "en-US",
+      "initial_authority_revision": 1,
+      "spoken_payload_revision": 2,
+      "original_deadline_preserved": true,
+      "issue_to_accept_ms": 1,
+      "accept_to_started_ms": 1876,
+      "issue_to_completed_ms": 3455,
+      "source_ack_outcomes": [
+        "GRANTED",
+        "CANCELLED",
+        "GRANTED",
+        "STARTED",
+        "COMPLETED"
+      ],
+      "provider_managed_mute_verified": true,
+      "provider_native_queue_empty": true,
+      "receiver_preferences_restored_exactly": true,
+      "source_network_and_lease_restored": true,
+      "attached_widget_semantic_text": "Flitsmeister\nSpeed cam 50",
+      "visible_warning_in_captured_png": false,
+      "png_sha256": "0a9609ab24229b4d90cb1ec0a283bc23eded9b6624ff587dcf12fbbbc46ae542",
+      "raw_receiver_result": ".analysis/native-warning-bindings/fm-vela-integration-attempt3/receiver-result.json",
+      "raw_receiver_result_sha256": "221b2d900600054592dd16e5589c7d7aa3a19aa76d42d2a5b04178de054c081d",
+      "raw_source_result": ".analysis/native-warning-bindings/fm-vela-integration-attempt3/source-result.json",
+      "raw_source_result_sha256": "3fc9668b01e5b26ea10ccebcf695971c3c0ddb7b72e626e564e8214dc83af337",
+      "limitations": [
+        "Captured PNG precedes visible warning drawing; attachment/accessibility metadata is insufficient to accept visual placement.",
+        "Startup preparation sample exceeds the idle P1 target; warm-ready timing remains unmeasured."
+      ]
+    }
+  ],
+  "full_acceptance": false
+}

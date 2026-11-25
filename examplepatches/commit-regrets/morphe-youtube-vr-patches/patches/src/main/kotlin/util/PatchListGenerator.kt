@@ -22,8 +22,8 @@ fun main() {
         File("build/libs/").listFiles { file ->
             val fileName = file.name
             !fileName.contains("javadoc") &&
-                    !fileName.contains("sources") &&
-                    fileName.endsWith(".mpp")
+                !fileName.contains("sources") &&
+                fileName.endsWith(".mpp")
         }!!.maxBy { it.lastModified() }!!,
     )
     val loadedPatches = loadPatchesFromJar(patchFiles)
@@ -41,7 +41,7 @@ fun main() {
 }
 
 @Suppress("DEPRECATION")
-private fun generatePatchList(version: String, patches: Set<Patch<*>>) {
+private fun generatePatchList(version: String, patches: Set<Patch>) {
     val listJson = File("../patches-list.json")
 
     val patchesMap = patches.sortedBy { it.name }.map { patch ->
@@ -82,7 +82,7 @@ private fun generatePatchList(version: String, patches: Set<Patch<*>>) {
                     default = option.default,
                     values = option.values,
                 )
-            }
+            },
         )
     }
 
@@ -96,8 +96,8 @@ private fun generatePatchList(version: String, patches: Set<Patch<*>>) {
     jsonObject.addProperty(
         "NOTE",
         "Do NOT manually edit this file. This file is automatically updated when " +
-                "semantic release (release.yml) runs. Manually editing this file can break " +
-                "your releases and break third party tools that use this file."
+            "semantic release (release.yml) runs. Manually editing this file can break " +
+            "your releases and break third party tools that use this file.",
     )
     jsonObject.addProperty("version", version)
     jsonObject.add("patches", gson.toJsonTree(patchesMap))

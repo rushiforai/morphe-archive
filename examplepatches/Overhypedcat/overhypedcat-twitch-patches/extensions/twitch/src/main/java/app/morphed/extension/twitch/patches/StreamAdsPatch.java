@@ -63,7 +63,7 @@ public final class StreamAdsPatch {
 
     /** Handing a playlist to the player failed. */
     public static void deliveryFailed(String url, Throwable t) {
-        Log.e(TAG, "Playlist delivery failed for " + url, t);
+        Log.e(TAG, "Playlist delivery failed for " + app.morphed.extension.twitch.hls.UrlKey.of(url), t);
         DebugLog.log("Playlist delivery failed: " + Log.getStackTraceString(t));
         PROBLEMS.report(Problem.PROCESSING_FAILED, "delivery: " + t);
     }
@@ -187,7 +187,7 @@ public final class StreamAdsPatch {
             if (fakeAd > 0 && AD_BLOCKER.isKnownMediaPlaylist(url)) body = FakeAd.inject(body, fakeAd);
             return AD_BLOCKER.process(url, body);
         } catch (Throwable t) {
-            Log.e(TAG, "Playlist processing failed for " + url, t);
+            Log.e(TAG, "Playlist processing failed for " + app.morphed.extension.twitch.hls.UrlKey.of(url), t);
             DebugLog.log("Playlist processing failed: " + Log.getStackTraceString(t));
             PROBLEMS.report(Problem.PROCESSING_FAILED, t.toString());
             return body;
@@ -248,8 +248,9 @@ public final class StreamAdsPatch {
 
             @Override
             public void onBreakOver() {
+                // No player restart (as Purple AdBlock): the numbering goes on across the break, and a
+                // pause/play would itself stall the stream for a few seconds.
                 INDICATOR.hide();
-                PlayerRefresher.refreshPlayingPlayers();
             }
         };
         return new AdBlocker(backups, logger, System::currentTimeMillis, breaks, PROBLEMS);

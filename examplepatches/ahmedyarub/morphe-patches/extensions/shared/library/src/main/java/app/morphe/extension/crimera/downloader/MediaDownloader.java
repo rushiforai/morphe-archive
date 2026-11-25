@@ -10,8 +10,10 @@ package app.morphe.extension.crimera.downloader;
 import android.app.Notification;
 import android.app.NotificationChannel;
 import android.app.NotificationManager;
+import android.app.PendingIntent;
 import android.database.Cursor;
 import android.content.Context;
+import android.content.Intent;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Handler;
@@ -184,11 +186,14 @@ public class MediaDownloader {
             final int finalNotificationId = notificationId;
             final String finalFileName = request.fileName;
             final String downloadCompletedString = ExtensionStrings.DOWNLOAD_COMPLETED + finalFileName;
+            final PendingIntent openMedia = openMediaIntent(outputDocumentUri, request.fileName, notificationId);
 
             mainHandler.post(() -> {
                 builder.setSmallIcon(android.R.drawable.stat_sys_download_done)
                         .setContentTitle(downloadCompletedString)
                         .setContentText(finalFileName)
+                        .setContentIntent(openMedia)
+                        .setAutoCancel(true)
                         .setOngoing(false) // This unlocks the swipe lock completely
                         .setProgress(0, 0, false); // Wipes the progress track bar layout away entirely
                 // Force post the update layout
@@ -213,6 +218,18 @@ public class MediaDownloader {
             }
             processNext();
         }
+    }
+
+    /**
+     * Opens the saved file in the viewer of the user's choice. The app reaches the file through
+     * its download folder grant, and lends the viewer read access to that one file.
+     */
+    private PendingIntent openMediaIntent(Uri documentUri, String fileName, int requestCode) {
+        Intent view = new Intent(Intent.ACTION_VIEW)
+                .setDataAndType(documentUri, getMimeType(fileName))
+                .addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION | Intent.FLAG_ACTIVITY_NEW_TASK);
+        return PendingIntent.getActivity(context, requestCode, view,
+                PendingIntent.FLAG_IMMUTABLE | PendingIntent.FLAG_UPDATE_CURRENT);
     }
 
     private void showToast(String msg) {

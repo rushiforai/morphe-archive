@@ -20,13 +20,13 @@ private val vBook = Compatibility(
     name = "vBook",
     packageName = "com.vbook.android",
     apkFileType = ApkFileType.XAPK,
-    targets = listOf(AppTarget(version = "1.2.7"), AppTarget(version = "1.2.6"), AppTarget(version = "1.2.5"))
+    targets = listOf(AppTarget(version = "1.2.9"), AppTarget(version = "1.2.7"), AppTarget(version = "1.2.6"), AppTarget(version = "1.2.5"))
 )
 
 @Suppress("unused")
 val premiumPatch = patch(
     name = "Local Premium state",
-    description = "Enable device-side Premium state for the authorized vBook 1.2.5, 1.2.6 and 1.2.7 test builds. Server entitlements are unchanged.",
+    description = "Enable device-side Premium state for the authorized vBook 1.2.5, 1.2.6, 1.2.7 and 1.2.9 test builds. Server entitlements are unchanged.",
     default = true
 ) {
     compatibleWith(vBook)
@@ -42,6 +42,7 @@ val premiumPatch = patch(
             "Le7j;" -> "Lj5j;" to "Lafd;"
             "Le8j;" -> "Lh6j;" to "Lufd;"
             "Lnmj;" -> "Lskj;" to "Lyqd;"
+            "Lenj;" -> "Lilj;" to "Lprd;"
             else -> error("Unexpected UserState class: $userStateType")
         }
         for (type in listOf(userStateType, accountType)) {

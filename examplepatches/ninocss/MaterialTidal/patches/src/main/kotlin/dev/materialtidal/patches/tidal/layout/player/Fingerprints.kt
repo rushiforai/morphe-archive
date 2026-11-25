@@ -103,3 +103,36 @@ internal object PlayQueueTouchCallbackInitFingerprint : Fingerprint(
     name = "<init>",
     returnType = "V",
 )
+
+internal object PlayQueueTouchCallbackOnMoveFingerprint : Fingerprint(
+    definingClass = PLAY_QUEUE_TOUCH_CALLBACK_TYPE,
+    name = "onMove",
+    parameters = listOf(
+        "Landroidx/recyclerview/widget/RecyclerView;",
+        "Landroidx/recyclerview/widget/RecyclerView\$ViewHolder;",
+        "Landroidx/recyclerview/widget/RecyclerView\$ViewHolder;",
+    ),
+    returnType = "Z",
+)
+
+internal object PlayQueueTouchCallbackClearViewFingerprint : Fingerprint(
+    definingClass = PLAY_QUEUE_TOUCH_CALLBACK_TYPE,
+    name = "clearView",
+    parameters = listOf(
+        "Landroidx/recyclerview/widget/RecyclerView;",
+        "Landroidx/recyclerview/widget/RecyclerView\$ViewHolder;",
+    ),
+    returnType = "V",
+)
+
+internal object NavigatorInitFingerprint : Fingerprint(
+    definingClass = "Lzlc;",
+    name = "<init>",
+    returnType = "V",
+)
+
+internal object SleepTimerControllerInitFingerprint : Fingerprint(
+    definingClass = "Lcom/tidal/android/feature/sleeptimer/domain/SleepTimerController;",
+    name = "<init>",
+    returnType = "V",
+)

@@ -6,6 +6,9 @@
  */
 package app.hushpinterest.extension.pinterest.ui;
 
+import android.app.Activity;
+import android.app.Application;
+import android.content.Context;
 import android.content.res.ColorStateList;
 import android.content.res.Configuration;
 import android.graphics.Color;
@@ -13,6 +16,8 @@ import android.graphics.drawable.ColorDrawable;
 import android.graphics.drawable.Drawable;
 import android.graphics.drawable.GradientDrawable;
 import android.graphics.drawable.LayerDrawable;
+import android.os.Bundle;
+import android.os.SystemClock;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.ViewParent;
@@ -31,6 +36,7 @@ import java.util.WeakHashMap;
 
 import app.hushpinterest.extension.pinterest.settings.FamilyNames;
 import app.hushpinterest.extension.pinterest.settings.Settings;
+import app.hushpinterest.extension.pinterest.settings.SettingsStatus;
 import app.hushpinterest.extension.shared.Logger;
 import app.hushpinterest.extension.shared.Utils;
 import app.hushpinterest.extension.shared.diagnostics.HookStatus;
@@ -137,6 +143,113 @@ public final class AmoledBlack {
         } catch (Throwable failure) {
             HookStatus.threw(FamilyNames.AMOLED_BLACK, "bottom bar", failure);
         }
+    }
+
+    /**
+     * How long after Pinterest's main screen starts its window bands are held black while no bottom
+     * bar has drawn. The bar's first frame takes about a second on a Galaxy S25 (#48); a screen
+     * that never shows one, like signing in, gets its gray back after this.
+     */
+    static final long START_HOLD_MS = 5000;
+    private static boolean startWatched;
+    /** Main screens whose bands are held black until their bar draws, so each gets one listener. */
+    private static final Map<View, Boolean> starting = new WeakHashMap<>();
+
+    /**
+     * Called as Pinterest starts. On a cold start the window's navigation bar band and the strip
+     * behind the gesture handle show Pinterest's gray until the bottom bar's first frame paints
+     * them, so the main screen is watched from its start with the bar's switch on.
+     */
+    public static void install(Context context) {
+        try {
+            if (startWatched || !(context instanceof Application) || !SettingsStatus.amoledBlack()) return;
+            ((Application) context).registerActivityLifecycleCallbacks(new StartWatcher());
+            startWatched = true;
+        } catch (Throwable failure) {
+            HookStatus.threw(FamilyNames.AMOLED_BLACK, "main screen start", failure);
+        }
+    }
+
+    /**
+     * Pinterest's main screen is starting. In dark mode with the bar's switch on and no bar in its
+     * window yet, its bands turn black before each frame until the bar draws or the hold runs out.
+     */
+    static void mainScreenStarting(Activity activity) {
+        try {
+            if (activity == null || !"MainActivity".equals(activity.getClass().getSimpleName())) return;
+            View root = activity.getWindow() == null ? null : activity.getWindow().peekDecorView();
+            if (root == null || starting.containsKey(root) || barIn(root)) return;
+            if (!UiHooks.enabled(FamilyNames.AMOLED_BLACK, Settings.BLACK_BOTTOM_BAR) || !night(root)) return;
+            starting.put(root, Boolean.TRUE);
+            root.getViewTreeObserver().addOnPreDrawListener(new StartBand(root));
+        } catch (Throwable failure) {
+            HookStatus.threw(FamilyNames.AMOLED_BLACK, "main screen start", failure);
+        }
+    }
+
+    /** Whether a bottom bar has drawn in this window. */
+    private static boolean barIn(View root) {
+        for (View bar : bars.keySet()) if (bar != null && bar.getRootView() == root) return true;
+        return false;
+    }
+
+    /** Before each frame of a starting main screen: its bands black until the bar takes them over. */
+    private static final class StartBand implements ViewTreeObserver.OnPreDrawListener {
+        private final WeakReference<View> root;
+        private final long until = SystemClock.uptimeMillis() + START_HOLD_MS;
+        private boolean noted;
+
+        StartBand(View root) {
+            this.root = new WeakReference<>(root);
+        }
+
+        @Override public boolean onPreDraw() {
+            View window = root.get();
+            try {
+                if (window == null) return true;
+                if (barIn(window)) {
+                    done(window);
+                    return true;
+                }
+                View band = window.findViewById(android.R.id.navigationBarBackground), strip = stripIn(window);
+                if (SystemClock.uptimeMillis() > until || !UiHooks.enabled(FamilyNames.AMOLED_BLACK, Settings.BLACK_BOTTOM_BAR)) {
+                    paint(band, false);
+                    paint(strip, false);
+                    done(window);
+                    return true;
+                }
+                if (!noted && (band != null || strip != null)) {
+                    noted = true;
+                    String was = band == null ? colorOf(strip) : colorOf(band);
+                    Logger.printDebug(() -> "Main screen starting: navigation band " + was + " painted black until the bar draws");
+                }
+                if (band != null && !showsBlack(band)) paint(band, true);
+                if (strip != null && !showsBlack(strip)) paint(strip, true);
+            } catch (Throwable failure) {
+                HookStatus.threw(FamilyNames.AMOLED_BLACK, "main screen start", failure);
+                if (window != null) done(window);
+            }
+            return true;
+        }
+
+        private void done(View window) {
+            window.getViewTreeObserver().removeOnPreDrawListener(this);
+            starting.remove(window);
+        }
+    }
+
+    /** Hands Pinterest's main screen to [mainScreenStarting] as it starts. */
+    private static final class StartWatcher implements Application.ActivityLifecycleCallbacks {
+        @Override public void onActivityStarted(Activity activity) {
+            mainScreenStarting(activity);
+        }
+
+        @Override public void onActivityCreated(Activity activity, Bundle saved) {}
+        @Override public void onActivityResumed(Activity activity) {}
+        @Override public void onActivityPaused(Activity activity) {}
+        @Override public void onActivityStopped(Activity activity) {}
+        @Override public void onActivitySaveInstanceState(Activity activity, Bundle state) {}
+        @Override public void onActivityDestroyed(Activity activity) {}
     }
 
     /**
@@ -375,6 +488,154 @@ public final class AmoledBlack {
         Logger.printDebug(() -> "Profile filter " + view.getClass().getSimpleName() + " tinted black");
     }
 
+    /** The lightest a channel of a button gray gets over black for Black buttons to take it. */
+    static final int DARK_GRAY_MOST = 0x80;
+    /** How far apart a button gray's channels may be, so red, blue and the rest keep their look. */
+    static final int GRAY_SPREAD = 0x20;
+
+    /**
+     * Called with every Gestalt button right after Pinterest styles it, at the same spot Hide closeup
+     * buttons hands the Save button over, in whichever order the two patches went in (#48). With
+     * Black buttons on in dark mode, a button Pinterest fills with
+     * one of its dark grays, such as Message, Edit profile and Following on a profile, takes that
+     * gray through the levels curve the way the profile filters do, so its fill turns black and its
+     * label stays. Red, white and see-through buttons keep their look, and so does a button wearing
+     * the Save color. Pinterest puts its colors on only when they change, so off, Pause or light mode
+     * give Pinterest's own tint back on the button's next look.
+     */
+    public static void gestaltButton(View button) {
+        try {
+            if (button == null) return;
+            ColorStateList tint = button.getBackgroundTintList();
+            boolean black = UiHooks.enabled(FamilyNames.AMOLED_BLACK, Settings.BLACK_BUTTONS) && night(button);
+            if (tint instanceof LeveledTint) {
+                if (!black) CloseupButtons.tint(button, ((LeveledTint) tint).original);
+                return;
+            }
+            if (!black || tint == null || CloseupButtons.painted(button) || !darkGray(tint.getDefaultColor())) return;
+            CloseupButtons.tint(button, new LeveledTint(tint));
+            HookStatus.counted(FamilyNames.AMOLED_BLACK, "button tinted black");
+        } catch (Throwable failure) {
+            HookStatus.threw(FamilyNames.AMOLED_BLACK, "button", failure);
+        }
+    }
+
+    /**
+     * Called with each of Pinterest's search guides, the chips over search results such as Filter
+     * and the rows of suggested searches, right after Pinterest puts its look on (#48). The chip's
+     * fill is a shape of its own in Pinterest's secondary gray, sometimes under an outline in a
+     * layer. With Black buttons on in dark mode, a fill in one of Pinterest's dark grays turns pure
+     * black ({@link BlackFill}) and the chip's text and icons stay. A picked chip's light fill, a
+     * colored one and a gradient keep their look. Pinterest builds a new shape each time the chip
+     * changes, and off, Pause or light mode give the gray back on its next look.
+     */
+    public static void searchGuide(View guide) {
+        try {
+            if (guide == null) return;
+            Drawable background = guide.getBackground();
+            if (background instanceof LayerDrawable && ((LayerDrawable) background).getNumberOfLayers() > 0)
+                background = ((LayerDrawable) background).getDrawable(0);
+            if (!(background instanceof GradientDrawable)) return;
+            GradientDrawable shape = (GradientDrawable) background;
+            ColorStateList fill = shape.getColor();
+            boolean black = UiHooks.enabled(FamilyNames.AMOLED_BLACK, Settings.BLACK_BUTTONS) && night(guide);
+            if (fill instanceof BlackFill) {
+                if (!black) shape.setColor(((BlackFill) fill).original);
+                return;
+            }
+            if (!black || fill == null || shape.getColors() != null || !darkGray(fill.getDefaultColor())) return;
+            shape.setColor(new BlackFill(fill));
+            HookStatus.counted(FamilyNames.AMOLED_BLACK, "search guide tinted black");
+        } catch (Throwable failure) {
+            HookStatus.threw(FamilyNames.AMOLED_BLACK, "search guide", failure);
+        }
+    }
+
+    /**
+     * Called with the rounded row a suggested search sits on in a "Refine your search" list, its
+     * picture and text inside, right after Pinterest gives the row its background (14.45.0, #48).
+     * The row is a shape in Pinterest's opaque scrim gray (#3A3A36 on a Galaxy S22) loaded from a
+     * resource, which every row shares until one is made its own. With Black buttons on in dark
+     * mode, a fill in one of Pinterest's dark grays turns pure black ({@link BlackFill}) and the
+     * picture and text stay. Pinterest keeps each row and reuses it as the results scroll, so the
+     * row is looked at again on its layout passes, where off, Pause or light mode give the gray back.
+     */
+    public static void searchBubble(View row) {
+        try {
+            if (row == null) return;
+            row.addOnLayoutChangeListener(REPAINT_BUBBLE);
+            paintBubble(row, UiHooks.enabled(FamilyNames.AMOLED_BLACK, Settings.BLACK_BUTTONS) && night(row));
+        } catch (Throwable failure) {
+            HookStatus.threw(FamilyNames.AMOLED_BLACK, "search bubble", failure);
+        }
+    }
+
+    /** A Refine your search row's next layout pass paints it for the switch as it stands. */
+    private static final View.OnLayoutChangeListener REPAINT_BUBBLE =
+            (row, left, top, right, bottom, oldLeft, oldTop, oldRight, oldBottom) -> {
+                try {
+                    paintBubble(row, Utils.settingsReady() && Settings.BLACK_BUTTONS.get() && night(row));
+                } catch (Throwable failure) {
+                    HookStatus.threw(FamilyNames.AMOLED_BLACK, "search bubble layout", failure);
+                }
+            };
+
+    private static void paintBubble(View row, boolean black) {
+        Drawable background = row.getBackground();
+        if (!(background instanceof GradientDrawable)) return;
+        GradientDrawable shape = (GradientDrawable) background;
+        ColorStateList fill = shape.getColor();
+        if (fill instanceof BlackFill) {
+            if (!black) shape.setColor(((BlackFill) fill).original);
+            return;
+        }
+        if (!black || fill == null || shape.getColors() != null || !darkGray(fill.getDefaultColor())) return;
+        // Shapes loaded from one resource share their fill until one is mutated.
+        shape.mutate();
+        shape.setColor(new BlackFill(fill));
+        HookStatus.counted(FamilyNames.AMOLED_BLACK, "search bubble tinted black");
+    }
+
+    /**
+     * Called with the account card at the top of Pinterest's own settings (Your account: your photo,
+     * name, View profile and Share profile) right after Pinterest builds it (14.45.0, #48). The card
+     * is an androidx CardView in Pinterest's subtle gray (#242421 on a Galaxy S22), drawn by
+     * CardView's own rounded shape, which takes a tint, so with Black buttons on in dark mode a
+     * black tint turns the card black and keeps its corners. Its two buttons are Black buttons' own.
+     * The card is looked at again on its layout passes, where off, Pause or light mode give the gray back.
+     */
+    public static void settingsCard(View card) {
+        try {
+            if (card == null) return;
+            card.addOnLayoutChangeListener(REPAINT_SETTINGS_CARD);
+            paintCard(card, UiHooks.enabled(FamilyNames.AMOLED_BLACK, Settings.BLACK_BUTTONS) && night(card));
+        } catch (Throwable failure) {
+            HookStatus.threw(FamilyNames.AMOLED_BLACK, "settings card", failure);
+        }
+    }
+
+    /** The account card's next layout pass paints it for the switch as it stands. */
+    private static final View.OnLayoutChangeListener REPAINT_SETTINGS_CARD =
+            (card, left, top, right, bottom, oldLeft, oldTop, oldRight, oldBottom) -> {
+                try {
+                    paintCard(card, Utils.settingsReady() && Settings.BLACK_BUTTONS.get() && night(card));
+                } catch (Throwable failure) {
+                    HookStatus.threw(FamilyNames.AMOLED_BLACK, "settings card layout", failure);
+                }
+            };
+
+    /**
+     * Whether [color] is one of Pinterest's button grays as it shows over black: next to no color
+     * in it, and no lighter than {@link #DARK_GRAY_MOST}. None at all stays out.
+     */
+    static boolean darkGray(int color) {
+        int alpha = Color.alpha(color);
+        if (alpha == 0) return false;
+        int red = Color.red(color) * alpha / 255, green = Color.green(color) * alpha / 255, blue = Color.blue(color) * alpha / 255;
+        int most = Math.max(red, Math.max(green, blue)), least = Math.min(red, Math.min(green, blue));
+        return most <= DARK_GRAY_MOST && most - least <= GRAY_SPREAD;
+    }
+
     /**
      * [color] as it shows over black, each channel stretched so DARKEST_KEPT and below land on
      * black and white stays white, drawn solid. Pinterest's button gray at night is a light gray at
@@ -392,23 +653,30 @@ public final class AmoledBlack {
     }
 
     /**
-     * Pinterest's tint with each color through the levels curve, state by state: its dark grays
-     * black, a picked button's white still white. Off, Pause or light mode give back [original].
+     * Pinterest's tint with each color through the levels curve, state by state: a picked button's
+     * white still white. Its gray at rest goes pure black when it's one of the dark button grays,
+     * which the curve alone only darkens when it's opaque (14.45.0's #494943 to #0C0C04), and a
+     * pressed or picked color keeps the curve. Off, Pause or light mode give back [original].
      */
     static final class LeveledTint extends ColorStateList {
         final ColorStateList original;
 
         LeveledTint(ColorStateList original) {
-            super(new int[][] {new int[0]}, new int[] {leveled(original.getDefaultColor())});
+            super(new int[][] {new int[0]}, new int[] {atRest(original.getDefaultColor())});
             this.original = original;
         }
 
+        private static int atRest(int color) {
+            return darkGray(color) ? Color.BLACK : leveled(color);
+        }
+
         @Override public int getColorForState(int[] stateSet, int defaultColor) {
-            return leveled(original.getColorForState(stateSet, defaultColor));
+            int color = original.getColorForState(stateSet, defaultColor);
+            return color == original.getDefaultColor() ? atRest(color) : leveled(color);
         }
 
         @Override public int getDefaultColor() {
-            return leveled(original.getDefaultColor());
+            return atRest(original.getDefaultColor());
         }
 
         @Override public boolean isStateful() {
@@ -425,6 +693,45 @@ public final class AmoledBlack {
 
         @Override public ColorStateList withAlpha(int alpha) {
             return new LeveledTint(original.withAlpha(alpha));
+        }
+    }
+
+    /**
+     * A search guide's fill: Pinterest's gray at rest pure black, the way the cards built from the
+     * same secondary gray go, which the levels curve alone only darkens (#494943 to #0C0C04). Any
+     * other state's color goes through the curve. Off, Pause or light mode give back [original].
+     */
+    static final class BlackFill extends ColorStateList {
+        final ColorStateList original;
+
+        BlackFill(ColorStateList original) {
+            super(new int[][] {new int[0]}, new int[] {Color.BLACK});
+            this.original = original;
+        }
+
+        @Override public int getColorForState(int[] stateSet, int defaultColor) {
+            int color = original.getColorForState(stateSet, defaultColor);
+            return color == original.getDefaultColor() ? Color.BLACK : leveled(color);
+        }
+
+        @Override public int getDefaultColor() {
+            return Color.BLACK;
+        }
+
+        @Override public boolean isStateful() {
+            return original.isStateful();
+        }
+
+        @Override public boolean isOpaque() {
+            return true;
+        }
+
+        @Override public int getChangingConfigurations() {
+            return original.getChangingConfigurations();
+        }
+
+        @Override public ColorStateList withAlpha(int alpha) {
+            return new BlackFill(original.withAlpha(alpha));
         }
     }
 

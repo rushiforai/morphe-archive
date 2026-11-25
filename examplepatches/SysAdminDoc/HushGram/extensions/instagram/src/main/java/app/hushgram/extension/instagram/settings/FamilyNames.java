@@ -146,6 +146,7 @@ public final class FamilyNames {
     public static final String EXPAND_CAPTIONS = "Expand captions";
     public static final String FEED_AUDIO_ICON = "Hide the audio icon on posts";
     public static final String FEED_AUTO_SCROLL = "Auto scroll in Home";
+    public static final String BLOCKED_POSTS = "Hide posts when you block someone";
     public static final String HOME_TOP_BAR = "Keep Home's top bar";
     public static final String REEL_DECLUTTER = "Clean up Reels";
     public static final String KEEP_REELS_TOP_BAR = "Keep the Reels top bar";
@@ -199,6 +200,7 @@ public final class FamilyNames {
     public static final String CHAT_REELS = "Swipe through a chat's reels";
     public static final String CHAT_MEDIA_WALK = "Swipe through a chat's photos and posts";
     public static final String CHAT_HISTORY = "Chat history tools";
+    public static final String CHAT_BUTTON_LINKS = "Copy links from chat buttons";
     public static final String PREVIEW_CHATS = "Preview chats";
     public static final String ASK_BEFORE_CALL = "Ask before a call";
     public static final String KINDNESS_REMINDER = "Hide the Community Standards reminder";

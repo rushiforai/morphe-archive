@@ -1,5 +1,5 @@
 {
-  "version": "v0.84.0",
+  "version": "v0.85.0",
   "appNames": {
     "com.zhiliaoapp.musically": "TikTok",
     "com.zhiliaoapp.musically.go": "TikTok Lite"
@@ -223,7 +223,7 @@
     },
     {
       "name": "Advanced downloads",
-      "description": "Adds more ways to save: pick the video quality, save full-size photos, the sound on its own or a photo post as one video, hold a profile picture or story to save it, save a story, a video's cover or a mini drama's episodes from the share sheet, put a save button on the video, and pick videos on a profile grid to save in one run. Starts off. Turn it on in Hushfeed settings > Downloads. The save button's switch is in Feed screen > Buttons on videos.",
+      "description": "Adds more ways to save: pick the video quality, save full-size photos, the sound on its own or a photo post as one video, hold a profile picture or story to save it, save a story, a video's cover or a mini drama's episodes from the share sheet, put a save button on the video, and pick videos on a profile grid to save in one run (or delete your own picked posts). Starts off. Turn it on in Hushfeed settings > Downloads. The save button's switch is in Feed screen > Buttons on videos.",
       "category": "Downloads",
       "use": true,
       "dependencies": [
@@ -569,6 +569,15 @@
         {
           "key": "pick_grid_videos",
           "title": "Default: pick grid videos",
+          "description": null,
+          "required": false,
+          "type": "kotlin.Boolean",
+          "default": false,
+          "values": null
+        },
+        {
+          "key": "delete_picked_posts",
+          "title": "Default: delete picked posts",
           "description": null,
           "required": false,
           "type": "kotlin.Boolean",
@@ -965,6 +974,24 @@
         {
           "key": "liked_jump_to_date",
           "title": "Default: liked jump to date",
+          "description": null,
+          "required": false,
+          "type": "kotlin.Boolean",
+          "default": false,
+          "values": null
+        },
+        {
+          "key": "favorites_jump_to_date",
+          "title": "Default: favorites jump to date",
+          "description": null,
+          "required": false,
+          "type": "kotlin.Boolean",
+          "default": false,
+          "values": null
+        },
+        {
+          "key": "remember_saved_videos",
+          "title": "Default: remember saved videos",
           "description": null,
           "required": false,
           "type": "kotlin.Boolean",
@@ -7383,6 +7410,24 @@
           "values": null
         },
         {
+          "key": "auto_streak_random",
+          "title": "Default: auto streak random",
+          "description": null,
+          "required": false,
+          "type": "kotlin.Boolean",
+          "default": false,
+          "values": null
+        },
+        {
+          "key": "auto_streak_latest_minute",
+          "title": "Default: auto streak latest minute",
+          "description": null,
+          "required": false,
+          "type": "kotlin.Int",
+          "default": 1200,
+          "values": null
+        },
+        {
           "key": "auto_streak_message",
           "title": "Default: auto streak message",
           "description": null,
@@ -7861,7 +7906,7 @@
     },
     {
       "name": "LIVE controls",
-      "description": "Stops a LIVE in the feed from opening by itself after a countdown. It can show a LIVE's exact viewer count and battle scores instead of rounded ones, offer a quality choice and clear screen in more LIVE rooms, and keep your quality pick after TikTok restarts. Starts off. Turn it on in Hushfeed settings > Playback. It also keeps a LIVE in the feed from showing the Service+ row of the LIVE before it (or hides that row altogether), can hide the AI summary on LIVE previews, and can add a Record button to a LIVE room that saves what you watch from when you tap it.",
+      "description": "Stops a LIVE in the feed from opening by itself after a countdown. It can show a LIVE's exact viewer count and battle scores instead of rounded ones, offer a quality choice and clear screen in more LIVE rooms, keep your quality pick after TikTok restarts, and line up the LIVEs you swipe to after one from the Following row in that row's order. Starts off. Turn it on in Hushfeed settings > Playback. It also keeps a LIVE in the feed from showing the Service+ row of the LIVE before it (or hides that row altogether), can hide the AI summary on LIVE previews, and can add a Record button to a LIVE room that saves what you watch from when you tap it.",
       "category": "Playback",
       "use": true,
       "dependencies": [
@@ -7954,6 +7999,15 @@
         {
           "key": "live_running_time",
           "title": "Default: live running time",
+          "description": null,
+          "required": false,
+          "type": "kotlin.Boolean",
+          "default": false,
+          "values": null
+        },
+        {
+          "key": "live_following_row_order",
+          "title": "Default: live following row order",
           "description": null,
           "required": false,
           "type": "kotlin.Boolean",
@@ -12906,7 +12960,7 @@
     },
     {
       "name": "Use system font",
-      "description": "Shows TikTok's text in your phone's own font or in a .ttf or .otf font file you import, instead of TikTok's, and can use your phone's emoji too. Starts off. Turn it on in Hushfeed settings > App, then restart TikTok.",
+      "description": "Shows TikTok's text in your phone's own font, in one of 26 fonts that come with Hushfeed or in a .ttf or .otf font file you import, instead of TikTok's, and can use your phone's emoji too. Starts off. Turn it on in Hushfeed settings > App, then restart TikTok.",
       "category": "Interface",
       "use": true,
       "dependencies": [

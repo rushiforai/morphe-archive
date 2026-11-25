@@ -1,6 +1,5 @@
 {
   "name": "Speedtest",
-  "workflow": "emulator-speedtest.yml",
   "patches": "patches/src/main/kotlin/app/jofslash/patches/speedtest",
   "docs": "docs/speedtest/README.md",
   "readme": {

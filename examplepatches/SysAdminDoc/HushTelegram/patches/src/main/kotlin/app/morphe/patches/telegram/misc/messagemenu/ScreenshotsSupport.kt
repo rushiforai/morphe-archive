@@ -7,10 +7,13 @@ package app.morphe.patches.telegram.misc.messagemenu
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
 import app.morphe.patcher.patch.BytecodePatchContext
 import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod
+import app.morphe.patches.telegram.misc.extension.requireLocals
 import app.morphe.patches.telegram.misc.localcontrols.Mention
 import app.morphe.patches.telegram.misc.localcontrols.classDefsMentioning
 import app.morphe.patches.telegram.misc.localcontrols.controlRef
+import app.morphe.patches.telegram.misc.spoilers.MESSAGE_OBJECT
 import app.morphe.util.call
+import app.morphe.util.names.origParameterTypes
 import app.morphe.util.names.tgClassDefByOrNull
 import com.android.tools.smali.dexlib2.AccessFlags
 import com.android.tools.smali.dexlib2.Opcode
@@ -32,6 +35,8 @@ internal const val SCREENSHOTS = "Lapp/hushtelegram/extension/telegram/misc/Scre
 internal const val SCREENSHOTS_PROTECTED = "$SCREENSHOTS->protectedContent(I)Z"
 internal const val SCREENSHOTS_STORY = "$SCREENSHOTS->storyAllowed(I)Z"
 internal const val SCREENSHOTS_SECRET = "$SCREENSHOTS->secretChat(Ljava/lang/Object;)Ljava/lang/Object;"
+internal const val SCREENSHOTS_TIMED = "$SCREENSHOTS->timedViewer(Landroid/view/WindowManager\$LayoutParams;Ljava/lang/Object;)V"
+internal const val SECRET_VIEWER = "Lorg/telegram/ui/SecretMediaViewer;"
 
 private const val SECURE = 8192
 private const val WINDOW = "Landroid/view/Window;"
@@ -42,6 +47,9 @@ internal const val ENCRYPTED_CHAT = "Lorg/telegram/tgnet/TLRPC\$EncryptedChat;"
 private const val NO_FORWARDS = "Lorg/telegram/tgnet/TLRPC\$Message;->noforwards:Z"
 private const val SURFACE_SECURE = "Landroid/view/SurfaceView;->setSecure(Z)V"
 private const val SELECTABLE = "Landroid/widget/TextView;->setTextIsSelectable(Z)V"
+private const val LAYOUT_PARAMS = "Landroid/view/WindowManager\$LayoutParams;"
+private const val ADD_VIEW = "Landroid/view/ViewManager;->addView(Landroid/view/View;Landroid/view/ViewGroup\$LayoutParams;)V"
+private const val TIMED_CHECK = "$MESSAGE_OBJECT->needDrawBluredPreview()Z"
 
 /**
  * One spot to ask the extension: the answer in [register] is handed over just before instruction [at].
@@ -101,7 +109,7 @@ private fun Method.landings(): Set<Int> {
 }
 
 /** The index the branch at [index] lands on, or null when it is no branch. */
-private fun List<Instruction>.landingOf(index: Int): Int? {
+internal fun List<Instruction>.landingOf(index: Int): Int? {
     val branch = this[index] as? OffsetInstruction ?: return null
     var address = 0
     var from = -1
@@ -286,6 +294,47 @@ private fun Method.conditionsBuilt(reason: String, condition: String): List<Stri
             .firstOrNull { it.opcode == Opcode.NEW_INSTANCE && it.register() == register }
             ?.let { ((it as ReferenceInstruction).reference).toString() }
     }
+}
+
+/** The timed media viewer's opening method and its window's layout params, or why this build has no such spot. */
+internal class TimedViewerPlan(val missing: String?, val method: MutableMethod?, val params: FieldReference?) {
+    /** The window's params and the message go to the extension before anything else runs. */
+    fun apply() {
+        val target = method!!
+        target.requireLocals("Add Repeat to the message menu", 2)
+        target.addInstructions(0, """
+            move-object/from16 v0, p0
+            iget-object v0, v0, $params
+            move-object/from16 v1, p1
+            invoke-static {v0, v1}, $SCREENSHOTS_TIMED
+        """)
+    }
+}
+
+/**
+ * SecretMediaViewer sets FLAG_SECURE once when it's created, and its opening method, the one taking
+ * the message and refusing anything needDrawBluredPreview says no to, adds the window with those
+ * params. The params it reads right before addView are the ones to change.
+ */
+internal fun Method.timedViewerParams(): FieldReference? {
+    if (AccessFlags.STATIC.isSet(accessFlags) || returnType != "V" || origParameterTypes.firstOrNull() != MESSAGE_OBJECT) return null
+    val code = code() ?: return null
+    if (code.none { it.controlRef() == TIMED_CHECK }) return null
+    val add = code.indices.singleOrNull { code[it].controlRef() == ADD_VIEW } ?: return null
+    val call = code[add] as? FiveRegisterInstruction ?: return null
+    val read = code.getOrNull(add - 1) ?: return null
+    if (read.opcode != Opcode.IGET_OBJECT || (read as TwoRegisterInstruction).registerA != call.registerE) return null
+    val field = (read as ReferenceInstruction).reference as? FieldReference ?: return null
+    if (field.type != LAYOUT_PARAMS || field.definingClass != definingClass || 0 in landings()) return null
+    return field
+}
+
+internal fun BytecodePatchContext.resolveTimedViewer(): TimedViewerPlan {
+    fun missing(why: String) = TimedViewerPlan(why, null, null)
+    val viewer = tgClassDefByOrNull(SECRET_VIEWER) ?: return missing("the timed media viewer is gone")
+    val found = viewer.methods.mapNotNull { method -> method.timedViewerParams()?.let { method to it } }
+    val (method, params) = found.singleOrNull() ?: return missing("the timed media viewer's window moved (found ${found.size})")
+    return TimedViewerPlan(null, mutableClassDefBy(method.definingClass).methods.single { it.toString() == method.toString() }, params)
 }
 
 internal fun BytecodePatchContext.resolveScreenshots(): ScreenshotsPlan {

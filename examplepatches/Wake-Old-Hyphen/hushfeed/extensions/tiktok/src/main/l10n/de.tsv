@@ -1737,6 +1737,8 @@ Long-press menu on every post	Menü bei langem Drücken auf jedem Beitrag
 TikTok's hold to speed up	TikToks Halten zum Beschleunigen
 TikTok's background play and Auto scroll	TikToks Hintergrundwiedergabe und automatisches Scrollen
 Post dates in the feed	Beitragsdaten im Feed
+# context: a line of the Account facts sheet, the number of posts the account has
+Posts	Beiträge
 Show exact counts	Genaue Zahlen anzeigen
 Show counts as full numbers, like 1,234,567 instead of 1.2M.	Zeigt Zahlen vollständig an, etwa 1.234.567 statt 1.2M.
 Play SDR instead of HDR	SDR statt HDR abspielen
@@ -3004,7 +3006,9 @@ Find and reopen the videos you liked only on this phone	Videos finden und wieder
 Videos you like on this phone show up here	Videos, die du auf diesem Handy likest, erscheinen hier
 Likes cleared	Likes gelöscht
 Export followers and following	Follower und gefolgte Konten exportieren
-Saves the accounts that follow you, or the ones you follow, as a CSV file in Download/Hushfeed. They're read at about the pace of scrolling the list, up to %1$s at a time.	Speichert die Konten, die dir folgen, oder die, denen du folgst, als CSV-Datei in Download/Hushfeed. Sie werden etwa so schnell gelesen, wie man durch die Liste scrollt, bis zu %1$s auf einmal.
+Saves the accounts that follow you, or the ones you follow, as a CSV, JSON or plain text file in Download/Hushfeed. They're read at about the pace of scrolling the list, up to %1$s at a time.	Speichert die Konten, die dir folgen, oder die, denen du folgst, als CSV-, JSON- oder Textdatei in Download/Hushfeed. Sie werden etwa so schnell gelesen, wie man durch die Liste scrollt, bis zu %1$s auf einmal.
+# context: a file type on the Export followers and following list, as in "Followers (Plain text)"
+Plain text	Einfacher Text
 A list is already being read	Es wird schon eine Liste gelesen
 Reading your followers (%1$s)	Deine Follower werden gelesen (%1$s)
 Reading who you follow (%1$s)	Konten, denen du folgst, werden gelesen (%1$s)
@@ -3142,7 +3146,7 @@ Gives each video on profile grids rounded corners, on your own profile and on Li
 Gifter level	Gifter-Level
 SecUID	SecUID
 Unknown (TikTok didn't send it)	Unbekannt (TikTok hat es nicht geschickt)
-A profile's share sheet gets an Account facts button. It shows what TikTok already sent about the account: when it joined, its region and language, its gifter level and SecUID, when its username and display name last changed, whether it's private and whether its liked videos are public. Nothing extra is fetched.	Das Teilen-Menü eines Profils bekommt eine Schaltfläche Kontofakten. Sie zeigt, was TikTok über das Konto ohnehin geschickt hat: wann es beigetreten ist, Region und Sprache, Gifter-Level und SecUID, wann Nutzername und Anzeigename zuletzt geändert wurden, ob es privat ist und ob die gelikten Videos öffentlich sind. Es wird nichts zusätzlich abgerufen.
+A profile's share sheet gets an Account facts button. It shows what TikTok already sent about the account: when it joined, its region and language, its gifter level and SecUID, how many posts, liked videos, favorites and reposts it has, when its username and display name last changed, whether it's private and whether its liked videos are public. Nothing extra is fetched.	Das Teilen-Menü eines Profils bekommt eine Schaltfläche Kontofakten. Sie zeigt, was TikTok über das Konto ohnehin geschickt hat: wann es beigetreten ist, Region und Sprache, Gifter-Level und SecUID, wie viele Beiträge, gelikte Videos, Favoriten und Reposts es hat, wann Nutzername und Anzeigename zuletzt geändert wurden, ob es privat ist und ob die gelikten Videos öffentlich sind. Es wird nichts zusätzlich abgerufen.
 # context: LIVE controls: a small line in a LIVE room with the room ID and the viewer's own connection (ping, latency, download speed) from TikTok's player; a tap copies the room ID
 Show the room ID and your connection	Raum-ID und deine Verbindung zeigen
 Adds a small line to LIVE rooms with the room's ID and how your own connection to the stream is doing, as TikTok's player measures it: ping, latency and download speed. Tap the line to copy the room ID.	Zeigt in LIVE-Räumen eine kleine Zeile mit der Raum-ID und dem Zustand deiner eigenen Verbindung zum Stream, so wie der Player von TikTok sie misst: Ping, Latenz und Download-Geschwindigkeit. Tippe auf die Zeile, um die Raum-ID zu kopieren.
@@ -3220,3 +3224,28 @@ Random time each day	Jeden Tag eine zufällige Uhrzeit
 Sends at a different time each day, somewhere between When to send and Latest time.	Sendet jeden Tag zu einer anderen Uhrzeit, irgendwann zwischen „Wann senden“ und „Spätestens um“.
 Latest time	Spätestens um
 The end of the random window, on the same day as When to send. If it isn't later, the message goes at When to send.	Das Ende des Zufallsfensters, am selben Tag wie „Wann senden“. Liegt es nicht später, geht die Nachricht zur Uhrzeit von „Wann senden“ raus.
+# context: Jump to a date on Favorites grids (#508): the Favorites tab holds the videos you saved with the bookmark icon
+Jump to a date on Favorites grids	In Favoriten-Rastern zu einem Datum springen
+Adds a button to the Favorites grid's top corner that starts your saved videos at a year or month you pick, so older saves load without scrolling past newer ones. Pick Newest saves there to go back.	Fügt oben in der Ecke des Favoriten-Rasters eine Schaltfläche hinzu, die deine gespeicherten Videos bei einem gewählten Jahr oder Monat beginnen lässt, damit ältere laden, ohne an neueren vorbeizuscrollen. Wähle dort Neueste Favoriten, um zurückzukehren.
+Newest saves	Neueste Favoriten
+# context: App > Use system font: fonts that come with Hushfeed (#487); a picked one becomes the imported font
+Pick a built-in font	Mitgelieferte Schrift wählen
+Pick one of %1$s fonts that come with Hushfeed. Each is shown in its own style.	Wähle eine von %1$s Schriften, die bei Hushfeed dabei sind. Jede wird in ihrem eigenen Stil gezeigt.
+Built-in fonts	Mitgelieferte Schriften
+Delete	Löschen
+Delete your picked posts	Deine ausgewählten Beiträge löschen
+Adds a trash button to the picking bar while every picked post is your own. It counts down from 5 so you can stop it, then deletes them from your account one at a time. A deleted post can't be brought back.	Fügt der Auswahlleiste einen Papierkorb-Knopf hinzu, solange jeder ausgewählte Beitrag dein eigener ist. Es zählt von 5 herunter, damit du es stoppen kannst, und löscht sie dann einen nach dem anderen aus deinem Konto. Ein gelöschter Beitrag lässt sich nicht wiederherstellen.
+Posts to delete: %1$d. Starting in %2$d	Zu löschende Beiträge: %1$d. Start in %2$d
+Posts deleted: %1$d of %2$d	Gelöschte Beiträge: %1$d von %2$d
+Swipe LIVEs in your Following row's order	LIVEs in der Reihenfolge der „Gefolgt“-Leiste wischen
+After a LIVE you open from the row at the top of Following, swiping takes you through the row's other LIVEs in the order they sit there, starting with the next one. TikTok's own picks come after them.	Nach einem LIVE, das du aus der Leiste oben bei „Gefolgt“ öffnest, führt dich Wischen durch die anderen LIVEs dieser Leiste in ihrer Reihenfolge, beginnend mit dem nächsten. TikToks eigene Vorschläge kommen danach.
+Remember saved videos	Gespeicherte Videos merken
+Keeps the cover, creator, caption and post date of each video in your Favorites on this phone as the grid loads it. If one is later deleted or made private, its tile shows the kept cover and creator instead of a grey box, and a tap shows the rest. Videos that were already gone can't be recovered.	Behält Titelbild, Ersteller, Beschreibung und Veröffentlichungsdatum jedes Videos in deinen Favoriten auf diesem Handy, sobald das Raster es lädt. Wird eines später gelöscht oder auf privat gestellt, zeigt seine Kachel statt eines grauen Felds das behaltene Titelbild und den Ersteller, und ein Tippen zeigt den Rest. Videos, die schon vorher verschwunden waren, lassen sich nicht zurückholen.
+Unavailable saved videos	Nicht verfügbare gespeicherte Videos
+See the saved videos that went away after Hushfeed remembered them	Zeigt die gespeicherten Videos, die verschwunden sind, nachdem Hushfeed sie sich gemerkt hat
+Saved videos that go away show up here	Gespeicherte Videos, die verschwinden, erscheinen hier
+Unavailable saved videos cleared	Nicht verfügbare Videos geleert
+Unavailable saved video	Nicht verfügbares gespeichertes Video
+Posted %1$s	Gepostet am %1$s
+Remembered %1$s	Gemerkt am %1$s
+Unavailable since %1$s	Nicht verfügbar seit %1$s

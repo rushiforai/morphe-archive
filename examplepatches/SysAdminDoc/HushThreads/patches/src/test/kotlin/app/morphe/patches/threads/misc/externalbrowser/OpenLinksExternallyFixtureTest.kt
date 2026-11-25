@@ -25,6 +25,7 @@ import com.android.tools.smali.dexlib2.iface.instruction.TwoRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.reference.FieldReference
 import com.android.tools.smali.dexlib2.iface.reference.MethodReference
 import com.android.tools.smali.dexlib2.iface.reference.StringReference
+import com.android.tools.smali.dexlib2.util.MethodUtil
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertThrows
 import org.junit.Assert.assertTrue
@@ -103,7 +104,8 @@ class OpenLinksExternallyFixtureTest {
                 )
                 val self = patched[0] as TwoRegisterInstruction
                 assertEquals(where, 2, self.registerA)
-                assertEquals(where, registers - 1, self.registerB)
+                // `this` sits below the parameters: 456's launcher takes a boolean.
+                assertEquals(where, registers - MethodUtil.getParameterRegisterCount(launcher), self.registerB)
                 val contextRead = patched[1] as TwoRegisterInstruction
                 assertEquals(where, 0, contextRead.registerA)
                 assertEquals(where, 2, contextRead.registerB)

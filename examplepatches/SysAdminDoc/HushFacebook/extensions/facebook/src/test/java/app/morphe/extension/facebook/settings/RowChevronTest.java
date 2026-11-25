@@ -74,12 +74,12 @@ public class RowChevronTest {
             "Video subfolder", "Photo subfolder",
             "Video file name", "Photo file name", "When you tap Download", "App to send to", "Share sheet items to hide", "Supported links", "Meta App Manager", "Messenger", "Instagram",
             "Quiet hours start", "Quiet hours end", "Lock after", "In-app proxy", "Burn-in guard", "Dim after", "Dim to", "Back to Clean mode", "Show the post date as", "Box darkness",
+            "Chat background", "Last chat's background",
             "Friends shown", "Followers shown", "Following shown", "Round picture size",
             "Bar opacity", "Tab bar width", "Tab bar height", "Refresh rate", "3-dot menu items to hide",
             "Ads in the feed", "Ads on profiles", "Ads in Stories", "Ads in Reels", "Ads in search results",
             "Ads in Marketplace", "Ads in Instant Games", "Usage statistics uploads", "Reel watch history", "Text size", "Accent color", "Badge color", "Logo color", "Selected tab color","Hide posts with more reactions than",
             "Export settings", "Import settings",
-            "Pick an app icon",
             "Export diagnostic report", "Facebook's Whitehat settings", "Mark new settings", "Source code and issues", "Licenses"));
 
     /** Built by the first show(), after a test has set the text size it wants. */

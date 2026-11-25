@@ -16,7 +16,7 @@
       ],
       "compatiblePackages": {
         "com.instagram.android": [
-          "456.1.0.56.78"
+          "457.0.0.55.73"
         ]
       },
       "compatibility": [
@@ -31,13 +31,12 @@
           ],
           "targets": [
             {
-              "version": "456.1.0.56.78",
+              "version": "457.0.0.55.73",
               "experimental": false,
               "versionCodes": {
-                "ARM64_V8A": 386215122,
-                "ARMEABI_V7A": 386215121,
-                "X86": 386215123,
-                "X86_64": 386215124
+                "ARM64_V8A": 386314341,
+                "ARMEABI_V7A": 386314340,
+                "X86_64": 386314286
               }
             }
           ]
@@ -56,7 +55,7 @@
       ],
       "compatiblePackages": {
         "com.instagram.android": [
-          "456.1.0.56.78"
+          "457.0.0.55.73"
         ]
       },
       "compatibility": [
@@ -71,13 +70,12 @@
           ],
           "targets": [
             {
-              "version": "456.1.0.56.78",
+              "version": "457.0.0.55.73",
               "experimental": false,
               "versionCodes": {
-                "ARM64_V8A": 386215122,
-                "ARMEABI_V7A": 386215121,
-                "X86": 386215123,
-                "X86_64": 386215124
+                "ARM64_V8A": 386314341,
+                "ARMEABI_V7A": 386314340,
+                "X86_64": 386314286
               }
             }
           ]
@@ -96,7 +94,7 @@
       ],
       "compatiblePackages": {
         "com.instagram.android": [
-          "456.1.0.56.78"
+          "457.0.0.55.73"
         ]
       },
       "compatibility": [
@@ -111,13 +109,12 @@
           ],
           "targets": [
             {
-              "version": "456.1.0.56.78",
+              "version": "457.0.0.55.73",
               "experimental": false,
               "versionCodes": {
-                "ARM64_V8A": 386215122,
-                "ARMEABI_V7A": 386215121,
-                "X86": 386215123,
-                "X86_64": 386215124
+                "ARM64_V8A": 386314341,
+                "ARMEABI_V7A": 386314340,
+                "X86_64": 386314286
               }
             }
           ]
@@ -136,7 +133,7 @@
       ],
       "compatiblePackages": {
         "com.instagram.android": [
-          "456.1.0.56.78"
+          "457.0.0.55.73"
         ]
       },
       "compatibility": [
@@ -151,13 +148,12 @@
           ],
           "targets": [
             {
-              "version": "456.1.0.56.78",
+              "version": "457.0.0.55.73",
               "experimental": false,
               "versionCodes": {
-                "ARM64_V8A": 386215122,
-                "ARMEABI_V7A": 386215121,
-                "X86": 386215123,
-                "X86_64": 386215124
+                "ARM64_V8A": 386314341,
+                "ARMEABI_V7A": 386314340,
+                "X86_64": 386314286
               }
             }
           ]
@@ -176,7 +172,7 @@
       ],
       "compatiblePackages": {
         "com.instagram.android": [
-          "456.1.0.56.78"
+          "457.0.0.55.73"
         ]
       },
       "compatibility": [
@@ -191,13 +187,12 @@
           ],
           "targets": [
             {
-              "version": "456.1.0.56.78",
+              "version": "457.0.0.55.73",
               "experimental": false,
               "versionCodes": {
-                "ARM64_V8A": 386215122,
-                "ARMEABI_V7A": 386215121,
-                "X86": 386215123,
-                "X86_64": 386215124
+                "ARM64_V8A": 386314341,
+                "ARMEABI_V7A": 386314340,
+                "X86_64": 386314286
               }
             }
           ]
@@ -216,7 +211,7 @@
       ],
       "compatiblePackages": {
         "com.instagram.android": [
-          "456.1.0.56.78"
+          "457.0.0.55.73"
         ]
       },
       "compatibility": [
@@ -231,13 +226,12 @@
           ],
           "targets": [
             {
-              "version": "456.1.0.56.78",
+              "version": "457.0.0.55.73",
               "experimental": false,
               "versionCodes": {
-                "ARM64_V8A": 386215122,
-                "ARMEABI_V7A": 386215121,
-                "X86": 386215123,
-                "X86_64": 386215124
+                "ARM64_V8A": 386314341,
+                "ARMEABI_V7A": 386314340,
+                "X86_64": 386314286
               }
             }
           ]
@@ -256,7 +250,7 @@
       ],
       "compatiblePackages": {
         "com.instagram.android": [
-          "456.1.0.56.78"
+          "457.0.0.55.73"
         ]
       },
       "compatibility": [
@@ -271,13 +265,12 @@
           ],
           "targets": [
             {
-              "version": "456.1.0.56.78",
+              "version": "457.0.0.55.73",
               "experimental": false,
               "versionCodes": {
-                "ARM64_V8A": 386215122,
-                "ARMEABI_V7A": 386215121,
-                "X86": 386215123,
-                "X86_64": 386215124
+                "ARM64_V8A": 386314341,
+                "ARMEABI_V7A": 386314340,
+                "X86_64": 386314286
               }
             }
           ]
@@ -296,7 +289,7 @@
       ],
       "compatiblePackages": {
         "com.instagram.android": [
-          "456.1.0.56.78"
+          "457.0.0.55.73"
         ]
       },
       "compatibility": [
@@ -311,13 +304,12 @@
           ],
           "targets": [
             {
-              "version": "456.1.0.56.78",
+              "version": "457.0.0.55.73",
               "experimental": false,
               "versionCodes": {
-                "ARM64_V8A": 386215122,
-                "ARMEABI_V7A": 386215121,
-                "X86": 386215123,
-                "X86_64": 386215124
+                "ARM64_V8A": 386314341,
+                "ARMEABI_V7A": 386314340,
+                "X86_64": 386314286
               }
             }
           ]
@@ -336,7 +328,7 @@
       ],
       "compatiblePackages": {
         "com.instagram.android": [
-          "456.1.0.56.78"
+          "457.0.0.55.73"
         ]
       },
       "compatibility": [
@@ -351,13 +343,12 @@
           ],
           "targets": [
             {
-              "version": "456.1.0.56.78",
+              "version": "457.0.0.55.73",
               "experimental": false,
               "versionCodes": {
-                "ARM64_V8A": 386215122,
-                "ARMEABI_V7A": 386215121,
-                "X86": 386215123,
-                "X86_64": 386215124
+                "ARM64_V8A": 386314341,
+                "ARMEABI_V7A": 386314340,
+                "X86_64": 386314286
               }
             }
           ]
@@ -376,7 +367,7 @@
       ],
       "compatiblePackages": {
         "com.instagram.android": [
-          "456.1.0.56.78"
+          "457.0.0.55.73"
         ]
       },
       "compatibility": [
@@ -391,13 +382,12 @@
           ],
           "targets": [
             {
-              "version": "456.1.0.56.78",
+              "version": "457.0.0.55.73",
               "experimental": false,
               "versionCodes": {
-                "ARM64_V8A": 386215122,
-                "ARMEABI_V7A": 386215121,
-                "X86": 386215123,
-                "X86_64": 386215124
+                "ARM64_V8A": 386314341,
+                "ARMEABI_V7A": 386314340,
+                "X86_64": 386314286
               }
             }
           ]
@@ -416,7 +406,7 @@
       ],
       "compatiblePackages": {
         "com.instagram.android": [
-          "456.1.0.56.78"
+          "457.0.0.55.73"
         ]
       },
       "compatibility": [
@@ -431,13 +421,12 @@
           ],
           "targets": [
             {
-              "version": "456.1.0.56.78",
+              "version": "457.0.0.55.73",
               "experimental": false,
               "versionCodes": {
-                "ARM64_V8A": 386215122,
-                "ARMEABI_V7A": 386215121,
-                "X86": 386215123,
-                "X86_64": 386215124
+                "ARM64_V8A": 386314341,
+                "ARMEABI_V7A": 386314340,
+                "X86_64": 386314286
               }
             }
           ]
@@ -456,7 +445,7 @@
       ],
       "compatiblePackages": {
         "com.instagram.android": [
-          "456.1.0.56.78"
+          "457.0.0.55.73"
         ]
       },
       "compatibility": [
@@ -471,13 +460,12 @@
           ],
           "targets": [
             {
-              "version": "456.1.0.56.78",
+              "version": "457.0.0.55.73",
               "experimental": false,
               "versionCodes": {
-                "ARM64_V8A": 386215122,
-                "ARMEABI_V7A": 386215121,
-                "X86": 386215123,
-                "X86_64": 386215124
+                "ARM64_V8A": 386314341,
+                "ARMEABI_V7A": 386314340,
+                "X86_64": 386314286
               }
             }
           ]
@@ -496,7 +484,7 @@
       ],
       "compatiblePackages": {
         "com.instagram.android": [
-          "456.1.0.56.78"
+          "457.0.0.55.73"
         ]
       },
       "compatibility": [
@@ -511,13 +499,12 @@
           ],
           "targets": [
             {
-              "version": "456.1.0.56.78",
+              "version": "457.0.0.55.73",
               "experimental": false,
               "versionCodes": {
-                "ARM64_V8A": 386215122,
-                "ARMEABI_V7A": 386215121,
-                "X86": 386215123,
-                "X86_64": 386215124
+                "ARM64_V8A": 386314341,
+                "ARMEABI_V7A": 386314340,
+                "X86_64": 386314286
               }
             }
           ]
@@ -536,7 +523,7 @@
       ],
       "compatiblePackages": {
         "com.instagram.android": [
-          "456.1.0.56.78"
+          "457.0.0.55.73"
         ]
       },
       "compatibility": [
@@ -551,13 +538,12 @@
           ],
           "targets": [
             {
-              "version": "456.1.0.56.78",
+              "version": "457.0.0.55.73",
               "experimental": false,
               "versionCodes": {
-                "ARM64_V8A": 386215122,
-                "ARMEABI_V7A": 386215121,
-                "X86": 386215123,
-                "X86_64": 386215124
+                "ARM64_V8A": 386314341,
+                "ARMEABI_V7A": 386314340,
+                "X86_64": 386314286
               }
             }
           ]
@@ -576,7 +562,7 @@
       ],
       "compatiblePackages": {
         "com.instagram.android": [
-          "456.1.0.56.78"
+          "457.0.0.55.73"
         ]
       },
       "compatibility": [
@@ -591,13 +577,12 @@
           ],
           "targets": [
             {
-              "version": "456.1.0.56.78",
+              "version": "457.0.0.55.73",
               "experimental": false,
               "versionCodes": {
-                "ARM64_V8A": 386215122,
-                "ARMEABI_V7A": 386215121,
-                "X86": 386215123,
-                "X86_64": 386215124
+                "ARM64_V8A": 386314341,
+                "ARMEABI_V7A": 386314340,
+                "X86_64": 386314286
               }
             }
           ]
@@ -616,7 +601,7 @@
       ],
       "compatiblePackages": {
         "com.instagram.android": [
-          "456.1.0.56.78"
+          "457.0.0.55.73"
         ]
       },
       "compatibility": [
@@ -631,13 +616,12 @@
           ],
           "targets": [
             {
-              "version": "456.1.0.56.78",
+              "version": "457.0.0.55.73",
               "experimental": false,
               "versionCodes": {
-                "ARM64_V8A": 386215122,
-                "ARMEABI_V7A": 386215121,
-                "X86": 386215123,
-                "X86_64": 386215124
+                "ARM64_V8A": 386314341,
+                "ARMEABI_V7A": 386314340,
+                "X86_64": 386314286
               }
             }
           ]
@@ -656,7 +640,7 @@
       ],
       "compatiblePackages": {
         "com.instagram.android": [
-          "456.1.0.56.78"
+          "457.0.0.55.73"
         ]
       },
       "compatibility": [
@@ -671,13 +655,12 @@
           ],
           "targets": [
             {
-              "version": "456.1.0.56.78",
+              "version": "457.0.0.55.73",
               "experimental": false,
               "versionCodes": {
-                "ARM64_V8A": 386215122,
-                "ARMEABI_V7A": 386215121,
-                "X86": 386215123,
-                "X86_64": 386215124
+                "ARM64_V8A": 386314341,
+                "ARMEABI_V7A": 386314340,
+                "X86_64": 386314286
               }
             }
           ]
@@ -696,7 +679,7 @@
       ],
       "compatiblePackages": {
         "com.instagram.android": [
-          "456.1.0.56.78"
+          "457.0.0.55.73"
         ]
       },
       "compatibility": [
@@ -711,13 +694,12 @@
           ],
           "targets": [
             {
-              "version": "456.1.0.56.78",
+              "version": "457.0.0.55.73",
               "experimental": false,
               "versionCodes": {
-                "ARM64_V8A": 386215122,
-                "ARMEABI_V7A": 386215121,
-                "X86": 386215123,
-                "X86_64": 386215124
+                "ARM64_V8A": 386314341,
+                "ARMEABI_V7A": 386314340,
+                "X86_64": 386314286
               }
             }
           ]
@@ -736,7 +718,7 @@
       ],
       "compatiblePackages": {
         "com.instagram.android": [
-          "456.1.0.56.78"
+          "457.0.0.55.73"
         ]
       },
       "compatibility": [
@@ -751,13 +733,12 @@
           ],
           "targets": [
             {
-              "version": "456.1.0.56.78",
+              "version": "457.0.0.55.73",
               "experimental": false,
               "versionCodes": {
-                "ARM64_V8A": 386215122,
-                "ARMEABI_V7A": 386215121,
-                "X86": 386215123,
-                "X86_64": 386215124
+                "ARM64_V8A": 386314341,
+                "ARMEABI_V7A": 386314340,
+                "X86_64": 386314286
               }
             }
           ]
@@ -776,7 +757,7 @@
       ],
       "compatiblePackages": {
         "com.instagram.android": [
-          "456.1.0.56.78"
+          "457.0.0.55.73"
         ]
       },
       "compatibility": [
@@ -791,13 +772,12 @@
           ],
           "targets": [
             {
-              "version": "456.1.0.56.78",
+              "version": "457.0.0.55.73",
               "experimental": false,
               "versionCodes": {
-                "ARM64_V8A": 386215122,
-                "ARMEABI_V7A": 386215121,
-                "X86": 386215123,
-                "X86_64": 386215124
+                "ARM64_V8A": 386314341,
+                "ARMEABI_V7A": 386314340,
+                "X86_64": 386314286
               }
             }
           ]
@@ -807,7 +787,7 @@
     },
     {
       "name": "Clean up Reels",
-      "description": "Hides extra buttons and prompts on reels, such as Follow, Edits, templates, Meta AI, Ray-Ban Meta glasses, friends' activity, the Add a comment bar, the reply bar on reels from chats, the Like, Comment and Save buttons, the count under any of the buttons beside a reel, the pause icon on a paused reel, the Create and Your algorithm buttons, the Friends tab and the Reels tab's top bar. Each one has its own switch, and Burn-in guard can dim a reel's buttons, and a story's, while you aren't touching the screen. Keep clear mode on carries Instagram's clear mode to the next reels, and can start every reel in it. Pinch for clear mode turns clear mode on and off with two fingers, and can hide the button that leaves it. Starts off. Turn it on in HushGram settings > Reels.",
+      "description": "Hides extra buttons and prompts on reels, such as Follow, Edits, templates, Meta AI, Ray-Ban Meta glasses, friends' activity, the Add a comment bar, the reply bar on reels from chats, the Like, Comment, Save and More buttons, the count under any of the buttons beside a reel, the pause icon on a paused reel, the Create and Your algorithm buttons, the Friends tab and the Reels tab's top bar. Each one has its own switch, and Burn-in guard can dim a reel's buttons, and a story's, while you aren't touching the screen. Keep clear mode on carries Instagram's clear mode to the next reels, and can start every reel in it. Pinch for clear mode turns clear mode on and off with two fingers, and can hide the button that leaves it. Starts off. Turn it on in HushGram settings > Reels.",
       "category": "Reels",
       "use": true,
       "dependencies": [
@@ -816,7 +796,7 @@
       ],
       "compatiblePackages": {
         "com.instagram.android": [
-          "456.1.0.56.78"
+          "457.0.0.55.73"
         ]
       },
       "compatibility": [
@@ -831,13 +811,12 @@
           ],
           "targets": [
             {
-              "version": "456.1.0.56.78",
+              "version": "457.0.0.55.73",
               "experimental": false,
               "versionCodes": {
-                "ARM64_V8A": 386215122,
-                "ARMEABI_V7A": 386215121,
-                "X86": 386215123,
-                "X86_64": 386215124
+                "ARM64_V8A": 386314341,
+                "ARMEABI_V7A": 386314340,
+                "X86_64": 386314286
               }
             }
           ]
@@ -856,7 +835,7 @@
       ],
       "compatiblePackages": {
         "com.instagram.android": [
-          "456.1.0.56.78"
+          "457.0.0.55.73"
         ]
       },
       "compatibility": [
@@ -871,13 +850,12 @@
           ],
           "targets": [
             {
-              "version": "456.1.0.56.78",
+              "version": "457.0.0.55.73",
               "experimental": false,
               "versionCodes": {
-                "ARM64_V8A": 386215122,
-                "ARMEABI_V7A": 386215121,
-                "X86": 386215123,
-                "X86_64": 386215124
+                "ARM64_V8A": 386314341,
+                "ARMEABI_V7A": 386314340,
+                "X86_64": 386314286
               }
             }
           ]
@@ -896,7 +874,7 @@
       ],
       "compatiblePackages": {
         "com.instagram.android": [
-          "456.1.0.56.78"
+          "457.0.0.55.73"
         ]
       },
       "compatibility": [
@@ -911,13 +889,12 @@
           ],
           "targets": [
             {
-              "version": "456.1.0.56.78",
+              "version": "457.0.0.55.73",
               "experimental": false,
               "versionCodes": {
-                "ARM64_V8A": 386215122,
-                "ARMEABI_V7A": 386215121,
-                "X86": 386215123,
-                "X86_64": 386215124
+                "ARM64_V8A": 386314341,
+                "ARMEABI_V7A": 386314340,
+                "X86_64": 386314286
               }
             }
           ]
@@ -936,7 +913,7 @@
       ],
       "compatiblePackages": {
         "com.instagram.android": [
-          "456.1.0.56.78"
+          "457.0.0.55.73"
         ]
       },
       "compatibility": [
@@ -951,13 +928,12 @@
           ],
           "targets": [
             {
-              "version": "456.1.0.56.78",
+              "version": "457.0.0.55.73",
               "experimental": false,
               "versionCodes": {
-                "ARM64_V8A": 386215122,
-                "ARMEABI_V7A": 386215121,
-                "X86": 386215123,
-                "X86_64": 386215124
+                "ARM64_V8A": 386314341,
+                "ARMEABI_V7A": 386314340,
+                "X86_64": 386314286
               }
             }
           ]
@@ -976,7 +952,7 @@
       ],
       "compatiblePackages": {
         "com.instagram.android": [
-          "456.1.0.56.78"
+          "457.0.0.55.73"
         ]
       },
       "compatibility": [
@@ -991,13 +967,51 @@
           ],
           "targets": [
             {
-              "version": "456.1.0.56.78",
+              "version": "457.0.0.55.73",
               "experimental": false,
               "versionCodes": {
-                "ARM64_V8A": 386215122,
-                "ARMEABI_V7A": 386215121,
-                "X86": 386215123,
-                "X86_64": 386215124
+                "ARM64_V8A": 386314341,
+                "ARMEABI_V7A": 386314340,
+                "X86_64": 386314286
+              }
+            }
+          ]
+        }
+      ],
+      "options": []
+    },
+    {
+      "name": "Copy links from chat buttons",
+      "description": "Adds Copy link to the menu you get when you hold a chat message with link buttons, like the ones automated accounts send. It copies where a button goes without opening it. Starts off. Turn it on in HushGram settings > Messages.",
+      "category": "Downloads",
+      "use": true,
+      "dependencies": [
+        "BytecodePatch",
+        "HushGram settings"
+      ],
+      "compatiblePackages": {
+        "com.instagram.android": [
+          "457.0.0.55.73"
+        ]
+      },
+      "compatibility": [
+        {
+          "name": "Instagram",
+          "packageName": "com.instagram.android",
+          "description": null,
+          "appIconColor": 14757996,
+          "signatures": [
+            "3a10c50c18ba937506c2875e9047be74f8fd8b86fae2ff9feaa50a81fcb4c014",
+            "5f3e50f435583c9ae626302a71f7340044087a7e2c60adacfc254205a993e305"
+          ],
+          "targets": [
+            {
+              "version": "457.0.0.55.73",
+              "experimental": false,
+              "versionCodes": {
+                "ARM64_V8A": 386314341,
+                "ARMEABI_V7A": 386314340,
+                "X86_64": 386314286
               }
             }
           ]
@@ -1018,7 +1032,7 @@
       ],
       "compatiblePackages": {
         "com.instagram.android": [
-          "456.1.0.56.78"
+          "457.0.0.55.73"
         ]
       },
       "compatibility": [
@@ -1033,13 +1047,12 @@
           ],
           "targets": [
             {
-              "version": "456.1.0.56.78",
+              "version": "457.0.0.55.73",
               "experimental": false,
               "versionCodes": {
-                "ARM64_V8A": 386215122,
-                "ARMEABI_V7A": 386215121,
-                "X86": 386215123,
-                "X86_64": 386215124
+                "ARM64_V8A": 386314341,
+                "ARMEABI_V7A": 386314340,
+                "X86_64": 386314286
               }
             }
           ]
@@ -1058,7 +1071,7 @@
       ],
       "compatiblePackages": {
         "com.instagram.android": [
-          "456.1.0.56.78"
+          "457.0.0.55.73"
         ]
       },
       "compatibility": [
@@ -1073,13 +1086,12 @@
           ],
           "targets": [
             {
-              "version": "456.1.0.56.78",
+              "version": "457.0.0.55.73",
               "experimental": false,
               "versionCodes": {
-                "ARM64_V8A": 386215122,
-                "ARMEABI_V7A": 386215121,
-                "X86": 386215123,
-                "X86_64": 386215124
+                "ARM64_V8A": 386314341,
+                "ARMEABI_V7A": 386314340,
+                "X86_64": 386314286
               }
             }
           ]
@@ -1098,7 +1110,7 @@
       ],
       "compatiblePackages": {
         "com.instagram.android": [
-          "456.1.0.56.78"
+          "457.0.0.55.73"
         ]
       },
       "compatibility": [
@@ -1113,13 +1125,12 @@
           ],
           "targets": [
             {
-              "version": "456.1.0.56.78",
+              "version": "457.0.0.55.73",
               "experimental": false,
               "versionCodes": {
-                "ARM64_V8A": 386215122,
-                "ARMEABI_V7A": 386215121,
-                "X86": 386215123,
-                "X86_64": 386215124
+                "ARM64_V8A": 386314341,
+                "ARMEABI_V7A": 386314340,
+                "X86_64": 386314286
               }
             }
           ]
@@ -1138,7 +1149,7 @@
       ],
       "compatiblePackages": {
         "com.instagram.android": [
-          "456.1.0.56.78"
+          "457.0.0.55.73"
         ]
       },
       "compatibility": [
@@ -1153,13 +1164,12 @@
           ],
           "targets": [
             {
-              "version": "456.1.0.56.78",
+              "version": "457.0.0.55.73",
               "experimental": false,
               "versionCodes": {
-                "ARM64_V8A": 386215122,
-                "ARMEABI_V7A": 386215121,
-                "X86": 386215123,
-                "X86_64": 386215124
+                "ARM64_V8A": 386314341,
+                "ARMEABI_V7A": 386314340,
+                "X86_64": 386314286
               }
             }
           ]
@@ -1178,7 +1188,7 @@
       ],
       "compatiblePackages": {
         "com.instagram.android": [
-          "456.1.0.56.78"
+          "457.0.0.55.73"
         ]
       },
       "compatibility": [
@@ -1193,13 +1203,12 @@
           ],
           "targets": [
             {
-              "version": "456.1.0.56.78",
+              "version": "457.0.0.55.73",
               "experimental": false,
               "versionCodes": {
-                "ARM64_V8A": 386215122,
-                "ARMEABI_V7A": 386215121,
-                "X86": 386215123,
-                "X86_64": 386215124
+                "ARM64_V8A": 386314341,
+                "ARMEABI_V7A": 386314340,
+                "X86_64": 386314286
               }
             }
           ]
@@ -1218,7 +1227,7 @@
       ],
       "compatiblePackages": {
         "com.instagram.android": [
-          "456.1.0.56.78"
+          "457.0.0.55.73"
         ]
       },
       "compatibility": [
@@ -1233,13 +1242,12 @@
           ],
           "targets": [
             {
-              "version": "456.1.0.56.78",
+              "version": "457.0.0.55.73",
               "experimental": false,
               "versionCodes": {
-                "ARM64_V8A": 386215122,
-                "ARMEABI_V7A": 386215121,
-                "X86": 386215123,
-                "X86_64": 386215124
+                "ARM64_V8A": 386314341,
+                "ARMEABI_V7A": 386314340,
+                "X86_64": 386314286
               }
             }
           ]
@@ -1258,7 +1266,7 @@
       ],
       "compatiblePackages": {
         "com.instagram.android": [
-          "456.1.0.56.78"
+          "457.0.0.55.73"
         ]
       },
       "compatibility": [
@@ -1273,13 +1281,12 @@
           ],
           "targets": [
             {
-              "version": "456.1.0.56.78",
+              "version": "457.0.0.55.73",
               "experimental": false,
               "versionCodes": {
-                "ARM64_V8A": 386215122,
-                "ARMEABI_V7A": 386215121,
-                "X86": 386215123,
-                "X86_64": 386215124
+                "ARM64_V8A": 386314341,
+                "ARMEABI_V7A": 386314340,
+                "X86_64": 386314286
               }
             }
           ]
@@ -1298,7 +1305,7 @@
       ],
       "compatiblePackages": {
         "com.instagram.android": [
-          "456.1.0.56.78"
+          "457.0.0.55.73"
         ]
       },
       "compatibility": [
@@ -1313,13 +1320,12 @@
           ],
           "targets": [
             {
-              "version": "456.1.0.56.78",
+              "version": "457.0.0.55.73",
               "experimental": false,
               "versionCodes": {
-                "ARM64_V8A": 386215122,
-                "ARMEABI_V7A": 386215121,
-                "X86": 386215123,
-                "X86_64": 386215124
+                "ARM64_V8A": 386314341,
+                "ARMEABI_V7A": 386314340,
+                "X86_64": 386314286
               }
             }
           ]
@@ -1339,7 +1345,7 @@
       ],
       "compatiblePackages": {
         "com.instagram.android": [
-          "456.1.0.56.78"
+          "457.0.0.55.73"
         ]
       },
       "compatibility": [
@@ -1354,13 +1360,12 @@
           ],
           "targets": [
             {
-              "version": "456.1.0.56.78",
+              "version": "457.0.0.55.73",
               "experimental": false,
               "versionCodes": {
-                "ARM64_V8A": 386215122,
-                "ARMEABI_V7A": 386215121,
-                "X86": 386215123,
-                "X86_64": 386215124
+                "ARM64_V8A": 386314341,
+                "ARMEABI_V7A": 386314340,
+                "X86_64": 386314286
               }
             }
           ]
@@ -1379,7 +1384,7 @@
       ],
       "compatiblePackages": {
         "com.instagram.android": [
-          "456.1.0.56.78"
+          "457.0.0.55.73"
         ]
       },
       "compatibility": [
@@ -1394,13 +1399,12 @@
           ],
           "targets": [
             {
-              "version": "456.1.0.56.78",
+              "version": "457.0.0.55.73",
               "experimental": false,
               "versionCodes": {
-                "ARM64_V8A": 386215122,
-                "ARMEABI_V7A": 386215121,
-                "X86": 386215123,
-                "X86_64": 386215124
+                "ARM64_V8A": 386314341,
+                "ARMEABI_V7A": 386314340,
+                "X86_64": 386314286
               }
             }
           ]
@@ -1420,7 +1424,7 @@
       ],
       "compatiblePackages": {
         "com.instagram.android": [
-          "456.1.0.56.78"
+          "457.0.0.55.73"
         ]
       },
       "compatibility": [
@@ -1435,13 +1439,12 @@
           ],
           "targets": [
             {
-              "version": "456.1.0.56.78",
+              "version": "457.0.0.55.73",
               "experimental": false,
               "versionCodes": {
-                "ARM64_V8A": 386215122,
-                "ARMEABI_V7A": 386215121,
-                "X86": 386215123,
-                "X86_64": 386215124
+                "ARM64_V8A": 386314341,
+                "ARMEABI_V7A": 386314340,
+                "X86_64": 386314286
               }
             }
           ]
@@ -1460,7 +1463,7 @@
       ],
       "compatiblePackages": {
         "com.instagram.android": [
-          "456.1.0.56.78"
+          "457.0.0.55.73"
         ]
       },
       "compatibility": [
@@ -1475,13 +1478,12 @@
           ],
           "targets": [
             {
-              "version": "456.1.0.56.78",
+              "version": "457.0.0.55.73",
               "experimental": false,
               "versionCodes": {
-                "ARM64_V8A": 386215122,
-                "ARMEABI_V7A": 386215121,
-                "X86": 386215123,
-                "X86_64": 386215124
+                "ARM64_V8A": 386314341,
+                "ARMEABI_V7A": 386314340,
+                "X86_64": 386314286
               }
             }
           ]
@@ -1500,7 +1502,7 @@
       ],
       "compatiblePackages": {
         "com.instagram.android": [
-          "456.1.0.56.78"
+          "457.0.0.55.73"
         ]
       },
       "compatibility": [
@@ -1515,13 +1517,12 @@
           ],
           "targets": [
             {
-              "version": "456.1.0.56.78",
+              "version": "457.0.0.55.73",
               "experimental": false,
               "versionCodes": {
-                "ARM64_V8A": 386215122,
-                "ARMEABI_V7A": 386215121,
-                "X86": 386215123,
-                "X86_64": 386215124
+                "ARM64_V8A": 386314341,
+                "ARMEABI_V7A": 386314340,
+                "X86_64": 386314286
               }
             }
           ]
@@ -1540,7 +1541,7 @@
       ],
       "compatiblePackages": {
         "com.instagram.android": [
-          "456.1.0.56.78"
+          "457.0.0.55.73"
         ]
       },
       "compatibility": [
@@ -1555,13 +1556,12 @@
           ],
           "targets": [
             {
-              "version": "456.1.0.56.78",
+              "version": "457.0.0.55.73",
               "experimental": false,
               "versionCodes": {
-                "ARM64_V8A": 386215122,
-                "ARMEABI_V7A": 386215121,
-                "X86": 386215123,
-                "X86_64": 386215124
+                "ARM64_V8A": 386314341,
+                "ARMEABI_V7A": 386314340,
+                "X86_64": 386314286
               }
             }
           ]
@@ -1580,7 +1580,7 @@
       ],
       "compatiblePackages": {
         "com.instagram.android": [
-          "456.1.0.56.78"
+          "457.0.0.55.73"
         ]
       },
       "compatibility": [
@@ -1595,13 +1595,12 @@
           ],
           "targets": [
             {
-              "version": "456.1.0.56.78",
+              "version": "457.0.0.55.73",
               "experimental": false,
               "versionCodes": {
-                "ARM64_V8A": 386215122,
-                "ARMEABI_V7A": 386215121,
-                "X86": 386215123,
-                "X86_64": 386215124
+                "ARM64_V8A": 386314341,
+                "ARMEABI_V7A": 386314340,
+                "X86_64": 386314286
               }
             }
           ]
@@ -1620,7 +1619,7 @@
       ],
       "compatiblePackages": {
         "com.instagram.android": [
-          "456.1.0.56.78"
+          "457.0.0.55.73"
         ]
       },
       "compatibility": [
@@ -1635,13 +1634,12 @@
           ],
           "targets": [
             {
-              "version": "456.1.0.56.78",
+              "version": "457.0.0.55.73",
               "experimental": false,
               "versionCodes": {
-                "ARM64_V8A": 386215122,
-                "ARMEABI_V7A": 386215121,
-                "X86": 386215123,
-                "X86_64": 386215124
+                "ARM64_V8A": 386314341,
+                "ARMEABI_V7A": 386314340,
+                "X86_64": 386314286
               }
             }
           ]
@@ -1660,7 +1658,7 @@
       ],
       "compatiblePackages": {
         "com.instagram.android": [
-          "456.1.0.56.78"
+          "457.0.0.55.73"
         ]
       },
       "compatibility": [
@@ -1675,13 +1673,12 @@
           ],
           "targets": [
             {
-              "version": "456.1.0.56.78",
+              "version": "457.0.0.55.73",
               "experimental": false,
               "versionCodes": {
-                "ARM64_V8A": 386215122,
-                "ARMEABI_V7A": 386215121,
-                "X86": 386215123,
-                "X86_64": 386215124
+                "ARM64_V8A": 386314341,
+                "ARMEABI_V7A": 386314340,
+                "X86_64": 386314286
               }
             }
           ]
@@ -1692,7 +1689,7 @@
     {
       "name": "Full resolution photos",
       "description": "Loads photos in the largest size Instagram sends instead of one picked for your screen. A second switch asks for a larger size on screens under 1440 pixels wide, and a third gets reel covers and grid pictures at full size. Uses more data. Starts off. Turn it on in HushGram settings > Feed.",
-      "category": "Feed",
+      "category": "Downloads",
       "use": true,
       "dependencies": [
         "BytecodePatch",
@@ -1700,7 +1697,7 @@
       ],
       "compatiblePackages": {
         "com.instagram.android": [
-          "456.1.0.56.78"
+          "457.0.0.55.73"
         ]
       },
       "compatibility": [
@@ -1715,13 +1712,12 @@
           ],
           "targets": [
             {
-              "version": "456.1.0.56.78",
+              "version": "457.0.0.55.73",
               "experimental": false,
               "versionCodes": {
-                "ARM64_V8A": 386215122,
-                "ARMEABI_V7A": 386215121,
-                "X86": 386215123,
-                "X86_64": 386215124
+                "ARM64_V8A": 386314341,
+                "ARMEABI_V7A": 386314340,
+                "X86_64": 386314286
               }
             }
           ]
@@ -1740,7 +1736,7 @@
       ],
       "compatiblePackages": {
         "com.instagram.android": [
-          "456.1.0.56.78"
+          "457.0.0.55.73"
         ]
       },
       "compatibility": [
@@ -1755,13 +1751,12 @@
           ],
           "targets": [
             {
-              "version": "456.1.0.56.78",
+              "version": "457.0.0.55.73",
               "experimental": false,
               "versionCodes": {
-                "ARM64_V8A": 386215122,
-                "ARMEABI_V7A": 386215121,
-                "X86": 386215123,
-                "X86_64": 386215124
+                "ARM64_V8A": 386314341,
+                "ARMEABI_V7A": 386314340,
+                "X86_64": 386314286
               }
             }
           ]
@@ -1780,7 +1775,7 @@
       ],
       "compatiblePackages": {
         "com.instagram.android": [
-          "456.1.0.56.78"
+          "457.0.0.55.73"
         ]
       },
       "compatibility": [
@@ -1795,13 +1790,12 @@
           ],
           "targets": [
             {
-              "version": "456.1.0.56.78",
+              "version": "457.0.0.55.73",
               "experimental": false,
               "versionCodes": {
-                "ARM64_V8A": 386215122,
-                "ARMEABI_V7A": 386215121,
-                "X86": 386215123,
-                "X86_64": 386215124
+                "ARM64_V8A": 386314341,
+                "ARMEABI_V7A": 386314340,
+                "X86_64": 386314286
               }
             }
           ]
@@ -1820,7 +1814,7 @@
       ],
       "compatiblePackages": {
         "com.instagram.android": [
-          "456.1.0.56.78"
+          "457.0.0.55.73"
         ]
       },
       "compatibility": [
@@ -1835,13 +1829,12 @@
           ],
           "targets": [
             {
-              "version": "456.1.0.56.78",
+              "version": "457.0.0.55.73",
               "experimental": false,
               "versionCodes": {
-                "ARM64_V8A": 386215122,
-                "ARMEABI_V7A": 386215121,
-                "X86": 386215123,
-                "X86_64": 386215124
+                "ARM64_V8A": 386314341,
+                "ARMEABI_V7A": 386314340,
+                "X86_64": 386314286
               }
             }
           ]
@@ -1860,7 +1853,7 @@
       ],
       "compatiblePackages": {
         "com.instagram.android": [
-          "456.1.0.56.78"
+          "457.0.0.55.73"
         ]
       },
       "compatibility": [
@@ -1875,13 +1868,12 @@
           ],
           "targets": [
             {
-              "version": "456.1.0.56.78",
+              "version": "457.0.0.55.73",
               "experimental": false,
               "versionCodes": {
-                "ARM64_V8A": 386215122,
-                "ARMEABI_V7A": 386215121,
-                "X86": 386215123,
-                "X86_64": 386215124
+                "ARM64_V8A": 386314341,
+                "ARMEABI_V7A": 386314340,
+                "X86_64": 386314286
               }
             }
           ]
@@ -1900,7 +1892,7 @@
       ],
       "compatiblePackages": {
         "com.instagram.android": [
-          "456.1.0.56.78"
+          "457.0.0.55.73"
         ]
       },
       "compatibility": [
@@ -1915,13 +1907,12 @@
           ],
           "targets": [
             {
-              "version": "456.1.0.56.78",
+              "version": "457.0.0.55.73",
               "experimental": false,
               "versionCodes": {
-                "ARM64_V8A": 386215122,
-                "ARMEABI_V7A": 386215121,
-                "X86": 386215123,
-                "X86_64": 386215124
+                "ARM64_V8A": 386314341,
+                "ARMEABI_V7A": 386314340,
+                "X86_64": 386314286
               }
             }
           ]
@@ -1940,7 +1931,7 @@
       ],
       "compatiblePackages": {
         "com.instagram.android": [
-          "456.1.0.56.78"
+          "457.0.0.55.73"
         ]
       },
       "compatibility": [
@@ -1955,13 +1946,12 @@
           ],
           "targets": [
             {
-              "version": "456.1.0.56.78",
+              "version": "457.0.0.55.73",
               "experimental": false,
               "versionCodes": {
-                "ARM64_V8A": 386215122,
-                "ARMEABI_V7A": 386215121,
-                "X86": 386215123,
-                "X86_64": 386215124
+                "ARM64_V8A": 386314341,
+                "ARMEABI_V7A": 386314340,
+                "X86_64": 386314286
               }
             }
           ]
@@ -1980,7 +1970,7 @@
       ],
       "compatiblePackages": {
         "com.instagram.android": [
-          "456.1.0.56.78"
+          "457.0.0.55.73"
         ]
       },
       "compatibility": [
@@ -1995,13 +1985,12 @@
           ],
           "targets": [
             {
-              "version": "456.1.0.56.78",
+              "version": "457.0.0.55.73",
               "experimental": false,
               "versionCodes": {
-                "ARM64_V8A": 386215122,
-                "ARMEABI_V7A": 386215121,
-                "X86": 386215123,
-                "X86_64": 386215124
+                "ARM64_V8A": 386314341,
+                "ARMEABI_V7A": 386314340,
+                "X86_64": 386314286
               }
             }
           ]
@@ -2020,7 +2009,7 @@
       ],
       "compatiblePackages": {
         "com.instagram.android": [
-          "456.1.0.56.78"
+          "457.0.0.55.73"
         ]
       },
       "compatibility": [
@@ -2035,13 +2024,12 @@
           ],
           "targets": [
             {
-              "version": "456.1.0.56.78",
+              "version": "457.0.0.55.73",
               "experimental": false,
               "versionCodes": {
-                "ARM64_V8A": 386215122,
-                "ARMEABI_V7A": 386215121,
-                "X86": 386215123,
-                "X86_64": 386215124
+                "ARM64_V8A": 386314341,
+                "ARMEABI_V7A": 386314340,
+                "X86_64": 386314286
               }
             }
           ]
@@ -2060,7 +2048,7 @@
       ],
       "compatiblePackages": {
         "com.instagram.android": [
-          "456.1.0.56.78"
+          "457.0.0.55.73"
         ]
       },
       "compatibility": [
@@ -2075,13 +2063,12 @@
           ],
           "targets": [
             {
-              "version": "456.1.0.56.78",
+              "version": "457.0.0.55.73",
               "experimental": false,
               "versionCodes": {
-                "ARM64_V8A": 386215122,
-                "ARMEABI_V7A": 386215121,
-                "X86": 386215123,
-                "X86_64": 386215124
+                "ARM64_V8A": 386314341,
+                "ARMEABI_V7A": 386314340,
+                "X86_64": 386314286
               }
             }
           ]
@@ -2100,7 +2087,7 @@
       ],
       "compatiblePackages": {
         "com.instagram.android": [
-          "456.1.0.56.78"
+          "457.0.0.55.73"
         ]
       },
       "compatibility": [
@@ -2115,13 +2102,12 @@
           ],
           "targets": [
             {
-              "version": "456.1.0.56.78",
+              "version": "457.0.0.55.73",
               "experimental": false,
               "versionCodes": {
-                "ARM64_V8A": 386215122,
-                "ARMEABI_V7A": 386215121,
-                "X86": 386215123,
-                "X86_64": 386215124
+                "ARM64_V8A": 386314341,
+                "ARMEABI_V7A": 386314340,
+                "X86_64": 386314286
               }
             }
           ]
@@ -2140,7 +2126,7 @@
       ],
       "compatiblePackages": {
         "com.instagram.android": [
-          "456.1.0.56.78"
+          "457.0.0.55.73"
         ]
       },
       "compatibility": [
@@ -2155,13 +2141,12 @@
           ],
           "targets": [
             {
-              "version": "456.1.0.56.78",
+              "version": "457.0.0.55.73",
               "experimental": false,
               "versionCodes": {
-                "ARM64_V8A": 386215122,
-                "ARMEABI_V7A": 386215121,
-                "X86": 386215123,
-                "X86_64": 386215124
+                "ARM64_V8A": 386314341,
+                "ARMEABI_V7A": 386314340,
+                "X86_64": 386314286
               }
             }
           ]
@@ -2180,7 +2165,7 @@
       ],
       "compatiblePackages": {
         "com.instagram.android": [
-          "456.1.0.56.78"
+          "457.0.0.55.73"
         ]
       },
       "compatibility": [
@@ -2195,13 +2180,12 @@
           ],
           "targets": [
             {
-              "version": "456.1.0.56.78",
+              "version": "457.0.0.55.73",
               "experimental": false,
               "versionCodes": {
-                "ARM64_V8A": 386215122,
-                "ARMEABI_V7A": 386215121,
-                "X86": 386215123,
-                "X86_64": 386215124
+                "ARM64_V8A": 386314341,
+                "ARMEABI_V7A": 386314340,
+                "X86_64": 386314286
               }
             }
           ]
@@ -2220,7 +2204,7 @@
       ],
       "compatiblePackages": {
         "com.instagram.android": [
-          "456.1.0.56.78"
+          "457.0.0.55.73"
         ]
       },
       "compatibility": [
@@ -2235,13 +2219,12 @@
           ],
           "targets": [
             {
-              "version": "456.1.0.56.78",
+              "version": "457.0.0.55.73",
               "experimental": false,
               "versionCodes": {
-                "ARM64_V8A": 386215122,
-                "ARMEABI_V7A": 386215121,
-                "X86": 386215123,
-                "X86_64": 386215124
+                "ARM64_V8A": 386314341,
+                "ARMEABI_V7A": 386314340,
+                "X86_64": 386314286
               }
             }
           ]
@@ -2260,7 +2243,7 @@
       ],
       "compatiblePackages": {
         "com.instagram.android": [
-          "456.1.0.56.78"
+          "457.0.0.55.73"
         ]
       },
       "compatibility": [
@@ -2275,13 +2258,12 @@
           ],
           "targets": [
             {
-              "version": "456.1.0.56.78",
+              "version": "457.0.0.55.73",
               "experimental": false,
               "versionCodes": {
-                "ARM64_V8A": 386215122,
-                "ARMEABI_V7A": 386215121,
-                "X86": 386215123,
-                "X86_64": 386215124
+                "ARM64_V8A": 386314341,
+                "ARMEABI_V7A": 386314340,
+                "X86_64": 386314286
               }
             }
           ]
@@ -2300,7 +2282,7 @@
       ],
       "compatiblePackages": {
         "com.instagram.android": [
-          "456.1.0.56.78"
+          "457.0.0.55.73"
         ]
       },
       "compatibility": [
@@ -2315,13 +2297,12 @@
           ],
           "targets": [
             {
-              "version": "456.1.0.56.78",
+              "version": "457.0.0.55.73",
               "experimental": false,
               "versionCodes": {
-                "ARM64_V8A": 386215122,
-                "ARMEABI_V7A": 386215121,
-                "X86": 386215123,
-                "X86_64": 386215124
+                "ARM64_V8A": 386314341,
+                "ARMEABI_V7A": 386314340,
+                "X86_64": 386314286
               }
             }
           ]
@@ -2340,7 +2321,7 @@
       ],
       "compatiblePackages": {
         "com.instagram.android": [
-          "456.1.0.56.78"
+          "457.0.0.55.73"
         ]
       },
       "compatibility": [
@@ -2355,13 +2336,12 @@
           ],
           "targets": [
             {
-              "version": "456.1.0.56.78",
+              "version": "457.0.0.55.73",
               "experimental": false,
               "versionCodes": {
-                "ARM64_V8A": 386215122,
-                "ARMEABI_V7A": 386215121,
-                "X86": 386215123,
-                "X86_64": 386215124
+                "ARM64_V8A": 386314341,
+                "ARMEABI_V7A": 386314340,
+                "X86_64": 386314286
               }
             }
           ]
@@ -2380,7 +2360,7 @@
       ],
       "compatiblePackages": {
         "com.instagram.android": [
-          "456.1.0.56.78"
+          "457.0.0.55.73"
         ]
       },
       "compatibility": [
@@ -2395,13 +2375,12 @@
           ],
           "targets": [
             {
-              "version": "456.1.0.56.78",
+              "version": "457.0.0.55.73",
               "experimental": false,
               "versionCodes": {
-                "ARM64_V8A": 386215122,
-                "ARMEABI_V7A": 386215121,
-                "X86": 386215123,
-                "X86_64": 386215124
+                "ARM64_V8A": 386314341,
+                "ARMEABI_V7A": 386314340,
+                "X86_64": 386314286
               }
             }
           ]
@@ -2420,7 +2399,7 @@
       ],
       "compatiblePackages": {
         "com.instagram.android": [
-          "456.1.0.56.78"
+          "457.0.0.55.73"
         ]
       },
       "compatibility": [
@@ -2435,13 +2414,12 @@
           ],
           "targets": [
             {
-              "version": "456.1.0.56.78",
+              "version": "457.0.0.55.73",
               "experimental": false,
               "versionCodes": {
-                "ARM64_V8A": 386215122,
-                "ARMEABI_V7A": 386215121,
-                "X86": 386215123,
-                "X86_64": 386215124
+                "ARM64_V8A": 386314341,
+                "ARMEABI_V7A": 386314340,
+                "X86_64": 386314286
               }
             }
           ]
@@ -2460,7 +2438,7 @@
       ],
       "compatiblePackages": {
         "com.instagram.android": [
-          "456.1.0.56.78"
+          "457.0.0.55.73"
         ]
       },
       "compatibility": [
@@ -2475,13 +2453,12 @@
           ],
           "targets": [
             {
-              "version": "456.1.0.56.78",
+              "version": "457.0.0.55.73",
               "experimental": false,
               "versionCodes": {
-                "ARM64_V8A": 386215122,
-                "ARMEABI_V7A": 386215121,
-                "X86": 386215123,
-                "X86_64": 386215124
+                "ARM64_V8A": 386314341,
+                "ARMEABI_V7A": 386314340,
+                "X86_64": 386314286
               }
             }
           ]
@@ -2500,7 +2477,7 @@
       ],
       "compatiblePackages": {
         "com.instagram.android": [
-          "456.1.0.56.78"
+          "457.0.0.55.73"
         ]
       },
       "compatibility": [
@@ -2515,13 +2492,12 @@
           ],
           "targets": [
             {
-              "version": "456.1.0.56.78",
+              "version": "457.0.0.55.73",
               "experimental": false,
               "versionCodes": {
-                "ARM64_V8A": 386215122,
-                "ARMEABI_V7A": 386215121,
-                "X86": 386215123,
-                "X86_64": 386215124
+                "ARM64_V8A": 386314341,
+                "ARMEABI_V7A": 386314340,
+                "X86_64": 386314286
               }
             }
           ]
@@ -2540,7 +2516,7 @@
       ],
       "compatiblePackages": {
         "com.instagram.android": [
-          "456.1.0.56.78"
+          "457.0.0.55.73"
         ]
       },
       "compatibility": [
@@ -2555,13 +2531,12 @@
           ],
           "targets": [
             {
-              "version": "456.1.0.56.78",
+              "version": "457.0.0.55.73",
               "experimental": false,
               "versionCodes": {
-                "ARM64_V8A": 386215122,
-                "ARMEABI_V7A": 386215121,
-                "X86": 386215123,
-                "X86_64": 386215124
+                "ARM64_V8A": 386314341,
+                "ARMEABI_V7A": 386314340,
+                "X86_64": 386314286
               }
             }
           ]
@@ -2580,7 +2555,7 @@
       ],
       "compatiblePackages": {
         "com.instagram.android": [
-          "456.1.0.56.78"
+          "457.0.0.55.73"
         ]
       },
       "compatibility": [
@@ -2595,13 +2570,12 @@
           ],
           "targets": [
             {
-              "version": "456.1.0.56.78",
+              "version": "457.0.0.55.73",
               "experimental": false,
               "versionCodes": {
-                "ARM64_V8A": 386215122,
-                "ARMEABI_V7A": 386215121,
-                "X86": 386215123,
-                "X86_64": 386215124
+                "ARM64_V8A": 386314341,
+                "ARMEABI_V7A": 386314340,
+                "X86_64": 386314286
               }
             }
           ]
@@ -2620,7 +2594,7 @@
       ],
       "compatiblePackages": {
         "com.instagram.android": [
-          "456.1.0.56.78"
+          "457.0.0.55.73"
         ]
       },
       "compatibility": [
@@ -2635,13 +2609,12 @@
           ],
           "targets": [
             {
-              "version": "456.1.0.56.78",
+              "version": "457.0.0.55.73",
               "experimental": false,
               "versionCodes": {
-                "ARM64_V8A": 386215122,
-                "ARMEABI_V7A": 386215121,
-                "X86": 386215123,
-                "X86_64": 386215124
+                "ARM64_V8A": 386314341,
+                "ARMEABI_V7A": 386314340,
+                "X86_64": 386314286
               }
             }
           ]
@@ -2660,7 +2633,7 @@
       ],
       "compatiblePackages": {
         "com.instagram.android": [
-          "456.1.0.56.78"
+          "457.0.0.55.73"
         ]
       },
       "compatibility": [
@@ -2675,13 +2648,51 @@
           ],
           "targets": [
             {
-              "version": "456.1.0.56.78",
+              "version": "457.0.0.55.73",
               "experimental": false,
               "versionCodes": {
-                "ARM64_V8A": 386215122,
-                "ARMEABI_V7A": 386215121,
-                "X86": 386215123,
-                "X86_64": 386215124
+                "ARM64_V8A": 386314341,
+                "ARMEABI_V7A": 386314340,
+                "X86_64": 386314286
+              }
+            }
+          ]
+        }
+      ],
+      "options": []
+    },
+    {
+      "name": "Hide posts when you block someone",
+      "description": "Takes the posts of someone you block out of Home right away, instead of after you refresh it. Starts off. Turn it on in HushGram settings > Feed.",
+      "category": "Feed",
+      "use": true,
+      "dependencies": [
+        "BytecodePatch",
+        "HushGram settings"
+      ],
+      "compatiblePackages": {
+        "com.instagram.android": [
+          "457.0.0.55.73"
+        ]
+      },
+      "compatibility": [
+        {
+          "name": "Instagram",
+          "packageName": "com.instagram.android",
+          "description": null,
+          "appIconColor": 14757996,
+          "signatures": [
+            "3a10c50c18ba937506c2875e9047be74f8fd8b86fae2ff9feaa50a81fcb4c014",
+            "5f3e50f435583c9ae626302a71f7340044087a7e2c60adacfc254205a993e305"
+          ],
+          "targets": [
+            {
+              "version": "457.0.0.55.73",
+              "experimental": false,
+              "versionCodes": {
+                "ARM64_V8A": 386314341,
+                "ARMEABI_V7A": 386314340,
+                "X86_64": 386314286
               }
             }
           ]
@@ -2700,7 +2711,7 @@
       ],
       "compatiblePackages": {
         "com.instagram.android": [
-          "456.1.0.56.78"
+          "457.0.0.55.73"
         ]
       },
       "compatibility": [
@@ -2715,13 +2726,12 @@
           ],
           "targets": [
             {
-              "version": "456.1.0.56.78",
+              "version": "457.0.0.55.73",
               "experimental": false,
               "versionCodes": {
-                "ARM64_V8A": 386215122,
-                "ARMEABI_V7A": 386215121,
-                "X86": 386215123,
-                "X86_64": 386215124
+                "ARM64_V8A": 386314341,
+                "ARMEABI_V7A": 386314340,
+                "X86_64": 386314286
               }
             }
           ]
@@ -2740,7 +2750,7 @@
       ],
       "compatiblePackages": {
         "com.instagram.android": [
-          "456.1.0.56.78"
+          "457.0.0.55.73"
         ]
       },
       "compatibility": [
@@ -2755,13 +2765,12 @@
           ],
           "targets": [
             {
-              "version": "456.1.0.56.78",
+              "version": "457.0.0.55.73",
               "experimental": false,
               "versionCodes": {
-                "ARM64_V8A": 386215122,
-                "ARMEABI_V7A": 386215121,
-                "X86": 386215123,
-                "X86_64": 386215124
+                "ARM64_V8A": 386314341,
+                "ARMEABI_V7A": 386314340,
+                "X86_64": 386314286
               }
             }
           ]
@@ -2780,7 +2789,7 @@
       ],
       "compatiblePackages": {
         "com.instagram.android": [
-          "456.1.0.56.78"
+          "457.0.0.55.73"
         ]
       },
       "compatibility": [
@@ -2795,13 +2804,12 @@
           ],
           "targets": [
             {
-              "version": "456.1.0.56.78",
+              "version": "457.0.0.55.73",
               "experimental": false,
               "versionCodes": {
-                "ARM64_V8A": 386215122,
-                "ARMEABI_V7A": 386215121,
-                "X86": 386215123,
-                "X86_64": 386215124
+                "ARM64_V8A": 386314341,
+                "ARMEABI_V7A": 386314340,
+                "X86_64": 386314286
               }
             }
           ]
@@ -2811,7 +2819,7 @@
     },
     {
       "name": "Hide reels with few views",
-      "description": "Leaves out reels in the Reels tab outside numbers you pick: views, likes, likes and comments per 1,000 views, video length and age. Can put reels newest first. Accounts you follow stay. Starts off. Turn it on in HushGram settings > Reels.",
+      "description": "Leaves out reels in the Reels tab outside numbers you pick: views, likes, comments, shares, saves, likes and comments per 1,000 views, video length and age. Can put reels newest first. Accounts you follow stay. Starts off. Turn it on in HushGram settings > Reels.",
       "category": "Reels",
       "use": true,
       "dependencies": [
@@ -2820,7 +2828,7 @@
       ],
       "compatiblePackages": {
         "com.instagram.android": [
-          "456.1.0.56.78"
+          "457.0.0.55.73"
         ]
       },
       "compatibility": [
@@ -2835,13 +2843,12 @@
           ],
           "targets": [
             {
-              "version": "456.1.0.56.78",
+              "version": "457.0.0.55.73",
               "experimental": false,
               "versionCodes": {
-                "ARM64_V8A": 386215122,
-                "ARMEABI_V7A": 386215121,
-                "X86": 386215123,
-                "X86_64": 386215124
+                "ARM64_V8A": 386314341,
+                "ARMEABI_V7A": 386314340,
+                "X86_64": 386314286
               }
             }
           ]
@@ -2860,7 +2867,7 @@
       ],
       "compatiblePackages": {
         "com.instagram.android": [
-          "456.1.0.56.78"
+          "457.0.0.55.73"
         ]
       },
       "compatibility": [
@@ -2875,13 +2882,12 @@
           ],
           "targets": [
             {
-              "version": "456.1.0.56.78",
+              "version": "457.0.0.55.73",
               "experimental": false,
               "versionCodes": {
-                "ARM64_V8A": 386215122,
-                "ARMEABI_V7A": 386215121,
-                "X86": 386215123,
-                "X86_64": 386215124
+                "ARM64_V8A": 386314341,
+                "ARMEABI_V7A": 386314340,
+                "X86_64": 386314286
               }
             }
           ]
@@ -2900,7 +2906,7 @@
       ],
       "compatiblePackages": {
         "com.instagram.android": [
-          "456.1.0.56.78"
+          "457.0.0.55.73"
         ]
       },
       "compatibility": [
@@ -2915,13 +2921,12 @@
           ],
           "targets": [
             {
-              "version": "456.1.0.56.78",
+              "version": "457.0.0.55.73",
               "experimental": false,
               "versionCodes": {
-                "ARM64_V8A": 386215122,
-                "ARMEABI_V7A": 386215121,
-                "X86": 386215123,
-                "X86_64": 386215124
+                "ARM64_V8A": 386314341,
+                "ARMEABI_V7A": 386314340,
+                "X86_64": 386314286
               }
             }
           ]
@@ -2940,7 +2945,7 @@
       ],
       "compatiblePackages": {
         "com.instagram.android": [
-          "456.1.0.56.78"
+          "457.0.0.55.73"
         ]
       },
       "compatibility": [
@@ -2955,13 +2960,12 @@
           ],
           "targets": [
             {
-              "version": "456.1.0.56.78",
+              "version": "457.0.0.55.73",
               "experimental": false,
               "versionCodes": {
-                "ARM64_V8A": 386215122,
-                "ARMEABI_V7A": 386215121,
-                "X86": 386215123,
-                "X86_64": 386215124
+                "ARM64_V8A": 386314341,
+                "ARMEABI_V7A": 386314340,
+                "X86_64": 386314286
               }
             }
           ]
@@ -2980,7 +2984,7 @@
       ],
       "compatiblePackages": {
         "com.instagram.android": [
-          "456.1.0.56.78"
+          "457.0.0.55.73"
         ]
       },
       "compatibility": [
@@ -2995,13 +2999,12 @@
           ],
           "targets": [
             {
-              "version": "456.1.0.56.78",
+              "version": "457.0.0.55.73",
               "experimental": false,
               "versionCodes": {
-                "ARM64_V8A": 386215122,
-                "ARMEABI_V7A": 386215121,
-                "X86": 386215123,
-                "X86_64": 386215124
+                "ARM64_V8A": 386314341,
+                "ARMEABI_V7A": 386314340,
+                "X86_64": 386314286
               }
             }
           ]
@@ -3020,7 +3023,7 @@
       ],
       "compatiblePackages": {
         "com.instagram.android": [
-          "456.1.0.56.78"
+          "457.0.0.55.73"
         ]
       },
       "compatibility": [
@@ -3035,13 +3038,12 @@
           ],
           "targets": [
             {
-              "version": "456.1.0.56.78",
+              "version": "457.0.0.55.73",
               "experimental": false,
               "versionCodes": {
-                "ARM64_V8A": 386215122,
-                "ARMEABI_V7A": 386215121,
-                "X86": 386215123,
-                "X86_64": 386215124
+                "ARM64_V8A": 386314341,
+                "ARMEABI_V7A": 386314340,
+                "X86_64": 386314286
               }
             }
           ]
@@ -3060,7 +3062,7 @@
       ],
       "compatiblePackages": {
         "com.instagram.android": [
-          "456.1.0.56.78"
+          "457.0.0.55.73"
         ]
       },
       "compatibility": [
@@ -3075,13 +3077,12 @@
           ],
           "targets": [
             {
-              "version": "456.1.0.56.78",
+              "version": "457.0.0.55.73",
               "experimental": false,
               "versionCodes": {
-                "ARM64_V8A": 386215122,
-                "ARMEABI_V7A": 386215121,
-                "X86": 386215123,
-                "X86_64": 386215124
+                "ARM64_V8A": 386314341,
+                "ARMEABI_V7A": 386314340,
+                "X86_64": 386314286
               }
             }
           ]
@@ -3100,7 +3101,7 @@
       ],
       "compatiblePackages": {
         "com.instagram.android": [
-          "456.1.0.56.78"
+          "457.0.0.55.73"
         ]
       },
       "compatibility": [
@@ -3115,13 +3116,12 @@
           ],
           "targets": [
             {
-              "version": "456.1.0.56.78",
+              "version": "457.0.0.55.73",
               "experimental": false,
               "versionCodes": {
-                "ARM64_V8A": 386215122,
-                "ARMEABI_V7A": 386215121,
-                "X86": 386215123,
-                "X86_64": 386215124
+                "ARM64_V8A": 386314341,
+                "ARMEABI_V7A": 386314340,
+                "X86_64": 386314286
               }
             }
           ]
@@ -3140,7 +3140,7 @@
       ],
       "compatiblePackages": {
         "com.instagram.android": [
-          "456.1.0.56.78"
+          "457.0.0.55.73"
         ]
       },
       "compatibility": [
@@ -3155,13 +3155,12 @@
           ],
           "targets": [
             {
-              "version": "456.1.0.56.78",
+              "version": "457.0.0.55.73",
               "experimental": false,
               "versionCodes": {
-                "ARM64_V8A": 386215122,
-                "ARMEABI_V7A": 386215121,
-                "X86": 386215123,
-                "X86_64": 386215124
+                "ARM64_V8A": 386314341,
+                "ARMEABI_V7A": 386314340,
+                "X86_64": 386314286
               }
             }
           ]
@@ -3180,7 +3179,7 @@
       ],
       "compatiblePackages": {
         "com.instagram.android": [
-          "456.1.0.56.78"
+          "457.0.0.55.73"
         ]
       },
       "compatibility": [
@@ -3195,13 +3194,12 @@
           ],
           "targets": [
             {
-              "version": "456.1.0.56.78",
+              "version": "457.0.0.55.73",
               "experimental": false,
               "versionCodes": {
-                "ARM64_V8A": 386215122,
-                "ARMEABI_V7A": 386215121,
-                "X86": 386215123,
-                "X86_64": 386215124
+                "ARM64_V8A": 386314341,
+                "ARMEABI_V7A": 386314340,
+                "X86_64": 386314286
               }
             }
           ]
@@ -3220,7 +3218,7 @@
       ],
       "compatiblePackages": {
         "com.instagram.android": [
-          "456.1.0.56.78"
+          "457.0.0.55.73"
         ]
       },
       "compatibility": [
@@ -3235,13 +3233,12 @@
           ],
           "targets": [
             {
-              "version": "456.1.0.56.78",
+              "version": "457.0.0.55.73",
               "experimental": false,
               "versionCodes": {
-                "ARM64_V8A": 386215122,
-                "ARMEABI_V7A": 386215121,
-                "X86": 386215123,
-                "X86_64": 386215124
+                "ARM64_V8A": 386314341,
+                "ARMEABI_V7A": 386314340,
+                "X86_64": 386314286
               }
             }
           ]
@@ -3260,7 +3257,7 @@
       ],
       "compatiblePackages": {
         "com.instagram.android": [
-          "456.1.0.56.78"
+          "457.0.0.55.73"
         ]
       },
       "compatibility": [
@@ -3275,13 +3272,12 @@
           ],
           "targets": [
             {
-              "version": "456.1.0.56.78",
+              "version": "457.0.0.55.73",
               "experimental": false,
               "versionCodes": {
-                "ARM64_V8A": 386215122,
-                "ARMEABI_V7A": 386215121,
-                "X86": 386215123,
-                "X86_64": 386215124
+                "ARM64_V8A": 386314341,
+                "ARMEABI_V7A": 386314340,
+                "X86_64": 386314286
               }
             }
           ]
@@ -3300,7 +3296,7 @@
       ],
       "compatiblePackages": {
         "com.instagram.android": [
-          "456.1.0.56.78"
+          "457.0.0.55.73"
         ]
       },
       "compatibility": [
@@ -3315,13 +3311,12 @@
           ],
           "targets": [
             {
-              "version": "456.1.0.56.78",
+              "version": "457.0.0.55.73",
               "experimental": false,
               "versionCodes": {
-                "ARM64_V8A": 386215122,
-                "ARMEABI_V7A": 386215121,
-                "X86": 386215123,
-                "X86_64": 386215124
+                "ARM64_V8A": 386314341,
+                "ARMEABI_V7A": 386314340,
+                "X86_64": 386314286
               }
             }
           ]
@@ -3340,7 +3335,7 @@
       ],
       "compatiblePackages": {
         "com.instagram.android": [
-          "456.1.0.56.78"
+          "457.0.0.55.73"
         ]
       },
       "compatibility": [
@@ -3355,13 +3350,12 @@
           ],
           "targets": [
             {
-              "version": "456.1.0.56.78",
+              "version": "457.0.0.55.73",
               "experimental": false,
               "versionCodes": {
-                "ARM64_V8A": 386215122,
-                "ARMEABI_V7A": 386215121,
-                "X86": 386215123,
-                "X86_64": 386215124
+                "ARM64_V8A": 386314341,
+                "ARMEABI_V7A": 386314340,
+                "X86_64": 386314286
               }
             }
           ]
@@ -3380,7 +3374,7 @@
       ],
       "compatiblePackages": {
         "com.instagram.android": [
-          "456.1.0.56.78"
+          "457.0.0.55.73"
         ]
       },
       "compatibility": [
@@ -3395,13 +3389,12 @@
           ],
           "targets": [
             {
-              "version": "456.1.0.56.78",
+              "version": "457.0.0.55.73",
               "experimental": false,
               "versionCodes": {
-                "ARM64_V8A": 386215122,
-                "ARMEABI_V7A": 386215121,
-                "X86": 386215123,
-                "X86_64": 386215124
+                "ARM64_V8A": 386314341,
+                "ARMEABI_V7A": 386314340,
+                "X86_64": 386314286
               }
             }
           ]
@@ -3420,7 +3413,7 @@
       ],
       "compatiblePackages": {
         "com.instagram.android": [
-          "456.1.0.56.78"
+          "457.0.0.55.73"
         ]
       },
       "compatibility": [
@@ -3435,13 +3428,12 @@
           ],
           "targets": [
             {
-              "version": "456.1.0.56.78",
+              "version": "457.0.0.55.73",
               "experimental": false,
               "versionCodes": {
-                "ARM64_V8A": 386215122,
-                "ARMEABI_V7A": 386215121,
-                "X86": 386215123,
-                "X86_64": 386215124
+                "ARM64_V8A": 386314341,
+                "ARMEABI_V7A": 386314340,
+                "X86_64": 386314286
               }
             }
           ]
@@ -3460,7 +3452,7 @@
       ],
       "compatiblePackages": {
         "com.instagram.android": [
-          "456.1.0.56.78"
+          "457.0.0.55.73"
         ]
       },
       "compatibility": [
@@ -3475,13 +3467,12 @@
           ],
           "targets": [
             {
-              "version": "456.1.0.56.78",
+              "version": "457.0.0.55.73",
               "experimental": false,
               "versionCodes": {
-                "ARM64_V8A": 386215122,
-                "ARMEABI_V7A": 386215121,
-                "X86": 386215123,
-                "X86_64": 386215124
+                "ARM64_V8A": 386314341,
+                "ARMEABI_V7A": 386314340,
+                "X86_64": 386314286
               }
             }
           ]
@@ -3500,7 +3491,7 @@
       ],
       "compatiblePackages": {
         "com.instagram.android": [
-          "456.1.0.56.78"
+          "457.0.0.55.73"
         ]
       },
       "compatibility": [
@@ -3515,13 +3506,12 @@
           ],
           "targets": [
             {
-              "version": "456.1.0.56.78",
+              "version": "457.0.0.55.73",
               "experimental": false,
               "versionCodes": {
-                "ARM64_V8A": 386215122,
-                "ARMEABI_V7A": 386215121,
-                "X86": 386215123,
-                "X86_64": 386215124
+                "ARM64_V8A": 386314341,
+                "ARMEABI_V7A": 386314340,
+                "X86_64": 386314286
               }
             }
           ]
@@ -3540,7 +3530,7 @@
       ],
       "compatiblePackages": {
         "com.instagram.android": [
-          "456.1.0.56.78"
+          "457.0.0.55.73"
         ]
       },
       "compatibility": [
@@ -3555,13 +3545,12 @@
           ],
           "targets": [
             {
-              "version": "456.1.0.56.78",
+              "version": "457.0.0.55.73",
               "experimental": false,
               "versionCodes": {
-                "ARM64_V8A": 386215122,
-                "ARMEABI_V7A": 386215121,
-                "X86": 386215123,
-                "X86_64": 386215124
+                "ARM64_V8A": 386314341,
+                "ARMEABI_V7A": 386314340,
+                "X86_64": 386314286
               }
             }
           ]
@@ -3580,7 +3569,7 @@
       ],
       "compatiblePackages": {
         "com.instagram.android": [
-          "456.1.0.56.78"
+          "457.0.0.55.73"
         ]
       },
       "compatibility": [
@@ -3595,13 +3584,12 @@
           ],
           "targets": [
             {
-              "version": "456.1.0.56.78",
+              "version": "457.0.0.55.73",
               "experimental": false,
               "versionCodes": {
-                "ARM64_V8A": 386215122,
-                "ARMEABI_V7A": 386215121,
-                "X86": 386215123,
-                "X86_64": 386215124
+                "ARM64_V8A": 386314341,
+                "ARMEABI_V7A": 386314340,
+                "X86_64": 386314286
               }
             }
           ]
@@ -3620,7 +3608,7 @@
       ],
       "compatiblePackages": {
         "com.instagram.android": [
-          "456.1.0.56.78"
+          "457.0.0.55.73"
         ]
       },
       "compatibility": [
@@ -3635,13 +3623,12 @@
           ],
           "targets": [
             {
-              "version": "456.1.0.56.78",
+              "version": "457.0.0.55.73",
               "experimental": false,
               "versionCodes": {
-                "ARM64_V8A": 386215122,
-                "ARMEABI_V7A": 386215121,
-                "X86": 386215123,
-                "X86_64": 386215124
+                "ARM64_V8A": 386314341,
+                "ARMEABI_V7A": 386314340,
+                "X86_64": 386314286
               }
             }
           ]
@@ -3660,7 +3647,7 @@
       ],
       "compatiblePackages": {
         "com.instagram.android": [
-          "456.1.0.56.78"
+          "457.0.0.55.73"
         ]
       },
       "compatibility": [
@@ -3675,13 +3662,12 @@
           ],
           "targets": [
             {
-              "version": "456.1.0.56.78",
+              "version": "457.0.0.55.73",
               "experimental": false,
               "versionCodes": {
-                "ARM64_V8A": 386215122,
-                "ARMEABI_V7A": 386215121,
-                "X86": 386215123,
-                "X86_64": 386215124
+                "ARM64_V8A": 386314341,
+                "ARMEABI_V7A": 386314340,
+                "X86_64": 386314286
               }
             }
           ]
@@ -3700,7 +3686,7 @@
       ],
       "compatiblePackages": {
         "com.instagram.android": [
-          "456.1.0.56.78"
+          "457.0.0.55.73"
         ]
       },
       "compatibility": [
@@ -3715,13 +3701,12 @@
           ],
           "targets": [
             {
-              "version": "456.1.0.56.78",
+              "version": "457.0.0.55.73",
               "experimental": false,
               "versionCodes": {
-                "ARM64_V8A": 386215122,
-                "ARMEABI_V7A": 386215121,
-                "X86": 386215123,
-                "X86_64": 386215124
+                "ARM64_V8A": 386314341,
+                "ARMEABI_V7A": 386314340,
+                "X86_64": 386314286
               }
             }
           ]
@@ -3740,7 +3725,7 @@
       ],
       "compatiblePackages": {
         "com.instagram.android": [
-          "456.1.0.56.78"
+          "457.0.0.55.73"
         ]
       },
       "compatibility": [
@@ -3755,13 +3740,12 @@
           ],
           "targets": [
             {
-              "version": "456.1.0.56.78",
+              "version": "457.0.0.55.73",
               "experimental": false,
               "versionCodes": {
-                "ARM64_V8A": 386215122,
-                "ARMEABI_V7A": 386215121,
-                "X86": 386215123,
-                "X86_64": 386215124
+                "ARM64_V8A": 386314341,
+                "ARMEABI_V7A": 386314340,
+                "X86_64": 386314286
               }
             }
           ]
@@ -3780,7 +3764,7 @@
       ],
       "compatiblePackages": {
         "com.instagram.android": [
-          "456.1.0.56.78"
+          "457.0.0.55.73"
         ]
       },
       "compatibility": [
@@ -3795,13 +3779,12 @@
           ],
           "targets": [
             {
-              "version": "456.1.0.56.78",
+              "version": "457.0.0.55.73",
               "experimental": false,
               "versionCodes": {
-                "ARM64_V8A": 386215122,
-                "ARMEABI_V7A": 386215121,
-                "X86": 386215123,
-                "X86_64": 386215124
+                "ARM64_V8A": 386314341,
+                "ARMEABI_V7A": 386314340,
+                "X86_64": 386314286
               }
             }
           ]
@@ -3820,7 +3803,7 @@
       ],
       "compatiblePackages": {
         "com.instagram.android": [
-          "456.1.0.56.78"
+          "457.0.0.55.73"
         ]
       },
       "compatibility": [
@@ -3835,13 +3818,12 @@
           ],
           "targets": [
             {
-              "version": "456.1.0.56.78",
+              "version": "457.0.0.55.73",
               "experimental": false,
               "versionCodes": {
-                "ARM64_V8A": 386215122,
-                "ARMEABI_V7A": 386215121,
-                "X86": 386215123,
-                "X86_64": 386215124
+                "ARM64_V8A": 386314341,
+                "ARMEABI_V7A": 386314340,
+                "X86_64": 386314286
               }
             }
           ]
@@ -3861,7 +3843,7 @@
       ],
       "compatiblePackages": {
         "com.instagram.android": [
-          "456.1.0.56.78"
+          "457.0.0.55.73"
         ]
       },
       "compatibility": [
@@ -3876,13 +3858,12 @@
           ],
           "targets": [
             {
-              "version": "456.1.0.56.78",
+              "version": "457.0.0.55.73",
               "experimental": false,
               "versionCodes": {
-                "ARM64_V8A": 386215122,
-                "ARMEABI_V7A": 386215121,
-                "X86": 386215123,
-                "X86_64": 386215124
+                "ARM64_V8A": 386314341,
+                "ARMEABI_V7A": 386314340,
+                "X86_64": 386314286
               }
             }
           ]
@@ -3900,7 +3881,7 @@
       ],
       "compatiblePackages": {
         "com.instagram.android": [
-          "456.1.0.56.78"
+          "457.0.0.55.73"
         ]
       },
       "compatibility": [
@@ -3915,13 +3896,12 @@
           ],
           "targets": [
             {
-              "version": "456.1.0.56.78",
+              "version": "457.0.0.55.73",
               "experimental": false,
               "versionCodes": {
-                "ARM64_V8A": 386215122,
-                "ARMEABI_V7A": 386215121,
-                "X86": 386215123,
-                "X86_64": 386215124
+                "ARM64_V8A": 386314341,
+                "ARMEABI_V7A": 386314340,
+                "X86_64": 386314286
               }
             }
           ]
@@ -3940,7 +3920,7 @@
       ],
       "compatiblePackages": {
         "com.instagram.android": [
-          "456.1.0.56.78"
+          "457.0.0.55.73"
         ]
       },
       "compatibility": [
@@ -3955,13 +3935,12 @@
           ],
           "targets": [
             {
-              "version": "456.1.0.56.78",
+              "version": "457.0.0.55.73",
               "experimental": false,
               "versionCodes": {
-                "ARM64_V8A": 386215122,
-                "ARMEABI_V7A": 386215121,
-                "X86": 386215123,
-                "X86_64": 386215124
+                "ARM64_V8A": 386314341,
+                "ARMEABI_V7A": 386314340,
+                "X86_64": 386314286
               }
             }
           ]
@@ -4008,7 +3987,7 @@
       ],
       "compatiblePackages": {
         "com.instagram.android": [
-          "456.1.0.56.78"
+          "457.0.0.55.73"
         ]
       },
       "compatibility": [
@@ -4023,13 +4002,12 @@
           ],
           "targets": [
             {
-              "version": "456.1.0.56.78",
+              "version": "457.0.0.55.73",
               "experimental": false,
               "versionCodes": {
-                "ARM64_V8A": 386215122,
-                "ARMEABI_V7A": 386215121,
-                "X86": 386215123,
-                "X86_64": 386215124
+                "ARM64_V8A": 386314341,
+                "ARMEABI_V7A": 386314340,
+                "X86_64": 386314286
               }
             }
           ]
@@ -4048,7 +4026,7 @@
       ],
       "compatiblePackages": {
         "com.instagram.android": [
-          "456.1.0.56.78"
+          "457.0.0.55.73"
         ]
       },
       "compatibility": [
@@ -4063,13 +4041,12 @@
           ],
           "targets": [
             {
-              "version": "456.1.0.56.78",
+              "version": "457.0.0.55.73",
               "experimental": false,
               "versionCodes": {
-                "ARM64_V8A": 386215122,
-                "ARMEABI_V7A": 386215121,
-                "X86": 386215123,
-                "X86_64": 386215124
+                "ARM64_V8A": 386314341,
+                "ARMEABI_V7A": 386314340,
+                "X86_64": 386314286
               }
             }
           ]
@@ -4088,7 +4065,7 @@
       ],
       "compatiblePackages": {
         "com.instagram.android": [
-          "456.1.0.56.78"
+          "457.0.0.55.73"
         ]
       },
       "compatibility": [
@@ -4103,13 +4080,12 @@
           ],
           "targets": [
             {
-              "version": "456.1.0.56.78",
+              "version": "457.0.0.55.73",
               "experimental": false,
               "versionCodes": {
-                "ARM64_V8A": 386215122,
-                "ARMEABI_V7A": 386215121,
-                "X86": 386215123,
-                "X86_64": 386215124
+                "ARM64_V8A": 386314341,
+                "ARMEABI_V7A": 386314340,
+                "X86_64": 386314286
               }
             }
           ]
@@ -4128,7 +4104,7 @@
       ],
       "compatiblePackages": {
         "com.instagram.android": [
-          "456.1.0.56.78"
+          "457.0.0.55.73"
         ]
       },
       "compatibility": [
@@ -4143,13 +4119,12 @@
           ],
           "targets": [
             {
-              "version": "456.1.0.56.78",
+              "version": "457.0.0.55.73",
               "experimental": false,
               "versionCodes": {
-                "ARM64_V8A": 386215122,
-                "ARMEABI_V7A": 386215121,
-                "X86": 386215123,
-                "X86_64": 386215124
+                "ARM64_V8A": 386314341,
+                "ARMEABI_V7A": 386314340,
+                "X86_64": 386314286
               }
             }
           ]
@@ -4168,7 +4143,7 @@
       ],
       "compatiblePackages": {
         "com.instagram.android": [
-          "456.1.0.56.78"
+          "457.0.0.55.73"
         ]
       },
       "compatibility": [
@@ -4183,13 +4158,12 @@
           ],
           "targets": [
             {
-              "version": "456.1.0.56.78",
+              "version": "457.0.0.55.73",
               "experimental": false,
               "versionCodes": {
-                "ARM64_V8A": 386215122,
-                "ARMEABI_V7A": 386215121,
-                "X86": 386215123,
-                "X86_64": 386215124
+                "ARM64_V8A": 386314341,
+                "ARMEABI_V7A": 386314340,
+                "X86_64": 386314286
               }
             }
           ]
@@ -4208,7 +4182,7 @@
       ],
       "compatiblePackages": {
         "com.instagram.android": [
-          "456.1.0.56.78"
+          "457.0.0.55.73"
         ]
       },
       "compatibility": [
@@ -4223,13 +4197,12 @@
           ],
           "targets": [
             {
-              "version": "456.1.0.56.78",
+              "version": "457.0.0.55.73",
               "experimental": false,
               "versionCodes": {
-                "ARM64_V8A": 386215122,
-                "ARMEABI_V7A": 386215121,
-                "X86": 386215123,
-                "X86_64": 386215124
+                "ARM64_V8A": 386314341,
+                "ARMEABI_V7A": 386314340,
+                "X86_64": 386314286
               }
             }
           ]
@@ -4248,7 +4221,7 @@
       ],
       "compatiblePackages": {
         "com.instagram.android": [
-          "456.1.0.56.78"
+          "457.0.0.55.73"
         ]
       },
       "compatibility": [
@@ -4263,13 +4236,12 @@
           ],
           "targets": [
             {
-              "version": "456.1.0.56.78",
+              "version": "457.0.0.55.73",
               "experimental": false,
               "versionCodes": {
-                "ARM64_V8A": 386215122,
-                "ARMEABI_V7A": 386215121,
-                "X86": 386215123,
-                "X86_64": 386215124
+                "ARM64_V8A": 386314341,
+                "ARMEABI_V7A": 386314340,
+                "X86_64": 386314286
               }
             }
           ]
@@ -4289,7 +4261,7 @@
       ],
       "compatiblePackages": {
         "com.instagram.android": [
-          "456.1.0.56.78"
+          "457.0.0.55.73"
         ]
       },
       "compatibility": [
@@ -4304,13 +4276,12 @@
           ],
           "targets": [
             {
-              "version": "456.1.0.56.78",
+              "version": "457.0.0.55.73",
               "experimental": false,
               "versionCodes": {
-                "ARM64_V8A": 386215122,
-                "ARMEABI_V7A": 386215121,
-                "X86": 386215123,
-                "X86_64": 386215124
+                "ARM64_V8A": 386314341,
+                "ARMEABI_V7A": 386314340,
+                "X86_64": 386314286
               }
             }
           ]
@@ -4329,7 +4300,7 @@
       ],
       "compatiblePackages": {
         "com.instagram.android": [
-          "456.1.0.56.78"
+          "457.0.0.55.73"
         ]
       },
       "compatibility": [
@@ -4344,13 +4315,12 @@
           ],
           "targets": [
             {
-              "version": "456.1.0.56.78",
+              "version": "457.0.0.55.73",
               "experimental": false,
               "versionCodes": {
-                "ARM64_V8A": 386215122,
-                "ARMEABI_V7A": 386215121,
-                "X86": 386215123,
-                "X86_64": 386215124
+                "ARM64_V8A": 386314341,
+                "ARMEABI_V7A": 386314340,
+                "X86_64": 386314286
               }
             }
           ]
@@ -4369,7 +4339,7 @@
       ],
       "compatiblePackages": {
         "com.instagram.android": [
-          "456.1.0.56.78"
+          "457.0.0.55.73"
         ]
       },
       "compatibility": [
@@ -4384,13 +4354,12 @@
           ],
           "targets": [
             {
-              "version": "456.1.0.56.78",
+              "version": "457.0.0.55.73",
               "experimental": false,
               "versionCodes": {
-                "ARM64_V8A": 386215122,
-                "ARMEABI_V7A": 386215121,
-                "X86": 386215123,
-                "X86_64": 386215124
+                "ARM64_V8A": 386314341,
+                "ARMEABI_V7A": 386314340,
+                "X86_64": 386314286
               }
             }
           ]
@@ -4400,7 +4369,7 @@
     },
     {
       "name": "Keep story viewers",
-      "description": "Keeps a list on your phone of who viewed each of your stories, from the viewer list Instagram already shows you, and sets it beside your followers. Nothing extra is asked of Instagram. Starts off. Turn it on in HushGram settings > Stories.",
+      "description": "Keeps a list on your phone of who viewed each of your stories, from the viewer list Instagram already shows you, and sets it beside your followers. It can also put a search bar back on that viewer list. Nothing extra is asked of Instagram. Starts off. Turn it on in HushGram settings > Stories.",
       "category": "Downloads",
       "use": true,
       "dependencies": [
@@ -4409,7 +4378,7 @@
       ],
       "compatiblePackages": {
         "com.instagram.android": [
-          "456.1.0.56.78"
+          "457.0.0.55.73"
         ]
       },
       "compatibility": [
@@ -4424,13 +4393,12 @@
           ],
           "targets": [
             {
-              "version": "456.1.0.56.78",
+              "version": "457.0.0.55.73",
               "experimental": false,
               "versionCodes": {
-                "ARM64_V8A": 386215122,
-                "ARMEABI_V7A": 386215121,
-                "X86": 386215123,
-                "X86_64": 386215124
+                "ARM64_V8A": 386314341,
+                "ARMEABI_V7A": 386314340,
+                "X86_64": 386314286
               }
             }
           ]
@@ -4449,7 +4417,7 @@
       ],
       "compatiblePackages": {
         "com.instagram.android": [
-          "456.1.0.56.78"
+          "457.0.0.55.73"
         ]
       },
       "compatibility": [
@@ -4464,13 +4432,12 @@
           ],
           "targets": [
             {
-              "version": "456.1.0.56.78",
+              "version": "457.0.0.55.73",
               "experimental": false,
               "versionCodes": {
-                "ARM64_V8A": 386215122,
-                "ARMEABI_V7A": 386215121,
-                "X86": 386215123,
-                "X86_64": 386215124
+                "ARM64_V8A": 386314341,
+                "ARMEABI_V7A": 386314340,
+                "X86_64": 386314286
               }
             }
           ]
@@ -4489,7 +4456,7 @@
       ],
       "compatiblePackages": {
         "com.instagram.android": [
-          "456.1.0.56.78"
+          "457.0.0.55.73"
         ]
       },
       "compatibility": [
@@ -4504,13 +4471,12 @@
           ],
           "targets": [
             {
-              "version": "456.1.0.56.78",
+              "version": "457.0.0.55.73",
               "experimental": false,
               "versionCodes": {
-                "ARM64_V8A": 386215122,
-                "ARMEABI_V7A": 386215121,
-                "X86": 386215123,
-                "X86_64": 386215124
+                "ARM64_V8A": 386314341,
+                "ARMEABI_V7A": 386314340,
+                "X86_64": 386314286
               }
             }
           ]
@@ -4529,7 +4495,7 @@
       ],
       "compatiblePackages": {
         "com.instagram.android": [
-          "456.1.0.56.78"
+          "457.0.0.55.73"
         ]
       },
       "compatibility": [
@@ -4544,13 +4510,12 @@
           ],
           "targets": [
             {
-              "version": "456.1.0.56.78",
+              "version": "457.0.0.55.73",
               "experimental": false,
               "versionCodes": {
-                "ARM64_V8A": 386215122,
-                "ARMEABI_V7A": 386215121,
-                "X86": 386215123,
-                "X86_64": 386215124
+                "ARM64_V8A": 386314341,
+                "ARMEABI_V7A": 386314340,
+                "X86_64": 386314286
               }
             }
           ]
@@ -4569,7 +4534,7 @@
       ],
       "compatiblePackages": {
         "com.instagram.android": [
-          "456.1.0.56.78"
+          "457.0.0.55.73"
         ]
       },
       "compatibility": [
@@ -4584,13 +4549,12 @@
           ],
           "targets": [
             {
-              "version": "456.1.0.56.78",
+              "version": "457.0.0.55.73",
               "experimental": false,
               "versionCodes": {
-                "ARM64_V8A": 386215122,
-                "ARMEABI_V7A": 386215121,
-                "X86": 386215123,
-                "X86_64": 386215124
+                "ARM64_V8A": 386314341,
+                "ARMEABI_V7A": 386314340,
+                "X86_64": 386314286
               }
             }
           ]
@@ -4609,7 +4573,7 @@
       ],
       "compatiblePackages": {
         "com.instagram.android": [
-          "456.1.0.56.78"
+          "457.0.0.55.73"
         ]
       },
       "compatibility": [
@@ -4624,13 +4588,12 @@
           ],
           "targets": [
             {
-              "version": "456.1.0.56.78",
+              "version": "457.0.0.55.73",
               "experimental": false,
               "versionCodes": {
-                "ARM64_V8A": 386215122,
-                "ARMEABI_V7A": 386215121,
-                "X86": 386215123,
-                "X86_64": 386215124
+                "ARM64_V8A": 386314341,
+                "ARMEABI_V7A": 386314340,
+                "X86_64": 386314286
               }
             }
           ]
@@ -4649,7 +4612,7 @@
       ],
       "compatiblePackages": {
         "com.instagram.android": [
-          "456.1.0.56.78"
+          "457.0.0.55.73"
         ]
       },
       "compatibility": [
@@ -4664,13 +4627,12 @@
           ],
           "targets": [
             {
-              "version": "456.1.0.56.78",
+              "version": "457.0.0.55.73",
               "experimental": false,
               "versionCodes": {
-                "ARM64_V8A": 386215122,
-                "ARMEABI_V7A": 386215121,
-                "X86": 386215123,
-                "X86_64": 386215124
+                "ARM64_V8A": 386314341,
+                "ARMEABI_V7A": 386314340,
+                "X86_64": 386314286
               }
             }
           ]
@@ -4689,7 +4651,7 @@
       ],
       "compatiblePackages": {
         "com.instagram.android": [
-          "456.1.0.56.78"
+          "457.0.0.55.73"
         ]
       },
       "compatibility": [
@@ -4704,13 +4666,12 @@
           ],
           "targets": [
             {
-              "version": "456.1.0.56.78",
+              "version": "457.0.0.55.73",
               "experimental": false,
               "versionCodes": {
-                "ARM64_V8A": 386215122,
-                "ARMEABI_V7A": 386215121,
-                "X86": 386215123,
-                "X86_64": 386215124
+                "ARM64_V8A": 386314341,
+                "ARMEABI_V7A": 386314340,
+                "X86_64": 386314286
               }
             }
           ]
@@ -4729,7 +4690,7 @@
       ],
       "compatiblePackages": {
         "com.instagram.android": [
-          "456.1.0.56.78"
+          "457.0.0.55.73"
         ]
       },
       "compatibility": [
@@ -4744,13 +4705,12 @@
           ],
           "targets": [
             {
-              "version": "456.1.0.56.78",
+              "version": "457.0.0.55.73",
               "experimental": false,
               "versionCodes": {
-                "ARM64_V8A": 386215122,
-                "ARMEABI_V7A": 386215121,
-                "X86": 386215123,
-                "X86_64": 386215124
+                "ARM64_V8A": 386314341,
+                "ARMEABI_V7A": 386314340,
+                "X86_64": 386314286
               }
             }
           ]
@@ -4769,7 +4729,7 @@
       ],
       "compatiblePackages": {
         "com.instagram.android": [
-          "456.1.0.56.78"
+          "457.0.0.55.73"
         ]
       },
       "compatibility": [
@@ -4784,13 +4744,12 @@
           ],
           "targets": [
             {
-              "version": "456.1.0.56.78",
+              "version": "457.0.0.55.73",
               "experimental": false,
               "versionCodes": {
-                "ARM64_V8A": 386215122,
-                "ARMEABI_V7A": 386215121,
-                "X86": 386215123,
-                "X86_64": 386215124
+                "ARM64_V8A": 386314341,
+                "ARMEABI_V7A": 386314340,
+                "X86_64": 386314286
               }
             }
           ]
@@ -4809,7 +4768,7 @@
       ],
       "compatiblePackages": {
         "com.instagram.android": [
-          "456.1.0.56.78"
+          "457.0.0.55.73"
         ]
       },
       "compatibility": [
@@ -4824,13 +4783,12 @@
           ],
           "targets": [
             {
-              "version": "456.1.0.56.78",
+              "version": "457.0.0.55.73",
               "experimental": false,
               "versionCodes": {
-                "ARM64_V8A": 386215122,
-                "ARMEABI_V7A": 386215121,
-                "X86": 386215123,
-                "X86_64": 386215124
+                "ARM64_V8A": 386314341,
+                "ARMEABI_V7A": 386314340,
+                "X86_64": 386314286
               }
             }
           ]
@@ -4849,7 +4807,7 @@
       ],
       "compatiblePackages": {
         "com.instagram.android": [
-          "456.1.0.56.78"
+          "457.0.0.55.73"
         ]
       },
       "compatibility": [
@@ -4864,13 +4822,12 @@
           ],
           "targets": [
             {
-              "version": "456.1.0.56.78",
+              "version": "457.0.0.55.73",
               "experimental": false,
               "versionCodes": {
-                "ARM64_V8A": 386215122,
-                "ARMEABI_V7A": 386215121,
-                "X86": 386215123,
-                "X86_64": 386215124
+                "ARM64_V8A": 386314341,
+                "ARMEABI_V7A": 386314340,
+                "X86_64": 386314286
               }
             }
           ]
@@ -4889,7 +4846,7 @@
       ],
       "compatiblePackages": {
         "com.instagram.android": [
-          "456.1.0.56.78"
+          "457.0.0.55.73"
         ]
       },
       "compatibility": [
@@ -4904,13 +4861,12 @@
           ],
           "targets": [
             {
-              "version": "456.1.0.56.78",
+              "version": "457.0.0.55.73",
               "experimental": false,
               "versionCodes": {
-                "ARM64_V8A": 386215122,
-                "ARMEABI_V7A": 386215121,
-                "X86": 386215123,
-                "X86_64": 386215124
+                "ARM64_V8A": 386314341,
+                "ARMEABI_V7A": 386314340,
+                "X86_64": 386314286
               }
             }
           ]
@@ -4929,7 +4885,7 @@
       ],
       "compatiblePackages": {
         "com.instagram.android": [
-          "456.1.0.56.78"
+          "457.0.0.55.73"
         ]
       },
       "compatibility": [
@@ -4944,13 +4900,12 @@
           ],
           "targets": [
             {
-              "version": "456.1.0.56.78",
+              "version": "457.0.0.55.73",
               "experimental": false,
               "versionCodes": {
-                "ARM64_V8A": 386215122,
-                "ARMEABI_V7A": 386215121,
-                "X86": 386215123,
-                "X86_64": 386215124
+                "ARM64_V8A": 386314341,
+                "ARMEABI_V7A": 386314340,
+                "X86_64": 386314286
               }
             }
           ]
@@ -4969,7 +4924,7 @@
       ],
       "compatiblePackages": {
         "com.instagram.android": [
-          "456.1.0.56.78"
+          "457.0.0.55.73"
         ]
       },
       "compatibility": [
@@ -4984,13 +4939,12 @@
           ],
           "targets": [
             {
-              "version": "456.1.0.56.78",
+              "version": "457.0.0.55.73",
               "experimental": false,
               "versionCodes": {
-                "ARM64_V8A": 386215122,
-                "ARMEABI_V7A": 386215121,
-                "X86": 386215123,
-                "X86_64": 386215124
+                "ARM64_V8A": 386314341,
+                "ARMEABI_V7A": 386314340,
+                "X86_64": 386314286
               }
             }
           ]
@@ -5009,7 +4963,7 @@
       ],
       "compatiblePackages": {
         "com.instagram.android": [
-          "456.1.0.56.78"
+          "457.0.0.55.73"
         ]
       },
       "compatibility": [
@@ -5024,13 +4978,12 @@
           ],
           "targets": [
             {
-              "version": "456.1.0.56.78",
+              "version": "457.0.0.55.73",
               "experimental": false,
               "versionCodes": {
-                "ARM64_V8A": 386215122,
-                "ARMEABI_V7A": 386215121,
-                "X86": 386215123,
-                "X86_64": 386215124
+                "ARM64_V8A": 386314341,
+                "ARMEABI_V7A": 386314340,
+                "X86_64": 386314286
               }
             }
           ]
@@ -5050,7 +5003,7 @@
       ],
       "compatiblePackages": {
         "com.instagram.android": [
-          "456.1.0.56.78"
+          "457.0.0.55.73"
         ]
       },
       "compatibility": [
@@ -5065,13 +5018,12 @@
           ],
           "targets": [
             {
-              "version": "456.1.0.56.78",
+              "version": "457.0.0.55.73",
               "experimental": false,
               "versionCodes": {
-                "ARM64_V8A": 386215122,
-                "ARMEABI_V7A": 386215121,
-                "X86": 386215123,
-                "X86_64": 386215124
+                "ARM64_V8A": 386314341,
+                "ARMEABI_V7A": 386314340,
+                "X86_64": 386314286
               }
             }
           ]
@@ -5090,7 +5042,7 @@
       ],
       "compatiblePackages": {
         "com.instagram.android": [
-          "456.1.0.56.78"
+          "457.0.0.55.73"
         ]
       },
       "compatibility": [
@@ -5105,13 +5057,12 @@
           ],
           "targets": [
             {
-              "version": "456.1.0.56.78",
+              "version": "457.0.0.55.73",
               "experimental": false,
               "versionCodes": {
-                "ARM64_V8A": 386215122,
-                "ARMEABI_V7A": 386215121,
-                "X86": 386215123,
-                "X86_64": 386215124
+                "ARM64_V8A": 386314341,
+                "ARMEABI_V7A": 386314340,
+                "X86_64": 386314286
               }
             }
           ]
@@ -5130,7 +5081,7 @@
       ],
       "compatiblePackages": {
         "com.instagram.android": [
-          "456.1.0.56.78"
+          "457.0.0.55.73"
         ]
       },
       "compatibility": [
@@ -5145,13 +5096,12 @@
           ],
           "targets": [
             {
-              "version": "456.1.0.56.78",
+              "version": "457.0.0.55.73",
               "experimental": false,
               "versionCodes": {
-                "ARM64_V8A": 386215122,
-                "ARMEABI_V7A": 386215121,
-                "X86": 386215123,
-                "X86_64": 386215124
+                "ARM64_V8A": 386314341,
+                "ARMEABI_V7A": 386314340,
+                "X86_64": 386314286
               }
             }
           ]
@@ -5170,7 +5120,7 @@
       ],
       "compatiblePackages": {
         "com.instagram.android": [
-          "456.1.0.56.78"
+          "457.0.0.55.73"
         ]
       },
       "compatibility": [
@@ -5185,13 +5135,12 @@
           ],
           "targets": [
             {
-              "version": "456.1.0.56.78",
+              "version": "457.0.0.55.73",
               "experimental": false,
               "versionCodes": {
-                "ARM64_V8A": 386215122,
-                "ARMEABI_V7A": 386215121,
-                "X86": 386215123,
-                "X86_64": 386215124
+                "ARM64_V8A": 386314341,
+                "ARMEABI_V7A": 386314340,
+                "X86_64": 386314286
               }
             }
           ]
@@ -5211,7 +5160,7 @@
       ],
       "compatiblePackages": {
         "com.instagram.android": [
-          "456.1.0.56.78"
+          "457.0.0.55.73"
         ]
       },
       "compatibility": [
@@ -5226,13 +5175,12 @@
           ],
           "targets": [
             {
-              "version": "456.1.0.56.78",
+              "version": "457.0.0.55.73",
               "experimental": false,
               "versionCodes": {
-                "ARM64_V8A": 386215122,
-                "ARMEABI_V7A": 386215121,
-                "X86": 386215123,
-                "X86_64": 386215124
+                "ARM64_V8A": 386314341,
+                "ARMEABI_V7A": 386314340,
+                "X86_64": 386314286
               }
             }
           ]
@@ -5251,7 +5199,7 @@
       ],
       "compatiblePackages": {
         "com.instagram.android": [
-          "456.1.0.56.78"
+          "457.0.0.55.73"
         ]
       },
       "compatibility": [
@@ -5266,13 +5214,12 @@
           ],
           "targets": [
             {
-              "version": "456.1.0.56.78",
+              "version": "457.0.0.55.73",
               "experimental": false,
               "versionCodes": {
-                "ARM64_V8A": 386215122,
-                "ARMEABI_V7A": 386215121,
-                "X86": 386215123,
-                "X86_64": 386215124
+                "ARM64_V8A": 386314341,
+                "ARMEABI_V7A": 386314340,
+                "X86_64": 386314286
               }
             }
           ]
@@ -5291,7 +5238,7 @@
       ],
       "compatiblePackages": {
         "com.instagram.android": [
-          "456.1.0.56.78"
+          "457.0.0.55.73"
         ]
       },
       "compatibility": [
@@ -5306,13 +5253,12 @@
           ],
           "targets": [
             {
-              "version": "456.1.0.56.78",
+              "version": "457.0.0.55.73",
               "experimental": false,
               "versionCodes": {
-                "ARM64_V8A": 386215122,
-                "ARMEABI_V7A": 386215121,
-                "X86": 386215123,
-                "X86_64": 386215124
+                "ARM64_V8A": 386314341,
+                "ARMEABI_V7A": 386314340,
+                "X86_64": 386314286
               }
             }
           ]
@@ -5322,7 +5268,7 @@
     },
     {
       "name": "Reels on Home below the name",
-      "description": "Shows reels on Home like other posts, with the name and the three-dot menu above the video instead of on top of it. Starts off. Turn it on in HushGram settings > Feed and Reels.",
+      "description": "Shows reels on Home like other posts, with the name and the three-dot menu above the whole video instead of on top of it. Starts off. Turn it on in HushGram settings > Feed and Reels.",
       "category": "Interaction",
       "use": true,
       "dependencies": [
@@ -5331,7 +5277,7 @@
       ],
       "compatiblePackages": {
         "com.instagram.android": [
-          "456.1.0.56.78"
+          "457.0.0.55.73"
         ]
       },
       "compatibility": [
@@ -5346,13 +5292,12 @@
           ],
           "targets": [
             {
-              "version": "456.1.0.56.78",
+              "version": "457.0.0.55.73",
               "experimental": false,
               "versionCodes": {
-                "ARM64_V8A": 386215122,
-                "ARMEABI_V7A": 386215121,
-                "X86": 386215123,
-                "X86_64": 386215124
+                "ARM64_V8A": 386314341,
+                "ARMEABI_V7A": 386314340,
+                "X86_64": 386314286
               }
             }
           ]
@@ -5371,7 +5316,7 @@
       ],
       "compatiblePackages": {
         "com.instagram.android": [
-          "456.1.0.56.78"
+          "457.0.0.55.73"
         ]
       },
       "compatibility": [
@@ -5386,13 +5331,12 @@
           ],
           "targets": [
             {
-              "version": "456.1.0.56.78",
+              "version": "457.0.0.55.73",
               "experimental": false,
               "versionCodes": {
-                "ARM64_V8A": 386215122,
-                "ARMEABI_V7A": 386215121,
-                "X86": 386215123,
-                "X86_64": 386215124
+                "ARM64_V8A": 386314341,
+                "ARMEABI_V7A": 386314340,
+                "X86_64": 386314286
               }
             }
           ]
@@ -5412,7 +5356,7 @@
       ],
       "compatiblePackages": {
         "com.instagram.android": [
-          "456.1.0.56.78"
+          "457.0.0.55.73"
         ]
       },
       "compatibility": [
@@ -5427,13 +5371,12 @@
           ],
           "targets": [
             {
-              "version": "456.1.0.56.78",
+              "version": "457.0.0.55.73",
               "experimental": false,
               "versionCodes": {
-                "ARM64_V8A": 386215122,
-                "ARMEABI_V7A": 386215121,
-                "X86": 386215123,
-                "X86_64": 386215124
+                "ARM64_V8A": 386314341,
+                "ARMEABI_V7A": 386314340,
+                "X86_64": 386314286
               }
             }
           ]
@@ -5452,7 +5395,7 @@
       ],
       "compatiblePackages": {
         "com.instagram.android": [
-          "456.1.0.56.78"
+          "457.0.0.55.73"
         ]
       },
       "compatibility": [
@@ -5467,13 +5410,12 @@
           ],
           "targets": [
             {
-              "version": "456.1.0.56.78",
+              "version": "457.0.0.55.73",
               "experimental": false,
               "versionCodes": {
-                "ARM64_V8A": 386215122,
-                "ARMEABI_V7A": 386215121,
-                "X86": 386215123,
-                "X86_64": 386215124
+                "ARM64_V8A": 386314341,
+                "ARMEABI_V7A": 386314340,
+                "X86_64": 386314286
               }
             }
           ]
@@ -5492,7 +5434,7 @@
       ],
       "compatiblePackages": {
         "com.instagram.android": [
-          "456.1.0.56.78"
+          "457.0.0.55.73"
         ]
       },
       "compatibility": [
@@ -5507,13 +5449,12 @@
           ],
           "targets": [
             {
-              "version": "456.1.0.56.78",
+              "version": "457.0.0.55.73",
               "experimental": false,
               "versionCodes": {
-                "ARM64_V8A": 386215122,
-                "ARMEABI_V7A": 386215121,
-                "X86": 386215123,
-                "X86_64": 386215124
+                "ARM64_V8A": 386314341,
+                "ARMEABI_V7A": 386314340,
+                "X86_64": 386314286
               }
             }
           ]
@@ -5532,7 +5473,7 @@
       ],
       "compatiblePackages": {
         "com.instagram.android": [
-          "456.1.0.56.78"
+          "457.0.0.55.73"
         ]
       },
       "compatibility": [
@@ -5547,13 +5488,12 @@
           ],
           "targets": [
             {
-              "version": "456.1.0.56.78",
+              "version": "457.0.0.55.73",
               "experimental": false,
               "versionCodes": {
-                "ARM64_V8A": 386215122,
-                "ARMEABI_V7A": 386215121,
-                "X86": 386215123,
-                "X86_64": 386215124
+                "ARM64_V8A": 386314341,
+                "ARMEABI_V7A": 386314340,
+                "X86_64": 386314286
               }
             }
           ]
@@ -5572,7 +5512,7 @@
       ],
       "compatiblePackages": {
         "com.instagram.android": [
-          "456.1.0.56.78"
+          "457.0.0.55.73"
         ]
       },
       "compatibility": [
@@ -5587,13 +5527,12 @@
           ],
           "targets": [
             {
-              "version": "456.1.0.56.78",
+              "version": "457.0.0.55.73",
               "experimental": false,
               "versionCodes": {
-                "ARM64_V8A": 386215122,
-                "ARMEABI_V7A": 386215121,
-                "X86": 386215123,
-                "X86_64": 386215124
+                "ARM64_V8A": 386314341,
+                "ARMEABI_V7A": 386314340,
+                "X86_64": 386314286
               }
             }
           ]
@@ -5612,7 +5551,7 @@
       ],
       "compatiblePackages": {
         "com.instagram.android": [
-          "456.1.0.56.78"
+          "457.0.0.55.73"
         ]
       },
       "compatibility": [
@@ -5627,13 +5566,12 @@
           ],
           "targets": [
             {
-              "version": "456.1.0.56.78",
+              "version": "457.0.0.55.73",
               "experimental": false,
               "versionCodes": {
-                "ARM64_V8A": 386215122,
-                "ARMEABI_V7A": 386215121,
-                "X86": 386215123,
-                "X86_64": 386215124
+                "ARM64_V8A": 386314341,
+                "ARMEABI_V7A": 386314340,
+                "X86_64": 386314286
               }
             }
           ]
@@ -5652,7 +5590,7 @@
       ],
       "compatiblePackages": {
         "com.instagram.android": [
-          "456.1.0.56.78"
+          "457.0.0.55.73"
         ]
       },
       "compatibility": [
@@ -5667,13 +5605,12 @@
           ],
           "targets": [
             {
-              "version": "456.1.0.56.78",
+              "version": "457.0.0.55.73",
               "experimental": false,
               "versionCodes": {
-                "ARM64_V8A": 386215122,
-                "ARMEABI_V7A": 386215121,
-                "X86": 386215123,
-                "X86_64": 386215124
+                "ARM64_V8A": 386314341,
+                "ARMEABI_V7A": 386314340,
+                "X86_64": 386314286
               }
             }
           ]
@@ -5692,7 +5629,7 @@
       ],
       "compatiblePackages": {
         "com.instagram.android": [
-          "456.1.0.56.78"
+          "457.0.0.55.73"
         ]
       },
       "compatibility": [
@@ -5707,13 +5644,12 @@
           ],
           "targets": [
             {
-              "version": "456.1.0.56.78",
+              "version": "457.0.0.55.73",
               "experimental": false,
               "versionCodes": {
-                "ARM64_V8A": 386215122,
-                "ARMEABI_V7A": 386215121,
-                "X86": 386215123,
-                "X86_64": 386215124
+                "ARM64_V8A": 386314341,
+                "ARMEABI_V7A": 386314340,
+                "X86_64": 386314286
               }
             }
           ]
@@ -5732,7 +5668,7 @@
       ],
       "compatiblePackages": {
         "com.instagram.android": [
-          "456.1.0.56.78"
+          "457.0.0.55.73"
         ]
       },
       "compatibility": [
@@ -5747,13 +5683,12 @@
           ],
           "targets": [
             {
-              "version": "456.1.0.56.78",
+              "version": "457.0.0.55.73",
               "experimental": false,
               "versionCodes": {
-                "ARM64_V8A": 386215122,
-                "ARMEABI_V7A": 386215121,
-                "X86": 386215123,
-                "X86_64": 386215124
+                "ARM64_V8A": 386314341,
+                "ARMEABI_V7A": 386314340,
+                "X86_64": 386314286
               }
             }
           ]
@@ -5772,7 +5707,7 @@
       ],
       "compatiblePackages": {
         "com.instagram.android": [
-          "456.1.0.56.78"
+          "457.0.0.55.73"
         ]
       },
       "compatibility": [
@@ -5787,13 +5722,12 @@
           ],
           "targets": [
             {
-              "version": "456.1.0.56.78",
+              "version": "457.0.0.55.73",
               "experimental": false,
               "versionCodes": {
-                "ARM64_V8A": 386215122,
-                "ARMEABI_V7A": 386215121,
-                "X86": 386215123,
-                "X86_64": 386215124
+                "ARM64_V8A": 386314341,
+                "ARMEABI_V7A": 386314340,
+                "X86_64": 386314286
               }
             }
           ]
@@ -5812,7 +5746,7 @@
       ],
       "compatiblePackages": {
         "com.instagram.android": [
-          "456.1.0.56.78"
+          "457.0.0.55.73"
         ]
       },
       "compatibility": [
@@ -5827,13 +5761,12 @@
           ],
           "targets": [
             {
-              "version": "456.1.0.56.78",
+              "version": "457.0.0.55.73",
               "experimental": false,
               "versionCodes": {
-                "ARM64_V8A": 386215122,
-                "ARMEABI_V7A": 386215121,
-                "X86": 386215123,
-                "X86_64": 386215124
+                "ARM64_V8A": 386314341,
+                "ARMEABI_V7A": 386314340,
+                "X86_64": 386314286
               }
             }
           ]
@@ -5852,7 +5785,7 @@
       ],
       "compatiblePackages": {
         "com.instagram.android": [
-          "456.1.0.56.78"
+          "457.0.0.55.73"
         ]
       },
       "compatibility": [
@@ -5867,13 +5800,12 @@
           ],
           "targets": [
             {
-              "version": "456.1.0.56.78",
+              "version": "457.0.0.55.73",
               "experimental": false,
               "versionCodes": {
-                "ARM64_V8A": 386215122,
-                "ARMEABI_V7A": 386215121,
-                "X86": 386215123,
-                "X86_64": 386215124
+                "ARM64_V8A": 386314341,
+                "ARMEABI_V7A": 386314340,
+                "X86_64": 386314286
               }
             }
           ]
@@ -5892,7 +5824,7 @@
       ],
       "compatiblePackages": {
         "com.instagram.android": [
-          "456.1.0.56.78"
+          "457.0.0.55.73"
         ]
       },
       "compatibility": [
@@ -5907,13 +5839,12 @@
           ],
           "targets": [
             {
-              "version": "456.1.0.56.78",
+              "version": "457.0.0.55.73",
               "experimental": false,
               "versionCodes": {
-                "ARM64_V8A": 386215122,
-                "ARMEABI_V7A": 386215121,
-                "X86": 386215123,
-                "X86_64": 386215124
+                "ARM64_V8A": 386314341,
+                "ARMEABI_V7A": 386314340,
+                "X86_64": 386314286
               }
             }
           ]
@@ -5932,7 +5863,7 @@
       ],
       "compatiblePackages": {
         "com.instagram.android": [
-          "456.1.0.56.78"
+          "457.0.0.55.73"
         ]
       },
       "compatibility": [
@@ -5947,13 +5878,12 @@
           ],
           "targets": [
             {
-              "version": "456.1.0.56.78",
+              "version": "457.0.0.55.73",
               "experimental": false,
               "versionCodes": {
-                "ARM64_V8A": 386215122,
-                "ARMEABI_V7A": 386215121,
-                "X86": 386215123,
-                "X86_64": 386215124
+                "ARM64_V8A": 386314341,
+                "ARMEABI_V7A": 386314340,
+                "X86_64": 386314286
               }
             }
           ]
@@ -5973,7 +5903,7 @@
       ],
       "compatiblePackages": {
         "com.instagram.android": [
-          "456.1.0.56.78"
+          "457.0.0.55.73"
         ]
       },
       "compatibility": [
@@ -5988,13 +5918,12 @@
           ],
           "targets": [
             {
-              "version": "456.1.0.56.78",
+              "version": "457.0.0.55.73",
               "experimental": false,
               "versionCodes": {
-                "ARM64_V8A": 386215122,
-                "ARMEABI_V7A": 386215121,
-                "X86": 386215123,
-                "X86_64": 386215124
+                "ARM64_V8A": 386314341,
+                "ARMEABI_V7A": 386314340,
+                "X86_64": 386314286
               }
             }
           ]
@@ -6013,7 +5942,7 @@
       ],
       "compatiblePackages": {
         "com.instagram.android": [
-          "456.1.0.56.78"
+          "457.0.0.55.73"
         ]
       },
       "compatibility": [
@@ -6028,13 +5957,12 @@
           ],
           "targets": [
             {
-              "version": "456.1.0.56.78",
+              "version": "457.0.0.55.73",
               "experimental": false,
               "versionCodes": {
-                "ARM64_V8A": 386215122,
-                "ARMEABI_V7A": 386215121,
-                "X86": 386215123,
-                "X86_64": 386215124
+                "ARM64_V8A": 386314341,
+                "ARMEABI_V7A": 386314340,
+                "X86_64": 386314286
               }
             }
           ]
@@ -6053,7 +5981,7 @@
       ],
       "compatiblePackages": {
         "com.instagram.android": [
-          "456.1.0.56.78"
+          "457.0.0.55.73"
         ]
       },
       "compatibility": [
@@ -6068,13 +5996,12 @@
           ],
           "targets": [
             {
-              "version": "456.1.0.56.78",
+              "version": "457.0.0.55.73",
               "experimental": false,
               "versionCodes": {
-                "ARM64_V8A": 386215122,
-                "ARMEABI_V7A": 386215121,
-                "X86": 386215123,
-                "X86_64": 386215124
+                "ARM64_V8A": 386314341,
+                "ARMEABI_V7A": 386314340,
+                "X86_64": 386314286
               }
             }
           ]
@@ -6093,7 +6020,7 @@
       ],
       "compatiblePackages": {
         "com.instagram.android": [
-          "456.1.0.56.78"
+          "457.0.0.55.73"
         ]
       },
       "compatibility": [
@@ -6108,13 +6035,12 @@
           ],
           "targets": [
             {
-              "version": "456.1.0.56.78",
+              "version": "457.0.0.55.73",
               "experimental": false,
               "versionCodes": {
-                "ARM64_V8A": 386215122,
-                "ARMEABI_V7A": 386215121,
-                "X86": 386215123,
-                "X86_64": 386215124
+                "ARM64_V8A": 386314341,
+                "ARMEABI_V7A": 386314340,
+                "X86_64": 386314286
               }
             }
           ]
@@ -6133,7 +6059,7 @@
       ],
       "compatiblePackages": {
         "com.instagram.android": [
-          "456.1.0.56.78"
+          "457.0.0.55.73"
         ]
       },
       "compatibility": [
@@ -6148,13 +6074,12 @@
           ],
           "targets": [
             {
-              "version": "456.1.0.56.78",
+              "version": "457.0.0.55.73",
               "experimental": false,
               "versionCodes": {
-                "ARM64_V8A": 386215122,
-                "ARMEABI_V7A": 386215121,
-                "X86": 386215123,
-                "X86_64": 386215124
+                "ARM64_V8A": 386314341,
+                "ARMEABI_V7A": 386314340,
+                "X86_64": 386314286
               }
             }
           ]
@@ -6173,7 +6098,7 @@
       ],
       "compatiblePackages": {
         "com.instagram.android": [
-          "456.1.0.56.78"
+          "457.0.0.55.73"
         ]
       },
       "compatibility": [
@@ -6188,13 +6113,12 @@
           ],
           "targets": [
             {
-              "version": "456.1.0.56.78",
+              "version": "457.0.0.55.73",
               "experimental": false,
               "versionCodes": {
-                "ARM64_V8A": 386215122,
-                "ARMEABI_V7A": 386215121,
-                "X86": 386215123,
-                "X86_64": 386215124
+                "ARM64_V8A": 386314341,
+                "ARMEABI_V7A": 386314340,
+                "X86_64": 386314286
               }
             }
           ]
@@ -6213,7 +6137,7 @@
       ],
       "compatiblePackages": {
         "com.instagram.android": [
-          "456.1.0.56.78"
+          "457.0.0.55.73"
         ]
       },
       "compatibility": [
@@ -6228,13 +6152,12 @@
           ],
           "targets": [
             {
-              "version": "456.1.0.56.78",
+              "version": "457.0.0.55.73",
               "experimental": false,
               "versionCodes": {
-                "ARM64_V8A": 386215122,
-                "ARMEABI_V7A": 386215121,
-                "X86": 386215123,
-                "X86_64": 386215124
+                "ARM64_V8A": 386314341,
+                "ARMEABI_V7A": 386314340,
+                "X86_64": 386314286
               }
             }
           ]
@@ -6253,7 +6176,7 @@
       ],
       "compatiblePackages": {
         "com.instagram.android": [
-          "456.1.0.56.78"
+          "457.0.0.55.73"
         ]
       },
       "compatibility": [
@@ -6268,13 +6191,12 @@
           ],
           "targets": [
             {
-              "version": "456.1.0.56.78",
+              "version": "457.0.0.55.73",
               "experimental": false,
               "versionCodes": {
-                "ARM64_V8A": 386215122,
-                "ARMEABI_V7A": 386215121,
-                "X86": 386215123,
-                "X86_64": 386215124
+                "ARM64_V8A": 386314341,
+                "ARMEABI_V7A": 386314340,
+                "X86_64": 386314286
               }
             }
           ]
@@ -6293,7 +6215,7 @@
       ],
       "compatiblePackages": {
         "com.instagram.android": [
-          "456.1.0.56.78"
+          "457.0.0.55.73"
         ]
       },
       "compatibility": [
@@ -6308,13 +6230,12 @@
           ],
           "targets": [
             {
-              "version": "456.1.0.56.78",
+              "version": "457.0.0.55.73",
               "experimental": false,
               "versionCodes": {
-                "ARM64_V8A": 386215122,
-                "ARMEABI_V7A": 386215121,
-                "X86": 386215123,
-                "X86_64": 386215124
+                "ARM64_V8A": 386314341,
+                "ARMEABI_V7A": 386314340,
+                "X86_64": 386314286
               }
             }
           ]
@@ -6324,7 +6245,7 @@
     },
     {
       "name": "Show if a profile follows you",
-      "description": "Adds Follows you or Doesn't follow you beside the name on someone's profile. Other switches add a chip and mark accounts on your Following list that don't follow you back, in words or as a red cross on the profile picture with a green check for those that do, and Recent unfollowers shows who left your Followers list, with a Follower history of who left, came back or is new. The chip is blue for Follows you, green for Following each other and red for Doesn't follow you, and it can go small under the profile picture. Tap the chip to see the rest of what Instagram says about you two, like Close Friends, Favorites, mutes, restrictions and pending follow requests. On by default. Turn it off in HushGram settings > Profiles.",
+      "description": "Adds Follows you or Doesn't follow you beside the name on someone's profile. Other switches add a chip and mark accounts on your Following list that don't follow you back, in words or as a red cross on the profile picture with a green check for those that do, and Recent unfollowers shows who left your Followers list, with a Follower history of who left, came back or is new. Holding a follow list's tabs can show only its public or private accounts, and your own lists can show since when each follow started, counted from when you turn that on. The chip is blue for Follows you, green for Following each other and red for Doesn't follow you, and it can go small under the profile picture. Tap the chip to see the rest of what Instagram says about you two, like Close Friends, Favorites, mutes, restrictions and pending follow requests. On by default. Turn it off in HushGram settings > Profiles.",
       "category": "Profiles",
       "use": true,
       "dependencies": [
@@ -6333,7 +6254,7 @@
       ],
       "compatiblePackages": {
         "com.instagram.android": [
-          "456.1.0.56.78"
+          "457.0.0.55.73"
         ]
       },
       "compatibility": [
@@ -6348,13 +6269,12 @@
           ],
           "targets": [
             {
-              "version": "456.1.0.56.78",
+              "version": "457.0.0.55.73",
               "experimental": false,
               "versionCodes": {
-                "ARM64_V8A": 386215122,
-                "ARMEABI_V7A": 386215121,
-                "X86": 386215123,
-                "X86_64": 386215124
+                "ARM64_V8A": 386314341,
+                "ARMEABI_V7A": 386314340,
+                "X86_64": 386314286
               }
             }
           ]
@@ -6373,7 +6293,7 @@
       ],
       "compatiblePackages": {
         "com.instagram.android": [
-          "456.1.0.56.78"
+          "457.0.0.55.73"
         ]
       },
       "compatibility": [
@@ -6388,13 +6308,12 @@
           ],
           "targets": [
             {
-              "version": "456.1.0.56.78",
+              "version": "457.0.0.55.73",
               "experimental": false,
               "versionCodes": {
-                "ARM64_V8A": 386215122,
-                "ARMEABI_V7A": 386215121,
-                "X86": 386215123,
-                "X86_64": 386215124
+                "ARM64_V8A": 386314341,
+                "ARMEABI_V7A": 386314340,
+                "X86_64": 386314286
               }
             }
           ]
@@ -6413,7 +6332,7 @@
       ],
       "compatiblePackages": {
         "com.instagram.android": [
-          "456.1.0.56.78"
+          "457.0.0.55.73"
         ]
       },
       "compatibility": [
@@ -6428,13 +6347,12 @@
           ],
           "targets": [
             {
-              "version": "456.1.0.56.78",
+              "version": "457.0.0.55.73",
               "experimental": false,
               "versionCodes": {
-                "ARM64_V8A": 386215122,
-                "ARMEABI_V7A": 386215121,
-                "X86": 386215123,
-                "X86_64": 386215124
+                "ARM64_V8A": 386314341,
+                "ARMEABI_V7A": 386314340,
+                "X86_64": 386314286
               }
             }
           ]
@@ -6453,7 +6371,7 @@
       ],
       "compatiblePackages": {
         "com.instagram.android": [
-          "456.1.0.56.78"
+          "457.0.0.55.73"
         ]
       },
       "compatibility": [
@@ -6468,13 +6386,12 @@
           ],
           "targets": [
             {
-              "version": "456.1.0.56.78",
+              "version": "457.0.0.55.73",
               "experimental": false,
               "versionCodes": {
-                "ARM64_V8A": 386215122,
-                "ARMEABI_V7A": 386215121,
-                "X86": 386215123,
-                "X86_64": 386215124
+                "ARM64_V8A": 386314341,
+                "ARMEABI_V7A": 386314340,
+                "X86_64": 386314286
               }
             }
           ]
@@ -6493,7 +6410,7 @@
       ],
       "compatiblePackages": {
         "com.instagram.android": [
-          "456.1.0.56.78"
+          "457.0.0.55.73"
         ]
       },
       "compatibility": [
@@ -6508,13 +6425,12 @@
           ],
           "targets": [
             {
-              "version": "456.1.0.56.78",
+              "version": "457.0.0.55.73",
               "experimental": false,
               "versionCodes": {
-                "ARM64_V8A": 386215122,
-                "ARMEABI_V7A": 386215121,
-                "X86": 386215123,
-                "X86_64": 386215124
+                "ARM64_V8A": 386314341,
+                "ARMEABI_V7A": 386314340,
+                "X86_64": 386314286
               }
             }
           ]
@@ -6533,7 +6449,7 @@
       ],
       "compatiblePackages": {
         "com.instagram.android": [
-          "456.1.0.56.78"
+          "457.0.0.55.73"
         ]
       },
       "compatibility": [
@@ -6548,13 +6464,12 @@
           ],
           "targets": [
             {
-              "version": "456.1.0.56.78",
+              "version": "457.0.0.55.73",
               "experimental": false,
               "versionCodes": {
-                "ARM64_V8A": 386215122,
-                "ARMEABI_V7A": 386215121,
-                "X86": 386215123,
-                "X86_64": 386215124
+                "ARM64_V8A": 386314341,
+                "ARMEABI_V7A": 386314340,
+                "X86_64": 386314286
               }
             }
           ]
@@ -6573,7 +6488,7 @@
       ],
       "compatiblePackages": {
         "com.instagram.android": [
-          "456.1.0.56.78"
+          "457.0.0.55.73"
         ]
       },
       "compatibility": [
@@ -6588,13 +6503,12 @@
           ],
           "targets": [
             {
-              "version": "456.1.0.56.78",
+              "version": "457.0.0.55.73",
               "experimental": false,
               "versionCodes": {
-                "ARM64_V8A": 386215122,
-                "ARMEABI_V7A": 386215121,
-                "X86": 386215123,
-                "X86_64": 386215124
+                "ARM64_V8A": 386314341,
+                "ARMEABI_V7A": 386314340,
+                "X86_64": 386314286
               }
             }
           ]
@@ -6613,7 +6527,7 @@
       ],
       "compatiblePackages": {
         "com.instagram.android": [
-          "456.1.0.56.78"
+          "457.0.0.55.73"
         ]
       },
       "compatibility": [
@@ -6628,13 +6542,12 @@
           ],
           "targets": [
             {
-              "version": "456.1.0.56.78",
+              "version": "457.0.0.55.73",
               "experimental": false,
               "versionCodes": {
-                "ARM64_V8A": 386215122,
-                "ARMEABI_V7A": 386215121,
-                "X86": 386215123,
-                "X86_64": 386215124
+                "ARM64_V8A": 386314341,
+                "ARMEABI_V7A": 386314340,
+                "X86_64": 386314286
               }
             }
           ]
@@ -6653,7 +6566,7 @@
       ],
       "compatiblePackages": {
         "com.instagram.android": [
-          "456.1.0.56.78"
+          "457.0.0.55.73"
         ]
       },
       "compatibility": [
@@ -6668,13 +6581,12 @@
           ],
           "targets": [
             {
-              "version": "456.1.0.56.78",
+              "version": "457.0.0.55.73",
               "experimental": false,
               "versionCodes": {
-                "ARM64_V8A": 386215122,
-                "ARMEABI_V7A": 386215121,
-                "X86": 386215123,
-                "X86_64": 386215124
+                "ARM64_V8A": 386314341,
+                "ARMEABI_V7A": 386314340,
+                "X86_64": 386314286
               }
             }
           ]
@@ -6693,7 +6605,7 @@
       ],
       "compatiblePackages": {
         "com.instagram.android": [
-          "456.1.0.56.78"
+          "457.0.0.55.73"
         ]
       },
       "compatibility": [
@@ -6708,13 +6620,12 @@
           ],
           "targets": [
             {
-              "version": "456.1.0.56.78",
+              "version": "457.0.0.55.73",
               "experimental": false,
               "versionCodes": {
-                "ARM64_V8A": 386215122,
-                "ARMEABI_V7A": 386215121,
-                "X86": 386215123,
-                "X86_64": 386215124
+                "ARM64_V8A": 386314341,
+                "ARMEABI_V7A": 386314340,
+                "X86_64": 386314286
               }
             }
           ]
@@ -6733,7 +6644,7 @@
       ],
       "compatiblePackages": {
         "com.instagram.android": [
-          "456.1.0.56.78"
+          "457.0.0.55.73"
         ]
       },
       "compatibility": [
@@ -6748,13 +6659,12 @@
           ],
           "targets": [
             {
-              "version": "456.1.0.56.78",
+              "version": "457.0.0.55.73",
               "experimental": false,
               "versionCodes": {
-                "ARM64_V8A": 386215122,
-                "ARMEABI_V7A": 386215121,
-                "X86": 386215123,
-                "X86_64": 386215124
+                "ARM64_V8A": 386314341,
+                "ARMEABI_V7A": 386314340,
+                "X86_64": 386314286
               }
             }
           ]
@@ -6764,7 +6674,7 @@
     },
     {
       "name": "Start feed videos with sound",
-      "description": "Starts videos on Home with their sound on, the same as tapping a video's speaker, or keeps them muted while reels play with sound. Your phone's ringer and volume still count, unless `Even on silent` under it is on. Starts off. Turn it on in HushGram settings > Feed.",
+      "description": "Starts videos on Home with their sound on, the same as tapping a video's speaker, and a photo post's song too, or keeps videos muted while reels play with sound. Your phone's ringer and volume still count, unless `Even on silent` under it is on. Starts off. Turn it on in HushGram settings > Feed.",
       "category": "Playback",
       "use": true,
       "dependencies": [
@@ -6773,7 +6683,7 @@
       ],
       "compatiblePackages": {
         "com.instagram.android": [
-          "456.1.0.56.78"
+          "457.0.0.55.73"
         ]
       },
       "compatibility": [
@@ -6788,13 +6698,12 @@
           ],
           "targets": [
             {
-              "version": "456.1.0.56.78",
+              "version": "457.0.0.55.73",
               "experimental": false,
               "versionCodes": {
-                "ARM64_V8A": 386215122,
-                "ARMEABI_V7A": 386215121,
-                "X86": 386215123,
-                "X86_64": 386215124
+                "ARM64_V8A": 386314341,
+                "ARMEABI_V7A": 386314340,
+                "X86_64": 386314286
               }
             }
           ]
@@ -6813,7 +6722,7 @@
       ],
       "compatiblePackages": {
         "com.instagram.android": [
-          "456.1.0.56.78"
+          "457.0.0.55.73"
         ]
       },
       "compatibility": [
@@ -6828,13 +6737,12 @@
           ],
           "targets": [
             {
-              "version": "456.1.0.56.78",
+              "version": "457.0.0.55.73",
               "experimental": false,
               "versionCodes": {
-                "ARM64_V8A": 386215122,
-                "ARMEABI_V7A": 386215121,
-                "X86": 386215123,
-                "X86_64": 386215124
+                "ARM64_V8A": 386314341,
+                "ARMEABI_V7A": 386314340,
+                "X86_64": 386314286
               }
             }
           ]
@@ -6853,7 +6761,7 @@
       ],
       "compatiblePackages": {
         "com.instagram.android": [
-          "456.1.0.56.78"
+          "457.0.0.55.73"
         ]
       },
       "compatibility": [
@@ -6868,13 +6776,12 @@
           ],
           "targets": [
             {
-              "version": "456.1.0.56.78",
+              "version": "457.0.0.55.73",
               "experimental": false,
               "versionCodes": {
-                "ARM64_V8A": 386215122,
-                "ARMEABI_V7A": 386215121,
-                "X86": 386215123,
-                "X86_64": 386215124
+                "ARM64_V8A": 386314341,
+                "ARMEABI_V7A": 386314340,
+                "X86_64": 386314286
               }
             }
           ]
@@ -6893,7 +6800,7 @@
       ],
       "compatiblePackages": {
         "com.instagram.android": [
-          "456.1.0.56.78"
+          "457.0.0.55.73"
         ]
       },
       "compatibility": [
@@ -6908,13 +6815,12 @@
           ],
           "targets": [
             {
-              "version": "456.1.0.56.78",
+              "version": "457.0.0.55.73",
               "experimental": false,
               "versionCodes": {
-                "ARM64_V8A": 386215122,
-                "ARMEABI_V7A": 386215121,
-                "X86": 386215123,
-                "X86_64": 386215124
+                "ARM64_V8A": 386314341,
+                "ARMEABI_V7A": 386314340,
+                "X86_64": 386314286
               }
             }
           ]
@@ -6933,7 +6839,7 @@
       ],
       "compatiblePackages": {
         "com.instagram.android": [
-          "456.1.0.56.78"
+          "457.0.0.55.73"
         ]
       },
       "compatibility": [
@@ -6948,13 +6854,12 @@
           ],
           "targets": [
             {
-              "version": "456.1.0.56.78",
+              "version": "457.0.0.55.73",
               "experimental": false,
               "versionCodes": {
-                "ARM64_V8A": 386215122,
-                "ARMEABI_V7A": 386215121,
-                "X86": 386215123,
-                "X86_64": 386215124
+                "ARM64_V8A": 386314341,
+                "ARMEABI_V7A": 386314340,
+                "X86_64": 386314286
               }
             }
           ]
@@ -6973,7 +6878,7 @@
       ],
       "compatiblePackages": {
         "com.instagram.android": [
-          "456.1.0.56.78"
+          "457.0.0.55.73"
         ]
       },
       "compatibility": [
@@ -6988,13 +6893,12 @@
           ],
           "targets": [
             {
-              "version": "456.1.0.56.78",
+              "version": "457.0.0.55.73",
               "experimental": false,
               "versionCodes": {
-                "ARM64_V8A": 386215122,
-                "ARMEABI_V7A": 386215121,
-                "X86": 386215123,
-                "X86_64": 386215124
+                "ARM64_V8A": 386314341,
+                "ARMEABI_V7A": 386314340,
+                "X86_64": 386314286
               }
             }
           ]
@@ -7013,7 +6917,7 @@
       ],
       "compatiblePackages": {
         "com.instagram.android": [
-          "456.1.0.56.78"
+          "457.0.0.55.73"
         ]
       },
       "compatibility": [
@@ -7028,13 +6932,12 @@
           ],
           "targets": [
             {
-              "version": "456.1.0.56.78",
+              "version": "457.0.0.55.73",
               "experimental": false,
               "versionCodes": {
-                "ARM64_V8A": 386215122,
-                "ARMEABI_V7A": 386215121,
-                "X86": 386215123,
-                "X86_64": 386215124
+                "ARM64_V8A": 386314341,
+                "ARMEABI_V7A": 386314340,
+                "X86_64": 386314286
               }
             }
           ]
@@ -7053,7 +6956,7 @@
       ],
       "compatiblePackages": {
         "com.instagram.android": [
-          "456.1.0.56.78"
+          "457.0.0.55.73"
         ]
       },
       "compatibility": [
@@ -7068,13 +6971,12 @@
           ],
           "targets": [
             {
-              "version": "456.1.0.56.78",
+              "version": "457.0.0.55.73",
               "experimental": false,
               "versionCodes": {
-                "ARM64_V8A": 386215122,
-                "ARMEABI_V7A": 386215121,
-                "X86": 386215123,
-                "X86_64": 386215124
+                "ARM64_V8A": 386314341,
+                "ARMEABI_V7A": 386314340,
+                "X86_64": 386314286
               }
             }
           ]
@@ -7093,7 +6995,7 @@
       ],
       "compatiblePackages": {
         "com.instagram.android": [
-          "456.1.0.56.78"
+          "457.0.0.55.73"
         ]
       },
       "compatibility": [
@@ -7108,13 +7010,12 @@
           ],
           "targets": [
             {
-              "version": "456.1.0.56.78",
+              "version": "457.0.0.55.73",
               "experimental": false,
               "versionCodes": {
-                "ARM64_V8A": 386215122,
-                "ARMEABI_V7A": 386215121,
-                "X86": 386215123,
-                "X86_64": 386215124
+                "ARM64_V8A": 386314341,
+                "ARMEABI_V7A": 386314340,
+                "X86_64": 386314286
               }
             }
           ]
@@ -7133,7 +7034,7 @@
       ],
       "compatiblePackages": {
         "com.instagram.android": [
-          "456.1.0.56.78"
+          "457.0.0.55.73"
         ]
       },
       "compatibility": [
@@ -7148,13 +7049,12 @@
           ],
           "targets": [
             {
-              "version": "456.1.0.56.78",
+              "version": "457.0.0.55.73",
               "experimental": false,
               "versionCodes": {
-                "ARM64_V8A": 386215122,
-                "ARMEABI_V7A": 386215121,
-                "X86": 386215123,
-                "X86_64": 386215124
+                "ARM64_V8A": 386314341,
+                "ARMEABI_V7A": 386314340,
+                "X86_64": 386314286
               }
             }
           ]
@@ -7173,7 +7073,7 @@
       ],
       "compatiblePackages": {
         "com.instagram.android": [
-          "456.1.0.56.78"
+          "457.0.0.55.73"
         ]
       },
       "compatibility": [
@@ -7188,13 +7088,12 @@
           ],
           "targets": [
             {
-              "version": "456.1.0.56.78",
+              "version": "457.0.0.55.73",
               "experimental": false,
               "versionCodes": {
-                "ARM64_V8A": 386215122,
-                "ARMEABI_V7A": 386215121,
-                "X86": 386215123,
-                "X86_64": 386215124
+                "ARM64_V8A": 386314341,
+                "ARMEABI_V7A": 386314340,
+                "X86_64": 386314286
               }
             }
           ]
@@ -7213,7 +7112,7 @@
       ],
       "compatiblePackages": {
         "com.instagram.android": [
-          "456.1.0.56.78"
+          "457.0.0.55.73"
         ]
       },
       "compatibility": [
@@ -7228,13 +7127,12 @@
           ],
           "targets": [
             {
-              "version": "456.1.0.56.78",
+              "version": "457.0.0.55.73",
               "experimental": false,
               "versionCodes": {
-                "ARM64_V8A": 386215122,
-                "ARMEABI_V7A": 386215121,
-                "X86": 386215123,
-                "X86_64": 386215124
+                "ARM64_V8A": 386314341,
+                "ARMEABI_V7A": 386314340,
+                "X86_64": 386314286
               }
             }
           ]
@@ -7253,7 +7151,7 @@
       ],
       "compatiblePackages": {
         "com.instagram.android": [
-          "456.1.0.56.78"
+          "457.0.0.55.73"
         ]
       },
       "compatibility": [
@@ -7268,13 +7166,12 @@
           ],
           "targets": [
             {
-              "version": "456.1.0.56.78",
+              "version": "457.0.0.55.73",
               "experimental": false,
               "versionCodes": {
-                "ARM64_V8A": 386215122,
-                "ARMEABI_V7A": 386215121,
-                "X86": 386215123,
-                "X86_64": 386215124
+                "ARM64_V8A": 386314341,
+                "ARMEABI_V7A": 386314340,
+                "X86_64": 386314286
               }
             }
           ]
@@ -7293,7 +7190,7 @@
       ],
       "compatiblePackages": {
         "com.instagram.android": [
-          "456.1.0.56.78"
+          "457.0.0.55.73"
         ]
       },
       "compatibility": [
@@ -7308,13 +7205,12 @@
           ],
           "targets": [
             {
-              "version": "456.1.0.56.78",
+              "version": "457.0.0.55.73",
               "experimental": false,
               "versionCodes": {
-                "ARM64_V8A": 386215122,
-                "ARMEABI_V7A": 386215121,
-                "X86": 386215123,
-                "X86_64": 386215124
+                "ARM64_V8A": 386314341,
+                "ARMEABI_V7A": 386314340,
+                "X86_64": 386314286
               }
             }
           ]
@@ -7333,7 +7229,7 @@
       ],
       "compatiblePackages": {
         "com.instagram.android": [
-          "456.1.0.56.78"
+          "457.0.0.55.73"
         ]
       },
       "compatibility": [
@@ -7348,13 +7244,12 @@
           ],
           "targets": [
             {
-              "version": "456.1.0.56.78",
+              "version": "457.0.0.55.73",
               "experimental": false,
               "versionCodes": {
-                "ARM64_V8A": 386215122,
-                "ARMEABI_V7A": 386215121,
-                "X86": 386215123,
-                "X86_64": 386215124
+                "ARM64_V8A": 386314341,
+                "ARMEABI_V7A": 386314340,
+                "X86_64": 386314286
               }
             }
           ]
@@ -7373,7 +7268,7 @@
       ],
       "compatiblePackages": {
         "com.instagram.android": [
-          "456.1.0.56.78"
+          "457.0.0.55.73"
         ]
       },
       "compatibility": [
@@ -7388,13 +7283,12 @@
           ],
           "targets": [
             {
-              "version": "456.1.0.56.78",
+              "version": "457.0.0.55.73",
               "experimental": false,
               "versionCodes": {
-                "ARM64_V8A": 386215122,
-                "ARMEABI_V7A": 386215121,
-                "X86": 386215123,
-                "X86_64": 386215124
+                "ARM64_V8A": 386314341,
+                "ARMEABI_V7A": 386314340,
+                "X86_64": 386314286
               }
             }
           ]
@@ -7413,7 +7307,7 @@
       ],
       "compatiblePackages": {
         "com.instagram.android": [
-          "456.1.0.56.78"
+          "457.0.0.55.73"
         ]
       },
       "compatibility": [
@@ -7428,13 +7322,12 @@
           ],
           "targets": [
             {
-              "version": "456.1.0.56.78",
+              "version": "457.0.0.55.73",
               "experimental": false,
               "versionCodes": {
-                "ARM64_V8A": 386215122,
-                "ARMEABI_V7A": 386215121,
-                "X86": 386215123,
-                "X86_64": 386215124
+                "ARM64_V8A": 386314341,
+                "ARMEABI_V7A": 386314340,
+                "X86_64": 386314286
               }
             }
           ]
@@ -7453,7 +7346,7 @@
       ],
       "compatiblePackages": {
         "com.instagram.android": [
-          "456.1.0.56.78"
+          "457.0.0.55.73"
         ]
       },
       "compatibility": [
@@ -7468,13 +7361,12 @@
           ],
           "targets": [
             {
-              "version": "456.1.0.56.78",
+              "version": "457.0.0.55.73",
               "experimental": false,
               "versionCodes": {
-                "ARM64_V8A": 386215122,
-                "ARMEABI_V7A": 386215121,
-                "X86": 386215123,
-                "X86_64": 386215124
+                "ARM64_V8A": 386314341,
+                "ARMEABI_V7A": 386314340,
+                "X86_64": 386314286
               }
             }
           ]
@@ -7493,7 +7385,7 @@
       ],
       "compatiblePackages": {
         "com.instagram.android": [
-          "456.1.0.56.78"
+          "457.0.0.55.73"
         ]
       },
       "compatibility": [
@@ -7508,13 +7400,12 @@
           ],
           "targets": [
             {
-              "version": "456.1.0.56.78",
+              "version": "457.0.0.55.73",
               "experimental": false,
               "versionCodes": {
-                "ARM64_V8A": 386215122,
-                "ARMEABI_V7A": 386215121,
-                "X86": 386215123,
-                "X86_64": 386215124
+                "ARM64_V8A": 386314341,
+                "ARMEABI_V7A": 386314340,
+                "X86_64": 386314286
               }
             }
           ]
@@ -7533,7 +7424,7 @@
       ],
       "compatiblePackages": {
         "com.instagram.android": [
-          "456.1.0.56.78"
+          "457.0.0.55.73"
         ]
       },
       "compatibility": [
@@ -7548,13 +7439,12 @@
           ],
           "targets": [
             {
-              "version": "456.1.0.56.78",
+              "version": "457.0.0.55.73",
               "experimental": false,
               "versionCodes": {
-                "ARM64_V8A": 386215122,
-                "ARMEABI_V7A": 386215121,
-                "X86": 386215123,
-                "X86_64": 386215124
+                "ARM64_V8A": 386314341,
+                "ARMEABI_V7A": 386314340,
+                "X86_64": 386314286
               }
             }
           ]
@@ -7573,7 +7463,7 @@
       ],
       "compatiblePackages": {
         "com.instagram.android": [
-          "456.1.0.56.78"
+          "457.0.0.55.73"
         ]
       },
       "compatibility": [
@@ -7588,13 +7478,12 @@
           ],
           "targets": [
             {
-              "version": "456.1.0.56.78",
+              "version": "457.0.0.55.73",
               "experimental": false,
               "versionCodes": {
-                "ARM64_V8A": 386215122,
-                "ARMEABI_V7A": 386215121,
-                "X86": 386215123,
-                "X86_64": 386215124
+                "ARM64_V8A": 386314341,
+                "ARMEABI_V7A": 386314340,
+                "X86_64": 386314286
               }
             }
           ]
@@ -7613,7 +7502,7 @@
       ],
       "compatiblePackages": {
         "com.instagram.android": [
-          "456.1.0.56.78"
+          "457.0.0.55.73"
         ]
       },
       "compatibility": [
@@ -7628,13 +7517,12 @@
           ],
           "targets": [
             {
-              "version": "456.1.0.56.78",
+              "version": "457.0.0.55.73",
               "experimental": false,
               "versionCodes": {
-                "ARM64_V8A": 386215122,
-                "ARMEABI_V7A": 386215121,
-                "X86": 386215123,
-                "X86_64": 386215124
+                "ARM64_V8A": 386314341,
+                "ARMEABI_V7A": 386314340,
+                "X86_64": 386314286
               }
             }
           ]
@@ -7653,7 +7541,7 @@
       ],
       "compatiblePackages": {
         "com.instagram.android": [
-          "456.1.0.56.78"
+          "457.0.0.55.73"
         ]
       },
       "compatibility": [
@@ -7668,13 +7556,12 @@
           ],
           "targets": [
             {
-              "version": "456.1.0.56.78",
+              "version": "457.0.0.55.73",
               "experimental": false,
               "versionCodes": {
-                "ARM64_V8A": 386215122,
-                "ARMEABI_V7A": 386215121,
-                "X86": 386215123,
-                "X86_64": 386215124
+                "ARM64_V8A": 386314341,
+                "ARMEABI_V7A": 386314340,
+                "X86_64": 386314286
               }
             }
           ]
@@ -7693,7 +7580,7 @@
       ],
       "compatiblePackages": {
         "com.instagram.android": [
-          "456.1.0.56.78"
+          "457.0.0.55.73"
         ]
       },
       "compatibility": [
@@ -7708,13 +7595,12 @@
           ],
           "targets": [
             {
-              "version": "456.1.0.56.78",
+              "version": "457.0.0.55.73",
               "experimental": false,
               "versionCodes": {
-                "ARM64_V8A": 386215122,
-                "ARMEABI_V7A": 386215121,
-                "X86": 386215123,
-                "X86_64": 386215124
+                "ARM64_V8A": 386314341,
+                "ARMEABI_V7A": 386314340,
+                "X86_64": 386314286
               }
             }
           ]
@@ -7733,7 +7619,7 @@
       ],
       "compatiblePackages": {
         "com.instagram.android": [
-          "456.1.0.56.78"
+          "457.0.0.55.73"
         ]
       },
       "compatibility": [
@@ -7748,13 +7634,12 @@
           ],
           "targets": [
             {
-              "version": "456.1.0.56.78",
+              "version": "457.0.0.55.73",
               "experimental": false,
               "versionCodes": {
-                "ARM64_V8A": 386215122,
-                "ARMEABI_V7A": 386215121,
-                "X86": 386215123,
-                "X86_64": 386215124
+                "ARM64_V8A": 386314341,
+                "ARMEABI_V7A": 386314340,
+                "X86_64": 386314286
               }
             }
           ]
@@ -7773,7 +7658,7 @@
       ],
       "compatiblePackages": {
         "com.instagram.android": [
-          "456.1.0.56.78"
+          "457.0.0.55.73"
         ]
       },
       "compatibility": [
@@ -7788,13 +7673,12 @@
           ],
           "targets": [
             {
-              "version": "456.1.0.56.78",
+              "version": "457.0.0.55.73",
               "experimental": false,
               "versionCodes": {
-                "ARM64_V8A": 386215122,
-                "ARMEABI_V7A": 386215121,
-                "X86": 386215123,
-                "X86_64": 386215124
+                "ARM64_V8A": 386314341,
+                "ARMEABI_V7A": 386314340,
+                "X86_64": 386314286
               }
             }
           ]
@@ -7813,7 +7697,7 @@
       ],
       "compatiblePackages": {
         "com.instagram.android": [
-          "456.1.0.56.78"
+          "457.0.0.55.73"
         ]
       },
       "compatibility": [
@@ -7828,13 +7712,12 @@
           ],
           "targets": [
             {
-              "version": "456.1.0.56.78",
+              "version": "457.0.0.55.73",
               "experimental": false,
               "versionCodes": {
-                "ARM64_V8A": 386215122,
-                "ARMEABI_V7A": 386215121,
-                "X86": 386215123,
-                "X86_64": 386215124
+                "ARM64_V8A": 386314341,
+                "ARMEABI_V7A": 386314340,
+                "X86_64": 386314286
               }
             }
           ]
@@ -7853,7 +7736,7 @@
       ],
       "compatiblePackages": {
         "com.instagram.android": [
-          "456.1.0.56.78"
+          "457.0.0.55.73"
         ]
       },
       "compatibility": [
@@ -7868,13 +7751,12 @@
           ],
           "targets": [
             {
-              "version": "456.1.0.56.78",
+              "version": "457.0.0.55.73",
               "experimental": false,
               "versionCodes": {
-                "ARM64_V8A": 386215122,
-                "ARMEABI_V7A": 386215121,
-                "X86": 386215123,
-                "X86_64": 386215124
+                "ARM64_V8A": 386314341,
+                "ARMEABI_V7A": 386314340,
+                "X86_64": 386314286
               }
             }
           ]
@@ -7893,7 +7775,7 @@
       ],
       "compatiblePackages": {
         "com.instagram.android": [
-          "456.1.0.56.78"
+          "457.0.0.55.73"
         ]
       },
       "compatibility": [
@@ -7908,13 +7790,12 @@
           ],
           "targets": [
             {
-              "version": "456.1.0.56.78",
+              "version": "457.0.0.55.73",
               "experimental": false,
               "versionCodes": {
-                "ARM64_V8A": 386215122,
-                "ARMEABI_V7A": 386215121,
-                "X86": 386215123,
-                "X86_64": 386215124
+                "ARM64_V8A": 386314341,
+                "ARMEABI_V7A": 386314340,
+                "X86_64": 386314286
               }
             }
           ]
@@ -7933,7 +7814,7 @@
       ],
       "compatiblePackages": {
         "com.instagram.android": [
-          "456.1.0.56.78"
+          "457.0.0.55.73"
         ]
       },
       "compatibility": [
@@ -7948,13 +7829,12 @@
           ],
           "targets": [
             {
-              "version": "456.1.0.56.78",
+              "version": "457.0.0.55.73",
               "experimental": false,
               "versionCodes": {
-                "ARM64_V8A": 386215122,
-                "ARMEABI_V7A": 386215121,
-                "X86": 386215123,
-                "X86_64": 386215124
+                "ARM64_V8A": 386314341,
+                "ARMEABI_V7A": 386314340,
+                "X86_64": 386314286
               }
             }
           ]
@@ -7973,7 +7853,7 @@
       ],
       "compatiblePackages": {
         "com.instagram.android": [
-          "456.1.0.56.78"
+          "457.0.0.55.73"
         ]
       },
       "compatibility": [
@@ -7988,13 +7868,12 @@
           ],
           "targets": [
             {
-              "version": "456.1.0.56.78",
+              "version": "457.0.0.55.73",
               "experimental": false,
               "versionCodes": {
-                "ARM64_V8A": 386215122,
-                "ARMEABI_V7A": 386215121,
-                "X86": 386215123,
-                "X86_64": 386215124
+                "ARM64_V8A": 386314341,
+                "ARMEABI_V7A": 386314340,
+                "X86_64": 386314286
               }
             }
           ]

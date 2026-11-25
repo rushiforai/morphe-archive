@@ -39,6 +39,7 @@ import app.morphe.extension.hushthreads.comments.SuggestedThreads;
 import app.morphe.extension.hushthreads.download.SavesForTests;
 import app.morphe.extension.hushthreads.feed.CopyText;
 import app.morphe.extension.hushthreads.feed.ImageQuality;
+import app.morphe.extension.hushthreads.feed.PostButtons;
 import app.morphe.extension.hushthreads.feed.PostTime;
 import app.morphe.extension.hushthreads.feed.ReturnRefresh;
 import app.morphe.extension.hushthreads.feed.SwipeToSearch;
@@ -53,6 +54,8 @@ import app.morphe.extension.hushthreads.profile.InstagramButton;
 import app.morphe.extension.hushthreads.profile.ProfilePictureForTests;
 import app.morphe.extension.hushthreads.profile.ProfileSuggestions;
 import app.morphe.extension.hushthreads.search.SearchSuggestions;
+import app.morphe.extension.hushthreads.theme.CustomFontForTests;
+import app.morphe.extension.hushthreads.theme.HeaderLogoForTests;
 import app.morphe.extension.hushthreads.theme.PureBlack;
 import app.morphe.extension.shared.SettingsContextRule;
 import app.morphe.extension.shared.settings.BaseSettings;
@@ -186,6 +189,10 @@ public class PausedHooksTest {
         // Threads' dark gray background comes back black.
         probes.put(PatchFamily.PURE_BLACK, Collections.singletonList(
                 () -> PureBlack.color(0xff101010L << 32) == 0xff00000000000000L));
+        // The HushThreads logo is drawn over Threads' own at the top of the feed.
+        probes.put(PatchFamily.HEADER_LOGO, Collections.singletonList(HeaderLogoForTests::drawsOver));
+        // A kept font takes the place of Threads' own text font.
+        probes.put(PatchFamily.CUSTOM_FONT, Collections.singletonList(CustomFontForTests::swaps));
         // A profile header Threads would draw with the Instagram button is drawn without it.
         probes.put(PatchFamily.HIDE_INSTAGRAM_BUTTON, Collections.singletonList(() -> !InstagramButton.show(true)));
         // A ghost post bubble Threads would show, on a profile or in the feed's row, isn't shown.
@@ -193,6 +200,10 @@ public class PausedHooksTest {
                 () -> !GhostPostBubbles.showOnProfile(true), () -> !GhostPostBubbles.showTray(true)));
         // A profile picture Threads would enlarge into its circle opens full size in the viewer instead.
         probes.put(PatchFamily.FULL_SIZE_PROFILE_PICTURES, Collections.singletonList(ProfilePictureForTests::opensFullSize));
+        // Each button under a post Threads would draw is left out.
+        probes.put(PatchFamily.HIDE_POST_BUTTONS, Arrays.asList(
+                () -> !PostButtons.showLike(), () -> !PostButtons.showReply(), () -> !PostButtons.showRepost(),
+                () -> !PostButtons.showShare(), () -> !PostButtons.showSave()));
         // A post header's time is written out in full instead of left to Threads.
         probes.put(PatchFamily.EXACT_POST_TIMES, Collections.singletonList(
                 () -> PostTime.exact(RuntimeEnvironment.getApplication(), 1_700_000_000d) != null));

@@ -1734,6 +1734,8 @@ Long-press menu on every post	Menú de pulsación larga en cada publicación
 TikTok's hold to speed up	Mantener pulsado para acelerar de TikTok
 TikTok's background play and Auto scroll	Reproducción en segundo plano y desplazamiento automático de TikTok
 Post dates in the feed	Fechas de publicación en el feed
+# context: a line of the Account facts sheet, the number of posts the account has
+Posts	Publicaciones
 Show exact counts	Mostrar cifras exactas
 Show counts as full numbers, like 1,234,567 instead of 1.2M.	Muestra las cifras completas, como 1.234.567 en lugar de 1.2M.
 Play SDR instead of HDR	Reproducir SDR en lugar de HDR
@@ -3001,7 +3003,9 @@ Find and reopen the videos you liked only on this phone	Busca y vuelve a abrir l
 Videos you like on this phone show up here	Los videos que te gustan en este teléfono aparecen aquí
 Likes cleared	Me gusta borrados
 Export followers and following	Exportar seguidores y seguidos
-Saves the accounts that follow you, or the ones you follow, as a CSV file in Download/Hushfeed. They're read at about the pace of scrolling the list, up to %1$s at a time.	Guarda las cuentas que te siguen, o las que sigues, como un archivo CSV en Download/Hushfeed. Se leen más o menos al ritmo de desplazarse por la lista, hasta %1$s a la vez.
+Saves the accounts that follow you, or the ones you follow, as a CSV, JSON or plain text file in Download/Hushfeed. They're read at about the pace of scrolling the list, up to %1$s at a time.	Guarda las cuentas que te siguen, o las que sigues, como un archivo CSV, JSON o de texto sin formato en Download/Hushfeed. Se leen más o menos al ritmo de desplazarse por la lista, hasta %1$s a la vez.
+# context: a file type on the Export followers and following list, as in "Followers (Plain text)"
+Plain text	Texto sin formato
 A list is already being read	Ya se está leyendo una lista
 Reading your followers (%1$s)	Leyendo tus seguidores (%1$s)
 Reading who you follow (%1$s)	Leyendo a quién sigues (%1$s)
@@ -3139,7 +3143,7 @@ Gives each video on profile grids rounded corners, on your own profile and on Li
 Gifter level	Nivel de donante
 SecUID	SecUID
 Unknown (TikTok didn't send it)	Desconocido (TikTok no lo envió)
-A profile's share sheet gets an Account facts button. It shows what TikTok already sent about the account: when it joined, its region and language, its gifter level and SecUID, when its username and display name last changed, whether it's private and whether its liked videos are public. Nothing extra is fetched.	El menú de compartir de un perfil recibe un botón Datos de la cuenta. Muestra lo que TikTok ya envió sobre la cuenta: cuándo se unió, su región e idioma, su nivel de donante y su SecUID, cuándo cambiaron por última vez su nombre de usuario y su nombre visible, si es privada y si los vídeos que le gustaron son públicos. No se descarga nada más.
+A profile's share sheet gets an Account facts button. It shows what TikTok already sent about the account: when it joined, its region and language, its gifter level and SecUID, how many posts, liked videos, favorites and reposts it has, when its username and display name last changed, whether it's private and whether its liked videos are public. Nothing extra is fetched.	El menú de compartir de un perfil recibe un botón Datos de la cuenta. Muestra lo que TikTok ya envió sobre la cuenta: cuándo se unió, su región e idioma, su nivel de donante y su SecUID, cuántas publicaciones, vídeos que le gustaron, favoritos y republicaciones tiene, cuándo cambiaron por última vez su nombre de usuario y su nombre visible, si es privada y si los vídeos que le gustaron son públicos. No se descarga nada más.
 # context: LIVE controls: a small line in a LIVE room with the room ID and the viewer's own connection (ping, latency, download speed) from TikTok's player; a tap copies the room ID
 Show the room ID and your connection	Mostrar el ID de la sala y tu conexión
 Adds a small line to LIVE rooms with the room's ID and how your own connection to the stream is doing, as TikTok's player measures it: ping, latency and download speed. Tap the line to copy the room ID.	Añade una línea pequeña a las salas LIVE con el ID de la sala y cómo va tu propia conexión con la transmisión, según la mide el reproductor de TikTok: ping, latencia y velocidad de descarga. Toca la línea para copiar el ID de la sala.
@@ -3232,3 +3236,13 @@ Posts to delete: %1$d. Starting in %2$d	Publicaciones por eliminar: %1$d. Empiez
 Posts deleted: %1$d of %2$d	Publicaciones eliminadas: %1$d de %2$d
 Swipe LIVEs in your Following row's order	Pasar los LIVE en el orden de tu fila de Siguiendo
 After a LIVE you open from the row at the top of Following, swiping takes you through the row's other LIVEs in the order they sit there, starting with the next one. TikTok's own picks come after them.	Después de un LIVE que abres desde la fila de arriba en Siguiendo, al deslizar pasas por los demás LIVE de esa fila en el orden en que aparecen, empezando por el siguiente. Las sugerencias de TikTok vienen después.
+Remember saved videos	Recordar los vídeos guardados
+Keeps the cover, creator, caption and post date of each video in your Favorites on this phone as the grid loads it. If one is later deleted or made private, its tile shows the kept cover and creator instead of a grey box, and a tap shows the rest. Videos that were already gone can't be recovered.	Guarda en este teléfono la portada, el creador, la descripción y la fecha de publicación de cada vídeo de tus Favoritos a medida que la cuadrícula lo carga. Si más tarde alguno se elimina o pasa a ser privado, su casilla muestra la portada guardada y el creador en lugar de un recuadro gris, y al tocarla ves el resto. Los vídeos que ya habían desaparecido no se pueden recuperar.
+Unavailable saved videos	Vídeos guardados no disponibles
+See the saved videos that went away after Hushfeed remembered them	Mira los vídeos guardados que desaparecieron después de que Hushfeed los recordara
+Saved videos that go away show up here	Los vídeos guardados que desaparezcan aparecerán aquí
+Unavailable saved videos cleared	Vídeos no disponibles borrados
+Unavailable saved video	Vídeo guardado no disponible
+Posted %1$s	Publicado el %1$s
+Remembered %1$s	Recordado el %1$s
+Unavailable since %1$s	No disponible desde el %1$s

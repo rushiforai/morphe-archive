@@ -1,6 +1,5 @@
 name: "Google Health: hide a card or prompt"
 description: Show us a card, banner or pop-up you'd like gone, such as the AI coach, Labs or a Premium offer.
-title: "hide: "
 labels: ["enhancement", "hide-card"]
 body:
   - type: markdown

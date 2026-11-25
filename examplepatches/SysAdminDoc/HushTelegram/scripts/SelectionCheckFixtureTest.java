@@ -40,7 +40,7 @@ public final class SelectionCheckFixtureTest {
     private static void launcherIcon(File fixture) throws Exception {
         for (boolean icon : new boolean[]{false, true}) {
             var expected = new SelectionCheck.Expected(new JSONObject().put("settings", false).put("links", false)
-                    .put("api", false).put("maps", false).put("icon", icon).put("flags", new JSONObject()));
+                    .put("api", false).put("maps", false).put("icon", icon).put("flags", new JSONObject()).toString());
             try {
                 if (SelectionCheck.manifestChanges(fixture, fixture, expected, false) != 0 || icon) {
                     throw new AssertionError("MANIFEST_FALSE_ACCEPT: icon=" + icon);

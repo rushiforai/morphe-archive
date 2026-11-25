@@ -849,6 +849,27 @@
       ]
     },
     {
+      "feature_id": "disable_play_store_updates",
+      "public_patch_name": "Disable Play Store updates",
+      "feature_marker": null,
+      "target_family_ids": [],
+      "migration_scope": "generic",
+      "consumer_files": [
+        "patches/src/main/kotlin/dev/jason/gboardpatches/patches/gboard/features/playstoreupdates/GboardDisablePlayStoreUpdatesResourcePatch.kt",
+        "patches/src/main/kotlin/dev/jason/gboardpatches/patches/gboard/registry/GboardPatchRegistry.kt"
+      ],
+      "contributions": [
+        {
+          "contribution_id": "disable_play_store_updates.resources",
+          "anchor_family_id": "resource_only",
+          "phase": "resource",
+          "order": 220,
+          "required_bindings": [],
+          "runtime_calls": []
+        }
+      ]
+    },
+    {
       "feature_id": "editing_access_points",
       "public_patch_name": "Toolbar Editing Buttons",
       "feature_marker": "dev.jason.gboardpatches.feature.editing_access_points",

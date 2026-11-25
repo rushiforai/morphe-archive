@@ -29,17 +29,23 @@ public final class ShareTiles {
     private ShareTiles() {
     }
 
-    /** Called with what Threads' launcher answered for a tile's intent. */
-    public static void openRefused(boolean launched, @Nullable Context context, @Nullable Intent intent) {
-        if (launched || context == null || intent == null) return;
-        if (intent.getPackage() == null && intent.getComponent() == null) return;
+    /**
+     * Called with what Threads' launcher answered for a tile's intent. Answers whether the app
+     * opened, which Threads goes on to report for the tiles that read it.
+     */
+    public static boolean openRefused(boolean launched, @Nullable Context context, @Nullable Intent intent) {
+        if (launched) return true;
+        if (context == null || intent == null) return false;
+        if (intent.getPackage() == null && intent.getComponent() == null) return false;
         try {
             if (!(context instanceof Activity)) intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
             context.startActivity(intent);
+            return true;
         } catch (RuntimeException failed) {
             // ActivityNotFoundException or SecurityException: the app is gone or closed to us, which
             // leaves the tile doing what it did before.
             Logger.printException(() -> "Couldn't open the share tile for " + intent.getPackage(), failed);
+            return false;
         }
     }
 }

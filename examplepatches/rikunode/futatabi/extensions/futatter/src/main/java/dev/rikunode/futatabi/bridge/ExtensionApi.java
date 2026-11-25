@@ -102,7 +102,9 @@ final class ExtensionApi {
         JSONObject out = new JSONObject();
         out.put("aimoge", loggedIn());
         out.put("animanch", false);
-        out.put("mebuki", prefs.contains("mebuki_cookie_header"));
+        MebukiSession.State mebukiState = MebukiSession.verify(prefs.getString(MebukiSession.KEY, ""));
+        out.put("mebuki", mebukiState == MebukiSession.State.AUTHENTICATED);
+        out.put("mebukiSessionState", mebukiState.name());
         return BridgeServer.BridgeResponse.json(200, out.toString());
     }
 

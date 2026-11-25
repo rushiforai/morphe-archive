@@ -13,6 +13,8 @@ object Constants {
         apkFileType = ApkFileType.APK,
         appIconColor = 0x00A5B5,
         targets = listOf(
+            // Unchanged fingerprints apply; hook sites checked in the patched smali (versionCode 298).
+            AppTarget(version = "3.53.2"),
             // Verified on device with the unchanged fingerprints (versionCode 296).
             AppTarget(version = "3.53.1"),
             // Version the fingerprints were written against (versionCode 295).

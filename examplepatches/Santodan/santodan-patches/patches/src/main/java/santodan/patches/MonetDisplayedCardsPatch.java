@@ -45,7 +45,8 @@ public final class MonetDisplayedCardsPatch {
             "Remove the 20-card limit from Displayed Cards. Add -10, +10 and Max to the original themed picker, preserving its layout and single-card steps.", false, builder -> {
                 builder.compatibleWith(new Compatibility("com.klevico.monet", "Monet", null, ApkFileType.APK,
                     null, null, Arrays.asList(new AppTarget("1.0.97", null, false, 26, null),
-                        new AppTarget("1.1.0", null, false, 26, null), new AppTarget("1.1.1", null, false, 26, null)), FormFactor.TV, false));
+                        new AppTarget("1.1.0", null, false, 26, null), new AppTarget("1.1.1", null, false, 26, null),
+                        new AppTarget("1.1.2", null, false, 26, null)), FormFactor.TV, false));
                 builder.extendWith(() -> {
                     var input = MonetDisplayedCardsPatch.class.getClassLoader().getResourceAsStream("extensions/monet-displayed-cards.mpe");
                     if (input == null) throw new IllegalStateException("Missing Monet displayed cards extension");
@@ -53,9 +54,21 @@ public final class MonetDisplayedCardsPatch {
                 });
                 builder.execute(context -> {
                     if (!"com.klevico.monet".equals(context.getPackageMetadata().getPackageName())
-                        || !Set.of("1.0.97", "1.1.0", "1.1.1").contains(context.getPackageMetadata().getVersionName())) throw unsupported("Unexpected package/version");
+                        || !Set.of("1.0.97", "1.1.0", "1.1.1", "1.1.2").contains(context.getPackageMetadata().getVersionName())) throw unsupported("Unexpected package/version");
                     List<ClassDef> classes = new ArrayList<>();
                     context.classDefForEach(c -> { classes.add(c); return Unit.INSTANCE; });
+                    if ("1.1.2".equals(context.getPackageMetadata().getVersionName())) {
+                        Map<String,Method> reviewed = MonetDisplayedCards112.validate(classes);
+                        MonetDisplayedCards110.selectLayout(context.mutableClassDefBy(MonetDisplayedCards112.LAYOUT));
+                        MonetDisplayedCards112.selectLayout(context.mutableClassDefBy(MonetDisplayedCards112.LAYOUT));
+                        for (String signature : MonetDisplayedCards112.TARGETS) {
+                            Method original = reviewed.get(signature);
+                            MutableMethod target = context.mutableClassDefBy(original.getDefiningClass()).getMethods().stream()
+                                .filter(m -> m.equals(original)).findFirst().orElseThrow();
+                            MonetDisplayedCards112.apply(target);
+                        }
+                        return Unit.INSTANCE;
+                    }
                     boolean latest = "1.1.1".equals(context.getPackageMetadata().getVersionName());
                     if (latest) {
                         Map<String,Method> reviewed = MonetDisplayedCards111.validate(classes);

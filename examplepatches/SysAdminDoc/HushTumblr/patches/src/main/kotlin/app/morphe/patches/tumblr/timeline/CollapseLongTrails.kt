@@ -31,8 +31,8 @@ import com.android.tools.smali.dexlib2.iface.reference.FieldReference
 internal const val LONG_POSTS_TRAIL_HOOK = "$EXTENSION_PACKAGE/timeline/LongPosts;->trail(" +
     "Ljava/lang/Integer;Ljava/lang/Object;Ljava/util/List;Ljava/util/List;)Ljava/lang/Integer;"
 
-// Tumblr 47.0.0.108's reblog trail entry, built from one item of a post's trail ([REBLOG_TRAIL]).
-internal const val TRAIL_ENTRY = "Ln6h;"
+// Tumblr 47.3.0.110's reblog trail entry, built from one item of a post's trail ([REBLOG_TRAIL]).
+internal const val TRAIL_ENTRY = "Lx6h;"
 internal const val TRAIL_ASK_LAYOUT = "Lcom/tumblr/rumblr/model/post/blocks/BlockAskLayout;"
 private const val LIST = "Ljava/util/List;"
 private const val INTEGER = "Ljava/lang/Integer;"

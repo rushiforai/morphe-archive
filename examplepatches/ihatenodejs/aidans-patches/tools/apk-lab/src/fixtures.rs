@@ -28,6 +28,37 @@ use tempfile::TempDir;
 /// Bucket used when `R2_BUCKET_NAME` is unset.
 pub const DEFAULT_BUCKET_NAME: &str = "aidans-patches-apk-fixtures";
 
+/// Pre-upload assertions for [`R2FixtureManager::seed_fixture`]. Empty
+/// expectations accept whatever was inspected; a mismatch is an
+/// `InvalidArtifact` failure reported before anything is written.
+#[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
+pub struct SeedExpectations<'a> {
+    pub version_name: Option<&'a str>,
+    pub sha256: Option<&'a str>,
+}
+
+impl SeedExpectations<'_> {
+    fn check(&self, inspection: &ArtifactInspection) -> Result<(), FixtureError> {
+        if let Some(expected) = self.version_name {
+            if inspection.version_name != expected {
+                return Err(FixtureError::invalid_artifact(format!(
+                    "Artifact version '{}' != expected '{expected}'",
+                    inspection.version_name
+                )));
+            }
+        }
+        if let Some(expected) = self.sha256 {
+            if !inspection.sha256.eq_ignore_ascii_case(expected) {
+                return Err(FixtureError::invalid_artifact(format!(
+                    "Artifact SHA-256 '{}' != expected '{expected}'",
+                    inspection.sha256
+                )));
+            }
+        }
+        Ok(())
+    }
+}
+
 /// Content type written for seeded and rotated artifacts.
 pub const FIXTURE_CONTENT_TYPE: &str = "application/vnd.android.package-archive";
 
@@ -508,12 +539,20 @@ impl R2FixtureManager {
             })
     }
 
-    /// Seeds a slot from a local artifact after validating package identity.
+    /// Uploads a local artifact to an R2 slot after validating package identity
+    /// and any caller-supplied expectations.
+    /// `source` is the acquisition source label (`apkeep`, `goopdl`,
+    /// `apkmirror`, `apkpure`, `manual`) and is stored with the slot so
+    /// repackaged builds stay distinguishable. Expectations are checked after
+    /// inspection and before the object write, so a wrong artifact can never
+    /// replace a verified slot.
     pub async fn seed_fixture(
         &self,
         package: &str,
         role: &str,
         artifact_path: impl AsRef<Path>,
+        source: &str,
+        expectations: SeedExpectations<'_>,
     ) -> Result<SlotMetadata, FixtureError> {
         let path = artifact_path.as_ref();
         let inspection = self.inspect(path)?;
@@ -523,7 +562,8 @@ impl R2FixtureManager {
                 inspection.package_name
             )));
         }
-        let metadata = slot_metadata(role, package, &inspection, "manual", now_timestamp());
+        expectations.check(&inspection)?;
+        let metadata = slot_metadata(role, package, &inspection, source, now_timestamp());
         self.upload_slot(package, role, path, &metadata).await?;
         Ok(metadata)
     }

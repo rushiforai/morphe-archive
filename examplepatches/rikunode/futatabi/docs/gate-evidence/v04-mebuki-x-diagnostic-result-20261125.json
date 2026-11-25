@@ -1,0 +1,169 @@
+{
+  "schema": 1,
+  "date": "2026-11-25",
+  "project": "rikunode/futatabi",
+  "baseCommit": "448f1ba69827f2dfb72071d3e4923bfe315e674a",
+  "scope": "MUSE-directed single X login diagnostic reproduction, one isolated HTTP error UI test attempt, restore normal APK and release emulator",
+  "emulator": {
+    "serial": "emulator-5554",
+    "exclusiveClaimedByOwner": true,
+    "claimBoard": {
+      "status": "FREE",
+      "updatedBy": "MUSE",
+      "confirmation": "MUSE main-chat reply confirmed the VM-side ~/workspace/emulator-5554-claim.md was updated to FREE; file is not present on the Windows host or default WSL."
+    }
+  },
+  "xLogin": {
+    "status": "PASS_TO_CREDENTIAL_ENTRY",
+    "diagnosticArtifact": {
+      "path": "apk-inspection/v04-x-diagnostic/x-diagnostic-signed.apk",
+      "bytes": 69610206,
+      "sha256": "9f6f36bdf40bfb4a2f7149ea2c37c155a0af669b4c1f9487df1a26284cd4832a",
+      "hashVerifiedBeforeInstall": true,
+      "installResult": "adb install -r Success",
+      "package": "com.Nanasaki.ftutter.morphe",
+      "versionName": "3.1.1",
+      "versionCode": 65,
+      "signerCertificateSha256": "be5d875493e4b10a92869ea988bf181c3df450e010af8a264435c7516fe36d21"
+    },
+    "steps": [
+      "Mebuki official homepage loaded in extension WebView.",
+      "Scrolled to the official social-login controls.",
+      "Tapped the official X provider button once.",
+      "X authorization page displayed 'Authorize app / X' and 'Log in to X to continue.'",
+      "Tapped the X 'Log in' control once.",
+      "X login form displayed 'Email or username', 'Continue with phone', 'Continue with Apple', and 'Continue'."
+    ],
+    "instrumentation": {
+      "entryNavigation": {
+        "event": "navigation_request",
+        "provider": "X",
+        "host": "x.com",
+        "route": "authorize",
+        "redirect": false,
+        "userGesture": true
+      },
+      "authorizePage": {
+        "pageStarted": true,
+        "pageFinished": true,
+        "progress": 100,
+        "loginPrompt": true,
+        "credentialField": false,
+        "challenge": false,
+        "explicitError": false
+      },
+      "afterLogInTap": {
+        "routeCategory": "other",
+        "progress": 100,
+        "loginPrompt": false,
+        "credentialField": true,
+        "challenge": false,
+        "explicitError": false,
+        "blankTarget": true
+      },
+      "popup": {
+        "onCreateWindowCallbackObserved": false,
+        "multipleWindowsSetting": false,
+        "javascriptCanOpenWindowsAutomatically": false,
+        "interpretation": "No callback was observed. Because multiple windows and JavaScript auto-window creation were disabled, callback absence alone does not prove that no popup request occurred."
+      },
+      "console": [
+        {
+          "level": "WARNING",
+          "category": "other",
+          "line": 2
+        },
+        {
+          "level": "TIP",
+          "category": "other",
+          "line": 3
+        },
+        {
+          "level": "TIP",
+          "category": "other",
+          "line": 3
+        }
+      ],
+      "urlPrivacy": "Only recognized provider/host and fixed route categories were recorded. The post-Log-in SPA route was categorized as other; arbitrary URL paths, query values and fragments were intentionally not logged.",
+      "redirectCoverage": "The official-button main-frame navigation request and page start/finish were captured. A complete HTTP redirect chain was not captured."
+    },
+    "warnings": "No explicit warning, challenge or provider block was observed in this single run.",
+    "credentialsEntered": false,
+    "loginApproved": false,
+    "realSessionCreated": false,
+    "previousFailure": "Not reproduced. The instrumented run reached the credential-entry form. The cause of the earlier non-arrival remains unknown; no application fix was justified or made."
+  },
+  "httpErrorUi": {
+    "status": "NOT_TESTED_TOOL_REFUSED",
+    "reason": "The local-fixture startup operation returned REQUEST_UNRESOLVED twice. Per MUSE instruction, no further attempt was made and no WebView HTTP-error page was opened.",
+    "intendedFixture": {
+      "url": "http://127.0.0.1:18770/http-error",
+      "status": 503,
+      "scope": "loopback only"
+    },
+    "testOnlyBuild": {
+      "mpp": {
+        "path": "apk-inspection/v04-x-diagnostic/http-error-test-18770.mpp",
+        "bytes": 753345,
+        "sha256": "a930d1992a2199c9c7a5f5ccf3c875830b0bf28160d193d1968e392c24ab1153"
+      },
+      "apk": {
+        "path": "apk-inspection/v04-x-diagnostic/http-error-test-18770-signed.apk",
+        "bytes": 69606110,
+        "sha256": "60f34ca5d26e03453fd0b04e903915978d62d6e2e1b5f0ba82b7684a9bce444e"
+      },
+      "installed": false
+    },
+    "conclusion": "MebukiLoginActivity.onReceivedHttpError UI remains unverified. No success claim."
+  },
+  "restoration": {
+    "status": "PASS",
+    "restoredFrom": "apk-inspection/v04-x-diagnostic/pre-diagnostic-installed-clone.apk",
+    "restoredApkBytes": 69606110,
+    "restoredApkSha256": "b3580fedca0cdd291fa9575516d9552a873778dd1b8d4a5baef775d858e2dbb6",
+    "readbackPath": "apk-inspection/v04-x-diagnostic/restored-normal-clone-readback.apk",
+    "readbackSha256": "b3580fedca0cdd291fa9575516d9552a873778dd1b8d4a5baef775d858e2dbb6",
+    "exactApkMatch": true,
+    "package": "com.Nanasaki.ftutter.morphe",
+    "versionName": "3.1.1",
+    "versionCode": 65,
+    "firstInstallTimePreserved": true,
+    "installMode": "adb install -r; no uninstall or app-data deletion was performed",
+    "appForceStopped": true,
+    "adbReverseAfterCleanup": [
+      "host-20 tcp:18766 tcp:18766"
+    ],
+    "testReverseRemoved": [
+      18769,
+      18770
+    ],
+    "testPortListenersAfterCleanup": [],
+    "testProcessesStopped": [
+      85700,
+      43516
+    ]
+  },
+  "evidence": [
+    {
+      "path": "docs/gate-evidence/v04-mebuki-x-diagnostic-20261125.log",
+      "bytes": 3743,
+      "sha256": "99a6f2d25862d9857abea76514f6655f40474bbcb71182f7c053ff62db11fced"
+    },
+    {
+      "path": "docs/gate-evidence/v04-mebuki-x-login-ui-20261125.xml",
+      "bytes": 22229,
+      "sha256": "55d6b430f50d284ca9a4e4871f59dd51e233e16e213931a94b2715271284f651"
+    },
+    {
+      "path": "docs/gate-evidence/v04-mebuki-x-login-screen-20261125.jpg",
+      "bytes": 55259,
+      "sha256": "79a9ee793140ad57de5bc7050f356ec10537aa05fe5996a2c952849cc1fbcde6"
+    }
+  ],
+  "release": {
+    "version": "0.3.0",
+    "versionChanged": false,
+    "patchesListChanged": false,
+    "releaseCreated": false
+  }
+}

@@ -1,0 +1,127 @@
+name: Emulator test
+
+# Runs emulator-app.yml for every app a pull request can break: an app whose patches, extension,
+# settings or check it changes, or every app when it changes the shared build or test. Which files
+# count for which app is decided by .github/scripts/tested.py (the same rules as the fingerprints
+# the release uses), so adding an app adds no workflow. The patches are built once for all of them.
+#
+# The APKs can't be in this public repository. They come from the private repository
+# JoFSlash/morphe-apks, read with the APKS_TOKEN secret. Pull requests from forks don't get it, so
+# their tests are skipped; the release tests the code again before it ships.
+#
+# Run it by hand with an app's name (its file in .github/apps, without .json) to test that app on
+# the branch.
+
+on:
+  # A rough filter so that pull requests that can't touch any app don't start; the plan job picks
+  # the apps.
+  pull_request:
+    paths:
+      - 'patches/**'
+      - 'extensions/**'
+      - '.github/apps/**'
+      - '.github/scripts/check_app.py'
+      - '.github/scripts/apps/**'
+      - '.github/scripts/emulator_run.py'
+      - '.github/scripts/verify_google_health.py'
+      - '.github/workflows/emulator-app.yml'
+      - '.github/workflows/emulator-pr.yml'
+      - '.github/actions/install-emulator/**'
+      - '.github/morphe-cli-version'
+      - 'gradle/**'
+      - '*.gradle.kts'
+      - 'gradlew'
+  workflow_dispatch:
+    inputs:
+      app:
+        description: 'App to test: the name of its file in .github/apps (without .json)'
+        type: string
+        required: true
+
+concurrency:
+  group: emulator-pr-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+  packages: read
+
+jobs:
+  plan:
+    name: Find the apps to test
+    runs-on: ubuntu-latest
+    outputs:
+      apps: ${{ steps.plan.outputs.apps }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+
+      - name: Find the apps to test
+        id: plan
+        env:
+          APP: ${{ inputs.app }}
+          BASE: ${{ github.base_ref }}
+        run: |
+          if [ -n "$APP" ]; then
+            if [ ! -f ".github/apps/$APP.json" ]; then
+              echo "::error::There is no .github/apps/$APP.json."; exit 1
+            fi
+            apps="[\"$APP\"]"
+          else
+            apps=$(python3 .github/scripts/tested.py changed "origin/$BASE")
+          fi
+          echo "To test: $apps"
+          echo "apps=$apps" >> "$GITHUB_OUTPUT"
+
+  bundle:
+    name: Build the patches
+    needs: plan
+    if: needs.plan.outputs.apps != '[]'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Setup Java
+        uses: actions/setup-java@v6
+        with:
+          distribution: 'temurin'
+          java-version: '21'
+          cache: 'gradle'
+
+      - name: Build
+        env:
+          GITHUB_ACTOR: ${{ github.actor }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GRADLE_ATTEMPTS: 5
+        run: bash .github/scripts/gradle-retry.sh :patches:buildAndroid --no-daemon
+
+      - name: Keep the bundle for the emulators
+        uses: actions/upload-artifact@v7
+        with:
+          name: patches-bundle
+          path: patches/build/libs/*.mpp
+          if-no-files-found: error
+          retention-days: 1
+
+  emulator:
+    name: Emulator test (${{ matrix.app }})
+    needs: [plan, bundle]
+    strategy:
+      fail-fast: false
+      matrix:
+        app: ${{ fromJSON(needs.plan.outputs.apps) }}
+    # emulator-app.yml has a job that records a pass and needs to write; it only runs when "record"
+    # is on, which it isn't here.
+    permissions:
+      contents: write
+      packages: read
+    uses: ./.github/workflows/emulator-app.yml
+    secrets: inherit
+    with:
+      app: ${{ matrix.app }}
+      bundle: patches-bundle
+      # Skipped instead of failed when APKS_TOKEN is missing (a pull request from a fork).
+      required: false

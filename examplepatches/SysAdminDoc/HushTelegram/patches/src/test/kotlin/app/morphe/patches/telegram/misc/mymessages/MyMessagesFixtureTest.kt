@@ -82,12 +82,12 @@ class MyMessagesFixtureTest {
             val name = build.name
             val context = PatchContexts.of(ExtensionDex.classes() + hosts(build))
             val site = context.resolveMyMessages()
-            if (name.contains("-73039")) {
+            if (name.contains("-73469")) {
                 // Read from the build's own instant search: open the search, press the member button, pick the member.
-                assertEquals("Lorg/telegram/ui/rn;", site.chat)
-                assertEquals("Lorg/telegram/ui/rn;->Na(Ljava/lang/String;)V", site.openSearch.toString())
-                assertEquals("Lorg/telegram/ui/rn;->i3:Landroid/widget/ImageView;", site.searchButton.toString())
-                assertEquals("Lorg/telegram/ui/rn;->Cb($chat$user)V", site.searchUser.toString())
+                assertEquals("Lorg/telegram/ui/on;", site.chat)
+                assertEquals("Lorg/telegram/ui/on;->Oa(Ljava/lang/String;)V", site.openSearch.toString())
+                assertEquals("Lorg/telegram/ui/on;->i3:Landroid/widget/ImageView;", site.searchButton.toString())
+                assertEquals("Lorg/telegram/ui/on;->Db($chat$user)V", site.searchUser.toString())
             }
             assertEquals("$name: the member button", "Landroid/widget/ImageView;", site.searchButton.type)
             val shownBefore = ImmutableMethod.of(site.header.visibility).controlBody()
@@ -141,10 +141,10 @@ class MyMessagesFixtureTest {
 
     /** Admin tools opens the screens Telegram's own member lists open, the way they open them. */
     private fun BytecodePatchContext.assertAdminTools(name: String, site: MyMessagesSite, admin: AdminToolsSite) {
-        if (name.contains("-73039")) {
-            assertEquals("Lorg/telegram/ui/jr;", admin.members)
-            assertEquals("Lorg/telegram/ui/sb;", admin.log)
-            assertEquals("Lorg/telegram/ui/dg0;", admin.links)
+        if (name.contains("-73469")) {
+            assertEquals("Lorg/telegram/ui/gr;", admin.members)
+            assertEquals("Lorg/telegram/ui/qb;", admin.log)
+            assertEquals("Lorg/telegram/ui/ag0;", admin.links)
             assertEquals("m0", admin.linksInfo.name)
             assertEquals(listOf("J", "I", "J"), admin.linksParameters)
             assertEquals(0, admin.linksChatId)

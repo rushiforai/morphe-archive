@@ -391,3 +391,31 @@ One pattern a line, or separated by commas. A shop's domain such as shopee.vn ta
 One pattern a line, or separated by commas. Matched whatever the letter case.	Her satıra bir kalıp veya virgülle ayırarak. Büyük-küçük harf ayrımı yapılmadan eşleştirilir.
 Hide comments with links	Bağlantı içeren yorumları gizle
 Replies with a web link are left out, whatever the patterns say. Add a bare site name such as shopee.vn as a pattern.	Web bağlantısı içeren yanıtlar, kalıplar ne derse desin çıkarılır. shopee.vn gibi yalın bir site adını kalıp olarak ekleyin.
+Hide the like button	Beğen düğmesini gizle
+Takes the like button off posts and replies, with its count. Restart Threads to see the change.	Gönderilerdeki ve yanıtlardaki beğen düğmesini sayısıyla birlikte kaldırır. Değişikliği görmek için Threads'i yeniden başlat.
+Hide the reply button	Yanıtla düğmesini gizle
+Takes the reply button off posts and replies, with its count. Restart Threads to see the change.	Gönderilerdeki ve yanıtlardaki yanıtla düğmesini sayısıyla birlikte kaldırır. Değişikliği görmek için Threads'i yeniden başlat.
+Hide the repost button	Yeniden paylaş düğmesini gizle
+Takes the repost button off posts and replies, with its count. Restart Threads to see the change.	Gönderilerdeki ve yanıtlardaki yeniden paylaş düğmesini sayısıyla birlikte kaldırır. Değişikliği görmek için Threads'i yeniden başlat.
+Hide the share button	Paylaş düğmesini gizle
+Takes the share button off posts and replies. Restart Threads to see the change.	Gönderilerdeki ve yanıtlardaki paylaş düğmesini kaldırır. Değişikliği görmek için Threads'i yeniden başlat.
+Hide the save button	Kaydet düğmesini gizle
+Takes the save button off posts and replies, so you can't tap it by mistake. Restart Threads to see the change.	Yanlışlıkla dokunmaman için gönderilerdeki ve yanıtlardaki kaydet düğmesini kaldırır. Değişikliği görmek için Threads'i yeniden başlat.
+# The header logo switch under Appearance, then the row under Set when you patched for the launcher icon, and the launcher icon as one item of the list of what stays while HushThreads is paused
+Use the HushThreads logo	HushThreads logosunu kullan
+Shows the HushThreads logo at the top of your feed in place of the Threads logo. It doesn't spin while the feed refreshes. Restart Threads to see the change.	Akışının üstünde Threads logosu yerine HushThreads logosunu gösterir. Akış yenilenirken dönmez. Değişikliği görmek için Threads'i yeniden başlat.
+HushThreads icon	HushThreads simgesi
+The app's icon on your home screen is the HushThreads logo.	Ana ekranındaki uygulama simgesi HushThreads logosudur.
+the HushThreads icon	HushThreads simgesi
+# Custom font's switch and its Font file row under Appearance, and what picking a font file says
+Custom font	Özel yazı tipi
+Shows Threads' text in the font file you pick below. Icons keep their own font. Restart Threads to see the change.	Threads'teki yazıları aşağıda seçtiğin yazı tipi dosyasıyla gösterir. Simgeler kendi yazı tiplerini korur. Değişikliği görmek için Threads'i yeniden başlat.
+Font file	Yazı tipi dosyası
+No font picked yet. Pick a .ttf or .otf file.	Henüz yazı tipi seçilmedi. Bir .ttf veya .otf dosyası seç.
+A font file is picked. Tap to pick another.	Bir yazı tipi dosyası seçili. Başkasını seçmek için dokun.
+%1$s is picked. Tap to pick another.	%1$s seçili. Başkasını seçmek için dokun.
+Copying the font file	Yazı tipi dosyası kopyalanıyor
+Font file saved. Restart Threads to see it.	Yazı tipi dosyası kaydedildi. Görmek için Threads'i yeniden başlat.
+Font file saved. Turn on Custom font to use it.	Yazı tipi dosyası kaydedildi. Kullanmak için Özel yazı tipi'ni aç.
+That file is too large to be a font. Nothing was changed.	Bu dosya bir yazı tipi olamayacak kadar büyük. Hiçbir şey değiştirilmedi.
+That isn't a font file Android can use. Nothing was changed.	Bu, Android'in kullanabileceği bir yazı tipi dosyası değil. Hiçbir şey değiştirilmedi.

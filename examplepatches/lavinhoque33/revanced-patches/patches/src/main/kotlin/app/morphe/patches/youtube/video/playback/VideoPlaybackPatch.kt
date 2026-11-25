@@ -8,7 +8,7 @@
  *
  * See the included NOTICE file for GPLv3 Section 7 terms that apply to Morphe contributions.
  *
- * Modified by lavinhoque33, 2026-11-20.
+ * Modified by lavinhoque33, 2026-11-24.
  */
 
 package app.morphe.patches.youtube.video.playback
@@ -722,10 +722,12 @@ val videoPlaybackPatch = bytecodePatch(
 
         // endregion
 
-        // region Disable audio offload if audio pitch controls are enabled.
+        // Use software PCM time stretching for custom speed so that the selected rate isn't
+        // clamped or rejected by an OEM AudioTrack. Offload cannot use that software chain.
+        installSoftwarePlaybackSpeed(EXTENSION_CUSTOM_PLAYBACK_SPEED_CLASS_DESCRIPTOR)
+        installOfflineWatchProgressiveExo()
 
-        // With audio offload, the device hardware decodes the audio
-        // and usually does not support changing the pitch, so the selected pitch is ignored.
+        // region Disable audio offload when custom speed or audio pitch controls are enabled.
         audioOffloadEnabledFingerprint().method.apply {
             findInstructionIndicesReversedOrThrow(Opcode.RETURN).forEach { index ->
                 val register = getInstruction<OneRegisterInstruction>(index).registerA

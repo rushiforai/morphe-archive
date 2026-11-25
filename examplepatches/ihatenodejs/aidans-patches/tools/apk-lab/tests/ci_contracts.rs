@@ -13,7 +13,8 @@ use apk_lab::compatibility_ci::{
 };
 use apk_lab::error::Error;
 use apk_lab::fixtures::{
-    R2Config, R2FixtureManager, S3Adapter, S3AdapterError, S3ErrorKind, S3Object, SlotMetadata,
+    R2Config, R2FixtureManager, S3Adapter, S3AdapterError, S3ErrorKind, S3Object, SeedExpectations,
+    SlotMetadata,
 };
 use apk_lab::models::{ArtifactInspection, ContainerType, ExitCode};
 use apk_lab::morphe::{ArtifactInspector, PatchCompatibilityReport, ToolVersions};
@@ -666,7 +667,13 @@ async fn seed_fixture_uploads_exact_key_metadata_and_timestamp() {
     fs::write(&artifact, b"artifact").unwrap();
 
     let metadata = manager
-        .seed_fixture(PACKAGE, "target", &artifact)
+        .seed_fixture(
+            PACKAGE,
+            "target",
+            &artifact,
+            "apkpure",
+            SeedExpectations::default(),
+        )
         .await
         .unwrap();
 
@@ -674,7 +681,7 @@ async fn seed_fixture_uploads_exact_key_metadata_and_timestamp() {
     assert_eq!(metadata.package_name, PACKAGE);
     assert_eq!(metadata.version_name, "1.0.0");
     assert_eq!(metadata.container_type, "APKM");
-    assert_eq!(metadata.acquisition_source, "manual");
+    assert_eq!(metadata.acquisition_source, "apkpure");
     assert_eq!(metadata.signer_sha256.as_deref(), Some("signer-sha"));
     assert!(
         metadata.timestamp.ends_with("+00:00"),
@@ -699,6 +706,52 @@ async fn seed_fixture_uploads_exact_key_metadata_and_timestamp() {
 }
 
 #[tokio::test]
+async fn seed_fixture_expectations_fail_before_any_upload() {
+    let harness = Harness::new("1.0.0");
+    let manager = harness.manager();
+    let artifact = harness.root.join("input.apkm");
+    fs::write(&artifact, b"artifact").unwrap();
+
+    for expectations in [
+        SeedExpectations {
+            version_name: Some("2.0.0"),
+            sha256: None,
+        },
+        SeedExpectations {
+            version_name: None,
+            sha256: Some("deadbeef"),
+        },
+    ] {
+        let error = manager
+            .seed_fixture(PACKAGE, "target", &artifact, "manual", expectations)
+            .await
+            .unwrap_err();
+        assert_eq!(error.exit_code, ExitCode::InvalidArtifact);
+        assert!(harness.memory.put_calls().is_empty());
+    }
+
+    let metadata = manager
+        .seed_fixture(
+            PACKAGE,
+            "target",
+            &artifact,
+            "device-pull",
+            SeedExpectations {
+                version_name: Some("1.0.0"),
+                sha256: Some("SHA-1.0.0"),
+            },
+        )
+        .await
+        .unwrap();
+    assert_eq!(metadata.version_name, "1.0.0");
+    assert_eq!(metadata.acquisition_source, "device-pull");
+    assert_eq!(
+        harness.memory.put_calls(),
+        vec!["test-bucket/fixtures/com.test.app/target".to_string()]
+    );
+}
+
+#[tokio::test]
 async fn seed_fixture_rejects_package_mismatch_before_any_upload() {
     let harness = Harness::new("1.0.0");
     *harness.inspector.result.lock().unwrap() = Ok(inspection("com.different.package", "1.0.0"));
@@ -707,7 +760,13 @@ async fn seed_fixture_rejects_package_mismatch_before_any_upload() {
     fs::write(&artifact, b"artifact").unwrap();
 
     let error = manager
-        .seed_fixture(PACKAGE, "target", &artifact)
+        .seed_fixture(
+            PACKAGE,
+            "target",
+            &artifact,
+            "manual",
+            SeedExpectations::default(),
+        )
         .await
         .unwrap_err();
     assert_eq!(

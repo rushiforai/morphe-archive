@@ -42,6 +42,7 @@ public class HomeFeedTest {
         PauseForTests.resume();
         Settings.KEEP_HOME_FEED.resetToDefault();
         Settings.BACK_LEAVES_HOME.resetToDefault();
+        Settings.HIDE_REFRESH_PILL.resetToDefault();
         HookStatus.clear();
     }
 
@@ -123,5 +124,29 @@ public class HomeFeedTest {
         Settings.BACK_LEAVES_HOME.save(true);
         PauseForTests.pause(HushPinterestPause.Reason.SWITCH);
         assertFalse(HomeFeed.leave());
+    }
+
+    /** #48: off to start, Home shows its refresh pill, and Keep Home feed's own switch doesn't hide it. */
+    @Test public void theRefreshPillShowsUntilItsSwitchIsOn() {
+        assertFalse(Settings.HIDE_REFRESH_PILL.get());
+        assertFalse(HomeFeed.hideRefreshPill());
+        Settings.KEEP_HOME_FEED.save(true);
+        assertFalse(HomeFeed.hideRefreshPill());
+        assertFalse(line(), line().contains("refresh pill hidden"));
+    }
+
+    @Test public void onTheRefreshPillIsHiddenAndCounted() {
+        Settings.HIDE_REFRESH_PILL.save(true);
+        assertTrue(HomeFeed.hideRefreshPill());
+        assertTrue(line(), line().contains("refresh pill hidden"));
+        // The pill's switch holds no refresh of its own.
+        assertFalse(HomeFeed.holdHomeRefresh(null, 1));
+        assertFalse(HomeFeed.leave());
+    }
+
+    @Test public void pausedTheRefreshPillShows() {
+        Settings.HIDE_REFRESH_PILL.save(true);
+        PauseForTests.pause(HushPinterestPause.Reason.SWITCH);
+        assertFalse(HomeFeed.hideRefreshPill());
     }
 }

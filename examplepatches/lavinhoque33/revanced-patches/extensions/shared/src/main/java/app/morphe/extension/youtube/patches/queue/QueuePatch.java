@@ -1,6 +1,7 @@
 // SPDX-FileCopyrightText: 2026 Reseam contributors <https://reseam.app>
 // SPDX-License-Identifier: AGPL-3.0-or-later
 // Modified by lavinhoque33, 2026-11-23
+// Modified by lavinhoque33, 2026-11-24
 
 package app.morphe.extension.youtube.patches.queue;
 
@@ -190,6 +191,11 @@ public final class QueuePatch {
         return new Proto.Writer()
                 .message(QUEUE_INSERT, new Proto.Writer().string(1, token(videoId, POSITION_LAST)))
                 .toByteArray();
+    }
+
+    /** Opens the selected video when there is no watch session to receive an insert. */
+    static byte[] thumbnailWatchCommand(String videoId) {
+        return new Proto.Writer().message(WATCH, new Proto.Writer().string(WATCH_VIDEO_ID, videoId)).toByteArray();
     }
 
     /** The card opted into stock queueing only if its own menu contains an actual insert for this video. */

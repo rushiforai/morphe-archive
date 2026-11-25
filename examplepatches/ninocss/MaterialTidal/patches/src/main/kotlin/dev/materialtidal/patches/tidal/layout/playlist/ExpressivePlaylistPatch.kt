@@ -30,8 +30,8 @@ import dev.materialtidal.patches.shared.MATERIAL_YOU_CONFIG_CLASS
 import dev.materialtidal.patches.tidal.theme.materialyou.materialYouThemePatch
 
 private val PLAYLIST_ACCENT_CHOICES = mapOf(
-    "Dynamic Cover + Monet (Recommended)" to "adaptive",
-    "System Monet Wallpaper" to "monet",
+    "Cover + Monet (Recommended)" to "adaptive",
+    "System Monet" to "monet",
 )
 
 private fun accentChoiceToCode(choice: String?): Int = when (choice) {
@@ -86,8 +86,8 @@ private fun hookAfterInstanceVoid(
 
 @Suppress("unused")
 val expressivePlaylistPatch = patch(
-    name = "Expressive Material 3 playlist screen",
-    description = "Redesigns TIDAL's Playlist screen in Material 3 Expressive style with a full-bleed downward-fading cover, cover-adaptive + Monet colors, pill Play/Shuffle buttons, connected action tiles, scroll-morphing toolbar, and polished track rows.",
+    name = "M3 playlist screen",
+    description = "Redesigns Playlist pages with a full-bleed fading hero cover, cover-adaptive or Monet colors, pill Play/Shuffle controls, compact expressive action buttons (or full hide), scroll-morphing toolbar, and polished track rows.",
     default = true,
 ) {
     dependsOn(materialYouThemePatch)
@@ -101,36 +101,47 @@ val expressivePlaylistPatch = patch(
         default = "adaptive",
         values = PLAYLIST_ACCENT_CHOICES,
         title = "Playlist accent palette",
-        description = "Use colors extracted dynamically from each playlist cover or strictly follow your system Monet wallpaper.",
+        description = "Extract accent colors dynamically from each playlist cover or always follow your system Monet wallpaper (also adjustable live in Settings → MaterialTidal).",
         required = true,
     )
 
     val playlistHeroCoverFadeOption by booleanOption(
         key = "playlistHeroCoverFade",
         default = true,
-        title = "Full-bleed downward-fading hero cover",
-        description = "Display playlist artwork edge-to-edge at the top with a smooth downward fade into the surface canvas.",
+        title = "Full-bleed fading hero cover",
+        description = "Display playlist artwork edge-to-edge at the top with a smooth downward fade into the background (also adjustable live in Settings → MaterialTidal).",
         required = true,
     )
 
     val playlistTrackRowPolishOption by booleanOption(
         key = "playlistTrackRowPolish",
         default = true,
-        title = "Material 3 Expressive track rows",
-        description = "Round track artwork corners (12dp), add pill ripples, and preserve TIDAL's default active-track highlight.",
+        title = "Expressive track rows",
+        description = "Round track artwork corners and add pill touch ripples while keeping TIDAL's active-track indicator (also adjustable live in Settings → MaterialTidal).",
+        required = true,
+    )
+
+    val hidePlaylistActionButtonsOption by booleanOption(
+        key = "hidePlaylistActionButtons",
+        default = false,
+        title = "Hide playlist action buttons",
+        description = "Hide the secondary playlist action bar (Favorite, Edit, Download, Privacy, Share; also adjustable live in Settings → MaterialTidal).",
         required = true,
     )
 
     execute {
         // 1. Configure MaterialYouConfig playlist options.
         val configClass = mutableClassDefBy(MATERIAL_YOU_CONFIG_CLASS)
+        configClass.methods.single { it.name == "isExpressivePlaylistPatchInstalled" }.returnEarly(true)
         configClass.methods.single { it.name == "isExpressivePlaylistEnabled" }.returnEarly(true)
-        configClass.methods.single { it.name == "getPlaylistAccentMode" }
+        configClass.methods.single { it.name == "defaultPlaylistAccentMode" }
             .returnEarly(accentChoiceToCode(playlistAccentModeOption))
-        configClass.methods.single { it.name == "isPlaylistHeroCoverFadeEnabled" }
+        configClass.methods.single { it.name == "defaultPlaylistHeroCoverFadeEnabled" }
             .returnEarly(playlistHeroCoverFadeOption ?: true)
-        configClass.methods.single { it.name == "isPlaylistTrackRowPolishEnabled" }
+        configClass.methods.single { it.name == "defaultPlaylistTrackRowPolishEnabled" }
             .returnEarly(playlistTrackRowPolishOption ?: true)
+        configClass.methods.single { it.name == "defaultHidePlaylistActionButtonsEnabled" }
+            .returnEarly(hidePlaylistActionButtonsOption ?: false)
 
         // 2. Dynamically resolve PlaylistFragment's view-binding field (Le6e;) and CoordinatorLayout field.
         val viewCreatedMatch = PlaylistFragmentOnViewCreatedFingerprint.matchSingle()

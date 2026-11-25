@@ -12,6 +12,7 @@ Every patch is on by default. Morphe Manager groups them by category.
 | Privacy | Disable analytics | Stops Detik Analytics from recording screens and events, keeps the Android ID out of article pages, and turns off Firebase Analytics, Crashlytics, Performance and Sessions. |
 | Feature | Merge article pages | Shows every page of a multi-page article in one continuous article, without the page numbers. |
 | Feature | Stop autoplay | Stops the videos and live streams embedded in articles from playing on their own. They play when tapped. |
+| Theme | Themed icon | Adds the themed (monochrome) app icon of Android 13 and later, which follows the wallpaper colors. |
 
 ## How the patches work
 

@@ -143,10 +143,14 @@ final class ChatNotifications {
         return title == null || title.length() == 0 ? null : title.toString();
     }
 
-    /** One-to-one chats, encrypted or not. Messenger's key names the chat type first. */
+    /**
+     * One-to-one chats, encrypted or not, and Marketplace chats, which are one buyer and one seller under
+     * their own MARKETPLACE type. Messenger's key names the chat type first.
+     */
     static boolean oneToOne(String thread) {
         int colon = thread.indexOf(':');
-        return (colon < 0 ? thread : thread.substring(0, colon)).contains("ONE_TO_ONE");
+        String type = colon < 0 ? thread : thread.substring(0, colon);
+        return type.contains("ONE_TO_ONE") || type.equals("MARKETPLACE");
     }
 
     /** The group's name for a group chat's notification, null for a one-to-one chat. */

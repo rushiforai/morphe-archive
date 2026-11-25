@@ -1,3 +1,9 @@
+# [1.14.2](https://github.com/quwi26/Quwis-Patches/compare/v1.14.1...v1.14.2) (2026-11-24)
+
+### Bug Fixes
+
+* **Stockfish analysis:** the engine now goes into the ABI folder the APK itself uses, instead of one picked from the phone. A 64-bit engine added to a 32-bit APK switched the app to arm64, so chess.com's own libraries - `libcee_driver.so` among them - were never extracted and bots, Play Coach and the app's other native parts crashed with "cee-driver binary not found". A 32-bit APK gets the 32-bit engine now, an APK the phone cannot run is refused with a message naming the 64-bit one to use, an APK with both folders follows the phone, and a base APK without `lib/` warns that chess.com's libraries live in the ABI split. A 32-bit phone is also recognised again when Android reports no 64-bit ABIs
+
 # [1.14.1](https://github.com/quwi26/Quwis-Patches/compare/v1.14.0...v1.14.1) (2026-11-23)
 
 ### Bug Fixes

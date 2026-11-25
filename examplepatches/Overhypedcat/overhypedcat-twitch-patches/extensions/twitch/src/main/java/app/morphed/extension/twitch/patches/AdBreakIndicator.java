@@ -6,7 +6,6 @@ import android.content.Context;
 import android.content.ContextWrapper;
 import android.graphics.Color;
 import android.graphics.Rect;
-import android.graphics.drawable.GradientDrawable;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
@@ -400,10 +399,7 @@ final class AdBreakIndicator {
         int vertical = dp(context, 3);
         view.setPadding(horizontal, vertical, horizontal, vertical);
 
-        GradientDrawable background = new GradientDrawable();
-        background.setColor(0xB3000000);
-        background.setCornerRadius(dp(context, 8));
-        view.setBackground(background);
+        view.setBackground(new app.morphed.extension.twitch.ui.Squircle(0xB3000000, dp(context, 8)));
         // No elevation shadow; the label is added last to the window, so it is drawn on top anyway.
         view.setOutlineProvider(null);
         view.setClickable(false);

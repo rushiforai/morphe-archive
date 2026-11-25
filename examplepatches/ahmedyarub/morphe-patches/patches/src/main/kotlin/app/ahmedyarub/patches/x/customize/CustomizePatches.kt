@@ -186,27 +186,33 @@ val customizeReplySortingPatch = bytecodePatch(
     execute {
         CustomiseSetting("replySortChoice").method.returnEarly(sort!!)
 
-        // The conversation repository takes the post id and then the sort. Which code makes it
-        // varies (the conversation itself up to 12.38, a factory from 12.39), so it is found by
-        // its constructor.
+        // The conversation repository takes the post id and then the sort, and the timeline source
+        // it loads them through. Which code makes it varies (the conversation itself up to 12.38,
+        // a factory from 12.39), and so do the arguments before the id (12.46 added a Boolean
+        // first), so it is found by that shape. Other post classes take the id and the sort but
+        // no timeline source.
         val sortType = ReplySortFingerprint.classDef.type
-        var repository: String? = null
-        classDefForEach { classDef ->
-            if (repository != null || !classDef.type.startsWith("Lcom/x/repositories/post/")) return@classDefForEach
-            if (classDef.methods.any { method ->
-                    method.name == "<init>" && method.parameterTypes.getOrNull(2)?.toString() == "J" &&
-                        method.parameterTypes.getOrNull(3)?.toString() == sortType
-                }
-            ) repository = classDef.type
+        fun sortIndex(method: Method): Int? {
+            if (method.name != "<init>") return null
+            val params = method.parameterTypes.map { it.toString() }
+            val index = (1 until params.size).firstOrNull { params[it] == sortType && params[it - 1] == "J" } ?: return null
+            return index.takeIf { params.any { it.startsWith("Lcom/x/repositories/urt/") } }
         }
-        val repositoryType = repository ?: throw PatchException("No conversation repository taking the post id and the sort")
+        val repositories = mutableListOf<Pair<ClassDef, Method>>()
+        classDefForEach { classDef ->
+            if (!classDef.type.startsWith("Lcom/x/repositories/post/")) return@classDefForEach
+            classDef.methods.filter { sortIndex(it) != null }.forEach { repositories += classDef to it }
+        }
+        val (repositoryClass, constructor) = repositories.singleOrNull()
+            ?: throw PatchException("Expected one conversation repository taking the post id and the sort, found ${repositories.size}")
 
-        mutableClassDefBy(repositoryType).methods.first {
-            it.name == "<init>" && it.parameterTypes.getOrNull(2)?.toString() == "J" &&
-                it.parameterTypes.getOrNull(3)?.toString() == sortType
+        mutableClassDefBy(repositoryClass).methods.first {
+            it.name == "<init>" && it.parameterTypes == constructor.parameterTypes
         }.apply {
-            // p0 is the receiver; the long post id takes two registers.
-            val sortRegister = "p5"
+            // p0 is the receiver; the arguments before the sort fill the registers after it (a
+            // long, like the post id, takes two).
+            val index = sortIndex(constructor)!!
+            val sortRegister = "p${1 + constructor.parameterTypes.take(index).map { if (it.toString() == "J" || it.toString() == "D") 2 else 1 }.sum()}"
 
             addInstructions(
                 0,

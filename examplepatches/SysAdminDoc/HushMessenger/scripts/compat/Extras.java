@@ -602,4 +602,356 @@ final class Extras {
         if (!senders.equals(List.of(sync))) return List.of();
         return List.of(lists.get(0), syncs.get(0));
     }
+
+    /** One side of a picked row in Message storage. Mirrors RecoveryArm in RecoveryCodeRow.kt. */
+    private record RecoveryArm(int title, String label, int owner, int text) { }
+
+    private static final Set<List<Integer>> RECOVERY_ROW_TITLES =
+        Set.of(List.of(0x7f14178d, 0x7f14178f), List.of(0x7f14178f, 0x7f141791));
+
+    private static List<Integer> recoveryArguments(Instruction i) {
+        if (i.getOpcode() != Opcode.INVOKE_STATIC || !(i instanceof FiveRegisterInstruction call)) return null;
+        int[] all = {call.getRegisterC(), call.getRegisterD(), call.getRegisterE(), call.getRegisterF(), call.getRegisterG()};
+        var used = new ArrayList<Integer>();
+        for (int n = 0; n < call.getRegisterCount(); n++) used.add(all[n]);
+        return used;
+    }
+
+    private static MethodReference recoveryCall(Instruction i) {
+        return i instanceof ReferenceInstruction r && r.getReference() instanceof MethodReference m ? m : null;
+    }
+
+    /** The four instructions of a side, or null. Mirrors recoveryArm in RecoveryCodeRow.kt. */
+    private static RecoveryArm recoveryArm(List<Instruction> code, int at, int flag) {
+        if (at < 0 || at + 3 >= code.size()) return null;
+        var title = code.get(at); var lookup = code.get(at + 1); var result = code.get(at + 2); var rowCode = code.get(at + 3);
+        if (title.getOpcode() != Opcode.CONST || ((OneRegisterInstruction) title).getRegisterA() != flag) return null;
+        if (rowCode.getOpcode() != Opcode.CONST_16 || ((OneRegisterInstruction) rowCode).getRegisterA() != flag) return null;
+        if (result.getOpcode() != Opcode.MOVE_RESULT_OBJECT) return null;
+        int text = ((OneRegisterInstruction) result).getRegisterA();
+        var label = recoveryCall(lookup); var arguments = recoveryArguments(lookup);
+        if (label == null || arguments == null || text == flag || arguments.size() != 2 || arguments.get(1) != flag) return null;
+        var types = label.getParameterTypes();
+        if (!"Ljava/lang/String;".equals(label.getReturnType()) || types.isEmpty() || !"I".equals(types.get(types.size() - 1).toString())) return null;
+        return new RecoveryArm(((NarrowLiteralInstruction) title).getNarrowLiteral(), label.toString(), arguments.get(0), text);
+    }
+
+    /** Whether this is the Message storage page's render method. Mirrors recoveryCodeSite in RecoveryCodeRow.kt. */
+    private static boolean isRecoveryCodeRender(Method method) {
+        if (!"render".equals(method.getName()) || AccessFlags.STATIC.isSet(method.getAccessFlags()) || "V".equals(method.getReturnType())
+            || method.getParameterTypes().size() != 1 || method.getImplementation() == null) return false;
+        var code = instructions(method);
+        var picks = new ArrayList<int[]>();
+        for (int at = 0; at < code.size(); at++) {
+            if (code.get(at).getOpcode() != Opcode.IF_EQZ) continue;
+            int flag = ((OneRegisterInstruction) code.get(at)).getRegisterA();
+            var chosen = recoveryArm(code, at + 1, flag);
+            int addAt = at + 5;
+            if (chosen == null || addAt >= code.size()) continue;
+            var call = recoveryCall(code.get(addAt)); var arguments = recoveryArguments(code.get(addAt));
+            if (call == null || arguments == null || !call.getDefiningClass().equals(method.getDefiningClass()) || !"V".equals(call.getReturnType())) continue;
+            var types = call.getParameterTypes().stream().map(Object::toString).toList();
+            if (types.size() != 4 || !"Ljava/lang/String;".equals(types.get(2)) || !"I".equals(types.get(3)) || arguments.size() != 4
+                || arguments.get(2) != chosen.text() || arguments.get(3) != flag) continue;
+            int elseAt = mediaTarget(code, at);
+            var otherwise = recoveryArm(code, elseAt, flag);
+            if (otherwise == null || !otherwise.label().equals(chosen.label()) || otherwise.owner() != chosen.owner() || otherwise.text() != chosen.text()) continue;
+            int backAt = elseAt + 4;
+            if (backAt >= code.size()) continue;
+            var back = code.get(backAt).getOpcode();
+            if (back != Opcode.GOTO && back != Opcode.GOTO_16 && back != Opcode.GOTO_32) continue;
+            if (mediaTarget(code, backAt) != addAt) continue;
+            picks.add(new int[] {at + 1, otherwise.title()});
+        }
+        return picks.size() == 2 && RECOVERY_ROW_TITLES.contains(List.of(picks.get(0)[1], picks.get(1)[1]))
+            && !mediaTargets(method).contains(picks.get(1)[0]);
+    }
+
+    /** recovery_code_row: the page's render method, only while exactly one method has its shape. Mirrors findRecoveryCodeRow. */
+    static List<Method> recoveryCodeRow(List<ClassDef> classes) {
+        var found = new ArrayList<Method>();
+        for (var cls : classes) for (var method : cls.getMethods()) if (isRecoveryCodeRender(method)) found.add(method);
+        return found.size() == 1 ? found : List.of();
+    }
+
+    private static final String NOTE_SCREEN = "Lcom/facebook/presence/note/ui/creation/NotesCreationFragment;";
+
+    private static FieldReference noteField(Instruction i) {
+        return i instanceof ReferenceInstruction r && r.getReference() instanceof FieldReference f ? f : null;
+    }
+
+    /** Whether the instruction at storeAt stores the note's text filter after its limit. Mirrors noteLimitAt in LongerNotes.kt. */
+    private static boolean isNoteLimitStore(Method method, List<Instruction> code, int storeAt) {
+        var store = code.get(storeAt);
+        if (store.getOpcode() != Opcode.IPUT_OBJECT) return false;
+        var filterField = noteField(store);
+        if (filterField == null || !"Landroid/text/InputFilter;".equals(filterField.getType())) return false;
+        int filter = ((TwoRegisterInstruction) store).getRegisterA();
+        int composer = ((TwoRegisterInstruction) store).getRegisterB();
+        int at = storeAt - 1;
+        for (; at >= 0; at--) {
+            var i = code.get(at);
+            var field = noteField(i);
+            if (i.getOpcode() == Opcode.IPUT && field != null && field.getDefiningClass().equals(filterField.getDefiningClass())
+                && "I".equals(field.getType()) && ((TwoRegisterInstruction) i).getRegisterB() == composer) break;
+            if (CompatReport.writes(i, filter) || CompatReport.writes(i, composer)) return false;
+        }
+        if (at < 0) return false;
+        int limit = ((TwoRegisterInstruction) code.get(at)).getRegisterA();
+        int loadAt = at - 1;
+        while (loadAt >= 0 && !CompatReport.writes(code.get(loadAt), limit)) loadAt--;
+        if (loadAt < 0) return false;
+        var load = code.get(loadAt);
+        if (load.getOpcode() != Opcode.CONST_16 || ((NarrowLiteralInstruction) load).getNarrowLiteral() != 60) return false;
+        var targets = mediaTargets(method);
+        for (int i = loadAt + 1; i <= storeAt; i++) if (targets.contains(i) || code.get(i) instanceof OffsetInstruction) return false;
+        return true;
+    }
+
+    /** Whether the method hands the note limit to the composer in exactly one place. Mirrors noteLimitSite. */
+    private static boolean hasNoteLimitSite(Method method) {
+        if (method.getImplementation() == null) return false;
+        var code = instructions(method);
+        int sites = 0;
+        for (int at = 0; at < code.size(); at++) if (isNoteLimitStore(method, code, at)) sites++;
+        return sites == 1;
+    }
+
+    /** longer_notes: the note screen's state method, only while exactly one method has its shape. Mirrors findLongerNotes. */
+    static List<Method> longerNotes(List<ClassDef> classes) {
+        var found = new ArrayList<Method>();
+        for (var cls : classes) {
+            if (!NOTE_SCREEN.equals(cls.getType())) continue;
+            for (var method : cls.getMethods()) if (hasNoteLimitSite(method)) found.add(method);
+        }
+        return found.size() == 1 ? found : List.of();
+    }
+
+    private static final String SEARCH_LIST = "Lcom/google/common/collect/ImmutableList;";
+    private static final String THREAD_LAUNCHER_SPEC = "messaging.navigation.threadviewlauncher.ThreadViewLauncherSpec";
+
+    private static List<String> searchTypes(Method m) {
+        return m.getParameterTypes().stream().map(Object::toString).toList();
+    }
+
+    /** The register holding parameter index (0 is the first after this), or -1. Mirrors argumentRegister in SearchSections.kt. */
+    private static int searchParameter(Method m, int index) {
+        if (m.getImplementation() == null) return -1;
+        var types = searchTypes(m);
+        int words = 0, before = 0;
+        for (int n = 0; n < types.size(); n++) {
+            int size = "J".equals(types.get(n)) || "D".equals(types.get(n)) ? 2 : 1;
+            words += size;
+            if (n < index) before += size;
+        }
+        int self = AccessFlags.STATIC.isSet(m.getAccessFlags()) ? 0 : 1;
+        int first = m.getImplementation().getRegisterCount() - words - self;
+        return first < 0 ? -1 : first + self + before;
+    }
+
+    /** Mirrors searchSectionsList in SearchSections.kt. */
+    private static boolean isSearchResultConstructor(Method m) {
+        return "<init>".equals(m.getName()) && !AccessFlags.STATIC.isSet(m.getAccessFlags()) && "V".equals(m.getReturnType())
+            && searchTypes(m).equals(List.of(SEARCH_LIST, "Ljava/lang/Integer;", "I")) && m.getImplementation() != null
+            && !mediaTargets(m).contains(0) && searchParameter(m, 0) >= 0;
+    }
+
+    /** Mirrors searchItemsSite in SearchSections.kt. */
+    private static boolean isSearchSectionConstructor(Method m, String type) {
+        if (!"<init>".equals(m.getName()) || AccessFlags.STATIC.isSet(m.getAccessFlags()) || !"V".equals(m.getReturnType())) return false;
+        if (!searchTypes(m).equals(List.of(type, SEARCH_LIST, "Lcom/google/common/collect/ImmutableMap;", "Ljava/lang/Integer;",
+            "Ljava/lang/String;", "Z"))) return false;
+        if (m.getImplementation() == null || mediaTargets(m).contains(0)) return false;
+        int first = searchParameter(m, 0);
+        return first >= 0 && searchParameter(m, 1) == first + 1;
+    }
+
+    /** Mirrors aiChatOpenParams in SearchSections.kt. */
+    private static boolean isAiChatLauncher(Method m) {
+        if (AccessFlags.STATIC.isSet(m.getAccessFlags()) || !"Z".equals(m.getReturnType()) || m.getImplementation() == null) return false;
+        var types = searchTypes(m);
+        if (types.size() != 4 || !"Landroid/content/Context;".equals(types.get(0)) || !"Lcom/facebook/auth/usersession/FbUserSession;".equals(types.get(2))
+            || !"Lcom/facebook/messaging/threadview/params/ThreadViewParams;".equals(types.get(3))) return false;
+        return searchParameter(m, 0) - 1 >= 1 && !mediaTargets(m).contains(0);
+    }
+
+    /** search_sections: the result constructor of the class the people search source returns. Mirrors findSearchSections. */
+    static List<Method> searchSections(List<ClassDef> classes) {
+        var results = new LinkedHashSet<String>();
+        for (var cls : classes) for (var method : cls.getMethods()) {
+            if (AccessFlags.STATIC.isSet(method.getAccessFlags()) || !method.getReturnType().startsWith("L") || method.getImplementation() == null) continue;
+            var strings = stringsOf(method);
+            if (strings.contains("PeopleYouMayKnowSectionDataSource") && strings.contains("Failed to load people you may know")) results.add(method.getReturnType());
+        }
+        if (results.size() != 1) return List.of();
+        String result = results.iterator().next();
+        for (var cls : classes) {
+            if (!cls.getType().equals(result)) continue;
+            var found = new ArrayList<Method>();
+            for (var method : cls.getMethods()) if (isSearchResultConstructor(method)) found.add(method);
+            return found.size() == 1 ? found : List.of();
+        }
+        return List.of();
+    }
+
+    /** search_items: the section constructor that takes the enum of section types first. Mirrors findSearchItems. */
+    static List<Method> searchItems(List<ClassDef> classes) {
+        var enums = new ArrayList<String>();
+        for (var cls : classes) {
+            if (!"Ljava/lang/Enum;".equals(cls.getSuperclass())) continue;
+            for (var method : cls.getMethods())
+                if ("<clinit>".equals(method.getName()) && method.getImplementation() != null && stringsOf(method).contains("NULL_STATE_AI_BOTS")) {
+                    enums.add(cls.getType());
+                    break;
+                }
+        }
+        if (enums.size() != 1) return List.of();
+        var found = new ArrayList<Method>();
+        for (var cls : classes) for (var method : cls.getMethods()) if (isSearchSectionConstructor(method, enums.get(0))) found.add(method);
+        return found.size() == 1 ? found : List.of();
+    }
+
+    /** ai_chat_open: the chat launcher that names its own spec. Mirrors findAiChatOpen. */
+    static List<Method> aiChatOpen(List<ClassDef> classes) {
+        var found = new ArrayList<Method>();
+        for (var cls : classes) for (var method : cls.getMethods()) {
+            if (!isAiChatLauncher(method)) continue;
+            if (stringsOf(method).contains(THREAD_LAUNCHER_SPEC)) found.add(method);
+        }
+        return found.size() == 1 ? found : List.of();
+    }
+
+    private static final List<String> OWN_TILE_CONSTRUCTOR = List.of("Lcom/facebook/auth/usersession/FbUserSession;",
+        "Lcom/facebook/messaging/inbox/units/StaticUnitConfig;", "Lcom/facebook/messaging/montage/model/MontageBucketPreview;",
+        "Lcom/facebook/presence/api/model/NoteWithUserInfo;");
+
+    /** Mirrors storyCreateTileRegister in StoryCreateTile.kt. */
+    private static boolean isStoryTrayBuilder(Method m) {
+        if (AccessFlags.STATIC.isSet(m.getAccessFlags()) || !SEARCH_LIST.equals(m.getReturnType()) || m.getImplementation() == null) return false;
+        var params = searchTypes(m);
+        if (params.size() != 8 || !params.get(1).startsWith("L")) return false;
+        for (int n = 3; n < 8; n++) if (!SEARCH_LIST.equals(params.get(n))) return false;
+        return !mediaTargets(m).contains(0) && searchParameter(m, 1) >= 0;
+    }
+
+    /** story_create_tile: the stories row builder that logs its presence check. Mirrors findStoryCreateTile. */
+    static List<Method> storyCreateTile(List<ClassDef> classes) {
+        var found = new ArrayList<Method>();
+        for (var cls : classes) for (var method : cls.getMethods()) {
+            if (!SEARCH_LIST.equals(method.getReturnType()) || method.getParameterTypes().size() != 8 || method.getImplementation() == null) continue;
+            if (stringsOf(method).contains("invalid_facebook_user_presence") && isStoryTrayBuilder(method)) found.add(method);
+        }
+        if (found.size() != 1) return List.of();
+        String tile = found.get(0).getParameterTypes().get(1).toString();
+        for (var cls : classes) {
+            if (!cls.getType().equals(tile)) continue;
+            for (var method : cls.getMethods())
+                if ("<init>".equals(method.getName()) && searchTypes(method).equals(OWN_TILE_CONSTRUCTOR)) return found;
+            return List.of();
+        }
+        return List.of();
+    }
+
+    /** Mirrors pinnedBarGate in PinnedBar.kt: a ThreadKey ()Z check whose answer jumps straight to the loader's new-instance. */
+    private static boolean hasPinnedBarGate(Method m, String loader) {
+        if (m.getImplementation() == null) return false;
+        var code = instructions(m);
+        int made = -1, branch = -1;
+        for (int i = 0; i < code.size(); i++) {
+            if (code.get(i).getOpcode() != Opcode.NEW_INSTANCE || !loader.equals(((ReferenceInstruction) code.get(i)).getReference().toString())) continue;
+            if (made >= 0) return false;
+            made = i;
+        }
+        if (made < 0) return false;
+        for (int i = 0; i < code.size(); i++) {
+            if (code.get(i).getOpcode() != Opcode.IF_NEZ || !jumpsTo(code, i, made)) continue;
+            if (branch >= 0) return false;
+            branch = i;
+        }
+        if (branch < 2 || mediaTargets(m).contains(branch)) return false;
+        int pinnedRegister = ((OneRegisterInstruction) code.get(branch)).getRegisterA();
+        var pinnedResult = code.get(branch - 1);
+        if (pinnedResult.getOpcode() != Opcode.MOVE_RESULT || ((OneRegisterInstruction) pinnedResult).getRegisterA() != pinnedRegister || pinnedRegister > 0xff) return false;
+        var pinnedRead = code.get(branch - 2);
+        if (pinnedRead.getOpcode() != Opcode.INVOKE_VIRTUAL || !(((ReferenceInstruction) pinnedRead).getReference() instanceof MethodReference pinnedCheck)) return false;
+        return "Lcom/facebook/messaging/model/threadkey/ThreadKey;".equals(pinnedCheck.getDefiningClass()) && "Z".equals(pinnedCheck.getReturnType())
+            && pinnedCheck.getParameterTypes().isEmpty();
+    }
+
+    /** pinned_bar: the banner fetch that gates the loader naming the pinned data source. Mirrors findPinnedBar. */
+    static List<Method> pinnedBar(List<ClassDef> classes) {
+        var pinnedLoaders = new ArrayList<String>();
+        for (var cls : classes) for (var method : cls.getMethods())
+            if (method.getImplementation() != null && stringsOf(method).contains("PinnedMessagesMsysBannerDataSource")) {
+                pinnedLoaders.add(cls.getType());
+                break;
+            }
+        if (pinnedLoaders.size() != 1) return List.of();
+        for (var cls : classes) {
+            if (!"Lcom/facebook/messaging/msys/thread/banner/datafetch/ThreadViewBannerDataFetch;".equals(cls.getType())) continue;
+            var found = new ArrayList<Method>();
+            for (var method : cls.getMethods()) if (hasPinnedBarGate(method, pinnedLoaders.get(0))) found.add(method);
+            return found.size() == 1 ? found : List.of();
+        }
+        return List.of();
+    }
+
+    private static List<String> typeNames(List<? extends CharSequence> types) {
+        var names = new ArrayList<String>();
+        for (var type : types) names.add(type.toString());
+        return names;
+    }
+
+    private static final List<String> SOUND_PICKER_TYPES = List.of("Lcom/facebook/auth/usersession/FbUserSession;",
+        "Lcom/facebook/messaging/model/messages/Message;", "Z", "Z");
+
+    /** Mirrors isSoundCheck in OpenChatSound.kt: an in-app sounds check of the session, `(FbUserSession)Z`. */
+    private static boolean isSoundCheck(Instruction i, int session) {
+        if (i.getOpcode() != Opcode.INVOKE_VIRTUAL || !(((ReferenceInstruction) i).getReference() instanceof MethodReference call)) return false;
+        return "Z".equals(call.getReturnType()) && typeNames(call.getParameterTypes()).equals(List.of("Lcom/facebook/auth/usersession/FbUserSession;"))
+            && ((FiveRegisterInstruction) i).getRegisterCount() == 2 && ((FiveRegisterInstruction) i).getRegisterD() == session;
+    }
+
+    /** Mirrors openChatSite in OpenChatSound.kt, on the stock shape: the dropped in-app sounds check and the in-app sound call. */
+    private static boolean hasOpenChatSite(Method m) {
+        if (AccessFlags.STATIC.isSet(m.getAccessFlags()) || !"Z".equals(m.getReturnType()) || m.getImplementation() == null) return false;
+        if (!typeNames(m.getParameterTypes()).equals(SOUND_PICKER_TYPES)) return false;
+        var soundStrings = stringsOf(m);
+        if (!soundStrings.contains("notif_processing") || !soundStrings.contains("Play sound")) return false;
+        var code = instructions(m);
+        int session = m.getImplementation().getRegisterCount() - 4;
+        int play = -1;
+        for (int i = 0; i < code.size(); i++) {
+            if (code.get(i).getOpcode() != Opcode.INVOKE_VIRTUAL || !(((ReferenceInstruction) code.get(i)).getReference() instanceof MethodReference call)) continue;
+            if (!"V".equals(call.getReturnType()) || !typeNames(call.getParameterTypes()).equals(List.of("Lcom/facebook/auth/usersession/FbUserSession;", "Ljava/lang/String;"))) continue;
+            if (play >= 0) return false;
+            play = i;
+        }
+        if (play < 3) return false;
+        var playCall = (FiveRegisterInstruction) code.get(play);
+        if (playCall.getRegisterCount() != 3 || playCall.getRegisterD() != session) return false;
+        int soundName = playCall.getRegisterE();
+        var soundStart = code.get(play - 3);
+        if (!Set.of(Opcode.CONST_4, Opcode.CONST_16, Opcode.CONST).contains(soundStart.getOpcode()) || ((OneRegisterInstruction) soundStart).getRegisterA() != soundName) return false;
+        var soundLookup = code.get(play - 2);
+        if (soundLookup.getOpcode() != Opcode.INVOKE_STATIC || !(((ReferenceInstruction) soundLookup).getReference() instanceof MethodReference lookupCall)) return false;
+        if (!"Ljava/lang/String;".equals(lookupCall.getReturnType()) || !typeNames(lookupCall.getParameterTypes()).equals(List.of("I"))
+            || ((FiveRegisterInstruction) soundLookup).getRegisterC() != soundName) return false;
+        var soundResult = code.get(play - 1);
+        if (soundResult.getOpcode() != Opcode.MOVE_RESULT_OBJECT || ((OneRegisterInstruction) soundResult).getRegisterA() != soundName) return false;
+        int dropped = -1;
+        for (int i = 0; i + 1 < code.size(); i++) {
+            if (!isSoundCheck(code.get(i), session) || code.get(i + 1).getOpcode() != Opcode.RETURN) continue;
+            if (dropped >= 0) return false;
+            dropped = i;
+        }
+        return dropped >= 0 && ((FiveRegisterInstruction) code.get(dropped)).getRegisterC() != playCall.getRegisterC();
+    }
+
+    /** open_chat_sound: the one message sound picker with a dropped in-app sounds check. Mirrors findOpenChatSound. */
+    static List<Method> openChatSound(List<ClassDef> classes) {
+        var found = new ArrayList<Method>();
+        for (var cls : classes) for (var method : cls.getMethods()) if (hasOpenChatSite(method)) found.add(method);
+        return found.size() == 1 ? found : List.of();
+    }
 }

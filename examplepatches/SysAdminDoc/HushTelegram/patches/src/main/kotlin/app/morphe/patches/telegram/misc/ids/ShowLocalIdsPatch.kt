@@ -58,6 +58,8 @@ val showLocalIdsPatch = bytecodePatch(
         val registrationMissing = registrationDateMissing()
         // Special contacts is optional: found before anything changes, put in after the rest.
         val (special, specialMissing) = resolveSpecialContacts()
+        // So is Rename on this phone, which shares two of Special contacts' places.
+        val (localNames, localNamesMissing) = resolveLocalNames()
         // So are member join dates, rehearsed on copies of every method they change.
         val (joinDates, joinDatesMissing) = resolveMemberJoinDates()
         // And forward dates, in the two places a bubble writes Forwarded from.
@@ -82,6 +84,13 @@ val showLocalIdsPatch = bytecodePatch(
             enableCapability("registrationDate")
         } else {
             patchLog.warning("Show user and chat IDs: $registrationMissing. The patch goes on without registration dates.")
+        }
+        // Before Special contacts, whose hooks then go in front of these and still read the server's names.
+        if (localNames != null) {
+            localNames.applyTo()
+            enableCapability("localNames")
+        } else {
+            patchLog.warning("Show user and chat IDs: $localNamesMissing. The patch goes on without Rename on this phone.")
         }
         if (special != null) {
             special.applyTo()

@@ -18,14 +18,14 @@ object Constants {
         name = "Solid Explorer",
         packageName = "pl.solidexplorer2",
 
-        // The tested artifact is the 3.6.4 APKM from APKMirror (base.apk + arm64-v8a,
-        // armeabi-v7a, x86 and x86_64 splits, versionCode 306041). All of the patched code
+        // The tested artifact is the 3.6.5 APKM from APKMirror (base.apk + arm64-v8a,
+        // armeabi-v7a, x86 and x86_64 splits, versionCode 306051). All of the patched code
         // lives in base.apk; the splits only carry native libraries.
         apkFileType = ApkFileType.APKM,
         appIconColor = 0x039BE5,
 
         targets = listOf(
-            AppTarget(version = "3.6.4", versionCode = 306041),
+            AppTarget(version = "3.6.5", versionCode = 306051),
         ),
     )
 }

@@ -87,6 +87,17 @@ public final class LogWindow {
         scroll = null;
     }
 
+    private static final int[] COVER_AT = new int[2];
+
+    /** Whether the log window, as shown, covers this point on the screen. */
+    static boolean covers(float screenX, float screenY) {
+        View window = shown.get();
+        if (window == null || !window.isAttachedToWindow() || window.getVisibility() != View.VISIBLE) return false;
+        window.getLocationOnScreen(COVER_AT);
+        return screenX >= COVER_AT[0] && screenX < COVER_AT[0] + window.getWidth()
+                && screenY >= COVER_AT[1] && screenY < COVER_AT[1] + window.getHeight();
+    }
+
     private static void append(String line) {
         TextView view = text;
         if (view == null) return;
@@ -108,8 +119,9 @@ public final class LogWindow {
         Context context = activity;
         Theme theme = new Theme(context);
         DisplayMetrics metrics = context.getResources().getDisplayMetrics();
-        int width = Math.min(metrics.widthPixels - theme.dp(24), Math.max(theme.dp(300), (int) (metrics.widthPixels * 0.66f)));
-        int height = Math.max(theme.dp(200), (int) (metrics.heightPixels * 0.32f));
+        float density = metrics.density;
+        int width = widthFor(metrics.widthPixels, density);
+        int[] height = {heightFor(metrics.heightPixels, density)}; // (unfolded; follows the screen's size)
 
         LinearLayout panel = new LinearLayout(context);
         panel.setOrientation(LinearLayout.VERTICAL);
@@ -156,10 +168,10 @@ public final class LogWindow {
         text = lines;
         scroll = scrollView;
 
-        FrameLayout.LayoutParams params = new FrameLayout.LayoutParams(width, folded ? ViewGroup.LayoutParams.WRAP_CONTENT : height);
+        FrameLayout.LayoutParams params = new FrameLayout.LayoutParams(width, folded ? ViewGroup.LayoutParams.WRAP_CONTENT : height[0]);
         panel.setLayoutParams(params);
         float x = Float.isNaN(savedX) ? metrics.widthPixels - width - theme.dp(12) : savedX;
-        float y = Float.isNaN(savedY) ? metrics.heightPixels - height - theme.dp(96) : savedY;
+        float y = Float.isNaN(savedY) ? metrics.heightPixels - height[0] - theme.dp(96) : savedY;
         panel.setX(x);
         // On the screen whatever its size now (turned to landscape, the full-screen player): kept inside it.
         root(activity).addOnLayoutChangeListener(new View.OnLayoutChangeListener() {
@@ -170,7 +182,16 @@ public final class LogWindow {
                     return;
                 }
                 if (r - l == or - ol && b - t == ob - ot) return;
-                panel.post(() -> keepInside(panel));
+                // Sized afresh from the screen as it is now (turned around, split, resized), then kept inside it.
+                int newWidth = widthFor(r - l, density);
+                height[0] = heightFor(b - t, density);
+                panel.post(() -> {
+                    ViewGroup.LayoutParams lp = panel.getLayoutParams();
+                    lp.width = newWidth;
+                    if (!folded) lp.height = height[0];
+                    panel.setLayoutParams(lp);
+                    keepInside(panel);
+                });
             }
         });
         panel.post(() -> keepInside(panel));
@@ -180,7 +201,7 @@ public final class LogWindow {
             folded = !folded;
             scrollView.setVisibility(folded ? View.GONE : View.VISIBLE);
             ViewGroup.LayoutParams lp = panel.getLayoutParams();
-            lp.height = folded ? ViewGroup.LayoutParams.WRAP_CONTENT : height;
+            lp.height = folded ? ViewGroup.LayoutParams.WRAP_CONTENT : height[0];
             panel.setLayoutParams(lp);
             fold.setShape(folded ? IconButton.UNFOLD : IconButton.FOLD);
         });
@@ -208,6 +229,17 @@ public final class LogWindow {
             }
         });
         return panel;
+    }
+
+    /** Two thirds of the screen's width (at least 300 dp), leaving a margin. */
+    static int widthFor(int screenWidth, float density) {
+        int margin = Math.round(24 * density), least = Math.round(300 * density);
+        return Math.max(0, Math.min(screenWidth - margin, Math.max(least, (int) (screenWidth * 0.66f))));
+    }
+
+    /** A third of the screen's height (at least 200 dp), never more than the screen. */
+    static int heightFor(int screenHeight, float density) {
+        return Math.min(screenHeight, Math.max(Math.round(200 * density), (int) (screenHeight * 0.32f)));
     }
 
     private static ViewGroup root(Activity activity) {

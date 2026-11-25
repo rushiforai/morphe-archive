@@ -377,6 +377,9 @@ public class V2RayTunnelsTest {
             Heard heard = fake.next();
             assertNull(each[5] + ": " + heard.failure, heard.failure);
             assertArrayEquals(ascii("hello"), heard.data());
+            // A pong left unread when the fake closes makes Windows reset the connection, which
+            // throws away the end the client hasn't read yet. The fake reads it first.
+            if ((Boolean) each[4]) assertTrue(each[5] + ": the pong was read before the close", heard.pongs >= 1);
         }
     }
 

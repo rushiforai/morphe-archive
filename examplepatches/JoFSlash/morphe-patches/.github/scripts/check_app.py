@@ -75,7 +75,8 @@ class Check:
         return getattr(self.hooks, name, None) if self.hooks else None
 
     def shell(self, *command, **kwargs):
-        return subprocess.run([self.adb, *command], capture_output=True, text=True, errors="replace", **kwargs)
+        kwargs.setdefault("timeout", 30)
+        return run([self.adb, *command], text=True, errors="replace", **kwargs)
 
     def screen(self):
         """The screen's view hierarchy as uiautomator dumps it."""
@@ -90,6 +91,18 @@ class Check:
         if button:
             x1, y1, x2, y2 = map(int, button.groups())
             self.shell("shell", "input", "tap", str((x1 + x2) // 2), str((y1 + y2) // 2))
+
+
+def run(command, timeout=60, **kwargs):
+    """subprocess.run with a time limit: a command that hangs (an adb call on a stuck emulator, a
+    uiautomator dump that never sees the screen idle) gives empty output instead of hanging the check."""
+    kwargs.setdefault("capture_output", True)
+    try:
+        return subprocess.run(command, timeout=timeout, **kwargs)
+    except subprocess.TimeoutExpired:
+        print(f"  ({' '.join(map(str, command[1:4]))} ... gave no answer within {timeout} s)", flush=True)
+        empty = "" if kwargs.get("text") or kwargs.get("errors") or kwargs.get("encoding") else b""
+        return subprocess.CompletedProcess(command, 1, empty, empty)
 
 
 def newest_mpp():
@@ -127,6 +140,8 @@ def describe(failure):
 
 
 def main():
+    # In CI the output is a pipe: print each line as it comes, so a slow step shows where it is.
+    sys.stdout.reconfigure(line_buffering=True)
     key = sys.argv[1] if len(sys.argv) > 1 and not sys.argv[1].startswith("-") else None
     check = Check(key) if key else None
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
@@ -258,9 +273,11 @@ def start_and_check(check, apks, expect_screen, patched):
     """Installs, starts and checks the app; prints what went wrong. Returns whether it passed."""
     adb, target = check.adb, check.target
     # The patched and the original app are signed differently, so one can't replace the other.
-    subprocess.run([adb, "uninstall", target], capture_output=True)
+    print("  Uninstalling the old copy ...")
+    run([adb, "uninstall", target])
+    print("  Installing ...")
     command = [adb, "install-multiple", "-r", *apks] if len(apks) > 1 else [adb, "install", "-r", apks[0]]
-    install = subprocess.run(command, capture_output=True, text=True)
+    install = run(command, timeout=300, text=True)
     output = (install.stdout + install.stderr).strip()
     if "Success" not in output:
         # For example an older version over a newer one, or a different signature.
@@ -269,20 +286,21 @@ def start_and_check(check, apks, expect_screen, patched):
     # For example the notification permission on Android 13 and newer, whose dialog would hide the
     # screen the check looks for (an older Android has no such permission and ignores this).
     for permission in check.checks.get("grant", []):
-        subprocess.run([adb, "shell", "pm", "grant", target, permission], capture_output=True)
-    subprocess.run([adb, "logcat", "-c"])
+        run([adb, "shell", "pm", "grant", target, permission])
+    run([adb, "logcat", "-c"])
+    print("  Starting the app ...")
     launch = [adb, "shell", "monkey", "-p", target, "-c", "android.intent.category.LAUNCHER", "1"]
-    subprocess.run(launch, capture_output=True)
+    run(launch)
     # A busy emulator can take a while, or miss the first launch: wait, and launch once more.
     pid = ""
     for second in range(45):
         time.sleep(1)
-        pid = subprocess.run([adb, "shell", "pidof", target], capture_output=True, text=True).stdout.strip()
+        pid = run([adb, "shell", "pidof", target], text=True).stdout.strip()
         if pid and second >= 14:
             break
         if not pid and second == 15:
-            subprocess.run(launch, capture_output=True)
-    log = subprocess.run([adb, "logcat", "-d"], capture_output=True, text=True, errors="replace").stdout
+            run(launch)
+    log = run([adb, "logcat", "-d"], text=True, errors="replace").stdout
     crashes = [line for line in log.splitlines()
                if re.search(r"FATAL EXCEPTION|VerifyError|Verifier rejected", line)]
     if crashes or not pid:
@@ -319,8 +337,8 @@ def describe_screen(check):
     print("  On screen: " + (" | ".join(texts[:25]) if texts else "no text"))
     if check.hook("describe_screen"):
         check.hook("describe_screen")(check)
-    pid = subprocess.run([adb, "shell", "pidof", check.target], capture_output=True, text=True).stdout.split()
-    log = subprocess.run([adb, "logcat", "-d", "-v", "brief"], capture_output=True, text=True,
+    pid = run([adb, "shell", "pidof", check.target], text=True).stdout.split()
+    log = run([adb, "logcat", "-d", "-v", "brief"], text=True,
                          errors="replace").stdout
     mine = [l for l in log.splitlines() if pid and re.match(r"^[EW]/[^(]*\(\s*(%s)\)" % "|".join(pid), l)]
     for line in mine[-15:]:
@@ -335,7 +353,7 @@ def patch_errors(check, pid):
     method that an older Android doesn't have shows up as NoSuchMethodError or NoClassDefFoundError.
     """
     tag = check.checks.get("error_tag", "E/JoF")
-    log = subprocess.run([check.adb, "logcat", "-d", "-v", "brief"], capture_output=True, text=True,
+    log = run([check.adb, "logcat", "-d", "-v", "brief"], text=True,
                          errors="replace").stdout
     pids = set(pid.split())
     lines = log.splitlines()

@@ -42,6 +42,7 @@
       "save_story_from_share",
       "save_story_pick",
       "pick_grid_videos",
+      "delete_picked_posts",
       "download_video_path",
       "download_photo_path",
       "download_video_filename_template",
@@ -76,6 +77,8 @@
       "collection_grid_sort",
       "sound_grid_sort",
       "liked_jump_to_date",
+      "favorites_jump_to_date",
+      "remember_saved_videos",
       "grid_search",
       "grid_position_controls"
     ],
@@ -559,6 +562,8 @@
       "auto_streak",
       "auto_streak_recipient",
       "auto_streak_minute",
+      "auto_streak_random",
+      "auto_streak_latest_minute",
       "auto_streak_message"
     ],
     "Keep playing in the background": [
@@ -597,6 +602,7 @@
       "show_exact_battle_scores",
       "live_room_info",
       "live_running_time",
+      "live_following_row_order",
       "offer_live_quality",
       "remember_live_quality",
       "live_start_quality",
@@ -1034,6 +1040,14 @@
       "type": "boolean",
       "default": false
     },
+    "auto_streak_latest_minute": {
+      "field": "AUTO_STREAK_LATEST_MINUTE",
+      "key": "auto_streak_latest_minute",
+      "type": "integer",
+      "default": 1200,
+      "minimum": 0,
+      "maximum": 1439
+    },
     "auto_streak_message": {
       "field": "AUTO_STREAK_MESSAGE",
       "key": "auto_streak_message",
@@ -1047,6 +1061,12 @@
       "default": 720,
       "minimum": 0,
       "maximum": 1439
+    },
+    "auto_streak_random": {
+      "field": "AUTO_STREAK_RANDOM",
+      "key": "auto_streak_random",
+      "type": "boolean",
+      "default": false
     },
     "auto_streak_recipient": {
       "field": "AUTO_STREAK_RECIPIENT",
@@ -1612,6 +1632,12 @@
       "type": "boolean",
       "default": false
     },
+    "delete_picked_posts": {
+      "field": "DELETE_PICKED_POSTS",
+      "key": "delete_picked_posts",
+      "type": "boolean",
+      "default": false
+    },
     "delete_watched_offline_videos": {
       "field": "DELETE_WATCHED_OFFLINE_VIDEOS",
       "key": "delete_watched_offline_videos",
@@ -1983,6 +2009,12 @@
       "key": "favorites_grid_sort",
       "type": "string",
       "default": "profile"
+    },
+    "favorites_jump_to_date": {
+      "field": "FAVORITES_JUMP_TO_DATE",
+      "key": "favorites_jump_to_date",
+      "type": "boolean",
+      "default": false
     },
     "feed_author_text_size": {
       "field": "FEED_AUTHOR_TEXT_SIZE",
@@ -3502,6 +3534,12 @@
       "type": "boolean",
       "default": false
     },
+    "live_following_row_order": {
+      "field": "LIVE_FOLLOWING_ROW_ORDER",
+      "key": "live_following_row_order",
+      "type": "boolean",
+      "default": false
+    },
     "live_hidden_categories": {
       "field": "LIVE_HIDDEN_CATEGORIES",
       "key": "live_hidden_categories",
@@ -4253,6 +4291,12 @@
       "key": "remember_playback_speed",
       "type": "boolean",
       "default": true
+    },
+    "remember_saved_videos": {
+      "field": "REMEMBER_SAVED_VIDEOS",
+      "key": "remember_saved_videos",
+      "type": "boolean",
+      "default": false
     },
     "remembered_live_quality": {
       "field": "REMEMBERED_LIVE_QUALITY",

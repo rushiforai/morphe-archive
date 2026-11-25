@@ -14,7 +14,9 @@ import app.morphe.patcher.patch.bytecodePatch
 import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod
 import app.morphe.patches.shared.compat.AppCompatibilities
 import app.morphe.patches.telegram.misc.extension.EXTENSION_PACKAGE
+import app.morphe.patches.telegram.misc.extension.enableCapability
 import app.morphe.patches.telegram.misc.extension.enableStatus
+import app.morphe.patches.telegram.misc.extension.patchLog
 import app.morphe.patches.telegram.misc.extension.requireStatusMethod
 import app.morphe.patches.telegram.misc.extension.telegramExtensionPatch
 import app.morphe.patches.telegram.misc.extension.writeStub
@@ -60,7 +62,10 @@ private const val TABLET_LOADS = 8
 val stickerSizePatch = bytecodePatch(
     name = "Change sticker size",
     description = "Shows stickers in chats smaller or larger than Telegram does, at a size you pick. Animated emoji " +
-        "and dice keep their size. Starts off. Turn it on in HushTelegram settings > Look and feel.",
+        "and dice keep their size. A second switch, Keep downloaded stickers, keeps sticker files out of Telegram's " +
+        "automatic cache cleanup, so packs you've used don't download again. A Sticker panel size row shows fewer, " +
+        "bigger stickers in the sticker panel and its search. All three start off. Change them in HushTelegram " +
+        "settings > Look and feel.",
     default = true,
 ) {
     category("Interface")
@@ -80,8 +85,36 @@ val stickerSizePatch = bytecodePatch(
             :hush_emoji
             return v0
         """)
+        // Keep downloaded stickers rides along, and a cleanup without its shape leaves only that switch out.
+        val cache = resolveStickerCache()
+        val uncached = cache.missing ?: try {
+            cache.rehearse()
+            null
+        } catch (failed: Exception) {
+            "the cache cleanup's hook doesn't build (${failed.javaClass.simpleName}: ${failed.message})"
+        }
+        // So does Sticker panel size, and a panel without its shape leaves only that row out.
+        val panel = resolveStickerPanel()
+        val unpanelled = panel.missing ?: try {
+            panel.rehearse()
+            null
+        } catch (failed: Exception) {
+            "the sticker panel's hooks don't build (${failed.javaClass.simpleName}: ${failed.message})"
+        }
         insertStickerSize(plan.method, plan)
         enableStatus("stickerSize")
+        if (uncached == null) {
+            cache.apply()
+            enableCapability("keepStickerCache")
+        } else {
+            patchLog.warning("Change sticker size: $uncached. The patch goes on without Keep downloaded stickers.")
+        }
+        if (unpanelled == null) {
+            panel.apply()
+            enableCapability("stickerPanelSize")
+        } else {
+            patchLog.warning("Change sticker size: $unpanelled. The patch goes on without Sticker panel size.")
+        }
     }
 }
 

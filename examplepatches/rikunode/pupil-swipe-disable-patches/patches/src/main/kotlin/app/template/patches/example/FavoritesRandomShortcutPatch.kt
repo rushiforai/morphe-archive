@@ -185,12 +185,49 @@ val favoritesRandomShortcutPatch = bytecodePatch(
         val typeListInstructions = typeListMethod.implementation?.instructions
             ?: error("Pupil 6.1.1 gallery type LazyList bytecode is missing")
         // Original Pupil 6.1.1 DEX: 94 instructions, 14 registers.
-        // Index 37 finishes the optional tag item. Index 38 checks thumbnails.
-        // Index 43 branches past the thumbnail header when thumbnails are empty.
-        // Inject at 47, immediately BEFORE the thumbnail heading item$default,
-        // only inside the non-empty thumbnails branch. p8/v13 is LazyListScope.
+        // Index 14 finishes the gallery menu / viewer-download item.
+        // Indices 15..19 construct the GalleryTypeIndicator item, registered at 20.
+        // Inject at 20, after the menu item and before the type chip.
         require(typeListInstructions.size == 94 &&
             typeListMethod.implementation?.registerCount == 14 &&
+            listOf(8, 14, 20, 26).all { index ->
+                typeListInstructions[index].opcode == Opcode.INVOKE_STATIC &&
+                    (typeListInstructions[index] as? ReferenceInstruction)?.reference?.toString() ==
+                    "Landroidx/compose/foundation/lazy/LazyItemScope\$-CC;->item\$default(Landroidx/compose/foundation/lazy/LazyListScope;Lkotlin/jvm/functions/Function3;)V"
+            } &&
+            typeListInstructions[15].opcode == Opcode.NEW_INSTANCE &&
+            (typeListInstructions[15] as? ReferenceInstruction)?.reference?.toString() ==
+                "Lxyz/quaver/pupil/ui/compose/GalleryDetailKt\$\$ExternalSyntheticLambda2;" &&
+            typeListInstructions[16].opcode == Opcode.INVOKE_DIRECT &&
+            (typeListInstructions[16] as? ReferenceInstruction)?.reference?.toString() ==
+                "Lxyz/quaver/pupil/ui/compose/GalleryDetailKt\$\$ExternalSyntheticLambda2;-><init>(ILkotlin/jvm/functions/Function1;Lxyz/quaver/pupil/hitomi/Gallery;)V" &&
+            typeListInstructions[17].opcode == Opcode.NEW_INSTANCE &&
+            (typeListInstructions[17] as? ReferenceInstruction)?.reference?.toString() ==
+                "Landroidx/compose/runtime/internal/ComposableLambdaImpl;" &&
+            typeListInstructions[18].opcode == Opcode.CONST &&
+            typeListInstructions[19].opcode == Opcode.INVOKE_DIRECT &&
+            (typeListInstructions[19] as? ReferenceInstruction)?.reference?.toString() ==
+                "Landroidx/compose/runtime/internal/ComposableLambdaImpl;-><init>(ILjava/lang/Object;Z)V" &&
+            typeListInstructions[27].opcode == Opcode.MOVE_OBJECT &&
+            typeListInstructions[28].opcode == Opcode.CHECK_CAST &&
+            typeListInstructions[29].opcode == Opcode.INVOKE_INTERFACE &&
+            (typeListInstructions[29] as? ReferenceInstruction)?.reference?.toString() ==
+                "Ljava/util/Collection;->isEmpty()Z" &&
+            typeListInstructions[30].opcode == Opcode.MOVE_RESULT &&
+            typeListInstructions[31].opcode == Opcode.IF_NEZ &&
+            typeListInstructions[32].opcode == Opcode.NEW_INSTANCE &&
+            (typeListInstructions[32] as? ReferenceInstruction)?.reference?.toString() ==
+                "Lxyz/quaver/pupil/ui/compose/GalleryDetailKt\$\$ExternalSyntheticLambda4;" &&
+            typeListInstructions[33].opcode == Opcode.INVOKE_DIRECT &&
+            (typeListInstructions[33] as? ReferenceInstruction)?.reference?.toString() ==
+                "Lxyz/quaver/pupil/ui/compose/GalleryDetailKt\$\$ExternalSyntheticLambda4;-><init>(Ljava/util/List;Lkotlin/jvm/functions/Function1;I)V" &&
+            typeListInstructions[34].opcode == Opcode.NEW_INSTANCE &&
+            (typeListInstructions[34] as? ReferenceInstruction)?.reference?.toString() ==
+                "Landroidx/compose/runtime/internal/ComposableLambdaImpl;" &&
+            typeListInstructions[35].opcode == Opcode.CONST &&
+            typeListInstructions[36].opcode == Opcode.INVOKE_DIRECT &&
+            (typeListInstructions[36] as? ReferenceInstruction)?.reference?.toString() ==
+                "Landroidx/compose/runtime/internal/ComposableLambdaImpl;-><init>(ILjava/lang/Object;Z)V" &&
             typeListInstructions[37].opcode == Opcode.INVOKE_STATIC &&
             (typeListInstructions[37] as? ReferenceInstruction)?.reference?.toString() ==
                 "Landroidx/compose/foundation/lazy/LazyItemScope\$-CC;->item\$default(Landroidx/compose/foundation/lazy/LazyListScope;Lkotlin/jvm/functions/Function3;)V" &&
@@ -210,8 +247,7 @@ val favoritesRandomShortcutPatch = bytecodePatch(
             typeListInstructions[47].opcode == Opcode.INVOKE_STATIC &&
             (typeListInstructions[47] as? ReferenceInstruction)?.reference?.toString() ==
                 "Landroidx/compose/foundation/lazy/LazyItemScope\$-CC;->item\$default(Landroidx/compose/foundation/lazy/LazyListScope;Lkotlin/jvm/functions/Function3;)V"
-        ) { "Unexpected Pupil 6.1.1 tags-to-thumbnails boundary; refusing shortcut injection" }
-
+        ) { "Unexpected Pupil 6.1.1 gallery-menu-to-type boundary; refusing shortcut injection" }
         val resumeMethod = MainResumeShortcutFingerprint.method
         val resumeInstructions = resumeMethod.implementation?.instructions
             ?: error("Pupil 6.1.1 MainComposeActivity.onResume bytecode is missing")
@@ -338,7 +374,7 @@ val favoritesRandomShortcutPatch = bytecodePatch(
             """.trimIndent(),
         )
         typeListMethod.addInstructions(
-            47,
+            20,
             "invoke-static {p8}, $SHORTCUT_CLASS->addTypeShortcutItem(Ljava/lang/Object;)V",
         )
         settingsMethod.addInstructions(

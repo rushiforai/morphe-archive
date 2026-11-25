@@ -10,6 +10,7 @@ import app.morphe.patcher.patch.PatchException
 import app.morphe.patcher.patch.bytecodePatch
 import app.morphe.patches.instagram.download.MEDIA
 import app.morphe.patches.instagram.download.USER
+import app.morphe.patches.instagram.download.mediaIdGetter
 import app.morphe.patches.instagram.download.pandoGetter
 import app.morphe.patches.instagram.misc.extension.EXTENSION_PACKAGE
 import app.morphe.patches.instagram.misc.extension.classesLoadingString
@@ -71,13 +72,16 @@ internal class StoryViewersSite(
  * already loads when you open your story's viewers. In the default selection with its switch off.
  *
  * Nothing is requested or sent: the hook reads each page of viewers as it comes back, before
- * Instagram's own screen shows it, and the list stays in the app's own storage.
+ * Instagram's own screen shows it, and the list stays in the app's own storage. With its own
+ * switch on, Instagram's viewer list gets a Search viewers bar over the kept list (#833), since
+ * Instagram's search there now asks for a subscription.
  */
 @Suppress("unused")
 val keepStoryViewersPatch = bytecodePatch(
     name = "Keep story viewers",
     description = "Keeps a list on your phone of who viewed each of your stories, from the viewer list Instagram " +
-        "already shows you, and sets it beside your followers. Nothing extra is asked of Instagram. Starts off. " +
+        "already shows you, and sets it beside your followers. It can also put a search bar back on that viewer list. " +
+        "Nothing extra is asked of Instagram. Starts off. " +
         "Turn it on in HushGram settings > Stories.",
     default = true,
 ) {
@@ -89,6 +93,7 @@ val keepStoryViewersPatch = bytecodePatch(
         requireStatusMethod("storyViewers")
         val site = findStoryViewers()
         keepStoryViewers(site)
+        searchViewerLists()
         enableStatus("storyViewers")
     }
 }
@@ -194,8 +199,8 @@ internal fun BytecodePatchContext.keepStoryViewers(site: StoryViewersSite) {
     val userId = userIdGetter(::refuse)
     val username = pandoGetter(STORY_VIEWERS_PATCH, USER, "username", TEXT)
     val takenAt = pandoGetter(STORY_VIEWERS_PATCH, MEDIA, "taken_at", "Ljava/lang/Long;")
-    val mediaId = classDefBy(MEDIA).methods.singleOrNull { it.name == "getId" && it.parameterTypes.isEmpty() && it.returnType == TEXT }
-        ?: refuse("$MEDIA has no getId()")
+    val mediaId = mediaIdGetter()
+        ?: refuse("$MEDIA has no id getter")
 
     fun read(cast: String, field: String, wide: Boolean = false) = if (wide) {
         "check-cast p0, $cast\niget p0, p0, $field\nreturn p0"

@@ -48,7 +48,7 @@ class HideReblogsOfYoursFixtureTest {
 
             val post = context.mutableClassDefBy(POST)
             assertTrue("${build.name}: Post is a HushReblogSource", HUSH_REBLOG_SOURCE in post.interfaces)
-            for ((name, getter) in mapOf("hushRebloggedFromName" to "H0", "hushRebloggedRootName" to "L0")) {
+            for ((name, getter) in mapOf("hushRebloggedFromName" to "I0", "hushRebloggedRootName" to "M0")) {
                 val body = post.methods.single { it.name == name }.instructionList()
                 assertEquals("${build.name}: $name", listOf(Opcode.INVOKE_VIRTUAL, Opcode.MOVE_RESULT_OBJECT, Opcode.RETURN_OBJECT),
                     body.map { it.opcode })
@@ -58,7 +58,7 @@ class HideReblogsOfYoursFixtureTest {
             val blog = context.mutableClassDefBy(SHORT_BLOG_INFO)
             assertTrue("${build.name}: ShortBlogInfo is a HushAccountBlog", HUSH_ACCOUNT_BLOG in blog.interfaces)
             val name = blog.methods.single { it.name == "hushAccountBlogName" }.instructionList()
-            assertEquals("$SHORT_BLOG_INFO->k()Ljava/lang/String;", name[0].methodRef().toString())
+            assertEquals("$SHORT_BLOG_INFO->j()Ljava/lang/String;", name[0].methodRef().toString())
 
             val user = context.mutableClassDefBy(ACCOUNT_USER_INFO_MODEL)
             assertTrue("${build.name}: UserInfo is a HushAccountBlogs", HUSH_ACCOUNT_BLOGS in user.interfaces)

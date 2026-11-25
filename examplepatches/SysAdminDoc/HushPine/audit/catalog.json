@@ -2377,7 +2377,7 @@
     "auto": true
    }
   ],
-  "notes": "The patch returns false early from PineDrama's two mandatory-login service methods, so a signed-out user is not forced to the login wall. The test account is signed in, so nothing visible changes; the registration is the applied proof. Owed natural check on a signed-out install: browse the feed past the point where stock PineDrama shows a login prompt (about 10 videos) and none appears."
+  "notes": "The patch returns false early from PineDrama's two mandatory-login service methods, answers yes to the server-driven no-login check the new user step turns into NON_LOGIN or FORCED_LOGIN, counts that step's skippable sign-in page as shown, and answers yes to SeriesInnerFeedInterceptor's one isLogin check, so a signed-out user is not sent to a sign-in page. Checked 2026-11-24 on a fresh signed-out install on HushPine_API36: launch went to the age question and Home with no sign-in page, a drama tapped in search results played episodes 1 and 2, and 14 swipes on Home brought no prompt. My list and Profile still ask for an account, as they should. The test account is signed in, so on the walk nothing visible changes; the registration is the applied proof."
  },
  {
   "name": "Disable screen capture detection",
@@ -11337,6 +11337,54 @@
    }
   ],
   "notes": "Issue #2. History and Favorites share one gate class that refreshes the list when the page comes back into view, and a refresh clears the list, so a deep position lands at the top. ListPosition answers that gate with no refresh while the list is scrolled away from its top. The natural check: scroll deep in History, switch to Favorites and back, and it stays put. A list at its top still refreshes, and favoriting something still updates Favorites."
+ },
+ {
+  "name": "List search and tap to top",
+  "category": "Settings",
+  "default": true,
+  "kind": "runtime",
+  "source": [
+   "patches/src/main/kotlin/app/morphe/patches/pinedrama/interaction/favorites/ListToolsPatch.kt",
+   "extensions/pinedrama/src/main/java/app/morphe/extension/pinedrama/favorites/ListTools.java",
+   "extensions/pinedrama/src/main/java/app/morphe/extension/pinedrama/favorites/ListSearch.java",
+   "extensions/pinedrama/src/main/java/app/morphe/extension/pinedrama/favorites/ListScan.java"
+  ],
+  "settings": [
+   {
+    "key": "list_search",
+    "default": true,
+    "type": "bool",
+    "row": "Search History and Favorites",
+    "restart": true
+   },
+   {
+    "key": "list_tab_to_top",
+    "default": true,
+    "type": "bool",
+    "row": "Tap the tab you're on to go back to the top",
+    "restart": false
+   }
+  ],
+  "surface": "profile",
+  "checks": [
+   {
+    "id": "patch-applied",
+    "what": "SettingsStatus.listToolsEnabled is true, so the patch is in this APK and the extension loaded it.",
+    "steps": [
+     {
+      "probe": "fields",
+      "extras": {
+       "class": "app.morphe.extension.pinedrama.settings.SettingsStatus",
+       "names": "listToolsEnabled"
+      },
+      "expect": "\blistToolsEnabled=true\b",
+      "waitMs": 1500
+     }
+    ],
+    "auto": true
+   }
+  ],
+  "notes": "Issue #11. Rides the refresh gate Keep list position answers: every History and Favorites page on the profile hands it its list as the page is built. The My list bottom tab (some accounts) builds its pages as SeriesHistorySubPageFragment with no gate, so its onResume hands over the list from the page's own getter. Either way ListTools.attach registers the list, wraps the activity window's callback to watch taps, and puts the search bar between the tabs and the list. A tap on a selected tab in a row of tabs scrolls the lists below it to the top. The search reads row text while scrolling the real list, waiting at the end for the next page. The natural check: scroll deep in History, tap Dramas again and it goes to the top; type a title in the bar and tap the result."
  },
  {
   "name": "Episodes in full screen",

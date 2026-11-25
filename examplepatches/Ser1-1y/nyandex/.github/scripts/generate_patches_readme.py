@@ -7,7 +7,10 @@ The README section is a compact one-row-per-app index table. The full
 per-patch details are written to PATCHES.md, where each app gets its own
 `## App (package)` heading so anchors are unique and deep links work.
 
-python3 generate_patches_readme.py <owner/repo> <branch> [patches-list.json] [README.md] [PATCHES.md]
+python3 generate_patches_readme.py <owner/repo> <branch> [patches-list.json] [README.md] [PATCHES.md] [--lang=ru]
+
+With --lang=ru the index table in the README is written in Russian and PATCHES.md is left alone,
+so a Russian README (README.ru.md) can be kept up to date next to the English one.
 """
 
 import json
@@ -38,8 +41,37 @@ ICON_OVERRIDES = {
 }
 
 
+# Options (--lang=ru) can be anywhere; everything else is positional.
+LANG = "en"
+_positional = []
+for _arg in sys.argv[1:]:
+    if _arg.startswith("--lang="):
+        LANG = _arg.split("=", 1)[1]
+    else:
+        _positional.append(_arg)
+sys.argv = [sys.argv[0], *_positional]
+
+if LANG not in ("en", "ru"):
+    raise ValueError(f"Unsupported --lang: {LANG} (expected en or ru)")
+
+# Labels of the README index table.
+LABELS = {
+    "en": {
+        "summary": "**{total} patches** across **{apps} apps**",
+        "details": "Full details",
+        "header": "| # | App | Patches | Version | Package |",
+        "universal": "Universal",
+    },
+    "ru": {
+        "summary": "Патчей: **{total}** · Приложений: **{apps}**",
+        "details": "Подробнее",
+        "header": "| # | Приложение | Патчи | Версия | Пакет |",
+        "universal": "Универсальные",
+    },
+}[LANG]
+
 if len(sys.argv) < 3:
-    print("Usage: generate_patches_readme.py <owner/repo> <branch> [json] [README] [PATCHES]")
+    print("Usage: generate_patches_readme.py <owner/repo> <branch> [json] [README] [PATCHES] [--lang=ru]")
     sys.exit(1)
 
 repo_full = sys.argv[1]
@@ -285,10 +317,10 @@ def build_readme_section():
     lines = [
         f"> **[v{ver}](https://github.com/{owner}/{repo}/releases/tag/v{ver})**"
         f"&nbsp;&nbsp;&middot;&nbsp;&nbsp;`{branch}`&nbsp;&nbsp;&middot;&nbsp;&nbsp;"
-        f"**{total} patches** across **{len(sorted_packages)} apps**"
-        f"&nbsp;&nbsp;&middot;&nbsp;&nbsp;[Full details](PATCHES.md)",
+        + LABELS["summary"].format(total=total, apps=len(sorted_packages))
+        + f"&nbsp;&nbsp;&middot;&nbsp;&nbsp;[{LABELS['details']}](PATCHES.md)",
         "",
-        "| # | App | Patches | Version | Package |",
+        LABELS["header"],
         "|---|---|---|---|---|",
     ]
 
@@ -305,7 +337,7 @@ def build_readme_section():
         )
 
     if universal:
-        lines.append(index_row(len(sorted_packages) + 1, "Universal", "", len(universal), []))
+        lines.append(index_row(len(sorted_packages) + 1, LABELS["universal"], "", len(universal), []))
 
     return "\n".join(lines)
 
@@ -397,8 +429,11 @@ new_readme = re.sub(
     flags=re.DOTALL,
 )
 readme_path.write_text(new_readme, encoding="utf-8")
-patches_path.write_text(build_patches_doc(), encoding="utf-8")
+if LANG == "en":
+    # PATCHES.md is English and shared by both READMEs.
+    patches_path.write_text(build_patches_doc(), encoding="utf-8")
+wrote = f" and wrote {patches_path}" if LANG == "en" else ""
 print(
-    f"Injected patches section into {readme_path} and wrote {patches_path} "
+    f"Injected patches section into {readme_path}{wrote} "
     f"(v{ver}, branch={branch}, {total} patches, {len(sorted_packages)} apps)"
 )

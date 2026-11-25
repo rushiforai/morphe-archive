@@ -1,0 +1,4 @@
+-dontobfuscate
+-dontoptimize
+-keep class nl.johninnl.flitsmeister.** { *; }
+-keep class nl.johninnl.navigation.** { *; }

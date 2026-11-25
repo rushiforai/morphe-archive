@@ -6,7 +6,6 @@
  */
 package app.morphe.patches.threads.ads
 
-import app.morphe.patcher.StringComparisonType
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
 import app.morphe.patcher.extensions.InstructionExtensions.getInstruction
 import app.morphe.patcher.patch.BytecodePatchContext
@@ -15,10 +14,14 @@ import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod
 import app.morphe.patcher.util.smali.ExternalLabel
 import app.morphe.patches.threads.feed.reaching
 import app.morphe.patches.threads.misc.extension.EXTENSION_PACKAGE
+import app.morphe.patches.threads.misc.extension.classesNoted
+import app.morphe.patches.threads.misc.extension.composeNote
 import app.morphe.patches.threads.misc.extension.freeLocalsAt
+import app.morphe.patches.threads.misc.extension.holdsNote
 import app.morphe.patches.threads.misc.extension.localRegisterCount
 import app.morphe.patches.threads.misc.extension.parameterRegisterNumber
-import app.morphe.patches.threads.misc.settings.EXTENSION_ROOT
+import app.morphe.patches.threads.misc.extension.traceCallAt
+import app.morphe.patches.threads.misc.extension.traceStart
 import app.morphe.util.ControlFlow
 import app.morphe.util.RegisterLiveness
 import app.morphe.util.addInstructionsAtControlFlowLabel
@@ -35,7 +38,6 @@ import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.TwoRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.reference.FieldReference
 import com.android.tools.smali.dexlib2.iface.reference.MethodReference
-import com.android.tools.smali.dexlib2.iface.reference.StringReference
 import com.android.tools.smali.dexlib2.iface.reference.TypeReference
 import java.util.EnumSet
 
@@ -60,7 +62,7 @@ internal const val PROFILE_SUGGESTIONS = "$EXTENSION_PACKAGE/profile/ProfileSugg
 internal const val CAROUSEL = "$PROFILE_SUGGESTIONS->carousel(Ljava/lang/Object;)Ljava/lang/Object;"
 internal const val SHOW_ROW = "$PROFILE_SUGGESTIONS->showRow()Z"
 
-/** A Compose source note, `<function> (<File>.kt:<line>)`, which Threads keeps from build to build. */
+/** A Compose source note, `<function> (<File>.kt:<line>)`, as compose-notes.tsv lists it. */
 private val NOTE = Regex("""^[^ ()]+ \(([A-Za-z0-9_]+\.kt):\d+\)$""")
 
 private val CONDITIONALS = EnumSet.of(
@@ -124,8 +126,8 @@ internal class ProfileSuggestionTargets(
 internal fun BytecodePatchContext.profileSuggestionTargets(): ProfileSuggestionTargets {
     val suggested = suggestedRow()
     val row = suggested.method
-    val profile = classDefByStrings(PROFILE_UI, StringComparisonType.STARTS_WITH)
-        .filterNot { it.type.startsWith(EXTENSION_ROOT) || it.type == row.definingClass }
+    val profile = classesNoted(PROFILE_UI)
+        .filterNot { it.type == row.definingClass }
         .flatMap { it.methods }
         .distinctBy { it.descriptor() }
     val calls = profile.flatMap { it.rowCalls(suggested.entries) }
@@ -145,10 +147,9 @@ internal fun BytecodePatchContext.profileSuggestionTargets(): ProfileSuggestionT
  * overloads its own class keeps next to it, which callers use instead.
  */
 internal fun BytecodePatchContext.suggestedRow(): SuggestedRow {
-    val row = classDefByStrings(SUGGESTED_ROW_NOTE, StringComparisonType.STARTS_WITH)
-        .filterNot { it.type.startsWith(EXTENSION_ROOT) }
+    val row = classesNoted(SUGGESTED_ROW_NOTE)
         .flatMap { it.methods }
-        .filter { method -> method.implementation?.instructions?.any { it.note()?.startsWith(SUGGESTED_ROW_NOTE) == true } == true }
+        .filter { it.holdsNote(SUGGESTED_ROW_NOTE) }
         .distinctBy { it.descriptor() }
         .singleOrPatchException("$PATCH: Threads' suggested accounts row, the method holding \"$SUGGESTED_ROW_NOTE\"")
     if (!AccessFlags.STATIC.isSet(row.accessFlags)) throw PatchException("$PATCH: the suggested accounts row ${row.descriptor()} isn't static")
@@ -186,11 +187,6 @@ internal fun hookProfileSuggestions(targets: ProfileSuggestionTargets) {
     )
 }
 
-/** The note this instruction loads, when it loads a Compose source note. */
-internal fun Instruction.note(): String? =
-    if (opcode != Opcode.CONST_STRING && opcode != Opcode.CONST_STRING_JUMBO) null
-    else getReference<StringReference>()?.string?.takeIf { NOTE.matches(it) }
-
 /** Whether this is a note of a screen whose notes begin with [prefix], from [file]. */
 internal fun String?.isNoteOf(prefix: String, file: String): Boolean =
     this != null && startsWith(prefix) && NOTE.matchEntire(this)?.groupValues?.get(1) == file
@@ -227,13 +223,16 @@ private fun ControlFlow.reaches(from: Int, to: Int): Boolean {
 }
 
 /**
- * The Compose note nearest above [at], when it can reach [at]. A note further up, or one that can't
- * reach it, belongs to another lambda Redex merged into the same method.
+ * The Compose note of the trace section nearest above [at], when it can reach [at]. A section further
+ * up, or one that can't reach it, belongs to another lambda Redex merged into the same method, and so
+ * does one whose key the table doesn't know, which stops the search rather than being read past.
  */
 internal fun ControlFlow.governingNote(at: Int): String? {
+    val start = instructions.traceStart() ?: return null
     for (index in at - 1 downTo 0) {
-        val note = instructions[index].note() ?: continue
-        return note.takeIf { reaches(index, at) }
+        val call = instructions.traceCallAt(index) ?: continue
+        if (call.callee != start) continue
+        return composeNote(call.key)?.takeIf { reaches(index, at) }
     }
     return null
 }

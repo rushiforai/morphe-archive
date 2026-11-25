@@ -61,7 +61,7 @@ nothing you would otherwise pay for. These patches don't touch any account or pa
 ## Patches
 
 <!-- PATCHES_START -->
-Version 1.11.0, 6 patches. Supported IMDb versions: 9.3.7.109370600.
+Version 1.13.0, 6 patches. Supported IMDb versions: 9.3.7.109370600.
 
 <details>
 <summary><b>Ads</b> (1)</summary>

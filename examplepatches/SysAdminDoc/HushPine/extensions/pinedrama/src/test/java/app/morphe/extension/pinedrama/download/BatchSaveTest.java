@@ -214,6 +214,24 @@ public class BatchSaveTest {
         assertTrue("a rendition with its sound in it, muted", BatchSave.source(video, "720", true).stripSound);
     }
 
+    /** #10: a run saves the same way Download does, with the original sound under the picture. */
+    @Test public void aDubbedRenditionComesWithTheOriginalSound() {
+        Settings.REMOVE_DOWNLOAD_WATERMARK.save(true);
+        AdvancedDownloadsTest.VideoData video = new AdvancedDownloadsTest.VideoData(List.of(
+                new AdvancedDownloadsTest.Gear("lower_1080_1", 900, "https://example.com/dubbed").uri("v1c836g5000cdubbed")));
+        video.downloadNoWatermarkAddr = new AdvancedDownloadsTest.Address("https://example.com/clean", 10)
+                .uri("v1c025g50000source").frame(540, 960);
+
+        BatchSave.Source source = BatchSave.source(video, "auto", false);
+        assertEquals(List.of("https://example.com/dubbed"), source.video);
+        assertEquals(List.of("https://example.com/clean"), source.audio);
+        assertFalse(source.stripSound);
+
+        BatchSave.Source muted = BatchSave.source(video, "auto", true);
+        assertTrue("muted, no sound is fetched", muted.audio.isEmpty());
+        assertTrue("and the dub comes out of the picture's file", muted.stripSound);
+    }
+
     @Test public void aPictureOnlyRenditionComesWithItsSoundOrNotAtAll() {
         AdvancedDownloadsTest.Gear gear = new AdvancedDownloadsTest.Gear("normal_1080_0", 400, "https://example.com/video");
         gear.videoExtra = "{\"audio_file_id\":\"matching\"}";

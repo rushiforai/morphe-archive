@@ -178,6 +178,9 @@ public class ExtensionPreferenceCategory extends ConditionalPreferenceCategory {
                     Settings.IMPORTED_FONT
             ));
             addPreference(ImportedFontPreference.pickRow(context));
+            // Only where the patch put the fonts that come with Hushfeed in TikTok's assets.
+            ImportedFontPreference builtIn = ImportedFontPreference.builtInRow(context);
+            if (builtIn != null) addPreference(builtIn);
             addPreference(ImportedFontPreference.removeRow(context));
             if (android.os.Build.VERSION.SDK_INT >= EmojiFont.MIN_SDK) {
                 addPreference(new TogglePreference(
@@ -332,8 +335,9 @@ public class ExtensionPreferenceCategory extends ConditionalPreferenceCategory {
                     "Account facts on profiles",
                     "A profile's share sheet gets an Account facts button. It shows what TikTok already "
                             + "sent about the account: when it joined, its region and language, its gifter "
-                            + "level and SecUID, when its username and display name last changed, whether "
-                            + "it's private and whether its liked videos are public. Nothing extra is fetched.",
+                            + "level and SecUID, how many posts, liked videos, favorites and reposts it has, "
+                            + "when its username and display name last changed, whether it's private and "
+                            + "whether its liked videos are public. Nothing extra is fetched.",
                     Settings.ACCOUNT_FACTS
             ));
             addPreference(new TogglePreference(

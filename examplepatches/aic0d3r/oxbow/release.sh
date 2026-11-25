@@ -22,6 +22,19 @@ source "$HOME/.config/oxbow/release.env"
 export ANDROID_HOME="${ANDROID_HOME:-$HOME/Android/Sdk}"
 export GITHUB_TOKEN="${GITHUB_TOKEN:-$(gh auth token)}" GITHUB_ACTOR="${GITHUB_ACTOR:-aic0d3r}"
 
+# The tag below lands on the last pushed commit, so the APK has to be built from exactly that:
+# any uncommitted, untracked or unpushed change would make the tagged source differ from it.
+[ -z "$(git -C "$DIR" status --porcelain)" ] || {
+    echo "Error: uncommitted or untracked changes; commit or remove them first:" >&2
+    git -C "$DIR" status --short >&2
+    exit 1
+}
+git -C "$DIR" fetch -q origin main
+[ "$(git -C "$DIR" rev-parse HEAD)" = "$(git -C "$DIR" rev-parse origin/main)" ] || {
+    echo "Error: HEAD is not origin/main; push first." >&2
+    exit 1
+}
+
 # Bump the bundle's patch number when the current one is already published.
 CURRENT="$(sed -n 's/^version = //p' "$DIR/gradle.properties")"
 PUBLISHED="$(jq -r '.version // ""' "$DIR/patches-bundle.json" 2>/dev/null || true)"

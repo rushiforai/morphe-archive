@@ -1,6 +1,8 @@
 package app.hushmessenger.extension;
 
 import android.content.Context;
+import android.os.Handler;
+import android.os.Looper;
 import android.view.View;
 import android.widget.Toast;
 import java.lang.ref.WeakReference;
@@ -64,10 +66,35 @@ public final class MarkReadButton {
     /** True while a tap is sending the held Seen, so Hide read receipts lets that one call through. */
     static boolean replaying() { return Boolean.TRUE.equals(replaying.get()); }
 
-    /** Hide read receipts kept this Seen from going out. The latest one per chat is kept for the button. */
+    /**
+     * Hide read receipts kept this Seen from going out. The latest one per chat is kept for the button and for a
+     * reaction in that chat, which sends it with the button off too (#223).
+     */
     static void hold(Object session, Object thread, Object handler, String messageId) {
-        if (session == null || thread == null || handler == null || !shown()) return;
+        if (session == null || thread == null || handler == null || !Settings.wouldUse("hide_read_receipts")) return;
         synchronized (held) { held.put(thread, new HeldSeen(session, handler, messageId)); }
+    }
+
+    /**
+     * You reacted to a message in [thread]. A reaction shows you read the chat, as a reply does, so the Seen held back
+     * for it goes out through Messenger's own read job on the main thread, the way a tap on the button sends it (#223).
+     * False when nothing was held for the chat.
+     */
+    static boolean reacted(Object thread) {
+        HeldSeen seen;
+        synchronized (held) { seen = held.get(thread); }
+        Object session = seen == null ? null : seen.session.get();
+        if (session == null) return false;
+        Runnable send = () -> {
+            try {
+                sendHeld(session, thread);
+            } catch (Throwable error) {
+                Settings.hookFailed("hide_read_receipts", "Can't send Seen for the chat you reacted in", error);
+            }
+        };
+        if (Looper.myLooper() == Looper.getMainLooper()) send.run();
+        else new Handler(Looper.getMainLooper()).post(send);
+        return true;
     }
 
     /**
@@ -249,9 +276,13 @@ public final class MarkReadButton {
         return true;
     }
 
-    /** Sends the chat's held Seen through Messenger's own read job. False when nothing was held for it. */
+    /** Sends the button's chat's held Seen through Messenger's own read job. False when nothing was held for it. */
     static boolean markRead(Tag tag) throws ReflectiveOperationException {
-        Object session = tag.session.get(), thread = tag.thread.get();
+        return sendHeld(tag.session.get(), tag.thread.get());
+    }
+
+    /** Sends [thread]'s held Seen in [session]'s account through Messenger's own read job. False when none was held. */
+    static boolean sendHeld(Object session, Object thread) throws ReflectiveOperationException {
         if (session == null || thread == null) return false;
         HeldSeen seen;
         synchronized (held) { seen = held.get(thread); }

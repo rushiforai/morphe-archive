@@ -25,7 +25,6 @@ import com.android.tools.smali.dexlib2.iface.instruction.OffsetInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.RegisterRangeInstruction
-import com.android.tools.smali.dexlib2.iface.instruction.TwoRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.WideLiteralInstruction
 import com.android.tools.smali.dexlib2.iface.reference.FieldReference
 import com.android.tools.smali.dexlib2.iface.reference.MethodReference
@@ -92,12 +91,12 @@ class HideAdsFixtureTest {
             assertEquals("$where: Media's own methods that ask the injected check", 1, askers.size)
 
             val insertClasses = insertClasses(build)
-            assertEquals("$where: classes holding For You's data source with an insert at a position: ${insertClasses.map { it.type }}",
+            assertEquals("$where: subclasses of For You's data source with an insert at a position: ${insertClasses.map { it.type }}",
                 1, insertClasses.size)
             val insertClass = insertClasses.single()
             val insert = insertClass.methods.single { it.isInsertAt() }
 
-            val context = PatchContexts.of(ExtensionDex.classes() + classes.values + insertClass + item + enumsOf(build, item) + doneHolders(build, classes))
+            val context = PatchContexts.of(ExtensionDex.classes() + classes.values + insertClass + localSource(build) + item + enumsOf(build, item) + doneHolders(build, classes))
             applyAds(context)
 
             val patched = context.mutableClassDefBy(FEED_CACHE).methods.single { it.sameSignatureAs(merge) }
@@ -121,12 +120,9 @@ class HideAdsFixtureTest {
             val success = body.drop(added).firstNotNullOf { it.integerRead() }
             val noPage = insert.integerReadsJumpedToByIfEqz() - success
             assertEquals("$where: the insert's no-page answers: $noPage", 1, noPage.size)
-            val itemReads = body.indices.filter { index ->
-                body[index].opcode == Opcode.IGET_OBJECT &&
-                    ((body[index] as ReferenceInstruction).reference as FieldReference).type == getter.definingClass
-            }
-            assertEquals("$where: the insert reads its feed item once", 1, itemReads.size)
-            val held = (body[itemReads.single()] as TwoRegisterInstruction).registerA
+            assertEquals("$where: the insert takes the feed item first", getter.definingClass, insert.parameterTypes[0].toString())
+            // `this` and one register per parameter, none of them wide; the item is p1.
+            val held = insert.implementation!!.registerCount - insert.parameterTypes.size
             val asked = context.mutableClassDefBy(insertClass.type).methods.single { it.sameSignatureAs(insert) }.instructions()
             val asks = asked.indices.filter { asked[it].calls(feedAds, "insertedAd") }
             assertEquals("$where: the insert asks once", 1, asks.size)
@@ -136,8 +132,8 @@ class HideAdsFixtureTest {
             assertEquals("$feedAds->insertedAd(Ljava/lang/Object;)Z", insertAsk.referenceText())
             assertEquals("$where: the ask reads the item", held, (insertAsk as RegisterRangeInstruction).startRegister)
             assertEquals(1, insertAsk.registerCount)
-            assertTrue("$where: nothing writes the item's register between its read and the ask",
-                body.subList(itemReads.single() + 1, at).none { it.opcode.setsRegister() && (it as? OneRegisterInstruction)?.registerA == held })
+            assertTrue("$where: nothing writes the item's register before the ask",
+                body.subList(0, at).none { it.opcode.setsRegister() && (it as? OneRegisterInstruction)?.registerA == held })
             assertEquals(listOf(Opcode.MOVE_RESULT, Opcode.IF_NEZ), asked.subList(at + 1, at + 3).map { it.opcode })
             val answer = (asked[at + 1] as OneRegisterInstruction).registerA
             assertEquals("$where: the ask's answer is what it branches on", answer, (asked[at + 2] as OneRegisterInstruction).registerA)
@@ -151,8 +147,9 @@ class HideAdsFixtureTest {
 
             // For You's other writes, each of the cache's writes taking one list and none of the
             // keys, offsets or counts its reads take, take their items through the filter first thing.
+            // The fifth, new in 456, is what the background prefetcher stores.
             val writes = cache.methods.filter { it.isListWrite() }
-            assertEquals("$where: For You's list writes besides the merge: ${writes.map { it.name }}", 4, writes.size)
+            assertEquals("$where: For You's list writes besides the merge: ${writes.map { it.name }}", 5, writes.size)
             for (write in writes) {
                 val hooked = context.mutableClassDefBy(FEED_CACHE).methods.single { it.sameSignatureAs(write) }.instructions()
                 assertTrue("$where: ${write.name} has no wide parameter", write.parameterTypes.none { it.toString() == "J" || it.toString() == "D" })
@@ -271,7 +268,7 @@ class HideAdsFixtureTest {
         for (build in Fixtures.declaredBuilds()) {
             val injected = FixtureDex.methodsWhere(build, { true }) { it.isInjectedCheck() }.single()
             val classes = FixtureDex.classes(build, setOf(FEED_CACHE, MEDIA, injected.definingClass))
-            val inserts = insertClasses(build)
+            val inserts = insertClasses(build) + localSource(build)
             val merge = classes.getValue(FEED_CACHE).methods.single { it.isFeedMerge() }
             val getter = merge.instructions().mapNotNull { it.mediaGetter() }.distinct().single()
             val item = FixtureDex.classes(build, setOf(getter.definingClass)).getValue(getter.definingClass)
@@ -296,7 +293,7 @@ class HideAdsFixtureTest {
         for (build in Fixtures.declaredBuilds()) {
             val injected = FixtureDex.methodsWhere(build, { true }) { it.isInjectedCheck() }.single()
             val classes = FixtureDex.classes(build, setOf(FEED_CACHE, MEDIA, injected.definingClass))
-            val inserts = insertClasses(build)
+            val inserts = insertClasses(build) + localSource(build)
             val merge = classes.getValue(FEED_CACHE).methods.single { it.isFeedMerge() }
             val getter = merge.instructions().mapNotNull { it.mediaGetter() }.distinct().single()
             val item = FixtureDex.classes(build, setOf(getter.definingClass)).getValue(getter.definingClass)
@@ -419,9 +416,13 @@ class HideAdsFixtureTest {
     private fun Instruction.addsAtPosition(): Boolean = ((this as? ReferenceInstruction)?.reference as? MethodReference)
         ?.let { it.name == "add" && it.parameterTypes.map { type -> type.toString() } == listOf("I", "Ljava/lang/Object;") } == true
 
-    /** The classes holding For You's local data source with an insert at a position, read from the build. */
+    /** The subclasses of For You's local data source with an insert at a position, read from the build. */
     private fun insertClasses(build: File): List<ClassDef> = FixtureDex.classesWhere(build, { true }) { it.isInsertAt() }
-        .filter { holder -> holder.fields.any { !AccessFlags.STATIC.isSet(it.accessFlags) && it.type == FOR_YOU_LOCAL_SOURCE } }
+        .filter { it.superclass == FOR_YOU_LOCAL_SOURCE }
+
+    /** For You's local data source, which declares the insert. */
+    private fun localSource(build: File): ClassDef =
+        FixtureDex.classes(build, setOf(FOR_YOU_LOCAL_SOURCE)).getValue(FOR_YOU_LOCAL_SOURCE)
 
     /**
      * Kotlin's Unit, read by hand: of the static fields of their own type that every one-item write

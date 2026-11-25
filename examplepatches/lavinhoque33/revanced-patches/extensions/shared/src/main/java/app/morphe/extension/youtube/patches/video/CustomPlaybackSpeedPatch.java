@@ -276,11 +276,22 @@ public class CustomPlaybackSpeedPatch {
         VideoUtils.showPlaybackSpeedDialog(context, Settings.CUSTOM_PLAYBACK_SPEED_MENU_TYPE);
     }
 
+    /** Injection point: retain the platform route when the custom-speed setting is off. */
+    public static boolean usePlatformPlaybackRate(boolean supported) {
+        return supported && !Settings.ENABLE_CUSTOM_PLAYBACK_SPEED.get();
+    }
+
+    /** Injection point: the software processor, unlike AudioTrack, can render speeds below 0.1×. */
+    public static float limitSoftwareSpeed(float speed, float stockMinimum, float stockMaximum) {
+        return PlaybackSpeedValues.limitSoftwareSpeed(
+                speed, stockMinimum, stockMaximum, Settings.ENABLE_CUSTOM_PLAYBACK_SPEED.get());
+    }
+
     /**
      * Injection point.
-     * With audio offload the device hardware decodes the audio, and usually does not support changing the pitch.
+     * Offload bypasses the PCM processor and cannot reliably apply custom rates or pitches.
      */
     public static boolean disableAudioOffload(boolean original) {
-        return original && !Settings.ENABLE_PLAYBACK_AUDIO_PITCH.get();
+        return usePlatformPlaybackRate(original) && !Settings.ENABLE_PLAYBACK_AUDIO_PITCH.get();
     }
 }

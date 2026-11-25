@@ -1,0 +1,40 @@
+name: Backup mirror to Codeberg
+
+on:
+  push:
+    branches:
+      - main
+    tags:
+      - "v*"
+  schedule:
+    - cron: "0 3 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: backup-mirror-codeberg
+  cancel-in-progress: true
+
+jobs:
+  mirror:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout full repository history
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          fetch-tags: true
+
+      - name: Push main branch and tags to Codeberg mirror
+        env:
+          CODEBERG_TOKEN: ${{ secrets.CODEBERG_TOKEN }}
+        run: |
+          if [ -z "$CODEBERG_TOKEN" ]; then
+            echo "CODEBERG_TOKEN secret is not set; skipping mirror."
+            exit 0
+          fi
+          git push --force "https://vortex_node:${CODEBERG_TOKEN}@codeberg.org/vortex_node/GboardSamsung.git" \
+            HEAD:refs/heads/main \
+            'refs/tags/*:refs/tags/*'

@@ -31,8 +31,11 @@ public final class FamilyNames {
     public static final String SCREENSHOT_DETECTION = "Disable screenshot detection";
     public static final String SPOOF_SIM_REGION = "Spoof SIM region";
     public static final String PURE_BLACK = "Pure black dark mode";
+    public static final String HEADER_LOGO = "HushThreads header logo";
+    public static final String CUSTOM_FONT = "Custom font";
     public static final String HIDE_INSTAGRAM_BUTTON = "Hide the Instagram button";
     public static final String HIDE_GHOST_POST_BUBBLES = "Hide ghost post bubbles";
+    public static final String HIDE_POST_BUTTONS = "Hide post buttons";
     public static final String FULL_SIZE_PROFILE_PICTURES = "Full size profile pictures";
     public static final String EXACT_POST_TIMES = "Show exact post times";
     public static final String SAVE_MEDIA = "Save photos and videos";
@@ -44,6 +47,7 @@ public final class FamilyNames {
     public static final String FILTER_COMMENTS = "Filter comments";
     public static final String CHANGE_PACKAGE_NAME = "Change package name";
     public static final String CHANGE_APP_NAME = "Change app name";
+    public static final String CUSTOM_LAUNCHER_ICON = "Custom launcher icon";
 
     private FamilyNames() {
     }

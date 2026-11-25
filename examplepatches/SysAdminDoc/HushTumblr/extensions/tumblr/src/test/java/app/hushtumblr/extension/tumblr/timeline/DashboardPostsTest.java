@@ -41,7 +41,7 @@ import app.hushtumblr.extension.tumblr.settings.Settings;
 
 /**
  * Hide liked posts, Hide your own reblogs and Hide reblogs of your posts act on a dashboard
- * screen's pages only. A post you open, your review queue, a Blaze list and the audio player load
+ * screen's pages only, and Hide followed blogs in For you on its For you tab's. A post you open, your review queue, a Blaze list and the audio player load
  * the dashboard's response too, so parsing it keeps every post.
  */
 @RunWith(RobolectricTestRunner.class)
@@ -65,6 +65,7 @@ public class DashboardPostsTest {
         Settings.HIDE_OWN_REBLOGS.resetToDefault();
         Settings.HIDE_LIKED_POSTS.resetToDefault();
         Settings.HIDE_REBLOGS_OF_YOURS.resetToDefault();
+        Settings.HIDE_FOLLOWED_IN_FOR_YOU.resetToDefault();
         MatureAccountsForTests.restore();
         PauseForTests.resume();
         HookStatus.clear();
@@ -84,6 +85,7 @@ public class DashboardPostsTest {
             TimelineItems.reblogOf(Collections.singletonList(new TextBlock("first")), new TextBlock("theirs")).getData();
     private static final Object YOUR_POST = TimelineItems.yourPostWith(new TextBlock("my own")).getData();
     private static final Object LIKED = TimelineItems.likedPostWith(new TextBlock("liked already")).getData();
+    private static final Object FOLLOWED = TimelineItems.followedPostWith(new TextBlock("from a blog you follow")).getData();
 
     /** A card's wrapper, which noted [facts] of its post as it was built. */
     private static HushPostFacts wrapper(int facts) {
@@ -99,6 +101,7 @@ public class DashboardPostsTest {
     public void aPostsFactsSayLikedAndYourReblogOnly() {
         assertEquals(DashboardPosts.LIKED, DashboardPosts.facts(LIKED));
         assertEquals(DashboardPosts.OWN_REBLOG, DashboardPosts.facts(YOUR_REBLOG));
+        assertEquals(DashboardPosts.FOLLOWED, DashboardPosts.facts(FOLLOWED));
         assertEquals("their reblog", 0, DashboardPosts.facts(THEIR_REBLOG));
         assertEquals("a post you made, not a reblog", 0, DashboardPosts.facts(YOUR_POST));
         assertEquals("a model without the bridges", 0, DashboardPosts.facts(new Object()));
@@ -142,6 +145,84 @@ public class DashboardPostsTest {
             if (each.startsWith(FamilyNames.HIDE_LIKED_POSTS + ":")) line = each;
         }
         assertTrue(String.join(" | ", HookStatus.report()), line.contains("post removed 1"));
+    }
+
+    /**
+     * Hide followed blogs in For you starts off. Turned on, a post from a blog Tumblr says you
+     * follow leaves a page of the For you tab, and the posts around it stay.
+     */
+    @Test
+    public void hideFollowedBlogsTakesTheirPostsOutOfForYou() {
+        List<Object> page = Arrays.asList(TEXT, FOLLOWED, PHOTO);
+        Object forYou = TimelineItems.forYouTab();
+        assertFalse(Settings.HIDE_FOLLOWED_IN_FOR_YOU.get());
+        assertSame(page, shown(forYou, page));
+        Settings.HIDE_FOLLOWED_IN_FOR_YOU.save(true);
+        HookStatus.clear();
+        assertEquals(Arrays.asList(TEXT, PHOTO), shown(forYou, page));
+        String line = "";
+        for (String each : HookStatus.report()) {
+            if (each.startsWith(FamilyNames.HIDE_FOLLOWED_IN_FOR_YOU + ":")) line = each;
+        }
+        assertTrue(String.join(" | ", HookStatus.report()), line.contains("post removed 1"));
+        // The tab is For you by the id Tumblr logs it under or by the address it loads, whichever holds.
+        assertEquals("by its address", Arrays.asList(TEXT, PHOTO),
+                shown(new TimelineItems.Tab("renamed", TimelineItems.FOR_YOU_URI, true), page));
+        assertEquals("by its id", Arrays.asList(TEXT, PHOTO),
+                shown(new TimelineItems.Tab(TimelineItems.FOR_YOU_ID, "/v2/elsewhere", true), page));
+        // A card answers by what its wrapper noted.
+        HushPostFacts followed = wrapper(DashboardPosts.FOLLOWED), plain = wrapper(0);
+        assertEquals(Collections.singletonList(plain), shown(forYou, Arrays.asList(followed, plain)));
+    }
+
+    /** Following, Your tags, Explore and every other screen keep the posts of blogs you follow. */
+    @Test
+    public void followedBlogsStayEverywhereButForYou() {
+        Settings.HIDE_FOLLOWED_IN_FOR_YOU.save(true);
+        List<Object> page = Arrays.asList(TEXT, FOLLOWED, PHOTO);
+        assertSame("Following, a class with no tab arguments", page, shown(DASHBOARD, page));
+        assertSame("Your tags", page, shown(new TimelineItems.Tab("hub_of_hubs", "/v2/timeline/hubs", true), page));
+        assertSame("a tab with no id or address", page, shown(new TimelineItems.Tab(null, null, true), page));
+        assertSame("the same tab class under Explore", page,
+                shown(new TimelineItems.Tab(TimelineItems.FOR_YOU_ID, TimelineItems.FOR_YOU_URI, false), page));
+        assertSame("a permalink or any other screen", page, shown(new Object(), page));
+        assertSame("no screen", page, shown(null, page));
+        List<Object> parsed = Arrays.asList(TimelineItems.postWith(new TextBlock("hello")),
+                TimelineItems.followedPostWith(new TextBlock("from a blog you follow")));
+        assertSame("the dashboard's response", parsed, TimelineItems.onTheDashboard(parsed));
+        assertSame("a blog", parsed, TimelineItems.onABlog(parsed));
+    }
+
+    /** Without its patch in the build, or while paused, Hide followed blogs in For you takes nothing out. */
+    @Test
+    public void hideFollowedBlogsNeedsItsPatchAndStopsWhilePaused() {
+        Settings.HIDE_FOLLOWED_IN_FOR_YOU.save(true);
+        List<Object> page = Arrays.asList(TEXT, FOLLOWED);
+        Object forYou = TimelineItems.forYouTab();
+        PatchFamilyForTests.capabilities(EnumSet.complementOf(EnumSet.of(PatchFamily.Capability.FOLLOWED_IN_FOR_YOU)));
+        assertSame("without its patch", page, shown(forYou, page));
+        PatchFamilyForTests.capabilities(EnumSet.allOf(PatchFamily.Capability.class));
+        assertEquals(Collections.singletonList(TEXT), shown(forYou, page));
+        PauseForTests.pause(HushTumblrPause.Reason.SWITCH);
+        try {
+            assertSame("paused", page, shown(forYou, page));
+        } finally {
+            PauseForTests.resume();
+        }
+    }
+
+    /** A For you page that held nothing but followed blogs goes on to the next page. */
+    @Test
+    public void aForYouPageOfFollowedBlogsGoesOnToTheNextPage() {
+        TimelinePagingForTests.reset();
+        try {
+            Settings.HIDE_FOLLOWED_IN_FOR_YOU.save(true);
+            assertTrue(shown(TimelineItems.forYouTab(), Arrays.asList(FOLLOWED, FOLLOWED)).isEmpty());
+            String report = String.join("\n", HookStatus.report());
+            assertTrue(report, report.contains(TimelinePagingForTests.EMPTIED + " 1"));
+        } finally {
+            TimelinePagingForTests.reset();
+        }
     }
 
     /** A card answers by what its wrapper noted, the way Tumblr's cards reach the hook. */

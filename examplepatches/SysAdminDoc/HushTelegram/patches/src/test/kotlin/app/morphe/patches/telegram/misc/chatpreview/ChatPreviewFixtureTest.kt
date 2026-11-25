@@ -58,7 +58,7 @@ class ChatPreviewFixtureTest {
             val site = context.resolveChatPreview()
             // Plus Messenger's base hands the move to the layout, whose menu field and expand it names its own way.
             val plus = name.startsWith("plus-")
-            val (base, item) = if (plus) "l2" to "c1" else if (name.contains("-73039")) "i2" to "b1" else "j2" to "b1"
+            val (base, item) = if (plus) "l2" to "c1" else if (name.contains("-73469")) "j2" to "z0" else "k2" to "a1"
             assertEquals("Lorg/telegram/ui/ActionBar/$base;", site.base)
             assertEquals("Lorg/telegram/ui/ActionBar/$item;", site.item)
             assertEquals("$ACTION_BAR_LAYOUT->${if (plus) "f0" else "K"}:$PREVIEW_MENU", site.menuField)

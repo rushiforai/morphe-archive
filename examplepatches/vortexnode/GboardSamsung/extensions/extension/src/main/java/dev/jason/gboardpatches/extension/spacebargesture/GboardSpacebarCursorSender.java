@@ -1,34 +1,42 @@
 package dev.jason.gboardpatches.extension.spacebargesture;
 
 import android.os.SystemClock;
+import android.text.InputType;
 import android.view.InputDevice;
 import android.view.KeyCharacterMap;
 import android.view.KeyEvent;
+import android.view.inputmethod.EditorInfo;
 import android.view.inputmethod.ExtractedText;
 import android.view.inputmethod.ExtractedTextRequest;
 import android.view.inputmethod.InputConnection;
 
 /**
- * Safely moves the text cursor horizontally during spacebar long-press cursor mode without
- * triggering Android's touch-mode exit or focus search (which collapses the soft keyboard when
- * raw DPAD key events without {@link KeyEvent#FLAG_KEEP_TOUCH_MODE} hit text boundaries).
+ * Safely moves the text cursor in 2D (left/right/up/down) during spacebar long-press cursor mode
+ * without triggering Android's touch-mode exit or focus search (which collapses the soft keyboard
+ * when raw DPAD key events without {@link KeyEvent#FLAG_KEEP_TOUCH_MODE} hit text boundaries).
  *
  * <p>Strategy:
  * <ol>
- *   <li><strong>Primary:</strong> Direct {@link InputConnection#setSelection(int, int)} using
- *       {@link InputConnection#getExtractedText(ExtractedTextRequest, int)} for non-RTL editors,
- *       stepping by Unicode code points and stopping cleanly at {@code [0, length]} with zero
- *       {@link KeyEvent}s.</li>
- *   <li><strong>Fallback:</strong> Boundary-clamped horizontal DPAD {@code ACTION_DOWN}/{@code ACTION_UP}
- *       pairs (via {@link InputConnection#getTextBeforeCursor(int, int)} /
- *       {@link InputConnection#getTextAfterCursor(int, int)}) stamped with
- *       {@link KeyEvent#FLAG_SOFT_KEYBOARD} {@code |} {@link KeyEvent#FLAG_KEEP_TOUCH_MODE} so
- *       {@code ViewRootImpl} never exits touch mode or shifts focus out of the text editor.</li>
+ *   <li><strong>Horizontal primary:</strong> Direct {@link InputConnection#setSelection(int, int)}
+ *       using {@link InputConnection#getExtractedText(ExtractedTextRequest, int)} for non-RTL
+ *       editors, stepping by Unicode code points and stopping cleanly at {@code [0, length]} with
+ *       zero {@link KeyEvent}s.</li>
+ *   <li><strong>Horizontal fallback:</strong> Boundary-clamped horizontal DPAD
+ *       {@code ACTION_DOWN}/{@code ACTION_UP} pairs stamped with
+ *       {@link KeyEvent#FLAG_SOFT_KEYBOARD} {@code |} {@link KeyEvent#FLAG_KEEP_TOUCH_MODE}.</li>
+ *   <li><strong>Vertical (multi-line editors only):</strong> Gated on multi-line {@link EditorInfo}
+ *       flags (with Gboard-style allowlist/blocklist and newline probe fallback) plus start/end
+ *       text boundary guards, emitting balanced {@code DPAD_UP}/{@code DPAD_DOWN} pairs with
+ *       {@link KeyEvent#FLAG_SOFT_KEYBOARD} {@code |} {@link KeyEvent#FLAG_KEEP_TOUCH_MODE}.</li>
  * </ol>
  */
 public final class GboardSpacebarCursorSender {
     static final int CURSOR_KEY_EVENT_FLAGS =
             KeyEvent.FLAG_SOFT_KEYBOARD | KeyEvent.FLAG_KEEP_TOUCH_MODE;
+    private static final int VERTICAL_NEWLINE_PROBE_CHARS = 512;
+    private static final String PACKAGE_NEXUS_LAUNCHER = "com.google.android.apps.nexuslauncher";
+    private static final String PACKAGE_MS_WORD = "com.microsoft.office.word";
+    private static final String PACKAGE_MS_POWERPOINT = "com.microsoft.office.powerpoint";
 
     private GboardSpacebarCursorSender() {
     }
@@ -84,6 +92,140 @@ public final class GboardSpacebarCursorSender {
             return false;
         }
         return moveHorizontalWithAdapter(new InputConnectionAdapter(connection), signedSteps);
+    }
+
+    /**
+     * Moves the cursor vertically by {@code signedSteps} (negative = up, positive = down) when
+     * the active editor supports multi-line input. Suppresses vertical DPAD in single-line fields
+     * and at the absolute start/end of text to prevent focus loss or keyboard collapse.
+     */
+    public static boolean sendVerticalSteps(
+            InputConnection connection, EditorInfo editorInfo, int signedSteps) {
+        if (connection == null || signedSteps == 0) {
+            return false;
+        }
+        return moveVerticalWithAdapter(
+                new InputConnectionAdapter(connection), editorInfo, signedSteps);
+    }
+
+    static boolean moveVerticalWithAdapter(
+            CursorEditorAdapter adapter, EditorInfo editorInfo, int signedSteps) {
+        if (adapter == null || signedSteps == 0) {
+            return false;
+        }
+        if (!isVerticalCursorAllowed(editorInfo, adapter)) {
+            return true;
+        }
+        boolean moveUp = signedSteps < 0;
+        if (isAtVerticalTextBoundary(adapter, moveUp)) {
+            // Already at offset 0 (for UP) or end of text (for DOWN): suppress DPAD to avoid focusSearch.
+            return true;
+        }
+        int keyCode = moveUp ? KeyEvent.KEYCODE_DPAD_UP : KeyEvent.KEYCODE_DPAD_DOWN;
+        int clampedCount = Math.min(
+                Math.abs(signedSteps), GboardSpacebarGestureState.MAX_VERTICAL_STEPS_PER_MOVE);
+        return sendVerticalStepCount(
+                keyCode,
+                clampedCount,
+                (action, code) -> adapter.sendDpadKeyEvent(action, code, CURSOR_KEY_EVENT_FLAGS));
+    }
+
+    static boolean isVerticalCursorAllowed(EditorInfo editorInfo, CursorEditorAdapter adapter) {
+        if (editorInfo != null) {
+            String pkg = editorInfo.packageName;
+            if (PACKAGE_NEXUS_LAUNCHER.equals(pkg)) {
+                return false;
+            }
+            if (PACKAGE_MS_WORD.equals(pkg) || PACKAGE_MS_POWERPOINT.equals(pkg)) {
+                return true;
+            }
+            int inputType = editorInfo.inputType;
+            int inputClass = inputType & InputType.TYPE_MASK_CLASS;
+            if (inputClass == InputType.TYPE_CLASS_TEXT) {
+                if ((inputType & InputType.TYPE_TEXT_FLAG_MULTI_LINE) != 0
+                        || (inputType & InputType.TYPE_TEXT_FLAG_IME_MULTI_LINE) != 0) {
+                    return true;
+                }
+                int variation = inputType & InputType.TYPE_MASK_VARIATION;
+                if (variation == InputType.TYPE_TEXT_VARIATION_PASSWORD
+                        || variation == InputType.TYPE_TEXT_VARIATION_VISIBLE_PASSWORD
+                        || variation == InputType.TYPE_TEXT_VARIATION_WEB_PASSWORD
+                        || variation == InputType.TYPE_TEXT_VARIATION_URI
+                        || variation == InputType.TYPE_TEXT_VARIATION_EMAIL_ADDRESS
+                        || variation == InputType.TYPE_TEXT_VARIATION_WEB_EMAIL_ADDRESS) {
+                    return false;
+                }
+            } else if (inputClass == InputType.TYPE_CLASS_NUMBER
+                    || inputClass == InputType.TYPE_CLASS_PHONE
+                    || inputClass == InputType.TYPE_CLASS_DATETIME) {
+                return false;
+            }
+        }
+        // Fallback for WebView / custom editors that omit TYPE_TEXT_FLAG_MULTI_LINE:
+        // allow vertical movement only if the surrounding text actually contains a newline.
+        return hasNewlineAroundCursor(adapter);
+    }
+
+    private static boolean hasNewlineAroundCursor(CursorEditorAdapter adapter) {
+        if (adapter == null) {
+            return false;
+        }
+        try {
+            CharSequence before = adapter.getTextBeforeCursor(VERTICAL_NEWLINE_PROBE_CHARS);
+            if (containsNewline(before)) {
+                return true;
+            }
+            CharSequence after = adapter.getTextAfterCursor(VERTICAL_NEWLINE_PROBE_CHARS);
+            return containsNewline(after);
+        } catch (Throwable ignored) {
+            return false;
+        }
+    }
+
+    private static boolean containsNewline(CharSequence text) {
+        if (text == null) {
+            return false;
+        }
+        int len = text.length();
+        for (int i = 0; i < len; i++) {
+            char ch = text.charAt(i);
+            if (ch == '\n' || ch == '\r') {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private static boolean isAtVerticalTextBoundary(CursorEditorAdapter adapter, boolean moveUp) {
+        if (adapter == null) {
+            return false;
+        }
+        try {
+            CharSequence adjacent = moveUp
+                    ? adapter.getTextBeforeCursor(1)
+                    : adapter.getTextAfterCursor(1);
+            return adjacent != null && adjacent.length() == 0;
+        } catch (Throwable ignored) {
+            return false;
+        }
+    }
+
+    static boolean sendVerticalStepCount(int keyCode, int count, KeyActionEmitter emitter) {
+        if (emitter == null || count <= 0) {
+            return false;
+        }
+        if (keyCode != KeyEvent.KEYCODE_DPAD_UP && keyCode != KeyEvent.KEYCODE_DPAD_DOWN) {
+            return false;
+        }
+        int clampedCount = Math.min(count, GboardSpacebarGestureState.MAX_VERTICAL_STEPS_PER_MOVE);
+        boolean sentAny = false;
+        for (int index = 0; index < clampedCount; index++) {
+            if (!sendBalancedKeyEvent(keyCode, emitter)) {
+                break;
+            }
+            sentAny = true;
+        }
+        return sentAny;
     }
 
     static boolean moveHorizontalWithAdapter(CursorEditorAdapter adapter, int signedSteps) {

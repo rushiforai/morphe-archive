@@ -6,6 +6,7 @@
  * https://github.com/ReVanced/revanced-patches/commit/724e6d61b2ecd868c1a9a37d465a688e83a74799
  *
  * See the included NOTICE file for GPLv3 Section 7 terms that apply to Morphe contributions.
+ * Modified by lavinhoque33, 2026-11-24.
  */
 
 package app.morphe.patches.youtube.utils.navigation
@@ -52,4 +53,21 @@ internal object SearchResultsFragmentOnCreateViewFingerprint : Fingerprint(
     filters = listOf(
         string("search_cache_key")
     )
+)
+
+/**
+ * Both the legacy pane controller and FragmentNavigator push/restore use this transaction method.
+ * The call sites don't all supply the "PaneFragment" tag.
+ */
+internal object PaneFragmentReplaceFingerprint : Fingerprint(
+    returnType = "V",
+    parameters = listOf("I", "L", "Ljava/lang/String;"),
+    filters = listOf(string("Must use non-zero containerViewId")),
+)
+
+/** FragmentManager can restore a pane from saved state without calling replace(). */
+internal object FragmentPerformCreateViewFingerprint : Fingerprint(
+    returnType = "V",
+    parameters = listOf("Landroid/view/LayoutInflater;", "Landroid/view/ViewGroup;", "Landroid/os/Bundle;"),
+    filters = listOf(string("Called getViewLifecycleOwner() but onCreateView() returned null")),
 )

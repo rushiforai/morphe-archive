@@ -59,6 +59,26 @@ public class CallConfirmTest {
         }
     }
 
+    /** An audio or video row of the menu on someone's picture, with the patch's hook at the top of its tap. */
+    static final class ProfileRow {
+        final int video;
+        int taps;
+        View tapped;
+        Object message;
+
+        ProfileRow(int video) {
+            this.video = video;
+        }
+
+        boolean tap(Context context, View view, CharSequence about) {
+            if (CallConfirm.profileCall(this, context, view, about, video)) return true;
+            taps++;
+            tapped = view;
+            message = about;
+            return true;
+        }
+    }
+
     private final List<Boolean> asked = new ArrayList<>();
     private final List<Runnable> waiting = new ArrayList<>();
     private final CallConfirm.Asker shown = CallConfirm.asker;
@@ -297,6 +317,56 @@ public class CallConfirmTest {
         CallConfirm.guard(new ArrayList<>(Collections.singletonList(audio)));
         audio.click.onClick(view);
         assertEquals(1, tap.taps);
+        assertTrue(Settings.hookErrors.containsKey(CallConfirm.KEY));
+    }
+
+    /** #201: these rows call from inside their own tap, so Cancel has to leave the row's tap never having run. */
+    @Test public void aProfileMenuCallRowAsksFirstAndCancelStartsNothing() {
+        on(true);
+        ProfileRow audio = new ProfileRow(0), video = new ProfileRow(1);
+        assertTrue(audio.tap(view.getContext(), view, "message"));
+        assertTrue(video.tap(view.getContext(), view, "message"));
+        assertEquals(Arrays.asList(false, true), asked);
+        assertEquals(0, audio.taps);
+        assertEquals(0, video.taps);
+    }
+
+    @Test public void callOnAProfileMenuRowRunsItsOwnTapOnceAndTheNextTapAsksAgain() {
+        on(true);
+        ProfileRow row = new ProfileRow(1);
+        row.tap(view.getContext(), view, "message");
+        waiting.get(0).run();
+        assertEquals("Call must not ask a second time", 1, asked.size());
+        assertEquals(1, row.taps);
+        assertSame(view, row.tapped);
+        assertEquals("message", row.message);
+
+        row.tap(view.getContext(), view, "message");
+        assertEquals(2, asked.size());
+        assertEquals(1, row.taps);
+    }
+
+    @Test public void offAProfileMenuRowCallsStraightAway() {
+        on(false);
+        ProfileRow row = new ProfileRow(0);
+        row.tap(view.getContext(), view, "message");
+        assertTrue(asked.isEmpty());
+        assertEquals(1, row.taps);
+    }
+
+    @Test public void aProfileMenuQuestionThatCantGoUpLetsTheCallThroughAndSaysWhy() {
+        on(true);
+        CallConfirm.asker = (tapped, video, call) -> { throw new IllegalStateException("no window"); };
+        ProfileRow row = new ProfileRow(0);
+        row.tap(view.getContext(), view, "message");
+        assertEquals(1, row.taps);
+        assertTrue(Settings.hookErrors.containsKey(CallConfirm.KEY));
+    }
+
+    @Test public void aRowWithoutItsTapMethodIsReportedAndLeftToCall() {
+        on(true);
+        assertFalse(CallConfirm.profileCall(new Object(), view.getContext(), view, "message", 0));
+        assertTrue(asked.isEmpty());
         assertTrue(Settings.hookErrors.containsKey(CallConfirm.KEY));
     }
 }

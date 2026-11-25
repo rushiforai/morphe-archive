@@ -30,24 +30,24 @@
       "attribution": "ENABLE2K via dolph/dictionary; Wordnik open word list; lorenbrichter/Words en.txt (Letterpress)",
       "file": "wordlists/en-intl/words.txt.gz",
       "license": "Public domain (ENABLE), MIT (Wordnik, Copyright (c) 2020 Wordnik), CC0 1.0 (Letterpress, as published)",
-      "removed": 10,
-      "sha256": "ef0a64784536771f817d4b7824cf449f5cb898cd7051ba1e98fe3b7dac31539d",
-      "size": 713706,
+      "removed": 13,
+      "sha256": "e7dd58b3ef3abaa3b8f9e15425178f5d2db28c147fee5e42d75d5f5deaee5eb8",
+      "size": 713701,
       "source_words": 275412,
-      "version": 12,
-      "words": 275402
+      "version": 15,
+      "words": 275399
     },
     "en-us": {
       "added": 0,
       "attribution": "ENABLE2K word list via dolph/dictionary; Wordnik open word list (wordnik/wordlist)",
       "file": "wordlists/en-us/words.txt.gz",
       "license": "Public domain (ENABLE) and MIT (Wordnik, Copyright (c) 2020 Wordnik)",
-      "removed": 8,
-      "sha256": "e27ffbd4d85c879d404961a179d8d0ceb7d54103196f9ab340c00d3dbe8b79eb",
-      "size": 502702,
+      "removed": 13,
+      "sha256": "5203d0f7309d9d3b4c6284ab96b41fc28086d8d405f7bc90fbd36edf1fd1db8e",
+      "size": 502699,
       "source_words": 194220,
-      "version": 8,
-      "words": 194212
+      "version": 13,
+      "words": 194207
     },
     "es": {
       "added": 0,
@@ -98,16 +98,16 @@
       "words": 126426
     },
     "nl": {
-      "added": 14,
+      "added": 67,
       "attribution": "OpenTaal word list, via jensanjo/wordfeud-wordlists",
       "file": "wordlists/nl/words.txt.gz",
       "license": "Revised BSD and/or CC BY 3.0 (OpenTaal)",
-      "removed": 9,
-      "sha256": "049f15258a84745961c3a15c389797752e1f018a88f7ce33c554f204c00f98be",
-      "size": 1018322,
+      "removed": 10,
+      "sha256": "88092be6114e62a1f99b0a6e19ab829a14c63b973e812495900a4e7da511bfc0",
+      "size": 1018442,
       "source_words": 340672,
-      "version": 20,
-      "words": 340677
+      "version": 51,
+      "words": 340729
     },
     "nn": {
       "added": 12,
@@ -134,16 +134,16 @@
       "words": 372383
     },
     "sv": {
-      "added": 3,
+      "added": 5,
       "attribution": "Den stora svenska ordlistan (Göran Andersson), as adapted in mrcz/Wordfeud-Player",
       "file": "wordlists/sv/words.txt.gz",
       "license": "CC BY-SA 3.0",
       "removed": 0,
-      "sha256": "3272d4e8cfb3d8ed2d6f4a58ead3618f0834b512fc3457806656e4423866889d",
-      "size": 895061,
+      "sha256": "8f7dc3725b2ae7e6364aeafe9b499b66522ebd099d1aedd161c28806e0754a21",
+      "size": 895066,
       "source_words": 370672,
-      "version": 4,
-      "words": 370675
+      "version": 6,
+      "words": 370677
     },
     "sv-strict": {
       "added": 1,

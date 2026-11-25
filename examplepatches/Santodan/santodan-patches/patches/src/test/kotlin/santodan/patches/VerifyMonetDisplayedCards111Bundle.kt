@@ -21,7 +21,7 @@ fun main(args: Array<String>) = runBlocking {
         check(selected.size == names.size)
         val compatibility = selected.single { it.name == MonetDisplayedCardsPatch.NAME }.compatibility!!.single()
         check(compatibility.packageName == "com.klevico.monet")
-        check(compatibility.targets.map { it.version }.toSet() == setOf("1.0.97", "1.1.0", "1.1.1"))
+        check(compatibility.targets.map { it.version }.toSet() == setOf("1.0.97", "1.1.0", "1.1.1", "1.1.2"))
         val output = File(args[2], "selection-$index").apply { mkdirs() }
         Patcher(PatcherConfig(apkFile = File(args[0]), temporaryFilesPath = File(output, "work"))).use { patcher ->
             patcher += selected

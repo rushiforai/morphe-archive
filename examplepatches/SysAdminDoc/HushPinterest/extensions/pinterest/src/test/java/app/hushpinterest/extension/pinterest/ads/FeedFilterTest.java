@@ -12,6 +12,8 @@ import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertTrue;
 
+import android.content.Context;
+import android.content.SharedPreferences;
 import android.view.View;
 
 import org.junit.After;
@@ -20,6 +22,7 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.robolectric.RobolectricTestRunner;
+import org.robolectric.RuntimeEnvironment;
 import org.robolectric.annotation.Config;
 
 import java.lang.annotation.ElementType;
@@ -70,6 +73,9 @@ public class FeedFilterTest {
         @Json("grid_title") String gridTitle;
         @Json("description") String description;
         @Json("domain") String domain;
+        @Json("is_owned_by_viewer") Boolean owned;
+        @Json("pinner") User pinner;
+        @Json("board") OwnedBoard board;
 
         Pin(String id) {
             this.id = id;
@@ -77,6 +83,27 @@ public class FeedFilterTest {
 
         @Override public String toString() {
             return id;
+        }
+    }
+
+    /** 14.45.0's user (rt0), as a pin's pinner and a board's owner carry it. */
+    static final class User {
+        @Json("id") String id;
+
+        User(String id) {
+            this.id = id;
+        }
+    }
+
+    /** 14.45.0's board (x4) as a pin on a board carries it: its owner and whether you collaborate on it. */
+    static final class OwnedBoard {
+        @Json("id") String id = "want";
+        @Json("owner") User owner;
+        @Json("collaborated_by_me") Boolean collaborating;
+
+        OwnedBoard(User owner, Boolean collaborating) {
+            this.owner = owner;
+            this.collaborating = collaborating;
         }
     }
 
@@ -291,10 +318,79 @@ public class FeedFilterTest {
         ModelFields.clearForTests();
         ModuleItems.clearForTests();
         HookStatus.clear();
+        signedIn(null);
     }
 
     private static String report() {
         return String.join("\n", HookStatus.report());
+    }
+
+    /** Writes [id] where Pinterest keeps the signed-in account's id, or clears it for null. */
+    private static void signedIn(String id) {
+        SharedPreferences.Editor editor = RuntimeEnvironment.getApplication()
+                .getSharedPreferences(YourPins.PREFERENCES, Context.MODE_PRIVATE).edit();
+        (id == null ? editor.remove(YourPins.MY_ID) : editor.putString(YourPins.MY_ID, id)).commit();
+    }
+
+    /** An AI-labeled pin on [board], with Hide AI-labeled pins (off by default) on so it would go. */
+    private static Pin labeledOn(String id, OwnedBoard board) {
+        Settings.HIDE_AI_PINS.save(true);
+        Pin pin = new Pin(id);
+        pin.aiDisclosures = Arrays.asList(1);
+        pin.board = board;
+        return pin;
+    }
+
+    @Test
+    public void aPinOnYourOwnBoardStaysAndOnlyAnAdGoes() {
+        signedIn("me");
+        OwnedBoard mine = new OwnedBoard(new User("me"), false);
+        Pin minePromoted = labeledOn("minePromoted", mine);
+        minePromoted.promoted = true;
+        List<Object> board = new ArrayList<>(Arrays.asList(labeledOn("mine", mine),
+                labeledOn("theirs", new OwnedBoard(new User("someone"), false)), minePromoted));
+        assertEquals("[mine]", FeedFilter.filter(board).toString());
+        assertTrue(report(), report().contains("pin of yours left in"));
+        assertTrue(report(), report().contains("AI-labeled pin removed"));
+        assertTrue(report(), report().contains("promoted pin removed"));
+    }
+
+    @Test
+    public void aPinYouSavedOrOwnStaysWhereverItShows() {
+        signedIn("me");
+        Pin saved = labeledOn("saved", new OwnedBoard(new User("someone"), false));
+        saved.pinner = new User("me");
+        Pin owned = labeledOn("owned", null);
+        owned.owned = true;
+        Pin theirs = labeledOn("theirs", null);
+        theirs.pinner = new User("someone");
+        assertEquals("[saved, owned]", FeedFilter.filter(new ArrayList<Object>(Arrays.asList(saved, owned, theirs))).toString());
+    }
+
+    @Test
+    public void aBoardYouCollaborateOnCountsAsYours() {
+        signedIn("me");
+        Pin shared = labeledOn("shared", new OwnedBoard(new User("someone"), true));
+        assertEquals("[shared]", FeedFilter.filter(new ArrayList<Object>(Arrays.asList(shared))).toString());
+    }
+
+    @Test
+    public void withNoSignedInAccountOnlyPinterestsOwnFlagsCount() {
+        Pin onBoard = labeledOn("onBoard", new OwnedBoard(new User("me"), false));
+        onBoard.pinner = new User("me");
+        Pin owned = labeledOn("owned", null);
+        owned.owned = true;
+        assertEquals("[owned]", FeedFilter.filter(new ArrayList<Object>(Arrays.asList(onBoard, owned))).toString());
+    }
+
+    @Test
+    public void aPinOfYoursStillGoesWhenItIsAnAd() {
+        signedIn("me");
+        Pin promoted = labeledOn("promoted", null);
+        promoted.owned = true;
+        promoted.promoted = true;
+        assertEquals("[]", FeedFilter.filter(new ArrayList<Object>(Arrays.asList(promoted))).toString());
+        assertTrue(report(), report().contains("promoted pin removed"));
     }
 
     private List<Object> page() {

@@ -31,14 +31,14 @@ import org.junit.Test
  */
 class ShareTilesFixtureTest {
     private val openRefused = "Lapp/morphe/extension/hushthreads/coexist/ShareTiles;->" +
-        "openRefused(ZLandroid/content/Context;Landroid/content/Intent;)V"
+        "openRefused(ZLandroid/content/Context;Landroid/content/Intent;)Z"
 
     /**
-     * Read off 512508359 and 512508358: Instagram's feed and reel thread, Facebook's reel, WhatsApp's
-     * status and the app tiles. The builds split them over different lambdas, five in all, and the
-     * ARMv7 builds and the first x86 one launch the four app tiles through a static helper.
+     * Read off the three 456 code groups: Instagram's feed, story and reel thread, Facebook's story
+     * and reel (which share one launch), WhatsApp's status and Messenger. The builds split them over
+     * different lambdas, and some builds launch through a static helper Redex outlined.
      */
-    private val launchesReadByHand = 5
+    private val launchesReadByHand = 6
 
     @Test
     fun `each declared build hands every tile launch's answer to the extension`() {
@@ -104,7 +104,15 @@ class ShareTilesFixtureTest {
                     assertEquals("${build.name}: the context", handed, call.registerD)
                     assertEquals("${build.name}: the intent", intent, call.registerE)
                     assertFalse("${build.name}: the answer took the context or intent", answer == handed || answer == intent)
-                    assertEquals("${build.name}: the code after it", stock[stockAt + 1].kind(), body[at + 3].kind())
+                    if (stock[stockAt + 1].opcode == Opcode.MOVE_RESULT) {
+                        // Threads reads this answer, so it reads the extension's instead.
+                        assertEquals("${build.name}: Threads' own read", (stock[stockAt + 1] as OneRegisterInstruction).registerA, answer)
+                        assertEquals("${build.name}: launch $done", Opcode.MOVE_RESULT, body[at + 3].opcode)
+                        assertEquals("${build.name}: the extension's answer", answer, (body[at + 3] as OneRegisterInstruction).registerA)
+                        assertEquals("${build.name}: the code after it", stock[stockAt + 2].kind(), body[at + 4].kind())
+                    } else {
+                        assertEquals("${build.name}: the code after it", stock[stockAt + 1].kind(), body[at + 3].kind())
+                    }
                 }
             }
             assertEquals(build.name, launchesReadByHand, launched)
@@ -125,9 +133,29 @@ class ShareTilesFixtureTest {
     }
 
     @Test
-    fun `a launch that already reads its answer stops the patch`() {
-        val reads = tiles("$LAUNCH\nmove-result v0")
-        assertTrue(assertThrows(PatchException::class.java) { reads.openRefusedShareTiles(LAUNCHER) }.message!!.contains("already reads"))
+    fun `a launch that reads its answer takes back what the extension answers`() {
+        val tiles = tiles("$LAUNCH\nmove-result v0")
+        tiles.openRefusedShareTiles(LAUNCHER)
+        val body = tiles.instructions()
+        val at = body.indexOfFirst { it.isLaunch() }
+        assertEquals(Opcode.MOVE_RESULT, body[at + 1].opcode)
+        assertEquals(0, (body[at + 1] as OneRegisterInstruction).registerA)
+        val call = body[at + 2]
+        assertEquals(openRefused, (call as ReferenceInstruction).reference.toString())
+        call as FiveRegisterInstruction
+        assertEquals(listOf(0, 1, 2), listOf(call.registerC, call.registerD, call.registerE))
+        assertEquals(Opcode.MOVE_RESULT, body[at + 3].opcode)
+        assertEquals(0, (body[at + 3] as OneRegisterInstruction).registerA)
+        assertEquals(Opcode.RETURN_VOID, body[at + 4].opcode)
+    }
+
+    @Test
+    fun `a launch reading its answer over its context or intent stops the patch`() {
+        for (register in listOf(1, 2)) {
+            val tiles = tiles("$LAUNCH\nmove-result v$register")
+            val refused = assertThrows(PatchException::class.java) { tiles.openRefusedShareTiles(LAUNCHER) }
+            assertTrue(refused.message!!, refused.message!!.contains("over its context or intent"))
+        }
     }
 
     @Test

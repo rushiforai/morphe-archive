@@ -1,0 +1,1 @@
+package com.waze; public class ls extends android.app.Application { public int initializations; public Object d(g.d.e continuation){ initializations++; if(continuation.getContext()!=g.d.k.a)throw new AssertionError(); continuation.resumeWith(null);return null; } }

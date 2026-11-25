@@ -37,6 +37,7 @@ import java.lang.ref.WeakReference;
 import java.util.List;
 import java.util.Map;
 
+import app.morphe.extension.shared.patches.glassmenus.GlassMenusPatch;
 import app.morphe.extension.shared.utils.Logger;
 import app.morphe.extension.shared.utils.PackageUtils;
 import app.morphe.extension.shared.utils.ResourceUtils;
@@ -261,6 +262,10 @@ public class ExtendedUtils extends PackageUtils {
                 onDismissListener.onDismiss(d);
             }
         });
+
+        if (GlassMenusPatch.isPatchIncluded()) {
+            GlassMenusPatch.onSlideDialog(dialog, mainLayout, mContext);
+        }
 
         dialog.show(); // Display the dialog.
     }

@@ -65,9 +65,11 @@ class KeepVideosMutedFixtureTest {
             val sound = context.resolveVideoSound()
             val tracks = context.resolveVideoTracks()
             assertEquals("$name", null, tracks.missing)
+            val external = context.resolveExternalVideo()
+            assertEquals("$name", null, external.missing)
             val beside = (upright.edits + sound.edits).filter { it.signature == turnMethod.toString() }.map { it.index }.toSet()
             val edited = setOf(key(site.dispatch), key(turnMethod)) + upright.edits.map { it.signature } + sound.edits.map { it.signature } +
-                tracks.edits.map { it.signature }
+                tracks.edits.map { it.signature } + external.edits.map { key(it.method) }
             val untouched = hostState(build, context, edited)
             assertEquals(emptyList<String>(), PatchLogCapture.warnings { keepVideosMutedPatch.execute(context) })
 
@@ -117,6 +119,24 @@ class KeepVideosMutedFixtureTest {
             assertEquals(1L, status(context, "videoOnlyFromButton"))
             assertEquals(1L, status(context, "videoStartsSilent"))
             assertEquals(1L, status(context, "videoTracks"))
+            assertEquals(1L, status(context, "externalPlayer"))
+            for ((edit, hook) in external.edits.zip(listOf(EXTERNAL_OPEN, EXTERNAL_PRESSED))) {
+                assertEquals("$name: $hook goes in once", 1, edit.method.controlBody().count { it.controlRef() == hook })
+            }
+        }
+    }
+
+    @Test fun `a build whose videos can't open elsewhere keeps the rest of the patch`() {
+        for (build in Fixtures.declaredBuilds()) {
+            val c = context(build)
+            val viewer = c.resolveExternalVideo().edits.first().method
+            viewer.accessFlags = viewer.accessFlags and AccessFlags.FINAL.value.inv()
+            assertEquals(build.name, listOf("Keep videos muted on volume keys: the video viewer's open can be overridden. " +
+                "The patch goes on without opening videos in another app."), PatchLogCapture.warnings { keepVideosMutedPatch.execute(c) })
+            assertEquals(build.name, 0L, status(c, "externalPlayer"))
+            assertEquals(build.name, 1L, status(c, "keepVideosMuted"))
+            assertEquals(build.name, 1L, status(c, "videoTracks"))
+            assertTrue(build.name, viewer.controlBody().none { it.controlRef() == EXTERNAL_OPEN })
         }
     }
 
@@ -371,8 +391,8 @@ class KeepVideosMutedFixtureTest {
             assertTrue("$name: the viewer's player", refs.viewerPlayer in calls("player"))
             assertTrue("$name: the choice goes back to the player's selector", refs.setParameters in calls("apply"))
             assertTrue("$name: an override for the track picked", refs.overrideInit in calls("override"))
-            if (name == "telegram-web-13.2.2-73039.apk") {
-                assertEquals("Lorg/telegram/ui/ActionBar/t0;->e(IILjava/lang/CharSequence;)Lorg/telegram/ui/ActionBar/b1;", refs.addSubItem)
+            if (name == "telegram-web-13.3.1-73469.apk") {
+                assertEquals("Lorg/telegram/ui/ActionBar/q0;->e(IILjava/lang/CharSequence;)Lorg/telegram/ui/ActionBar/z0;", refs.addSubItem)
             }
             assertEquals(1L, status(context, "videoTracks"))
         }
@@ -426,6 +446,10 @@ class KeepVideosMutedFixtureTest {
                 "private tracks hook" to { c, _ -> val h = c.tgMutableClassDefBy(VIDEO_TRACKS).methods.single { it.origName == "menuChoice" }
                     h.accessFlags = h.accessFlags and AccessFlags.PUBLIC.value.inv() or AccessFlags.PRIVATE.value },
                 "missing tracks stub" to { c, _ -> c.tgMutableClassDefBy(VIDEO_TRACKS).methods.removeAll { it.origName == "apply" } },
+                "missing external player flag" to { c, _ -> c.tgMutableClassDefBy(SETTINGS_STATUS).methods.removeAll { it.origName == "externalPlayer" } },
+                "private external player hook" to { c, _ -> val h = c.tgMutableClassDefBy(EXTERNAL_VIDEO).methods.single { it.origName == "open" }
+                    h.accessFlags = h.accessFlags and AccessFlags.PUBLIC.value.inv() or AccessFlags.PRIVATE.value },
+                "missing external player stub" to { c, _ -> c.tgMutableClassDefBy(EXTERNAL_VIDEO).methods.removeAll { it.origName == "streamRead" } },
             )
             for ((case, change) in mutations) {
                 val c = context(build)
@@ -440,7 +464,7 @@ class KeepVideosMutedFixtureTest {
     private fun context(build: File) = PatchContexts.of(ExtensionDex.classes() + hosts(build))
     private fun status(c: BytecodePatchContext, name: String) =
         (c.tgMutableClassDefBy(SETTINGS_STATUS).methods.single { it.origName == name }.controlBody().first() as WideLiteralInstruction).wideLiteral
-    private fun completeState(build: File, c: BytecodePatchContext) = (hosts(build).map { it.type } + listOf(VOLUME_KEYS, VIDEO_TURN, VIDEO_UPRIGHT, VIDEO_SOUND, VIDEO_TRACKS, SETTINGS_STATUS))
+    private fun completeState(build: File, c: BytecodePatchContext) = (hosts(build).map { it.type } + listOf(VOLUME_KEYS, VIDEO_TURN, VIDEO_UPRIGHT, VIDEO_SOUND, VIDEO_TRACKS, EXTERNAL_VIDEO, SETTINGS_STATUS))
         .filter { c.tgClassDefByOrNull(it) != null }.associateWith { type -> c.tgMutableClassDefBy(type).let { cls ->
             listOf(cls.accessFlags, cls.methods.map { key(it) to it.state() }) } }
     private fun hostState(build: File, c: BytecodePatchContext, except: Set<String>) = hosts(build)
@@ -500,7 +524,8 @@ class KeepVideosMutedFixtureTest {
             wanted = found.values.flatMap { listOfNotNull(it.superclass) + it.interfaces }
                 .filter { it !in known && !it.startsWith("Ljava/") && !it.startsWith("Landroid/") && !it.startsWith("Lorg/telegram/messenger/") }.toSet()
         }
-        return (listOf(launch) + FixtureDex.classes(build, chats).values + playerDefs + tracks).map(ImmutableClassDef::of) + turns
+        return ((listOf(launch) + FixtureDex.classes(build, chats).values + playerDefs + tracks).map(ImmutableClassDef::of) + turns +
+            externalVideoHosts(build)).distinctBy { it.type }
     }
 
     /** Every app class a method names: owners, field types, parameters, results and the types it makes. */

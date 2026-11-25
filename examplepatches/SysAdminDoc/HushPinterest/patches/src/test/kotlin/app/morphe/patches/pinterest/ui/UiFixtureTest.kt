@@ -28,6 +28,7 @@ import com.android.tools.smali.dexlib2.iface.instruction.NarrowLiteralInstructio
 import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.RegisterRangeInstruction
+import com.android.tools.smali.dexlib2.iface.instruction.TwoRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.reference.FieldReference
 import com.android.tools.smali.dexlib2.iface.reference.MethodReference
 import com.android.tools.smali.dexlib2.iface.reference.StringReference
@@ -71,10 +72,13 @@ class UiFixtureTest {
         // Capabilities past here have no patch of their own at the same index.
         "amoledBlack" to "blackComments", "amoledBlack" to "blackPinMenu", "amoledBlack" to "blackSaveSheet",
         "amoledBlack" to "blackSheets", "amoledBlack" to "blackBoards", "amoledBlack" to "blackToasts",
+        "amoledBlack" to "blackButtons", "amoledBlack" to "blackSearchGuides",
+        "amoledBlack" to "blackSettingsCard", "amoledBlack" to "blackSearchBubbles",
         "hideSearchHistory" to "recentSearchRows", "hideSearchHistory" to "recentSearchHeading",
         "hideComments" to "suggestedReplies", "hideComments" to "commentPreviews",
         "hideNavigationButtons" to "homeTabs", "hideSearchHistory" to "searchLanding",
         "hideNavigationButtons" to "searchKeyboard", "hidePinMenuItems" to "pinMenuRows",
+        "hideSearchHistory" to "searchSuggestions",
     )
 
     @Test fun `every interface family matches each supported vendor build without a warning`() {
@@ -413,6 +417,129 @@ class UiFixtureTest {
         assertFlag(context, "homeTabs", false)
         assertFlag(context, "navigationButtons", true)
         assertFlag(context, "hideNavigationButtons", true)
+    }
+
+    @Test fun `every look Pinterest puts on a search guide hands the guide to Black buttons as the look ends`() {
+        for (build in Fixtures.declaredBuilds()) {
+            val classes = read(build)
+            val guide = classes.single { it.type == SEARCH_GUIDE }
+            // A guide's look is what its getter returns, and the method putting one on takes the old and the new.
+            val look = guide.methods.single { method ->
+                method.parameterTypes.isEmpty() && method.returnType.startsWith("Lcom/pinterest/gestalt/searchGuide/")
+            }.returnType
+            val stock = guide.methods.single { method ->
+                method.returnType == "V" && method.parameterTypes.map { it.toString() } == listOf(look, look)
+            }
+            val context = PatchContexts.of(ExtensionDex.classes() + classes)
+            amoledBlackPatch.execute(context)
+            assertFlag(context, "blackSearchGuides", true)
+            val apply = context.mutable(stock).implementation!!
+            val body = apply.instructions.toList()
+            val ends = stock.instructions().count { it.opcode == Opcode.RETURN_VOID }
+            assertTrue("${build.name}: the look returns", ends > 0)
+            val hooks = body.indices.filter { (body[it] as? ReferenceInstruction)?.reference?.toString() == SEARCH_GUIDE_HOOK }
+            assertEquals("${build.name}: a hook at each end", ends, hooks.size)
+            for (at in hooks) {
+                assertEquals(build.name, Opcode.INVOKE_STATIC_RANGE, body[at].opcode)
+                assertEquals("${build.name}: the guide itself", apply.registerCount - 3, (body[at] as RegisterRangeInstruction).startRegister)
+                assertEquals(build.name, 1, (body[at] as RegisterRangeInstruction).registerCount)
+                assertEquals("${build.name}: right before an end", Opcode.RETURN_VOID, body[at + 1].opcode)
+            }
+            assertEquals(build.name, stock.instructions().map { it.opcode }.filter { it != Opcode.NOP },
+                body.filterIndexed { index, _ -> index !in hooks }.map { it.opcode }.filter { it != Opcode.NOP })
+        }
+    }
+
+    @Test fun `a build without the search guide keeps Black buttons and says the search chips stay`() {
+        val build = Fixtures.declaredBuilds().last()
+        val context = PatchContexts.of(ExtensionDex.classes() + read(build).filter { it.type != SEARCH_GUIDE })
+        val warnings = PatchLogCapture.warnings { amoledBlackPatch.execute(context) }
+        assertEquals(warnings.toString(), 1, warnings.size)
+        assertTrue(warnings.single(), warnings.single().contains("search guides"))
+        assertFlag(context, "blackSearchGuides", false)
+        assertFlag(context, "blackButtons", true)
+        assertFlag(context, "amoledBlack", true)
+    }
+
+    /** The method that keeps the settings account card in its field, and where: right after it's cast from its lookup. */
+    private fun List<ClassDef>.settingsCardStores() = flatMap { owner ->
+        owner.methods.flatMap { method ->
+            val body = method.instructions()
+            body.indices.filter { at ->
+                val field = (body[at] as? ReferenceInstruction)?.reference as? FieldReference
+                at > 0 && body[at].opcode == Opcode.IPUT_OBJECT && field?.definingClass == SETTINGS_PROFILE_PREVIEW &&
+                    field.type == CARD_VIEW && body[at - 1].opcode == Opcode.CHECK_CAST
+            }.map { method to it }
+        }
+    }
+
+    /** The method that loads a Refine your search row's shape. */
+    private fun List<ClassDef>.searchBubbleBuilders() = flatMap { owner ->
+        owner.methods.filter { method -> method.fields().any { it.name == SEARCH_BUBBLE_FILL } }
+    }
+
+    @Test fun `the settings account card goes to Black buttons the moment Pinterest keeps it`() {
+        for (build in Fixtures.declaredBuilds()) {
+            val classes = read(build)
+            val (stock, store) = classes.settingsCardStores().single()
+            val card = (stock.instructions()[store] as TwoRegisterInstruction).registerA
+            val context = PatchContexts.of(ExtensionDex.classes() + classes)
+            amoledBlackPatch.execute(context)
+            assertFlag(context, "blackSettingsCard", true)
+            val body = context.mutable(stock).implementation!!.instructions.toList()
+            val hooks = body.indices.filter { (body[it] as? ReferenceInstruction)?.reference?.toString() == SETTINGS_CARD_HOOK }
+            assertEquals("${build.name}: one hook", listOf(store + 1), hooks)
+            val hook = body[store + 1] as RegisterRangeInstruction
+            assertEquals(build.name, Opcode.INVOKE_STATIC_RANGE, body[store + 1].opcode)
+            assertEquals("${build.name}: the card just stored", card, hook.startRegister)
+            assertEquals(build.name, 1, hook.registerCount)
+            assertEquals(build.name, stock.instructions().map { it.opcode }.filter { it != Opcode.NOP },
+                body.filterIndexed { index, _ -> index !in hooks }.map { it.opcode }.filter { it != Opcode.NOP })
+        }
+    }
+
+    @Test fun `each Refine your search row goes to Black buttons right after it gets its shape`() {
+        for (build in Fixtures.declaredBuilds()) {
+            val classes = read(build)
+            val stock = classes.searchBubbleBuilders().single()
+            val before = stock.instructions()
+            val loaded = before.indexOfFirst { ((it as? ReferenceInstruction)?.reference as? FieldReference)?.name == SEARCH_BUBBLE_FILL }
+            val fill = (loaded until before.size).first { at ->
+                before[at].opcode == Opcode.INVOKE_VIRTUAL && (before[at] as ReferenceInstruction).reference.toString() ==
+                    "Landroid/view/View;->setBackground(Landroid/graphics/drawable/Drawable;)V"
+            }
+            val row = (before[fill] as FiveRegisterInstruction).registerC
+            val context = PatchContexts.of(ExtensionDex.classes() + classes)
+            amoledBlackPatch.execute(context)
+            assertFlag(context, "blackSearchBubbles", true)
+            val body = context.mutable(stock).implementation!!.instructions.toList()
+            val hooks = body.indices.filter { (body[it] as? ReferenceInstruction)?.reference?.toString() == SEARCH_BUBBLE_HOOK }
+            assertEquals("${build.name}: one hook", listOf(fill + 1), hooks)
+            val hook = body[fill + 1] as RegisterRangeInstruction
+            assertEquals("${build.name}: the row that got the shape", row, hook.startRegister)
+            assertEquals(build.name, 1, hook.registerCount)
+            assertEquals(build.name, before.map { it.opcode }.filter { it != Opcode.NOP },
+                body.filterIndexed { index, _ -> index !in hooks }.map { it.opcode }.filter { it != Opcode.NOP })
+        }
+    }
+
+    @Test fun `a build without the account card or the Refine rows keeps Black buttons and says those stay`() {
+        val build = Fixtures.declaredBuilds().last()
+        val classes = read(build)
+        val cardOwner = classes.settingsCardStores().single().first.definingClass
+        val rowOwner = classes.searchBubbleBuilders().single().definingClass
+        for ((owner, surface, capability) in listOf(
+            Triple(cardOwner, "settings card", "blackSettingsCard"),
+            Triple(rowOwner, "search bubbles", "blackSearchBubbles"),
+        )) {
+            val context = PatchContexts.of(ExtensionDex.classes() + classes.filter { it.type != owner })
+            val warnings = PatchLogCapture.warnings { amoledBlackPatch.execute(context) }
+            assertEquals(warnings.toString(), 1, warnings.size)
+            assertTrue(warnings.single(), warnings.single().contains(surface))
+            assertFlag(context, capability, false)
+            assertFlag(context, "blackButtons", true)
+            assertFlag(context, "amoledBlack", true)
+        }
     }
 
     private fun List<ClassDef>.searchPage() = single { owner ->
@@ -886,10 +1013,11 @@ class UiFixtureTest {
     private fun read(build: File): List<ClassDef> {
         val anchors = setOf("sg_android_new_screenshot_api_14", "ai_fwd_android_assistant_ask_mode", "BottomNavTabModel(type=",
             "BottomNavBar tab insertion out of range", "confirmEmailButton", "inAppUpdateManager",
-            "unifiedCommentsModulePresenterFactory", "CommentsZone(isVisible=", INBOX_UPDATES_FEED)
+            "unifiedCommentsModulePresenterFactory", "CommentsZone(isVisible=", INBOX_UPDATES_FEED, ONE_BAR_MODULES)
         val required = (SEARCH_HISTORY_VIEWS + TYPEAHEAD_ROW + COMMENT_PREVIEW + COMMENTS_IMAGES + COMMENTS_QUICK_REPLIES + HEADER_BAR + BOTTOM_BAR +
             BLUR_VIEW + PIN_MENU + "Lcom/pinterest/activity/pin/view/modules/PinCloseupVideoModule;" +
-            BOARD_TOOL_BAR + PROFILE_PILL + PROFILE_FILTER_BAR + BOARD_HEADER_IMAGE + TOAST_CONTAINER + TAB_LAYOUT).toSet()
+            BOARD_TOOL_BAR + PROFILE_PILL + PROFILE_FILTER_BAR + BOARD_HEADER_IMAGE + TOAST_CONTAINER + TAB_LAYOUT +
+            GESTALT_BUTTON + SEARCH_GUIDE).toSet()
         val found = mutableMapOf<String, ClassDef>()
         // Every class with a section adder, kept below only when it holds the Updates feed.
         val adders = mutableListOf<ClassDef>()
@@ -905,7 +1033,8 @@ class UiFixtureTest {
                         method.fields().any { it.name in FILTERABLE_PIN_MENU_TITLES ||
                             it.name == "email_verification_reminder_title" || it.name == COMMENTS_SCREEN_ID ||
                             it.name == PIN_MENU_CARD || it.name == PIN_DETAILS_SHEET || it.name == GREETING_ROW ||
-                            it.name == SEARCH_LANDING_ID ||
+                            it.name == SEARCH_LANDING_ID || it.name == SEARCH_BUBBLE_FILL ||
+                            it.definingClass == SETTINGS_PROFILE_PREVIEW && it.type == CARD_VIEW ||
                             it.name == GESTALT_SHEET_COORDINATOR || it.name == LEGO_CLOSE_STICKY } }
                 if (match) found[owner.type] = ImmutableClassDef.of(owner)
             }
@@ -924,6 +1053,11 @@ class UiFixtureTest {
         // The interfaces the typing-screen row shares with the recent-search pill name its recent search bind.
         found += FixtureDex.classes(build, listOfNotNull(found[TYPEAHEAD_ROW], found[RECENT_SEARCH_PILL])
             .flatMap { it.interfaces }.toSet() - found.keys)
+        // The parser every reader of the row under the search bar calls, which Hide suggested searches hooks.
+        found += FixtureDex.classes(build, found.values.flatMap { it.methods }.filter { ONE_BAR_MODULES in it.strings() }
+            .flatMap { it.instructions() }.mapNotNull { (it as? ReferenceInstruction)?.reference as? MethodReference }
+            .filter { it.returnType == "Ljava/util/ArrayList;" && it.parameterTypes.size == 1 }.map { it.definingClass }
+            .toSet() - found.keys)
         // The search page's Recent searches block is the view whose cell list the cell builder reads.
         found += FixtureDex.classes(build, found.values.flatMap { it.methods }.filter { it.buildsRecentSearchCell() }
             .flatMap { it.fields() }.filter { it.type == ARRAY_LIST }.map { it.definingClass }.toSet() - found.keys)

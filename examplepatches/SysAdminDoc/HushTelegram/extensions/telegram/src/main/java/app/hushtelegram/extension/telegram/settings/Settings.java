@@ -67,13 +67,12 @@ public class Settings extends BaseSettings {
     public static final BooleanSetting HIDE_EMOJI_STATUS =
             new BooleanSetting("hushtelegram_hide_emoji_status", FALSE);
 
-    /** Premium, Turbo and Nox in the App Icon list switch like any other icon; the Premium page's preview stays stock. */
-    public static final BooleanSetting UNLOCK_PREMIUM_ICONS =
-            new BooleanSetting("hushtelegram_unlock_premium_icons", FALSE);
-
-    /** The chat list title's status picker works without Premium and keeps its pick on this phone; nothing is sent. */
-    public static final BooleanSetting LOCAL_EMOJI_STATUS =
-            new BooleanSetting("hushtelegram_local_emoji_status", FALSE);
+    /**
+     * Emoji statuses next to names loop instead of stopping after two plays. Telegram keeps each
+     * status's drawable for the whole run and sets its play count once, so a restart shows the change.
+     */
+    public static final BooleanSetting MOVING_EMOJI_STATUS =
+            new BooleanSetting("hushtelegram_moving_emoji_status", FALSE, true);
 
     /** Chat-list promotional presentation only; stored suggestions and account security stay stock. */
     public static final BooleanSetting HIDE_PROMOTIONAL_BANNERS =
@@ -179,6 +178,18 @@ public class Settings extends BaseSettings {
     public static final BooleanSetting SPECIAL_CONTACTS =
             new BooleanSetting("hushtelegram_special_contacts", FALSE);
 
+    /**
+     * A profile's menu and the chat list's long press menu offer Rename on this phone, and the
+     * names picked there show in place of Telegram's on this phone only (#104,
+     * {@link app.hushtelegram.extension.telegram.misc.LocalNames}).
+     */
+    public static final BooleanSetting LOCAL_NAMES =
+            new BooleanSetting("hushtelegram_local_names", FALSE);
+
+    /** The names Rename on this phone gave, one "dialog id, tab, name" line each, the same on every account. */
+    public static final StringSetting LOCAL_NAME_LIST =
+            new StringSetting("hushtelegram_local_name_list", "");
+
     public static final BooleanSetting DISABLE_DOUBLE_TAP_REACTIONS =
             new BooleanSetting("hushtelegram_disable_double_tap_reactions", FALSE);
 
@@ -281,6 +292,13 @@ public class Settings extends BaseSettings {
             new BooleanSetting("hushtelegram_hide_pinned_bar", FALSE);
 
     /**
+     * The translate bar at the top of every chat that can be translated, whatever language Telegram
+     * thinks the chat is in. {@link #HIDE_TRANSLATE_BAR} wins when both are on.
+     */
+    public static final BooleanSetting ALWAYS_SHOW_TRANSLATE_BAR =
+            new BooleanSetting("hushtelegram_always_show_translate_bar", FALSE);
+
+    /**
      * Member, subscriber, view, reply and reaction counts written in full instead of shortened to
      * 12.3K.
      */
@@ -305,6 +323,13 @@ public class Settings extends BaseSettings {
      */
     public static final BooleanSetting SEARCH_OPENS_QUOTES =
             new BooleanSetting("hushtelegram_search_opens_quotes", FALSE);
+
+    /**
+     * View-once and self-destructing photos and videos are drawn without the blur in the chat, with
+     * or without {@link #REVEAL_SPOILERS}. Opening one stays Telegram's timed viewer (#82).
+     */
+    public static final BooleanSetting REVEAL_TIMED_MEDIA =
+            new BooleanSetting("hushtelegram_reveal_timed_media", FALSE);
 
     /**
      * The keyboard closes when a finger starts scrolling through a chat, not only during a search.
@@ -343,6 +368,13 @@ public class Settings extends BaseSettings {
      */
     public static final BooleanSetting VIDEO_TRACKS =
             new BooleanSetting("hushtelegram_video_tracks", FALSE);
+
+    /**
+     * Tapping a video in a chat opens it in a player app instead of Telegram's viewer, streaming it
+     * from the phone when it isn't downloaded (#99).
+     */
+    public static final BooleanSetting EXTERNAL_PLAYER =
+            new BooleanSetting("hushtelegram_external_player", FALSE);
 
     /**
      * A swipe to the right on a profile's photos or media tabs goes back instead of to the previous
@@ -431,8 +463,6 @@ public class Settings extends BaseSettings {
      */
     public static final BooleanSetting HIDE_ALL_CHATS =
             new BooleanSetting("hushtelegram_hide_all_chats", FALSE, true);
-    public static final BooleanSetting MOVE_ALL_CHATS =
-            new BooleanSetting("hushtelegram_move_all_chats", FALSE, true);
 
     /**
      * The chats picked for each account leave the chat list, its folders and the archive
@@ -476,6 +506,13 @@ public class Settings extends BaseSettings {
             new BooleanSetting("hushtelegram_fit_all_tabs", FALSE);
 
     /**
+     * The folder tabs sit right above the bottom bar instead of under the chat list's header
+     * ({@link app.hushtelegram.extension.telegram.misc.BottomFolderTabs}).
+     */
+    public static final BooleanSetting FOLDER_TABS_BOTTOM =
+            new BooleanSetting("hushtelegram_folder_tabs_bottom", FALSE);
+
+    /**
      * Each folder tab above the chat list shows an icon for its kind of folder in front of its name
      * ({@link app.hushtelegram.extension.telegram.misc.TabIcons}). The tabs take it when they're
      * built, so a change waits for a restart.
@@ -492,18 +529,6 @@ public class Settings extends BaseSettings {
             new BooleanSetting("hushtelegram_sort_oldest_first", FALSE);
 
     /**
-     * The chat list's long press menu offers Pin on this phone, and the chats picked with it sit
-     * right under the pinned chats in All Chats ({@link app.hushtelegram.extension.telegram.misc.LocalPins}).
-     * Nothing goes to Telegram.
-     */
-    public static final BooleanSetting LOCAL_PINS =
-            new BooleanSetting("hushtelegram_local_pins", FALSE);
-
-    /** The chats Pin on this phone picked, as comma-separated dialog ids, the same on every account. */
-    public static final StringSetting LOCAL_PINNED_CHATS =
-            new StringSetting("hushtelegram_local_pinned_chats", "");
-
-    /**
      * Chat list avatars show at {@link #CHAT_LIST_AVATAR_SIZE} percent of Telegram's size
      * ({@link app.hushtelegram.extension.telegram.misc.ChatListAvatar}).
      */
@@ -513,6 +538,14 @@ public class Settings extends BaseSettings {
     /** The picked chat list avatar size, a percent of Telegram's: one of ChatListAvatar.CHOICES. */
     public static final IntegerSetting CHAT_LIST_AVATAR_SIZE =
             new IntegerSetting("hushtelegram_chat_list_avatar_size", 80).withRange(70, 120);
+
+    /**
+     * A tap on Saved Messages in the chat list opens its shared media page, as Telegram's View as
+     * Chats does, without changing that choice
+     * ({@link app.hushtelegram.extension.telegram.misc.SavedMedia}).
+     */
+    public static final BooleanSetting SAVED_MEDIA_FIRST =
+            new BooleanSetting("hushtelegram_saved_media_first", FALSE);
 
     /**
      * Forwards start with Telegram's Hide sender's name option turned on.
@@ -610,6 +643,21 @@ public class Settings extends BaseSettings {
     /** The picked sticker size, a percent of Telegram's: one of StickerSize.CHOICES. */
     public static final IntegerSetting STICKER_SIZE =
             new IntegerSetting("hushtelegram_sticker_size", 75).withRange(50, 150);
+
+    /**
+     * Telegram's automatic cache cleanup leaves sticker files alone
+     * ({@link app.hushtelegram.extension.telegram.misc.StickerCache}).
+     */
+    public static final BooleanSetting KEEP_STICKER_CACHE =
+            new BooleanSetting("hushtelegram_keep_sticker_cache", FALSE);
+
+    /**
+     * How wide the sticker panel's columns are, in dp: one of StickerPanel.CHOICES. Telegram's 72
+     * leaves the panel as it ships; a bigger one shows fewer, bigger stickers there and in its search
+     * ({@link app.hushtelegram.extension.telegram.misc.StickerPanel}).
+     */
+    public static final IntegerSetting STICKER_PANEL_SIZE =
+            new IntegerSetting("hushtelegram_sticker_panel_size", 72).withRange(72, 120);
 
     /**
      * A mention or a reply to you in a muted group or channel stays as quiet as the rest of the chat.
@@ -862,6 +910,23 @@ public class Settings extends BaseSettings {
             new BooleanSetting("hushtelegram_hide_new_message", FALSE, true);
 
     /**
+     * The Downloads button the chat list's top bar shows while a file downloads or one you haven't
+     * looked at yet is waiting stays hidden. The chat list asks again each time it comes back, so
+     * no restart is needed.
+     */
+    public static final BooleanSetting HIDE_DOWNLOADS_BUTTON =
+            new BooleanSetting("hushtelegram_hide_downloads_button", FALSE);
+
+    /**
+     * The chat list's top bar keeps its Downloads button even when nothing downloads or waits, so
+     * your downloads are one tap away. Search and the bar's other animations still hide it the way
+     * they hide it for a download, and {@link #HIDE_DOWNLOADS_BUTTON} wins. The chat list asks
+     * again each time it comes back, so no restart is needed.
+     */
+    public static final BooleanSetting ALWAYS_SHOW_DOWNLOADS_BUTTON =
+            new BooleanSetting("hushtelegram_always_show_downloads_button", FALSE);
+
+    /**
      * The bar at the bottom of the main screen gets a thin Telegram blue outline. Its glass reads the
      * outline when the main screen is built, so a restart shows the change.
      */
@@ -905,7 +970,7 @@ public class Settings extends BaseSettings {
      * With {@link #SAVE_DOWNLOADS} on, view-once and self-destructing photos, videos, voice and
      * round videos get a copy too, decrypted from Telegram's cache. A chat that doesn't allow saving
      * needs {@link #SAVE_RESTRICTED_DOWNLOADS} as well, and a secret chat {@link #SAVE_SECRET_CHATS} on
-     * top of that. Starts off,
+     * top of that. The message menu's Save to Downloads offers them too (#82). Starts off,
      * since it goes past the sender's choice (#9).
      */
     public static final BooleanSetting SAVE_TIMED_MEDIA =
@@ -1055,15 +1120,15 @@ public class Settings extends BaseSettings {
     /** A downloaded file in a chat that doesn't allow saving gets Save to Downloads in its long-press menu (#29). */
     public static final BooleanSetting MESSAGE_MENU_SAVE_PROTECTED =
             new BooleanSetting("hushtelegram_message_menu_save_protected", FALSE);
-    /** A story's three-dot menu gets Save to Gallery without Premium, on stories that don't allow saving too (#52). */
-    public static final BooleanSetting STORY_SAVE_BUTTON =
-            new BooleanSetting("hushtelegram_story_save_button", FALSE);
     /** Screenshots and screen recording work in chats, profiles, photos and stories that don't allow saving (Discussion #34). */
     public static final BooleanSetting ALLOW_SCREENSHOTS =
             new BooleanSetting("hushtelegram_allow_screenshots", FALSE);
     /** With {@link #ALLOW_SCREENSHOTS} on, secret chats, their profiles and their photos can be captured too (#82). */
     public static final BooleanSetting SECRET_CHAT_SCREENSHOTS =
             new BooleanSetting("hushtelegram_encrypted_chat_screenshots", FALSE);
+    /** With {@link #ALLOW_SCREENSHOTS} on, the screen that opens view-once and timed media can be captured too (#82). */
+    public static final BooleanSetting TIMED_MEDIA_SCREENSHOTS =
+            new BooleanSetting("hushtelegram_timed_media_screenshots", FALSE);
     /** A message in a chat that doesn't allow forwarding gets Forward as copy in its long-press menu (#46, #47). */
     public static final BooleanSetting MESSAGE_MENU_FORWARD_COPY =
             new BooleanSetting("hushtelegram_message_menu_forward_copy", FALSE);
@@ -1111,6 +1176,10 @@ public class Settings extends BaseSettings {
     /** Edit a copy in the message menu (#79): a photo opened in Telegram's photo editor, the edited copy sent to the chat ({@link app.hushtelegram.extension.telegram.misc.PhotoEdit}). */
     public static final BooleanSetting MESSAGE_MENU_EDIT_COPY =
             new BooleanSetting("hushtelegram_message_menu_edit_copy", FALSE);
+
+    /** Send photo in the link preview menu (#101): the preview's picture sent to the chat ({@link app.hushtelegram.extension.telegram.misc.LinkPreviewPhoto}). */
+    public static final BooleanSetting LINK_PREVIEW_PHOTO =
+            new BooleanSetting("hushtelegram_link_preview_photo", FALSE);
 
     /** Also delete for, checked from the start in Telegram's delete messages dialog (#83) ({@link app.hushtelegram.extension.telegram.misc.MessageMenu#alsoDeleteChecked}). */
     public static final BooleanSetting ALSO_DELETE_CHECKED =
@@ -1442,15 +1511,6 @@ public class Settings extends BaseSettings {
      */
     public static final BooleanSetting SUPPRESS_SCREENSHOT_NOTIFICATION =
             new BooleanSetting("hushtelegram_suppress_screenshot_notification", FALSE);
-
-    /**
-     * The app behaves as if the account has Telegram Premium, locally only. The server still knows
-     * the real status, so server-enforced limits stay. Unlocks client-side Premium features like
-     * doubled limits, extra reactions, no ads and faster downloads
-     * ({@link app.hushtelegram.extension.telegram.misc.PremiumUnlock}).
-     */
-    public static final BooleanSetting UNLOCK_PREMIUM =
-            new BooleanSetting("hushtelegram_unlock_premium", FALSE);
 
     /**
      * Content restrictions on channels and chats (no forwards, no saving) are bypassed locally.

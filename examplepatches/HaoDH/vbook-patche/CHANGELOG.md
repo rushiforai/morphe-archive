@@ -1,3 +1,9 @@
+## [1.3.0](https://github.com/HaoDH/vbook-patche/compare/v1.2.0...v1.3.0) (2026-11-25)
+
+### ✨ New Features
+
+* support vBook 1.2.9 with verified Premium class mappings ([47a6eff](https://github.com/HaoDH/vbook-patche/commit/47a6eff30665a83c211a5e864e81fa9867b95758))
+
 ## [1.2.0](https://github.com/HaoDH/vbook-patche/compare/v1.1.0...v1.2.0) (2026-11-21)
 
 ### ✨ New Features

@@ -155,6 +155,29 @@ public class HighestQualityTest {
     }
 
     @Test
+    public void aStreamStartedWithTheSwitchOffKeepsAQualityPickedByHand() {
+        FakePlayer player = new FakePlayer().with(P720, P1080);
+        HighestQuality.seenWithoutIt(player); // the stream starts, the switch off
+        // the switch turned on in it, then 720p picked by hand (the hook runs again on each pick)
+        player.setQuality(P720);
+        HighestQuality.apply(player);
+        assertEquals("picked by hand: it stays", P720, player.quality);
+        // from the next stream on, the switch counts
+        player.session = "s2";
+        HighestQuality.apply(player);
+        assertEquals(P1080, player.quality);
+    }
+
+    @Test
+    public void anAdsUnnamedQualitiesDontUseUpTheStream() {
+        FakePlayer player = new FakePlayer().with(new Quality("", 720, 30, 1));
+        HighestQuality.apply(player);
+        player.with(P720, P1080); // the stream's own, later in the same session
+        HighestQuality.apply(player);
+        assertEquals(P1080, player.quality);
+    }
+
+    @Test
     public void theNextStreamOnTheSamePlayerStartsAtItsHighestToo() {
         FakePlayer player = new FakePlayer().with(P720, P1080);
         HighestQuality.apply(player);

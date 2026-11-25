@@ -34,7 +34,9 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.Executor;
+import java.util.concurrent.TimeUnit;
 
 import app.hushtelegram.extension.shared.SettingsContextRule;
 import app.hushtelegram.extension.shared.Utils;
@@ -70,6 +72,15 @@ public class ProtectedForwardTest {
         final List<String> sent = new ArrayList<>();
         final Set<Long> secretChats = new HashSet<>();
         final Map<Message, File> afterLoad = new HashMap<>();
+        /** How many starts a download takes before its file arrives; one when not listed. */
+        final Map<Message, Integer> startsNeeded = new HashMap<>();
+        /** How many more looks a running download lasts, its file arriving on the last. */
+        final Map<Message, Integer> runningFor = new HashMap<>();
+        final Map<Message, Integer> starts = new HashMap<>();
+        Message stuck;
+        final CountDownLatch release = new CountDownLatch(1);
+        final CountDownLatch textSent = new CountDownLatch(1);
+        final CountDownLatch videoSent = new CountDownLatch(1);
 
         @Override public boolean secret(long dialog) { return secretChats.contains(dialog); }
 
@@ -83,17 +94,37 @@ public class ProtectedForwardTest {
 
         @Override public String documentName(Object message) { return ((Message) message).documentName; }
 
-        @Override public File file(Object message) { return ((Message) message).file; }
+        @Override public File file(Object message) {
+            if (message == stuck) {
+                try {
+                    release.await();
+                } catch (InterruptedException stopped) {
+                    Thread.currentThread().interrupt();
+                }
+            }
+            return ((Message) message).file;
+        }
 
         @Override public boolean load(Object message) {
             Message m = (Message) message;
             if (!m.document) return false;
-            m.file = afterLoad.get(m);
+            int count = starts.merge(m, 1, Integer::sum);
+            if (count >= startsNeeded.getOrDefault(m, 1)) m.file = afterLoad.get(m);
+            return true;
+        }
+
+        @Override public boolean loading(Object message) {
+            Message m = (Message) message;
+            int left = runningFor.getOrDefault(m, 0);
+            if (left == 0) return false;
+            runningFor.put(m, left - 1);
+            if (left == 1) m.file = afterLoad.get(m);
             return true;
         }
 
         @Override public boolean sendText(int account, long dialog, String text) {
             sent.add("text " + account + " " + dialog + " " + text);
+            textSent.countDown();
             return true;
         }
 
@@ -104,6 +135,7 @@ public class ProtectedForwardTest {
 
         @Override public boolean sendVideo(int account, long dialog, String path, String caption) {
             sent.add("video " + new File(path).getName() + " " + caption);
+            videoSent.countDown();
             return true;
         }
 
@@ -120,22 +152,27 @@ public class ProtectedForwardTest {
     private ProtectedForward.Telegram realTelegram;
     private Executor realWork;
     private long realWait;
+    private long realPoll;
 
     @Before public void setUp() {
         realTelegram = ProtectedForward.telegram;
         realWork = ProtectedForward.work;
         realWait = ProtectedForward.waitMs;
+        realPoll = ProtectedForward.pollMs;
         telegram = new FakeTelegram();
         ProtectedForward.telegram = telegram;
         ProtectedForward.work = Runnable::run;
+        ProtectedForward.pollMs = 0;
         Settings.BYPASS_CHANNEL_RESTRICTIONS.resetToDefault();
         HookStatus.clear();
     }
 
     @After public void tearDown() {
+        telegram.release.countDown();
         ProtectedForward.telegram = realTelegram;
         ProtectedForward.work = realWork;
         ProtectedForward.waitMs = realWait;
+        ProtectedForward.pollMs = realPoll;
         Settings.BYPASS_CHANNEL_RESTRICTIONS.resetToDefault();
         HookStatus.clear();
         ShadowToast.reset();
@@ -239,6 +276,95 @@ public class ProtectedForwardTest {
         shadowOf(Looper.getMainLooper()).idle();
         assertTrue(telegram.sent.isEmpty());
         assertEquals("Open it first to download it", ShadowToast.getTextOfLatestToast());
+    }
+
+    /** Telegram drops a download when a video preview lets go of the same file (#84). */
+    @Test public void aDownloadThatStoppedIsStartedAgainAndTheVideoStillGoesOut() throws IOException {
+        Settings.BYPASS_CHANNEL_RESTRICTIONS.save(true);
+        Message video = new Message(3, true, null);
+        video.document = true;
+        telegram.afterLoad.put(video, file("clip.mp4"));
+        telegram.startsNeeded.put(video, 2);
+
+        assertNull(ProtectedForward.held(new ArrayList<>(Arrays.asList(video)), CHANNEL));
+
+        assertEquals(Integer.valueOf(2), telegram.starts.get(video));
+        assertEquals(Arrays.asList("video clip.mp4 null"), telegram.sent);
+    }
+
+    @Test public void aDownloadStillRunningIsLeftToFinish() throws IOException {
+        Settings.BYPASS_CHANNEL_RESTRICTIONS.save(true);
+        Message video = new Message(3, true, null);
+        video.document = true;
+        telegram.afterLoad.put(video, file("clip.mp4"));
+        telegram.startsNeeded.put(video, Integer.MAX_VALUE);
+        telegram.runningFor.put(video, 40);
+
+        assertNull(ProtectedForward.held(new ArrayList<>(Arrays.asList(video)), CHANNEL));
+
+        assertEquals(Integer.valueOf(1), telegram.starts.get(video));
+        assertEquals(Arrays.asList("video clip.mp4 null"), telegram.sent);
+    }
+
+    @Test public void aDownloadThatKeepsStoppingGivesUpAndSaysSo() {
+        Settings.BYPASS_CHANNEL_RESTRICTIONS.save(true);
+        Message video = new Message(3, true, null);
+        video.document = true;
+        telegram.startsNeeded.put(video, Integer.MAX_VALUE);
+
+        assertNull(ProtectedForward.held(new ArrayList<>(Arrays.asList(video)), CHANNEL));
+
+        shadowOf(Looper.getMainLooper()).idle();
+        assertEquals(Integer.valueOf(1 + ProtectedForward.MAX_RESTARTS), telegram.starts.get(video));
+        assertTrue(telegram.sent.isEmpty());
+        assertEquals("Couldn't download that. Try again.", ShadowToast.getTextOfLatestToast());
+    }
+
+    @Test public void aDownloadThatRunsOutOfTimeSaysSo() {
+        Settings.BYPASS_CHANNEL_RESTRICTIONS.save(true);
+        ProtectedForward.waitMs = 0;
+        Message video = new Message(3, true, null);
+        video.document = true;
+
+        assertNull(ProtectedForward.held(new ArrayList<>(Arrays.asList(video)), CHANNEL));
+
+        shadowOf(Looper.getMainLooper()).idle();
+        assertTrue(telegram.sent.isEmpty());
+        assertEquals("Couldn't download that. Try again.", ShadowToast.getTextOfLatestToast());
+    }
+
+    @Test public void aForwardThatHasToDownloadSaysSoOnce() throws IOException {
+        Settings.BYPASS_CHANNEL_RESTRICTIONS.save(true);
+        Message first = new Message(3, true, null);
+        first.document = true;
+        telegram.afterLoad.put(first, file("first.mp4"));
+        Message second = new Message(3, true, null);
+        second.document = true;
+        telegram.afterLoad.put(second, file("second.mp4"));
+
+        assertNull(ProtectedForward.held(new ArrayList<>(Arrays.asList(first, second)), CHANNEL));
+
+        shadowOf(Looper.getMainLooper()).idle();
+        assertEquals(1, ShadowToast.shownToastCount());
+        assertEquals("Downloading it first. It'll send when it's done.", ShadowToast.getTextOfLatestToast());
+        assertEquals(Arrays.asList("video first.mp4 null", "video second.mp4 null"), telegram.sent);
+    }
+
+    /** One forward waiting on a long download used to hold back every forward after it (#84). */
+    @Test public void aForwardWaitingOnADownloadDoesNotHoldUpTheNextOne() throws InterruptedException, IOException {
+        Settings.BYPASS_CHANNEL_RESTRICTIONS.save(true);
+        ProtectedForward.work = realWork;
+        Message video = new Message(3, true, null);
+        video.file = file("clip.mp4");
+        telegram.stuck = video;
+        Message text = new Message(0, true, "goes out anyway");
+
+        assertNull(ProtectedForward.held(new ArrayList<>(Arrays.asList(video)), CHANNEL));
+        assertNull(ProtectedForward.held(new ArrayList<>(Arrays.asList(text)), CHANNEL));
+
+        assertTrue("the second forward never ran", telegram.textSent.await(10, TimeUnit.SECONDS));
+        telegram.release.countDown();
+        assertTrue("the first forward never finished", telegram.videoSent.await(10, TimeUnit.SECONDS));
     }
 
     @Test public void theStockAnswerModeGivesTelegramsOwnAnswerOnlyWhileOn() {

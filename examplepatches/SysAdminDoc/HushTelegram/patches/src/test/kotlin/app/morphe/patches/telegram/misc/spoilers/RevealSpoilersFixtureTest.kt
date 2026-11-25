@@ -45,6 +45,11 @@ import app.morphe.util.names.tgClassDefByOrNull
 import app.morphe.util.names.tgMutableClassDefBy
 
 private const val SEND_PARAMS = "Lorg/telegram/messenger/SendMessagesHelper\$SendMessageParams;"
+private const val BLUR_CHECK = "$MESSAGE_OBJECT->needDrawBluredPreview()Z"
+private const val BLURRED_HOOK = "$SPOILERS->blurred(Ljava/lang/Object;)Z"
+private const val FORCE_PREVIEW = "Lorg/telegram/messenger/ImageReceiver;->setForcePreview(Z)V"
+private const val CAN_DOWNLOAD = "Lorg/telegram/messenger/DownloadController;->canDownloadMedia($MESSAGE_OBJECT)Z"
+private const val LOADS_PHOTO = "$SPOILERS->loadsPhoto(Ljava/lang/Object;Ljava/lang/Object;)Z"
 private const val CORE = "(Landroid/view/View;Landroid/text/Layout;IILandroid/text/Spanned;Ljava/util/Stack;Ljava/util/List;Ljava/util/ArrayList;)V"
 
 /** MessageObject, SpoilerEffect and its span, every class that checks media spoilers, and the runtime. */
@@ -54,8 +59,11 @@ class RevealSpoilersFixtureTest {
             val name = build.name
             val context = context(build)
             val site = context.resolveRevealSpoilers()
-            val changed = (site.media.map { key(it.method) } + key(site.textCovers)).toSet()
-            val old = (site.media.map { it.method } + site.textCovers).associate { key(it) to ImmutableMethod.of(it) }
+            val timed = context.resolveTimedBlur()
+            assertEquals("$name: ${timed.missing}", null, timed.missing)
+            assertEquals("$name: four blur checks and the photo check in one method", listOf(5, 1), listOf(timed.sites.size, timed.sites.map { it.method }.distinct().size))
+            val changed = (site.media.map { key(it.method) } + timed.sites.map { key(it.method) } + key(site.textCovers)).toSet()
+            val old = (site.media.map { it.method } + timed.sites.map { it.method } + site.textCovers).associate { key(it) to ImmutableMethod.of(it) }
             val untouched = hostState(build, context, changed)
             // These hosts leave out the text block class the chat's menu and search hits read, so
             // only those two step aside (ChatRevealFixtureTest covers them).
@@ -83,9 +91,10 @@ class RevealSpoilersFixtureTest {
             assertTrue("$name: nothing jumps into the hook", (6 until b.normal.size).none { from -> b.normal[from].any { it in 1..5 } })
 
             // Media: one instruction each, same registers, same paths.
-            for (method in site.media.map { it.method }.distinct()) {
+            for (method in (site.media + timed.sites).map { it.method }.distinct()) {
                 val stock = old.getValue(key(method))
                 val indices = site.media.filter { it.method === method }.map { it.index }.toSet()
+                val blurChecks = timed.sites.filter { it.method === method }.map { it.index }.toSet()
                 val was = stock.controlBody()
                 val now = method.controlBody()
                 assertEquals("$name: same length", was.size, now.size)
@@ -94,6 +103,12 @@ class RevealSpoilersFixtureTest {
                         assertEquals(HAS_MEDIA_SPOILERS, was[i].controlRef())
                         assertEquals(if (was[i].opcode == Opcode.INVOKE_VIRTUAL_RANGE) Opcode.INVOKE_STATIC_RANGE else Opcode.INVOKE_STATIC, now[i].opcode)
                         assertEquals("$SPOILERS->mediaCovered(Ljava/lang/Object;)Z", now[i].controlRef())
+                        assertEquals("$name: the message", was[i].namedRegisters(), now[i].namedRegisters())
+                    } else if (i in blurChecks) {
+                        val photo = was[i].controlRef() == CAN_DOWNLOAD
+                        assertEquals(if (photo) CAN_DOWNLOAD else BLUR_CHECK, was[i].controlRef())
+                        assertEquals(if (was[i].opcode == Opcode.INVOKE_VIRTUAL_RANGE) Opcode.INVOKE_STATIC_RANGE else Opcode.INVOKE_STATIC, now[i].opcode)
+                        assertEquals(if (photo) LOADS_PHOTO else BLURRED_HOOK, now[i].controlRef())
                         assertEquals("$name: the message", was[i].namedRegisters(), now[i].namedRegisters())
                     } else {
                         assertEquals("$name: stock operand $i of ${method.name}", was[i].operand(), now[i].operand())
@@ -117,10 +132,78 @@ class RevealSpoilersFixtureTest {
             assertEquals(HAS_MEDIA_SPOILERS, stub("stockMediaCovered")[1].controlRef())
             assertEquals(listOf("$MESSAGE_OBJECT->needDrawBluredPreview()Z", "$MESSAGE_OBJECT->isHiddenSensitive()Z"),
                 stub("keptCovered").filter { it.opcode == Opcode.INVOKE_VIRTUAL }.map { it.controlRef() })
+            assertEquals(listOf(Opcode.CHECK_CAST, Opcode.INVOKE_VIRTUAL, Opcode.MOVE_RESULT, Opcode.RETURN), stub("stockBlurred").map { it.opcode })
+            assertEquals(BLUR_CHECK, stub("stockBlurred")[1].controlRef())
+            assertEquals(listOf(Opcode.CHECK_CAST, Opcode.CHECK_CAST, Opcode.INVOKE_VIRTUAL, Opcode.MOVE_RESULT, Opcode.RETURN), stub("stockLoadsPhoto").map { it.opcode })
+            assertEquals(CAN_DOWNLOAD, stub("stockLoadsPhoto")[2].controlRef())
+            assertEquals("$name: timed means blurred, and neither paid nor sensitive",
+                listOf(BLUR_CHECK, "$MESSAGE_OBJECT->hasExtendedMediaPreview()Z", "$MESSAGE_OBJECT->isHiddenSensitive()Z"),
+                stub("timedPreview").filter { it.opcode == Opcode.INVOKE_VIRTUAL }.map { it.controlRef() })
             fun flag(name: String) = (context.tgMutableClassDefBy(SETTINGS_STATUS).methods.single { it.origName == name }.controlBody().first() as WideLiteralInstruction).wideLiteral
             assertEquals(1L, flag("revealSpoilers"))
+            assertEquals("$name: timed media", 1L, flag("revealTimedMedia"))
             assertEquals("$name: no chat menu", 0L, flag("chatRevealMenu"))
             assertEquals("$name: no search hits", 0L, flag("searchHitQuotes"))
+        }
+    }
+
+    @Test fun `only the bubble's blur checks change, so a tap still opens the timed viewer`() {
+        for (build in Fixtures.declaredBuilds()) {
+            val context = context(build)
+            val blurMethod = context.resolveTimedBlur().sites.first().method
+            val others = hosts(build).flatMap { context.tgMutableClassDefBy(it.type).methods }.filter { key(it) != key(blurMethod) }
+                .map { m -> key(m) to m.controlBody().count { it.controlRef() == BLUR_CHECK } }.filter { it.second > 0 }
+            PatchLogCapture.warnings { revealSpoilersPatch.execute(context) }
+            assertEquals("${build.name}: every other check still asks Telegram", others,
+                hosts(build).flatMap { context.tgMutableClassDefBy(it.type).methods }.filter { key(it) != key(blurMethod) }
+                    .map { m -> key(m) to m.controlBody().count { it.controlRef() == BLUR_CHECK } }.filter { it.second > 0 })
+        }
+    }
+
+    @Test fun `with the timed switch the bubble can load and draw the full photo`() {
+        for (build in Fixtures.declaredBuilds()) {
+            val name = build.name
+            val context = context(build)
+            val method = context.resolveTimedBlur().sites.first().method
+            val stock = method.controlBody().toList()
+            val preview = stock.indices.single { stock[it].controlRef() == FORCE_PREVIEW && it >= 2 && stock[it - 2].controlRef() == BLUR_CHECK }
+            PatchLogCapture.warnings { revealSpoilersPatch.execute(context) }
+            val now = method.controlBody()
+            assertEquals("$name: the photo view stops forcing the thumbnail", BLURRED_HOOK, now[preview - 2].controlRef())
+            val load = now.indices.single { now[it].controlRef() == LOADS_PHOTO }
+            assertEquals("$name: the download check of a photo", CAN_DOWNLOAD, stock[load].controlRef())
+            assertTrue("$name: right after the file check", (load - 12 until load).any { stock[it].controlRef() == "$MESSAGE_OBJECT->mediaExists:Z" })
+            assertTrue("$name: right before the loading check", (load + 2..load + 12).any { stock[it].controlRef() == "Lorg/telegram/messenger/FileLoader;->isLoadingFile(Ljava/lang/String;)Z" })
+            assertEquals("$name: every other download check stays", stock.count { it.controlRef() == CAN_DOWNLOAD } - 1, now.count { it.controlRef() == CAN_DOWNLOAD })
+        }
+    }
+
+    @Test fun `a moved photo check costs only the timed media switch`() {
+        for (build in Fixtures.declaredBuilds()) {
+            val context = context(build)
+            val method = context.resolveTimedBlur().sites.first().method
+            method.controlBody().withIndex().filter { it.value.controlRef() == "Lorg/telegram/messenger/FileLoader;->isLoadingFile(Ljava/lang/String;)Z" }
+                .forEach { method.replaceInstruction(it.index, "nop") }
+            val warned = PatchLogCapture.warnings { revealSpoilersPatch.execute(context) }
+            assertTrue("${build.name}: $warned", warned.any { it.endsWith("goes on without showing view-once and timed media unblurred.") })
+            assertEquals("${build.name}: nothing loads through the runtime", false, method.controlBody().any { it.controlRef() == LOADS_PHOTO })
+        }
+    }
+
+    @Test fun `a moved blur check costs only the timed media switch`() {
+        for (build in Fixtures.declaredBuilds()) {
+            val context = context(build)
+            val check = context.resolveTimedBlur().sites.last()
+            check.method.replaceInstruction(check.index + 1, "nop")
+            val warned = PatchLogCapture.warnings { revealSpoilersPatch.execute(context) }
+            assertTrue("${build.name}: $warned", warned.any { it.endsWith("goes on without showing view-once and timed media unblurred.") })
+            fun status(name: String) = (context.tgMutableClassDefBy(SETTINGS_STATUS).methods.single { it.origName == name }.controlBody().first() as WideLiteralInstruction).wideLiteral
+            assertEquals(build.name, 1L, status("revealSpoilers"))
+            assertEquals(build.name, 0L, status("revealTimedMedia"))
+            assertEquals("${build.name}: nothing asks the runtime about the blur", false, hosts(build).flatMap { context.tgMutableClassDefBy(it.type).methods }
+                .any { m -> m.controlBody().any { it.controlRef() == "$SPOILERS->blurred(Ljava/lang/Object;)Z" } })
+            val preview = context.tgMutableClassDefBy(SPOILERS).methods.single { it.origName == "timedPreview" }.controlBody()
+            assertEquals("${build.name}: the switch stays without effect", listOf(Opcode.CONST_4, Opcode.RETURN), preview.map { it.opcode })
         }
     }
 
@@ -160,6 +243,11 @@ class RevealSpoilersFixtureTest {
                 "private media hook" to { c, _ -> val h = c.tgMutableClassDefBy(SPOILERS).methods.single { it.origName == "mediaCovered" }
                     h.accessFlags = h.accessFlags and AccessFlags.PUBLIC.value.inv() or AccessFlags.PRIVATE.value },
                 "missing kept stub" to { c, _ -> c.tgMutableClassDefBy(SPOILERS).methods.removeAll { it.origName == "keptCovered" } },
+                "missing blur hook" to { c, _ -> c.tgMutableClassDefBy(SPOILERS).methods.removeAll { it.origName == "blurred" } },
+                "missing timed stub" to { c, _ -> c.tgMutableClassDefBy(SPOILERS).methods.removeAll { it.origName == "timedPreview" } },
+                "missing photo hook" to { c, _ -> c.tgMutableClassDefBy(SPOILERS).methods.removeAll { it.origName == "loadsPhoto" } },
+                "missing photo stub" to { c, _ -> c.tgMutableClassDefBy(SPOILERS).methods.removeAll { it.origName == "stockLoadsPhoto" } },
+                "missing timed build flag" to { c, _ -> c.tgMutableClassDefBy(SETTINGS_STATUS).methods.removeAll { it.origName == "revealTimedMedia" } },
             )
             for ((case, change) in mutations) {
                 val c = context(build)

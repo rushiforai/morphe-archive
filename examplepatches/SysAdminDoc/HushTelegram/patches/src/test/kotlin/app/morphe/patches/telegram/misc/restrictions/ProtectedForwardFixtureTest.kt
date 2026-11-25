@@ -21,6 +21,7 @@ import app.morphe.util.names.origRef
 import app.morphe.util.names.tgMutableClassDefBy
 import com.android.tools.smali.dexlib2.AccessFlags
 import com.android.tools.smali.dexlib2.Opcode
+import com.android.tools.smali.dexlib2.iface.instruction.NarrowLiteralInstruction
 import com.android.tools.smali.dexlib2.immutable.ImmutableMethod
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
@@ -77,8 +78,27 @@ class ProtectedForwardFixtureTest {
 
             fun calls(stub: String) = context.tgMutableClassDefBy(PROTECTED_FORWARD).methods.single { it.origName == stub }
                 .implementation!!.instructions.mapNotNull { it.origRef() }
+            val loader = "Lorg/telegram/messenger/FileLoader;"
+            val load = calls("load")
             assertTrue("$name: load starts the document's download",
-                "Lorg/telegram/messenger/FileLoader;->loadFile(Lorg/telegram/tgnet/TLRPC\$Document;Ljava/lang/Object;II)V" in calls("load"))
+                "$loader->loadFile(Lorg/telegram/tgnet/TLRPC\$Document;Ljava/lang/Object;II)V" in load)
+            assertTrue("$name: load starts the photo's download",
+                "$loader->loadFile(Lorg/telegram/messenger/ImageLocation;Ljava/lang/Object;Ljava/lang/String;II)V" in load)
+            val priorities = context.tgMutableClassDefBy(PROTECTED_FORWARD).methods.single { it.origName == "load" }
+                .implementation!!.instructions.filter { it.opcode == Opcode.CONST_4 }.map { (it as NarrowLiteralInstruction).narrowLiteral }
+            assertEquals("$name: both downloads at the priority of a tap", 2, priorities.count { it == 2 })
+
+            // A video's chosen quality first (#84): the message's own document is another file.
+            val file = calls("messageFile")
+            val shown = file.indexOf("Lorg/telegram/messenger/MessageObject;->getDocument()Lorg/telegram/tgnet/TLRPC\$Document;")
+            val attach = file.indexOf("$loader->getPathToAttach(Lorg/telegram/tgnet/TLObject;Z)Ljava/io/File;")
+            val original = file.indexOf("$loader->getPathToMessage(Lorg/telegram/tgnet/TLRPC\$Message;)Ljava/io/File;")
+            assertTrue("$name: the shown document, its file, then the message's: $file", shown in 0 until attach && attach < original)
+
+            val loading = calls("loading")
+            assertTrue("$name: loading asks Telegram", "$loader->isLoadingFile(Ljava/lang/String;)Z" in loading)
+            val closest = "$loader->getClosestPhotoSizeWithSize(Ljava/util/ArrayList;IZLorg/telegram/tgnet/TLRPC\$PhotoSize;Z)Lorg/telegram/tgnet/TLRPC\$PhotoSize;"
+            assertTrue("$name: load and loading pick the photo size alike", closest in load && closest in loading)
             assertTrue("$name: restricted asks the chat", "Lorg/telegram/messenger/MessagesController;->isPeerNoForwards(J)Z" in calls("restricted"))
             assertTrue("$name: secret asks Telegram", "Lorg/telegram/messenger/DialogObject;->isEncryptedDialog(J)Z" in calls("secret"))
             for ((stub, send) in listOf("sendText" to site.text, "sendPhoto" to site.photo, "sendVideo" to site.video, "sendFile" to site.document)) {

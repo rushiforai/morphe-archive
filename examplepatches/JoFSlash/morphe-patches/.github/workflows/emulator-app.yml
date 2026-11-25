@@ -6,7 +6,7 @@ name: App emulator test
 # on. What each app needs (its APK in JoFSlash/morphe-apks, the Android versions, the check script)
 # is in .github/apps/<app>.json, so adding an app adds files and changes none of the shared ones.
 #
-# Each app's emulator-<app>.yml runs this for its own pull requests; the release runs it for every
+# emulator-pr.yml runs this for the apps a pull request changes; the release runs it for every
 # app in .github/apps.
 #
 # The patches are built once per run, not on every emulator: the release builds them once for all
@@ -100,7 +100,7 @@ jobs:
         run: bash .github/scripts/gradle-retry.sh :patches:buildAndroid --no-daemon
 
       - name: Keep the bundle for the emulators
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: bundle-${{ inputs.app }}
           path: patches/build/libs/*.mpp
@@ -149,7 +149,7 @@ jobs:
 
       - name: Get the patch bundle
         if: steps.token.outputs.skip != 'true'
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         with:
           name: ${{ inputs.bundle || format('bundle-{0}', inputs.app) }}
           path: patches/build/libs
@@ -214,6 +214,9 @@ jobs:
           target: google_apis
           arch: x86_64
           disable-animations: true
+          # An app's matrix entry can pick the emulator's GPU mode with "gpu" (the default is the
+          # runner action's swiftshader_indirect).
+          emulator-options: -no-window -gpu ${{ matrix.gpu || 'swiftshader_indirect' }} -no-snapshot -noaudio -no-boot-anim
           # Waits until Android has started, runs the app's check commands, and runs one again when
           # the emulator (not the app) fails.
           script: python3 .github/scripts/emulator_run.py "$APP"

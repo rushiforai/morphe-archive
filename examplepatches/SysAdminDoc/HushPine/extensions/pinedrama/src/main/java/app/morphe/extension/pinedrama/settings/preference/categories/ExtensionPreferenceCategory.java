@@ -51,6 +51,7 @@ public class ExtensionPreferenceCategory extends ConditionalPreferenceCategory {
                 || SettingsStatus.searchAutoplayEnabled
                 || SettingsStatus.keepFavoritesTabEnabled
                 || SettingsStatus.keepListPositionEnabled
+                || SettingsStatus.listToolsEnabled
                 || SettingsStatus.promotionalBannersEnabled
                 || SettingsStatus.profileShortcutsEnabled
                 || SettingsStatus.profileBackgroundEnabled
@@ -178,7 +179,7 @@ public class ExtensionPreferenceCategory extends ConditionalPreferenceCategory {
             ));
         }
         if (SettingsStatus.keepFavoritesTabEnabled || SettingsStatus.keepListPositionEnabled
-                || SettingsStatus.promotionalBannersEnabled
+                || SettingsStatus.listToolsEnabled || SettingsStatus.promotionalBannersEnabled
                 || SettingsStatus.profileShortcutsEnabled || SettingsStatus.profileBackgroundEnabled) {
             addPreference(new SectionHeadingPreference(context, "Profile"));
         }
@@ -189,6 +190,22 @@ public class ExtensionPreferenceCategory extends ConditionalPreferenceCategory {
                     "Stops these lists jumping back to the top when you switch tabs or come back "
                             + "from a video. A list you haven't scrolled still updates.",
                     Settings.KEEP_LIST_POSITION
+            ));
+        }
+        if (SettingsStatus.listToolsEnabled) {
+            addPreference(new TogglePreference(
+                    context,
+                    "Search History and Favorites",
+                    "Puts a search bar above these lists. It looks through the whole list, loading "
+                            + "the rest as it goes, and tapping a result opens it.",
+                    Settings.LIST_SEARCH
+            ));
+            addPreference(new TogglePreference(
+                    context,
+                    "Tap the tab you're on to go back to the top",
+                    "Tapping the tab you're already on in History or Favorites takes that list back "
+                            + "to its first row.",
+                    Settings.LIST_TAB_TO_TOP
             ));
         }
         if (SettingsStatus.keepFavoritesTabEnabled) {

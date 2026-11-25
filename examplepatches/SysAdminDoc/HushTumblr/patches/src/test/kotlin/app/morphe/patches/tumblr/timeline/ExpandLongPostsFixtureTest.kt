@@ -140,10 +140,10 @@ class ExpandLongPostsFixtureTest {
             val calls = steps.mapNotNull { it.methodRef()?.toString() }
             assertEquals(
                 listOf(
-                    "$TIMELINE_FRAGMENT->z5()$TIMELINE_ADAPTER", "$GRAYWATER_ADAPTER->f0()Ljava/util/List;",
+                    "$TIMELINE_FRAGMENT->B5()$TIMELINE_ADAPTER", "$GRAYWATER_ADAPTER->f0()Ljava/util/List;",
                     "Ljava/util/List;->indexOf(Ljava/lang/Object;)I", "$TIMELINE_CARD->l()Lcom/tumblr/rumblr/model/Timelineable;",
-                    "$POST_BASE->C1()Z", "$COMPOSED_POST->l2(Z)V", "$GRAYWATER_ADAPTER->y0(IZ)Ljava/lang/Object;",
-                    "$GRAYWATER_ADAPTER->U(ILjava/lang/Object;Z)V", "$RECYCLER_ADAPTER->x()V",
+                    "$POST_BASE->E1()Z", "$COMPOSED_POST->n2(Z)V", "$GRAYWATER_ADAPTER->y0(IZ)Ljava/lang/Object;",
+                    "$GRAYWATER_ADAPTER->V(ILjava/lang/Object;Z)V", "$RECYCLER_ADAPTER->x()V",
                 ),
                 calls,
             )
@@ -155,8 +155,8 @@ class ExpandLongPostsFixtureTest {
             val branches = steps.indices.filter { steps[it] is OffsetInstruction }
             assertEquals(build.name, 6, branches.size)
             for (k in branches) assertEquals("${build.name}: branch $k refuses", refused, target(steps, k))
-            val lift = steps.indexOfFirst { it.methodRef()?.toString() == "$COMPOSED_POST->l2(Z)V" }
-            val forced = steps.indexOfFirst { it.methodRef()?.toString() == "$POST_BASE->C1()Z" }
+            val lift = steps.indexOfFirst { it.methodRef()?.toString() == "$COMPOSED_POST->n2(Z)V" }
+            val forced = steps.indexOfFirst { it.methodRef()?.toString() == "$POST_BASE->E1()Z" }
             assertTrue("${build.name}: the server's cut is read and refused before the post is marked",
                 forced < lift && steps[forced + 2].opcode == Opcode.IF_NEZ && forced + 2 in branches)
             assertEquals(build.name, 1, (steps[lift - 1] as NarrowLiteralInstruction).narrowLiteral)
@@ -235,7 +235,7 @@ class ExpandLongPostsFixtureTest {
         for (build in Fixtures.declaredBuilds()) {
             val context = context(build)
             val site = context.resolveExpandSite(patch)
-            context.mutableClassDefBy(COMPOSED_POST).methods.removeAll { it.name == "l2" && it.parameterTypes.map(CharSequence::toString) == listOf("Z") }
+            context.mutableClassDefBy(COMPOSED_POST).methods.removeAll { it.name == "n2" && it.parameterTypes.map(CharSequence::toString) == listOf("Z") }
             assertSkipped(context, site, "no longer drops its own cut")
         }
     }
@@ -245,7 +245,7 @@ class ExpandLongPostsFixtureTest {
             val context = context(build)
             val site = context.resolveExpandSite(patch)
             val post = context.mutableClassDefBy(COMPOSED_POST)
-            val read = post.methods.single { it.name == "g2" && it.parameterTypes.isEmpty() && it.returnType == "Z" }
+            val read = post.methods.single { it.name == "i2" && it.parameterTypes.isEmpty() && it.returnType == "Z" }
             val other = post.fields.first { it.type == "Z" && !AccessFlags.STATIC.isSet(it.accessFlags) && it.name != "l2" }
             read.replaceInstruction(0, "iget-boolean v0, p0, $COMPOSED_POST->${other.name}:Z")
             assertSkipped(context, site, "no longer drops its own cut")

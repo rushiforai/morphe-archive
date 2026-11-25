@@ -39,6 +39,7 @@ public final class TrackingPersistenceHelper {
     private static volatile boolean lifecycleRegistered = false;
 
     private static final Handler MAIN_HANDLER = new Handler(Looper.getMainLooper());
+    private static final Runnable FLUSH_RESET_RUNNABLE = TrackingPersistenceHelper::flushPendingReset;
 
     private TrackingPersistenceHelper() {}
 
@@ -77,7 +78,7 @@ public final class TrackingPersistenceHelper {
                 if (intent == null || !ACTION_NOTIFICATION_DISMISSED.equals(intent.getAction())) {
                     return;
                 }
-                if (serviceRunning) {
+                if (serviceRunning && !expectedStop) {
                     repostNotification(c);
                 }
             }
@@ -195,11 +196,15 @@ public final class TrackingPersistenceHelper {
         }
     }
 
-    public static void onExplicitStop() {
+    public static void onExplicitStop(Context context) {
         patchActive = true;
         expectedStop = true;
         serviceRunning = false;
         pendingResetEmit = false;
+        lastBuiltNotification = null;
+        MAIN_HANDLER.removeCallbacks(FLUSH_RESET_RUNNABLE);
+        cancelNotification(context);
+        TrackingControlHelper.onExplicitStop(context);
     }
 
     public static void onServiceStart(Service service, Intent intent) {
@@ -228,27 +233,44 @@ public final class TrackingPersistenceHelper {
             return;
         }
         serviceRunning = false;
-        if (!expectedStop) {
-            Log.i(TAG, "RNBackgroundActionsTask destroyed unexpectedly; scheduling JS recovery");
+        lastBuiltNotification = null;
+        cancelNotification(service);
+        TrackingControlHelper.onServiceDestroyed(service);
+        // Only schedule recovery when the OS/battery optimizer stops the service while backgrounded.
+        // Foreground stops (e.g. clock-out / break) finish HeadlessJsTask before BackgroundActionsModule.stop() runs
+        // and must NEVER trigger a restart.
+        if (!expectedStop && !appForeground) {
+            Log.i(TAG, "RNBackgroundActionsTask destroyed while backgrounded; scheduling JS recovery on resume");
             pendingResetEmit = true;
-            if (appForeground) {
-                MAIN_HANDLER.postDelayed(TrackingPersistenceHelper::flushPendingReset, RESUME_RECOVERY_DELAY_MS);
+        }
+    }
+
+    private static void cancelNotification(Context context) {
+        Context ctx = safeAppContext(context);
+        if (ctx == null) return;
+        try {
+            NotificationManager nm = (NotificationManager) ctx.getSystemService(Context.NOTIFICATION_SERVICE);
+            if (nm != null) {
+                nm.cancel(NOTIFICATION_ID);
             }
+        } catch (Throwable t) {
+            Log.e(TAG, "Failed to cancel notification", t);
         }
     }
 
     private static void onAppResumed(Context context) {
-        if (pendingResetEmit) {
-            MAIN_HANDLER.postDelayed(TrackingPersistenceHelper::flushPendingReset, RESUME_RECOVERY_DELAY_MS);
+        if (pendingResetEmit && !expectedStop) {
+            MAIN_HANDLER.removeCallbacks(FLUSH_RESET_RUNNABLE);
+            MAIN_HANDLER.postDelayed(FLUSH_RESET_RUNNABLE, RESUME_RECOVERY_DELAY_MS);
             return;
         }
-        if (serviceRunning && !isTrackingNotificationActive(context)) {
+        if (serviceRunning && !expectedStop && !isTrackingNotificationActive(context)) {
             repostNotification(context);
         }
     }
 
     private static void flushPendingReset() {
-        if (!pendingResetEmit || !appForeground || serviceRunning) {
+        if (!pendingResetEmit || expectedStop || !appForeground || serviceRunning) {
             return;
         }
         pendingResetEmit = false;
@@ -276,6 +298,7 @@ public final class TrackingPersistenceHelper {
     }
 
     private static void repostNotification(Context context) {
+        if (!serviceRunning || expectedStop) return;
         Context ctx = safeAppContext(context);
         if (ctx == null) return;
         try {

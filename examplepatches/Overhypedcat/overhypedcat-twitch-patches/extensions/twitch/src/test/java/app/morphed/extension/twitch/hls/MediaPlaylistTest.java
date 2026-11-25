@@ -56,7 +56,7 @@ public class MediaPlaylistTest {
                 + "#EXTINF:2.000,live\nhttps://e/5.ts\n#EXTINF:2.000,\nhttps://e/6.ts\n";
         MediaPlaylist playlist = MediaPlaylist.parse(text);
 
-        assertTrue(playlist.hasAdTags);
+        assertFalse("the trigger marker is no ad marker", playlist.hasAdTags);
         assertFalse(playlist.hasAdSegments());
     }
 

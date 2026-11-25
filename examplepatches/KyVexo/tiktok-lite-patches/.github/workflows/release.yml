@@ -28,7 +28,7 @@ jobs:
           grep -Fx "version = $version" gradle.properties
           bash gradlew :patches:buildAndroid :patches:generatePatchesList
           test -s "patches/build/libs/patches-$version.mpp"
-          jq -e --arg version "$version" '.version == $version and (.patches | length == 3)' patches-list.json
+          jq -e --arg version "$version" '.version == $version and (.patches | length == 10)' patches-list.json
       - name: Publish release and refresh catalog
         env:
           GH_TOKEN: ${{ github.token }}
@@ -45,6 +45,7 @@ jobs:
           if [[ "$version" == *-* ]]; then args+=(--prerelease); fi
           gh release create "$tag" "patches/build/libs/$bundle" patches-list.json patches-bundle.json \
             --verify-tag --title "TikTok Lite Patches $tag" --generate-notes "${args[@]}"
+          if [[ "$version" == *-* ]]; then exit 0; fi
           git fetch origin main
           git switch --detach origin/main
           git config user.name github-actions

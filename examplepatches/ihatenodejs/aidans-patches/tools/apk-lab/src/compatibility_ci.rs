@@ -17,7 +17,7 @@
 //! deterministic fakes and never contact Play, R2 or the Worker.
 
 use crate::error::Error;
-use crate::fixtures::{R2FixtureManager, SlotMetadata};
+use crate::fixtures::{R2FixtureManager, SeedExpectations, SlotMetadata};
 use crate::models::ExitCode;
 use crate::morphe::{ArtifactInspector, PatchCompatibilityReport};
 use crate::process::{self, ProcessSpec};
@@ -854,7 +854,17 @@ pub async fn run_ci_reconcile_and_test(
                                     "Acquired {package} v{target_version} via {source}: {}",
                                     path.display()
                                 );
-                                match dependencies.r2.seed_fixture(package, "target", &path).await {
+                                match dependencies
+                                    .r2
+                                    .seed_fixture(
+                                        package,
+                                        "target",
+                                        &path,
+                                        &source,
+                                        SeedExpectations::default(),
+                                    )
+                                    .await
+                                {
                                     Ok(metadata) => {
                                         matched_slot_role = Some("target".to_string());
                                         matched_slot_meta = Some(metadata);

@@ -1,0 +1,226 @@
+name: Release
+
+# Builds the patch bundle, attaches it to a GitHub release, and keeps the discovery
+# manifest on main in step with that release. Morphe Manager reads
+#
+#   https://raw.githubusercontent.com/<owner>/<repo>/main/patches-bundle.json
+#
+# not anything under releases/, so the root manifest has to advertise the version that
+# was just published. It is committed with [skip ci] so the manifest update is not read
+# as another version bump.
+#
+# The bundle is named patches-<version>.mpp because the manifest's download_url points
+# at releases/download/v<version>/patches-<version>.mpp.
+#
+# Signing is optional. Without MORPHE_SIGNING_KEY the bundle is published unsigned and
+# consumers fall back to a checksum; add the secret to publish signed bundles.
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    name: Release
+    # Publishing is main-only, matching upstream's policy.
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    env:
+      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      SIGNING_KEY: ${{ secrets.MORPHE_SIGNING_KEY }}
+      SHARED_MAPS_API_KEY: ${{ secrets.SHARED_MAPS_API_KEY }}
+      BRIGHT_ARTICLE_SIGNING_KEY: ${{ secrets.BRIGHT_ARTICLE_SIGNING_KEY }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '21'
+
+      - name: Test the BYD extension
+        run: ./gradlew :extensions:maps-gearslip:testDebugUnitTest --no-daemon
+
+      - name: Resolve version
+        id: version
+        run: |
+          set -euo pipefail
+          # Characterisation does not depend on tag ancestry: a shallow checkout cannot describe
+          # anything, so the highest existing tag is the anchor and its version is compared with
+          # the commit subjects since it.
+          highest="$(git tag --list 'v*' --sort=-v:refname | grep -v -- '-' | head -1)"
+          if [ -z "${highest}" ]; then
+            echo 'No v* tag exists, so the next version is undefined.' >&2
+            echo 'Push the tags from the source repository, then re-run.' >&2
+            exit 1
+          fi
+          highest="${highest#v}"
+          major="$(cut -d. -f1 <<<"${highest}")"
+          minor="$(cut -d. -f2 <<<"${highest}")"
+          base="$(git describe --tags --abbrev=0 --match 'v*' --exclude '*-*' 2>/dev/null || true)"
+          if [ -n "${base}" ]; then
+            # Tag ancestry is available: a feature since it bumps the minor version.
+            if git log --pretty=%s "${base}"..HEAD | grep -qE '^feat(\(|:)'; then
+              version="${major}.$((minor + 1)).0"
+            else
+              version="${major}.${minor}.$(( $(cut -d. -f3 <<<"${highest}") + 1 ))"
+            fi
+          else
+            # No ancestry: our commits cannot be compared with the anchor, so take a patch bump.
+            version="${major}.${minor}.$(( $(cut -d. -f3 <<<"${highest}") + 1 ))"
+          fi
+          # A tag that exists upstream but not in our history still reserves the version.
+          if git rev-parse -q --verify "refs/tags/v${version}" >/dev/null; then
+            echo "v${version} is already tagged; refusing to reuse it" >&2
+            exit 1
+          fi
+          echo "version=${version}" >> "$GITHUB_OUTPUT"
+          echo "Releasing v${version}"
+
+      - name: Collect the bundle
+        id: bundle
+        run: |
+          set -euo pipefail
+          version='${{ steps.version.outputs.version }}'
+          # The bundle's manifest carries gradle.properties' version, and that is what Morphe shows
+          # on the source card. Rebuild with it set, otherwise every release reports upstream's
+          # number and the artifact is named patches-.mpp.
+          sed -i "s/^version = .*/version = ${version}/" gradle.properties
+          grep -E '^version = ' gradle.properties
+          rm -f patches/build/libs/*.mpp
+          ./gradlew :patches:buildAndroid --no-daemon
+          built="$(find patches/build/libs -name 'patches-*.mpp' ! -name '*sources*' ! -name '*javadoc*' | head -1)"
+          if [ -z "${built}" ]; then
+            echo 'No bundle was produced' >&2
+            exit 1
+          fi
+          mkdir -p dist
+          cp "${built}" "dist/patches-${version}.mpp"
+          sha256sum "dist/patches-${version}.mpp" | cut -d' ' -f1 > "dist/patches-${version}.mpp.sha256"
+          echo "file=patches-${version}.mpp" >> "$GITHUB_OUTPUT"
+
+      - name: Sign the bundle
+        if: env.SIGNING_KEY != ''
+        run: |
+          set -euo pipefail
+          file='dist/${{ steps.bundle.outputs.file }}'
+          printf '%s' "${SIGNING_KEY}" > signing.key
+          openssl dgst -sha256 -sign signing.key -out "${file}.asc" "${file}"
+          rm -f signing.key
+          # The manifest publishes this key; keep it in the repository, not in the release.
+          if [ ! -f morphe-signing.pub ]; then
+            openssl rsa -in signing.key -pubout -out morphe-signing.pub 2>/dev/null || true
+          fi
+
+      - name: Write the discovery manifest
+        run: |
+          set -euo pipefail
+          version='${{ steps.version.outputs.version }}'
+          file='${{ steps.bundle.outputs.file }}'
+          repository="${GITHUB_REPOSITORY}"
+          created="$(date -u +%Y-%m-%dT%H:%M:%S)"
+          python3 - "$version" "$file" "$repository" "$created" > dist/patches-bundle.json <<'PY'
+          import json, os, sys
+          version, file, repo, created = sys.argv[1:5]
+          download = f"https://github.com/{repo}/releases/download/v{version}/{file}"
+          signed = os.path.exists(f"dist/{file}.asc")
+          # Morphe's source schema. Manager reads the root patches-bundle.json on main; the
+          # camelCase variant is not part of that schema and is only kept as a release asset.
+          manifest = {
+              "created_at": created,
+              "description": f"BYD Maps Patches v{version} — Google Maps patches for Android Auto with BYD battery and arrival state of charge via byd-open-remote.",
+              "download_url": download,
+              "signature_download_url": (download + ".asc") if signed else "",
+              "version": version,
+          }
+          if signed and os.path.exists("morphe-signing.pub"):
+              with open("morphe-signing.pub") as key:
+                  manifest["public_key"] = key.read().strip()
+          json.dump(manifest, sys.stdout, indent=2)
+          print()
+          PY
+
+      - name: Write the release notes
+        run: |
+          set -euo pipefail
+          version='${{ steps.version.outputs.version }}'
+          previous="$(git describe --tags --abbrev=0 --match 'v*' --exclude '*-*' 2>/dev/null || true)"
+          {
+            echo "# BYD Maps patches v${version}"
+            echo
+            sed -n '3,200p' .github/release-notes.md
+            echo
+            echo "## Changes since ${previous:-the first release}"
+            echo
+            if [ -n "${previous}" ]; then
+              git log --no-merges --pretty='- %s (`%h`)' "${previous}"..HEAD
+            else
+              git log --no-merges --pretty='- %s (`%h`)' -20
+            fi
+          } > release-notes.md
+          cat release-notes.md
+
+      - name: Publish the release
+        run: |
+          set -euo pipefail
+          version='${{ steps.version.outputs.version }}'
+          if gh release view "v${version}" >/dev/null 2>&1; then
+            echo "v${version} is already published; nothing to do"
+            exit 0
+          fi
+          gh release create "v${version}" dist/* \
+            --title "BYD Maps patches v${version}" \
+            --notes-file release-notes.md
+
+      - name: Publish the discovery manifest
+        run: |
+          set -euo pipefail
+          version='${{ steps.version.outputs.version }}'
+          read_version() {
+            python3 -c 'import json,sys; print(json.load(open(sys.argv[1]))["version"])' "$1"
+          }
+          if [ "$(read_version patches-bundle.json)" = "${version}" ]; then
+            echo "main already advertises v${version}"
+            exit 0
+          fi
+          cp dist/patches-bundle.json patches-bundle.json
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add patches-bundle.json
+          if git diff --cached --quiet; then
+            echo 'manifest already current'
+            exit 0
+          fi
+          git commit -m "chore: advertise v${version} in the Morphe manifest [skip ci]"
+          for attempt in 1 2 3; do
+            git fetch --quiet origin main
+            remote="$(git show origin/main:patches-bundle.json | python3 -c 'import json,sys; print(json.load(sys.stdin)["version"])')"
+            if [ "${remote}" = "${version}" ]; then
+              echo "origin/main already advertises v${remote}"
+              exit 0
+            fi
+            # A newer release may have claimed main while this job was building; never
+            # overwrite it with an older version.
+            if [ "$(printf '%s\n%s\n' "${version}" "${remote}" | sort -V | tail -1)" != "${version}" ]; then
+              echo "origin/main advertises newer v${remote}; leaving it in place" >&2
+              exit 0
+            fi
+            # The build leaves gradle.properties (version) and dist/ dirty, so a plain rebase
+            # refuses to run. Autostash keeps those edits out of the way and restores them after.
+            if git -c rebase.autoStash=true rebase --quiet origin/main && git push origin HEAD:main; then
+              exit 0
+            fi
+            git rebase --abort >/dev/null 2>&1 || true
+            sleep $((attempt * 5))
+          done
+          echo 'Could not push the manifest; update patches-bundle.json by hand.' >&2
+          exit 1

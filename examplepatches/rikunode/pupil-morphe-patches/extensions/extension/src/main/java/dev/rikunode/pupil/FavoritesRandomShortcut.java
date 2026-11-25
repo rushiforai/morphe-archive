@@ -242,8 +242,8 @@ public final class FavoritesRandomShortcut {
         }
     }
 
-    // Register a standalone LazyColumn item after all tag groups, immediately
-    // before the thumbnails heading. Neither heading nor thumbnail grid is modified.
+    // Register a standalone LazyColumn item after the viewer/download menu
+    // and before the gallery type chip, without changing either item.
     public static void addTypeShortcutItem(Object lazyListScope) {
         Activity activity = currentActivity.get();
         if (activity == null || !showOnDetail(activity)) return;

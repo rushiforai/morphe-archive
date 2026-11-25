@@ -1045,22 +1045,27 @@ public final class OutsideTranslate {
             if (!active()) return true;
             Object chat = chatOf(delegate);
             if (chat == null) return false;
-            long owner = chatOwner(chat);
-            if (!known(owner)) {
-                HookStatus.counted(FamilyNames.OUTSIDE_TRANSLATE, "chat account unknown");
-                return true;
-            }
-            long dialog = chatDialog(chat);
-            boolean on = toggleChat(owner, dialog);
-            updateHeaderText(chat, owner, dialog);
-            Utils.showToastShort(on ? L10n.t("This chat will be translated") : L10n.t("This chat shows the original messages"));
-            notifyDialog(dialog);
-            HookStatus.counted(FamilyNames.OUTSIDE_TRANSLATE, on ? "chat translate on" : "chat translate off");
+            flipChat(chat);
             return true;
         } catch (Throwable failure) {
             HookStatus.threw(FamilyNames.OUTSIDE_TRANSLATE, "header menu choice", failure);
             return false;
         }
+    }
+
+    /** Turns translation for the chat on screen on or off, from its menu or its translate bar. */
+    static void flipChat(Object chat) {
+        long owner = chatOwner(chat);
+        if (!known(owner)) {
+            HookStatus.counted(FamilyNames.OUTSIDE_TRANSLATE, "chat account unknown");
+            return;
+        }
+        long dialog = chatDialog(chat);
+        boolean on = toggleChat(owner, dialog);
+        updateHeaderText(chat, owner, dialog);
+        Utils.showToastShort(on ? L10n.t("This chat will be translated") : L10n.t("This chat shows the original messages"));
+        notifyDialog(dialog);
+        HookStatus.counted(FamilyNames.OUTSIDE_TRANSLATE, on ? "chat translate on" : "chat translate off");
     }
 
     /** Translate into: the language list over the chat, and the chat written again in the new pick. */

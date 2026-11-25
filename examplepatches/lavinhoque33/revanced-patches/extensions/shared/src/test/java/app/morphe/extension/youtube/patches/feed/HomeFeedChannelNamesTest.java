@@ -1,15 +1,17 @@
 /*
  * Copyright (C) 2026 lavinhoque33
  * Licensed under the GNU General Public License v3.0.
- * Modified by lavinhoque33, 2026-11-23
+ * Modified by lavinhoque33, 2026-11-24
  * Written by lavinhoque33, 2026-11-23
  */
 
 package app.morphe.extension.youtube.patches.feed;
 
+import static app.morphe.extension.youtube.patches.feed.FeedCardLayoutPatch.FeedCardLayout.CLASSIC;
 import static app.morphe.extension.youtube.patches.feed.HomeFeedChannelNamesPatch.rewrite;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertSame;
+import static org.junit.Assert.assertTrue;
 
 import android.content.Context;
 import android.content.ContextWrapper;
@@ -19,6 +21,7 @@ import android.content.res.Resources;
 import com.google.protobuf.ByteString;
 import com.google.protobuf.CodedOutputStream;
 
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -48,6 +51,13 @@ public class HomeFeedChannelNamesTest {
         Utils.setContext(app);
     }
 
+    @After
+    public void clearExtensionState() {
+        HomeFeedChannelNamesPatch.setActiveBrowsePane(null, null, false);
+        Settings.HOME_FEED_CHANNEL_NAMES.save(false);
+        Utils.setContext(RuntimeEnvironment.getApplication());
+    }
+
     private static final String HOME = "FEwhat_to_watch";
     private static final String SOURCE_ID = "UCb0dmZQAftj6Dl38bqpfZoQ";
     private static final String OTHER_ID = "UCJ5ucEKfmOwfiUYC796gVSA";
@@ -69,9 +79,15 @@ public class HomeFeedChannelNamesTest {
     @Test
     public void localizedPublicRendererKeepsItsNativePlayIconAndMetadata() throws Exception {
         byte[] alreadyNamed = Base64.getDecoder().decode(PUBLIC_CLASSIC_CARD);
-        assertSame(alreadyNamed, rewrite(alreadyNamed, HOME, false));
+        assertSame(alreadyNamed, rewrite(alreadyNamed));
 
         Element source = Element.parseFrom(alreadyNamed);
+        byte[] input = localizedClassicWithHandle(source);
+        Element result = Element.parseFrom(rewrite(input));
+        assertEquals(source, result);
+    }
+
+    private static byte[] localizedClassicWithHandle(Element source) {
         var sourceModel = model(source);
         var classic = sourceModel.getVideoWithContextModel();
         var data = classic.getData();
@@ -87,21 +103,16 @@ public class HomeFeedChannelNamesTest {
                 .setAttachmentRuns(0, play.toBuilder().setStartIndex(play.getStartIndex() + handle.length()
                         - name.length()));
         var changedMetadata = withPart(metadata, 1, part.toBuilder().setText(handleText).build());
-        byte[] input = withModel(source, sourceModel.toBuilder().setVideoWithContextModel(classic.toBuilder()
+        return withModel(source, sourceModel.toBuilder().setVideoWithContextModel(classic.toBuilder()
                 .setData(data.toBuilder().setVideoData(video.toBuilder().setLockupMetadata(changedMetadata))))
                 .build()).toByteArray();
-
-        Element result = Element.parseFrom(rewrite(input, HOME, false));
-        assertEquals(source, result);
-        assertSame(input, rewrite(input, "FEsubscriptions", false));
-        assertSame(input, rewrite(input, HOME, true));
     }
 
     @Test
     public void modernAuthorCommandStyleAndSiblingRowsArePreserved() throws Exception {
         InnertubeCommandHolder endpoint = destination(SOURCE_ID, SOURCE_HANDLE);
         Element input = modern(SOURCE_HANDLE, "Source", endpoint, endpoint);
-        Element result = Element.parseFrom(rewrite(input.toByteArray(), HOME, false));
+        Element result = Element.parseFrom(rewrite(input.toByteArray()));
         var inputVideo = model(input).getLockupModel().getViewModel().getLockupViewModel();
         var outputVideo = model(result).getLockupModel().getViewModel().getLockupViewModel();
         var before = inputVideo.getMetadata().getLockupMetadataViewModel();
@@ -127,38 +138,100 @@ public class HomeFeedChannelNamesTest {
     public void classicConversionUsesNamedAvatarBeforeLosingTheSourceVideoId() throws Exception {
         Context app = RuntimeEnvironment.getApplication();
         useStockAvatarLabel(app);
-        Settings.FEED_CARD_LAYOUT.save(FeedCardLayoutPatch.FeedCardLayout.CLASSIC);
-        HomeFeedChannelNamesPatch.setBrowseId(HOME);
+        Object home = new Object();
+        HomeFeedChannelNamesPatch.setActiveBrowsePane(home, HOME, false);
 
-        try {
-            // Prime the layout converter with the first-party classic template from the capture above.
-            FeedCardLayoutPatch.setFeedCardLayout(Base64.getDecoder().decode(PUBLIC_CLASSIC_CARD));
+        // Prime the layout converter with the first-party classic template from the capture above.
+        FeedCardLayoutPatch.setFeedCardLayout(Base64.getDecoder().decode(PUBLIC_CLASSIC_CARD), CLASSIC);
 
-            ByteString watch = opaquePlaybackCommand();
-            byte[] input = classicSource(watch).toByteArray();
+        ByteString watch = opaquePlaybackCommand();
+        byte[] input = classicSource(watch).toByteArray();
 
-            Settings.HOME_FEED_CHANNEL_NAMES.save(false);
-            var disabled = renderAsClassic(input);
-            assertEquals(watch, disabled.getOnTap());
-            assertEquals("", disabled.getVideoData().getUrl());
-            assertEquals(SOURCE_HANDLE + "   2.4M   8d ago", classicByline(disabled).getText().getContent());
+        Settings.HOME_FEED_CHANNEL_NAMES.save(false);
+        var disabled = renderAsClassic(input);
+        assertEquals(watch, disabled.getOnTap());
+        assertEquals("", disabled.getVideoData().getUrl());
+        assertEquals(SOURCE_HANDLE + "   2.4M   8d ago", classicByline(disabled).getText().getContent());
 
-            Settings.HOME_FEED_CHANNEL_NAMES.save(true);
-            var enabled = renderAsClassic(input);
-            assertEquals(disabled.toBuilder().setVideoData(disabled.getVideoData().toBuilder()
-                    .setLockupMetadata(enabled.getVideoData().getLockupMetadata())).build(), enabled);
-            var byline = classicByline(enabled);
-            assertEquals("Source   2.4M   8d ago", byline.getText().getContent());
-            assertEquals("Source, 2.4 million views, 8 days ago", byline.getAccessibilityLabel());
+        Settings.HOME_FEED_CHANNEL_NAMES.save(true);
+        var enabled = renderAsClassic(input);
+        assertEquals(disabled.toBuilder().setVideoData(disabled.getVideoData().toBuilder()
+                .setLockupMetadata(enabled.getVideoData().getLockupMetadata())).build(), enabled);
+        var byline = classicByline(enabled);
+        assertEquals("Source   2.4M   8d ago", byline.getText().getContent());
+        assertEquals("Source, 2.4 million views, 8 days ago", byline.getAccessibilityLabel());
 
-            HomeFeedChannelNamesPatch.setBrowseId("FEsubscriptions");
-            assertEquals(disabled, renderAsClassic(input));
-        } finally {
-            HomeFeedChannelNamesPatch.clearBrowseId();
-            Settings.HOME_FEED_CHANNEL_NAMES.save(false);
-            Settings.FEED_CARD_LAYOUT.save(FeedCardLayoutPatch.FeedCardLayout.DEFAULT);
-            Utils.setContext(app);
-        }
+        Object subscriptions = new Object();
+        HomeFeedChannelNamesPatch.setActiveBrowsePane(subscriptions, "FEsubscriptions", false);
+        assertEquals(disabled, renderAsClassic(input));
+    }
+
+    @Test
+    public void cachedHomeRestoresNamesOnRefreshWithoutAnotherEndpointWrite() throws Exception {
+        useStockAvatarLabel(RuntimeEnvironment.getApplication());
+        var nativeClassic = Element.parseFrom(Base64.getDecoder().decode(PUBLIC_CLASSIC_CARD));
+        FeedCardLayoutPatch.setFeedCardLayout(nativeClassic.toByteArray(), CLASSIC);
+
+        var endpoint = destination(SOURCE_ID, SOURCE_HANDLE);
+        byte[] defaultInput = modern(SOURCE_HANDLE, "Source", endpoint, endpoint).toByteArray();
+        byte[] nativeClassicInput = localizedClassicWithHandle(nativeClassic);
+        byte[] convertedClassicInput = classicSource(opaquePlaybackCommand()).toByteArray();
+        Settings.HOME_FEED_CHANNEL_NAMES.save(false);
+        var stockConversion = renderAsClassic(convertedClassicInput);
+        Settings.HOME_FEED_CHANNEL_NAMES.save(true);
+
+        Object home = new Object();
+        HomeFeedChannelNamesPatch.setActiveBrowsePane(home, null, false);
+        assertSame(defaultInput, HomeFeedChannelNamesPatch.onElementLoaded(defaultInput));
+
+        Settings.HOME_FEED_CHANNEL_NAMES.save(false);
+        HomeFeedChannelNamesPatch.updateBrowsePaneId(home, HOME);
+        assertSame(defaultInput, HomeFeedChannelNamesPatch.onElementLoaded(defaultInput));
+        Settings.HOME_FEED_CHANNEL_NAMES.save(true);
+
+        var namedDefault = Element.parseFrom(HomeFeedChannelNamesPatch.onElementLoaded(defaultInput));
+        var namedDefaultVideo = model(namedDefault).getLockupModel().getViewModel().getLockupViewModel();
+        assertEquals("\u2067Source" + SEPARATOR + "10K views",
+                details(namedDefaultVideo.getMetadata()).getMetadataRows(0).getMetadataParts(0).getText().getContent());
+
+        // Home is still the underlying tab in Search. A stopped Home fragment can write its endpoint.
+        HomeFeedChannelNamesPatch.setActiveBrowsePane(null, null, false);
+        HomeFeedChannelNamesPatch.updateBrowsePaneId(home, HOME);
+        assertSame(defaultInput, HomeFeedChannelNamesPatch.onElementLoaded(defaultInput));
+        assertSame(nativeClassicInput, HomeFeedChannelNamesPatch.onElementLoaded(nativeClassicInput));
+        assertEquals(stockConversion, renderAsClassic(convertedClassicInput));
+
+        // The native navigator selects the cached Home pane; pull-to-refresh can reuse its existing endpoint.
+        HomeFeedChannelNamesPatch.setActiveBrowsePane(home, HOME, true);
+        assertEquals(namedDefault, Element.parseFrom(HomeFeedChannelNamesPatch.onElementLoaded(defaultInput)));
+        assertEquals(nativeClassic, Element.parseFrom(HomeFeedChannelNamesPatch.onElementLoaded(nativeClassicInput)));
+        assertEquals("Source   2.4M   8d ago", classicByline(renderAsClassic(convertedClassicInput))
+                .getText().getContent());
+
+        byte[] playlist = asPlaylist(Element.parseFrom(defaultInput));
+        assertSame(playlist, HomeFeedChannelNamesPatch.onElementLoaded(playlist));
+
+        Object subscriptions = new Object();
+        HomeFeedChannelNamesPatch.setActiveBrowsePane(subscriptions, "FEsubscriptions", false);
+        HomeFeedChannelNamesPatch.updateBrowsePaneId(home, HOME);
+        assertSame(defaultInput, HomeFeedChannelNamesPatch.onElementLoaded(defaultInput));
+        assertSame(nativeClassicInput, HomeFeedChannelNamesPatch.onElementLoaded(nativeClassicInput));
+        assertEquals(stockConversion, renderAsClassic(convertedClassicInput));
+
+        HomeFeedChannelNamesPatch.setActiveBrowsePane(home, HOME, false);
+        HomeFeedChannelNamesPatch.updateBrowsePaneId(subscriptions, "FEsubscriptions");
+        assertEquals(namedDefault, Element.parseFrom(HomeFeedChannelNamesPatch.onElementLoaded(defaultInput)));
+        HomeFeedChannelNamesPatch.updateBrowsePaneId(home, "FEexplore");
+        assertSame(defaultInput, HomeFeedChannelNamesPatch.onElementLoaded(defaultInput));
+    }
+
+    private static byte[] asPlaylist(Element element) {
+        var model = model(element);
+        var lockup = model.getLockupModel();
+        var holder = lockup.getViewModel();
+        var playlist = holder.getLockupViewModel().toBuilder().setContentType(2).setContentId("PL123456789");
+        return withModel(element, model.toBuilder().setLockupModel(lockup.toBuilder()
+                .setViewModel(holder.toBuilder().setLockupViewModel(playlist))).build()).toByteArray();
     }
 
     private static Element classicSource(ByteString watch) {
@@ -234,8 +307,11 @@ public class HomeFeedChannelNamesTest {
     }
 
     private static VideoWithContextData renderAsClassic(byte[] input) throws Exception {
-        byte[] rendered = HomeFeedChannelNamesPatch.onElementLoaded(FeedCardLayoutPatch.setFeedCardLayout(input));
-        return model(Element.parseFrom(rendered)).getVideoWithContextModel().getData();
+        byte[] converted = FeedCardLayoutPatch.setFeedCardLayout(input, CLASSIC);
+        byte[] rendered = HomeFeedChannelNamesPatch.onElementLoaded(converted);
+        ElementModel output = model(Element.parseFrom(rendered));
+        assertTrue("Expected conversion from a native lockup to the Classic renderer", output.hasVideoWithContextModel());
+        return output.getVideoWithContextModel().getData();
     }
 
     @Test
@@ -245,7 +321,7 @@ public class HomeFeedChannelNamesTest {
         InnertubeCommandHolder endpoint = destination(OTHER_ID, "@%E5%A4%9C%E3%81%AE%E9%9F%B3");
         Element row = modern(handle, displayName, endpoint, endpoint);
         byte[] input = row.toByteArray();
-        Element output = Element.parseFrom(rewrite(input, HOME, false));
+        Element output = Element.parseFrom(rewrite(input));
         var video = model(output).getLockupModel().getViewModel().getLockupViewModel();
         var part = details(video.getMetadata()).getMetadataRows(0).getMetadataParts(0);
         assertEquals("\u2067" + displayName + SEPARATOR + "10K views", part.getText().getContent());
@@ -262,7 +338,7 @@ public class HomeFeedChannelNamesTest {
 
     private static void assertUnchanged(Element input) {
         byte[] bytes = input.toByteArray();
-        assertSame(bytes, rewrite(bytes, HOME, false));
+        assertSame(bytes, rewrite(bytes));
     }
 
     private static Element modern(String handle, String name, InnertubeCommandHolder avatar,

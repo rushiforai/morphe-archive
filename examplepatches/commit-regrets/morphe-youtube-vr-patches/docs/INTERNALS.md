@@ -97,7 +97,7 @@ something we tested.
 1. Build the bundle: `./gradlew buildAndroid` (needs `JAVA_HOME`; `GITHUB_ACTOR`/`GITHUB_TOKEN` are
    read from the environment by `settings.gradle.kts`).
 2. Apply with diagnostics on, so diagnostics-gated hooks are exercised too:
-   `java -jar morphe-desktop-all.jar patch --patches patches/build/libs/patches-<v>.mpp -OenableDiagnostics=true --result-file out.json -o out.apk <stock apk>`
+   `java -jar morphe-desktop-<version>-all.jar patch --patches patches/build/libs/patches-<v>.mpp -OenableDiagnostics=true --result-file out.json -o out.apk <stock apk>`
    For a local build that only needs *this port's* log lines, `-OforceVerboseLogging=true` is the
    cheaper switch and the only one that wins over the "Verbose logging" row's stored value: no extra
    hooks, no probe fetch. Neither is on by default, and a no-option apply injects no logging enable at

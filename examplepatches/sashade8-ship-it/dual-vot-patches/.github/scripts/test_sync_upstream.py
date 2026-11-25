@@ -4,6 +4,7 @@ import io
 import re
 import struct
 import sys
+import textwrap
 import unittest
 import zipfile
 from pathlib import Path
@@ -19,6 +20,51 @@ SPEC.loader.exec_module(sync_upstream)
 
 
 class SyncUpstreamTests(unittest.TestCase):
+    def test_dev2411_streaming_prefers_configured_client_only_for_playback_failure(self):
+        ours = "        ClientType preferredClient = clients[0];\n"
+        theirs = (
+            "        // The preferred client is not in the client order if it is skipped.\n"
+            "        ClientType preferredClient = SpoofVideoStreamsPatch.getPreferredClient();\n"
+        )
+        conflict = "<<<<<<< HEAD\n" + ours + "=======\n" + theirs + ">>>>>>> v2.4.0-dev.11\n"
+        prefix = "        if (directStreamsOnly) return null;\n        if (isDownload) return null;\n"
+        suffix = "        if (!preferredClient.supportsOAuth2) {\n"
+        self.assertEqual(
+            sync_upstream.merge_streaming_data_request_dev2411(prefix + conflict + suffix),
+            prefix + theirs + suffix,
+        )
+        for invalid in (conflict.replace(ours, "changed\n"), conflict + conflict):
+            with self.subTest(invalid=invalid), self.assertRaises(sync_upstream.SyncError):
+                sync_upstream.merge_streaming_data_request_dev2411(invalid)
+
+    def test_dev2411_settings_keep_ghost_mode_and_dual_yandex(self):
+        fixture = MODULE_PATH.parent / "fixtures/Settings-dev2411-conflict.txt"
+        conflict = textwrap.dedent(fixture.read_text(encoding="utf-8"))
+        ours, theirs = re.fullmatch(
+            r"(?ms)^<<<<<<< [^\n]+\n(.*?)^=======\n(.*?)^>>>>>>> [^\n]+\n", conflict
+        ).groups()
+        self.assertIn("DUAL_VOT_YANDEX_ENABLED", ours)
+        self.assertIn("GHOST_PLAY_HISTORY_LIMIT", theirs)
+        prefix, suffix = "before\n", "after\n"
+        path = sync_upstream.DEV148_SETTINGS_PATH
+        blobs = sync_upstream.DEV2411_SETTINGS_CONFLICT_BLOBS
+        with (mock.patch.object(sync_upstream, "unresolved_paths", return_value=[path]),
+              mock.patch.object(sync_upstream, "output_of", side_effect=blobs),
+              mock.patch.object(sync_upstream, "ROOT") as root,
+              mock.patch.object(sync_upstream, "run") as run):
+            destination = root.__truediv__.return_value
+            destination.read_text.return_value = prefix + conflict + suffix
+            sync_upstream.resolve_dev2411_settings_conflict()
+            destination.write_text.assert_called_once_with(
+                prefix + ours + "\n" + theirs + suffix, encoding="utf-8", newline=""
+            )
+            run.assert_called_once_with("git", "add", "--", path)
+
+            destination.read_text.return_value = conflict.replace(" // Ghost mode", " // Unknown")
+            with mock.patch.object(sync_upstream, "output_of", side_effect=blobs):
+                with self.assertRaises(sync_upstream.SyncError):
+                    sync_upstream.resolve_dev2411_settings_conflict()
+
     def test_dev237_streaming_keeps_dual_clients_without_obsolete_web_skip(self):
         conflict = (MODULE_PATH.parent / "fixtures/StreamingDataRequest-dev237-conflicts.txt").read_text(
             encoding="utf-8"
@@ -201,7 +247,8 @@ class SyncUpstreamTests(unittest.TestCase):
         root = mock.Mock()
         root.__truediv__ = mock.Mock(return_value=destination)
         for blobs in (sync_upstream.DEV220_ARRAYS_CONFLICT_BLOBS,
-                      sync_upstream.STABLE220_ARRAYS_CONFLICT_BLOBS):
+                      sync_upstream.STABLE220_ARRAYS_CONFLICT_BLOBS,
+                      sync_upstream.DEV2411_ARRAYS_CONFLICT_BLOBS):
             destination.reset_mock()
             with (self.subTest(blobs=blobs),
                   mock.patch.object(sync_upstream, 'ROOT', root),
@@ -559,6 +606,12 @@ class SyncUpstreamTests(unittest.TestCase):
 
     def test_dev210_unknown_inputs_remain_unresolved(self):
         cases = (
+            (sync_upstream.STREAMING_DATA_REQUEST_DEV2411_CONFLICT_BLOBS,
+             sync_upstream.STREAMING_DATA_REQUEST_PATH, sync_upstream.resolve_streaming_data_request_conflict),
+            (sync_upstream.DEV2411_SETTINGS_CONFLICT_BLOBS,
+             sync_upstream.DEV148_SETTINGS_PATH, sync_upstream.resolve_dev2411_settings_conflict),
+            (sync_upstream.DEV2411_ARRAYS_CONFLICT_BLOBS,
+             sync_upstream.DUAL_YANDEX_ARRAYS_PATH, sync_upstream.resolve_dual_yandex_arrays_conflict),
             (sync_upstream.STABLE220_ARRAYS_CONFLICT_BLOBS,
              sync_upstream.DUAL_YANDEX_ARRAYS_PATH, sync_upstream.resolve_dual_yandex_arrays_conflict),
             (sync_upstream.DEV220_ARRAYS_CONFLICT_BLOBS,

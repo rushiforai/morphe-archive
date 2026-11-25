@@ -1734,6 +1734,8 @@ Long-press menu on every post	Hər paylaşımda uzun basma menyusu
 TikTok's hold to speed up	TikTok-un basıb saxlayaraq sürətləndirməsi
 TikTok's background play and Auto scroll	TikTok-un arxa planda oynatma və avtomatik sürüşdürməsi
 Post dates in the feed	Lentdə paylaşım tarixləri
+# context: a line of the Account facts sheet, the number of posts the account has
+Posts	Paylaşımlar
 Show exact counts	Dəqiq rəqəmləri göstər
 Show counts as full numbers, like 1,234,567 instead of 1.2M.	Sayları tam rəqəmlə göstərir, məsələn, 1.2M əvəzinə 1.234.567.
 Play SDR instead of HDR	HDR əvəzinə SDR oynat
@@ -3001,7 +3003,9 @@ Find and reopen the videos you liked only on this phone	Yalnız bu telefonda bə
 Videos you like on this phone show up here	Bu telefonda bəyəndiyiniz videolar burada görünür
 Likes cleared	Bəyənmələr təmizləndi
 Export followers and following	İzləyiciləri və izlədiklərinizi ixrac edin
-Saves the accounts that follow you, or the ones you follow, as a CSV file in Download/Hushfeed. They're read at about the pace of scrolling the list, up to %1$s at a time.	Sizi izləyən və ya sizin izlədiyiniz hesabları Download/Hushfeed qovluğunda CSV faylı kimi saxlayır. Onlar siyahını sürüşdürmə sürətinə yaxın sürətlə, bir dəfəyə %1$s ədədə qədər oxunur.
+Saves the accounts that follow you, or the ones you follow, as a CSV, JSON or plain text file in Download/Hushfeed. They're read at about the pace of scrolling the list, up to %1$s at a time.	Sizi izləyən və ya sizin izlədiyiniz hesabları Download/Hushfeed qovluğunda CSV, JSON və ya sadə mətn faylı kimi saxlayır. Onlar siyahını sürüşdürmə sürətinə yaxın sürətlə, bir dəfəyə %1$s ədədə qədər oxunur.
+# context: a file type on the Export followers and following list, as in "Followers (Plain text)"
+Plain text	Sadə mətn
 A list is already being read	Artıq bir siyahı oxunur
 Reading your followers (%1$s)	İzləyiciləriniz oxunur (%1$s)
 Reading who you follow (%1$s)	İzlədikləriniz oxunur (%1$s)
@@ -3139,7 +3143,7 @@ Gives each video on profile grids rounded corners, on your own profile and on Li
 Gifter level	Hədiyyəçi səviyyəsi
 SecUID	SecUID
 Unknown (TikTok didn't send it)	Naməlum (TikTok göndərmədi)
-A profile's share sheet gets an Account facts button. It shows what TikTok already sent about the account: when it joined, its region and language, its gifter level and SecUID, when its username and display name last changed, whether it's private and whether its liked videos are public. Nothing extra is fetched.	Profilin paylaşma panelinə Hesab faktları düyməsi əlavə olunur. O, TikTok-un hesab haqqında artıq göndərdiklərini göstərir: nə vaxt qoşulduğunu, regionunu və dilini, hədiyyəçi səviyyəsini və SecUID-ni, istifadəçi adının və görünən adının sonuncu dəfə nə vaxt dəyişdiyini, hesabın gizli olub-olmadığını və bəyəndiyi videoların açıq olub-olmadığını. Əlavə heç nə yüklənmir.
+A profile's share sheet gets an Account facts button. It shows what TikTok already sent about the account: when it joined, its region and language, its gifter level and SecUID, how many posts, liked videos, favorites and reposts it has, when its username and display name last changed, whether it's private and whether its liked videos are public. Nothing extra is fetched.	Profilin paylaşma panelinə Hesab faktları düyməsi əlavə olunur. O, TikTok-un hesab haqqında artıq göndərdiklərini göstərir: nə vaxt qoşulduğunu, regionunu və dilini, hədiyyəçi səviyyəsini və SecUID-ni, neçə paylaşımı, bəyəndiyi video, sevimlisi və repostu olduğunu, istifadəçi adının və görünən adının sonuncu dəfə nə vaxt dəyişdiyini, hesabın gizli olub-olmadığını və bəyəndiyi videoların açıq olub-olmadığını. Əlavə heç nə yüklənmir.
 # context: LIVE controls: a small line in a LIVE room with the room ID and the viewer's own connection (ping, latency, download speed) from TikTok's player; a tap copies the room ID
 Show the room ID and your connection	Otaq ID-sini və bağlantınızı göstərin
 Adds a small line to LIVE rooms with the room's ID and how your own connection to the stream is doing, as TikTok's player measures it: ping, latency and download speed. Tap the line to copy the room ID.	LIVE otaqlarına otağın ID-si və yayımla öz bağlantınızın vəziyyəti olan kiçik bir sətir əlavə edir, TikTok-un pleyerinin ölçdüyü kimi: ping, gecikmə və yükləmə sürəti. Otaq ID-sini kopyalamaq üçün sətrə toxunun.
@@ -3232,3 +3236,13 @@ Posts to delete: %1$d. Starting in %2$d	Silinəcək paylaşımlar: %1$d. Başlan
 Posts deleted: %1$d of %2$d	Silinən paylaşımlar: %1$d / %2$d
 Swipe LIVEs in your Following row's order	LIVE-ları İzlənilənlər sırasının ardıcıllığı ilə sürüşdürün
 After a LIVE you open from the row at the top of Following, swiping takes you through the row's other LIVEs in the order they sit there, starting with the next one. TikTok's own picks come after them.	İzlənilənlərin yuxarısındakı sıradan açdığınız LIVE-dan sonra sürüşdürmə sizi həmin sıradakı digər LIVE-lardan orada durduqları ardıcıllıqla, növbətisindən başlayaraq keçirir. TikTok-un öz seçimləri onlardan sonra gəlir.
+Remember saved videos	Saxlanılmış videoları xatırlayın
+Keeps the cover, creator, caption and post date of each video in your Favorites on this phone as the grid loads it. If one is later deleted or made private, its tile shows the kept cover and creator instead of a grey box, and a tap shows the rest. Videos that were already gone can't be recovered.	Sevimlilərinizdəki hər videonun örtüyünü, yaradıcısını, başlığını və paylaşılma tarixini şəbəkə onu yüklədikcə bu telefonda saxlayır. Sonradan biri silinərsə və ya gizli edilərsə, onun xanası boz qutu əvəzinə saxlanılmış örtüyü və yaradıcını göstərir, toxunduqda isə qalanı görünür. Əvvəlcədən yoxa çıxmış videoları bərpa etmək mümkün deyil.
+Unavailable saved videos	Əlçatan olmayan saxlanılmış videolar
+See the saved videos that went away after Hushfeed remembered them	Hushfeed xatırladıqdan sonra yoxa çıxan saxlanılmış videolara baxın
+Saved videos that go away show up here	Yoxa çıxan saxlanılmış videolar burada görünür
+Unavailable saved videos cleared	Əlçatan olmayan videolar təmizləndi
+Unavailable saved video	Əlçatan olmayan saxlanılmış video
+Posted %1$s	Paylaşılıb: %1$s
+Remembered %1$s	Xatırlanıb: %1$s
+Unavailable since %1$s	%1$s tarixindən əlçatan deyil

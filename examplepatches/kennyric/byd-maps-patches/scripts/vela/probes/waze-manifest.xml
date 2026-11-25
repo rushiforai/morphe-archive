@@ -1,0 +1,6 @@
+<manifest xmlns:android="http://schemas.android.com/apk/res/android" package="nl.johninnl.velaprobe.waze">
+    <uses-sdk android:minSdkVersion="34" android:targetSdkVersion="36" />
+    <queries><package android:name="app.vela" /></queries>
+    <application android:label="Vela native waze probe" android:debuggable="true" />
+    <instrumentation android:name="nl.johninnl.velaprobe.WazeProbe" android:targetPackage="com.waze" android:functionalTest="true" />
+</manifest>

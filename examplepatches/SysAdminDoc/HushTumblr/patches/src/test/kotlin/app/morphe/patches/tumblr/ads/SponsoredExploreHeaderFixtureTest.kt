@@ -34,7 +34,7 @@ import java.io.File
 /** Explore's header, which a sponsor can pay to fill with its own image and takeover ad. */
 @Category(FixtureTests::class)
 class SponsoredExploreHeaderFixtureTest {
-    // Tumblr 47.0.0.108's name for Explore's header presenter. The patch finds it by its log lines.
+    // Tumblr 47.3.0.110's name for Explore's header presenter. The patch finds it by its log lines.
     private val presenter = "Lcom/tumblr/util/c;"
 
     private fun context(build: File) = PatchContexts.of(ExtensionDex.classes() + FixtureDex.classes(build, setOf(presenter)).values)

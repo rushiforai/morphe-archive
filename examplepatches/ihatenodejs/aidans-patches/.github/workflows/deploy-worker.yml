@@ -1,15 +1,13 @@
 name: Deploy Worker
 
 on:
-  push:
-    branches:
-      - main
-    paths:
-      - 'worker/**'
-      - 'patches-list.json'
-      - '.github/workflows/deploy-worker.yml'
   workflow_dispatch:
   workflow_call:
+    inputs:
+      ref:
+        description: Commit to build and deploy (defaults to the triggering SHA)
+        required: false
+        type: string
     secrets:
       CLOUDFLARE_API_TOKEN:
         required: false
@@ -22,12 +20,17 @@ permissions:
 jobs:
   build-and-deploy:
     name: Build & Deploy Worker
+    # Deployment is only allowed for the stable release branch, either through
+    # the release/main handoff or a manual dispatch from release/main.
+    if: github.ref == 'refs/heads/release/main'
     runs-on: ubuntu-latest
     env:
       DEPLOY_ENABLED: ${{ secrets.CLOUDFLARE_API_TOKEN != '' }}
     steps:
       - name: Checkout
         uses: actions/checkout@v7
+        with:
+          ref: ${{ inputs.ref || github.sha }}
 
       - name: Setup Bun
         uses: oven-sh/setup-bun@v2

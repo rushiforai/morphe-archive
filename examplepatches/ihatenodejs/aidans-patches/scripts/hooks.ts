@@ -1072,27 +1072,56 @@ async function initializeSnapshotGit(
   }
 }
 
-function auditEnvironment(
+/**
+ * Environment for audit children. It must not inherit the caller's Git
+ * identity or configuration overrides: `semantic-release` exports
+ * `GIT_AUTHOR_NAME=…`/`GIT_COMMITTER_NAME=…` for its own commit, and a
+ * pre-push audit started by that process would otherwise author the commits
+ * tests create as the release bot. Tests that shell out to Git must only see
+ * the identity they set themselves.
+ */
+export const AUDIT_ENV_REMOVED = [
+  'GIT_INDEX_FILE',
+  'GIT_DIR',
+  'GIT_WORK_TREE',
+  'GIT_COMMON_DIR',
+  'GIT_PREFIX',
+  'GIT_AUTHOR_NAME',
+  'GIT_AUTHOR_EMAIL',
+  'GIT_AUTHOR_DATE',
+  'GIT_COMMITTER_NAME',
+  'GIT_COMMITTER_EMAIL',
+  'GIT_COMMITTER_DATE',
+  'GIT_CONFIG_COUNT',
+  'GIT_CONFIG_PARAMETERS',
+  'NODE_PATH',
+  'PYTHONHOME',
+  'PYTHONPATH',
+  'UV_PROJECT_ENVIRONMENT',
+  'VIRTUAL_ENV',
+  'CONDA_PREFIX',
+] as const;
+
+export const AUDIT_ENV_REMOVED_PREFIXES = [
+  'GIT_CONFIG_KEY_',
+  'GIT_CONFIG_VALUE_',
+] as const;
+
+export function auditEnvironment(
   snapshotDir?: string,
+  base: Record<string, string | undefined> = process.env,
 ): Record<string, string | undefined> {
-  const env = { ...process.env, GIT_OPTIONAL_LOCKS: '0' };
+  const env = { ...base, GIT_OPTIONAL_LOCKS: '0' };
   const virtualEnvironments = [env.VIRTUAL_ENV, env.CONDA_PREFIX].filter(
     (value): value is string => Boolean(value),
   );
-  for (const key of [
-    'GIT_INDEX_FILE',
-    'GIT_DIR',
-    'GIT_WORK_TREE',
-    'GIT_COMMON_DIR',
-    'GIT_PREFIX',
-    'NODE_PATH',
-    'PYTHONHOME',
-    'PYTHONPATH',
-    'UV_PROJECT_ENVIRONMENT',
-    'VIRTUAL_ENV',
-    'CONDA_PREFIX',
-  ]) {
+  for (const key of AUDIT_ENV_REMOVED) {
     delete env[key];
+  }
+  for (const key of Object.keys(env)) {
+    if (AUDIT_ENV_REMOVED_PREFIXES.some((prefix) => key.startsWith(prefix))) {
+      delete env[key];
+    }
   }
   if (env.PATH && virtualEnvironments.length > 0) {
     const excluded = new Set(

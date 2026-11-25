@@ -18,6 +18,7 @@ import app.morphe.patches.shared.compat.AppCompatibilities
 import app.morphe.patches.telegram.misc.extension.EXTENSION_PACKAGE
 import app.morphe.patches.telegram.misc.extension.enableCapability
 import app.morphe.patches.telegram.misc.extension.enableStatus
+import app.morphe.patches.telegram.misc.extension.patchLog
 import app.morphe.patches.telegram.misc.extension.requireLocals
 import app.morphe.patches.telegram.misc.extension.requireStatusMethod
 import app.morphe.patches.telegram.misc.extension.telegramExtensionPatch
@@ -25,17 +26,22 @@ import app.morphe.patches.telegram.misc.extension.writeStub
 import app.morphe.patches.telegram.misc.localcontrols.controlBody
 import app.morphe.patches.telegram.misc.localcontrols.controlHook
 import app.morphe.patches.telegram.misc.localcontrols.Mention
+import app.morphe.patches.telegram.misc.localcontrols.classDefsMentioning
 import app.morphe.patches.telegram.misc.localcontrols.controlRef
 import app.morphe.patches.telegram.misc.localcontrols.controlShape
 import app.morphe.patches.telegram.misc.localcontrols.controlSingle
 import app.morphe.patches.telegram.misc.localcontrols.forEachClassMentioning
+import app.morphe.patches.telegram.misc.messagemenu.landingOf
 import app.morphe.patches.telegram.misc.settings.settingsPatch
+import app.morphe.util.call
 import app.morphe.util.namedRegisters
 import com.android.tools.smali.dexlib2.AccessFlags
 import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.iface.Method
 import com.android.tools.smali.dexlib2.iface.reference.MethodReference
 import com.android.tools.smali.dexlib2.iface.reference.TypeReference
+import com.android.tools.smali.dexlib2.iface.instruction.Instruction
+import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
 import com.android.tools.smali.dexlib2.immutable.ImmutableMethod
 import app.morphe.util.names.origDefiningClass
@@ -54,6 +60,14 @@ private const val SEND_PARAMS = "Lorg/telegram/messenger/SendMessagesHelper\$Sen
 private const val SEND_SPOILER = "$SEND_PARAMS->hasMediaSpoilers:Z"
 private const val BLURRED = "$MESSAGE_OBJECT->needDrawBluredPreview()Z"
 private const val SENSITIVE = "$MESSAGE_OBJECT->isHiddenSensitive()Z"
+private const val PAID_PREVIEW = "$MESSAGE_OBJECT->hasExtendedMediaPreview()Z"
+private const val FORCE_PREVIEW = "Lorg/telegram/messenger/ImageReceiver;->setForcePreview(Z)V"
+private const val MEDIA_EXISTS = "$MESSAGE_OBJECT->mediaExists:Z"
+private const val DOWNLOADS = "Lorg/telegram/messenger/DownloadController;"
+private const val CAN_DOWNLOAD = "$DOWNLOADS->canDownloadMedia($MESSAGE_OBJECT)Z"
+private const val IS_LOADING = "Lorg/telegram/messenger/FileLoader;->isLoadingFile(Ljava/lang/String;)Z"
+private val ASKS_BLURRED = setOf(Opcode.INVOKE_VIRTUAL, Opcode.INVOKE_VIRTUAL_RANGE)
+private val JUMPS = setOf(Opcode.GOTO, Opcode.GOTO_16, Opcode.GOTO_32)
 internal val ADD = listOf("Landroid/view/View;", "Landroid/text/Layout;", "I", "I", "Ljava/util/Stack;", "Ljava/util/List;")
 private val ADD_CORE = listOf("Landroid/view/View;", "Landroid/text/Layout;", "I", "I", "Landroid/text/Spanned;", "Ljava/util/Stack;",
     "Ljava/util/List;", "Ljava/util/ArrayList;")
@@ -88,9 +102,10 @@ val revealSpoilersPatch = bytecodePatch(
     compatibleWith(*AppCompatibilities.telegram())
     execute {
         val site = resolveRevealSpoilers()
+        val timed = resolveTimedBlur()
         // Assembled on copies first, so a refusal leaves the app untouched.
         site.insertText(MutableMethod(ImmutableMethod.of(site.textCovers)))
-        site.media.groupBy { it.method }.forEach { (method, sites) ->
+        (site.media + timed.sites).groupBy { it.method }.forEach { (method, sites) ->
             val copy = MutableMethod(ImmutableMethod.of(method))
             sites.forEach { it.replace(copy) }
         }
@@ -119,9 +134,49 @@ val revealSpoilersPatch = bytecodePatch(
             :hush_kept
             return v0
         """)
+        // Without its checks timedPreview keeps answering false, so the switch can do nothing.
+        if (timed.missing == null) {
+            writeStub(SPOILERS, "stockLoadsPhoto", 3, """
+                check-cast p0, $DOWNLOADS
+                check-cast p1, $MESSAGE_OBJECT
+                invoke-virtual {p0, p1}, $CAN_DOWNLOAD
+                move-result v0
+                return v0
+            """)
+            writeStub(SPOILERS, "stockBlurred", 1, """
+                check-cast p0, $MESSAGE_OBJECT
+                invoke-virtual {p0}, $BLURRED
+                move-result p0
+                return p0
+            """)
+            writeStub(SPOILERS, "timedPreview", 2, """
+                check-cast p0, $MESSAGE_OBJECT
+                invoke-virtual {p0}, $BLURRED
+                move-result v0
+                if-eqz v0, :hush_no
+                invoke-virtual {p0}, $PAID_PREVIEW
+                move-result v0
+                if-nez v0, :hush_kept
+                invoke-virtual {p0}, $SENSITIVE
+                move-result v0
+                if-nez v0, :hush_kept
+                const/4 v0, 0x1
+                return v0
+                :hush_kept
+                const/4 v0, 0x0
+                :hush_no
+                return v0
+            """)
+        }
         site.insertText(site.textCovers)
         site.media.forEach { it.replace(it.method) }
         enableStatus("revealSpoilers")
+        if (timed.missing == null) {
+            timed.sites.forEach { it.replace(it.method) }
+            enableCapability("revealTimedMedia")
+        } else {
+            patchLog.warning("Reveal spoilers: ${timed.missing}. The patch goes on without showing view-once and timed media unblurred.")
+        }
         applyChatReveal()
     }
 }
@@ -133,13 +188,18 @@ internal fun BytecodePatchContext.applyChatReveal() {
     if (parts.searchHits) enableCapability("searchHitQuotes")
 }
 
-/** One media check at instruction [index] of [method], a place that draws a message. */
-internal class MediaSpoilerSite(val method: MutableMethod, val index: Int) {
+/** One media check at instruction [index] of [method], a place that draws a message, answered by the runtime's [asks]. */
+internal class MediaSpoilerSite(
+    val method: MutableMethod,
+    val index: Int,
+    private val asks: String = "mediaCovered",
+    private val params: String = "Ljava/lang/Object;",
+) {
     /** The same register, the message, goes to the extension instead. */
     fun replace(target: MutableMethod) {
         val call = target.getInstruction(index)
         val registers = call.namedRegisters()
-        val hook = "$SPOILERS->mediaCovered(Ljava/lang/Object;)Z"
+        val hook = "$SPOILERS->$asks($params)Z"
         target.replaceInstruction(index, if (call.opcode == Opcode.INVOKE_VIRTUAL_RANGE) {
             "invoke-static/range {v${registers.first()} .. v${registers.last()}}, $hook"
         } else {
@@ -184,6 +244,12 @@ internal fun BytecodePatchContext.resolveRevealSpoilers(): RevealSpoilersSite {
     controlHook(SPOILERS, "spoilerSpan", listOf("Ljava/lang/Object;"), "Z")
     controlHook(SPOILERS, "stockMediaCovered", listOf("Ljava/lang/Object;"), "Z")
     controlHook(SPOILERS, "keptCovered", listOf("Ljava/lang/Object;"), "Z")
+    requireStatusMethod("revealTimedMedia")
+    controlHook(SPOILERS, "blurred", listOf("Ljava/lang/Object;"), "Z")
+    controlHook(SPOILERS, "stockBlurred", listOf("Ljava/lang/Object;"), "Z")
+    controlHook(SPOILERS, "timedPreview", listOf("Ljava/lang/Object;"), "Z")
+    controlHook(SPOILERS, "loadsPhoto", listOf("Ljava/lang/Object;", "Ljava/lang/Object;"), "Z")
+    controlHook(SPOILERS, "stockLoadsPhoto", listOf("Ljava/lang/Object;", "Ljava/lang/Object;"), "Z")
 
     // Text.
     val blocks = tgMutableClassDefByOrNull(TEXT_BLOCKS)
@@ -252,6 +318,73 @@ internal fun BytecodePatchContext.resolveRevealSpoilers(): RevealSpoilersSite {
     }
     return RevealSpoilersSite(textCovers, span, media)
 }
+
+/** The chat bubble's checks that keep view-once and timed media blurred, or why this build has none. */
+internal class TimedBlurPlan(val missing: String?, val sites: List<MediaSpoilerSite>)
+
+/**
+ * The chat bubble decides on the dark blur with three needDrawBluredPreview checks in a row, and a
+ * fourth tells its image to stay on the thumbnail. A photo also only loads in full when it's on the
+ * device or the download rules allow it, which they don't for timed media, so that check is answered
+ * too. Only these go to the runtime: needDrawBluredPreview also makes a tap open the timed viewer,
+ * which refuses a message it answers false for.
+ */
+internal fun BytecodePatchContext.resolveTimedBlur(): TimedBlurPlan {
+    fun missing(why: String) = TimedBlurPlan(why, emptyList())
+    val paid = tgMutableClassDefByOrNull(MESSAGE_OBJECT)?.methods?.singleOrNull { key(it) == PAID_PREVIEW }
+    if (paid == null || !AccessFlags.PUBLIC.isSet(paid.accessFlags) || AccessFlags.STATIC.isSet(paid.accessFlags)) {
+        return missing("the paid media check isn't a public MessageObject method")
+    }
+    val found = classDefsMentioning(Mention.reference(BLURRED)).flatMap { cls ->
+        cls.methods.mapNotNull { method -> method.timedBlurIndexes()?.let { method to it } }
+    }
+    val (method, indexes) = found.singleOrNull() ?: return missing("the chat bubble's blur check moved (found ${found.size})")
+    val gate = method.fullPhotoGate() ?: return missing("the chat bubble's full photo check moved")
+    val target = tgMutableClassDefBy(method.definingClass).methods.single { it.toString() == method.toString() }
+    return TimedBlurPlan(null, listOf(MediaSpoilerSite(target, gate, "loadsPhoto", "Ljava/lang/Object;Ljava/lang/Object;")) +
+        indexes.map { MediaSpoilerSite(target, it, "blurred") })
+}
+
+/**
+ * Two checks jump straight to getFancyBlurFilter when the answer is true, one in front of them leads
+ * to the first, and one goes straight into ImageReceiver.setForcePreview. Their indexes, the leading
+ * one first and the preview last, or null when this isn't that method.
+ */
+private fun Method.timedBlurIndexes(): List<Int>? {
+    val code = controlBody()
+    fun asks(at: Int) = code[at].opcode in ASKS_BLURRED && code[at].controlRef() == BLURRED && code.getOrNull(at + 1)?.opcode == Opcode.MOVE_RESULT
+    fun tests(at: Int, opcode: Opcode): Boolean {
+        val test = code.getOrNull(at + 2) ?: return false
+        return test.opcode == opcode && (test as OneRegisterInstruction).registerA == (code[at + 1] as OneRegisterInstruction).registerA
+    }
+    val checks = code.indices.filter(::asks)
+    if (checks.size < 3) return null
+    val guards = checks.filter { at -> tests(at, Opcode.IF_NEZ) && code.landingOf(at + 2)?.let { code[it].picksBlurFilter() } == true }
+    if (guards.size != 2) return null
+    val leads = (checks - guards.toSet()).filter { at ->
+        tests(at, Opcode.IF_NEZ) && code.landingOf(at + 2) == guards[0] ||
+            tests(at, Opcode.IF_EQZ) && code.getOrNull(at + 3)?.opcode in JUMPS && code.landingOf(at + 3) == guards[0]
+    }
+    val preview = checks.singleOrNull { at ->
+        code.getOrNull(at + 2)?.controlRef() == FORCE_PREVIEW &&
+            code[at + 2].namedRegisters().last() == (code[at + 1] as OneRegisterInstruction).registerA
+    } ?: return null
+    return listOf(leads.singleOrNull() ?: return null) + guards + preview
+}
+
+/** The download check of the plain photo branch: after the check for the file, before the one for a running download. */
+private fun Method.fullPhotoGate(): Int? {
+    val code = controlBody()
+    return code.indices.filter { at ->
+        code[at].controlRef() == CAN_DOWNLOAD && code.getOrNull(at + 1)?.opcode == Opcode.MOVE_RESULT &&
+            (maxOf(0, at - 12) until at).any { code[it].controlRef() == MEDIA_EXISTS && code[it + 1].opcode == Opcode.IF_NEZ } &&
+            (at + 2..minOf(at + 12, code.lastIndex)).any { code[it].controlRef() == IS_LOADING }
+    }.singleOrNull()
+}
+
+private fun Instruction.picksBlurFilter() = call()?.let {
+    it.name == "getFancyBlurFilter" && it.parameterTypes.isEmpty() && it.returnType == "Landroid/graphics/ColorMatrixColorFilter;"
+} == true
 
 private fun signature(method: Method) = "${method.origName}${method.origDescriptor}"
 private fun key(method: Method) = "${method.origDefiningClass}->${signature(method)}"

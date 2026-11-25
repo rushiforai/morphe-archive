@@ -28,6 +28,7 @@ import org.robolectric.RobolectricTestRunner;
 import org.robolectric.RuntimeEnvironment;
 import org.robolectric.Shadows;
 import org.robolectric.annotation.Config;
+import org.robolectric.annotation.GraphicsMode;
 import org.robolectric.shadows.ShadowDialog;
 import org.robolectric.shadows.ShadowToast;
 import static org.junit.Assert.*;
@@ -323,11 +324,13 @@ public class SettingsDialogTest {
             assertEquals(text.get("message_log_by_chat"), byChat.getText().toString());
             byChat.performClick();
             assertEquals(text.get("message_log_by_date"), byChat.getText().toString());
-            assertNull(findText(root, "second from ana"));
+            // Chats, not messages: only each chat's newest line shows, under its name, as in Messenger's chat list.
+            assertNull(findText(root, "first from ana"));
             LinearLayout results = root.findViewWithTag("message_log_results");
             assertEquals(2, results.getChildCount());
             // The most recent chat first, under the group's name when it has one.
             assertNotNull(findText(results.getChildAt(0), "Ana"));
+            assertNotNull(findText(results.getChildAt(0), "second from ana"));
             assertNotNull(findText(results.getChildAt(1), "Trip"));
             results.getChildAt(1).performClick();
             assertNotNull(findText(root, "from the group"));
@@ -359,6 +362,111 @@ public class SettingsDialogTest {
             root.findViewWithTag("message_log_by_chat").performClick();
             assertEquals(text.get("message_log_hint"), hint.getText().toString());
         }
+    }
+
+    /** #200: the log looks like Messenger's chats, in Messenger's softer dark greys, with a face on every row. */
+    @Test public void theLogIsMessengersDarkGreyWithAFaceOnEveryRow() throws Exception {
+        MaterialYouTheme.forgetDarkModeAnswer();
+        long now = System.currentTimeMillis();
+        MessageLog.write(Settings.appContext, List.of(
+            new MessageLog.Entry(now - 2000, "ONE_TO_ONE:1:2", "hello there", "Ana", "", "mid.1", false),
+            new MessageLog.Entry(now - 1000, "GROUP:7", "from the group", "Ben", "Trip", "mid.2", false)));
+        try (var screen = Robolectric.buildActivity(SettingsActivity.class).setup()) {
+            screen.get().getWindow().getDecorView().findViewWithTag("message_log_view").performClick();
+            View root = ShadowDialog.getLatestDialog().getWindow().getDecorView();
+            awaitText(root, "hello there");
+            assertEquals(0xff1c1c1d, sheetColor(root));
+            LinearLayout results = root.findViewWithTag("message_log_results");
+            assertEquals(2, results.getChildCount());
+            for (int i = 0; i < 2; i++) assertNotNull("a face beside message " + i, results.getChildAt(i).findViewWithTag("message_log_face"));
+            root.findViewWithTag("message_log_by_chat").performClick();
+            assertEquals(2, results.getChildCount());
+            for (int i = 0; i < 2; i++) {
+                View row = results.getChildAt(i);
+                assertEquals("message_log_chat", row.getTag());
+                assertNotNull("a face on chat " + i, row.findViewWithTag("message_log_face"));
+            }
+            // The newest message stands under the chat's name, like Messenger's chat list.
+            assertNotNull(findText(results.getChildAt(0), "from the group"));
+            assertNotNull(findText(results.getChildAt(1), "hello there"));
+        }
+    }
+
+    /** #200: light or dark with Messenger, and Material You's pure black when that's picked. */
+    @Test public void theLogFollowsMessengersLightModeAndMaterialYousBlack() throws Exception {
+        MessageLog.write(Settings.appContext, List.of(new MessageLog.Entry(System.currentTimeMillis() - 1000, "t1", "hello", "Ana", "", "mid.1", false)));
+        try {
+            MaterialYouTheme.darkModeAnswer(false);
+            try (var screen = Robolectric.buildActivity(SettingsActivity.class).setup()) {
+                screen.get().getWindow().getDecorView().findViewWithTag("message_log_view").performClick();
+                View root = ShadowDialog.getLatestDialog().getWindow().getDecorView();
+                awaitText(root, "hello");
+                assertEquals("Messenger is light, Hush's own Light theme is off", 0xffffffff, sheetColor(root));
+                ShadowDialog.getLatestDialog().dismiss();
+            }
+            Settings.preferences.edit().putBoolean(MaterialYouTheme.KEY, true).putBoolean(MaterialYouTheme.BLACK_KEY, true).commit();
+            MaterialYouTheme.darkModeAnswer(true);
+            try (var screen = Robolectric.buildActivity(SettingsActivity.class).setup()) {
+                screen.get().getWindow().getDecorView().findViewWithTag("message_log_view").performClick();
+                View root = ShadowDialog.getLatestDialog().getWindow().getDecorView();
+                awaitText(root, "hello");
+                assertEquals(0xff000000, sheetColor(root));
+            }
+        } finally {
+            MaterialYouTheme.forgetDarkModeAnswer();
+        }
+    }
+
+    /** #200: a chat's kept picture shows on its row and beside its messages; a group without one gets two blank faces. */
+    @Test @Config(sdk = 36) @GraphicsMode(GraphicsMode.Mode.NATIVE)
+    public void aChatsKeptPictureShowsOnItsRowsAndAGroupWithoutOneGetsTwoBlankFaces() throws Exception {
+        MaterialYouTheme.forgetDarkModeAnswer();
+        Settings.hookErrors.clear();
+        MessageLogFaces.keep(Settings.appContext, "ONE_TO_ONE:1:2", "Ana",
+            new MessageLogFaces.Found(MessageLogFacesTest.solid(android.graphics.Color.RED), null));
+        long now = System.currentTimeMillis();
+        MessageLog.write(Settings.appContext, List.of(
+            new MessageLog.Entry(now - 2000, "ONE_TO_ONE:1:2", "hello there", "Ana", "", "mid.1", false),
+            new MessageLog.Entry(now - 1000, "GROUP:7", "from the group", "Ben", "Trip", "mid.2", false)));
+        try (var screen = Robolectric.buildActivity(SettingsActivity.class).setup()) {
+            screen.get().getWindow().getDecorView().findViewWithTag("message_log_view").performClick();
+            View root = ShadowDialog.getLatestDialog().getWindow().getDecorView();
+            awaitText(root, "hello there");
+            LinearLayout results = root.findViewWithTag("message_log_results");
+            // Newest first: the group's message from Ben, who has no picture, then Ana's.
+            awaitPicture(results.getChildAt(1));
+            assertFalse(face(results.getChildAt(0)).hasPicture());
+            root.findViewWithTag("message_log_by_chat").performClick();
+            View group = results.getChildAt(0), direct = results.getChildAt(1);
+            assertTrue("Messenger's two blank faces for a group", face(group).group());
+            assertFalse(face(group).hasPicture());
+            awaitPicture(direct);
+            layout(root);
+            View shown = direct.findViewWithTag("message_log_face");
+            android.graphics.Bitmap shot = android.graphics.Bitmap.createBitmap(shown.getWidth(), shown.getHeight(), android.graphics.Bitmap.Config.ARGB_8888);
+            shown.draw(new android.graphics.Canvas(shot));
+            int middle = shot.getPixel(shot.getWidth() / 2, shot.getHeight() / 2);
+            assertTrue(Integer.toHexString(middle), android.graphics.Color.red(middle) > 200 && android.graphics.Color.green(middle) < 60);
+            assertEquals("round", 0, android.graphics.Color.alpha(shot.getPixel(1, 1)));
+            assertTrue(Settings.hookErrors.toString(), Settings.hookErrors.isEmpty());
+        }
+    }
+
+    private static MessageLogFace face(View row) {
+        return (MessageLogFace) row.findViewWithTag("message_log_face").getBackground();
+    }
+
+    private static void awaitPicture(View row) throws Exception {
+        long deadline = System.currentTimeMillis() + 5000;
+        while (!face(row).hasPicture() && System.currentTimeMillis() < deadline) {
+            Shadows.shadowOf(Looper.getMainLooper()).idle();
+            Thread.sleep(10);
+        }
+        assertTrue("the kept picture shows", face(row).hasPicture());
+    }
+
+    private static int sheetColor(View root) {
+        return ((android.graphics.drawable.ColorDrawable) root.findViewWithTag("settings_dialog").getBackground()).getColor();
     }
 
     @Test public void aPhotoTheLogCantOpenSaysSoInItsPlace() throws Exception {

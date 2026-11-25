@@ -24,7 +24,7 @@ import javax.xml.parsers.DocumentBuilderFactory
 private val names = linkedMapOf(
     "analytics" to "Disable analytics",
     "consent" to "Disable consent popup",
-    "premium" to "Enable SoundCloud Go+",
+    "premium" to "Enable SoundCloud Go",
     "amoled" to "AMOLED dark theme",
     "monet" to "Material You dynamic theme",
 )
@@ -55,7 +55,12 @@ fun main(args: Array<String>) = runBlocking {
         patcher += patches
         val metadata = patcher.context.packageMetadata
         check(metadata.packageName == "com.soundcloud.android")
-        check(mapOf("2026.08.26-release" to "369070", "2026.09.23-release" to "374050", "2026.11.02-release" to "379060")[metadata.versionName] == metadata.versionCode)
+        check(mapOf(
+            "2026.08.26-release" to "369070",
+            "2026.09.23-release" to "374050",
+            "2026.11.02-release" to "379060",
+            "2026.11.20-release" to "381130",
+        )[metadata.versionName] == metadata.versionCode)
         patcher().collect { result ->
             check(result.exception == null) { "${result.patch.name} failed: ${result.exception}" }
             println("Executed: ${result.patch.name}")
@@ -130,26 +135,62 @@ fun main(args: Array<String>) = runBlocking {
             check(bottomBar.references().filterIsInstance<MethodReference>().any { it.name == "setBackgroundColor" })
             check(bottomBar.references().filterIsInstance<FieldReference>().any { it.definingClass == "Landroid/graphics/Color;" && it.name == "BLACK" })
         }
-        if ("Enable SoundCloud Go+" in requested) {
+        if ("Enable SoundCloud Go" in requested) {
             verifyFeatureConstructor(clazz("Lcom/soundcloud/android/configuration/plans/Feature;").methods.single {
                 it.name == "<init>" && it.parameterTypes == listOf("Ljava/lang/String;", "Z", "Ljava/util/List;")
             })
             val plan = clazz("Lcom/soundcloud/android/configuration/plans/UserConsumerPlan;").methods.single {
                 it.name == "<init>" && it.parameterTypes == listOf("Ljava/lang/String;", "Z", "Ljava/lang/String;", "Ljava/util/List;", "Ljava/lang/String;", "Ljava/lang/String;")
             }
-            check(plan.references().filterIsInstance<StringReference>().map { it.string }.containsAll(listOf("high_tier", "go-plus", "SoundCloud Go+")))
+            check(plan.references().filterIsInstance<StringReference>().map { it.string }.containsAll(listOf("high_tier", "go-plus", "SoundCloud Go")))
+            val features = clazz("Lcom/soundcloud/android/configuration/features/DefaultFeatureOperations;")
+            assertEarlyField(features, "getCurrentTier", "Lcom/soundcloud/android/configuration/plans/Tier;", "HIGH")
+            assertEarlyField(features, "getCurrentConsumerPlan", "Lcom/soundcloud/android/configuration/plans/ConsumerPlan;", "GO_PLUS")
+            assertEarlyBoolean(features, "getShouldRequestAds")
+            assertEarlyBoolean(features, "isMonetizableAdGeo")
             assertEarlyField(clazz("Lcom/soundcloud/android/configuration/data/ConfigurationSettingsStorage;"),
-                "Lcom/soundcloud/android/configuration/plans/Tier;", "HIGH")
+                "b", "Lcom/soundcloud/android/configuration/plans/Tier;", "HIGH")
             assertEarlyField(clazz("Lcom/soundcloud/android/upsell/UpsellVisibilityController;"),
-                "Lcom/soundcloud/android/upsell/UpsellType\$None;", "INSTANCE")
+                "mapToPlan", "Lcom/soundcloud/android/upsell/UpsellType\$None;", "INSTANCE")
+            val transitions = clazz("Lcom/soundcloud/android/configuration/DefaultConfigurationUpdatesLifecycleObserver;")
+            val transitionMethods = transitions.methods.filter {
+                it.returnType == "V" && it.parameterTypes.lastOrNull() == "Ljava/lang/String;" &&
+                    (it.parameterTypes.contains("Lcom/soundcloud/android/payments/plantransitions/pub/TransitionType\$Offboarding;") ||
+                        it.parameterTypes.contains("Lcom/soundcloud/android/payments/plantransitions/pub/TransitionType\$Onboarding;"))
+            }
+            check(transitionMethods.map { it.name }.toSet() == setOf("c", "d")) {
+                "Expected both fan transition methods, found ${transitionMethods.map { it.name }}."
+            }
+            transitionMethods.forEach { method ->
+                check(method.implementation!!.instructions.first().opcode == Opcode.RETURN_VOID) {
+                    "Fan plan transition ${method.name} was not suppressed."
+                }
+            }
             val placements = clazz("Lcom/soundcloud/android/ads/display/data/config/AdPlacementConfiguration;").methods.filter { it.name == "<init>" }
             check(placements.isNotEmpty())
             placements.forEach { method ->
-                val first = method.implementation!!.instructions.take(3).map { it as Instruction11n }
-                check(first.all { it.opcode == Opcode.CONST_4 && it.narrowLiteral == 0 })
+                val enabledIndex = method.parameterTypes.indexOfFirst { it == "Z" }
+                check(enabledIndex >= 0) { "AdPlacementConfiguration constructor has no enabled flag." }
                 val parameterStart = method.implementation!!.registerCount - method.parameterTypes.size - 1
-                val offset = if (method.parameterTypes.firstOrNull() == "I") 1 else 0
-                check(first.map { it.registerA } == listOf(1, 2, 3).map { parameterStart + offset + it })
+                val enabledRegister = parameterStart + 1 + enabledIndex
+                val first = method.implementation!!.instructions.first() as Instruction11n
+                check(first.opcode == Opcode.CONST_4 && first.narrowLiteral == 0 && first.registerA == enabledRegister) {
+                    "AdPlacementConfiguration enabled flag was not cleared: register=${first.registerA} literal=${first.narrowLiteral} " +
+                        "params=${method.parameterTypes} registers=${method.implementation!!.registerCount} " +
+                        "enabledIndex=$enabledIndex expected=$enabledRegister"
+                }
+                val objectRegisters = method.parameterTypes.mapIndexedNotNull { index, type ->
+                    if (type.endsWith("GamConfiguration;") || type.endsWith("AditudeConfiguration;")) {
+                        parameterStart + 1 + index
+                    } else null
+                }
+                check(objectRegisters.isNotEmpty()) { "AdPlacementConfiguration object parameters missing." }
+                method.implementation!!.instructions.forEach { instruction ->
+                    if (instruction is Instruction11n && instruction.opcode == Opcode.CONST_4 &&
+                        instruction.narrowLiteral == 0 && instruction.registerA in objectRegisters) {
+                        error("AdPlacementConfiguration object parameter was nulled.")
+                    }
+                }
             }
         }
         println("SoundCloud ${metadata.versionName} (${metadata.versionCode}), selection '$selection': patch execution, resource/DEX compilation and output checks passed.")
@@ -165,10 +206,20 @@ private fun value(root: Element, tag: String, name: String): String {
 
 private fun Method.references() = implementation!!.instructions.mapNotNull { (it as? ReferenceInstruction)?.reference }
 
-private fun assertEarlyField(clazz: ClassDef, fieldClass: String, name: String) {
+private fun assertEarlyField(clazz: ClassDef, methodName: String?, fieldClass: String, name: String) {
     check(clazz.methods.any { method ->
+        if (methodName != null && method.name != methodName) return@any false
         val instructions = method.implementation?.instructions?.toList() ?: return@any false
         val field = (instructions.firstOrNull() as? ReferenceInstruction)?.reference as? FieldReference
         field?.definingClass == fieldClass && field.name == name && instructions[1].opcode == Opcode.RETURN_OBJECT
-    }) { "Expected early field return missing: $fieldClass->$name" }
+    }) { "Expected early field return missing: ${methodName ?: "*"} -> $fieldClass->$name" }
+}
+
+private fun assertEarlyBoolean(clazz: ClassDef, methodName: String) {
+    val method = clazz.methods.single { it.name == methodName }
+    val instructions = method.implementation!!.instructions.toList()
+    check(instructions[0].opcode == Opcode.CONST_4 && (instructions[0] as Instruction11n).narrowLiteral == 0) {
+        "$methodName does not return false early."
+    }
+    check(instructions[1].opcode == Opcode.RETURN) { "$methodName does not return early." }
 }

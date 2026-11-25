@@ -18,9 +18,19 @@ import app.hushtelegram.extension.telegram.settings.Settings;
  * is set. The channel appearance editor, the check that tells it whether a channel's status changed
  * and the admin log's wording keep asking the kept getters, so saving a channel and reading its
  * history see the real status.
+ *
+ * <p>Keep emoji statuses moving, a switch of its own, lets every animated status next to a name
+ * go on playing instead of stopping after two plays ({@link #statusRepeatType}).
  */
 public final class EmojiStatus {
     private EmojiStatus() {}
+
+    /** AnimatedEmojiDrawable's cache types for a status next to a name and one in a sheet. */
+    private static final int STATUS_BY_NAME = 7;
+    private static final int STATUS_IN_SHEET = 9;
+
+    /** A cache type AnimatedEmojiDrawable sets no play count for. */
+    private static final int NO_PLAY_COUNT = -1;
 
     /** Whether a name's emoji status is left out. False while paused, before settings load or when the switch can't be read. */
     public static boolean hide() {
@@ -33,5 +43,21 @@ public final class EmojiStatus {
         }
         HookStatus.counted(FamilyNames.HIDE_COMMERCE, "emoji status hidden");
         return true;
+    }
+
+    /**
+     * The cache type AnimatedEmojiDrawable sets an image's play count by. A status next to a name
+     * or in a sheet plays twice and stops; while Keep emoji statuses moving is on, its type comes
+     * back as one Telegram sets no count for, so it keeps looping. Any other [type] is Telegram's.
+     */
+    public static int statusRepeatType(int type) {
+        HookStatus.invoked(FamilyNames.HIDE_COMMERCE);
+        if (type != STATUS_BY_NAME && type != STATUS_IN_SHEET) return type;
+        try {
+            return Utils.settingsReady() && Settings.MOVING_EMOJI_STATUS.get() ? NO_PLAY_COUNT : type;
+        } catch (Throwable failure) {
+            HookStatus.threw(FamilyNames.HIDE_COMMERCE, "moving emoji status switch", failure);
+            return type;
+        }
     }
 }

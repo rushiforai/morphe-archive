@@ -28,7 +28,7 @@ use crate::deployment::{self, DeploymentTools, PatchBuildRequest, PatchEngine};
 use crate::device::{self, AdbClient, MonitorStream, RealClock};
 use crate::dex_strings;
 use crate::error::Error;
-use crate::fixtures::{R2FixtureManager, SlotMetadata};
+use crate::fixtures::{R2FixtureManager, SeedExpectations, SlotMetadata};
 use crate::il2cpp;
 use crate::inspection;
 use crate::manifest;
@@ -407,7 +407,7 @@ Options:
 const ACQUIRE_HELP: &str = "\
 Usage: apk-lab acquire <package> [--version NAME] [--version-code CODE] [--out-dir DIR]
 
-Download and normalize an APK from Google Play.
+Download and normalize an APK from Google Play, APKMirror, or APKPure.
 
 Options:
   --version NAME       Expected version name
@@ -440,15 +440,18 @@ Run 'apk-lab fixtures <command> --help' for command options.
 ";
 
 const FIXTURES_SEED_HELP: &str = "\
-Usage: apk-lab fixtures seed --package NAME --role target|latest --artifact PATH
+Usage: apk-lab fixtures seed --package NAME --role target|latest --artifact PATH [options]
 
 Seed a fixture slot from a local artifact.
 
 Options:
-  --package NAME   Package name
-  --role ROLE      Slot role (target or latest)
-  --artifact PATH  Path to the artifact
-  -h, --help       Print help
+  --package NAME          Package name
+  --role ROLE             Slot role (target or latest)
+  --artifact PATH         Path to the artifact
+  --source LABEL          Provenance label recorded with the slot (default: manual)
+  --expect-version NAME   Fail before upload unless the artifact version matches
+  --expect-sha256 HEX     Fail before upload unless the artifact SHA-256 matches
+  -h, --help              Print help
 ";
 
 const FIXTURES_INFO_HELP: &str = "\
@@ -1176,6 +1179,35 @@ fn fixture_failure(prefix: &str, error: &dyn std::fmt::Display) -> ExitCode {
     ExitCode::InfrastructureFailure
 }
 
+/// Validates a fixture provenance label. Labels reach slot metadata and the
+/// compat report, so keep them a stable, log-safe token.
+fn fixture_source(value: &str, help: &str) -> Result<String, Error> {
+    let bytes = value.as_bytes();
+    let lowercase_or_digit = |byte: &u8| byte.is_ascii_lowercase() || byte.is_ascii_digit();
+    let valid = (1..=32).contains(&bytes.len())
+        && lowercase_or_digit(&bytes[0])
+        && bytes
+            .iter()
+            .all(|byte| lowercase_or_digit(byte) || matches!(byte, b'.' | b'_' | b'-'));
+    if valid {
+        return Ok(value.to_string());
+    }
+    write_stderr(help);
+    Err(Error::usage(format!(
+        "argument --source: invalid value: '{value}' (expected 1-32 lowercase letters, digits, '.', '_' or '-')"
+    )))
+}
+
+fn expect_sha256(value: &str, help: &str) -> Result<String, Error> {
+    if value.len() == 64 && value.bytes().all(|byte| byte.is_ascii_hexdigit()) {
+        return Ok(value.to_ascii_lowercase());
+    }
+    write_stderr(help);
+    Err(Error::usage(format!(
+        "argument --expect-sha256: invalid value: '{value}' (expected 64 hexadecimal characters)"
+    )))
+}
+
 fn run_fixtures_seed(
     args: &[String],
     manager: Option<&R2FixtureManager>,
@@ -1183,6 +1215,9 @@ fn run_fixtures_seed(
     let mut package: Option<String> = None;
     let mut role: Option<String> = None;
     let mut artifact: Option<String> = None;
+    let mut source: Option<String> = None;
+    let mut expect_version: Option<String> = None;
+    let mut expect_sha: Option<String> = None;
     let mut index = 0;
     while index < args.len() {
         let arg = args[index].as_str();
@@ -1234,6 +1269,55 @@ fn run_fixtures_seed(
                 )?);
                 index += 1;
             }
+            "--source" => {
+                source = Some(fixture_source(
+                    &require_value(args, index, "--source", FIXTURES_SEED_HELP)?,
+                    FIXTURES_SEED_HELP,
+                )?);
+                index += 2;
+            }
+            _ if arg.starts_with("--source=") => {
+                source = Some(fixture_source(
+                    &non_empty_value(&arg["--source=".len()..], "--source", FIXTURES_SEED_HELP)?,
+                    FIXTURES_SEED_HELP,
+                )?);
+                index += 1;
+            }
+            "--expect-version" => {
+                expect_version = Some(require_value(
+                    args,
+                    index,
+                    "--expect-version",
+                    FIXTURES_SEED_HELP,
+                )?);
+                index += 2;
+            }
+            _ if arg.starts_with("--expect-version=") => {
+                expect_version = Some(non_empty_value(
+                    &arg["--expect-version=".len()..],
+                    "--expect-version",
+                    FIXTURES_SEED_HELP,
+                )?);
+                index += 1;
+            }
+            "--expect-sha256" => {
+                expect_sha = Some(expect_sha256(
+                    &require_value(args, index, "--expect-sha256", FIXTURES_SEED_HELP)?,
+                    FIXTURES_SEED_HELP,
+                )?);
+                index += 2;
+            }
+            _ if arg.starts_with("--expect-sha256=") => {
+                expect_sha = Some(expect_sha256(
+                    &non_empty_value(
+                        &arg["--expect-sha256=".len()..],
+                        "--expect-sha256",
+                        FIXTURES_SEED_HELP,
+                    )?,
+                    FIXTURES_SEED_HELP,
+                )?);
+                index += 1;
+            }
             _ if arg.starts_with('-') => {
                 write_stderr(FIXTURES_SEED_HELP);
                 return Err(Error::usage(format!("unrecognized option '{arg}'")));
@@ -1250,18 +1334,28 @@ fn run_fixtures_seed(
             "the following arguments are required: --package, --role, --artifact",
         ));
     };
+    let source = source.unwrap_or_else(|| "manual".to_string());
+    let expectations = SeedExpectations {
+        version_name: expect_version.as_deref(),
+        sha256: expect_sha.as_deref(),
+    };
 
     let mut owned = None;
     let manager = fixture_manager(manager, &mut owned)?;
     write_stdout(&format!(
-        "Seeding fixture for {package} (role: {role})...\n"
+        "Seeding fixture for {package} (role: {role}, source: {source})...\n"
     ))?;
     let runtime = current_thread_runtime()?;
-    match runtime.block_on(manager.seed_fixture(&package, &role, &artifact)) {
+    match runtime.block_on(manager.seed_fixture(&package, &role, &artifact, &source, expectations))
+    {
         Ok(metadata) => {
             let text = format!(
-                "[OK] Seeded {} v{} ({}) to slot {role}\n",
-                metadata.package_name, metadata.version_name, metadata.version_code
+                "[OK] Seeded {} v{} ({}) to slot {role} [src: {}, signer: {}]\n",
+                metadata.package_name,
+                metadata.version_name,
+                metadata.version_code,
+                metadata.acquisition_source,
+                short_signer(metadata.signer_sha256.as_deref())
             );
             write_stdout(&text)?;
             Ok(ExitCode::Success)
@@ -1270,14 +1364,24 @@ fn run_fixtures_seed(
     }
 }
 
+fn short_signer(signer: Option<&str>) -> String {
+    signer.map_or_else(
+        || "unknown".to_string(),
+        |value| format!("{}...", value.get(..16).unwrap_or(value)),
+    )
+}
+
 fn format_slot(role: &str, metadata: Option<SlotMetadata>) -> String {
     metadata.map_or_else(
         || format!("Slot {role}: [EMPTY]\n"),
         |metadata| {
             let sha = metadata.sha256.get(..16).unwrap_or(&metadata.sha256);
             format!(
-                "Slot {role}: {} ({}), SHA: {sha}..., src: {}\n",
-                metadata.version_name, metadata.version_code, metadata.acquisition_source
+                "Slot {role}: {} ({}), SHA: {sha}..., signer: {}, src: {}\n",
+                metadata.version_name,
+                metadata.version_code,
+                short_signer(metadata.signer_sha256.as_deref()),
+                metadata.acquisition_source
             )
         },
     )
@@ -5220,6 +5324,45 @@ mod tests {
 
     fn args_strings(values: &[&str]) -> Vec<String> {
         values.iter().map(|value| (*value).to_string()).collect()
+    }
+
+    #[test]
+    fn fixture_source_labels_are_stable_tokens() {
+        for value in [
+            "manual",
+            "apkmirror",
+            "apkpure",
+            "device.pull",
+            "play_store-1",
+        ] {
+            assert_eq!(fixture_source(value, "help").expect(value), value);
+        }
+        for value in [
+            "",
+            "Manual",
+            "a b",
+            "../escape",
+            &"x".repeat(33),
+            "-leading",
+        ] {
+            let error = fixture_source(value, "help").expect_err(value);
+            assert_eq!(error.exit_code(), ExitCode::UsageOrToolError);
+            assert!(error.message().contains("--source"), "{error}");
+        }
+    }
+
+    #[test]
+    fn expect_sha256_requires_64_hex_characters() {
+        let uppercase = "A".repeat(64);
+        assert_eq!(
+            expect_sha256(&uppercase, "help").expect("valid sha"),
+            "a".repeat(64)
+        );
+        for invalid in ["", "abc", &"g".repeat(64), &"a".repeat(63)] {
+            let error = expect_sha256(invalid, "help").expect_err(invalid);
+            assert_eq!(error.exit_code(), ExitCode::UsageOrToolError);
+            assert!(error.message().contains("--expect-sha256"), "{error}");
+        }
     }
 
     #[test]

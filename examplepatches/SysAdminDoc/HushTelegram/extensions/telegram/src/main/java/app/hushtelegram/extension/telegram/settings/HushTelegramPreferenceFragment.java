@@ -119,8 +119,10 @@ import app.hushtelegram.extension.telegram.misc.VoiceChanger;
 import app.hushtelegram.extension.telegram.misc.SaveDownloads;
 import app.hushtelegram.extension.telegram.misc.SavedPicture;
 import app.hushtelegram.extension.telegram.misc.SpecialContacts;
+import app.hushtelegram.extension.telegram.misc.StickerPanel;
 import app.hushtelegram.extension.telegram.misc.StickerSize;
 import app.hushtelegram.extension.telegram.misc.StorageFolder;
+import app.hushtelegram.extension.telegram.misc.BottomFolderTabs;
 import app.hushtelegram.extension.telegram.misc.TabFit;
 import app.hushtelegram.extension.telegram.misc.UnifiedPush;
 import app.hushtelegram.extension.telegram.misc.V2RayProxies;
@@ -162,6 +164,8 @@ public final class HushTelegramPreferenceFragment extends AbstractPreferenceFrag
     static final String CLEAR_EDITS = "action_clear_edit_history";
     /** The Sticker size row's key. The size itself is saved under {@link Settings#STICKER_SIZE}. */
     static final String STICKER_SIZE_ROW = "action_sticker_size";
+    /** The Sticker panel size row's key. The size itself is saved under {@link Settings#STICKER_PANEL_SIZE}. */
+    static final String STICKER_PANEL_ROW = "action_sticker_panel_size";
     /** The Avatar size row's key. The size itself is saved under {@link Settings#CHAT_LIST_AVATAR_SIZE}. */
     static final String AVATAR_SIZE_ROW = "action_chat_list_avatar_size";
     /** The Gallery folder row's key. The choice itself is saved under {@link Settings#GALLERY_FOLDER}. */
@@ -410,6 +414,8 @@ public final class HushTelegramPreferenceFragment extends AbstractPreferenceFrag
         if (size != null) size.setSummary(stickerSizeSummary());
         Preference avatarSize = findPreference(AVATAR_SIZE_ROW);
         if (avatarSize != null) avatarSize.setSummary(avatarSizeSummary());
+        Preference panelSize = findPreference(STICKER_PANEL_ROW);
+        if (panelSize != null) panelSize.setSummary(stickerPanelSummary());
         Preference emoji = findPreference(TitleEmojiEditor.KEY);
         if (emoji != null) emoji.setSummary(TitleEmojiEditor.summary(Settings.TITLE_EMOJI.savedValue()));
         Preference ownTitle = findPreference(TitleEmojiEditor.TITLE_KEY);
@@ -514,16 +520,10 @@ public final class HushTelegramPreferenceFragment extends AbstractPreferenceFrag
                                 + "the chat list and profiles, and the Premium star shows instead. Your own status hides too but stays "
                                 + "set for everyone else. A chat picks this up the next time you open it.")));
             }
-            if (PatchFamily.Capability.COMMERCE_PREMIUM_ICONS.installed()) {
-                on(pages, PatchFamily.HIDE_COMMERCE).addPreference(toggle(context, Settings.UNLOCK_PREMIUM_ICONS,
-                        L10n.t("Unlock Premium app icons"), L10n.t("Premium, Turbo and Nox in Telegram's App Icon list work without "
-                                + "Premium, with no lock and no Premium sheet. Only the icon on your home screen changes.")));
-            }
-            if (PatchFamily.Capability.COMMERCE_LOCAL_EMOJI_STATUS.installed()) {
-                on(pages, PatchFamily.HIDE_COMMERCE).addPreference(toggle(context, Settings.LOCAL_EMOJI_STATUS,
-                        L10n.t("Emoji status on this phone"), L10n.t("Tap the star next to Telegram at the top of the chat list "
-                                + "and pick any emoji status, animated ones too, without Premium. It shows there on this phone only. "
-                                + "Nobody else sees it, and nothing is sent to Telegram.")));
+            if (PatchFamily.Capability.COMMERCE_MOVING_EMOJI_STATUS.installed()) {
+                on(pages, PatchFamily.HIDE_COMMERCE).addPreference(toggle(context, Settings.MOVING_EMOJI_STATUS,
+                        L10n.t("Keep emoji statuses moving"), L10n.t("Emoji statuses next to names keep playing instead of "
+                                + "stopping after two plays. It uses a little more battery. Restart Telegram to see the change.")));
             }
         }
         if (build.contains(PatchFamily.HIDE_PROMOTIONAL_BANNERS)) {
@@ -618,10 +618,6 @@ public final class HushTelegramPreferenceFragment extends AbstractPreferenceFrag
             }
             if (PatchFamily.Capability.HIDE_ALL_CHATS.installed()) {
                 folderTabs.addPreference(toggle(context, Settings.HIDE_ALL_CHATS, L10n.t("Hide All Chats"), hideAllChatsSummary()));
-            }
-            if (PatchFamily.Capability.ALL_CHATS_PLACE.installed()) {
-                folderTabs.addPreference(toggle(context, Settings.MOVE_ALL_CHATS, L10n.t("Move All Chats"),
-                        L10n.t("Lets you drag All Chats to another place among your folder tabs, as Premium does. The place is saved on this phone for this account, and your other devices keep All Chats first. Has no effect while Hide All Chats is on.")));
             }
             if (PatchFamily.Capability.HIDDEN_CHATS.installed()) {
                 SwitchPreference hide = toggle(context, Settings.HIDDEN_CHATS, L10n.t("Hide picked chats"),
@@ -725,6 +721,16 @@ public final class HushTelegramPreferenceFragment extends AbstractPreferenceFrag
                 });
                 folderTabs.addPreference(fit);
             }
+            if (PatchFamily.Capability.BOTTOM_TABS.installed()) {
+                SwitchPreference bottom = toggle(context, Settings.FOLDER_TABS_BOTTOM, L10n.t("Folder tabs at the bottom"),
+                        L10n.t("Moves the folder tabs from the top of the chat list to just above the bottom bar, "
+                                + "where your thumb can reach them."));
+                bottom.setOnPreferenceChangeListener((row, value) -> {
+                    Utils.runOnMainThreadDelayed(BottomFolderTabs::refreshAll, 0);
+                    return true;
+                });
+                folderTabs.addPreference(bottom);
+            }
             if (PatchFamily.Capability.TAB_ICONS.installed()) {
                 folderTabs.addPreference(toggle(context, Settings.FOLDER_TAB_ICONS, L10n.t("Folder icons on tabs"),
                         L10n.t("Puts a small icon in front of each folder tab's name: a chat bubble for All Chats, and a person, "
@@ -747,18 +753,6 @@ public final class HushTelegramPreferenceFragment extends AbstractPreferenceFrag
                 folderTabs.addPreference(sort);
                 folderTabs.addPreference(oldest);
             }
-            if (PatchFamily.Capability.LOCAL_PINS.installed()) {
-                SwitchPreference pins = toggle(context, Settings.LOCAL_PINS, L10n.t("Pin chats on this phone"),
-                        L10n.t("Adds Pin on this phone to the long press menu of the chat list. Those chats sit right under your "
-                                + "pinned chats in All Chats, newest first. Nothing is sent to Telegram, so your other devices and "
-                                + "Telegram's pin limit stay as they are."));
-                pins.setOnPreferenceChangeListener((row, value) -> {
-                    // Once the switch is saved, so the chat list sorts by what it says.
-                    Utils.runOnMainThreadDelayed(HiddenChats::refreshAll, 0);
-                    return true;
-                });
-                folderTabs.addPreference(pins);
-            }
             if (PatchFamily.Capability.CHAT_LIST_AVATAR.installed()) {
                 SwitchPreference avatars = toggle(context, Settings.CHAT_LIST_AVATAR, L10n.t("Change avatar size"),
                         L10n.t("Chat pictures in the chat list show at the size you pick below. Each row keeps its height, "
@@ -770,6 +764,12 @@ public final class HushTelegramPreferenceFragment extends AbstractPreferenceFrag
                 });
                 folderTabs.addPreference(avatars);
                 folderTabs.addPreference(avatarSizeRow(context));
+            }
+            if (PatchFamily.Capability.SAVED_MEDIA_FIRST.installed()) {
+                folderTabs.addPreference(toggle(context, Settings.SAVED_MEDIA_FIRST, L10n.t("Open Saved Messages on its media"),
+                        L10n.t("Tapping Saved Messages in the chat list opens its shared media page, with your saved chats, "
+                                + "media, files, links, music and voice messages. To open the chat itself, tap the menu on "
+                                + "the Chats tab and pick View as Messages.")));
             }
             folderTabs.addPreference(folderIconRow(context));
         }
@@ -838,6 +838,18 @@ public final class HushTelegramPreferenceFragment extends AbstractPreferenceFrag
                         L10n.t("Hide new message button"),
                         L10n.t("Removes the round pencil button from the chat list. Start a chat from the menu or search. "
                                 + "Restart Telegram to see the change.")));
+            }
+            if (PatchFamily.Capability.HIDE_DOWNLOADS_BUTTON.installed()) {
+                on(pages, PatchFamily.HIDE_CONTACTS_TAB).addPreference(toggle(context, Settings.HIDE_DOWNLOADS_BUTTON,
+                        L10n.t("Hide Downloads button"),
+                        L10n.t("The Downloads button stays out of the bar at the top of the chat list, even while a file "
+                                + "downloads. Your downloads are still in the Downloads tab when you search.")));
+            }
+            if (PatchFamily.Capability.ALWAYS_SHOW_DOWNLOADS_BUTTON.installed()) {
+                on(pages, PatchFamily.HIDE_CONTACTS_TAB).addPreference(toggle(context, Settings.ALWAYS_SHOW_DOWNLOADS_BUTTON,
+                        L10n.t("Always show Downloads button"),
+                        L10n.t("The Downloads button stays in the bar at the top of the chat list even when nothing is "
+                                + "downloading, so your downloads are one tap away. Hide Downloads button wins.")));
             }
         }
         if (build.contains(PatchFamily.PROXY_MENU)) {
@@ -956,6 +968,11 @@ public final class HushTelegramPreferenceFragment extends AbstractPreferenceFrag
                         L10n.t("Hide pinned message bar"), L10n.t("The bar under a chat's top bar that shows pinned messages is gone, "
                                 + "along with its counter and list button. Messages stay pinned and nothing is marked as read.")));
             }
+            if (PatchFamily.Capability.ALWAYS_TRANSLATE_BAR.installed()) {
+                on(pages, PatchFamily.HIDE_TRANSLATE_BAR).addPreference(toggle(context, Settings.ALWAYS_SHOW_TRANSLATE_BAR,
+                        L10n.t("Always show translate bar"), L10n.t("Every chat gets the translate bar, even when Telegram doesn't "
+                                + "spot another language. It needs Premium or an outside translation service, and Hide translate bar wins.")));
+            }
         }
         if (build.contains(PatchFamily.REVEAL_SPOILERS)) {
             on(pages, PatchFamily.REVEAL_SPOILERS).addPreference(toggle(context, Settings.REVEAL_SPOILERS, L10n.t("Reveal spoilers"),
@@ -970,6 +987,12 @@ public final class HushTelegramPreferenceFragment extends AbstractPreferenceFrag
                 on(pages, PatchFamily.REVEAL_SPOILERS).addPreference(toggle(context, Settings.SEARCH_OPENS_QUOTES,
                         L10n.t("Open quotes on search hits"), L10n.t("When a chat search lands on a match inside a collapsed"
                                 + " quote, the quote opens so the highlighted match stays in view.")));
+            }
+            if (PatchFamily.Capability.REVEAL_TIMED_MEDIA.installed()) {
+                on(pages, PatchFamily.REVEAL_SPOILERS).addPreference(toggle(context, Settings.REVEAL_TIMED_MEDIA,
+                        L10n.t("Show view-once and timed media unblurred"), L10n.t("View-once and self-destructing photos and videos"
+                                + " show clearly in the chat, even with Reveal spoilers off. Tapping one still opens it the way"
+                                + " Telegram does. Paid and sensitive media stay covered.")));
             }
         }
         if (build.contains(PatchFamily.MY_MESSAGES)) {
@@ -1038,11 +1061,6 @@ public final class HushTelegramPreferenceFragment extends AbstractPreferenceFrag
                                     + "selected text there. Secret chats stay as they are.")
                             : L10n.t("Puts Copy back in the menu of a message in a chat that doesn't allow saving. Secret chats stay "
                                     + "as they are."))));
-            if (PatchFamily.Capability.STORY_SAVE.installed()) {
-                on(pages, PatchFamily.MESSAGE_MENU_REPEAT).addPreference(toggle(context, Settings.STORY_SAVE_BUTTON, L10n.t("Add Save to Gallery to stories"),
-                        PatchFamily.MESSAGE_MENU_REPEAT.coverageSummary(L10n.t("Puts Save to Gallery in a story's three-dot menu without Premium, stories "
-                                + "that don't allow saving included. It saves only the ones you pick."))));
-            }
             if (PatchFamily.Capability.SCREENSHOTS.installed()) {
                 on(pages, PatchFamily.MESSAGE_MENU_REPEAT).addPreference(toggle(context, Settings.ALLOW_SCREENSHOTS, L10n.t("Allow screenshots in chats that don't allow saving"),
                         PatchFamily.MESSAGE_MENU_REPEAT.coverageSummary(L10n.t("Screenshots and screen recording work in those chats, their photos, profiles "
@@ -1052,6 +1070,13 @@ public final class HushTelegramPreferenceFragment extends AbstractPreferenceFrag
                         PatchFamily.MESSAGE_MENU_REPEAT.coverageSummary(L10n.t("Works with Allow screenshots in chats that don't allow saving on. "
                                 + "Secret chats, their photos and profiles can be captured too. Telegram tells the other person when you take one, "
                                 + "unless Suppress screenshot notification is on. Their view-once media stays blocked."))));
+                if (PatchFamily.Capability.TIMED_SCREENSHOTS.installed()) {
+                    on(pages, PatchFamily.MESSAGE_MENU_REPEAT).addPreference(toggle(context, Settings.TIMED_MEDIA_SCREENSHOTS, L10n.t("Also allow screenshots of view-once and timed media"),
+                            PatchFamily.MESSAGE_MENU_REPEAT.coverageSummary(L10n.t("Works with Allow screenshots in chats that don't allow saving on. "
+                                    + "The screen that opens view-once and self-destructing photos and videos can be captured too. "
+                                    + "In a secret chat it also needs Also allow screenshots in secret chats, and Telegram tells the other "
+                                    + "person unless Suppress screenshot notification is on."))));
+                }
             }
             on(pages, PatchFamily.MESSAGE_MENU_REPEAT).addPreference(toggle(context, Settings.MESSAGE_MENU_SAVE_PROTECTED, L10n.t("Add Save to Downloads to the message menu"),
                     PatchFamily.MESSAGE_MENU_REPEAT.coverageSummary(L10n.t("Adds Save to Downloads to a downloaded photo, video, file or song "
@@ -1102,6 +1127,13 @@ public final class HushTelegramPreferenceFragment extends AbstractPreferenceFrag
                         L10n.t("Add Edit a copy to the message menu"),
                         L10n.t("Opens a photo from a chat in Telegram's photo editor, where you can draw, add text or blur parts. "
                                 + "Sending it sends the edited copy to the chat. The photo in the chat stays as it was.")));
+            }
+            if (PatchFamily.Capability.LINK_PREVIEW_PHOTO.installed()) {
+                on(pages, PatchFamily.MESSAGE_MENU_REPEAT).addPreference(toggle(context, Settings.LINK_PREVIEW_PHOTO,
+                        L10n.t("Add Send photo to the link preview menu"),
+                        L10n.t("When the link preview above the message box has a picture, its menu gets Send photo. The picture "
+                                + "goes to the chat with what you typed as its caption, and the preview is removed. Text too long for "
+                                + "a caption stays in the box.")));
             }
             if (PatchFamily.Capability.SELECT_BETWEEN.installed()) {
                 on(pages, PatchFamily.MESSAGE_MENU_REPEAT).addPreference(toggle(context, Settings.SELECT_BETWEEN, L10n.t("Select between"),
@@ -1233,6 +1265,12 @@ public final class HushTelegramPreferenceFragment extends AbstractPreferenceFrag
                                 + " video has more than one, and Subtitles when it has any. The subtitles you pick show over"
                                 + " the video.")));
             }
+            if (PatchFamily.Capability.EXTERNAL_PLAYER.installed()) {
+                on(pages, PatchFamily.KEEP_VIDEOS_MUTED).addPreference(toggle(context, Settings.EXTERNAL_PLAYER,
+                        L10n.t("Play videos in another app"), L10n.t("Tapping a video in a chat opens it in a player"
+                                + " app like VLC or MX Player. Videos that aren't downloaded stream as they play. Secret,"
+                                + " view-once and protected videos stay in Telegram's player.")));
+            }
             if (PatchFamily.Capability.VIDEO_EITHER_LANDSCAPE.installed()) {
                 on(pages, PatchFamily.KEEP_VIDEOS_MUTED).addPreference(toggle(context, Settings.VIDEO_EITHER_LANDSCAPE,
                         L10n.t("Full screen videos turn either way"), L10n.t("After you tap full screen, a video follows"
@@ -1330,7 +1368,8 @@ public final class HushTelegramPreferenceFragment extends AbstractPreferenceFrag
             on(pages, PatchFamily.SAVE_DOWNLOADS).addPreference(toggle(context, Settings.SAVE_TIMED_MEDIA,
                     L10n.t("Also save view-once and timed media"),
                     L10n.t("With Save downloaded files on, view-once and self-destructing photos, videos, voice and video"
-                            + " messages get copied to Download/Telegram when they download. The sender meant them to disappear,"
+                            + " messages get copied to Download/Telegram when they download. The message menu's Save to Downloads"
+                            + " shows up on them too. The sender meant them to disappear,"
                             + " so only use it where they're fine with you keeping a copy. Secret chats need Also save from secret"
                             + " chats too.")));
             on(pages, PatchFamily.SAVE_DOWNLOADS).addPreference(toggle(context, Settings.SAVE_SECRET_CHATS,
@@ -1604,6 +1643,12 @@ public final class HushTelegramPreferenceFragment extends AbstractPreferenceFrag
                                 + "stays on this phone.")));
                 on(pages, PatchFamily.SHOW_LOCAL_IDS).addPreference(specialContactsRow(context));
             }
+            if (PatchFamily.Capability.LOCAL_NAMES.installed()) {
+                on(pages, PatchFamily.SHOW_LOCAL_IDS).addPreference(toggle(context, Settings.LOCAL_NAMES, L10n.t("Rename on this phone"),
+                        L10n.t("A profile's menu and the chat list's long press menu get Rename on this phone. The name you give a "
+                                + "person, bot, group or channel shows in place of theirs everywhere in Telegram on this phone. "
+                                + "Telegram and the other person never see it.")));
+            }
         }
         if (build.contains(PatchFamily.HOLIDAY_LOOK)) {
             on(pages, PatchFamily.HOLIDAY_LOOK).addPreference(toggle(context, Settings.HOLIDAY_LOOK, L10n.t("New Year look all year"),
@@ -1697,6 +1742,12 @@ public final class HushTelegramPreferenceFragment extends AbstractPreferenceFrag
                     PatchFamily.CHANGE_STICKER_SIZE.coverageSummary(L10n.t("Stickers in chats show at the size you pick below. "
                             + "Animated emoji and dice keep Telegram's size. A chat picks this up the next time you open it."))));
             page.addPreference(stickerSizeRow(context));
+            if (PatchFamily.Capability.KEEP_STICKER_CACHE.installed()) {
+                page.addPreference(toggle(context, Settings.KEEP_STICKER_CACHE, L10n.t("Keep downloaded stickers"),
+                        L10n.t("Telegram's automatic cache cleanup leaves sticker files alone, so sticker packs you've used don't "
+                                + "download again. Clearing the cache yourself still removes them.")));
+            }
+            if (PatchFamily.Capability.STICKER_PANEL_SIZE.installed()) page.addPreference(stickerPanelRow(context));
         }
         if (build.contains(PatchFamily.HIDE_CHANNEL_BUTTONS)) {
             on(pages, PatchFamily.HIDE_CHANNEL_BUTTONS).addPreference(toggle(context, Settings.HIDE_CHANNEL_BUTTONS, L10n.t("Hide channel bar buttons"),
@@ -1903,13 +1954,6 @@ public final class HushTelegramPreferenceFragment extends AbstractPreferenceFrag
                     Settings.SUPPRESS_SCREENSHOT_NOTIFICATION, L10n.t("Suppress screenshot notification"),
                     PatchFamily.SUPPRESS_SCREENSHOT_NOTIFICATION.coverageSummary(L10n.t(
                             "Telegram no longer tells the other person in a secret chat when you take a screenshot."))));
-        }
-        if (build.contains(PatchFamily.UNLOCK_PREMIUM)) {
-            on(pages, PatchFamily.UNLOCK_PREMIUM).addPreference(toggle(context, Settings.UNLOCK_PREMIUM,
-                    L10n.t("Unlock Premium features"),
-                    PatchFamily.UNLOCK_PREMIUM.coverageSummary(L10n.t(
-                            "Telegram on this phone treats your account as Premium, so the parts the app itself locks "
-                                    + "open up. Telegram's servers still know your real plan, so their limits stay the same."))));
         }
         if (build.contains(PatchFamily.BYPASS_CHANNEL_RESTRICTIONS)) {
             on(pages, PatchFamily.BYPASS_CHANNEL_RESTRICTIONS).addPreference(toggle(context,
@@ -2755,6 +2799,72 @@ public final class HushTelegramPreferenceFragment extends AbstractPreferenceFrag
 
     static String stickerSizeSummary() {
         return L10n.f("%1$s of Telegram's size", percent(StickerSize.percent(Settings.STICKER_SIZE.savedValue())));
+    }
+
+    /**
+     * How big stickers show in the sticker panel and its search (#110): the row says the size
+     * picked, and a tap lists the others.
+     */
+    private Preference stickerPanelRow(Context context) {
+        Row row = new Row(context);
+        row.setKey(STICKER_PANEL_ROW);
+        row.setTitle(L10n.t("Sticker panel size"));
+        row.setPersistent(false);
+        row.setSummary(stickerPanelSummary());
+        row.setOnPreferenceClickListener(p -> {
+            showStickerPanelSizes(context, p);
+            return true;
+        });
+        return row;
+    }
+
+    /** The sticker panel sizes, picked the way {@link #showStickerSizes} picks a sticker size. */
+    void showStickerPanelSizes(Context context, Preference row) {
+        if (SettingsLock.refuses()) return;
+        CharSequence[] labels = new CharSequence[StickerPanel.CHOICES.length];
+        for (int i = 0; i < labels.length; i++) labels[i] = stickerPanelLabel(StickerPanel.CHOICES[i]);
+        show(new AlertDialog.Builder(context)
+                .setTitle(L10n.t("Sticker panel size"))
+                .setSingleChoiceItems(labels, savedStickerPanelChoice(), (dialog, which) -> {
+                    boolean started = save((AlertDialog) dialog,
+                            () -> Settings.STICKER_PANEL_SIZE.saveCommitted(StickerPanel.CHOICES[which]), landed -> {
+                                if (landed) {
+                                    row.setSummary(stickerPanelSummary());
+                                    dialog.dismiss();
+                                } else {
+                                    checkSavedStickerPanelSize((AlertDialog) dialog);
+                                    Utils.showToastLong(L10n.t("Couldn't save the size. Try again in a moment."));
+                                }
+                            });
+                    if (!started) checkSavedStickerPanelSize((AlertDialog) dialog);
+                })
+                .setNegativeButton(L10n.t("Cancel"), null));
+    }
+
+    /** Where the saved panel size sits among the choices. One that's none of them reads as Telegram's. */
+    static int savedStickerPanelChoice() {
+        int saved = StickerPanel.choice(Settings.STICKER_PANEL_SIZE.savedValue());
+        for (int i = 0; i < StickerPanel.CHOICES.length; i++) {
+            if (StickerPanel.CHOICES[i] == saved) return i;
+        }
+        return -1;
+    }
+
+    private static void checkSavedStickerPanelSize(AlertDialog dialog) {
+        dialog.getListView().setItemChecked(savedStickerPanelChoice(), true);
+    }
+
+    static String stickerPanelSummary() {
+        return L10n.f("%1$s. A bigger size shows fewer, bigger stickers in the sticker panel and its search. "
+                + "A chat picks this up the next time you open it.", stickerPanelLabel(Settings.STICKER_PANEL_SIZE.savedValue()));
+    }
+
+    /** A panel size's name: Telegram's size, Large or Larger. One that isn't a choice reads as Telegram's. */
+    static String stickerPanelLabel(int size) {
+        int choice = StickerPanel.choice(size);
+        if (choice == StickerPanel.CHOICES[1]) return L10n.t("Large");
+        if (choice == StickerPanel.CHOICES[2]) return L10n.t("Larger");
+        return L10n.t("Telegram's size");
     }
 
     /** The size chat list avatars show at: the row says the one picked, and a tap lists the others. */

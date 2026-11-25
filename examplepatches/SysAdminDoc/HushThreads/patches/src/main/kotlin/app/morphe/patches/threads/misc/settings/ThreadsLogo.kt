@@ -13,7 +13,6 @@ import app.morphe.patcher.patch.PatchException
 import app.morphe.patches.threads.misc.extension.EXTENSION_PACKAGE
 import app.morphe.patches.threads.misc.extension.patchLog
 import app.morphe.patches.threads.misc.extension.writeStub
-import app.morphe.patches.threads.misc.theme.holdsNote
 import app.morphe.util.findMutableMethodOf
 import app.morphe.util.getReference
 import app.morphe.util.singleOrPatchException
@@ -51,12 +50,6 @@ internal const val FUNCTION1 = "Lkotlin/jvm/functions/Function1;"
 internal const val CONTENT_DESCRIPTION = "ContentDescription"
 
 private const val SINGLETON_LIST = "Ljava/util/Collections;->singletonList(Ljava/lang/Object;)Ljava/util/List;"
-
-/**
- * Compose's note in the main feed's lambdas, cut before the rest of the lambda's name. The feed
- * header that draws the logo is one of them.
- */
-internal const val MAIN_FEED_SCREEN_NOTE = "com.instagram.barcelona.feed.ui.MainFeedScreen"
 
 /**
  * The reason Threads' feed refresh logs for a refresh a tap on its logo starts. Redex keeps an enum
@@ -180,7 +173,7 @@ internal fun BytecodePatchContext.addLogoLongPress() {
 
 /**
  * Reads where the long press goes and refuses a build where any of it differs from what was read
- * on 450 and 451: one refresh reason named [LOGO_TAP], one call in the main feed's lambdas to a
+ * on 450 and 451: one refresh reason named [LOGO_TAP], one call anywhere in Threads to a
  * clickable(source, indication, modifier, role, String, Function0, boolean) that answers its
  * modifier's type and is handed, through copies and casts, a new lambda whose invoke() sends that
  * reason, its answer taken right after it, and one combined clickable beside it taking (source,
@@ -189,14 +182,17 @@ internal fun BytecodePatchContext.addLogoLongPress() {
  */
 internal fun BytecodePatchContext.logoSite(): LogoSite {
     val reason = logoTapReason()
-    val sites = classDefByStrings(MAIN_FEED_SCREEN_NOTE, StringComparisonType.STARTS_WITH)
-        .filterNot { it.type.startsWith(EXTENSION_ROOT) }
-        .flatMap { it.methods }
-        .filter { it.holdsNote(MAIN_FEED_SCREEN_NOTE) }
-        .distinctBy { it.signature() }
+    val clickers = mutableListOf<Method>()
+    classDefForEach { classDef ->
+        if (classDef.type.startsWith(EXTENSION_ROOT)) return@classDefForEach
+        classDef.methods.filterTo(clickers) { method ->
+            method.implementation?.instructions?.any { it.callsClickable() } == true
+        }
+    }
+    val sites = clickers.distinctBy { it.signature() }
         .flatMap { method -> logoTaps(method, reason).map { (call, tap) -> Triple(method, call, tap) } }
     val (method, call, tap) = sites.singleOrPatchException(
-        "$PATCH: the Threads logo's tap, a clickable in the main feed handed a lambda that refreshes by $LOGO_TAP",
+        "$PATCH: the Threads logo's tap, a clickable handed a lambda that refreshes by $LOGO_TAP",
     )
     val body = method.body()
     val clickable = body[call].method()!!
@@ -259,7 +255,11 @@ internal fun BytecodePatchContext.logoSemantics(modifier: String): LogoSemantics
     return LogoSemantics(setter, receiver, clearAndSet)
 }
 
-/** The field [initializer] stores first after it loads [CONTENT_DESCRIPTION], before any other string, or null. */
+/**
+ * The field [initializer] stores first after it loads [CONTENT_DESCRIPTION], before any other string,
+ * when what it stores is a new object of the field's type, built from the name: the key. 457 also
+ * files the name in a set of property names, stored the same way, which isn't one.
+ */
 private fun semanticsKey(initializer: Method): FieldReference? {
     val body = initializer.body()
     val named = body.indexOfFirst { it.getReference<StringReference>()?.string == CONTENT_DESCRIPTION }
@@ -268,7 +268,11 @@ private fun semanticsKey(initializer: Method): FieldReference? {
         body[at].opcode == Opcode.SPUT_OBJECT || body[at].getReference<StringReference>() != null
     } ?: return null
     if (body[store].opcode != Opcode.SPUT_OBJECT) return null
-    return body[store].getReference<FieldReference>()?.takeIf { it.definingClass == initializer.definingClass }
+    val field = body[store].getReference<FieldReference>()?.takeIf { it.definingClass == initializer.definingClass } ?: return null
+    val built = body.subList(named + 1, store).any {
+        it.opcode == Opcode.NEW_INSTANCE && it.getReference<TypeReference>()?.type == field.type
+    }
+    return field.takeIf { built }
 }
 
 /**
@@ -437,9 +441,7 @@ private fun BytecodePatchContext.logoTaps(method: Method, reason: FieldReference
     val body = method.body()
     return body.indices.mapNotNull { at ->
         val instruction = body[at]
-        if (instruction.opcode != Opcode.INVOKE_STATIC && instruction.opcode != Opcode.INVOKE_STATIC_RANGE) return@mapNotNull null
-        val target = instruction.method() ?: return@mapNotNull null
-        if (!target.isClickable()) return@mapNotNull null
+        if (!instruction.callsClickable()) return@mapNotNull null
         val made = madeBy(body, at, instruction.registers()[5]) ?: return@mapNotNull null
         val tap = classDefByOrNull(made) ?: return@mapNotNull null
         val sends = tap.methods.any { invoke ->
@@ -449,6 +451,9 @@ private fun BytecodePatchContext.logoTaps(method: Method, reason: FieldReference
         if (sends) at to made else null
     }
 }
+
+private fun Instruction.callsClickable(): Boolean =
+    (opcode == Opcode.INVOKE_STATIC || opcode == Opcode.INVOKE_STATIC_RANGE) && method()?.isClickable() == true
 
 /** Compose's clickable as Threads' build keeps it: (source, indication, modifier, role, String, Function0, boolean), answering the modifier's type. */
 private fun MethodReference.isClickable(): Boolean {

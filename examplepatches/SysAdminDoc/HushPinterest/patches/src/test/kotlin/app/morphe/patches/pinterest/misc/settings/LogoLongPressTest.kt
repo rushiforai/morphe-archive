@@ -13,6 +13,8 @@ import app.morphe.Fixtures
 import app.morphe.PatchContexts
 import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.iface.Method
+import com.android.tools.smali.dexlib2.iface.instruction.FiveRegisterInstruction
+import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.RegisterRangeInstruction
 import com.android.tools.smali.dexlib2.iface.reference.FieldReference
@@ -66,5 +68,62 @@ class LogoLongPressTest {
             assertEquals("${build.name}: one register", 1, hook.registerCount)
             assertEquals("${build.name}: Pinterest's own next step follows", next.opcode, patched[site.index + 1].opcode)
         }
+    }
+
+    @Test
+    fun `a build without the bottom bar keeps patching without the Home tab`() {
+        val context = PatchContexts.of(ExtensionDex.classes())
+        assertTrue(context.tabPressSites().isEmpty())
+        assertFalse(context.hookHomeTabLongPress())
+    }
+
+    /** #48: each tab's long press goes through the settings entry, which tells Home by its id. */
+    @Test
+    @Category(FixtureTests::class)
+    fun `each declared original APK passes every bottom bar tab's long press through the settings entry`() {
+        for (build in Fixtures.declaredBuilds()) {
+            var homeId = false
+            FixtureDex.forEach(build) { dex ->
+                if (dex.classes.any { owner -> owner.fields.any { it.name == HOME_TAB_ID && it.type == "I" } }) homeId = true
+            }
+            assertTrue("${build.name}: an R class names $HOME_TAB_ID, which is how the extension tells Home", homeId)
+
+            val bar = FixtureDex.classes(build, setOf(BOTTOM_BAR))[BOTTOM_BAR] ?: error("${build.name}: no $BOTTOM_BAR")
+            val context = PatchContexts.of(ExtensionDex.classes() + bar)
+            val sites = context.tabPressSites()
+            // The method that builds each tab, and the one that builds one again in its place.
+            assertEquals("${build.name}: long press sites", 2, sites.size)
+            assertEquals("${build.name}: one site per method", 2, sites.map { it.method.name + it.method.parameterTypes }.distinct().size)
+            val clean = sites.associateWith { it.method.implementation!!.instructions.toList() }
+
+            assertTrue(build.name, context.hookHomeTabLongPress())
+            for (site in sites) {
+                val before = clean.getValue(site)
+                val after = context.mutableClassDefBy(BOTTOM_BAR).methods.single {
+                    it.name == site.method.name && it.parameterTypes == site.method.parameterTypes && it.returnType == site.method.returnType
+                }.implementation!!.instructions.toList()
+                val what = "${build.name}: ${site.method.name}"
+                assertTrue("$what: the tab gets its id first", before.take(site.index).any {
+                    (it as? ReferenceInstruction)?.reference?.toString() == "Landroid/view/View;->setId(I)V" })
+                val hook = after[site.index]
+                assertEquals(what, Opcode.INVOKE_STATIC_RANGE, hook.opcode)
+                assertEquals(what, TAB_PRESS_HOOK, (hook as ReferenceInstruction).reference.toString())
+                assertEquals("$what: Pinterest's listener goes in", site.register, (hook as RegisterRangeInstruction).startRegister)
+                assertEquals(what, 1, hook.registerCount)
+                assertEquals(what, Opcode.MOVE_RESULT_OBJECT, after[site.index + 1].opcode)
+                assertEquals("$what: the answer takes its place", site.register, (after[site.index + 1] as OneRegisterInstruction).registerA)
+                assertTrue("$what: move-result-object can name the register", site.register < 256)
+                val set = after[site.index + 2] as FiveRegisterInstruction
+                assertEquals("$what: the tab gets the answer", site.register, set.registerD)
+                assertTrue(what, (set as ReferenceInstruction).reference.toString().endsWith("setOnLongClickListener(Landroid/view/View\$OnLongClickListener;)V"))
+                assertEquals("$what: Pinterest's own code is unchanged", before.map { it.opcode },
+                    (after.take(site.index) + after.drop(site.index + 2)).map { it.opcode })
+            }
+        }
+    }
+
+    private companion object {
+        /** The Home tab's resource name, as the extension's SettingsEntry.HOME_TAB_ID looks it up. */
+        const val HOME_TAB_ID = "bottom_nav_home_icon"
     }
 }

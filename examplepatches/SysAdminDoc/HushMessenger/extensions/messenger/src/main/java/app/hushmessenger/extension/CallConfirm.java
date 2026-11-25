@@ -31,6 +31,9 @@ public final class CallConfirm {
 
     static volatile Asker asker = CallConfirm::showQuestion;
 
+    /** The menu row whose tap Call is running, which goes straight through its own hook. */
+    private static Object passing;
+
     private CallConfirm() { }
 
     /** Wraps the tap listener of every call button in [buttons] while the switch is on. Never throws. */
@@ -42,6 +45,52 @@ public final class CallConfirm {
             }
         } catch (Throwable error) {
             Settings.hookFailed(KEY, "Can't ask before a call", error);
+        }
+    }
+
+    /**
+     * A tap on the audio or video row of the menu on someone's picture (#201), from the top of the row's own tap. These
+     * rows start the call themselves, with no call button to wrap. True when the question took the tap, so the row starts
+     * nothing yet. Call runs the row's tap again, and that one goes through. Never throws.
+     */
+    public static boolean profileCall(Object row, Context context, View view, Object message, int video) {
+        try {
+            if (row == null || row == passing || !Settings.enabled(KEY)) return false;
+            Method tap = profileTap(row, message);
+            if (tap == null) throw new IllegalStateException("No tap on " + row.getClass().getName());
+            asker.ask(view, video != 0, () -> placeProfileCall(tap, row, context, view, message));
+            return true;
+        } catch (Throwable error) {
+            // A question that can't go up mustn't cost the call.
+            Settings.hookFailed(KEY, "Can't ask before the call", error);
+            return false;
+        }
+    }
+
+    /** The row's one method taking a context, a view and the message and answering with a boolean. */
+    private static Method profileTap(Object row, Object message) {
+        Method tap = null;
+        for (Method method : row.getClass().getDeclaredMethods()) {
+            Class<?>[] types = method.getParameterTypes();
+            if (Modifier.isStatic(method.getModifiers()) || method.getReturnType() != boolean.class || types.length != 3
+                || types[0] != Context.class || types[1] != View.class || types[2].isPrimitive()
+                || (message != null && !types[2].isInstance(message))) continue;
+            if (tap != null) return null;
+            tap = method;
+        }
+        if (tap != null) tap.setAccessible(true);
+        return tap;
+    }
+
+    /** Messenger's own row tap, after Call. */
+    private static void placeProfileCall(Method tap, Object row, Context context, View view, Object message) {
+        passing = row;
+        try {
+            tap.invoke(row, context, view, message);
+        } catch (Throwable error) {
+            Settings.hookFailed(KEY, "The call didn't start after Call", error);
+        } finally {
+            passing = null;
         }
     }
 

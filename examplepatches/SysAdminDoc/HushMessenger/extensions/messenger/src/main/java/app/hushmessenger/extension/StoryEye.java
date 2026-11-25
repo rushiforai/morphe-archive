@@ -9,10 +9,12 @@ import android.os.Looper;
 import android.view.Gravity;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.ViewTreeObserver;
 import android.view.WindowInsets;
 import android.widget.FrameLayout;
 import android.widget.Toast;
 import java.lang.ref.WeakReference;
+import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.util.Map;
@@ -50,12 +52,26 @@ public final class StoryEye {
         }
     }
 
-    /** The card on screen: the last one whose seen was held back, or null. */
+    /** The last card whose seen was held back, or null. */
     static volatile Held held;
+    /**
+     * Every card held back while the viewer is open, by card (Messenger's card compares by value). The viewer keeps the
+     * stories beside the one on screen loaded, and a loaded story's seen is held as soon as its picture or video loads,
+     * so the newest held card is often the next one, not the one on screen (#202).
+     */
+    static final Map<Object, Held> heldCards = new WeakHashMap<>();
     /** Cards the eye sent this run, so coming back to one shows it as sent. */
     static final Map<Object, Boolean> sent = new WeakHashMap<>();
     /** The open story viewer's eye, or null with none open. Read and written on the main thread. */
     static WeakReference<Eye> shownEye;
+    /** The open story viewer, which knows the page on screen. Read and written on the main thread. */
+    static WeakReference<Object> shownViewer;
+    /** The viewer's way to its page on screen, and each page's card field, by class. Null when there's none. */
+    static final Map<Class<?>, Method> pageMethods = new WeakHashMap<>();
+    static final Map<Class<?>, Field> cardFields = new WeakHashMap<>();
+    /** What onScreen() answers when the viewer can't say which story is on screen. */
+    static final Object UNKNOWN = new Object();
+    private static final ViewTreeObserver.OnScrollChangedListener SCROLLED = StoryEye::scrolled;
     private static final ThreadLocal<Boolean> replaying = new ThreadLocal<>();
     private static Handler main;
 
@@ -67,11 +83,91 @@ public final class StoryEye {
     /** True while a tap is sending a held seen, so View stories anonymously lets that one call through. */
     static boolean replaying() { return Boolean.TRUE.equals(replaying.get()); }
 
-    /** View stories anonymously kept this card's seen from going out. The newest one is the card on screen. */
+    /** View stories anonymously kept this card's seen from going out. */
     static void hold(Object handler, Object card, boolean flag) {
         if (handler == null || card == null || !shown()) return;
-        held = new Held(handler, card, flag);
+        Held seen = new Held(handler, card, flag);
+        synchronized (heldCards) { heldCards.put(card, seen); }
+        held = seen;
         onMain(StoryEye::refresh);
+    }
+
+    /**
+     * The held seen for the story on screen: the one for the card on the viewer's page on screen, null when that card's
+     * seen wasn't held back, or the newest held one when the viewer can't say which story is on screen.
+     */
+    static Held current() {
+        Held newest = held;
+        Object newestCard = newest == null ? null : newest.card.get();
+        if (newestCard == null) return null;
+        Object viewer = shownViewer == null ? null : shownViewer.get();
+        Object card = viewer == null ? UNKNOWN : onScreen(viewer, newestCard.getClass());
+        if (card == UNKNOWN) return newest;
+        if (card == null) return null;
+        synchronized (heldCards) { return heldCards.get(card); }
+    }
+
+    /**
+     * The card on the viewer's page on screen. Messenger's viewer has one static method that takes the viewer and
+     * returns the fragment of the page on screen, and that fragment has one field for its card. Null when the page has
+     * no card yet, [UNKNOWN] when the viewer doesn't look like that.
+     */
+    static Object onScreen(Object viewer, Class<?> cardType) {
+        try {
+            Method page = pageMethod(viewer.getClass());
+            if (page == null) return UNKNOWN;
+            Object fragment = page.invoke(null, viewer);
+            if (fragment == null) return null;
+            Field card = cardField(fragment.getClass(), cardType);
+            return card == null ? UNKNOWN : card.get(fragment);
+        } catch (ReflectiveOperationException | RuntimeException error) {
+            Settings.hookFailedPrivately(OWNER, "Can't tell which story is on screen", error);
+            return UNKNOWN;
+        }
+    }
+
+    static Method pageMethod(Class<?> viewerType) {
+        synchronized (pageMethods) {
+            if (pageMethods.containsKey(viewerType)) return pageMethods.get(viewerType);
+        }
+        Method found = null;
+        boolean several = false;
+        for (Class<?> type = viewerType; type != null && type != Object.class; type = type.getSuperclass()) {
+            for (Method method : type.getDeclaredMethods()) {
+                Class<?>[] parameters = method.getParameterTypes();
+                if (!Modifier.isStatic(method.getModifiers()) || method.isSynthetic() || parameters.length != 1
+                    || !parameters[0].isAssignableFrom(viewerType) || !method.getReturnType().getName().endsWith(".Fragment")) continue;
+                several |= found != null;
+                found = method;
+            }
+        }
+        if (several) found = null;
+        if (found != null) found.setAccessible(true);
+        else Settings.hookFailedPrivately(OWNER, "Can't tell which story is on screen",
+            new NoSuchMethodException(viewerType.getName() + (several ? " has several pages on screen" : " has no page on screen")));
+        synchronized (pageMethods) { pageMethods.put(viewerType, found); }
+        return found;
+    }
+
+    static Field cardField(Class<?> pageType, Class<?> cardType) {
+        synchronized (cardFields) {
+            if (cardFields.containsKey(pageType)) return cardFields.get(pageType);
+        }
+        Field found = null;
+        boolean several = false;
+        for (Class<?> type = pageType; type != null && type != Object.class; type = type.getSuperclass()) {
+            for (Field field : type.getDeclaredFields()) {
+                if (Modifier.isStatic(field.getModifiers()) || field.getType() != cardType) continue;
+                several |= found != null;
+                found = field;
+            }
+        }
+        if (several) found = null;
+        if (found != null) found.setAccessible(true);
+        else Settings.hookFailedPrivately(OWNER, "Can't tell which story is on screen",
+            new NoSuchFieldException(pageType.getName() + (several ? " has several cards" : " has no card")));
+        synchronized (cardFields) { cardFields.put(pageType, found); }
+        return found;
     }
 
     /**
@@ -85,23 +181,32 @@ public final class StoryEye {
             view.addOnAttachStateChangeListener(new View.OnAttachStateChangeListener() {
                 // After the window finishes attaching its views, not in the middle of it.
                 @Override public void onViewAttachedToWindow(View attached) {
-                    attached.post(() -> { if (attached.isAttachedToWindow()) attach(attached); });
+                    attached.post(() -> { if (attached.isAttachedToWindow()) attach(attached, viewer); });
                 }
 
                 @Override public void onViewDetachedFromWindow(View detached) { detach(detached); }
             });
-            if (view.isAttachedToWindow()) attach(view);
+            if (view.isAttachedToWindow()) attach(view, viewer);
         } catch (RuntimeException | LinkageError error) {
             Settings.hookFailed(OWNER, "Can't add the Mark as seen button", error);
         }
     }
 
-    /** Puts the eye over the viewer's window, hidden until a card is held back. */
-    static void attach(View view) {
+    /**
+     * Puts the eye over the viewer's window, hidden until a card is held back. Swiping between stories scrolls the
+     * viewer's pager, and the eye follows the story on screen as it does.
+     */
+    static void attach(View view, Object viewer) {
         try {
             View root = view.getRootView();
             if (!(root instanceof FrameLayout)) return;
             FrameLayout window = (FrameLayout) root;
+            shownViewer = viewer == null ? null : new WeakReference<>(viewer);
+            ViewTreeObserver observer = window.getViewTreeObserver();
+            if (observer.isAlive()) {
+                observer.removeOnScrollChangedListener(SCROLLED);
+                observer.addOnScrollChangedListener(SCROLLED);
+            }
             Eye eye = window.findViewWithTag(VIEW_TAG);
             if (eye == null) {
                 eye = new Eye(window.getContext());
@@ -131,8 +236,12 @@ public final class StoryEye {
             Eye current = shownEye == null ? null : shownEye.get();
             if (current == null || current == eye) {
                 shownEye = null;
+                shownViewer = null;
                 held = null;
+                synchronized (heldCards) { heldCards.clear(); }
             }
+            ViewTreeObserver observer = root == null ? null : root.getViewTreeObserver();
+            if (observer != null && observer.isAlive()) observer.removeOnScrollChangedListener(SCROLLED);
             if (eye == null) return;
             eye.setVisibility(View.GONE);
             // A closing dialog detaches its whole window in one walk over each parent's children, and taking the eye
@@ -151,7 +260,7 @@ public final class StoryEye {
     static void refresh() {
         Eye eye = shownEye == null ? null : shownEye.get();
         if (eye == null) return;
-        Held seen = held;
+        Held seen = current();
         Object card = seen == null ? null : seen.card.get();
         if (card == null || !shown()) {
             eye.setVisibility(View.GONE);
@@ -174,9 +283,21 @@ public final class StoryEye {
         }
     }
 
-    /** Sends the held card's seen through Messenger's own handler. False when no card is held or it was sent already. */
+    /** A story list or the viewer's pager scrolled: the story on screen may have changed. */
+    static void scrolled() {
+        try {
+            refresh();
+        } catch (RuntimeException error) {
+            Settings.hookFailed(OWNER, "Can't show the Mark as seen button", error);
+        }
+    }
+
+    /**
+     * Sends the seen for the story on screen through Messenger's own handler. False when that story's seen isn't held
+     * back or was sent already.
+     */
     static boolean markSeen() throws ReflectiveOperationException {
-        Held seen = held;
+        Held seen = current();
         Object handler = seen == null ? null : seen.handler.get();
         Object card = seen == null ? null : seen.card.get();
         if (handler == null || card == null) return false;

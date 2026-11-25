@@ -13,6 +13,7 @@ import app.morphe.patcher.patch.PatchException
 import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod
 import app.morphe.patcher.util.smali.ExternalLabel
 import app.morphe.patches.threads.misc.extension.EXTENSION_PACKAGE
+import app.morphe.patches.threads.misc.extension.classesNoted
 import app.morphe.patches.threads.misc.extension.freeLocalsAt
 import app.morphe.patches.threads.misc.extension.parameterRegisterNumber
 import app.morphe.patches.threads.misc.settings.EXTENSION_ROOT
@@ -79,8 +80,8 @@ internal class SearchCarousel(
  */
 internal fun BytecodePatchContext.searchSuggestionTargets(): SearchCarousel {
     val suggested = suggestedRow()
-    val calls = classDefByStrings(DISCOVERY_UI, StringComparisonType.STARTS_WITH)
-        .filterNot { it.type.startsWith(EXTENSION_ROOT) || it.type == suggested.method.definingClass }
+    val calls = classesNoted(DISCOVERY_UI)
+        .filterNot { it.type == suggested.method.definingClass }
         .flatMap { it.methods }
         .distinctBy { it.descriptor() }
         .flatMap { it.rowCalls(suggested.entries) }

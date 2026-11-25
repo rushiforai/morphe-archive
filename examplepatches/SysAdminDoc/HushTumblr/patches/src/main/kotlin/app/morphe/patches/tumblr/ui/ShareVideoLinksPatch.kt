@@ -58,8 +58,8 @@ internal class VideoLinkPlan(
 )
 
 /**
- * A video in a post (`dmm.f` in 47.0.0.108) gets a player built in its container, from details that
- * carry the video's address, and timeline controls (`myl`) whose long press calls back into the
+ * A video in a post (`pom.f` in 47.3.0.110) gets a player built in its container, from details that
+ * carry the video's address, and timeline controls (`c1m`) whose long press calls back into the
  * binder, where Tumblr's callback is empty (46.9's was too). The container and the address go to the extension right
  * after the details are built, and the controls' long-press listener goes through the extension,
  * which offers the link, and a save of the file, before handing the press to Tumblr's listener.

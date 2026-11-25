@@ -277,21 +277,23 @@ public class DexDiff {
             Map.entry("feed", 4), Map.entry("views", 3), Map.entry("guard", 2), Map.entry("refresh", 2), Map.entry("draw", 2), Map.entry("drawWash", 4), Map.entry("builtView", 3),
             Map.entry("navigation", 2), Map.entry("menu", 2), Map.entry("downloads", 2), Map.entry("comments", 7), Map.entry("closeupModule", 4),
             Map.entry("links", 6), Map.entry("analytics", 5), Map.entry("answers", 4), Map.entry("imageOrder", 1), Map.entry("closeupImage", 2), Map.entry("pageImage", 1), Map.entry("originalRetry", 1), Map.entry("topicSuggestions", 2), Map.entry("inboxUpdates", 3), Map.entry("feedbackFlyout", 2), Map.entry("recentSearchRows", 2), Map.entry("recentSearchHeading", 2), Map.entry("boardMenu", 1), Map.entry("settings", 4),
-            Map.entry("longPress", 4), Map.entry("surveyPrompts", 2), Map.entry("popupBanners", 1), Map.entry("relatedPins", 3), Map.entry("creatorName", 1), Map.entry("saveSound", 1), Map.entry("pinInvites", 2), Map.entry("browserId", 2), Map.entry("signInFailure", 3), Map.entry("saveAndDownload", 3), Map.entry("homePage", 3),
+            Map.entry("longPress", 4), Map.entry("surveyPrompts", 2), Map.entry("popupBanners", 1), Map.entry("relatedPins", 3), Map.entry("creatorName", 1), Map.entry("saveSound", 1), Map.entry("pinInvites", 2), Map.entry("browserId", 2), Map.entry("likeHistory", 2), Map.entry("commentHistory", 2), Map.entry("signInFailure", 3), Map.entry("saveAndDownload", 3), Map.entry("homePage", 3),
             Map.entry("firebaseCertificate", 1), Map.entry("closeupButtons", 3), Map.entry("closeupSearchLabel", 1),
             Map.entry("closeupRemix", 2), Map.entry("closeupActionBar", 2), Map.entry("closeupVisitSite", 2), Map.entry("closeupSaveButton", 1), Map.entry("postedDate", 1),
-            Map.entry("saveSheet", 1), Map.entry("suggestedBoard", 1), Map.entry("boardListHeight", 1),
+            Map.entry("saveSheet", 1), Map.entry("suggestedBoard", 1), Map.entry("boardListHeight", 1), Map.entry("boardOrder", 2),
+            Map.entry("pinVideoAutoplay", 1), Map.entry("pinVideoSound", 1), Map.entry("pinchZoom", 1),
             Map.entry("blackSheets", 3), Map.entry("blackBoards", 7),
-            Map.entry("longPressChoices", 1), Map.entry("longPressView", 2), Map.entry("savedElsewhere", 3), Map.entry("homeBack", 1),
+            Map.entry("longPressChoices", 1), Map.entry("longPressView", 2), Map.entry("savedElsewhere", 3), Map.entry("homeBack", 1), Map.entry("offlineBanner", 1), Map.entry("refreshPill", 1),
             Map.entry("downloadToasts", 1),
-            Map.entry("blackToasts", 1),
+            Map.entry("blackToasts", 1), Map.entry("blackButtons", 1), Map.entry("blackSearchGuides", 1), Map.entry("blackSettingsCard", 1), Map.entry("blackSearchBubbles", 1),
             Map.entry("homeTabs", 1),
-            Map.entry("searchLanding", 1),
+            Map.entry("searchLanding", 1), Map.entry("searchSuggestions", 1), Map.entry("experimentGroup", 1),
             Map.entry("searchKeyboard", 1),
             Map.entry("pinMenuRows", 2),
             Map.entry("boardTabHeader", 1),
             Map.entry("boardTabCovers", 1),
-            Map.entry("closeupGate", 1), Map.entry("highlightRing", 1), Map.entry("visualSearchThumbnails", 1), Map.entry("relatedPinsFold", 3), Map.entry("screenSleep", 3), Map.entry("ownAuthorities", 1));
+            Map.entry("closeupGate", 1), Map.entry("highlightRing", 1), Map.entry("visualSearchThumbnails", 1), Map.entry("relatedPinsFold", 3), Map.entry("screenSleep", 3), Map.entry("ownAuthorities", 1), Map.entry("reportedPackage", 1),
+            Map.entry("fontResource", 1));
 
     /**
      * A start-call, next-call, sole-call or once-call line: its method reference, the next-call's
@@ -3653,6 +3655,100 @@ public class DexDiff {
         }
 
         /** The one fragment reading the landing list's id gets its root view before anything else runs. */
+        static final String ONE_BAR_MODULES = "one_bar_modules";
+
+        /**
+         * Hide suggested searches (#48): every reader of the row under the search bar calls one
+         * static (X)ArrayList parser right after naming its key. The hook takes each module right
+         * after the parser casts it, and a yes goes back to the loop's hasNext. The answer borrows a
+         * register nothing reads after the hook.
+         */
+        void searchSuggestions(Contract c) {
+            String hook = c.strings.get(0);
+            Set<String> parsers = new HashSet<>();
+            for (Method reader : clean.methods.values()) {
+                if (reader.getDefiningClass().startsWith(OWN) || reader.getImplementation() == null
+                        || !clean.texts.getOrDefault(reader.toString(), Set.of()).contains(ONE_BAR_MODULES)) continue;
+                List<Instruction> body = instructions(reader);
+                for (int k = 0; k < body.size(); k++) {
+                    if (!(reference(body.get(k)) instanceof StringReference s) || !s.getString().equals(ONE_BAR_MODULES)) continue;
+                    for (int j = k + 1; j < body.size(); j++) {
+                        Instruction i = body.get(j);
+                        if ((i.getOpcode() == Opcode.INVOKE_STATIC || i.getOpcode() == Opcode.INVOKE_STATIC_RANGE)
+                                && reference(i) instanceof MethodReference r && r.getReturnType().equals("Ljava/util/ArrayList;")
+                                && r.getParameterTypes().size() == 1) { parsers.add(r.toString()); break; }
+                    }
+                }
+            }
+            Method original = parsers.size() == 1 ? clean.methods.get(parsers.iterator().next()) : null;
+            if (original == null || original.getImplementation() == null) { capability(c.callee, false); return; }
+            List<Instruction> was = instructions(original);
+            int next = -1, hasNext = -1, nexts = 0, hasNexts = 0;
+            for (int k = 0; k < was.size(); k++) {
+                if (was.get(k).getOpcode() != Opcode.INVOKE_INTERFACE) continue;
+                String called = String.valueOf(reference(was.get(k)));
+                if (called.equals("Ljava/util/Iterator;->next()Ljava/lang/Object;")) { next = k; nexts++; }
+                if (called.equals("Ljava/util/Iterator;->hasNext()Z")) { hasNext = k; hasNexts++; }
+            }
+            boolean shaped = nexts == 1 && hasNexts == 1 && hasNext < next && next + 2 < was.size()
+                    && was.get(next + 1).getOpcode() == Opcode.MOVE_RESULT_OBJECT && was.get(next + 2).getOpcode() == Opcode.CHECK_CAST
+                    && firstRegister(was.get(next + 1)) == firstRegister(was.get(next + 2));
+            if (!shaped) { capability(c.callee, false); return; }
+            int module = firstRegister(was.get(next + 1)), at = next + 3;
+            Method m = actual(original);
+            List<Integer> sites = calls(m, hook, 1);
+            boolean hooked = m != null && sites.size() == 1;
+            if (hooked) {
+                List<Instruction> body = instructions(m);
+                Layout layout = new Layout(m.getImplementation());
+                int answer = at + 2 < body.size() ? firstRegister(body.get(at + 1)) : -1;
+                hooked = sites.get(0) == at && arguments(body.get(at)).equals(List.of(module)) && answer >= 0
+                        && body.get(at + 1).getOpcode() == Opcode.MOVE_RESULT && body.get(at + 2).getOpcode() == Opcode.IF_NEZ
+                        && firstRegister(body.get(at + 2)) == answer
+                        && layout.addresses.get(at + 2) + ((OffsetInstruction) body.get(at + 2)).getCodeOffset() == layout.addresses.get(hasNext)
+                        && unread(new FeatureFlow(original), was, at, answer);
+                if (hooked) remove(m, at, at + 3);
+                else fail(hook + " doesn't take each module right after the row parser casts it in " + m);
+            }
+            capability(c.callee, hooked);
+        }
+
+        static final String EXPERIMENT_ACTIVATED = "_activated";
+
+        /**
+         * Swipe down to close pins and Full-size profile photos (#48): Pinterest's one experiment
+         * group lookup, the only method naming "_activated", asks the extension first with the
+         * experiment's name. A group it answers is returned; null runs the lookup as it was.
+         */
+        void experimentGroup(Contract c) {
+            String hook = c.strings.get(0);
+            List<Method> lookups = new ArrayList<>();
+            for (Method m : clean.methods.values()) {
+                if (m.getDefiningClass().startsWith(OWN) || m.getImplementation() == null) continue;
+                if (clean.texts.getOrDefault(m.toString(), Set.of()).contains(EXPERIMENT_ACTIVATED)) lookups.add(m);
+            }
+            Method original = lookups.size() == 1 ? lookups.get(0) : null;
+            if (original == null || AccessFlags.STATIC.isSet(original.getAccessFlags()) || !original.getReturnType().equals("Ljava/lang/String;")
+                    || original.getParameterTypes().size() != 3 || !original.getParameterTypes().get(0).toString().equals("Ljava/lang/String;")
+                    || !original.getParameterTypes().get(2).toString().equals("Z")) { capability(c.callee, false); return; }
+            Method m = actual(original);
+            List<Integer> sites = calls(m, hook, 1);
+            boolean hooked = m != null && sites.size() == 1;
+            if (hooked) {
+                List<Instruction> body = instructions(m);
+                Layout layout = new Layout(m.getImplementation());
+                int answer = body.size() > 4 ? firstRegister(body.get(1)) : -1;
+                hooked = sites.get(0) == 0 && arguments(body.get(0)).equals(List.of(parameter(m, 0))) && answer >= 0
+                        && body.get(1).getOpcode() == Opcode.MOVE_RESULT_OBJECT
+                        && body.get(2).getOpcode() == Opcode.IF_EQZ && firstRegister(body.get(2)) == answer
+                        && layout.addresses.get(2) + ((OffsetInstruction) body.get(2)).getCodeOffset() == layout.addresses.get(4)
+                        && body.get(3).getOpcode() == Opcode.RETURN_OBJECT && firstRegister(body.get(3)) == answer;
+                if (hooked) remove(m, 0, 4);
+                else fail(hook + " doesn't answer first in the experiment group lookup " + m);
+            }
+            capability(c.callee, hooked);
+        }
+
         void searchLanding(Contract c) {
             String hook = c.strings.get(0);
             Set<String> pages = new TreeSet<>();
@@ -6295,15 +6391,149 @@ public class DexDiff {
         static final String GESTALT_BUTTON = "Lcom/pinterest/gestalt/button/view/GestaltButton;",
                 COMPOUND_PADDING = "Landroid/widget/TextView;->setCompoundDrawablePadding(I)V";
 
-        /**
-         * The Save button's size and color. GestaltButton's one instance method taking two of the same
-         * style object and returning nothing calls setCompoundDrawablePadding on its this register
-         * exactly once, with nothing writing that register before it, no backward branch and no try
-         * block. Right after the padding comes the hook with that register, and the instruction that
-         * followed the padding is reached only from the hook, so the branch that skips the padding
-         * lands on the hook too.
-         */
+        /** The hooks that take a GestaltButton right after it pads its icon, one a patch. */
+        static final Set<String> STYLE_HOOKS = Set.of(
+                "Lapp/hushpinterest/extension/pinterest/ui/CloseupButtons;->saveButton(Landroid/view/View;)V",
+                "Lapp/hushpinterest/extension/pinterest/ui/AmoledBlack;->gestaltButton(Landroid/view/View;)V");
+
+        /** The Save button's size and color, Hide closeup buttons' hook on the button styling. */
         void closeupSaveButton(Contract c) {
+            styleHook(c);
+        }
+
+        /** Black buttons, AMOLED black's hook on the same styling. */
+        void blackButtons(Contract c) {
+            styleHook(c);
+        }
+
+        static final String SEARCH_GUIDE = "Lcom/pinterest/gestalt/searchGuide/GestaltSearchGuide;";
+
+        /**
+         * Black buttons on the chips over search results. The search guide's one instance method
+         * taking two of the same look and returning nothing hands the guide, its this, to the hook
+         * right before each of its returns, and each return is reached only from its hook.
+         */
+        void blackSearchGuides(Contract c) {
+            String hook = c.strings.get(0);
+            ClassDef guide = clean.classes.get(SEARCH_GUIDE);
+            List<Method> looks = new ArrayList<>();
+            if (guide != null) for (Method m : guide.getMethods()) {
+                List<? extends CharSequence> params = m.getParameterTypes();
+                if (!AccessFlags.STATIC.isSet(m.getAccessFlags()) && m.getImplementation() != null && m.getReturnType().equals("V")
+                        && params.size() == 2 && params.get(0).toString().equals(params.get(1).toString())
+                        && params.get(0).toString().startsWith("L")) looks.add(m);
+            }
+            Method look = unique(looks, "The search guide's look method");
+            int ends = 0;
+            if (look != null) for (Instruction i : instructions(look)) if (i.getOpcode() == Opcode.RETURN_VOID) ends++;
+            Method m = actual(look);
+            List<Integer> sites = calls(m, hook, ends);
+            boolean placed = false;
+            if (m != null && ends > 0 && sites.size() == ends) {
+                List<Instruction> body = instructions(m);
+                int self = parameter(m, -1);
+                placed = true;
+                for (int at : sites) placed &= at + 1 < body.size() && body.get(at + 1).getOpcode() == Opcode.RETURN_VOID
+                        && arguments(body.get(at)).equals(List.of(self)) && onlyFrom(m, at + 1, at);
+                if (!placed) fail(hook + " doesn't hand the guide over right before each return of " + m);
+                else for (int at : sites) remove(m, at, at + 1);
+            }
+            capability(c.callee, placed);
+        }
+
+        static final String SETTINGS_PROFILE_PREVIEW = "Lcom/pinterest/feature/settings/menu/view/SettingsProfilePreview;",
+                CARD_VIEW = "Landroidx/cardview/widget/CardView;",
+                SEARCH_BUBBLE_FILL = "rounded_rect_medium_radius_opaque_background",
+                SET_BACKGROUND = "Landroid/view/View;->setBackground(Landroid/graphics/drawable/Drawable;)V";
+
+        /**
+         * Black buttons on the account card at the top of Pinterest's settings. The one store of a
+         * CardView, cast just before, into the settings profile preview's field is followed by the
+         * hook with the stored register, once, reached only from the store, and the instruction after
+         * the hook is reached only from it.
+         */
+        void blackSettingsCard(Contract c) {
+            List<Method> stores = new ArrayList<>();
+            Map<Method, Integer> storeAt = new HashMap<>();
+            for (ClassDef cd : clean.classes.values()) {
+                if (cd.getType().startsWith(OWN)) continue;
+                for (Method m : cd.getMethods()) {
+                    List<Instruction> body = instructions(m);
+                    for (int k = 1; k < body.size(); k++) {
+                        Instruction store = body.get(k), cast = body.get(k - 1);
+                        if (store.getOpcode() != Opcode.IPUT_OBJECT || !(reference(store) instanceof FieldReference field)
+                                || !field.getDefiningClass().equals(SETTINGS_PROFILE_PREVIEW) || !field.getType().equals(CARD_VIEW)) continue;
+                        if (cast.getOpcode() != Opcode.CHECK_CAST || !String.valueOf(reference(cast)).equals(CARD_VIEW)
+                                || ((OneRegisterInstruction) cast).getRegisterA() != ((TwoRegisterInstruction) store).getRegisterA()) continue;
+                        stores.add(m);
+                        storeAt.put(m, k);
+                    }
+                }
+            }
+            Method old = unique(stores, "The account card store");
+            hookAfter(c, old, old == null ? -1 : storeAt.get(old), "store the account card");
+        }
+
+        /**
+         * Black buttons on the rows of a "Refine your search" list. The one method that reads the
+         * rows' rounded shape puts it on the row with setBackground, the first such call after the
+         * read, and right after that call comes the hook with the row, once, reached only from the
+         * call, and the instruction after the hook is reached only from it.
+         */
+        void blackSearchBubbles(Contract c) {
+            List<Method> builders = new ArrayList<>();
+            for (ClassDef cd : clean.classes.values()) {
+                if (cd.getType().startsWith(OWN)) continue;
+                for (Method m : cd.getMethods()) if (instructions(m).stream().anyMatch(i -> reference(i) instanceof FieldReference f
+                        && f.getName().equals(SEARCH_BUBBLE_FILL) && f.getType().equals("I"))) builders.add(m);
+            }
+            Method old = unique(builders, "The Refine your search row builder");
+            int at = -1;
+            if (old != null) {
+                List<Instruction> body = instructions(old);
+                int read = -1;
+                for (int k = 0; k < body.size() && read < 0; k++)
+                    if (reference(body.get(k)) instanceof FieldReference f && f.getName().equals(SEARCH_BUBBLE_FILL)) read = k;
+                for (int k = read; k < body.size() && at < 0; k++)
+                    if (body.get(k).getOpcode() == Opcode.INVOKE_VIRTUAL && SET_BACKGROUND.equals(String.valueOf(reference(body.get(k))))) at = k;
+            }
+            hookAfter(c, old, at, "put the shape on the Refine your search row");
+        }
+
+        /**
+         * The hook right after [old]'s instruction at [index], with the view that instruction stored
+         * or called on: once, reached only from it, the instruction after the hook reached only from
+         * the hook. Fails and leaves the capability off when it isn't so.
+         */
+        void hookAfter(Contract c, Method old, int index, String what) {
+            String hook = c.strings.get(0);
+            Method m = actual(old);
+            List<Integer> sites = calls(m, hook, 1);
+            boolean placed = false;
+            if (m != null && index >= 0 && sites.size() == 1) {
+                List<Instruction> body = instructions(m);
+                Instruction site = instructions(old).get(index);
+                int at = sites.get(0);
+                int view = site.getOpcode() == Opcode.IPUT_OBJECT ? ((TwoRegisterInstruction) site).getRegisterA() : callRegisters(site).get(0);
+                placed = at > 0 && at + 1 < body.size() && body.get(at - 1).getOpcode() == site.getOpcode()
+                        && String.valueOf(reference(body.get(at - 1))).equals(String.valueOf(reference(site)))
+                        && arguments(body.get(at)).equals(List.of(view)) && onlyFrom(m, at, at - 1) && onlyFrom(m, at + 1, at);
+                if (!placed) fail(hook + " doesn't take the view right after the code that " + what + " in " + m);
+                else remove(m, at, at + 1);
+            }
+            capability(c.callee, placed);
+        }
+
+        /**
+         * A hook on every GestaltButton's styling. GestaltButton's one instance method taking two of
+         * the same style object and returning nothing calls setCompoundDrawablePadding on its this
+         * register exactly once, with nothing writing that register before it, no backward branch and
+         * no try block. Right after the padding come the styling hooks with that register, in the
+         * order their patches left them, each reached only from the one before. The instruction that
+         * followed the padding is reached only from the last, so the branch that skips the padding
+         * lands on the first hook and runs them all.
+         */
+        void styleHook(Contract c) {
             String hook = c.strings.get(0);
             ClassDef button = clean.classes.get(GESTALT_BUTTON);
             List<Method> styles = new ArrayList<>();
@@ -6329,10 +6559,16 @@ public class DexDiff {
             boolean placed = false;
             if (style != null && m != null && sites.size() == 1) {
                 List<Instruction> body = instructions(m), was = instructions(style);
-                int at = sites.get(0), self = parameter(style, -1);
-                placed = at == padAt.get(style) + 1 && at + 1 < body.size() && COMPOUND_PADDING.equals(String.valueOf(reference(body.get(at - 1))))
-                        && callRegisters(body.get(at - 1)).get(0) == self && arguments(body.get(at)).equals(List.of(self))
-                        && body.get(at + 1).getOpcode() == was.get(at).getOpcode() && onlyFrom(m, at + 1, at);
+                int at = sites.get(0), self = parameter(style, -1), pad = padAt.get(style);
+                int end = pad + 1;
+                boolean run = true;
+                while (end < body.size() && STYLE_HOOKS.contains(String.valueOf(reference(body.get(end))))) {
+                    run &= arguments(body.get(end)).equals(List.of(self)) && (end == pad + 1 || onlyFrom(m, end, end - 1));
+                    end++;
+                }
+                placed = run && at > pad && at < end && end < body.size() && COMPOUND_PADDING.equals(String.valueOf(reference(body.get(pad))))
+                        && callRegisters(body.get(pad)).get(0) == self
+                        && body.get(end).getOpcode() == was.get(pad + 1).getOpcode() && onlyFrom(m, end, end - 1);
                 if (!placed) fail(hook + " doesn't hand over the button right after " + style + " pads its icon");
                 else remove(m, at, at + 1);
             }
@@ -7014,6 +7250,69 @@ public class DexDiff {
             return init + 1;
         }
 
+        static final String MAIN_ACTIVITY = "Lcom/pinterest/activityLibrary/activity/task/activity/MainActivity;";
+
+        /**
+         * Hide offline banner (#48): the main activity's one (Z)V connection handler, the one that
+         * calls two or more ()V methods on its offline bar (the activity field whose class is a
+         * FrameLayout built from the activity and a view), asks first with whether you're online and
+         * returns when the answer is yes, ahead of everything Pinterest's handler does.
+         */
+        void offlineBanner(Contract c) {
+            ClassDef activity = clean.classes.get(MAIN_ACTIVITY);
+            if (activity == null) { capability(c.callee, false); return; }
+            Set<String> bars = new HashSet<>();
+            for (Field f : activity.getFields()) {
+                ClassDef type = clean.classes.get(f.getType());
+                if (type == null || !"Landroid/widget/FrameLayout;".equals(type.getSuperclass())) continue;
+                for (Method m : type.getMethods()) if (m.getName().equals("<init>")
+                        && descriptor(m).equals("(" + MAIN_ACTIVITY + "Landroid/view/View;)V")) bars.add(type.getType());
+            }
+            if (bars.size() != 1) { capability(c.callee, false); return; }
+            String bar = bars.iterator().next();
+            List<Method> handlers = new ArrayList<>();
+            for (Method m : activity.getMethods()) if (m.getImplementation() != null && descriptor(m).equals("(Z)V")
+                    && instructions(m).stream().filter(i -> reference(i) instanceof MethodReference r && r.getDefiningClass().equals(bar)
+                    && descriptor(r).equals("()V")).count() >= 2) handlers.add(m);
+            if (handlers.size() != 1 || handlers.get(0).getImplementation().getRegisterCount() - 2 < 1) { capability(c.callee, false); return; }
+            Method m = actual(handlers.get(0));
+            guard(m, c.strings.get(0), 0, m == null ? List.of() : List.of(parameter(m, 0)), 0, false, false);
+            capability(c.callee, m != null);
+        }
+
+        static final String REFRESH_PROMPT_STUB = "stub_refresh_prompt";
+
+        /**
+         * Hide the refresh pill (#48): Home's one onEventMainThread that reads the pill's stub hands
+         * its event to the presenter (a (Object)V call) before it reads the stub, and the hook asks
+         * right after that call, returning before the pill or its timer when the answer is yes. The
+         * answer borrows a register nothing reads after the hook.
+         */
+        void refreshPill(Contract c) {
+            List<Method> handlers = clean.methods.values().stream().filter(m -> !m.getDefiningClass().startsWith(OWN)
+                    && m.getName().equals("onEventMainThread") && m.getImplementation() != null
+                    && instructions(m).stream().anyMatch(i -> readsId(i, REFRESH_PROMPT_STUB))).toList();
+            if (handlers.size() != 1) { capability(c.callee, false); return; }
+            Method original = handlers.get(0);
+            List<Instruction> was = instructions(original);
+            int taken = -1;
+            for (int k = 0; k < was.size() && taken < 0; k++) if (was.get(k).getOpcode() == Opcode.INVOKE_VIRTUAL
+                    && reference(was.get(k)) instanceof MethodReference r && descriptor(r).equals("(Ljava/lang/Object;)V")) taken = k;
+            final int from = taken + 1;
+            if (taken < 0 || was.subList(from, was.size()).stream().noneMatch(i -> readsId(i, REFRESH_PROMPT_STUB))) {
+                capability(c.callee, false); return;
+            }
+            Method m = actual(original);
+            List<Integer> sites = calls(m, c.strings.get(0), 1);
+            if (m != null && sites.size() == 1) {
+                int answer = from + 1 < instructions(m).size() ? firstRegister(instructions(m).get(from + 1)) : -1;
+                if (answer < 0 || !unread(new FeatureFlow(original), was, from, answer))
+                    fail(c.strings.get(0) + " borrows a register Home's pill handler still reads in " + m);
+            }
+            guard(m, c.strings.get(0), from, List.of(), 0, false, false);
+            capability(c.callee, m != null && sites.size() == 1);
+        }
+
         /**
          * Hide pop-up banners: the education container's one static show method, the one that wires the
          * banner's four click listeners, loads the container from its first parameter, reads the banner
@@ -7325,6 +7624,644 @@ public class DexDiff {
          * starts with the height's state text, asks the hook for its percentage right in front of the
          * getter's only return, and the answer goes back where the percentage was.
          */
+        static final String DEFAULT_BOARD_SORT = "alphabetical", BOARD_PICKER_FIELDS = "BOARD_PICKER_FRAGMENT",
+                BOARD_SORT_UTILS = "BoardSortUtils: myUser is null, Fail to update board sort option",
+                BOARD_SORT_BY_KEY = "getOptionByApiKey";
+
+        /**
+         * The board picker's request for all your boards in [m]: the first call after the picker's
+         * fields are named that takes four strings, its sort (filter, sort, fields, page size) in the
+         * register DEFAULT_BOARD_SORT went into. -1 when [m] has none, like the board section picker,
+         * which sets its sort as a query value.
+         */
+        static int boardRequestCall(Method m) {
+            List<Instruction> body = instructions(m);
+            int fields = -1;
+            for (int at = 0; at < body.size() && fields < 0; at++)
+                if (reference(body.get(at)) instanceof FieldReference f && f.getName().equals(BOARD_PICKER_FIELDS)) fields = at;
+            if (fields < 0) return -1;
+            for (int at = fields; at < body.size(); at++) {
+                Instruction i = body.get(at);
+                if (!i.getOpcode().name().startsWith("INVOKE") || !(reference(i) instanceof MethodReference called)
+                        || !descriptor(called).startsWith("(Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)")) continue;
+                List<Integer> passed = arguments(i);
+                int sort = passed.size() > (i.getOpcode().name().startsWith("INVOKE_STATIC") ? 1 : 2)
+                        ? passed.get(i.getOpcode().name().startsWith("INVOKE_STATIC") ? 1 : 2) : -1;
+                for (int k = 0; k < at; k++) {
+                    Instruction load = body.get(k);
+                    if (load.getOpcode() == Opcode.CONST_STRING && firstRegister(load) == sort
+                            && reference(load) instanceof StringReference s && s.getString().equals(DEFAULT_BOARD_SORT)) return at;
+                }
+                return -1;
+            }
+            return -1;
+        }
+
+        /**
+         * Board order when saving (#48). The board picker's request for all your boards hands its
+         * sort to the extension right in front of the call and gets the answer back in the same
+         * register. The signed-in user's getter hands the extension the user's board order key in
+         * front of each return, and skips that when there's no user.
+         */
+        void boardOrder(Contract c) {
+            String pickerHook = c.strings.get(0), profileHook = c.strings.get(1);
+            List<Method> requests = new ArrayList<>();
+            for (Method m : clean.methods.values()) {
+                if (m.getDefiningClass().startsWith(OWN) || m.getImplementation() == null) continue;
+                if (clean.texts.getOrDefault(m.toString(), Set.of()).contains(DEFAULT_BOARD_SORT)
+                        && fieldNames(m).contains(BOARD_PICKER_FIELDS) && boardRequestCall(m) >= 0) requests.add(m);
+            }
+            Method request = unique(requests, "Board picker request for your boards");
+            Method m = actual(request);
+            List<Integer> sites = calls(m, pickerHook, 1);
+            boolean asked = false;
+            if (request != null && m != null && sites.size() == 1) {
+                List<Instruction> before = instructions(request), body = instructions(m);
+                Instruction stock = before.get(boardRequestCall(request));
+                int at = sites.get(0);
+                List<Integer> passed = arguments(body.get(at));
+                int sort = passed.size() == 1 ? passed.get(0) : -1;
+                Instruction call = at + 2 < body.size() ? body.get(at + 2) : null;
+                asked = sort >= 0 && body.get(at + 1).getOpcode() == Opcode.MOVE_RESULT_OBJECT && firstRegister(body.get(at + 1)) == sort
+                        && call != null && call.getOpcode() == stock.getOpcode()
+                        && String.valueOf(reference(call)).equals(String.valueOf(reference(stock)))
+                        && arguments(call).equals(arguments(stock)) && arguments(stock).contains(sort)
+                        && onlyFrom(m, at + 1, at) && onlyFrom(m, at + 2, at + 1);
+                if (asked) remove(m, at, at + 2);
+                else fail(pickerHook + " doesn't take the board picker's sort right in front of its request in " + m);
+            }
+
+            List<Method> readers = new ArrayList<>();
+            Set<String> owners = new TreeSet<>();
+            for (Method r : clean.methods.values())
+                if (!r.getDefiningClass().startsWith(OWN) && clean.texts.getOrDefault(r.toString(), Set.of()).contains(BOARD_SORT_UTILS))
+                    owners.add(r.getDefiningClass());
+            for (Method r : clean.methods.values()) {
+                if (!owners.contains(r.getDefiningClass()) || r.getImplementation() == null) continue;
+                for (Instruction i : instructions(r))
+                    if (reference(i) instanceof MethodReference called && called.getName().equals(BOARD_SORT_BY_KEY)) { readers.add(r); break; }
+            }
+            Method reader = unique(readers, "Profile board order reader");
+            MethodReference sortKey = null, user = null;
+            if (reader != null) {
+                List<Instruction> body = instructions(reader);
+                int byKey = -1;
+                for (int at = 0; at < body.size() && byKey < 0; at++)
+                    if (reference(body.get(at)) instanceof MethodReference called && called.getName().equals(BOARD_SORT_BY_KEY)) byKey = at;
+                if (byKey >= 2 && reference(body.get(byKey - 2)) instanceof MethodReference key && key.getParameterTypes().isEmpty()
+                        && key.getReturnType().equals("Ljava/lang/String;")) sortKey = key;
+                for (int at = 0; sortKey != null && user == null && at < byKey; at++)
+                    if (reference(body.get(at)) instanceof MethodReference got && got.getParameterTypes().isEmpty()
+                            && got.getReturnType().equals(sortKey.getDefiningClass())) user = got;
+            }
+            Method getter = user == null ? null : clean.methods.get(user.toString());
+            if (reader != null && getter == null) fail("the signed-in user's getter the profile's board order reads isn't in the clean APK");
+            Method g = actual(getter);
+            int returns = 0;
+            if (getter != null) for (Instruction i : instructions(getter)) if (i.getOpcode() == Opcode.RETURN_OBJECT) returns++;
+            List<Integer> tells = calls(g, profileHook, returns);
+            boolean told = g != null && returns > 0 && tells.size() == returns;
+            if (told) {
+                List<Instruction> body = instructions(g);
+                Layout layout = new Layout(g.getImplementation());
+                for (int site : tells) {
+                    int at = site - 3;
+                    boolean placed = at >= 0 && site + 1 < body.size() && body.get(at).getOpcode() == Opcode.IF_EQZ
+                            && body.get(site + 1).getOpcode() == Opcode.RETURN_OBJECT;
+                    if (placed) {
+                        int answer = firstRegister(body.get(site + 1));
+                        placed = firstRegister(body.get(at)) == answer
+                                && layout.addresses.get(at) + ((OffsetInstruction) body.get(at)).getCodeOffset() == layout.addresses.get(site + 1)
+                                && String.valueOf(reference(body.get(at + 1))).equals(String.valueOf(sortKey))
+                                && arguments(body.get(at + 1)).equals(List.of(answer))
+                                && body.get(at + 2).getOpcode() == Opcode.MOVE_RESULT_OBJECT
+                                && arguments(body.get(site)).equals(List.of(firstRegister(body.get(at + 2))))
+                                && firstRegister(body.get(at + 2)) != answer;
+                    }
+                    if (placed) remove(g, at, site + 1);
+                    else { told = false; fail(profileHook + " isn't told the user's board order key in front of a return in " + g); }
+                }
+            }
+            capability(c.callee, asked && told);
+        }
+
+        static final String ORGANIC_CLOSEUP = "Lcom/pinterest/feature/pin/closeup/presenter/OrganicPinCloseupPresenter;",
+                PROMOTED_CLOSEUP = "Lcom/pinterest/feature/pin/closeup/presenter/PromotedPinCloseupPresenter;",
+                UNBIND_RESET = "onUnbind$lambda$0",
+                VIDEO_MODULE = "Lcom/pinterest/activity/pin/view/modules/PinCloseupVideoModule;",
+                LOAD_SAVED_MUTE_STATE = "loadSavedMuteState",
+                ROUNDED_CORNERS_LAYOUT = "Lcom/pinterest/design/widget/RoundedCornersLayout;",
+                PINCH_CONTEXT = "Lcom/pinterest/feature/search/visual/PinchToZoomTransitionContext;",
+                PINCH_HANDLER = "onHandleTransitionFromPinchToZoom", PINCH_SOURCE = "p2z";
+
+        /** The saved video state getter the organic pin page's unbind reads its pin's state with, right before its one reset. */
+        MethodReference videoStateGetter() {
+            Method unbind = clean.methods.get(ORGANIC_CLOSEUP + "->onUnbind()V");
+            if (unbind == null || unbind.getImplementation() == null) return null;
+            List<Instruction> body = instructions(unbind);
+            MethodReference found = null;
+            int resets = 0;
+            for (int at = 2; at < body.size(); at++) {
+                if (body.get(at).getOpcode() != Opcode.INVOKE_STATIC || !(reference(body.get(at)) instanceof MethodReference reset)
+                        || !reset.getDefiningClass().equals(ORGANIC_CLOSEUP) || !reset.getName().equals(UNBIND_RESET)) continue;
+                resets++;
+                if (body.get(at - 2).getOpcode() == Opcode.INVOKE_STATIC && reference(body.get(at - 2)) instanceof MethodReference got
+                        && descriptor(got).startsWith("(Ljava/lang/String;)") && descriptor(reset).equals("(" + got.getReturnType() + ")Lkotlin/Unit;"))
+                    found = got;
+            }
+            return resets == 1 ? found : null;
+        }
+
+        /** The return of the fresh state [m] builds when the saved one it cast to [state] is null, in one straight run. -1 when there's none. */
+        int freshReturn(Method m, String state) {
+            List<Instruction> body = instructions(m);
+            Layout layout = new Layout(m.getImplementation());
+            int cast = -1, casts = 0;
+            for (int at = 0; at < body.size(); at++)
+                if (body.get(at).getOpcode() == Opcode.CHECK_CAST && reference(body.get(at)) instanceof TypeReference t && t.getType().equals(state)) {
+                    cast = at;
+                    casts++;
+                }
+            if (casts != 1 || cast + 1 >= body.size() || body.get(cast + 1).getOpcode() != Opcode.IF_EQZ
+                    || firstRegister(body.get(cast + 1)) != firstRegister(body.get(cast))) return -1;
+            int start = branchTarget(layout, cast + 1);
+            if (start < 0) return -1;
+            FeatureFlow graph = new FeatureFlow(m);
+            for (int at = start; at < body.size(); at++) {
+                if (at > start && !onlyFrom(graph, at, at - 1)) return -1;
+                if (body.get(at).getOpcode() == Opcode.RETURN_OBJECT) return at;
+                if (body.get(at) instanceof OffsetInstruction || body.get(at).getOpcode() == Opcode.THROW) return -1;
+            }
+            return -1;
+        }
+
+        /**
+         * The index of the play in [m] when [m] is the idea pin page's start of its video: no
+         * parameters, it reads and clears another class's pending flag, seeks the video to a time
+         * and plays it. -1 otherwise.
+         */
+        int ideaPinPlay(Method m) {
+            if (m.getImplementation() == null || !m.getParameterTypes().isEmpty() || !m.getReturnType().equals("V")) return -1;
+            List<Instruction> body = instructions(m);
+            int play = -1, plays = 0;
+            for (int at = 0; at < body.size(); at++)
+                if (body.get(at).getOpcode() == Opcode.INVOKE_INTERFACE && reference(body.get(at)) instanceof MethodReference r
+                        && r.getName().equals("play") && descriptor(r).equals("()V")) {
+                    play = at;
+                    plays++;
+                }
+            if (plays != 1 || play < 1 || play + 1 >= body.size()) return -1;
+            MethodReference played = (MethodReference) reference(body.get(play));
+            if (body.get(play - 1).getOpcode() != Opcode.INVOKE_INTERFACE || !(reference(body.get(play - 1)) instanceof MethodReference seek)
+                    || !seek.getDefiningClass().equals(played.getDefiningClass()) || !descriptor(seek).equals("(JZ)V")
+                    || arguments(body.get(play)).size() != 1 || arguments(body.get(play - 1)).isEmpty()
+                    || !arguments(body.get(play - 1)).get(0).equals(arguments(body.get(play)).get(0))) return -1;
+            Set<String> read = new HashSet<>(), cleared = new HashSet<>();
+            for (int at = 0; at < play; at++) {
+                if (!(reference(body.get(at)) instanceof FieldReference f) || f.getDefiningClass().equals(m.getDefiningClass())) continue;
+                if (body.get(at).getOpcode() == Opcode.IGET_BOOLEAN) read.add(f.toString());
+                if (body.get(at).getOpcode() == Opcode.IPUT_BOOLEAN) cleared.add(f.toString());
+            }
+            read.retainAll(cleared);
+            return read.isEmpty() ? -1 : play;
+        }
+
+        /**
+         * Pin video playback (#48), Don't autoplay pin videos. The saved video state getter asks the
+         * hook right in front of returning the fresh state it builds for a video with nothing saved,
+         * and stores the answer in that state's paused flag. Each pin page's unbind reset stores the
+         * hook's answer in place of its false. The idea pin page's start asks right in front of its
+         * play and skips only the play on yes.
+         */
+        void pinVideoAutoplay(Contract c) {
+            String hook = c.strings.get(0);
+            MethodReference getter = videoStateGetter();
+            if (getter == null) fail("the organic pin page's unbind no longer reads its video's saved state right before its reset");
+            String state = getter == null ? null : getter.getReturnType();
+            boolean ok = getter != null;
+            String paused = null;
+            for (String type : List.of(ORGANIC_CLOSEUP, PROMOTED_CLOSEUP)) {
+                Method reset = state == null ? null : clean.methods.get(type + "->" + UNBIND_RESET + "(" + state + ")Lkotlin/Unit;");
+                if (reset == null || reset.getImplementation() == null) {
+                    if (state != null) fail(type + " has no reset of its video's saved state");
+                    ok = false;
+                    continue;
+                }
+                List<Instruction> before = instructions(reset);
+                int store = -1, stores = 0;
+                for (int at = 0; at < before.size(); at++) if (before.get(at).getOpcode() == Opcode.IPUT_BOOLEAN) { store = at; stores++; }
+                if (stores != 1 || store < 1 || before.get(store - 1).getOpcode() != Opcode.CONST_4
+                        || ((NarrowLiteralInstruction) before.get(store - 1)).getNarrowLiteral() != 0
+                        || firstRegister(before.get(store - 1)) != firstRegister(before.get(store))) {
+                    fail(type + "'s reset no longer stores a false in its video's saved state");
+                    ok = false;
+                    continue;
+                }
+                String flag = String.valueOf(reference(before.get(store)));
+                if (paused == null) paused = flag;
+                else if (!paused.equals(flag)) { fail("the two pin pages reset different flags"); ok = false; }
+                Method m = actual(reset);
+                List<Integer> sites = calls(m, hook, 1);
+                if (m == null || sites.size() != 1) { ok = false; continue; }
+                List<Instruction> body = instructions(m);
+                int at = sites.get(0), register = firstRegister(before.get(store - 1));
+                boolean placed = at == store && at + 2 < body.size() && arguments(body.get(at)).isEmpty()
+                        && body.get(at - 1).getOpcode() == Opcode.CONST_4
+                        && body.get(at + 1).getOpcode() == Opcode.MOVE_RESULT && firstRegister(body.get(at + 1)) == register
+                        && body.get(at + 2).getOpcode() == Opcode.IPUT_BOOLEAN && firstRegister(body.get(at + 2)) == register
+                        && String.valueOf(reference(body.get(at + 2))).equals(flag)
+                        && onlyFrom(m, at + 1, at) && onlyFrom(m, at + 2, at + 1);
+                if (placed) remove(m, at, at + 2);
+                else { fail(hook + " doesn't hand its answer to the flag " + m + " clears"); ok = false; }
+            }
+
+            Method stock = getter == null ? null : clean.methods.get(getter.toString());
+            if (getter != null && (stock == null || stock.getImplementation() == null)) { fail("the video state getter " + getter + " isn't in the clean APK"); ok = false; }
+            int fresh = stock == null || stock.getImplementation() == null ? -1 : freshReturn(stock, state);
+            if (stock != null && stock.getImplementation() != null && fresh < 0) {
+                fail("the video state getter's fresh state isn't built and returned in one straight run");
+                ok = false;
+            }
+            Method g = fresh < 0 ? null : actual(stock);
+            List<Integer> asked = calls(g, hook, 1);
+            if (g != null && asked.size() == 1 && paused != null) {
+                List<Instruction> body = instructions(g);
+                int at = asked.get(0), returned = firstRegister(instructions(stock).get(fresh));
+                boolean placed = at == fresh && at + 3 < body.size() && arguments(body.get(at)).isEmpty()
+                        && body.get(at + 1).getOpcode() == Opcode.MOVE_RESULT && firstRegister(body.get(at + 1)) != returned
+                        && body.get(at + 2).getOpcode() == Opcode.IPUT_BOOLEAN && firstRegister(body.get(at + 2)) == firstRegister(body.get(at + 1))
+                        && ((TwoRegisterInstruction) body.get(at + 2)).getRegisterB() == returned
+                        && String.valueOf(reference(body.get(at + 2))).equals(paused)
+                        && body.get(at + 3).getOpcode() == Opcode.RETURN_OBJECT && firstRegister(body.get(at + 3)) == returned
+                        && onlyFrom(g, at + 1, at) && onlyFrom(g, at + 2, at + 1) && onlyFrom(g, at + 3, at + 2);
+                if (placed) remove(g, at, at + 3);
+                else { fail(hook + " doesn't set the paused flag of the fresh state " + g + " returns"); ok = false; }
+            } else ok = false;
+
+            List<Method> starts = new ArrayList<>();
+            for (ClassDef cd : clean.classes.values()) {
+                if (!ROUNDED_CORNERS_LAYOUT.equals(cd.getSuperclass())) continue;
+                for (Method m : cd.getMethods()) if (ideaPinPlay(m) >= 0) starts.add(m);
+            }
+            Method start = unique(starts, "The idea pin page's start of its video");
+            Method s = actual(start);
+            List<Integer> skipped = calls(s, hook, 1);
+            if (start != null && s != null && skipped.size() == 1) {
+                int play = ideaPinPlay(start);
+                List<Instruction> before = instructions(start), body = instructions(s);
+                Layout layout = new Layout(s.getImplementation());
+                int at = skipped.get(0);
+                boolean placed = at == play && at + 4 < body.size() && arguments(body.get(at)).isEmpty()
+                        && body.get(at + 1).getOpcode() == Opcode.MOVE_RESULT
+                        && body.get(at + 2).getOpcode() == Opcode.IF_NEZ && firstRegister(body.get(at + 2)) == firstRegister(body.get(at + 1))
+                        && branchTarget(layout, at + 2) == at + 4
+                        && body.get(at + 3).getOpcode() == before.get(play).getOpcode()
+                        && String.valueOf(reference(body.get(at + 3))).equals(String.valueOf(reference(before.get(play))))
+                        && arguments(body.get(at + 3)).equals(arguments(before.get(play)))
+                        && !arguments(before.get(play)).contains(firstRegister(body.get(at + 1)))
+                        && onlyFrom(s, at + 1, at) && onlyFrom(s, at + 2, at + 1) && onlyFrom(s, at + 3, at + 2);
+                if (placed) remove(s, at, at + 3);
+                else { fail(hook + " doesn't guard only the play in " + s); ok = false; }
+            } else ok = false;
+            capability(c.callee, ok);
+        }
+
+        /** A method with no parameters that starts by reading [flag] and stores it twice or more: the idea pin page's sound setter. */
+        boolean setsSound(Method m, String flag) {
+            if (m.getImplementation() == null || !m.getParameterTypes().isEmpty() || !m.getReturnType().equals("V")) return false;
+            List<Instruction> body = instructions(m);
+            if (body.isEmpty() || body.get(0).getOpcode() != Opcode.SGET_BOOLEAN || !String.valueOf(reference(body.get(0))).equals(flag)) return false;
+            int stores = 0;
+            for (Instruction i : body) if (i.getOpcode() == Opcode.SPUT_BOOLEAN && String.valueOf(reference(i)).equals(flag)) stores++;
+            return stores >= 2;
+        }
+
+        /**
+         * Pin video playback (#48), Start pin videos muted. Each pin page asks the hook first thing
+         * where it takes its sound from Pinterest's app-wide sound flag, and on yes stores the answer
+         * in the flag: the regular video pin page's loadSavedMuteState, which starts by reading the
+         * flag, and the idea pin presenter's start, the one method with no parameters outside the
+         * idea pin page that calls the page's sound setter. Pinterest's first instruction follows.
+         */
+        void pinVideoSound(Contract c) {
+            String hook = c.strings.get(0);
+            MethodReference getter = videoStateGetter();
+            Method video = clean.methods.get(VIDEO_MODULE + "->" + LOAD_SAVED_MUTE_STATE + "()V");
+            List<Instruction> start = video == null || video.getImplementation() == null ? List.of() : instructions(video);
+            String flag = null;
+            if (getter != null && !start.isEmpty() && start.get(0).getOpcode() == Opcode.SGET_BOOLEAN
+                    && reference(start.get(0)) instanceof FieldReference f && f.getType().equals("Z")
+                    && f.getDefiningClass().equals(getter.getDefiningClass())) flag = f.toString();
+            if (flag == null) {
+                fail("the video pin page's " + LOAD_SAVED_MUTE_STATE + " no longer starts by reading Pinterest's sound flag");
+                capability(c.callee, false);
+                return;
+            }
+            List<Method> setters = new ArrayList<>();
+            for (Method m : clean.methods.values()) if (!m.getDefiningClass().startsWith(OWN) && setsSound(m, flag)) setters.add(m);
+            Method setter = unique(setters, "The idea pin page's sound setter");
+            List<Method> starts = new ArrayList<>();
+            if (setter != null)
+                for (Method m : clean.methods.values())
+                    if (!m.getDefiningClass().startsWith(OWN) && !m.getDefiningClass().equals(setter.getDefiningClass())
+                            && m.getImplementation() != null && m.getParameterTypes().isEmpty() && m.getReturnType().equals("V")
+                            && !callSites(instructions(m), setter.toString()).isEmpty()) starts.add(m);
+            Method idea = setter == null ? null : unique(starts, "The idea pin presenter's start");
+            boolean placed = setter != null && idea != null;
+            for (Method page : Arrays.asList(video, idea)) {
+                if (page == null) continue;
+                Method m = actual(page);
+                List<Integer> sites = calls(m, hook, 1);
+                boolean here = false;
+                if (m != null && sites.size() == 1) {
+                    List<Instruction> before = instructions(page), body = instructions(m);
+                    Layout layout = new Layout(m.getImplementation());
+                    int answer = body.size() > 1 ? firstRegister(body.get(1)) : -1;
+                    here = sites.get(0) == 0 && body.size() > 4 && arguments(body.get(0)).isEmpty()
+                            && body.get(1).getOpcode() == Opcode.MOVE_RESULT
+                            && body.get(2).getOpcode() == Opcode.IF_EQZ && firstRegister(body.get(2)) == answer && branchTarget(layout, 2) == 4
+                            && body.get(3).getOpcode() == Opcode.SPUT_BOOLEAN && firstRegister(body.get(3)) == answer
+                            && String.valueOf(reference(body.get(3))).equals(flag)
+                            && body.get(4).getOpcode() == before.get(0).getOpcode()
+                            && firstRegister(body.get(4)) == firstRegister(before.get(0))
+                            && String.valueOf(reference(body.get(4))).equals(String.valueOf(reference(before.get(0))))
+                            && onlyFrom(m, 1, 0) && onlyFrom(m, 2, 1) && onlyFrom(m, 3, 2);
+                    if (here) remove(m, 0, 4);
+                }
+                if (m != null && !here) fail(hook + " doesn't set Pinterest's sound flag first thing in " + m);
+                placed &= here;
+            }
+            capability(c.callee, placed);
+        }
+
+        /**
+         * Pinch to zoom only (#48). The organic pin page's pinch handler starts by reading its
+         * context's source and comparing it with the pinch's, then hands the hook its pin and returns
+         * on yes. Anything but a pinch, and no, go on to Pinterest's own handler.
+         */
+        void pinchZoom(Contract c) {
+            String hook = c.strings.get(0);
+            Method handler = clean.methods.get(ORGANIC_CLOSEUP + "->" + PINCH_HANDLER + "(" + PINCH_CONTEXT + ")V");
+            if (handler == null || handler.getImplementation() == null) {
+                fail("the pin page's pinch handler isn't in the clean APK");
+                capability(c.callee, false);
+                return;
+            }
+            Set<String> sources = new TreeSet<>();
+            for (Instruction i : instructions(handler)) {
+                if (!(reference(i) instanceof FieldReference f) || !f.getDefiningClass().equals(PINCH_CONTEXT)) continue;
+                ClassDef type = clean.classes.get(f.getType());
+                if (type != null) for (Field field : type.getFields())
+                    if (field.getName().equals(PINCH_SOURCE) && field.getType().equals(f.getType()) && AccessFlags.STATIC.isSet(field.getAccessFlags()))
+                        sources.add(f.toString());
+            }
+            if (sources.size() != 1) {
+                fail("the pinch handler reads " + sources.size() + " pinch sources, expected 1");
+                capability(c.callee, false);
+                return;
+            }
+            String source = sources.iterator().next();
+            String sourceType = source.substring(source.lastIndexOf(':') + 1);
+            Method m = actual(handler);
+            List<Instruction> body = m == null ? List.of() : instructions(m);
+            List<Integer> sites = callSites(body, hook);
+            boolean placed = false;
+            int value = body.isEmpty() ? -1 : firstRegister(body.get(0));
+            if (m != null && sites.size() == 1 && sites.get(0) == 6 && body.size() > 10) {
+                Layout layout = new Layout(m.getImplementation());
+                int self = parameter(m, -1), context = parameter(m, 0), pinch = firstRegister(body.get(2));
+                placed = body.get(0).getOpcode() == Opcode.MOVE_OBJECT_FROM16 && ((TwoRegisterInstruction) body.get(0)).getRegisterB() == context
+                        && body.get(1).getOpcode() == Opcode.IGET_OBJECT && firstRegister(body.get(1)) == value
+                        && ((TwoRegisterInstruction) body.get(1)).getRegisterB() == value && String.valueOf(reference(body.get(1))).equals(source)
+                        && body.get(2).getOpcode() == Opcode.SGET_OBJECT && pinch != value
+                        && String.valueOf(reference(body.get(2))).equals(sourceType + "->" + PINCH_SOURCE + ":" + sourceType)
+                        && body.get(3).getOpcode() == Opcode.IF_NE && firstRegister(body.get(3)) == value
+                        && ((TwoRegisterInstruction) body.get(3)).getRegisterB() == pinch && branchTarget(layout, 3) == 10
+                        && body.get(4).getOpcode() == Opcode.MOVE_OBJECT_FROM16 && firstRegister(body.get(4)) == value
+                        && ((TwoRegisterInstruction) body.get(4)).getRegisterB() == self
+                        && body.get(5).getOpcode() == Opcode.IGET_OBJECT && firstRegister(body.get(5)) == value
+                        && ((TwoRegisterInstruction) body.get(5)).getRegisterB() == value
+                        && reference(body.get(5)) instanceof FieldReference pin && pin.getDefiningClass().equals(ORGANIC_CLOSEUP) && pin.getName().equals("pin");
+            }
+            if (m != null && !placed) fail(hook + " isn't handed the pin after a check for a pinch at the start of " + m);
+            guard(m, hook, 0, List.of(value), 6, false, false);
+            capability(c.callee, placed);
+        }
+
+        /** The API paths Like and comment history follows, as the patch names them. */
+        static final String HISTORY_REACT_PATH = "pins/{pinUid}/react/",
+                HISTORY_PIN_COMMENT_PATH = "aggregated_pin_data/{aggregatedPinDataId}/comment/",
+                HISTORY_REPLY_PATH = "aggregated_comments/{aggregatedCommentId}/reply/",
+                HISTORY_STRING = "Ljava/lang/String;";
+        static final Set<String> HISTORY_COMMENT_PATHS =
+                Set.of(HISTORY_PIN_COMMENT_PATH, "did_it/{didItId}/comments/", HISTORY_REPLY_PATH);
+
+        /** The clean APK's reaction and comment API methods by signature, and the calls to each, once [indexHistory] ran. */
+        Map<String, Method> historyEndpoints;
+        Map<String, List<FeatureSite>> historyCalls;
+
+        void indexHistory() {
+            if (historyEndpoints != null) return;
+            historyEndpoints = new LinkedHashMap<>();
+            historyCalls = new LinkedHashMap<>();
+            for (ClassDef cd : clean.classes.values()) {
+                if (cd.getType().startsWith(OWN) || !AccessFlags.INTERFACE.isSet(cd.getAccessFlags())) continue;
+                for (Method m : cd.getMethods()) if (historyPath(m) != null) historyEndpoints.put(m.toString(), m);
+            }
+            if (historyEndpoints.isEmpty()) return;
+            for (Method m : clean.methods.values()) {
+                if (m.getDefiningClass().startsWith(OWN) || m.getImplementation() == null) continue;
+                int at = 0;
+                for (Instruction i : m.getImplementation().getInstructions()) {
+                    if ((i.getOpcode() == Opcode.INVOKE_INTERFACE || i.getOpcode() == Opcode.INVOKE_INTERFACE_RANGE)
+                            && reference(i) instanceof MethodReference called && historyEndpoints.containsKey(called.toString()))
+                        historyCalls.computeIfAbsent(called.toString(), k -> new ArrayList<>()).add(new FeatureSite(m, at));
+                    at++;
+                }
+            }
+        }
+
+        /** The reaction or comment path on an API method, or null. */
+        static String historyPath(Method m) {
+            for (var annotation : m.getAnnotations()) for (var element : annotation.getElements())
+                if (element.getName().equals("value") && element.getValue() instanceof StringEncodedValue s
+                        && (s.getValue().equals(HISTORY_REACT_PATH) || HISTORY_COMMENT_PATHS.contains(s.getValue()))) return s.getValue();
+            return null;
+        }
+
+        /** The declared parameters of [m] whose request value is named [name], of [type] or any type when null. */
+        static List<Integer> historyParameters(Method m, String name, String type) {
+            List<Integer> found = new ArrayList<>();
+            for (int k = 0; k < m.getParameters().size(); k++) {
+                var p = m.getParameters().get(k);
+                if (type != null && !p.getType().equals(type)) continue;
+                boolean named = false;
+                for (var annotation : p.getAnnotations()) for (var element : annotation.getElements())
+                    if (element.getName().equals("value") && element.getValue() instanceof StringEncodedValue s && s.getValue().equals(name)) named = true;
+                if (named) found.add(k);
+            }
+            return found;
+        }
+
+        /** The register [call] passes declared parameter [parameter] of [endpoint] in, or -1. */
+        static int historyArgument(Method endpoint, Instruction call, int parameter) {
+            int slot = 1;
+            for (int k = 0; k < parameter; k++) slot += slots(endpoint.getParameterTypes().get(k));
+            List<Integer> passed = arguments(call);
+            return slot < passed.size() ? passed.get(slot) : -1;
+        }
+
+        /** The declared parameter [m] copies into a local and casts there among its first few instructions, or -1 unless exactly one. */
+        int historyCastParameter(Method m) {
+            List<Instruction> body = instructions(m);
+            int found = -1;
+            for (int k = 0; k < m.getParameterTypes().size(); k++) {
+                int register = parameter(m, k);
+                boolean cast = false;
+                for (int at = 0; at < Math.min(4, body.size() - 1) && !cast; at++) {
+                    Instruction copy = body.get(at), next = body.get(at + 1);
+                    cast = (copy.getOpcode() == Opcode.MOVE_OBJECT || copy.getOpcode() == Opcode.MOVE_OBJECT_FROM16
+                            || copy.getOpcode() == Opcode.MOVE_OBJECT_16) && ((TwoRegisterInstruction) copy).getRegisterB() == register
+                            && next.getOpcode() == Opcode.CHECK_CAST && firstRegister(next) == firstRegister(copy);
+                }
+                if (cast && found >= 0) return -1;
+                if (cast) found = k;
+            }
+            return found;
+        }
+
+        /**
+         * Like and comment history's likes (#48). In front of the one call that sends a reaction on
+         * a pin, the pin model parameter goes into a free local and on to the extension with the
+         * pin's id and the reaction type the call passes. In front of the one call that takes a
+         * reaction back goes the pin's id it passes. A build without exactly one of each, or with
+         * the pin or type out of a call's reach, gets neither.
+         */
+        void likeHistory(Contract c) {
+            String sentHook = c.strings.get(0), removedHook = c.strings.get(1);
+            indexHistory();
+            List<Method> reacts = new ArrayList<>(), unreacts = new ArrayList<>();
+            for (Method e : historyEndpoints.values()) {
+                if (!HISTORY_REACT_PATH.equals(historyPath(e)) || historyParameters(e, "pinUid", HISTORY_STRING).size() != 1) continue;
+                if (historyParameters(e, "reaction_type", "I").size() == 1) reacts.add(e);
+                else if (historyParameters(e, "reaction_type", null).isEmpty()) unreacts.add(e);
+            }
+            Method react = reacts.size() == 1 ? reacts.get(0) : null, unreact = unreacts.size() == 1 ? unreacts.get(0) : null;
+            List<FeatureSite> sent = react == null ? List.of() : historyCalls.getOrDefault(react.toString(), List.of());
+            List<FeatureSite> taken = unreact == null ? List.of() : historyCalls.getOrDefault(unreact.toString(), List.of());
+            if (sent.size() != 1 || taken.size() != 1) { capability(c.callee, false); return; }
+            FeatureSite send = sent.get(0), take = taken.get(0);
+            Instruction stock = instructions(send.method).get(send.at);
+            int model = historyCastParameter(send.method);
+            int pin = historyArgument(react, stock, historyParameters(react, "pinUid", HISTORY_STRING).get(0));
+            int type = historyArgument(react, stock, historyParameters(react, "reaction_type", "I").get(0));
+            if (model < 0 || pin < 0 || pin > 15 || type < 0 || type > 15) { capability(c.callee, false); return; }
+
+            Method m = actual(send.method);
+            List<Integer> hooks = calls(m, sentHook, 1);
+            boolean liked = false;
+            if (m != null && hooks.size() == 1) {
+                List<Instruction> body = instructions(m);
+                int at = hooks.get(0);
+                List<Integer> passed = arguments(body.get(at));
+                Instruction copy = at > 0 ? body.get(at - 1) : null;
+                Instruction call = at + 1 < body.size() ? body.get(at + 1) : null;
+                liked = passed.size() == 3 && copy != null && copy.getOpcode() == Opcode.MOVE_OBJECT_FROM16
+                        && firstRegister(copy) == passed.get(0) && ((TwoRegisterInstruction) copy).getRegisterB() == parameter(m, model)
+                        && passed.get(0) < parameter(m, -1) && !arguments(stock).contains(passed.get(0))
+                        && passed.subList(1, 3).equals(List.of(pin, type))
+                        && call != null && call.getOpcode() == stock.getOpcode()
+                        && String.valueOf(reference(call)).equals(String.valueOf(reference(stock))) && arguments(call).equals(arguments(stock))
+                        && onlyFrom(m, at, at - 1) && onlyFrom(m, at + 1, at);
+                if (liked) remove(m, at - 1, at + 1);
+                else fail(sentHook + " doesn't take the pin model, its id and the reaction type right in front of the reaction call in " + m);
+            }
+
+            Method u = actual(take.method);
+            List<Integer> drops = calls(u, removedHook, 1);
+            boolean unliked = false;
+            if (u != null && drops.size() == 1) {
+                List<Instruction> body = instructions(u);
+                Instruction was = instructions(take.method).get(take.at);
+                int at = drops.get(0);
+                int dropped = historyArgument(unreact, was, historyParameters(unreact, "pinUid", HISTORY_STRING).get(0));
+                Instruction call = at + 1 < body.size() ? body.get(at + 1) : null;
+                unliked = dropped >= 0 && arguments(body.get(at)).equals(List.of(dropped)) && call != null
+                        && call.getOpcode() == was.getOpcode() && String.valueOf(reference(call)).equals(String.valueOf(reference(was)))
+                        && arguments(call).equals(arguments(was)) && onlyFrom(u, at + 1, at);
+                if (unliked) remove(u, at, at + 1);
+                else fail(removedHook + " doesn't take the pin's id right in front of the call that takes a reaction back in " + u);
+            }
+            capability(c.callee, liked && unliked);
+        }
+
+        /**
+         * Like and comment history's comments (#48). In front of every call that posts a comment on
+         * a pin or a "did it" photo goes the comment hook, and in front of every reply the reply
+         * hook, each with the pin's id and the text the call passes. A build that posts no comment on
+         * a pin, or passes one out of a call's reach, gets none.
+         */
+        void commentHistory(Contract c) {
+            String commentHook = c.strings.get(0), replyHook = c.strings.get(1);
+            indexHistory();
+            Map<String, List<FeatureSite>> byMethod = new LinkedHashMap<>();
+            Map<FeatureSite, Method> endpointOf = new HashMap<>();
+            boolean onPin = false;
+            for (Method e : historyEndpoints.values()) {
+                String path = historyPath(e);
+                if (path == null || !HISTORY_COMMENT_PATHS.contains(path) || historyParameters(e, "pin", HISTORY_STRING).size() != 1
+                        || historyParameters(e, "text", HISTORY_STRING).size() != 1) continue;
+                for (FeatureSite site : historyCalls.getOrDefault(e.toString(), List.of())) {
+                    Instruction stock = instructions(site.method).get(site.at);
+                    int pin = historyArgument(e, stock, historyParameters(e, "pin", HISTORY_STRING).get(0));
+                    int text = historyArgument(e, stock, historyParameters(e, "text", HISTORY_STRING).get(0));
+                    if (pin < 0 || text < 0 || (pin > 15 || text > 15) && text != pin + 1) { capability(c.callee, false); return; }
+                    byMethod.computeIfAbsent(site.method.toString(), k -> new ArrayList<>()).add(site);
+                    endpointOf.put(site, e);
+                    onPin |= path.equals(HISTORY_PIN_COMMENT_PATH);
+                }
+            }
+            if (!onPin) { capability(c.callee, false); return; }
+            boolean posted = true;
+            for (List<FeatureSite> sites : byMethod.values()) {
+                sites.sort((a, b) -> Integer.compare(a.at, b.at));
+                Method was = sites.get(0).method;
+                Method m = actual(was);
+                int comments = 0, replies = 0;
+                for (FeatureSite site : sites) {
+                    if (HISTORY_REPLY_PATH.equals(historyPath(endpointOf.get(site)))) replies++;
+                    else comments++;
+                }
+                List<Integer> commentCalls = calls(m, commentHook, comments);
+                List<Integer> replyCalls = calls(m, replyHook, replies);
+                if (m == null || commentCalls.size() != comments || replyCalls.size() != replies) { posted = false; continue; }
+                List<Integer> hooks = new ArrayList<>(commentCalls);
+                hooks.addAll(replyCalls);
+                hooks.sort(null);
+                List<Instruction> before = instructions(was), body = instructions(m);
+                for (int k = 0; k < sites.size(); k++) {
+                    FeatureSite site = sites.get(k);
+                    Method e = endpointOf.get(site);
+                    Instruction stock = before.get(site.at);
+                    int at = hooks.get(k);
+                    String hook = HISTORY_REPLY_PATH.equals(historyPath(e)) ? replyHook : commentHook;
+                    List<Integer> want = List.of(historyArgument(e, stock, historyParameters(e, "pin", HISTORY_STRING).get(0)),
+                            historyArgument(e, stock, historyParameters(e, "text", HISTORY_STRING).get(0)));
+                    Instruction call = at + 1 < body.size() ? body.get(at + 1) : null;
+                    boolean placed = String.valueOf(reference(body.get(at))).equals(hook) && arguments(body.get(at)).equals(want)
+                            && call != null && call.getOpcode() == stock.getOpcode()
+                            && String.valueOf(reference(call)).equals(String.valueOf(reference(stock)))
+                            && arguments(call).equals(arguments(stock)) && onlyFrom(m, at + 1, at);
+                    if (placed) remove(m, at, at + 1);
+                    else {
+                        posted = false;
+                        fail(hook + " doesn't take the pin's id and the text right in front of the comment call at " + site.at + " in " + m);
+                    }
+                }
+            }
+            capability(c.callee, posted);
+        }
+
         void boardListHeight(Contract c) {
             String hook = c.strings.get(0);
             ClassDef picker = boardPicker();
@@ -7735,6 +8672,85 @@ public class DexDiff {
             capability(c.callee, found);
         }
 
+        static final String TYPEFACE = "Landroid/graphics/Typeface;";
+        static final String CUSTOM_FONT = "Lapp/hushpinterest/extension/pinterest/ui/CustomFont;";
+        /** Android's default fonts and the extension's stand-in each read of one goes to. */
+        static final Map<String, String> TYPEFACE_DEFAULTS = Map.of(
+                TYPEFACE + "->DEFAULT:" + TYPEFACE, CUSTOM_FONT + "->androidDefault:" + TYPEFACE,
+                TYPEFACE + "->SANS_SERIF:" + TYPEFACE, CUSTOM_FONT + "->androidSansSerif:" + TYPEFACE,
+                TYPEFACE + "->DEFAULT_BOLD:" + TYPEFACE, CUSTOM_FONT + "->androidDefaultBold:" + TYPEFACE);
+
+        /** True for ResourcesCompat's static font loader shape: context, id, value, style, a callback and two flags. */
+        static boolean isFontLoader(Method m) {
+            List<String> shape = new ArrayList<>();
+            for (CharSequence p : m.getParameterTypes()) shape.add(p.toString());
+            return AccessFlags.STATIC.isSet(m.getAccessFlags()) && m.getReturnType().equals(TYPEFACE) && shape.size() == 7
+                    && shape.get(0).equals("Landroid/content/Context;") && shape.get(1).equals("I")
+                    && shape.get(2).equals("Landroid/util/TypedValue;") && shape.get(3).equals("I")
+                    && shape.get(4).startsWith("L") && shape.get(5).equals("Z") && shape.get(6).equals("Z");
+        }
+
+        /**
+         * Custom font (#51), a whole family: ResourcesCompat's font loader, found by its message for a
+         * font it can't load and its shape, hands what it returns to the hook with the font's id, back
+         * into the same register, right at its only return. Every read of Android's default fonts in
+         * Pinterest's code reads the extension's stand-in into the same register instead, and the
+         * methods are otherwise untouched.
+         */
+        void fontResource(Contract c) {
+            String hook = c.strings.get(0);
+            List<Method> loaders = new ArrayList<>();
+            for (Method m : clean.holding("Font resource ID #0x")) if (isFontLoader(m)) loaders.add(m);
+            Method loader = unique(loaders, "ResourcesCompat font loader");
+            int exit = -1;
+            if (loader != null) {
+                List<Instruction> was = instructions(loader);
+                List<Integer> returns = new ArrayList<>();
+                for (int at = 0; at < was.size(); at++) if (was.get(at).getOpcode() == Opcode.RETURN_OBJECT) returns.add(at);
+                Method m = actual(loader);
+                List<Integer> sites = calls(m, hook, 1);
+                if (returns.size() != 1) fail("ResourcesCompat font loader returns from " + returns.size() + " places, expected 1");
+                else if (m != null && sites.size() == 1) {
+                    int at = sites.get(0);
+                    exit = returns.get(0);
+                    int result = firstRegister(was.get(exit));
+                    List<Instruction> body = instructions(m);
+                    boolean shaped = at == exit && at + 2 < body.size() && body.size() == was.size() + 2
+                            && arguments(body.get(at)).equals(List.of(result, parameter(m, 1)))
+                            && body.get(at + 1).getOpcode() == Opcode.MOVE_RESULT_OBJECT && firstRegister(body.get(at + 1)) == result
+                            && body.get(at + 2).getOpcode() == Opcode.RETURN_OBJECT && firstRegister(body.get(at + 2)) == result
+                            && onlyFrom(m, at + 1, at) && onlyFrom(m, at + 2, at + 1);
+                    if (!shaped) fail(hook + " doesn't take the font loader's typeface and font id right at its return in " + m);
+                    else remove(m, at, at + 2);
+                }
+            }
+            int reads = 0;
+            for (Method original : clean.methods.values()) {
+                if (original.getDefiningClass().startsWith(OWN) || original.getImplementation() == null) continue;
+                List<Instruction> was = instructions(original);
+                List<Integer> at = new ArrayList<>();
+                for (int k = 0; k < was.size(); k++)
+                    if (was.get(k).getOpcode() == Opcode.SGET_OBJECT && TYPEFACE_DEFAULTS.containsKey(String.valueOf(reference(was.get(k))))) at.add(k);
+                if (at.isEmpty()) continue;
+                Method m = actual(original);
+                if (m == null) continue;
+                List<Instruction> body = instructions(m);
+                // Only the loader gains instructions, the hook's two at its return.
+                int shift = original.equals(loader) ? 2 : 0;
+                for (int k : at) {
+                    Instruction old = was.get(k);
+                    int now = k + (k >= exit && shift > 0 ? shift : 0);
+                    Instruction read = now < body.size() ? body.get(now) : null;
+                    if (read == null || read.getOpcode() != Opcode.SGET_OBJECT || firstRegister(read) != firstRegister(old)
+                            || !TYPEFACE_DEFAULTS.get(String.valueOf(reference(old))).equals(String.valueOf(reference(read))))
+                        fail("Custom font left a read of Android's default font, or moved it, in " + m);
+                    else edits.computeIfAbsent(m.toString(), e -> new FeatureEdits()).replacements.put(now, old);
+                    reads++;
+                }
+            }
+            if (reads == 0) fail("Pinterest's code reads none of Android's default fonts for Custom font to stand in for");
+        }
+
         /** The authority a literal names: a content:// address's host, or the literal itself; null unless it's under Pinterest's package. */
         static String ownAuthority(String literal) {
             String authority = literal;
@@ -7791,6 +8807,75 @@ public class DexDiff {
                     else remove(m, at, at + 2);
                 }
             }
+        }
+
+        static final String RECAPTCHA_SDK = "Lcom/google/android/recaptcha/";
+        static final Set<String> PACKAGE_OWNERS = Set.of("Landroid/content/Context;", "Landroid/content/ContextWrapper;", "Landroid/app/Application;");
+
+        /**
+         * Whether body[at] sends the app's package to reCAPTCHA: getPackageName and its move-result,
+         * with the result reaching, within ten instructions and before a write over it or a jump,
+         * a two-argument put inside the SDK (the token's signals) or a one-String setter of an SDK
+         * class (request fields, the init request's among them; R8 moves those builders anywhere).
+         */
+        static boolean reportsPackage(List<Instruction> body, int at, String owner) {
+            if (at + 2 >= body.size()) return false;
+            Instruction call = body.get(at);
+            if (call.getOpcode() != Opcode.INVOKE_VIRTUAL || !(reference(call) instanceof MethodReference asked)
+                    || !asked.getName().equals("getPackageName") || !asked.getParameterTypes().isEmpty()
+                    || !PACKAGE_OWNERS.contains(asked.getDefiningClass())) return false;
+            Instruction kept = body.get(at + 1);
+            if (kept.getOpcode() != Opcode.MOVE_RESULT_OBJECT) return false;
+            int value = firstRegister(kept);
+            for (int j = at + 2; j < Math.min(body.size(), at + 10); j++) {
+                Instruction next = body.get(j);
+                if (reference(next) instanceof MethodReference to && next instanceof FiveRegisterInstruction) {
+                    List<Integer> args = arguments(next);
+                    boolean put = (next.getOpcode() == Opcode.INVOKE_VIRTUAL || next.getOpcode() == Opcode.INVOKE_INTERFACE)
+                            && to.getName().equals("put") && to.getParameterTypes().size() == 2 && args.size() == 3
+                            && args.get(2) == value && owner.startsWith(RECAPTCHA_SDK);
+                    boolean setter = next.getOpcode() == Opcode.INVOKE_VIRTUAL && to.getDefiningClass().startsWith(RECAPTCHA_SDK)
+                            && args.size() == 2 && args.get(1) == value && to.getParameterTypes().size() == 1
+                            && to.getParameterTypes().get(0).toString().equals("Ljava/lang/String;") && to.getReturnType().equals("V");
+                    if (put || setter) return true;
+                }
+                Opcode op = next.getOpcode();
+                if (!op.canContinue() || next instanceof OffsetInstruction) return false;
+                if (op.setsRegister() && next instanceof OneRegisterInstruction w
+                        && (w.getRegisterA() == value || (op.setsWideRegister() && w.getRegisterA() + 1 == value))) return false;
+            }
+            return false;
+        }
+
+        /**
+         * Change package name's reCAPTCHA report: wherever the SDK sends the app's package (its init
+         * request's field, the token's signals), the hook takes the getPackageName call's place,
+         * static, on the same register, and nothing else in the method moves. The patch refuses a
+         * build with none.
+         */
+        void reportedPackage(Contract c) {
+            String hook = c.strings.get(0);
+            int sites = 0;
+            for (Method original : clean.methods.values()) {
+                if (original.getImplementation() == null) continue;
+                List<Instruction> was = instructions(original);
+                List<Integer> at = new ArrayList<>();
+                for (int k = 0; k < was.size(); k++) if (reportsPackage(was, k, original.getDefiningClass())) at.add(k);
+                if (at.isEmpty()) continue;
+                Method m = actual(original);
+                List<Integer> found = calls(m, hook, at.size());
+                if (m == null || found.size() != at.size()) continue;
+                List<Instruction> body = instructions(m);
+                for (int n = 0; n < at.size(); n++) {
+                    int k = at.get(n);
+                    Instruction old = was.get(k);
+                    boolean shaped = found.get(n) == k && body.size() == was.size() && arguments(body.get(k)).equals(arguments(old));
+                    if (!shaped) fail(hook + " doesn't take the place of reCAPTCHA's getPackageName, on its register, in " + m);
+                    else edits.computeIfAbsent(m.toString(), e -> new FeatureEdits()).replacements.put(k, old);
+                    sites++;
+                }
+            }
+            if (sites == 0) fail("reCAPTCHA reports the app's package nowhere Change package name looks");
         }
 
         static final String BLOCK_STORE = "Lcom/google/android/gms/auth/blockstore/";
@@ -8562,6 +9647,7 @@ public class DexDiff {
                 replacement(manager + "->" + name + "(" + parameters + ")" + answer, entry + "->" + name + "(" + manager + parameters + ")" + answer, null, true);
             }
             greetingHeader(entry + "->onGreetingHeader(Landroid/view/View;)V");
+            tabLongPress(entry + "->onTabLongPress(Landroid/view/View$OnLongClickListener;)Landroid/view/View$OnLongClickListener;");
             nativeSettings(entry);
         }
 
@@ -8658,6 +9744,51 @@ public class DexDiff {
         }
 
         static final String GREETING_HEADER_ID = "home_feed_greeting_header_view";
+        static final String BOTTOM_BAR = "Lcom/pinterest/navigation/view/FloatingBottomNavBar;";
+
+        /**
+         * Every bottom bar tab's long press goes through the settings entry, which opens the screen
+         * for the Home tab alone (#48): in each bottom bar method that gives a tab its id
+         * (View.setId) and then a two-register setOnLongClickListener, the listener register goes
+         * into the hook and its answer back into that register right in front of the call, wherever
+         * other features' hooks earlier in the method moved that call. A build
+         * whose bar has no such call is left as it was. Found in the clean target, never from the hook.
+         */
+        void tabLongPress(String hook) {
+            ClassDef bar = clean.classes.get(BOTTOM_BAR);
+            if (bar == null) return;
+            for (Method original : bar.getMethods()) {
+                if (original.getImplementation() == null) continue;
+                List<Instruction> was = instructions(original);
+                int id = -1;
+                for (int k = 0; k < was.size() && id < 0; k++) if ("Landroid/view/View;->setId(I)V".equals(String.valueOf(reference(was.get(k))))) id = k;
+                if (id < 0) continue;
+                List<Integer> sites = new ArrayList<>();
+                for (int k = id + 1; k < was.size(); k++) if (was.get(k) instanceof FiveRegisterInstruction set
+                        && (set.getOpcode() == Opcode.INVOKE_VIRTUAL || set.getOpcode() == Opcode.INVOKE_INTERFACE) && set.getRegisterCount() == 2
+                        && reference(set) instanceof MethodReference r && r.getName().equals("setOnLongClickListener")
+                        && descriptor(r).equals("(Landroid/view/View$OnLongClickListener;)V")) sites.add(k);
+                if (sites.isEmpty()) continue;
+                Method m = actual(original);
+                List<Integer> at = calls(m, hook, sites.size());
+                if (m == null || at.size() != sites.size()) continue;
+                List<Instruction> body = instructions(m);
+                for (int n = 0; n < sites.size(); n++) {
+                    int site = sites.get(n), k = at.get(n), listener = ((FiveRegisterInstruction) was.get(site)).getRegisterD();
+                    // Other features' hooks earlier in the same method (the navigation binding after
+                    // setId, for one) move this one down, so the stock call is matched by what it is.
+                    if (k < site + 2 * n || !arguments(body.get(k)).equals(List.of(listener)) || k + 2 >= body.size()
+                            || body.get(k + 1).getOpcode() != Opcode.MOVE_RESULT_OBJECT || firstRegister(body.get(k + 1)) != listener
+                            || !String.valueOf(reference(body.get(k + 2))).equals(String.valueOf(reference(was.get(site))))
+                            || !arguments(body.get(k + 2)).equals(arguments(was.get(site)))
+                            || !onlyFrom(m, k + 1, k) || !onlyFrom(m, k + 2, k + 1)) {
+                        fail(hook + " doesn't hand over the tab's long press in front of instruction " + site + " of " + m);
+                        continue;
+                    }
+                    remove(m, k, k + 2);
+                }
+            }
+        }
 
         record HeaderSite(Method method, int at, int register) {}
 
@@ -8828,6 +9959,8 @@ public class DexDiff {
                     case "homePage": homePage(c); break;
                     case "firebaseCertificate": firebaseCertificate(c); break;
                     case "ownAuthorities": ownAuthorities(c); break;
+                    case "reportedPackage": reportedPackage(c); break;
+                    case "fontResource": fontResource(c); break;
                     case "imageOrder": imageOrder(c); break;
                     case "closeupImage": closeupImage(c); break;
                     case "pageImage": pageImage(c); break;
@@ -8843,6 +9976,10 @@ public class DexDiff {
                     case "closeupActionBar": closeupRows(c, false); break;
                     case "closeupVisitSite": closeupRows(c, true); break;
                     case "closeupSaveButton": closeupSaveButton(c); break;
+                    case "blackButtons": blackButtons(c); break;
+                    case "blackSearchGuides": blackSearchGuides(c); break;
+                    case "blackSettingsCard": blackSettingsCard(c); break;
+                    case "blackSearchBubbles": blackSearchBubbles(c); break;
                     case "postedDate": postedDate(c); break;
                     case "closeupGate": closeupGate(c); break;
                     case "highlightRing": highlightRing(c); break;
@@ -8854,17 +9991,27 @@ public class DexDiff {
                     case "blackBoards": blackBoards(c); break;
                     case "suggestedBoard": suggestedBoard(c); break;
                     case "boardListHeight": boardListHeight(c); break;
+                    case "boardOrder": boardOrder(c); break;
+                    case "pinVideoAutoplay": pinVideoAutoplay(c); break;
+                    case "pinVideoSound": pinVideoSound(c); break;
+                    case "pinchZoom": pinchZoom(c); break;
                     case "boardMenu": boardMenu(c); break;
                     case "surveyPrompts": surveyPrompts(c); break;
                     case "popupBanners": popupBanners(c); break;
+                    case "offlineBanner": offlineBanner(c); break;
+                    case "refreshPill": refreshPill(c); break;
                     case "relatedPins": relatedPins(c); break;
                     case "creatorName": creatorName(c); break;
                     case "saveSound": saveSound(c); break;
                     case "pinInvites": pinInvites(c); break;
+                    case "likeHistory": likeHistory(c); break;
+                    case "commentHistory": commentHistory(c); break;
                     case "downloadToasts": downloadToasts(c); break;
                     case "blackToasts": blackToasts(c); break;
                     case "homeTabs": homeTabs(c); break;
                     case "searchLanding": searchLanding(c); break;
+                    case "searchSuggestions": searchSuggestions(c); break;
+                    case "experimentGroup": experimentGroup(c); break;
                     case "searchKeyboard": searchKeyboard(c); break;
                     case "pinMenuRows": pinMenuRows(c); break;
                     case "boardTabHeader": boardTabHeader(c); break;

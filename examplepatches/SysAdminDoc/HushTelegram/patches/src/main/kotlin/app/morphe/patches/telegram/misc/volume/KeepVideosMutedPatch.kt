@@ -54,7 +54,7 @@ val keepVideosMutedPatch = bytecodePatch(
     default = true,
 ) {
     category("Playback")
-    dependsOn(settingsPatch, telegramExtensionPatch)
+    dependsOn(settingsPatch, telegramExtensionPatch, externalVideoManifestPatch)
     compatibleWith(*AppCompatibilities.telegram())
     execute {
         val site = resolveKeepVideosMuted()
@@ -62,6 +62,8 @@ val keepVideosMutedPatch = bytecodePatch(
         val upright = resolveVideoUpright(turn)
         val sound = resolveVideoSound()
         val tracks = resolveVideoTracks()
+        requireExternalVideoRuntime()
+        val external = resolveExternalVideo()
         // Assembled on a copy first, so a refusal leaves the app untouched.
         site.replace(MutableMethod(ImmutableMethod.of(site.dispatch)))
         turn.rehearse()
@@ -99,6 +101,14 @@ val keepVideosMutedPatch = bytecodePatch(
             enableCapability("videoTracks")
         } else {
             patchLog.warning("Keep videos muted on volume keys: ${tracks.missing}. The patch goes on without the audio and subtitle track choice.")
+        }
+        // Last: it goes in at the top of a method the edits above may also reach further down.
+        if (external.missing == null) {
+            writeExternalVideoStubs(external.refs!!)
+            external.apply()
+            enableCapability("externalPlayer")
+        } else {
+            patchLog.warning("Keep videos muted on volume keys: ${external.missing}. The patch goes on without opening videos in another app.")
         }
     }
 }

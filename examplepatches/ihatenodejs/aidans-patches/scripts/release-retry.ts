@@ -4,21 +4,26 @@ import * as fs from 'node:fs';
 import * as path from 'node:path';
 
 /**
- * Retry a Release run that was superseded while it was building.
+ * Retry a Release run whose prepare push failed before tagging.
  *
- * `@semantic-release/git@11` pushes the release commit during `prepare`. If
- * another push lands in that window, the push is rejected as non-fast-forward
- * and the run fails before any tag or note is created. That failure is safe to
- * retry, but only when the remote proves no release was recorded:
+ * `@semantic-release/git@11` pushes the release commit during `prepare`.
+ * Release branches are protected so only the release identity may update
+ * them, and the Release workflow serializes runs for the same ref with a
+ * concurrency group. The prepare push can still lose a race against another
+ * allowed write (for example a merge that landed first); it is then rejected
+ * as non-fast-forward and the run fails before any tag or note is created.
+ * This script decides whether re-running only the failed release job is safe:
  *
  *   - the run logged a next release version
  *   - the failing push came from `@semantic-release/git` and was rejected
  *   - no "Created tag" line was reached
  *   - the tag does not exist on the remote
- *   - the branch moved forward from the run's head
+ *   - the remote branch tip still equals the run's verified head SHA
  *
- * Anything else is left for a human. The retry is the same run, so GitHub
- * reuses the successful verify job and only re-runs the failed release job.
+ * The last condition is mandatory because the retry reuses the successful
+ * verify job. A moved or force-pushed branch needs a fresh run that verifies
+ * the new tip, even when the old head is an ancestor. Anything else is left
+ * for a human.
  */
 
 const USAGE = `Usage: bun scripts/release-retry.ts --run-id <id> --repo <owner/repo> \\
@@ -38,7 +43,7 @@ const ANSI_PATTERN = new RegExp(`${String.fromCharCode(27)}\\[[0-9;]*m`, 'g');
 
 class RetryError extends Error {}
 
-interface Options {
+export interface Options {
   runId: string;
   repo: string;
   branch: string;
@@ -54,7 +59,7 @@ interface Classification {
   reason: string;
 }
 
-interface GhResult {
+export interface GhResult {
   status: number;
   stdout: string;
   stderr: string;
@@ -196,18 +201,20 @@ export function classifyReleaseFailure(
     };
   }
 
-  if (!state.branchMoved) {
+  if (state.branchMoved) {
     return {
       retry: false,
       version,
-      reason: 'the branch has not moved since the failed run',
+      reason:
+        'the branch tip moved after the failed run; a fresh run must verify the new tip',
     };
   }
 
   return {
     retry: true,
     version,
-    reason: 'prepare push was superseded before any tag was created',
+    reason:
+      'prepare push failed while the branch tip still matches the verified run',
   };
 }
 
@@ -233,45 +240,55 @@ function writeSummary(lines: string[]): void {
   );
 }
 
-function decide(options: Options): void {
-  const log = options.logFile
-    ? fs.readFileSync(path.resolve(options.cwd, options.logFile), 'utf8')
-    : (() => {
-        const result = gh(
-          [
-            'run',
-            'view',
-            options.runId,
-            '--log-failed',
-            '--repo',
-            options.repo,
-          ],
-          options.cwd,
-        );
-        if (result.status !== 0) {
-          console.log(
-            `::notice::Cannot read failed logs for run ${options.runId}; not retrying.`,
-          );
-          return null;
-        }
-        return result.stdout;
-      })();
+export interface RetryDependencies {
+  gh: (args: string[], cwd: string) => GhResult;
+  appendSummary: (lines: string[]) => void;
+  readTextFile: (filePath: string) => string;
+}
 
-  if (log === null) {
-    return;
+export interface RetryOutcome {
+  status: 'skipped' | 'retry' | 'dry-run';
+  version: string | null;
+  reason: string;
+}
+
+function skipped(reason: string, version: string | null = null): RetryOutcome {
+  console.log(`::notice::Not retrying: ${reason}.`);
+  return { status: 'skipped', version, reason };
+}
+
+export function decideReleaseRetry(
+  options: Options,
+  overrides: Partial<RetryDependencies> = {},
+): RetryOutcome {
+  const runGh = overrides.gh ?? gh;
+  const appendSummary = overrides.appendSummary ?? writeSummary;
+  const readTextFile =
+    overrides.readTextFile ??
+    ((filePath: string) => fs.readFileSync(filePath, 'utf8'));
+
+  let log: string;
+  if (options.logFile) {
+    log = readTextFile(path.resolve(options.cwd, options.logFile));
+  } else {
+    const result = runGh(
+      ['run', 'view', options.runId, '--log-failed', '--repo', options.repo],
+      options.cwd,
+    );
+    if (result.status !== 0) {
+      return skipped(`cannot read failed logs for run ${options.runId}`);
+    }
+    log = result.stdout;
   }
 
   const version = extractReleaseVersion(log);
   if (version === null) {
-    console.log(
-      '::notice::No next release version in the failed logs; not retrying.',
-    );
-    return;
+    return skipped('no next release version in the failed logs');
   }
 
   const tag = readTagFormat(options.cwd).replace('${version}', version);
 
-  const tagRef = gh(
+  const tagRef = runGh(
     [
       'api',
       `repos/${options.repo}/git/ref/tags/${encodeURIComponent(tag)}`,
@@ -285,13 +302,13 @@ function decide(options: Options): void {
   } else if (/404|Not Found/i.test(tagRef.stderr)) {
     tagExists = false;
   } else {
-    console.log(
-      `::notice::Cannot verify whether ${tag} exists; not retrying. ${tagRef.stderr.trim()}`,
+    return skipped(
+      `cannot verify whether ${tag} exists; ${tagRef.stderr.trim()}`,
+      version,
     );
-    return;
   }
 
-  const branchRef = gh(
+  const branchRef = runGh(
     [
       'api',
       `repos/${options.repo}/git/ref/heads/${encodeURIComponent(options.branch)}`,
@@ -301,56 +318,39 @@ function decide(options: Options): void {
     options.cwd,
   );
   if (branchRef.status !== 0) {
-    console.log(
-      `::notice::Cannot read ${options.branch}; not retrying. ${branchRef.stderr.trim()}`,
+    return skipped(
+      `cannot read ${options.branch}; ${branchRef.stderr.trim()}`,
+      version,
     );
-    return;
   }
 
+  // A retry reuses the successful verify job. It is only safe while the
+  // remote branch tip is exactly the revision that job verified. Do not
+  // compare ancestry: an advanced branch still needs a fresh verification.
   const branchMoved = branchRef.stdout.trim() !== options.headSha;
-  if (branchMoved) {
-    const compare = gh(
-      [
-        'api',
-        `repos/${options.repo}/compare/${encodeURIComponent(
-          `${options.headSha}...${options.branch}`,
-        )}`,
-        '--jq',
-        '.status',
-      ],
-      options.cwd,
-    );
-    if (
-      compare.status !== 0 ||
-      !/^(ahead|identical)$/.test(compare.stdout.trim())
-    ) {
-      console.log(
-        `::notice::The failed run's head is not an ancestor of ${options.branch}; not retrying.`,
-      );
-      return;
-    }
-  }
-
   const decision = classifyReleaseFailure(log, { tagExists, branchMoved });
-  writeSummary([
+  appendSummary([
     `- Run: [${options.runId}](https://github.com/${options.repo}/actions/runs/${options.runId})`,
     `- Version: ${decision.version ?? 'unknown'}`,
     `- Decision: ${decision.retry ? 'retry' : 'leave for review'} (${decision.reason})`,
   ]);
 
   if (!decision.retry) {
-    console.log(`::notice::Not retrying: ${decision.reason}.`);
-    return;
+    return skipped(decision.reason, decision.version);
   }
 
   if (options.dryRun) {
     console.log(
       `::notice::Would re-run failed jobs for ${options.runId} (${decision.reason}).`,
     );
-    return;
+    return {
+      status: 'dry-run',
+      version: decision.version,
+      reason: decision.reason,
+    };
   }
 
-  const rerun = gh(
+  const rerun = runGh(
     ['run', 'rerun', options.runId, '--failed', '--repo', options.repo],
     options.cwd,
   );
@@ -363,11 +363,16 @@ function decide(options: Options): void {
   console.log(
     `::warning::Re-ran failed jobs for ${options.runId}: ${decision.reason}.`,
   );
+  return {
+    status: 'retry',
+    version: decision.version,
+    reason: decision.reason,
+  };
 }
 
 if (import.meta.main) {
   try {
-    decide(parseArgs(process.argv.slice(2)));
+    decideReleaseRetry(parseArgs(process.argv.slice(2)));
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error);
     console.log(`::error::${message}`);

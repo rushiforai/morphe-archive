@@ -32,8 +32,10 @@ after a fix.
   bundle check (including `verifyNuvio111Bundle`, which applies standalone and
   combined selections). Delivered-APK audits are separate:
   `verifyNuvio111Apk`, `verifyNuvioLabelsApk`, `-Pnuvio111TransitionApk=<apk>`.
-- Monet 1.1.1: `verifyMonet`, `verifyMonetCatalog`, `verifyMonetDisplayedCards111`
-  (+`Runtime`/`Bundle`/`Apk`), `verifyMonetCatalog111*`.
+- Monet 1.1.2: `verifyMonet`, `verifyMonetBundle` (`verifyMonet111` retained),
+  `verifyMonetDisplayedCards112`/`verifyMonetCatalog112` (+`Runtime`/`Bundle`/`Apk`; the
+  unversioned card/catalog tasks run these). Retained 1.1.1: `verifyMonetDisplayedCards111`
+  and `verifyMonetCatalog111` (+`Runtime`/`Bundle`/`Apk`).
 - Pillo 0.6.27: `verifyPillo627Runtime`, `verifyPillo627Bundle`, feature `*Bundle` tasks.
 - Car Scanner 2.2.42: `verifyCarScanner242`, `verifyCarScanner242Bundle`.
 - Fylo 2.6: `verifyFylo`, `verifyFyloBundle`, `verifyFyloApk`. TFD: `verifyFirstDescendant*`.

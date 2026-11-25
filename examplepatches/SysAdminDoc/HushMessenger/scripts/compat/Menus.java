@@ -769,6 +769,34 @@ final class Menus {
         return sends;
     }
 
+    static final Set<String> REACTION_MUTATIONS = Set.of("react_to_message", "react_to_message_v2");
+
+    /**
+     * reaction_read: the two reaction sends, instance (ThreadKey, ...)V methods of one class that each name one of the
+     * reaction mutations, as a literal or by number in a string table. Mirrors ReactionRead.kt.
+     */
+    static List<Method> reactionSends(List<ClassDef> classes, Map<String, Map<Integer, String>> tables) {
+        var sends = new ArrayList<Method>();
+        var mutations = new ArrayList<String>();
+        for (var cls : classes) for (var method : cls.getMethods()) {
+            if (method.getImplementation() == null || AccessFlags.STATIC.isSet(method.getAccessFlags()) ||
+                AccessFlags.ABSTRACT.isSet(method.getAccessFlags()) || !"V".equals(method.getReturnType()) ||
+                method.getParameterTypes().isEmpty() || !THREAD_KEY.contentEquals(method.getParameterTypes().get(0))) continue;
+            var code = instructions(method);
+            var named = new HashSet<String>(tableStrings(code, tables));
+            for (var i : code)
+                if (i instanceof ReferenceInstruction ri && ri.getReference() instanceof StringReference s) named.add(s.getString());
+            named.retainAll(REACTION_MUTATIONS);
+            if (named.size() != 1) continue;
+            sends.add(method);
+            mutations.add(named.iterator().next());
+        }
+        var owners = new HashSet<String>();
+        for (var send : sends) owners.add(send.getDefiningClass());
+        Collections.sort(mutations);
+        return owners.size() == 1 && mutations.equals(List.of("react_to_message", "react_to_message_v2")) ? sends : List.of();
+    }
+
     static List<Method> replyReadDispatches(List<ClassDef> classes) {
         var events = new ArrayList<Method>();
         for (var cls : classes) {
@@ -1279,5 +1307,136 @@ final class Menus {
             if (i.getOpcode() == Opcode.IGET_OBJECT && ((ReferenceInstruction) i).getReference() instanceof FieldReference f &&
                 INBOX_SUPPLIER.equals(f.getDefiningClass()) && IMMUTABLE_LIST.equals(f.getType())) return true;
         return false;
+    }
+
+    /** What the profile menu's builder shows. Mirrors ProfileMenuSite in ProfileMenuItems.kt. */
+    record ProfileMenuSite(String rows, String message, int at, int popup) { }
+
+    private static final String PROFILE_MENU_VIEW = "Landroid/view/View;";
+    private static final String PROFILE_MENU_CONTEXT = "Landroid/content/Context;";
+    private static final String PROFILE_MENU_TILE = "sender_tile";
+    private static final int PROFILE_CALL_LOCALS = 5;
+
+    private static List<String> profileMenuTypes(List<? extends CharSequence> types) {
+        return types.stream().map(CharSequence::toString).toList();
+    }
+
+    private static MethodReference profileMenuCall(Instruction i) {
+        return i instanceof ReferenceInstruction ri && ri.getReference() instanceof MethodReference m ? m : null;
+    }
+
+    /** The builder's shape, or null for any other method. Mirrors profileMenuSite in ProfileMenuItems.kt. */
+    static ProfileMenuSite profileMenuSite(Method m) {
+        if (!"V".equals(m.getReturnType()) || m.getImplementation() == null) return null;
+        var types = profileMenuTypes(m.getParameterTypes());
+        if (types.size() != 4 || !PROFILE_MENU_VIEW.equals(types.get(0)) || !MIG_SCHEME.equals(types.get(1)) ||
+            !IMMUTABLE_LIST.equals(types.get(3))) return null;
+        String message = types.get(2);
+        var code = instructions(m);
+        var asked = new ArrayList<MethodReference>();
+        int added = -1;
+        for (int k = 0; k < code.size(); k++) {
+            var op = code.get(k).getOpcode();
+            var call = profileMenuCall(code.get(k));
+            if (call == null) continue;
+            if (op == Opcode.INVOKE_INTERFACE || op == Opcode.INVOKE_INTERFACE_RANGE) asked.add(call);
+            if ((op == Opcode.INVOKE_VIRTUAL || op == Opcode.INVOKE_VIRTUAL_RANGE) && "add".equals(call.getName()) &&
+                "Landroid/view/MenuItem;".equals(call.getReturnType()) &&
+                profileMenuTypes(call.getParameterTypes()).equals(List.of("I", "I", "I", "Ljava/lang/CharSequence;"))) added = k;
+        }
+        String rows = null;
+        for (var call : asked) {
+            if ("Ljava/lang/String;".equals(call.getReturnType()) &&
+                profileMenuTypes(call.getParameterTypes()).equals(List.of(PROFILE_MENU_CONTEXT, message))) {
+                rows = call.getDefiningClass();
+                break;
+            }
+        }
+        if (rows == null || added < 0) return null;
+        boolean tapped = false;
+        for (var call : asked) {
+            tapped |= rows.equals(call.getDefiningClass()) && "Z".equals(call.getReturnType()) &&
+                profileMenuTypes(call.getParameterTypes()).equals(List.of(PROFILE_MENU_CONTEXT, PROFILE_MENU_VIEW, message));
+        }
+        if (!tapped) return null;
+        int made = -1;
+        for (int k = added + 1; k < code.size() && made < 0; k++) if (code.get(k).getOpcode() == Opcode.NEW_INSTANCE) made = k;
+        if (made < 0) return null;
+        int listener = register(code.get(made)), at = -1;
+        for (int k = made + 1; k < code.size() && at < 0; k++) {
+            if (code.get(k).getOpcode() == Opcode.IPUT_OBJECT && code.get(k) instanceof TwoRegisterInstruction put &&
+                put.getRegisterA() == listener && put.getRegisterB() != listener) at = k;
+        }
+        if (at < 0 || mediaTargets(m).contains(at)) return null;
+        return new ProfileMenuSite(rows, message, at, ((TwoRegisterInstruction) code.get(at)).getRegisterB());
+    }
+
+    /** Whether a row's tap places a video call, or null when that can't be read. Mirrors profileCallVideo in ProfileMenuItems.kt. */
+    static Boolean profileCallVideo(Method m) {
+        var code = instructions(m);
+        int placed = -1;
+        for (int k = 0; k < code.size(); k++) {
+            if (code.get(k).getOpcode() != Opcode.INVOKE_STATIC_RANGE) continue;
+            var call = profileMenuCall(code.get(k));
+            if (call == null || !"V".equals(call.getReturnType())) continue;
+            var types = profileMenuTypes(call.getParameterTypes());
+            if (types.isEmpty() || !PROFILE_MENU_CONTEXT.equals(types.get(0)) || !"Z".equals(types.get(types.size() - 1))) continue;
+            if (placed >= 0) return null;
+            placed = k;
+        }
+        if (placed < 0) return null;
+        var range = (RegisterRangeInstruction) code.get(placed);
+        int wanted = range.getStartRegister() + range.getRegisterCount() - 1;
+        for (int k = placed - 1; k >= 0; k--) {
+            var step = code.get(k);
+            var op = step.getOpcode();
+            int written = register(step);
+            if (op == Opcode.MOVE || op == Opcode.MOVE_FROM16 || op == Opcode.MOVE_16) {
+                if (written == wanted) wanted = ((TwoRegisterInstruction) step).getRegisterB();
+            } else if (op == Opcode.CONST_4 || op == Opcode.CONST_16 || op == Opcode.CONST) {
+                if (written == wanted) return ((NarrowLiteralInstruction) step).getNarrowLiteral() != 0;
+            } else if (op == Opcode.MOVE_RESULT) {
+                if (written == wanted) return true;
+            } else {
+                if (op.setsRegister() && written == wanted) return null;
+                if (op.setsWideRegister() && written >= 0 && written + 1 == wanted) return null;
+            }
+        }
+        return null;
+    }
+
+    private static boolean isProfileCallRow(Method m) {
+        if (AccessFlags.STATIC.isSet(m.getAccessFlags()) || !"Z".equals(m.getReturnType()) || m.getImplementation() == null) return false;
+        var types = profileMenuTypes(m.getParameterTypes());
+        if (types.size() != 3 || !PROFILE_MENU_CONTEXT.equals(types.get(0)) || !PROFILE_MENU_VIEW.equals(types.get(1)) ||
+            !types.get(2).startsWith("L")) return false;
+        return m.getImplementation().getRegisterCount() - types.size() - 1 >= PROFILE_CALL_LOCALS && profileCallVideo(m) != null;
+    }
+
+    /** profile_menu_items: the menu's builder, only while exactly one method has its shape. Mirrors findProfileMenuItems. */
+    static List<Method> profileMenuItems(List<ClassDef> classes) {
+        var builders = new ArrayList<Method>();
+        for (var cls : classes) for (var m : cls.getMethods()) if (profileMenuSite(m) != null) builders.add(m);
+        return builders.size() == 1 ? builders : List.of();
+    }
+
+    /** profile_menu_call: the taps of the menu's audio and video rows, in that order. Mirrors findProfileMenuCalls. */
+    static List<Method> profileMenuCalls(List<ClassDef> classes, List<Method> builders, Map<String, Map<Integer, String>> tables) {
+        if (builders.size() != 1) return List.of();
+        var site = profileMenuSite(builders.get(0));
+        if (site == null) return List.of();
+        var audio = new ArrayList<Method>();
+        var video = new ArrayList<Method>();
+        for (var cls : classes) {
+            if (!cls.getInterfaces().contains(site.rows())) continue;
+            for (var m : cls.getMethods()) {
+                if (!isProfileCallRow(m) || !site.message().equals(m.getParameterTypes().get(2).toString())) continue;
+                var code = instructions(m);
+                var named = new HashSet<String>(tableStrings(code, tables));
+                for (var i : code) if (i instanceof ReferenceInstruction ri && ri.getReference() instanceof StringReference s) named.add(s.getString());
+                if (named.contains(PROFILE_MENU_TILE)) (profileCallVideo(m) ? video : audio).add(m);
+            }
+        }
+        return audio.size() == 1 && video.size() == 1 ? List.of(audio.get(0), video.get(0)) : List.of();
     }
 }

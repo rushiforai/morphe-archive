@@ -939,6 +939,10 @@ public class Settings extends BaseSettings {
     /** History and Favorites stay where you scrolled (issue #2). Read as each page is built. */
     public static final BooleanSetting KEEP_LIST_POSITION =
             new BooleanSetting("keep_list_position", TRUE, true);
+    /** Tapping the tab you're on takes its History or Favorites list to the top (issue #11). */
+    public static final BooleanSetting LIST_TAB_TO_TOP = new BooleanSetting("list_tab_to_top", TRUE);
+    /** A search bar above History and Favorites (issue #11). Added as each page is built. */
+    public static final BooleanSetting LIST_SEARCH = new BooleanSetting("list_search", TRUE, true);
     /** The collections popup from holding the bookmark, dark when TikTok is (issue #142). */
     public static final BooleanSetting DARK_QUICK_FAVORITES = new BooleanSetting("dark_quick_favorites", TRUE);
     /** The Following and For You names above the feed; the pager under them keeps swiping (issue #32). */

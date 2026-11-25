@@ -28,12 +28,17 @@ Optional:
   signer              who signs the app, for messages (the app's name).
   bundle_cpus         for APKMirror bundles: CPU types to prefer, in order (regular expressions
                       over the bundle's row); any bundle is taken when none matches.
+  feed_pattern        for "apkmirror": when APKMirror names a release shorter than the app's version
+                      name, a regular expression for that name with the version code as the group
+                      "code" (Wikipedia: release 50619 is version 50619-r-2026-11-18). The feed is
+                      then matched by code, and the version name of a new release is read from its
+                      page on APKMirror. "pattern" needs a "code" group too.
   play_country        for "apkmirror": also read Google Play's version (Quora), and say in an issue
                       when only Google Play has a newer one; "play_note" is added to that issue.
   check_flags         what the emulator check expects to see (--expect-screen).
   emulator_api        the Android API level of the emulator (35).
-  pr_base             the branch pull requests go to (main). With dev, the workflow also starts
-                      from dev.
+  pr_base             the branch pull requests go to (main). With another branch, the workflow
+                      also starts from it.
   bump_title          false: the pull request title is "Support <app> <version>" without "bump: "
                       in front (the commit has it either way).
 
@@ -89,6 +94,11 @@ class App:
 
     def listed(self):
         return re.findall(r'AppTarget\(version = "([^"]+)"', self.constants.read_text(encoding="utf8"))
+
+    def feed_code(self, title):
+        """With "feed_pattern": the version code of the release a feed title names, or None."""
+        match = re.search(r"\b(?:" + self.v["feed_pattern"] + r")\b", title)
+        return (int(match.group("code")),) if match else None
 
     def find(self, text):
         """The first version name in a text, as a whole word."""

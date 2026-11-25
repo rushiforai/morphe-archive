@@ -24,8 +24,10 @@ function Get-PatchTargets {
     # declare the same ones: a build only some patches support is one the bundle can't fully patch,
     # and a union of them would hand the release scripts that build as a declared target.
     $declaredBy = @{}
-    $packageSet = $null
-    $packagesDeclaredBy = $null
+    # How many patches name each package. A target is a package every patch declares: Plus Messenger
+    # is declared by most patches but not the few that only fit Telegram's own builds, so it's
+    # patched by Manager users without being a release target the scripts verify every patch on.
+    $declareCount = @{}
     foreach ($patch in $patches) {
         if ($null -eq $patch) { throw 'patches-list.json contains a null patch.' }
         $nameProperty = $patch.PSObject.Properties['name']
@@ -42,13 +44,8 @@ function Get-PatchTargets {
         if ($packages.Count -eq 0) {
             throw "$patchName has no compatible package in patches-list.json."
         }
-        $currentSet = @($packages.Name | Sort-Object -Unique) -join ', '
-        if ($null -eq $packageSet) {
-            $packageSet = $currentSet
-            $packagesDeclaredBy = $patchName
-        } elseif ($currentSet -cne $packageSet) {
-            throw ("Every patch has to declare the same packages: $packagesDeclaredBy declares $packageSet, " +
-                "but $patchName declares $currentSet.")
+        foreach ($packageName in @($packages.Name | Sort-Object -Unique)) {
+            $declareCount[$packageName] = 1 + [int]$declareCount[$packageName]
         }
         foreach ($property in $packages) {
             $versions = @($property.Value | ForEach-Object { [string]$_ } |
@@ -95,7 +92,14 @@ function Get-PatchTargets {
         }
     }
 
-    $packages = @($targets.Keys | Sort-Object)
+    $packages = @($targets.Keys | Where-Object { $declareCount[$_] -eq $patches.Count } | Sort-Object)
+    if ($packages.Count -eq 0) {
+        throw ("Every patch has to declare the same packages, but no package is declared by all " +
+            "$($patches.Count) patches: $(@($targets.Keys | Sort-Object) -join ', ').")
+    }
+    foreach ($partial in @($targets.Keys | Where-Object { $declareCount[$_] -lt $patches.Count } | Sort-Object)) {
+        Write-Verbose "$partial is declared by $($declareCount[$partial]) of $($patches.Count) patches, so it isn't a release target."
+    }
     foreach ($packageName in @($packages | Sort-Object @{ Expression = { $_ -cne 'org.telegram.messenger.web' } }, { $_ })) {
     # Every version the catalog declares, newest first. Telegram moves a release a week, so the
     # bundle declares the build it was last proved on and can keep the one before it; the newest is

@@ -116,8 +116,19 @@ final class ThemeFile {
     private static Integer color(JSONObject json, String key) {
         Object value = json.opt(key);
         if (value == null || value == JSONObject.NULL) return null;
-        Matcher m = value instanceof String ? HEX.matcher(((String) value).trim()) : null;
-        if (m == null || !m.matches()) throw new IllegalArgumentException(key + " is " + value);
+        if (!(value instanceof String) || ((String) value).trim().isEmpty()) throw new IllegalArgumentException(key + " is " + value);
+        return code((String) value);
+    }
+
+    /**
+     * A typed color code (#211), like #E1306C, E1306C or #E36, as an opaque color. Null when nothing was typed.
+     *
+     * @throws IllegalArgumentException when the text isn't a color code
+     */
+    static Integer code(String typed) {
+        if (typed == null || typed.trim().isEmpty()) return null;
+        Matcher m = HEX.matcher(typed.trim());
+        if (!m.matches()) throw new IllegalArgumentException("not a color code: " + typed);
         String digits = m.group(1);
         if (digits.length() == 3) {
             StringBuilder doubled = new StringBuilder(6);

@@ -118,6 +118,12 @@ public final class PatchSettings {
                 if (stream == null) { // no stream to switch it for: the switch goes back
                     Log.w(App.TAG, "Song removal switched with no stream playing");
                     tell(key, false);
+                    App.onMain(() -> {
+                        android.content.Context context = App.application();
+                        if (context != null) android.widget.Toast.makeText(context,
+                                "Song removal is set per stream: start a stream, then switch it on",
+                                android.widget.Toast.LENGTH_LONG).show();
+                    });
                     return;
                 }
                 Set<String> next = new HashSet<>(songStreams);

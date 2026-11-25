@@ -27,9 +27,9 @@ import dev.materialtidal.patches.shared.MATERIAL_YOU_CONFIG_CLASS
 import dev.materialtidal.patches.shared.MATERIAL_YOU_ENGINE_CLASS
 
 private val MONET_PALETTE_CHOICES = mapOf(
-    "Expressive Monet (Rich Tonal)" to "expressive",
-    "Vibrant Monet (High Chroma)" to "vibrant",
-    "Subtle Tonal (Classic Material You)" to "subtle",
+    "Expressive (Rich Tonal, recommended)" to "expressive",
+    "Vibrant (High Chroma)" to "vibrant",
+    "Subtle (Classic Material You)" to "subtle",
 )
 
 private fun monetStyleToCode(value: String?): Int = when (value) {
@@ -42,7 +42,7 @@ private fun monetStyleToCode(value: String?): Int = when (value) {
 private val BLUR_INTENSITY_CHOICES = mapOf(
     "Balanced (Recommended)" to "balanced",
     "Subtle" to "subtle",
-    "Rich frosted glass" to "rich",
+    "Strong frosted glass" to "rich",
 )
 
 private fun blurIntensityToCode(value: String?): Int = when (value) {
@@ -98,7 +98,7 @@ private fun MutableMethod.interceptAllStaticCalls(
 @Suppress("unused")
 val materialYouThemePatch = patch(
     name = "Material You dynamic theme",
-    description = "Remaps TIDAL's hardcoded cyan accents, Market colors, dark zinc surfaces, and corner shapes across Wave 1, Wave 2, and Square Market to Android Material 3 Expressive Monet tokens.",
+    description = "Applies your Android wallpaper's Material You Monet colors, rounder M3 shapes, and smooth frosted-glass blur across TIDAL's surfaces, accents, and cards. Options can also be adjusted live in Settings → MaterialTidal.",
     default = true,
 ) {
     compatibleWith(COMPATIBILITY_TIDAL)
@@ -109,7 +109,7 @@ val materialYouThemePatch = patch(
         key = "amoledPureBlack",
         default = false,
         title = "AMOLED pure black background",
-        description = "Keep pure #000000 background instead of tonal Material You base surface while still dynamically tinting accents and elevated cards.",
+        description = "Uses a pure #000000 Dark Mode background instead of a tinted dark surface while keeping Monet accents and elevated cards (also adjustable live in Settings → MaterialTidal).",
         required = true,
     )
 
@@ -118,23 +118,23 @@ val materialYouThemePatch = patch(
         default = "expressive",
         values = MONET_PALETTE_CHOICES,
         title = "Monet palette intensity",
-        description = "Controls how strongly wallpaper Monet chroma tints app surfaces and cards.",
+        description = "Controls how strongly your wallpaper's Monet colors tint app surfaces and cards (also adjustable live in Settings → MaterialTidal).",
         required = true,
     )
 
     val expressiveShapesOption by booleanOption(
         key = "expressiveShapes",
         default = true,
-        title = "Material 3 Expressive rounded shapes",
-        description = "Upgrades Square Market and Wave 1/Wave 2 corner radii to rounder Material 3 Expressive squircle/pill geometry.",
+        title = "M3 rounded shapes",
+        description = "Upgrades button, card, and container corners across TIDAL to rounder M3 squircle and pill shapes (can also be toggled in Settings → MaterialTidal; restart recommended).",
         required = true,
     )
 
     val expressiveGlassBlurOption by booleanOption(
         key = "expressiveGlassBlur",
         default = true,
-        title = "Expressive GPU blur & frosted glass",
-        description = "Enables hardware-accelerated RenderEffect & cross-window blur across hero artwork fading, sticky toolbars, bottom sheets, popup menus, and dialogs (API 31+).",
+        title = "Expressive frosted-glass blur",
+        description = "Enables smooth hardware-accelerated blur on hero artwork fades, sticky toolbars, floating bars, menus, and sheets (also adjustable live in Settings → MaterialTidal).",
         required = true,
     )
 
@@ -143,22 +143,23 @@ val materialYouThemePatch = patch(
         default = "balanced",
         values = BLUR_INTENSITY_CHOICES,
         title = "Blur intensity",
-        description = "Controls the blur radius multiplier applied to progressive blur fades and frosted glass surfaces.",
+        description = "Controls the strength of progressive blur fades and frosted glass surfaces (also adjustable live in Settings → MaterialTidal).",
         required = true,
     )
 
     execute {
         val configClass = mutableClassDefBy(MATERIAL_YOU_CONFIG_CLASS)
+        configClass.methods.single { it.name == "isMaterialYouPatchInstalled" }.returnEarly(true)
         configClass.methods.single { it.name == "isMaterialYouEnabled" }.returnEarly(true)
-        configClass.methods.single { it.name == "isAmoledPureBlack" }
+        configClass.methods.single { it.name == "defaultAmoledPureBlack" }
             .returnEarly(amoledPureBlackOption ?: false)
-        configClass.methods.single { it.name == "getMonetPaletteStyle" }
+        configClass.methods.single { it.name == "defaultMonetPaletteStyle" }
             .returnEarly(monetStyleToCode(monetPaletteStyleOption))
-        configClass.methods.single { it.name == "isExpressiveShapesEnabled" }
+        configClass.methods.single { it.name == "defaultExpressiveShapesEnabled" }
             .returnEarly(expressiveShapesOption ?: true)
-        configClass.methods.single { it.name == "isExpressiveBlurEnabled" }
+        configClass.methods.single { it.name == "defaultExpressiveBlurEnabled" }
             .returnEarly(expressiveGlassBlurOption ?: true)
-        configClass.methods.single { it.name == "getBlurIntensity" }
+        configClass.methods.single { it.name == "defaultBlurIntensity" }
             .returnEarly(blurIntensityToCode(blurIntensityOption))
 
         // 1. Intercept Compose ColorKt.Color(int) -> J and Color(long) -> J.

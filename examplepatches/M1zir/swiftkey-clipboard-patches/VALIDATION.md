@@ -1,5 +1,28 @@
 # Validation
 
+## Version 0.4.0 (2026-11-24)
+
+Added the optional **Mac clipboard sync** patch, using the same original SwiftKey
+9.13.19.3 ARM64 APK and pinned tools listed below.
+
+- All six patches applied in one pass with `--validate --bytecode-mode FULL`. The APK
+  rebuilt and signed.
+- `VerifyPatchedApk.java` now checks that `KeyboardService.onCreate`, `onDestroy`,
+  `onWindowShown` and `onWindowHidden` each start with the matching
+  `MacClipboardSync` call, and that `onCreate` passes the service itself.
+- The combined output passed 394 clipboard behavior assertions, 380 layout behavior
+  assertions with 144 structural and resource checks, and the toolbar and telemetry verifier.
+- The manifest holds the private settings activity, and the home settings screen
+  holds its entry.
+- The compiled `MacClipboardClient` and `MacClipboardPairing` ran on a JVM against
+  SyncClipboard 3.3.4 on a Mac over Tailscale. A sent clip reached the Mac
+  clipboard, and a fetch returned it with the same hash. An unreachable first
+  address fell back to the second in 3 seconds, and later requests took about
+  120 ms. A wrong key pin, a wrong password and a malformed pairing code were refused.
+
+Not yet tested on a phone: the clipboard listener, polling while the keyboard is
+shown, the Keystore-encrypted pairing file and the settings screen.
+
 ## Version 0.3.1 — 2026-11-11
 
 Corrected the Arabic legacy variant after the user's device screenshots showed

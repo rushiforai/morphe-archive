@@ -1,6 +1,5 @@
 package app.hushmessenger.extension;
 
-import android.app.Activity;
 import android.content.Context;
 import android.os.Build;
 
@@ -53,12 +52,11 @@ public final class ChatHeadVideo {
     }
 
     /**
-     * Chat heads draw from Messenger's chat head service, so their context leads to no activity. On Android 11 and
-     * newer they can also be bubbles, where the chat runs in an activity Android launched from the bubble.
+     * Chat heads draw from Messenger's chat head service, so their context leads to no activity. A chat Android opens as
+     * a bubble is an activity of its own and keeps Messenger's choice: its video layer draws fine there, and a forced
+     * TextureView left a black box on a link's preview and blanked the bubble when the gallery opened (#221).
      */
     static boolean inChatHead(Context context) {
-        Activity activity = ChatJump.activity(context);
-        if (activity == null) return true;
-        return Build.VERSION.SDK_INT >= Build.VERSION_CODES.S && activity.isLaunchedFromBubble();
+        return ChatJump.activity(context) == null;
     }
 }

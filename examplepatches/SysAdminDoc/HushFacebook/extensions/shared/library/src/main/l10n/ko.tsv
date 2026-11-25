@@ -590,6 +590,7 @@ Hide Repost under posts	게시물 아래 리포스트 숨기기
 Hide Share under posts	게시물 아래 공유하기 숨기기
 # context: switch title under News feed; Send is Facebook's own button under a post that sends it in a chat
 Hide Send under posts	게시물 아래 보내기 숨기기
+Hide Stars and gifts under posts	게시물 아래 별 및 선물 숨기기
 Hide Save under posts	게시물 아래 저장 숨기기
 # context: summary shared by those five switches
 Takes this button out of the row under posts in the feed. The other buttons stay, and a post with all of its buttons hidden shows no row.	피드 게시물 아래 줄에서 이 버튼을 없애요. 다른 버튼은 그대로 남고, 모든 버튼을 숨긴 게시물에는 줄이 표시되지 않아요.
@@ -1004,6 +1005,7 @@ Hide the Create tab	만들기 탭 숨기기
 Hide the Explore tab	탐색 탭 숨기기
 Hide the Jobs tab	채용 정보 탭 숨기기
 Removes this tab from the tab bar. Its page is still in the Menu. Restart Facebook to see the change.	탭 바에서 이 탭을 없애요. 해당 페이지는 메뉴에 그대로 있어요. 변경 사항을 보려면 Facebook을 다시 시작하세요.
+Removes this tab from the tab bar. Its page is still in the Menu, unless you pick it in Menu tiles to hide. Restart Facebook to see the change.	탭 바에서 이 탭을 없애요. 해당 페이지는 메뉴에 그대로 있어요. 숨길 메뉴 타일에서 고르면 메뉴에서도 빠져요. 변경 사항을 보려면 Facebook을 다시 시작하세요.
 Facebook opens on Home while %1$s is on, since %2$s is off the tab bar. Your choice stays saved.	"%1$s" 스위치가 켜져 있으면 %2$s 탭이 탭 바에 없으므로 Facebook이 홈에서 열려요. 선택한 설정은 저장된 상태로 남아요.
 # context: summary of that switch; Video is Facebook's name for the tab on some accounts
 No dot or new count on the Reels tab, called Video on some accounts. Other tabs keep theirs.	릴스 탭(일부 계정에서는 동영상)에 점이나 새 항목 수가 표시되지 않아요. 다른 탭은 그대로 표시돼요.
@@ -1244,15 +1246,6 @@ Turn off haptics	햅틱 끄기
 Stops the small vibrations Facebook makes when you tap or swipe. Your keyboard and phone vibrations aren't affected.	탭하거나 스와이프할 때 Facebook이 내는 작은 진동을 멈춰요. 키보드와 휴대폰 진동에는 영향이 없어요.
 Turn off screen transitions	화면 전환 효과 끄기
 Tabs, the Menu, photos and screens that open over Facebook appear at once instead of sliding or zooming in. Swiping between tabs still works.	탭, 메뉴, 사진, Facebook 위에 열리는 화면이 밀려 들어오거나 확대되지 않고 바로 나타나요. 탭 사이를 스와이프하는 기능은 그대로 작동해요.
-Unlock app icons	앱 아이콘 잠금 해제
-Lets you pick the app icons Facebook keeps for Facebook Plus, on Facebook's App icon page. The Pick an app icon row opens that page. Your pick stays if you turn this off, so pick the blue one first to go back.	Facebook의 앱 아이콘 페이지에서 Facebook Plus 전용 앱 아이콘을 선택할 수 있어요. "앱 아이콘 선택" 항목으로 그 페이지를 열 수 있어요. 이 스위치를 꺼도 선택한 아이콘은 유지되므로, 원래대로 돌아가려면 먼저 파란색 아이콘을 선택하세요.
-# context: settings row under Appearance, right below the Unlock app icons switch; opens Facebook's own App icon page, so use Facebook's name for that page in this language
-Pick an app icon	앱 아이콘 선택
-Opens Facebook's App icon page, even on accounts where Facebook doesn't list it in Settings and privacy.	설정 및 개인정보에 표시되지 않는 계정에서도 Facebook의 앱 아이콘 페이지를 열어요.
-Use the icon at the top of Home	홈 상단에 아이콘 사용
-Shows the app icon you picked at the top of Home instead of the Facebook wordmark. Needs Unlock app icons and a pick other than the blue one. Restart Facebook to see the change.	홈 상단에 Facebook 로고 글자 대신 선택한 앱 아이콘을 표시해요. "앱 아이콘 잠금 해제"가 켜져 있고 파란색이 아닌 아이콘을 선택해야 해요. 변경 사항을 보려면 Facebook을 다시 시작하세요.
-# context: toast when the row above finds no App icon page in this Facebook build
-This Facebook build has no App icon page.	이 Facebook 빌드에는 앱 아이콘 페이지가 없어요.
 # context: switch title under Playback; Android's own name for the floating video window
 Picture-in-picture	PIP 모드
 # context: summary of that switch
@@ -1984,8 +1977,10 @@ Show reactions on the Like button	좋아요 버튼에 감정 표현 표시
 Moves a post's reaction faces from the end of its button row onto the Like button, right before the count. The Like button likes and reacts as before. A video showing its views there gets one Like face, or your own reaction once you react. Hide the reaction preview on posts overrules it. A change shows on the posts drawn after it.	게시물 버튼 줄 끝에 있는 감정 표현 아이콘을 좋아요 버튼의 숫자 바로 앞으로 옮겨요. 좋아요 버튼은 이전처럼 좋아요와 감정 표현을 남겨요. 그 자리에 조회수를 표시하는 동영상에는 좋아요 아이콘 하나가 표시되고, 감정 표현을 남기면 내 감정 표현이 표시돼요. "게시물의 감정 표현 미리보기 숨기기"가 우선해요. 변경 사항은 이후에 표시되는 게시물부터 적용돼요.
 # context: switch title under Comments; the reaction preview is the stack of reaction icons in the corner of a comment
 Hide the reaction preview on comments	댓글의 감정 표현 미리보기 숨기기
+Hide reaction counts on comments	댓글의 감정 표현 수 숨기기
 # context: summary of that switch; "reactions" are Facebook's Like, Love, Haha and other reactions
 Hides the stacked reaction icons in the corner of a comment. The space stays, so a tap where they were still opens the list of reactions.	댓글 모서리에 겹쳐 표시되는 감정 표현 아이콘을 숨겨요. 공간은 그대로 남아서 그 자리를 탭하면 여전히 감정 표현 목록이 열려요.
+Hides the number next to the reaction icons on a comment. The icons stay, and a tap on them still opens the list of reactions.	댓글의 감정 표현 아이콘 옆 숫자를 숨겨요. 아이콘은 그대로 남고, 탭하면 여전히 감정 표현 목록이 열려요.
 # context: switch title under Downloads; "Download" is the post menu row "Download to phone" and "post menus" are the three-dot menus under posts
 Download first in post menus	게시물 메뉴에서 다운로드를 맨 위로
 # context: summary of that switch; "Download to phone" and "Save photo" are the menu rows, translate them as elsewhere; "More options" is the title of Facebook's own page, use Facebook's wording
@@ -2728,7 +2723,9 @@ Your tab bar will go in this order: %1$s.	탭 바가 다음 순서로 바뀌어�
 Show only watched stories	본 스토리만 표시
 The Stories tray keeps only the stories you've already watched, so you can find one again. Turn it off to see the new ones. Hide seen stories waits while this is on. Applies when Facebook next loads the tray.	스토리 영역에 이미 본 스토리만 남겨서 다시 찾을 수 있어요. 새 스토리를 보려면 끄세요. 이 스위치가 켜져 있는 동안 "본 스토리 숨기기"는 작동하지 않아요. Facebook이 다음에 스토리 영역을 불러올 때 적용돼요.
 Show Posts in search	검색에 게시물 표시
+Show Videos in search	검색에 동영상 표시
 Puts Posts back in the row over search results, after Reels, so you can see only posts for what you searched.	검색 결과 위 줄의 릴스 뒤에 게시물을 다시 넣어서 검색한 내용의 게시물만 볼 수 있어요.
+Puts Videos in the row over search results, next to Posts, so you can see only videos for what you searched.	검색 결과 위 줄의 게시물 옆에 동영상을 넣어, 검색한 내용의 동영상만 볼 수 있어요.
 Saved button in search	검색의 저장됨 버튼
 Puts a Saved button at the end of the search bar, so your saved posts and videos are one tap away. Restart Facebook to see the change.	검색창 끝에 저장됨 버튼을 넣어서 저장한 게시물과 동영상을 한 번에 열 수 있어요. 변경 사항을 보려면 Facebook을 다시 시작하세요.
 Restore feed sound after opened videos	연 동영상을 닫으면 피드 소리 복원
@@ -3164,3 +3161,27 @@ All your notifications are marked as read.	모든 알림을 읽음으로 표시�
 Nothing was marked, since Facebook didn't say who's signed in. Open the Notifications tab once, then try again.	Facebook이 로그인한 계정을 알려 주지 않아서 아무것도 표시하지 않았어요. 알림 탭을 한 번 연 다음 다시 시도하세요.
 This build can't mark notifications as read.	이 빌드에서는 알림을 읽음으로 표시할 수 없어요.
 Facebook couldn't mark your notifications as read. Try again in a moment.	Facebook에서 알림을 읽음으로 표시하지 못했어요. 잠시 후 다시 시도하세요.
+# context: Share to Facebook chats, a switch on the Chats page and the share target it adds; the notes are short toasts
+Share to Facebook chats	Facebook 채팅으로 공유
+Adds Facebook chats to Android's share menu. A photo or video you share there is saved to your gallery and text is copied, then your chats open so you can pick one and send it.	Android 공유 메뉴에 Facebook 채팅을 추가해요. 여기로 공유한 사진이나 동영상은 갤러리에 저장되고 텍스트는 복사돼요. 그다음 채팅이 열리니 하나를 골라 보내면 돼요.
+Share to Facebook chats is off.	Facebook 채팅으로 공유가 꺼져 있어요.
+Nothing in it to send.	보낼 내용이 없어요.
+Couldn't save it to your gallery.	갤러리에 저장하지 못했어요.
+Copied and saved. Pick a chat.	복사하고 저장했어요. 채팅을 고르세요.
+In your gallery now. Pick a chat.	갤러리에 저장했어요. 채팅을 고르세요.
+Copied. Pick a chat and paste it.	복사했어요. 채팅을 골라 붙여넣으세요.
+Open your chats to pick one.	채팅을 열어 하나를 고르세요.
+Post date after the caption	캡션 뒤에 게시 날짜 표시
+With Show the post date on reels on, puts the date at the end of the caption instead of under the name, where the song and other labels crowd it. A change shows from the next reel.	"릴스에 게시 날짜 표시"가 켜져 있으면 날짜를 이름 아래 대신 캡션 끝에 표시해요. 이름 아래에는 노래와 다른 라벨이 몰려 있어요. 변경 사항은 다음 릴스부터 적용돼요.
+Fill every reel	모든 릴스로 화면 채우기
+With Fill the screen with reels on, every reel fills the screen, even when that cuts a lot off the edges. Made for foldables and tablets, where most reels would keep their bars.	"릴스로 화면 채우기"가 켜져 있으면 가장자리가 많이 잘리더라도 모든 릴스가 화면을 가득 채워요. 대부분의 릴스에 검은 여백이 남는 폴더블 폰과 태블릿용이에요.
+Chat background	채팅 배경
+Last chat's background	마지막 채팅 배경
+A color code (#RRGGBB) for the space behind the messages in every chat, like #1E3A5F. Two codes, like #1E3A5F #6A1B9A, fade from one to the other. Only this phone sees it. Leave it blank for Facebook's own.	모든 채팅에서 메시지 뒤 공간에 쓸 색상 코드(#RRGGBB)예요(예: #1E3A5F). 코드 두 개(예: #1E3A5F #6A1B9A)를 쓰면 한 색에서 다른 색으로 이어져요. 이 휴대폰에서만 보여요. Facebook 기본 배경을 쓰려면 비워 두세요.
+A color code (#RRGGBB) for %1$s only, like #1E3A5F. Two codes fade from one to the other. Leave it blank and it takes the chat background above.	%1$s에만 쓸 색상 코드(#RRGGBB)예요(예: #1E3A5F). 코드 두 개를 쓰면 한 색에서 다른 색으로 이어져요. 비워 두면 위의 채팅 배경을 따라요.
+Chats keep Facebook's background. Type a color code to change it on this phone only.	채팅이 Facebook 배경을 유지해요. 이 휴대폰에서만 바꾸려면 색상 코드를 입력하세요.
+Chats are %1$s behind the messages, on this phone only. Nobody in the chat is told.	채팅의 메시지 뒤 색상: %1$s. 이 휴대폰에서만 보이며, 채팅 상대에게는 알리지 않아요.
+Open a chat, then come back here to give it a color of its own.	채팅을 연 다음 여기로 돌아와 그 채팅만의 색상을 정하세요.
+%1$s, the last chat you opened, takes the chat background above. Type a color code to give it its own.	마지막으로 연 채팅인 %1$s은(는) 위의 채팅 배경을 따라요. 따로 정하려면 색상 코드를 입력하세요.
+%1$s, the last chat you opened, is %2$s.	마지막으로 연 채팅인 %1$s의 색상: %2$s.
+Type one color code, or two for a fade from top to bottom.	색상 코드를 하나 입력하거나, 위에서 아래로 이어지게 하려면 두 개를 입력하세요.

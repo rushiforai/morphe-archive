@@ -194,6 +194,18 @@ public final class GboardSpacebarGestureRuntime {
             GboardSpacebarCursorSender.sendHorizontalSteps(connection, result.dpadSteps);
         }
 
+        if (result.verticalDpadSteps != 0) {
+            InputMethodService service =
+                    activeService != null ? activeService : resolveInputMethodService(holder);
+            InputConnection connection = service == null ? null : service.getCurrentInputConnection();
+            if (connection == null) {
+                return abortOrReset(session);
+            }
+            EditorInfo currentEditor = service.getCurrentInputEditorInfo();
+            GboardSpacebarCursorSender.sendVerticalSteps(
+                    connection, currentEditor, result.verticalDpadSteps);
+        }
+
         return result.consumed;
     }
 

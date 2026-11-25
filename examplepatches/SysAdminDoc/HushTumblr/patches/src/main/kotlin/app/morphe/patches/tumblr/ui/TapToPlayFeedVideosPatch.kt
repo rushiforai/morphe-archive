@@ -75,8 +75,8 @@ internal class FeedVideoTapPlan(
 )
 
 /**
- * Tumblr's video overlay (`myl` in 47.0.0.108) sends a tap anywhere on a feed video to its callback,
- * and the feed's callback (`dmm$b`) opens the full-screen player, even over a stopped video showing
+ * Tumblr's video overlay (`c1m` in 47.3.0.110) sends a tap anywhere on a feed video to its callback,
+ * and the feed's callback (`pom$b`) opens the full-screen player, even over a stopped video showing
  * a play button. The overlay's own play and replay handlers are only wired to that button for ads.
  * The tap now asks the extension first, and the overlay answers it with those same handlers.
  * The composer's preview and ad videos have callbacks of their own, and those keep every tap.

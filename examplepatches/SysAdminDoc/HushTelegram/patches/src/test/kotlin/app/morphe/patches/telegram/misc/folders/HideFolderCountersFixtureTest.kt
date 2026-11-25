@@ -35,7 +35,7 @@ class HideFolderCountersFixtureTest {
                 m.origReturnType == "I" && m.controlBody().map { it.controlRef() }.let { it.any(::isMainUnread) && FILTER_UNREAD in it }
             }.map(ImmutableClassDef::of)
             // The chat list too: the patch's folder at launch switch goes in with the counters, and warns without it.
-            val context = PatchContexts.of((ExtensionDex.classes() + hosts + menuHosts(build) + allChatsPlaceHosts(build) + accountListHosts(build) + chatListAvatarHosts(build)).distinctBy { it.type })
+            val context = PatchContexts.of((ExtensionDex.classes() + hosts + menuHosts(build) + accountListHosts(build) + chatListAvatarHosts(build) + bottomTabsHosts(build)).distinctBy { it.type })
             val counter = context.resolveHideFolderCounters()
             val old = ImmutableMethod.of(counter)
             assertEquals(name, stockWarnings(build), PatchLogCapture.warnings { hideFolderCountersPatch.execute(context) })
@@ -51,10 +51,15 @@ class HideFolderCountersFixtureTest {
                 assertEquals("$name: stock $i", listOf(before[i].opcode, before[i].namedRegisters(), before[i].origRef()),
                     listOf(after[i + 5].opcode, after[i + 5].namedRegisters(), after[i + 5].origRef()))
             }
-            for (flag in listOf("hideFolderCounters", "launchFolder", "hideAllChats", "hiddenChats", "sortByDate", "localPins", "hiddenPasscode", "adminChats", "fitTabs", "tabIcons", "hiddenAccounts", "hiddenUnread", "chatListAvatar")) {
+            for (flag in listOf("hideFolderCounters", "launchFolder", "hideAllChats", "hiddenChats", "sortByDate", "hiddenPasscode", "adminChats", "fitTabs", "tabIcons", "bottomTabs", "hiddenAccounts", "hiddenUnread", "chatListAvatar", "savedMediaFirst")) {
                 val status = context.tgMutableClassDefBy(SETTINGS_STATUS).methods.single { it.origName == flag }.controlBody()
-                // Plus Messenger draws folder tab icons of its own, so ours stay off there.
-                val on = if (flag == "tabIcons" && tabIconsGap(build) != null) 0L else 1L
+                // Plus Messenger draws folder tab icons of its own and has its own tabs at the bottom, so ours stay off there.
+                val gap = when (flag) {
+                    "tabIcons" -> tabIconsGap(build)
+                    "bottomTabs" -> bottomTabsGap(build)
+                    else -> null
+                }
+                val on = if (gap != null) 0L else 1L
                 assertEquals("$name: $flag", on, (status.first() as WideLiteralInstruction).wideLiteral)
             }
         }

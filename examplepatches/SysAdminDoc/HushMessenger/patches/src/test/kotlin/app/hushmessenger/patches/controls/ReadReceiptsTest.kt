@@ -110,14 +110,17 @@ internal fun readReceiptsFixture(seenMethod: MutableMethod = seen(), sendMethod:
 )
 
 class ReadReceiptsTest {
-    @AfterTest fun reset() { activeProfile = SYNTHETIC_PROFILE; readReceiptThreadFields = emptyMap() }
+    @AfterTest fun reset() { activeProfile = SYNTHETIC_PROFILE; readReceiptThreadFields = emptyMap(); activeStringTables = emptyMap() }
 
     @Test fun discoveryFindsTheTypedSendPathAndLeavesTheReadManagerAlone() {
-        val hooks = mirroredControls(readReceiptsFixture())
+        val classes = readReceiptsFixture() + reactionFixture()
+        activeStringTables = redexStringTables(classes)
+        val hooks = mirroredControls(classes)
         assertEquals(listOf(SYNTHETIC_CHAT_SEEN), hooks.getValue(HIDE_READ_RECEIPTS).map { it.hookId() })
         assertEquals(listOf(SYNTHETIC_SEND_EVENT), hooks.getValue(REPLY_READ).map { it.hookId() })
         assertEquals(listOf(SYNTHETIC_DELIVERY), hooks.getValue(DELIVERY_RECEIPT).map { it.hookId() })
-        validateControls(hooks, setOf(HIDE_READ_RECEIPTS, REPLY_READ, DELIVERY_RECEIPT))
+        assertEquals(listOf(SYNTHETIC_REACTION, SYNTHETIC_REACTION_V2), hooks.getValue(REACTION_READ).map { it.hookId() })
+        validateControls(hooks, setOf(HIDE_READ_RECEIPTS, REPLY_READ, DELIVERY_RECEIPT, REACTION_READ))
         assertTrue(hooks.values.flatten().none { it.definingClass == "LX/AX0;" })
     }
 

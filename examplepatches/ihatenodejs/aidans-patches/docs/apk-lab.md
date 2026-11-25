@@ -491,14 +491,19 @@ cargo run --locked --quiet --manifest-path tools/apk-lab/Cargo.toml --bin apk-la
 
 ### `fixtures` — Private R2 Cloud Fixtures
 
-Manages the two-slot private R2 storage architecture (`fixtures/<package>/latest` and `fixtures/<package>/target`). `fixtures info` displays role, version name/code, first 16 SHA-256 characters, and acquisition source. In CI compatibility runs, `target` is the active verified fixture slot, while `latest` acts as a storage and acquisition fallback.
+Manages the two-slot private R2 storage architecture (`fixtures/<package>/latest` and `fixtures/<package>/target`). `fixtures info` displays role, version name/code, first 16 SHA-256 characters, signing-certificate SHA-256, and acquisition source. In CI compatibility runs, `target` is the active verified fixture slot, while `latest` acts as a storage and acquisition fallback.
+
+The fixture store is also the ingest path for an artifact no automated source can produce any more, for example a version Google Play has stopped serving. Seeding is local: set the same `R2_ACCOUNT_ID`/`R2_ACCESS_KEY_ID`/`R2_SECRET_ACCESS_KEY` used by `fixtures info`, point `--artifact` at the file, and nothing leaves the machine except to your private bucket. `--source LABEL` records provenance (`apkmirror`, `apkpure`, `device-pull`, `manual`; validated as a lowercase token of at most 32 characters), and `--expect-version`/`--expect-sha256` are checked after inspection and before the object write, so a wrong or truncated file never replaces a verified slot. Prefer this over adding another scraper: a fixture only needs to be the right artifact, not a reproducible download.
 
 ```bash
 # Seed a target slot from a verified local artifact
 cargo run --locked --quiet --manifest-path tools/apk-lab/Cargo.toml --bin apk-lab -- fixtures seed \
   --package com.example.app \
   --role target \
-  --artifact path/to/app.apkm
+  --artifact path/to/app.apkm \
+  --source device-pull \
+  --expect-version 1.2.3 \
+  --expect-sha256 <64-hex-sha256>
 
 # Inspect slot metadata in R2
 cargo run --locked --quiet --manifest-path tools/apk-lab/Cargo.toml --bin apk-lab -- fixtures info --package com.example.app
@@ -512,7 +517,10 @@ cargo run --locked --quiet --manifest-path tools/apk-lab/Cargo.toml --bin apk-la
 
 ### `acquire` — Artifact Acquisition from Google Play & Fallbacks
 
-Downloads and normalizes Android application artifacts directly using Google Play accounts with `apkeep` (native Play Store downloader), falling back to `goopdl`, and finally to configured package mappings in APKMirror. When configured accounts carry `aas_et/` tokens, `goopdl` receives them as `GOOPDL_ACCOUNT_EMAIL`/`GOOPDL_AAS_TOKEN` and authenticates directly with Google instead of the public Aurora device dispenser. Output is normalized to `.apkm` (or single `.apk` for APKMirror APK mappings). Validates downloaded package signatures, container integrity, and version metadata using the inspection badging parser.
+Downloads and normalizes Android application artifacts directly using Google Play accounts with `apkeep` (native Play Store downloader), falling back to `goopdl`, then to configured package mappings in APKMirror, and finally to APKPure through `apkeep`. A requested `--version` is pinned per source (`apkeep -a <pkg>@<version>`) so the download asks for the exact build instead of accepting the newest one. When configured accounts carry `aas_et/` tokens, `goopdl` receives them as `GOOPDL_ACCOUNT_EMAIL`/`GOOPDL_AAS_TOKEN` and authenticates directly with Google instead of the public Aurora device dispenser. Output is normalized to `.apkm` (or single `.apk` for APKMirror APK mappings). Validates downloaded package signatures, container integrity, and version metadata using the inspection badging parser.
+
+APKPure is a last resort because it repackages third-party builds: an artifact acquired there is not the Play-signed APK, and every result records the source as `apkpure` (including the fixture slot metadata) so it is never mistaken for a first-party download. The download requires `apkeep`'s explicit `acknowledge_dangers=true` option, which this provider passes on the command line so the acknowledgement stays auditable.
+
 Prerequisites: Google Play credentials configured via `APKEEP_ACCOUNTS` or `google-play-accounts.json`; R2 fixture credentials via `R2_ACCOUNT_ID`, `R2_ACCESS_KEY_ID`, and `R2_SECRET_ACCESS_KEY`.
 
 ```bash
@@ -600,7 +608,7 @@ Archive limits, workspace markers, tool-cache layout, exit codes, and `--json`
 modes are covered by the native test suite and recorded compatibility evidence.
 `ci` preserves the original request-ID, saved-submission, 2xx-only marker, and
 Worker payload semantics. Acquisition keeps the serialized
-`apkeep`/`goopdl`/`apkmirror`/`manual` source labels while using native delivery
+`apkeep`/`goopdl`/`apkmirror`/`apkpure`/`manual` source labels while using native delivery
 with no Python subprocess.
 
 ## 5. Migration Evidence

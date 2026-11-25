@@ -6,6 +6,7 @@ import android.graphics.Rect;
 import android.graphics.drawable.InsetDrawable;
 import android.view.View;
 import android.widget.CompoundButton;
+import android.widget.EditText;
 import android.widget.ScrollView;
 import android.widget.TextView;
 import java.util.List;
@@ -264,6 +265,152 @@ public class ThemeFileTest {
             root.findViewWithTag("theme_clear").performClick();
             assertFalse(green.isSelected());
         }
+    }
+
+    /** #211: typed color codes save the theme, an empty field leaves that color to Messenger, and a wrong code saves nothing. */
+    @Test public void settingsColorCodesSaveTheThemeAndRefuseAWrongCode() {
+        MaterialYouTheme.bind();
+        try (var screen = Robolectric.buildActivity(SettingsActivity.class).setup()) {
+            View root = screen.get().getWindow().getDecorView();
+            EditText accent = root.findViewWithTag("theme_code_accent"), neutral = root.findViewWithTag("theme_code_neutral");
+            View use = root.findViewWithTag("theme_codes_use");
+            assertEquals("", accent.getText().toString());
+            assertEquals("", neutral.getText().toString());
+
+            use.performClick();
+            assertEquals("Type a color code first.", ShadowToast.getTextOfLatestToast());
+            assertNull(Settings.preferences.getString(ThemeFile.KEY, null));
+
+            accent.setText("e1306c");
+            neutral.setText("#12");
+            use.performClick();
+            assertEquals("That isn't a color code. Try one like #E1306C.", ShadowToast.getTextOfLatestToast());
+            assertNull(Settings.preferences.getString(ThemeFile.KEY, null));
+
+            neutral.setText("#1a1418");
+            use.performClick();
+            assertEquals("Theme saved", ShadowToast.getTextOfLatestToast());
+            ThemeFile saved = ThemeFile.saved();
+            assertEquals(Integer.valueOf(0xFFE1306C), saved.accent);
+            assertEquals(Integer.valueOf(0xFF1A1418), saved.neutral);
+            assertTrue(root.findViewWithTag("theme_accent_E1306C").isSelected());
+            // Drawn back as the saved theme's codes.
+            assertEquals("#E1306C", accent.getText().toString());
+            assertEquals("#1A1418", neutral.getText().toString());
+            idle();
+            assertEquals(TonePalette.fromSeeds(0xFFE1306C, 0xFF1A1418).sameLightness(TonePalette.NEUTRAL, 0xFF333334), MaterialYouTheme.DARK_333334);
+
+            // The background alone keeps Messenger's blue, and Undo brings the theme before it back.
+            accent.setText("");
+            use.performClick();
+            assertNull(ThemeFile.saved().accent);
+            assertEquals(Integer.valueOf(0xFF1A1418), ThemeFile.saved().neutral);
+            screen.get().undo();
+            assertEquals(Integer.valueOf(0xFFE1306C), ThemeFile.saved().accent);
+            assertEquals("#E1306C", accent.getText().toString());
+
+            // A swatch tap shows in the fields too.
+            root.findViewWithTag("theme_accent_2E7D32").performClick();
+            assertEquals("#2E7D32", accent.getText().toString());
+            assertEquals("#1A1418", neutral.getText().toString());
+            root.findViewWithTag("theme_clear").performClick();
+            assertEquals("", accent.getText().toString());
+        }
+    }
+
+    /** #115: Save theme to a file writes what Copy theme copies, and Open a theme file uses one like Use copied theme. */
+    @Test public void aThemeFileSavesTheThemeInUseAndOpensItBack() {
+        java.util.concurrent.Executor before = ThemeDocument.worker;
+        ThemeDocument.worker = Runnable::run;
+        MaterialYouTheme.bind();
+        try (var screen = Robolectric.buildActivity(SettingsActivity.class).setup()) {
+            SettingsActivity activity = screen.get();
+            View root = activity.getWindow().getDecorView();
+            var resolver = Shadows.shadowOf(activity.getContentResolver());
+            copy(SUNSET);
+            root.findViewWithTag("theme_paste").performClick();
+
+            root.findViewWithTag("theme_file_save").performClick();
+            var save = Shadows.shadowOf(activity).getNextStartedActivityForResult();
+            assertEquals(android.content.Intent.ACTION_CREATE_DOCUMENT, save.intent.getAction());
+            assertTrue(save.intent.hasCategory(android.content.Intent.CATEGORY_OPENABLE));
+            assertEquals("application/json", save.intent.getType());
+            assertEquals("Sunset.json", save.intent.getStringExtra(android.content.Intent.EXTRA_TITLE));
+            android.net.Uri saved = android.net.Uri.parse("content://themes/sunset");
+            java.io.ByteArrayOutputStream file = new java.io.ByteArrayOutputStream();
+            resolver.registerOutputStream(saved, file);
+            activity.onActivityResult(save.requestCode, android.app.Activity.RESULT_OK, new android.content.Intent().setData(saved));
+            idle();
+            assertEquals("Theme file saved", ShadowToast.getTextOfLatestToast());
+            ThemeFile written = ThemeFile.parse(file.toString(java.nio.charset.StandardCharsets.UTF_8));
+            assertEquals("Sunset", written.name);
+            assertEquals(Integer.valueOf(0xFFE1306C), written.accent);
+            assertEquals(Integer.valueOf(0xFF1A1418), written.neutral);
+            assertEquals(Boolean.TRUE, written.pureBlack);
+
+            root.findViewWithTag("theme_clear").performClick();
+            assertNull(ThemeFile.saved());
+            Settings.preferences.edit().putBoolean(MaterialYouTheme.BLACK_KEY, false).commit();
+
+            // Cancelling the picker changes nothing and says nothing.
+            root.findViewWithTag("theme_file_open").performClick();
+            var open = Shadows.shadowOf(activity).getNextStartedActivityForResult();
+            assertEquals(android.content.Intent.ACTION_OPEN_DOCUMENT, open.intent.getAction());
+            assertTrue(open.intent.hasCategory(android.content.Intent.CATEGORY_OPENABLE));
+            ShadowToast.reset();
+            activity.onActivityResult(open.requestCode, android.app.Activity.RESULT_CANCELED, null);
+            idle();
+            assertNull(ShadowToast.getTextOfLatestToast());
+            assertNull(ThemeFile.saved());
+
+            // Not a theme, too big for one, and a file the provider won't hand over: each says so and keeps the colors.
+            String[][] refused = {{"content://themes/notes", "shopping list", "That file isn't a theme. Your colors didn't change."},
+                {"content://themes/huge", "x".repeat(ThemeDocument.MAX_BYTES + 1), "That file isn't a theme. Your colors didn't change."},
+                {"content://themes/locked", null, "Couldn't open that file. Try again."}};
+            for (String[] file2 : refused) {
+                android.net.Uri uri = android.net.Uri.parse(file2[0]);
+                if (file2[1] != null) resolver.registerInputStream(uri,
+                    new java.io.ByteArrayInputStream(file2[1].getBytes(java.nio.charset.StandardCharsets.UTF_8)));
+                else resolver.registerInputStreamSupplier(uri, () -> { throw new SecurityException("Refused"); });
+                activity.onActivityResult(SettingsActivity.READ_THEME, android.app.Activity.RESULT_OK, new android.content.Intent().setData(uri));
+                idle();
+                assertEquals(file2[0], file2[2], ShadowToast.getTextOfLatestToast());
+                assertNull(file2[0], ThemeFile.saved());
+            }
+
+            // The saved file, with the byte-order mark some editors add, comes back in with its pure black choice, and Undo drops it.
+            android.net.Uri back = android.net.Uri.parse("content://themes/back");
+            resolver.registerInputStream(back, new java.io.ByteArrayInputStream(
+                ("\uFEFF" + file.toString(java.nio.charset.StandardCharsets.UTF_8)).getBytes(java.nio.charset.StandardCharsets.UTF_8)));
+            activity.onActivityResult(SettingsActivity.READ_THEME, android.app.Activity.RESULT_OK, new android.content.Intent().setData(back));
+            idle();
+            assertEquals("Theme saved", ShadowToast.getTextOfLatestToast());
+            assertEquals("Sunset", ThemeFile.saved().name);
+            assertEquals(Integer.valueOf(0xFFE1306C), ThemeFile.saved().accent);
+            assertTrue(Settings.preferences.getBoolean(MaterialYouTheme.BLACK_KEY, false));
+            assertTrue(root.findViewWithTag("theme_accent_E1306C").isSelected());
+            activity.undo();
+            assertNull(ThemeFile.saved());
+            assertFalse(Settings.preferences.getBoolean(MaterialYouTheme.BLACK_KEY, true));
+        } finally {
+            ThemeDocument.worker = before;
+        }
+    }
+
+    @Test public void aThemeFileIsNamedAfterItsTheme() {
+        assertEquals("Sunset.json", ThemeDocument.fileName("Sunset"));
+        assertEquals("Late night blue.json", ThemeDocument.fileName("Late / night: blue"));
+        assertEquals("HushMessenger theme.json", ThemeDocument.fileName(""));
+        assertEquals("HushMessenger theme.json", ThemeDocument.fileName("../.."));
+    }
+
+    @Test public void aTypedColorCodeReadsLikeAThemesColors() {
+        assertNull(ThemeFile.code(null));
+        assertNull(ThemeFile.code("  "));
+        assertEquals(Integer.valueOf(0xFFE1306C), ThemeFile.code(" #e1306c "));
+        assertEquals(Integer.valueOf(0xFFEE3366), ThemeFile.code("E36"));
+        for (String wrong : new String[] {"#12", "#E1306C1", "red", "#GGGGGG", "##E1306C"})
+            assertThrows(wrong, IllegalArgumentException.class, () -> ThemeFile.code(wrong));
     }
 
     /** #155: a palette style is one saved choice, Default saves none, and the palette in use follows, a saved accent's too. */

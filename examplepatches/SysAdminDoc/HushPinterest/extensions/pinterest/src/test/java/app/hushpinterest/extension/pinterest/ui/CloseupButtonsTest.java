@@ -10,7 +10,10 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
+import android.content.Context;
 import android.content.res.ColorStateList;
+import android.content.res.Configuration;
+import android.graphics.Color;
 import android.graphics.drawable.GradientDrawable;
 import android.graphics.drawable.RippleDrawable;
 import android.view.View;
@@ -61,6 +64,8 @@ public class CloseupButtonsTest {
         Settings.HIDE_CLOSEUP_REMIX.resetToDefault();
         Settings.HIDE_CLOSEUP_VISIT_SITE.resetToDefault();
         Settings.SMALLER_SAVE_BUTTON.resetToDefault();
+        Settings.SAVE_COLOR_ON_RED_BUTTONS.resetToDefault();
+        Settings.BLACK_BUTTONS.resetToDefault();
         SaveButtonColorSetting.SAVE_BUTTON_COLOR.resetToDefault();
         CloseupButtons.likeId = -1;
         CloseupButtons.commentsId = -1;
@@ -424,6 +429,179 @@ public class CloseupButtonsTest {
         assertEquals(RED, tint(save));
         assertEquals(WHITE, save.getCurrentTextColor());
         assertTrue("the saved color stays", "#FFFFFF".equals(SaveButtonColorSetting.SAVE_BUTTON_COLOR.savedValue()));
+    }
+
+    /**
+     * #48: Follow, Sort by and Done are the same red as Save. With their switch on they take the
+     * color saved for Save, a light one with dark text, and a button Pinterest turns gray keeps it.
+     * Off, the next look gives Pinterest's red back.
+     */
+    @Test public void theSwitchPaintsOtherRedButtonsTheSaveColor() {
+        SaveButtonColorSetting.SAVE_BUTTON_COLOR.save("#FC0");
+        Button follow = gestaltButton(View.generateViewId());
+        style(follow, RED, WHITE);
+        assertEquals("off, Follow keeps Pinterest's red", RED, tint(follow));
+
+        Settings.SAVE_COLOR_ON_RED_BUTTONS.save(true);
+        style(follow, RED, WHITE);
+        assertEquals(0xFFFFCC00, tint(follow));
+        assertEquals(CloseupButtons.DARK_TEXT, follow.getCurrentTextColor());
+        assertTrue(String.join("\n", HookStatus.report()).contains("red button painted"));
+
+        style(follow, GRAY, BLACK);
+        assertEquals("Following, gray", GRAY, tint(follow));
+        assertEquals(BLACK, follow.getCurrentTextColor());
+
+        style(follow, RED, WHITE);
+        assertEquals(0xFFFFCC00, tint(follow));
+        Settings.SAVE_COLOR_ON_RED_BUTTONS.save(false);
+        CloseupButtons.saveButton(follow);
+        assertEquals(RED, tint(follow));
+        assertEquals(WHITE, follow.getCurrentTextColor());
+
+        Settings.SAVE_COLOR_ON_RED_BUTTONS.save(true);
+        SaveButtonColorSetting.SAVE_BUTTON_COLOR.save("");
+        style(follow, RED, WHITE);
+        assertEquals("no color picked, nothing to paint", RED, tint(follow));
+    }
+
+    /**
+     * #48: in dark mode Pinterest draws Follow and its other red buttons in its lighter red, #F84F4F
+     * (S25, profile Follow), and the switch paints that red too. A pale pink stays as it is.
+     */
+    @Test public void theSwitchPaintsPinterestsDarkModeRedToo() {
+        SaveButtonColorSetting.SAVE_BUTTON_COLOR.save("#3366FF");
+        Settings.SAVE_COLOR_ON_RED_BUTTONS.save(true);
+        Button follow = gestaltButton(View.generateViewId());
+        style(follow, 0xFFF84F4F, WHITE);
+        assertEquals("dark mode's red", 0xFF3366FF, tint(follow));
+
+        Button pink = gestaltButton(View.generateViewId());
+        style(pink, 0xFFFF8F8F, BLACK);
+        assertEquals("a pale pink isn't Pinterest's red", 0xFFFF8F8F, tint(pink));
+        assertEquals(BLACK, pink.getCurrentTextColor());
+    }
+
+    @Test public void pausedOtherRedButtonsArePinterestsAgain() {
+        Settings.SAVE_COLOR_ON_RED_BUTTONS.save(true);
+        SaveButtonColorSetting.SAVE_BUTTON_COLOR.save("#3366FF");
+        Button done = gestaltButton(View.generateViewId());
+        style(done, RED, WHITE);
+        assertEquals(0xFF3366FF, tint(done));
+
+        PauseForTests.pause(HushPinterestPause.Reason.SWITCH);
+        CloseupButtons.saveButton(done);
+        assertEquals(RED, tint(done));
+    }
+
+    /** A dark-mode Gestalt button, the way Pinterest builds one. */
+    private static Button nightButton(int id) {
+        Context base = RuntimeEnvironment.getApplication();
+        Configuration night = new Configuration(base.getResources().getConfiguration());
+        night.uiMode = Configuration.UI_MODE_NIGHT_YES | (night.uiMode & ~Configuration.UI_MODE_NIGHT_MASK);
+        Button button = new Button(base.createConfigurationContext(night));
+        button.setId(id);
+        button.setBackground(new RippleDrawable(ColorStateList.valueOf(GRAY), new GradientDrawable(), null));
+        return button;
+    }
+
+    /** Pinterest's secondary button gray at night, a light gray at 30%. */
+    private static final int NIGHT_GRAY = 0x4D72727E;
+
+    /** A new look with both styling hooks after it, Hide closeup buttons' first, then AMOLED black's. */
+    private static void styleBoth(Button button, int background, int text) {
+        style(button, background, text);
+        AmoledBlack.gestaltButton(button);
+    }
+
+    /** Both hooks again with no new colors, the way Pinterest skips colors that didn't change. */
+    private static void restyle(Button button) {
+        CloseupButtons.saveButton(button);
+        AmoledBlack.gestaltButton(button);
+    }
+
+    /**
+     * #48: Message, Edit profile and Following are Pinterest's night gray. With Black buttons on
+     * they turn black, fill and shape both, and their labels stay. Red and white buttons keep their
+     * look, and so does a Save button wearing the Save color.
+     */
+    @Test public void blackButtonsTurnPinterestsNightGrayBlack() {
+        Button message = nightButton(View.generateViewId());
+        styleBoth(message, NIGHT_GRAY, WHITE);
+        assertEquals("off, Pinterest's gray", NIGHT_GRAY, tint(message));
+
+        Settings.BLACK_BUTTONS.save(true);
+        styleBoth(message, NIGHT_GRAY, WHITE);
+        assertEquals(Color.BLACK, tint(message));
+        assertEquals("the pressed state goes through the same curve", Color.BLACK,
+                message.getBackgroundTintList().getColorForState(new int[] {android.R.attr.state_pressed}, 0));
+        assertEquals(WHITE, message.getCurrentTextColor());
+        assertTrue(String.join("\n", HookStatus.report()).contains("button tinted black"));
+
+        Button follow = nightButton(View.generateViewId());
+        styleBoth(follow, RED, WHITE);
+        assertEquals("red stays", RED, tint(follow));
+        Button picked = nightButton(View.generateViewId());
+        styleBoth(picked, WHITE, BLACK);
+        assertEquals("white stays", WHITE, tint(picked));
+
+        SaveButtonColorSetting.SAVE_BUTTON_COLOR.save("#333333");
+        Button save = nightButton(CloseupButtons.saveId);
+        styleBoth(save, RED, WHITE);
+        assertEquals("a dark gray picked for Save stays that gray", 0xFF333333, tint(save));
+        restyle(save);
+        assertEquals("and again on a look with the same colors", 0xFF333333, tint(save));
+        styleBoth(save, NIGHT_GRAY, WHITE);
+        assertEquals("Saved, Pinterest's gray, goes black", Color.BLACK, tint(save));
+
+        // AMOLED black's hook first this time, the way it runs when its patch went in second.
+        Button other = nightButton(CloseupButtons.saveId);
+        ColorStateList red = ColorStateList.valueOf(RED);
+        other.setBackgroundTintList(red);
+        ((RippleDrawable) other.getBackground()).getDrawable(0).mutate().setTintList(red);
+        AmoledBlack.gestaltButton(other);
+        CloseupButtons.saveButton(other);
+        assertEquals(0xFF333333, tint(other));
+        AmoledBlack.gestaltButton(other);
+        assertEquals("the painted Save keeps its color", 0xFF333333, tint(other));
+    }
+
+    @Test public void blackButtonsGiveTheGrayBackOffPausedAndInLightMode() {
+        Settings.BLACK_BUTTONS.save(true);
+        Button message = nightButton(View.generateViewId());
+        styleBoth(message, NIGHT_GRAY, WHITE);
+        ColorStateList black = message.getBackgroundTintList();
+        assertEquals(Color.BLACK, black.getDefaultColor());
+
+        Settings.BLACK_BUTTONS.save(false);
+        restyle(message);
+        assertEquals("off", NIGHT_GRAY, tint(message));
+
+        Settings.BLACK_BUTTONS.save(true);
+        restyle(message);
+        assertEquals(Color.BLACK, tint(message));
+        PauseForTests.pause(HushPinterestPause.Reason.SWITCH);
+        restyle(message);
+        assertEquals("paused", NIGHT_GRAY, tint(message));
+        PauseForTests.resume();
+
+        Button day = gestaltButton(View.generateViewId());
+        styleBoth(day, NIGHT_GRAY, BLACK);
+        assertEquals("light mode", NIGHT_GRAY, tint(day));
+    }
+
+    /**
+     * A light Save color's dark text is Pinterest's own near-black, and ColorStateList.valueOf hands
+     * out one object per color. Saved's new look brings that same object, which isn't ours to undo.
+     */
+    @Test public void savedAfterALightColorKeepsPinterestsText() {
+        SaveButtonColorSetting.SAVE_BUTTON_COLOR.save("#FC0");
+        Button save = gestaltButton(CloseupButtons.saveId);
+        style(save, RED, WHITE);
+        assertEquals(CloseupButtons.DARK_TEXT, save.getCurrentTextColor());
+        style(save, GRAY, BLACK);
+        assertEquals("Saved", GRAY, tint(save));
+        assertEquals("Saved's text", BLACK, save.getCurrentTextColor());
     }
 
     @Test public void aBuildWithoutTheSaveButtonsIdLeavesEveryButtonAlone() {

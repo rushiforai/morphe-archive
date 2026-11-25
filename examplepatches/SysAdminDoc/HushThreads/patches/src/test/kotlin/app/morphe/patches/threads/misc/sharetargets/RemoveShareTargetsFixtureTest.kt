@@ -21,6 +21,9 @@ import app.morphe.patches.shared.compat.AppCompatibilities
 class RemoveShareTargetsFixtureTest {
     private val handler = "com.instagram.barcelona.handleractivity.BarcelonaShareHandlerActivity"
 
+    /** 456's second way in, for shared photos and videos. Its filter carries a label. */
+    private val alias = "com.instagram.basel.share.BaselShareHandlerActivityAlias"
+
     @Test
     fun everyDeclaredBuildLosesItsShareFiltersAndNothingElse() {
         val builds = Fixtures.declaredBuilds()
@@ -30,12 +33,22 @@ class RemoveShareTargetsFixtureTest {
             val (components, shortcuts) = removeShareFilters(manifest)
             val patched = FixtureResources.elements(manifest)
 
-            assertEquals("${build.name}: the components that took a share", listOf(handler), components)
+            assertEquals("${build.name}: the components that took a share", listOf(handler, alias), components)
             assertEquals("${build.name}: Threads names no shortcuts file", emptyList<String>(), shortcuts)
             assertEquals("${build.name}: nothing is added", emptyList<String>(), patched - stock.toSet())
             val removed = stock.toMutableList().apply { patched.forEach { remove(it) } }
             val owner = "/activity[android:name=$handler]/"
-            assertTrue("${build.name}: only the share handler's filters go: $removed", removed.all { "${owner}intent-filter" in it })
+            val aliasOwner = "/activity-alias[android:name=$alias]/"
+            val (fromAlias, fromHandler) = removed.partition { aliasOwner in it }
+            assertTrue("${build.name}: only the share handler's filters go: $removed", fromHandler.all { "${owner}intent-filter" in it })
+            assertEquals("${build.name}: only the alias's share filter goes", listOf(
+                "intent-filter/action[android:name=android.intent.action.SEND]",
+                "intent-filter/action[android:name=android.intent.action.SEND_MULTIPLE]",
+                "intent-filter/category[android:name=android.intent.category.DEFAULT]",
+                "intent-filter/data[android:mimeType=image/*]",
+                "intent-filter/data[android:mimeType=video/*]",
+                "intent-filter[label]",
+            ), fromAlias.map { it.substringAfter(aliasOwner).replace(Regex("""\[android:label=[^\]]*]"""), "[label]") }.sorted())
             assertEquals("${build.name}: only the share filters go", listOf(
                 "intent-filter/action[android:name=android.intent.action.SEND]",
                 "intent-filter/action[android:name=android.intent.action.SEND]",
@@ -47,7 +60,7 @@ class RemoveShareTargetsFixtureTest {
                 "intent-filter/data[android:mimeType=video/*]",
                 "intent-filter[]",
                 "intent-filter[]",
-            ), removed.map { it.substringAfter(owner) }.sorted())
+            ), fromHandler.map { it.substringAfter(owner) }.sorted())
             assertTrue("${build.name}: the queries entry Threads shares out through stays", patched.any {
                 it == "manifest/queries/intent/action[android:name=android.intent.action.SEND]"
             })

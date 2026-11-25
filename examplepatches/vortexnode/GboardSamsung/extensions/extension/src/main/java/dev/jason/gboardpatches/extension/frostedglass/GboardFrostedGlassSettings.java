@@ -16,6 +16,8 @@ public final class GboardFrostedGlassSettings {
     // Keep the seamless navigation bar preference in the Frosted Glass settings page.
     public static final String PREF_KEY_SEAMLESS_NAV_BAR_ENABLED = "pref_seamless_nav_bar_enabled";
     public static final boolean DEFAULT_SEAMLESS_NAV_BAR_ENABLED = true;
+    public static final String PREF_KEY_AMOLED_BLACK_ENABLED = "pref_amoled_black_enabled";
+    public static final boolean DEFAULT_AMOLED_BLACK_ENABLED = false;
     private static final String PREF_KEY_HEADER_ALPHA = "pref_frosted_glass_header_alpha";
     private static final String PREF_KEY_BODY_ALPHA = "pref_frosted_glass_body_alpha";
     private static final String PREF_KEY_KEYTOP_ALPHA = "pref_frosted_glass_keytop_alpha";
@@ -99,6 +101,16 @@ public final class GboardFrostedGlassSettings {
         return DEFAULT_SEAMLESS_NAV_BAR_ENABLED;
     }
 
+    public static boolean readAmoledBlackEnabled(SharedPreferences preferences) {
+        Object value = preferences == null ? null : preferences.getAll().get(PREF_KEY_AMOLED_BLACK_ENABLED);
+        if (value instanceof Boolean enabled) return enabled;
+        if (value instanceof String text) {
+            if ("true".equalsIgnoreCase(text)) return true;
+            if ("false".equalsIgnoreCase(text)) return false;
+        }
+        return DEFAULT_AMOLED_BLACK_ENABLED;
+    }
+
     private static int readOpacity(SharedPreferences preferences, String key) {
         if (preferences == null) {
             return DEFAULT_CUSTOM_OPACITY;
@@ -156,6 +168,9 @@ public final class GboardFrostedGlassSettings {
         }
         if (preferences != null && !preferences.contains(PREF_KEY_KEY_CUSTOM_OPACITY)) {
             preferences.edit().putInt(PREF_KEY_KEY_CUSTOM_OPACITY, DEFAULT_CUSTOM_OPACITY).apply();
+        }
+        if (preferences != null && !preferences.contains(PREF_KEY_AMOLED_BLACK_ENABLED)) {
+            preferences.edit().putBoolean(PREF_KEY_AMOLED_BLACK_ENABLED, DEFAULT_AMOLED_BLACK_ENABLED).apply();
         }
     }
 
@@ -228,6 +243,14 @@ public final class GboardFrostedGlassSettings {
         }
         return editor(context)
                 .putBoolean(PREF_KEY_SEAMLESS_NAV_BAR_ENABLED, enabled).commit();
+    }
+
+    public static boolean writeAmoledBlackEnabled(Context context, boolean enabled) {
+        if (context == null) {
+            return false;
+        }
+        return editor(context)
+                .putBoolean(PREF_KEY_AMOLED_BLACK_ENABLED, enabled).commit();
     }
 
     /** The settings page's single write path; runtime reads use the guarded runtime store. */

@@ -590,6 +590,10 @@ public final class SettingsStatus {
         return false;
     }
 
+    public static boolean blockedPosts() {
+        return false;
+    }
+
     public static boolean homeTopBar() {
         return false;
     }
@@ -963,6 +967,11 @@ public final class SettingsStatus {
 
     /** Rewritten by the Chat history tools patch. */
     public static boolean chatHistory() {
+        return false;
+    }
+
+    /** Rewritten by the Copy links from chat buttons patch. */
+    public static boolean chatButtonLinks() {
         return false;
     }
 

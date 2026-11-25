@@ -6,13 +6,16 @@
 #   start-call <method reference> [in [static|instance] <(parameters)return, * for any run>] holding <string> [<string> ...]
 #   no-call <method reference> outside <package prefix>
 #   next-call <method reference> after <method reference> [in [static|instance] <shape>] holding <string> [<string> ...]
-#   sole-call <method reference> replacing <method reference> [in [static|instance] <shape>] holding <string> [<string> ...]
+#   sole-call <method reference> replacing <method reference> [in [static|instance] <shape> [tapping <enum constant>]] holding <string> [<string> ...]
 #   once-call <method reference> [in [static|instance] <shape>] holding <string> [<string> ...]
 # A start-call, next-call, sole-call or once-call rule picks its method by every string it names
 # and its shape, and exactly one of Threads' methods may answer that; name as much as the patch
 # itself finds the method by. scripts/test-injected-registers.ps1 builds bad fixtures for every
 # rule here, and fails on a rule it has none for. A * in the method a sole-call replaces stands for
 # any run, for the names each of the eleven variants makes up; it may match one call in the method.
+# A sole-call rule that names tapping <enum constant> also picks a method of its shape that hands
+# that call, or its own, a new lambda whose invoke() reads the enum constant built from that name,
+# the way the patch finds the logo; by its strings or its tap, exactly one method may answer.
 # Strings containing spaces are quoted and matched as one exact string.
 # The settings patch sends each of these ShortcutManager calls to SettingsEntry, which makes the
 # real call and puts the HushThreads shortcut back in front after it. One left in Threads' own code
@@ -27,8 +30,9 @@ no-call Landroid/content/pm/ShortcutManager;->updateShortcuts(Ljava/util/List;)Z
 no-call Landroid/content/pm/ShortcutManager;->removeAllDynamicShortcuts()V outside Lapp/morphe/extension/
 
 # The main-feed logo keeps all seven original clickable arguments in their original order.
-# A second hook, a leftover stock call or a hook on another argument bank is refused.
-sole-call Lapp/morphe/extension/hushthreads/settings/ThreadsLogo;->clickable(Ljava/lang/Object;Ljava/lang/Object;Ljava/lang/Object;Ljava/lang/Object;Ljava/lang/String;Ljava/lang/Object;Z)Ljava/lang/Object; replacing *->*(*Ljava/lang/String;Lkotlin/jvm/functions/Function0;Z)* in instance (Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object; holding "com.instagram.barcelona.feed.ui.MainFeedScreen.<anonymous>.<anonymous>.<anonymous>.<anonymous>.<anonymous>.<anonymous> (MainFeedScreen.kt:3006)"
+# A second hook, a leftover stock call or a hook on another argument bank is refused. 457 strips
+# the main feed's Compose note, so the logo's tap, the lambda refreshing by LogoTap, picks it there.
+sole-call Lapp/morphe/extension/hushthreads/settings/ThreadsLogo;->clickable(Ljava/lang/Object;Ljava/lang/Object;Ljava/lang/Object;Ljava/lang/Object;Ljava/lang/String;Ljava/lang/Object;Z)Ljava/lang/Object; replacing *->*(*Ljava/lang/String;Lkotlin/jvm/functions/Function0;Z)* in instance (Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object; tapping LogoTap holding "com.instagram.barcelona.feed.ui.MainFeedScreen.<anonymous>.<anonymous>.<anonymous>.<anonymous>.<anonymous>.<anonymous> (MainFeedScreen.kt:3006)"
 
 # SoLoader's flags reach the extension before SoLoader reads them, in the one static init holding
 # both of its messages, so a merged build with compressed libraries can start.

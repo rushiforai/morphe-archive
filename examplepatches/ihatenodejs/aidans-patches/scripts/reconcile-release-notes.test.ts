@@ -15,13 +15,37 @@ const root = fs.mkdtempSync(path.join(os.tmpdir(), 'release-notes-'));
 const home = path.join(root, 'home');
 const remote = path.join(root, 'remote.git');
 const work = path.join(root, 'work');
-const env = {
-  ...process.env,
-  HOME: home,
-  GIT_CONFIG_GLOBAL: path.join(home, '.gitconfig'),
-  GIT_CONFIG_NOSYSTEM: '1',
-  GIT_TERMINAL_PROMPT: '0',
-};
+
+/**
+ * The pre-push hook runs this suite from a snapshot started by semantic-release,
+ * which exports `GIT_AUTHOR_*`/`GIT_COMMITTER_*` for its own release commit.
+ * Those variables override `-c user.name=…`, so drop them here; every commit
+ * below sets its identity explicitly.
+ */
+function isolatedEnvironment(): Record<string, string | undefined> {
+  const isolated: Record<string, string | undefined> = {
+    ...process.env,
+    HOME: home,
+    GIT_CONFIG_GLOBAL: path.join(home, '.gitconfig'),
+    GIT_CONFIG_NOSYSTEM: '1',
+    GIT_TERMINAL_PROMPT: '0',
+  };
+  for (const key of Object.keys(isolated)) {
+    if (
+      key.startsWith('GIT_AUTHOR_') ||
+      key.startsWith('GIT_COMMITTER_') ||
+      key.startsWith('GIT_CONFIG_KEY_') ||
+      key.startsWith('GIT_CONFIG_VALUE_') ||
+      key === 'GIT_CONFIG_COUNT' ||
+      key === 'GIT_CONFIG_PARAMETERS'
+    ) {
+      delete isolated[key];
+    }
+  }
+  return isolated;
+}
+
+const env = isolatedEnvironment();
 
 fs.mkdirSync(home);
 fs.writeFileSync(env.GIT_CONFIG_GLOBAL, '');

@@ -54,6 +54,7 @@ public final class SettingsStatus {
     public static boolean keepHomeFeed() { return false; }
     public static boolean homeFeed() { return false; }
     public static boolean homeBack() { return false; }
+    public static boolean refreshPill() { return false; }
     public static boolean disableAnalytics() { return false; }
     public static boolean analyticsTasks() { return false; }
     public static boolean analyticsUploads() { return false; }
@@ -63,6 +64,9 @@ public final class SettingsStatus {
     public static boolean hideAdvertisingId() { return false; }
     public static boolean advertisingId() { return false; }
     public static boolean browserId() { return false; }
+    public static boolean likeCommentHistory() { return false; }
+    public static boolean likeHistory() { return false; }
+    public static boolean commentHistory() { return false; }
     public static boolean removeAdTrackingPermissions() { return false; }
     public static boolean spoofSignature() { return false; }
     public static boolean gmsCoreSupport() { return false; }
@@ -93,6 +97,7 @@ public final class SettingsStatus {
     public static boolean recentSearchRows() { return false; }
     public static boolean recentSearchHeading() { return false; }
     public static boolean searchLanding() { return false; }
+    public static boolean searchSuggestions() { return false; }
     public static boolean hideNavigationButtons() { return false; }
     public static boolean navigationButtons() { return false; }
     public static boolean homeTabs() { return false; }
@@ -107,6 +112,10 @@ public final class SettingsStatus {
     public static boolean blackSheets() { return false; }
     public static boolean blackBoards() { return false; }
     public static boolean blackToasts() { return false; }
+    public static boolean blackButtons() { return false; }
+    public static boolean blackSearchGuides() { return false; }
+    public static boolean blackSettingsCard() { return false; }
+    public static boolean blackSearchBubbles() { return false; }
     public static boolean hideCloseupButtons() { return false; }
     public static boolean closeupButtons() { return false; }
     public static boolean closeupSearchLabel() { return false; }
@@ -131,6 +140,7 @@ public final class SettingsStatus {
     public static boolean surveyPrompts() { return false; }
     public static boolean hidePopupBanners() { return false; }
     public static boolean popupBanners() { return false; }
+    public static boolean offlineBanner() { return false; }
     public static boolean hideRelatedPins() { return false; }
     public static boolean relatedPins() { return false; }
     public static boolean hideCreatorName() { return false; }
@@ -141,6 +151,12 @@ public final class SettingsStatus {
     public static boolean pinDescription() { return false; }
     public static boolean showImageSize() { return false; }
     public static boolean imageSize() { return false; }
+    public static boolean swipeToClosePins() { return false; }
+    public static boolean pullToDismiss() { return false; }
+    public static boolean fullSizeProfilePhotos() { return false; }
+    public static boolean profilePhotoSheet() { return false; }
+    public static boolean bestVideoQuality() { return false; }
+    public static boolean videoSizeCap() { return false; }
     public static boolean hideHighlightRing() { return false; }
     public static boolean highlightRing() { return false; }
     public static boolean hideVisualSearchThumbnails() { return false; }
@@ -152,6 +168,7 @@ public final class SettingsStatus {
     public static boolean customSaveSound() { return false; }
     public static boolean saveSound() { return false; }
     public static boolean customSplashLogo() { return false; }
+    public static boolean customFont() { return false; }
     public static boolean boardTabs() { return false; }
     public static boolean boardTabHeader() { return false; }
     public static boolean boardTabCovers() { return false; }
@@ -169,6 +186,13 @@ public final class SettingsStatus {
     public static boolean suggestedBoards() { return false; }
     public static boolean expandBoardList() { return false; }
     public static boolean boardListHeight() { return false; }
+    public static boolean boardOrderWhenSaving() { return false; }
+    public static boolean boardPickerSort() { return false; }
+    public static boolean pinVideoPlayback() { return false; }
+    public static boolean pinVideoAutoplay() { return false; }
+    public static boolean pinVideoSound() { return false; }
+    public static boolean pinchToZoomOnly() { return false; }
+    public static boolean pinchZoomViewer() { return false; }
     public static boolean disableUpdateNag() { return false; }
     public static boolean updateNag() { return false; }
     public static boolean fixPushNotifications() { return false; }

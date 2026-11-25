@@ -19,12 +19,14 @@ import android.content.ContentResolver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.res.AssetFileDescriptor;
+import android.database.Cursor;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.CancellationSignal;
 import android.os.Build;
 import android.os.OperationCanceledException;
 import android.preference.Preference;
+import android.provider.OpenableColumns;
 import android.view.View;
 
 import androidx.annotation.Nullable;
@@ -42,6 +44,7 @@ import java.util.Map;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.atomic.AtomicReference;
 
+import app.morphe.extension.hushthreads.theme.CustomFont;
 import app.morphe.extension.shared.L10n;
 import app.morphe.extension.shared.Logger;
 import app.morphe.extension.shared.Utils;
@@ -50,7 +53,7 @@ import app.morphe.extension.shared.settings.preference.AbstractPreferenceFragmen
 import app.morphe.extension.shared.settings.preference.LogBufferManager;
 
 /**
- * Export settings and Import settings.
+ * Export settings and Import settings, and the font file row for Custom font (#28).
  *
  * <p>Both open Android's file picker through {@link SettingsFilePicker}. The picker is an activity
  * of its own, so Android may rebuild Threads' activity behind it, and the settings dialog and its
@@ -77,6 +80,11 @@ import app.morphe.extension.shared.settings.preference.LogBufferManager;
 public class SettingsBackupPreference extends Preference {
     static final int EXPORT = 7311;
     static final int IMPORT = 7312;
+    /** The font file row: a picked font is copied into Threads' files for Custom font. */
+    static final int FONT = 7313;
+
+    /** What the restart row counts for a font file kept while Custom font is on. */
+    static final String FONT_FILE_CHANGE = "hushthreads_custom_font_file";
 
     /** What a settings file is saved as. */
     static final String MIME_TYPE = "application/json";
@@ -159,7 +167,7 @@ public class SettingsBackupPreference extends Preference {
         owner = page;
         rowAction = action;
         restingSummary = summary;
-        setKey(action == EXPORT ? "action_export_settings" : "action_import_settings");
+        setKey(action == EXPORT ? "action_export_settings" : action == IMPORT ? "action_import_settings" : "action_font_file");
         setPersistent(false);
         setTitle(title);
         setOnPreferenceClickListener(preference -> {
@@ -186,6 +194,10 @@ public class SettingsBackupPreference extends Preference {
                 .addCategory(Intent.CATEGORY_OPENABLE);
         if (action == EXPORT) {
             intent.setType(MIME_TYPE).putExtra(Intent.EXTRA_TITLE, suggestedExportName());
+        } else if (action == FONT) {
+            // Apps call font files many things, and a picker filtered by type greys out the rest.
+            // Whether it's a font is settled by loading it.
+            intent.setType("*/*");
         } else {
             intent.setType("*/*").putExtra(Intent.EXTRA_MIME_TYPES, OPENABLE_TYPES);
         }
@@ -203,7 +215,7 @@ public class SettingsBackupPreference extends Preference {
     }
 
     static boolean isFileAction(int action) {
-        return action == EXPORT || action == IMPORT;
+        return action == EXPORT || action == IMPORT || action == FONT;
     }
 
     /**
@@ -237,6 +249,7 @@ public class SettingsBackupPreference extends Preference {
         Uri uri = result == Activity.RESULT_OK && data != null ? data.getData() : null;
         if (uri == null) return true; // Cancelled: nothing to do and nothing to say.
         if (request == EXPORT) export(page, uri, 0);
+        else if (request == FONT) keepFont(page, uri, 0);
         else readForPreview(page, uri, 0);
         return true;
     }
@@ -284,6 +297,7 @@ public class SettingsBackupPreference extends Preference {
         if (file == null) return;
         picked = null;
         if (pickedAction == EXPORT) export(page, file, pickedGrant);
+        else if (pickedAction == FONT) keepFont(page, file, pickedGrant);
         else readForPreview(page, file, pickedGrant);
     }
 
@@ -394,6 +408,84 @@ public class SettingsBackupPreference extends Preference {
             notStarted(run);
         } else watch(run, L10n.t("The app holding that file is taking too long, so HushThreads stopped waiting. "
                 + "Nothing was changed."));
+    }
+
+    /**
+     * Copies a picked font into Threads' files for Custom font, once Android loads it. A font kept
+     * while the switch is on owes a restart, which the restart row counts.
+     */
+    private static void keepFont(HushThreadsPreferenceFragment page, Uri uri, int grant) {
+        Context context = appContext(page);
+        Run run = start(FONT, L10n.t("Copying the font file"));
+        if (run == null) {
+            letGo(context, uri, grant);
+            return;
+        }
+        boolean accepted = Utils.runOnBackgroundThread(() -> {
+            String said = null;
+            boolean kept = false;
+            try {
+                ContentResolver resolver = context.getContentResolver();
+                String name = displayName(resolver, uri);
+                CustomFont.Outcome outcome;
+                try (InputStream stream = run.hold(resolver.openAssetFileDescriptor(uri, "r", run.cancel)).createInputStream()) {
+                    outcome = CustomFont.keep(context, stream, name, run.cancel);
+                }
+                kept = outcome == CustomFont.Outcome.KEPT;
+                said = fontOutcome(outcome);
+            } catch (Exception error) {
+                // The class only: an app's message can carry the document's name or address.
+                Logger.printInfo(() -> "Font file not read: " + error.getClass().getSimpleName());
+                said = L10n.t("Couldn't open that file. Nothing was changed.");
+            } finally {
+                letGo(context, uri, grant);
+                String result = said;
+                boolean owed = kept;
+                ended(run, () -> {
+                    if (owed) fontKept();
+                    if (result != null) tell(FONT, result);
+                });
+            }
+        });
+        if (!accepted) {
+            letGo(context, uri, grant);
+            notStarted(run);
+        } else watch(run, L10n.t("The app holding that file is taking too long, so HushThreads stopped waiting. "
+                + "Nothing was changed."));
+    }
+
+    /** One sentence per way a picked font can go. */
+    static String fontOutcome(CustomFont.Outcome outcome) {
+        switch (outcome) {
+            case KEPT:
+                return Settings.CUSTOM_FONT.get() ? L10n.t("Font file saved. Restart Threads to see it.")
+                        : L10n.t("Font file saved. Turn on Custom font to use it.");
+            case TOO_LARGE:
+                return L10n.t("That file is too large to be a font. Nothing was changed.");
+            case NOT_A_FONT:
+                return L10n.t("That isn't a font file Android can use. Nothing was changed.");
+            default:
+                return L10n.t("Couldn't open that file. Nothing was changed.");
+        }
+    }
+
+    /** A new font is kept: with the switch on, the next start shows it, so a restart is owed. Main thread. */
+    private static void fontKept() {
+        if (!Settings.CUSTOM_FONT.get()) return;
+        AbstractPreferenceFragment.restartPending.add(FONT_FILE_CHANGE);
+        HushThreadsPreferenceFragment page = latestPage.get();
+        if (page != null && page.isAdded()) page.onRestartPendingChanged();
+    }
+
+    /** The name the file's app gives it, or null when it gives none. */
+    @Nullable
+    private static String displayName(ContentResolver resolver, Uri uri) {
+        try (Cursor cursor = resolver.query(uri, new String[] {OpenableColumns.DISPLAY_NAME}, null, null, null)) {
+            if (cursor == null || !cursor.moveToFirst() || cursor.isNull(0)) return null;
+            return cursor.getString(0);
+        } catch (RuntimeException unanswered) {
+            return null;
+        }
     }
 
     /** The file's text, opened through its app with [run]'s cancel signal and held where the screen can close it. */

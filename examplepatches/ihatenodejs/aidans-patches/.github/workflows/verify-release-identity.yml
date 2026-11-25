@@ -1,0 +1,89 @@
+name: Verify Release Identity
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  packages: read
+
+jobs:
+  verify:
+    name: Verify App and Maven access
+    runs-on: ubuntu-latest
+    steps:
+      - name: Require the default branch
+        if: github.ref != 'refs/heads/main'
+        run: |
+          echo '::error::Run Verify Release Identity from main.'
+          exit 1
+
+      - name: Checkout
+        uses: actions/checkout@v7
+        with:
+          ref: ${{ github.sha }}
+          persist-credentials: false
+
+      - name: Setup Java
+        uses: actions/setup-java@v6.3.0
+        with:
+          distribution: temurin
+          java-version: '21'
+
+      - name: Setup Rust toolchain
+        uses: dtolnay/rust-toolchain@1.97.1
+        with:
+          targets: aarch64-linux-android
+
+      - name: Setup Android NDK
+        id: setup-ndk
+        uses: nttld/setup-ndk@v1
+        with:
+          ndk-version: r28c
+          add-to-path: false
+          link-to-sdk: true
+
+      - name: Create release identity token
+        id: release-token
+        uses: actions/create-github-app-token@v2
+        with:
+          app-id: ${{ secrets.RELEASE_APP_ID }}
+          private-key: ${{ secrets.RELEASE_APP_PRIVATE_KEY }}
+          permission-contents: write
+          permission-workflows: write
+
+      - name: Verify App repository access
+        env:
+          GH_TOKEN: ${{ steps.release-token.outputs.token }}
+        run: |
+          set -euo pipefail
+          gh api installation/repositories --paginate --jq '.repositories[].full_name' \
+            | grep -Fx "$GITHUB_REPOSITORY" >/dev/null
+
+      - name: Verify GitHub Packages access
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+          version=$(awk -F '"' '/^morphe-patcher[[:space:]]*=/ { print $2; exit }' gradle/libs.versions.toml)
+          if [ -z "$version" ]; then
+            echo '::error::Cannot determine the Morphe patcher version'
+            exit 1
+          fi
+          umask 077
+          netrc=$(mktemp "$RUNNER_TEMP/release-app-netrc.XXXXXX")
+          trap 'rm -f "$netrc"' EXIT
+          printf 'machine maven.pkg.github.com login x-access-token password %s\n' "$GITHUB_TOKEN" > "$netrc"
+          curl --fail --location --proto-redir '=https' --silent --show-error \
+            --netrc-file "$netrc" --output /dev/null \
+            "https://maven.pkg.github.com/MorpheApp/registry/app/morphe/morphe-patcher/$version/morphe-patcher-$version.pom"
+
+      - name: Build with uncached Gradle dependencies
+        env:
+          GITHUB_TOKEN: ${{ steps.release-token.outputs.token }}
+          RELEASE_MAVEN_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GRADLE_USER_HOME: ${{ runner.temp }}/release-app-gradle
+          ANDROID_NDK_HOME: ${{ steps.setup-ndk.outputs.ndk-path }}
+          ANDROID_NDK_ROOT: ${{ steps.setup-ndk.outputs.ndk-path }}
+          ANDROID_NDK: ${{ steps.setup-ndk.outputs.ndk-path }}
+        run: ./gradlew :patches:buildAndroid --no-daemon

@@ -12,18 +12,17 @@ import app.morphe.PerBuild
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructionsWithLabels
 import app.morphe.patcher.extensions.InstructionExtensions.getInstruction
+import app.morphe.patcher.extensions.InstructionExtensions.replaceInstruction
 import app.morphe.patcher.patch.BytecodePatchContext
 import app.morphe.patcher.patch.PatchException
 import app.morphe.patcher.util.smali.ExternalLabel
 import app.morphe.patches.threads.comments.COMMENTS
-import app.morphe.patches.threads.comments.MEDIA
-import app.morphe.patches.threads.comments.MEDIA_EXT
-import app.morphe.patches.threads.comments.PERMALINK_REPOSITORY
+import app.morphe.patches.threads.comments.FILTER_COMMENTS_TYPES
+import app.morphe.patches.threads.comments.PERMALINK_SCREEN
 import app.morphe.patches.threads.comments.REPLIES_RESPONSE
 import app.morphe.patches.threads.comments.RepliesParseFingerprint
-import app.morphe.patches.threads.comments.TEXT_WITH_ENTITIES
 import app.morphe.patches.threads.comments.THREAD
-import app.morphe.patches.threads.comments.THREAD_ITEM
+import app.morphe.patches.threads.comments.filterCommentsClasses
 import app.morphe.patches.threads.comments.filterCommentsPatch
 import app.morphe.util.findMutableMethodOf
 import app.morphe.util.getReference
@@ -169,7 +168,7 @@ class RelatedThreadsFixtureTest {
             RepliesParseFingerprint.clearMatch()
             val where = build.name
             // Read apart from the patch: the static call right after the parse casts a related thread
-            // makes its row, and one emit among the classes holding the repository builds that row.
+            // makes its row, and one emit in the whole build builds that row.
             val parseBody = stockParse(build).body()
             val row = parseBody.indices.filter {
                 parseBody[it].opcode == Opcode.CHECK_CAST && parseBody[it].getReference<TypeReference>()?.type == RELATED_THREAD
@@ -247,6 +246,25 @@ class RelatedThreadsFixtureTest {
         }
     }
 
+    @Test
+    fun `a collector walking the fetched threads as something no row is built from is refused`() {
+        for (build in Fixtures.declaredBuilds()) {
+            RepliesParseFingerprint.clearMatch()
+            val context = context(build)
+            val found = context.relatedThreadsFetch()
+            val collector = found.method
+            val body = collector.body()
+            // The walk's first cast after the read: what each fetched thread is read as.
+            val cast = (found.read + 1 until body.size).first { body[it].opcode == Opcode.CHECK_CAST }
+            val register = (body[cast] as OneRegisterInstruction).registerA
+            collector.replaceInstruction(cast, "check-cast v$register, $RELATED_THREAD")
+            RepliesParseFingerprint.clearMatch()
+            val error = assertThrows(build.name, PatchException::class.java) { context.relatedThreadsFetch() }
+            assertTrue(error.message.orEmpty(), error.message.orEmpty().contains("threads as $RELATED_THREAD, not one of"))
+            assertFalse(build.name, collector.body().any { it.calls(RELATED_THREADS_CALL) })
+        }
+    }
+
     /** The answer's no-argument calls answering a List. */
     private fun List<Instruction>.answerLists() = indices.filter { this[it].isAnswerList() }
 
@@ -284,12 +302,7 @@ class RelatedThreadsFixtureTest {
         else -> null
     }
 
-    private fun stockParse(build: File): Method = classes(build).getValue(PERMALINK_REPOSITORY).methods.single { it.isParse() }
-
-    /** A method taking the answer, the repository, two objects and two flags, and answering an object. */
-    private fun Method.isParse() = returnType.startsWith("L") && parameterTypes.size == 6 &&
-        parameterTypes[0] == REPLIES_RESPONSE && parameterTypes[1] == PERMALINK_REPOSITORY &&
-        parameterTypes.drop(2).map { it.first() } == listOf('L', 'L', 'Z', 'Z')
+    private fun stockParse(build: File): Method = classes(build).getValue(PERMALINK_SCREEN).methods.single { it.isParse() }
 
     private fun Method.body(): List<Instruction> = implementation!!.instructions.toList()
 
@@ -305,37 +318,41 @@ class RelatedThreadsFixtureTest {
         (ExtensionDex.classes() + classes(build).values + RelatedThreadsFetchFixture.classes(build)).distinctBy { it.type },
     )
 
-    private fun classes(build: File): Map<String, ClassDef> = fixtures.getOrPut(build) { FixtureDex.classes(build, TYPES) }
+    private fun classes(build: File): Map<String, ClassDef> = fixtures.getOrPut(build) { filterCommentsClasses(build, TYPES) }
 
     private companion object {
         const val LIST = "Ljava/util/List;"
         const val FILTER = "$COMMENTS->filter($LIST)$LIST"
 
         /** Filter comments' types too, so both patches run on one copy. */
-        val TYPES = setOf(PERMALINK_REPOSITORY, REPLIES_RESPONSE, THREAD, THREAD_ITEM, MEDIA, TEXT_WITH_ENTITIES, MEDIA_EXT)
+        val TYPES = FILTER_COMMENTS_TYPES
 
         /** One read of each build serves every test; each test patches its own copy. */
         val fixtures = PerBuild<Map<String, ClassDef>>()
     }
 }
 
+/** A method taking the answer, the coordinator, two objects and two flags, and answering an object. */
+private fun Method.isParse() = returnType.startsWith("L") && parameterTypes.size == 6 &&
+    parameterTypes[0] == REPLIES_RESPONSE && parameterTypes[1] == PERMALINK_SCREEN &&
+    parameterTypes.drop(2).map { it.first() } == listOf('L', 'L', 'Z', 'Z')
+
 /**
- * Every class of a build holding the permalink repository in an instance field: where the patch
- * looks for the collector of the suggested threads Threads fetches on their own, so a test context
- * carries all the candidates the patch weighs and not just the one it should pick.
+ * Every class of a build with an `emit` that builds the row an opened post's replies make of a
+ * related thread: where the patch looks for the collector of the suggested threads Threads fetches
+ * on their own, so a test context carries every candidate the patch weighs.
  */
 internal object RelatedThreadsFetchFixture {
     private val loaded = PerBuild<List<ClassDef>>()
 
     fun classes(build: File): List<ClassDef> = loaded.getOrPut(build) {
-        val found = mutableListOf<ClassDef>()
-        FixtureDex.forEach(build) { dex ->
-            for (classDef in dex.classes) {
-                if (classDef.fields.any { !AccessFlags.STATIC.isSet(it.accessFlags) && it.type == PERMALINK_REPOSITORY }) {
-                    found += ImmutableClassDef.of(classDef)
-                }
-            }
+        val parse = FixtureDex.classes(build, setOf(PERMALINK_SCREEN)).getValue(PERMALINK_SCREEN).methods.single { it.isParse() }
+        val row = parse.relatedThreadRow()
+        FixtureDex.classesWhere(build, { true }) { method ->
+            method.name == "emit" && method.returnType == "Ljava/lang/Object;" && method.parameterTypes.size == 2 &&
+                method.implementation?.instructions?.any {
+                    it.opcode == Opcode.NEW_INSTANCE && it.getReference<TypeReference>()?.type == row
+                } == true
         }
-        found.distinctBy { it.type }
     }
 }

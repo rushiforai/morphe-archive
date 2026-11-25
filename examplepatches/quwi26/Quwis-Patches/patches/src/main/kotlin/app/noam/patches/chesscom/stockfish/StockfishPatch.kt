@@ -6,6 +6,7 @@ import app.morphe.patcher.patch.PatchException
 import app.morphe.patcher.patch.booleanOption
 import app.morphe.patcher.patch.bytecodePatch
 import app.morphe.patcher.patch.filePathOption
+import app.morphe.patcher.patch.listApkEntries
 import app.morphe.patcher.patch.patch
 import app.morphe.patcher.patch.resourceFile
 import app.noam.patches.chesscom.misc.settings.settingsPatch
@@ -35,8 +36,8 @@ private const val V2_BOARD = "Lcom/chess/chessboard/v2/ChessBoardView;"
 
 /**
  * One of Stockfish's own Android builds, downloaded while patching so the patches don't carry it.
- * A 32-bit phone runs neither the 64-bit engine nor a library from another ABI's folder: the app
- * extracts the folder its own ABI names and nothing else, so the engine goes into that one.
+ * Android extracts the lib/ folder of the app's own ABI and nothing else, so the engine goes into the
+ * folder the APK already uses: adding the other one would change the app's ABI and hide its libraries.
  */
 private class Build(
     /** The app's native library folder the engine goes into. */
@@ -106,8 +107,10 @@ private var stockfish32Bit: Option<Boolean>? = null
 private val stockfishResourcePatch = patch(
     description = "Adds the official Stockfish 19 to the app's native libraries, downloaded (80 MB) from " +
         "Stockfish's GitHub while patching (mirrors are used when github.com doesn't answer), or taken from " +
-        "an archive picked in this patch's option. The engine matches the phone: 64-bit ARM, or 32-bit ARM " +
-        "for a phone whose Android is 32-bit. The download is kept between patch runs.",
+        "an archive picked in this patch's option. The engine goes into the ABI folder the app's own " +
+        "libraries already use (64-bit ARM, or 32-bit ARM for a 32-bit APK), so adding it can't switch the " +
+        "app to another ABI; the \"32-bit engine\" option covers an APK that carries no libraries of its " +
+        "own. The download is kept between patch runs.",
 ) {
     execute {
         // A copy downloaded before is used again when it still checks out, so patching the same app
@@ -135,12 +138,63 @@ private val stockfishResourcePatch = patch(
 }
 
 /**
- * The engine for the phone the patched app will run on. A patch run on the phone itself asks the
- * platform which ABIs it has; on a computer that is unknown, so the 64-bit engine is used unless the
- * "32-bit engine" option says otherwise.
+ * The engine for the app, not just for the phone: Android picks the app's ABI from the lib/ folders
+ * inside the APK and extracts only that one folder's libraries. A 64-bit engine in a 32-bit APK would
+ * therefore switch the app to arm64 and leave its own libraries - chess.com's libcee_driver.so among
+ * them - unused, which is how "cee-driver binary not found" happens. So the APK's own folders decide;
+ * the phone and the option only matter when the APK has no lib/ of its own, as a base APK from a
+ * split install has none. A patch run on the phone itself asks the platform which ABIs it has; on a
+ * computer that is unknown, so the 64-bit engine is used unless the "32-bit engine" option says
+ * otherwise.
  */
 private fun targetBuild(): Build {
-    if (stockfish32Bit?.value == true) {
+    val abis = apkAbis()
+    val arm64 = ARM64.abi in abis
+    val arm32 = ARM32.abi in abis
+    val picked32 = stockfish32Bit?.value == true
+
+    if (arm32 && !arm64 && phoneSupports32BitArm() == false) {
+        throw PatchException(
+            "This APK is 32-bit only (lib/armeabi-v7a and no arm64-v8a), and this phone runs 64-bit " +
+                "apps only, so the patched app would not start. Get the 64-bit APK of chess.com (the one " +
+                "with lib/arm64-v8a), or patch the app installed from the store. Adding the 64-bit engine " +
+                "to this APK is not a fix: it would switch the app to arm64 and leave its own libraries " +
+                "(libcee_driver.so and the rest) unused.",
+        )
+    }
+    if (arm64 || arm32) {
+        // Both folders work when the app has both; it picks one at install time, so follow the phone
+        // when it is known, then the option.
+        val build = when {
+            arm64 && arm32 -> if (picked32 || phoneHas64BitArm() == false) ARM32 else ARM64
+            arm64 -> ARM64
+            else -> ARM32
+        }
+        when {
+            build === ARM64 && picked32 ->
+                logger.warning(
+                    "The APK carries arm64-v8a libraries, so the 64-bit engine is used: this app would " +
+                        "never load a 32-bit one. Switch \"32-bit engine\" off.",
+                )
+            build === ARM32 && arm64 ->
+                logger.info("The APK carries both arm64-v8a and armeabi-v7a libraries; the 32-bit engine goes into ${ARM32.abi}")
+            build === ARM32 ->
+                logger.info(
+                    "The APK carries only armeabi-v7a libraries, so the 32-bit engine is used: a 64-bit " +
+                        "one would switch the app to arm64 and its own libraries would not be used",
+                )
+        }
+        return build
+    }
+
+    logger.warning(
+        "The APK has no lib/ folder. chess.com keeps its native libraries (libcee_driver.so and the " +
+            "rest) in the ABI split, config.arm64_v8a.apk or config.armeabi_v7a.apk, so a base APK " +
+            "alone has none of them: bots, Play Coach and the app's other native parts can crash with " +
+            "\"cee-driver binary not found\". Patch the full app bundle, or the app installed from the " +
+            "store, rather than a single base APK.",
+    )
+    if (picked32) {
         logger.info("The 32-bit engine is picked in the patch options")
         return ARM32
     }
@@ -151,14 +205,24 @@ private fun targetBuild(): Build {
     return ARM64
 }
 
+/** The ABI folders the APK itself carries, e.g. arm64-v8a. Empty for a base APK with no lib/ at all. */
+private fun apkAbis(): Set<String> = listApkEntries("lib/")
+    .mapNotNull { entry -> entry.split('/').getOrNull(1)?.takeIf { it.isNotEmpty() } }
+    .toSet()
+
 /**
- * Whether the phone the patcher runs on has a 64-bit Android, or null on a computer, where the phone
- * the patched app goes to is not known. The platform's class is looked up by name, so this also runs
- * where there is no Android.
+ * Whether the phone the patcher runs on supports 64-bit ARM, or null on a computer, where the
+ * platform's class is not there. An empty platform list is a real answer: a 32-bit phone has no
+ * 64-bit ABIs, which is how a phone is told apart from a computer.
  */
-private fun phoneHas64BitArm(): Boolean? = try {
-    val abis = Class.forName("android.os.Build").getField("SUPPORTED_64_BIT_ABIS").get(null) as? Array<*>
-    if (abis == null || abis.isEmpty()) null else abis.any { it == "arm64-v8a" }
+private fun phoneHas64BitArm(): Boolean? = phoneAbis("SUPPORTED_64_BIT_ABIS")?.any { it == "arm64-v8a" }
+
+/** Whether the phone the patcher runs on can run 32-bit ARM, or null on a computer. */
+private fun phoneSupports32BitArm(): Boolean? = phoneAbis("SUPPORTED_32_BIT_ABIS")?.any { it == "armeabi-v7a" }
+
+/** One of the platform's ABI lists, or null where there is no Android platform (a computer). */
+private fun phoneAbis(field: String): Array<*>? = try {
+    Class.forName("android.os.Build").getField(field).get(null) as? Array<*>
 } catch (e: Throwable) {
     null
 }
@@ -630,15 +694,15 @@ val stockfishPatch = bytecodePatch(
         allowedExtensions = listOf("tar.gz", "gz", "tgz"),
     )
 
-    // A 32-bit phone's Android runs neither the 64-bit engine nor a library from another ABI's folder.
-    // Patching on the phone itself is told which it is by the platform; on a computer this option does.
+    // The APK's own lib/ folders decide the engine; this option covers an APK that carries none of
+    // its own, or both, and an APK with both on a phone that is 32-bit.
     stockfish32Bit = booleanOption(
         key = "stockfish32Bit",
         default = false,
         title = "32-bit engine",
         description = "Use Stockfish's 32-bit ARM build (armeabi-v7a) instead of the 64-bit one. Needed " +
-            "only when patching on a computer for a phone whose Android is 32-bit: patching on the phone " +
-            "picks the right engine itself.",
+            "only for an APK that carries no native libraries of its own, or both: otherwise the ABI " +
+            "folders in the APK decide, so that adding the engine can't switch the app to another ABI.",
     )
 
     dependsOn(settingsPatch, stockfishResourcePatch)

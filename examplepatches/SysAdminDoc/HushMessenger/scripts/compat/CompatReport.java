@@ -171,19 +171,22 @@ public class CompatReport {
         PATCHES.put("Typing in your chat list", List.of("inbox_typing"));
         PATCHES.put("Put your words above the photo", List.of("media_caption"));
         PATCHES.put("Keep the search bar", List.of("inbox_search_bar"));
+        PATCHES.put("Write longer notes", List.of("longer_notes"));
         PATCHES.put("Preview chats on long press", List.of("chat_preview"));
         PATCHES.put("Bigger chat preview", List.of("chat_preview_size"));
         PATCHES.put("Hide Mark as read", List.of("mark_read_action"));
         PATCHES.put("Pin more chats", List.of("pinned_chats", "pin_rows", "pin_ask", "pin_drop", "pin_full", "pin_list"));
         PATCHES.put("Hide chosen chats", List.of("hidden_chat_list", "hidden_chat_row", "hidden_chat_tap"));
         PATCHES.put("Hide chat menu items", List.of("chat_menu_items"));
+        PATCHES.put("Hide profile menu items", List.of("profile_menu_items"));
         PATCHES.put("Hide Facebook shortcuts", List.of("facebook", "facebook_profile", "facebook_profile_header"));
-        PATCHES.put("Hide Meta AI", List.of("ai_menu", "ai_fab", "ai_toolbar", "ai_tab", "ai_muse_tab", "ai_search", "ai_search_chip", "ai_mentions", "ai_commands", "ai_search_hint", "ai_search_screen_hint", "ai_mention_rows", "ai_summary", "tab_config"));
+        PATCHES.put("Hide Meta AI", List.of("ai_menu", "ai_fab", "ai_toolbar", "ai_tab", "ai_muse_tab", "ai_search", "ai_search_chip", "ai_mentions", "ai_commands", "ai_search_hint", "ai_search_screen_hint", "ai_mention_rows", "ai_summary", "tab_config", "search_sections", "search_items"));
         PATCHES.put("Hide Chat Moments", List.of("moments"));
         PATCHES.put("Hide Reels badge", List.of("reels_badge"));
         PATCHES.put("Hide People tab", List.of("tab_people", "tab_config"));
         PATCHES.put("Show People tab", List.of("tab_config"));
         PATCHES.put("Show settings tab", List.of("tab_config"));
+        PATCHES.put("Show Instants tab", List.of("tab_config"));
         PATCHES.put("Hide Notifications tab", List.of("tab_notifications", "tab_config"));
         PATCHES.put("Hide Stories tab", List.of("tab_config"));
         PATCHES.put("Hide tab labels", List.of("tab_labels"));
@@ -218,6 +221,7 @@ public class CompatReport {
         PATCHES.put("Hide Your story when sharing", List.of("share_story", "share_story_target"));
         PATCHES.put("Hide pictures on the Blocked list", List.of("blocked_list_pictures"));
         PATCHES.put("Notify for restricted chats", List.of("restricted_notify"));
+        PATCHES.put("Sound in the open chat", List.of("open_chat_sound"));
         PATCHES.put("Use the phone's camera app", List.of("system_camera"));
         PATCHES.put("Open your gallery app", List.of("external_gallery", "gallery_temp_file"));
         PATCHES.put("Put gallery picks in the chat", List.of("gallery_to_chat"));
@@ -234,6 +238,12 @@ public class CompatReport {
         PATCHES.put("Stop nearby scans", List.of("nearby_scans", "wifi_identity"));
         PATCHES.put("Stop app list and device ID sharing", List.of("phone_id_sync"));
         PATCHES.put("Skip passkey sign-in", List.of("passkey_login"));
+        PATCHES.put("Show the 40-character code option", List.of("recovery_code_row"));
+        PATCHES.put("Hide Suggested in search", List.of("search_sections"));
+        PATCHES.put("Hide recent reels in search", List.of("search_sections"));
+        PATCHES.put("Block Meta AI chats", List.of("ai_chat_open"));
+        PATCHES.put("Hide Create story", List.of("story_create_tile"));
+        PATCHES.put("Show pinned messages", List.of("pinned_bar"));
         PATCHES.put("Keep a message log", List.of("message_log", "unsent_recall", "unsent_clear", "message_log_button", "message_log_click",
             "quiet_log_check", "quiet_log_drop", "hidden_chat_list", "hidden_chat_row", "hidden_chat_tap"));
         PATCHES.put("Auto reply", List.of("auto_reply"));
@@ -246,19 +256,19 @@ public class CompatReport {
         PATCHES.put("Record calls", List.of("call_recording"));
         PATCHES.put("Live captions on calls", List.of("call_recording"));
         PATCHES.put("Hide call buttons", List.of("hide_call_bar", "hide_call_lists"));
-        PATCHES.put("Ask before a call", List.of("hide_call_bar", "call_button_built"));
+        PATCHES.put("Ask before a call", List.of("hide_call_bar", "call_button_built", "profile_menu_call"));
         PATCHES.put("Allow screenshots", List.of("allow_screenshot", "screenshot_viewers"));
         PATCHES.put("Block screenshots in chats", List.of("secure_chat"));
         PATCHES.put("Invisible buttons", List.of("invisible_buttons"));
         PATCHES.put("Translucent chat bars", List.of("ios_bars"));
+        PATCHES.put("Screen refresh rate", List.of("refresh_rate"));
         PATCHES.put("Appear offline", List.of("appear_offline", "availability_setting"));
-        PATCHES.put("Hide read receipts", List.of("hide_read_receipts", "reply_read", "delivery_receipt"));
+        PATCHES.put("Hide read receipts", List.of("hide_read_receipts", "reply_read", "delivery_receipt", "reaction_read"));
         PATCHES.put("Mark chats read on this phone", List.of("local_read"));
         PATCHES.put("Mark as read button", List.of("mark_read_bar", "mark_read_click"));
         PATCHES.put("Keep unsent messages", List.of("keep_unsent", "unsent_indicator", "delta_unsent", "unsent_recall", "unsent_clear"));
-        PATCHES.put("Unlock app icons", List.of("app_icons"));
-        PATCHES.put("Unlock app themes", List.of("app_themes", "app_theme_pick"));
         PATCHES.put("Square profile pictures", List.of("avatar_shape", "story_ring"));
+        PATCHES.put("Thin story rings", List.of("story_ring"));
         PATCHES.put("Your own home header", List.of("home_header"));
         PATCHES.put("Use your own font", List.of("font_layout", "font_repository", "font_roboto", "font_by_name", "font_input"));
         PATCHES.put("Blur behind menus", List.of("menu_blur"));
@@ -269,6 +279,7 @@ public class CompatReport {
         PATCHES.put("Open settings from menu", List.of("menu_settings"));
         PATCHES.put("Keep chat pop-ups", List.of("chat_channel_keep", "chat_channel_raise"));
         PATCHES.put("Fix videos in chat heads", List.of("chat_head_video"));
+        PATCHES.put("Chat bar buttons in the + menu", List.of("chat_bar_plus"));
     }
 
     static final Set<String> ORIGINAL_PHOTO_HOOKS = Set.of(
@@ -881,12 +892,16 @@ public class CompatReport {
      * --record-control: a control's hooks in every recorded build, read from the stock APKs in [apkDir] (matched by
      * their recorded SHA-256) and written into each record and each profile in ControlProfiles.kt. --save holds a build
      * to the recorded hook counts, so a control none of the records has yet gets its ids here instead of by hand. The
-     * builds one profile serves must resolve to the same methods, or nothing is written.
+     * builds one profile serves must resolve to the same methods, or nothing is written. Several controls, comma
+     * separated, share one search of each build, and none of them is written unless all of them resolve.
      */
-    static int recordControl(String key, Path apkDir) throws Exception {
-        if (!CONTROL_KEYS.contains(key)) {
-            System.err.println(key + " isn't a control. Add it to PATCHES and its finder to Controls.findControls first.");
-            return 2;
+    static int recordControl(String keyList, Path apkDir) throws Exception {
+        var keys = List.of(keyList.split(","));
+        for (var key : keys) {
+            if (!CONTROL_KEYS.contains(key)) {
+                System.err.println(key + " isn't a control. Add it to PATCHES and its finder to Controls.findControls first.");
+                return 2;
+            }
         }
         var records = new TreeMap<String, Path>();
         var builds = new TreeMap<String, Profile>();
@@ -918,21 +933,27 @@ public class CompatReport {
             return 2;
         }
 
-        var found = new TreeMap<String, Set<String>>();
+        // Control, then build, then the hook ids found there.
+        var found = new TreeMap<String, Map<String, Set<String>>>();
         for (var build : builds.values()) {
-            var ids = findControls(loadDex(apks.get(build.sha256))).get(key).stream().map(CompatReport::hookId)
-                .collect(Collectors.toCollection(TreeSet::new));
-            System.out.println(build.code + ": " + (ids.isEmpty() ? "nothing found" : String.join(", ", ids)));
-            found.put(build.code, ids);
+            var controls = findControls(loadDex(apks.get(build.sha256)));
+            for (var key : keys) {
+                var ids = controls.get(key).stream().map(CompatReport::hookId).collect(Collectors.toCollection(TreeSet::new));
+                System.out.println((keys.size() > 1 ? key + " " : "") + build.code + ": " + (ids.isEmpty() ? "nothing found" : String.join(", ", ids)));
+                found.computeIfAbsent(key, k -> new TreeMap<>()).put(build.code, ids);
+            }
         }
         var problems = new ArrayList<String>();
-        found.forEach((code, ids) -> { if (ids.isEmpty()) problems.add(code + " has no " + key + " hook"); });
         var profiles = new TreeSet<>(families.values());
-        for (var profile : profiles) {
-            var served = families.entrySet().stream().filter(e -> e.getValue().equals(profile)).map(Map.Entry::getKey).toList();
-            var shapes = served.stream().map(found::get).distinct().toList();
-            if (shapes.size() > 1) {
-                problems.add("PROFILE_" + profile + " serves " + String.join(", ", served) + ", which don't resolve to the same methods");
+        for (var key : keys) {
+            var byBuild = found.get(key);
+            byBuild.forEach((code, ids) -> { if (ids.isEmpty()) problems.add(code + " has no " + key + " hook"); });
+            for (var profile : profiles) {
+                var served = families.entrySet().stream().filter(e -> e.getValue().equals(profile)).map(Map.Entry::getKey).toList();
+                var shapes = served.stream().map(byBuild::get).distinct().toList();
+                if (shapes.size() > 1) {
+                    problems.add("PROFILE_" + profile + " serves " + String.join(", ", served) + ", which don't resolve to the same " + key + " methods");
+                }
             }
         }
         if (!problems.isEmpty()) {
@@ -943,7 +964,7 @@ public class CompatReport {
         }
 
         for (var build : builds.values()) {
-            build.hooks.put(key, found.get(build.code));
+            for (var key : keys) build.hooks.put(key, found.get(key).get(build.code));
             Files.writeString(records.get(build.code), String.join("\n", build.lines()) + "\n");
         }
         for (var profile : profiles) {
@@ -958,7 +979,7 @@ public class CompatReport {
         }
         Files.writeString(source, crlf ? kotlin.replace("\n", "\r\n") : kotlin);
         System.out.println();
-        System.out.println("Wrote " + key + " into " + builds.size() + " records and " + profiles.size() + " profiles in " + CONTROL_PROFILES + ".");
+        System.out.println("Wrote " + String.join(", ", keys) + " into " + builds.size() + " records and " + profiles.size() + " profiles in " + CONTROL_PROFILES + ".");
         return 0;
     }
 
@@ -1051,8 +1072,8 @@ public class CompatReport {
      * Every hook whose method the patches refuse when it has no local register, through validateScratch or a register
      * check of its own. The control tests' zero-local check (MirroredFinders.kt) fails when this set and the patches part.
      */
-    static final Set<String> NEEDS_A_LOCAL = Set.of("ad_events", "ai_commands", "ai_fab", "ai_mention_rows", "ai_menu", "ai_search",
-        "ai_search_chip", "ai_summary", "allow_screenshot", "analytics_uploads", "app_icons", "app_themes", "attribution_uploads", "bubbles", "call_recording", "delta_unsent",
+    static final Set<String> NEEDS_A_LOCAL = Set.of("ad_events", "ai_chat_open", "ai_commands", "ai_fab", "ai_mention_rows", "ai_menu", "ai_search",
+        "ai_search_chip", "ai_summary", "allow_screenshot", "analytics_uploads", "attribution_uploads", "bubbles", "call_recording", "delta_unsent",
         "disappearing_swipe", "external_gallery", "facebook", "facebook_profile", "font_by_name", "font_repository", "growth_active_status", "growth_notes", "growth_story_card", "instant_gallery", "instants_button", "keep_unsent", "link_player",
         "mqtt_telemetry", "nearby_scans", "original_photo", "passkey_login", "people_story", "phone_id_sync", "people_tab", "recent_media", "stories", "system_camera",
         "tab_badges", "typing", "unsent_indicator", "unsent_recall");
@@ -1559,7 +1580,7 @@ public class CompatReport {
         if (args.length < 1 || (args.length > 3 && args.length != 5) || (args.length > 1 && !"--save".equals(args[1]))) {
             System.err.println("Usage: CompatReport <apk> [--save <profiles dir> <desktop.jar> <bundle.mpp>]");
             System.err.println("       CompatReport --kotlin <recorded build .txt>");
-            System.err.println("       CompatReport --record-control <control> <stock APK dir>");
+            System.err.println("       CompatReport --record-control <control>[,<control>...] <stock APK dir>");
             System.exit(2);
         }
         File apk = new File(args[0]);

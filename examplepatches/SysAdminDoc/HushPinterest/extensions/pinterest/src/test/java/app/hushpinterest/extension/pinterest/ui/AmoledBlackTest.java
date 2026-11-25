@@ -8,8 +8,10 @@ package app.hushpinterest.extension.pinterest.ui;
 
 import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertSame;
+import static org.junit.Assert.assertTrue;
 
 import android.app.Activity;
 import android.content.Context;
@@ -41,10 +43,12 @@ import org.robolectric.RobolectricTestRunner;
 import org.robolectric.RuntimeEnvironment;
 import org.robolectric.annotation.Config;
 import org.robolectric.annotation.GraphicsMode;
+import org.robolectric.shadows.ShadowSystemClock;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 import app.hushpinterest.extension.pinterest.settings.Settings;
 import app.hushpinterest.extension.shared.SettingsContextRule;
@@ -79,6 +83,7 @@ public class AmoledBlackTest {
         Settings.BLACK_SHEETS.resetToDefault();
         Settings.BLACK_BOARDS.resetToDefault();
         Settings.BLACK_TOASTS.resetToDefault();
+        Settings.BLACK_BUTTONS.resetToDefault();
         HookStatus.clear();
         AmoledBlack.tabRoot = -1;
         AmoledBlack.searchText = -1;
@@ -86,6 +91,194 @@ public class AmoledBlackTest {
         AmoledBlack.gestureStrip = -1;
         AmoledBlack.headerImage = -1;
         AmoledBlack.headerBlur = -1;
+    }
+
+    /** Pinterest's button grays over black go to Black buttons; colors, white and none don't. */
+    @Test public void onlyDarkGraysCountAsButtonGrays() {
+        assertTrue("night secondary gray", AmoledBlack.darkGray(0x4D72727E));
+        assertTrue("an opaque dark gray", AmoledBlack.darkGray(0xFF333333));
+        assertTrue(AmoledBlack.darkGray(SECONDARY));
+        assertFalse("red", AmoledBlack.darkGray(0xFFE60023));
+        assertFalse("a dark red", AmoledBlack.darkGray(0xFF661010));
+        assertFalse("white", AmoledBlack.darkGray(0xFFFFFFFF));
+        assertFalse("light gray", AmoledBlack.darkGray(0xFFE9E9E9));
+        assertFalse("none", AmoledBlack.darkGray(0x00000000));
+    }
+
+    /** A search guide like Pinterest's: its fill a shape of its own, under an outline in a layer when [outlined]. */
+    private static LinearLayout searchGuide(boolean night, int fill, boolean outlined) {
+        Context base = RuntimeEnvironment.getApplication();
+        Configuration configuration = new Configuration(base.getResources().getConfiguration());
+        configuration.uiMode = (night ? Configuration.UI_MODE_NIGHT_YES : Configuration.UI_MODE_NIGHT_NO)
+                | (configuration.uiMode & ~Configuration.UI_MODE_NIGHT_MASK);
+        LinearLayout guide = new LinearLayout(base.createConfigurationContext(configuration));
+        GradientDrawable shape = new GradientDrawable();
+        shape.setColor(ColorStateList.valueOf(fill));
+        shape.setCornerRadius(48f);
+        if (!outlined) {
+            guide.setBackground(shape);
+            return guide;
+        }
+        GradientDrawable outline = new GradientDrawable();
+        outline.setStroke(2, Color.WHITE);
+        guide.setBackground(new LayerDrawable(new Drawable[] {shape, outline}));
+        return guide;
+    }
+
+    private static int guideFill(View guide) {
+        Drawable background = guide.getBackground();
+        if (background instanceof LayerDrawable) background = ((LayerDrawable) background).getDrawable(0);
+        return ((GradientDrawable) background).getColor().getDefaultColor();
+    }
+
+    /**
+     * #48: the chips over search results, Filter among them, fill a shape of their own with
+     * Pinterest's secondary gray, solid or see-through by theme. With Black buttons on in dark mode
+     * that fill turns pure black, which the levels curve alone doesn't reach, under an outline too. A picked chip's light fill, a colored chip, a gradient and light mode keep their look,
+     * and off or Pause give the gray back on the chip's next look.
+     */
+    @Test public void blackButtonsTurnTheSearchChipsBlack() {
+        LinearLayout filter = searchGuide(true, SECONDARY, false);
+        AmoledBlack.searchGuide(filter);
+        assertEquals("off, Pinterest's gray", SECONDARY, guideFill(filter));
+
+        Settings.BLACK_BUTTONS.save(true);
+        AmoledBlack.searchGuide(filter);
+        assertEquals(Color.BLACK, guideFill(filter));
+        assertEquals("the pressed state goes through the same curve", Color.BLACK,
+                ((GradientDrawable) filter.getBackground()).getColor().getColorForState(new int[] {android.R.attr.state_pressed}, 0));
+        assertTrue(String.join("\n", HookStatus.report()).contains("search guide tinted black"));
+        LinearLayout outlined = searchGuide(true, SEE_THROUGH_SECONDARY, true);
+        AmoledBlack.searchGuide(outlined);
+        assertEquals("under an outline", Color.BLACK, guideFill(outlined));
+
+        LinearLayout picked = searchGuide(true, 0xFFE9E9E9, false);
+        AmoledBlack.searchGuide(picked);
+        assertEquals("a picked chip's light fill stays", 0xFFE9E9E9, guideFill(picked));
+        LinearLayout colored = searchGuide(true, 0xFF2B6E5A, false);
+        AmoledBlack.searchGuide(colored);
+        assertEquals("a colored chip stays", 0xFF2B6E5A, guideFill(colored));
+        LinearLayout gradient = searchGuide(true, SECONDARY, false);
+        ((GradientDrawable) gradient.getBackground()).setColors(new int[] {0xFF333333, 0xFF444444});
+        AmoledBlack.searchGuide(gradient);
+        assertArrayEquals("a gradient stays", new int[] {0xFF333333, 0xFF444444},
+                ((GradientDrawable) gradient.getBackground()).getColors());
+        LinearLayout day = searchGuide(false, SECONDARY, false);
+        AmoledBlack.searchGuide(day);
+        assertEquals("light mode stays", SECONDARY, guideFill(day));
+
+        PauseForTests.pause(HushPinterestPause.Reason.SWITCH);
+        AmoledBlack.searchGuide(outlined);
+        assertEquals("paused gives the gray back", SEE_THROUGH_SECONDARY, guideFill(outlined));
+        PauseForTests.resume();
+        Settings.BLACK_BUTTONS.save(false);
+        AmoledBlack.searchGuide(filter);
+        assertEquals("off gives the gray back", SECONDARY, guideFill(filter));
+    }
+
+    /** Pinterest's opaque scrim gray at night on a Galaxy S22, a Refine your search row's fill (14.45.0). */
+    private static final int SCRIM = 0xFF3A3A36;
+    /** Pinterest's subtle gray at night on a Galaxy S22, the settings account card's fill (14.45.0). */
+    private static final int SUBTLE = 0xFF242421;
+
+    private static Context themed(boolean night) {
+        Context base = RuntimeEnvironment.getApplication();
+        Configuration configuration = new Configuration(base.getResources().getConfiguration());
+        configuration.uiMode = (night ? Configuration.UI_MODE_NIGHT_YES : Configuration.UI_MODE_NIGHT_NO)
+                | (configuration.uiMode & ~Configuration.UI_MODE_NIGHT_MASK);
+        return base.createConfigurationContext(configuration);
+    }
+
+    /**
+     * #48: each "Refine your search" row is a shape every row shares from one resource. With Black
+     * buttons on in dark mode the row's own copy turns pure black and the rows Pinterest hasn't
+     * handed over keep the shared gray. Off, Pause and light mode give the gray back on the row's
+     * next layout, and a colored or gradient fill keeps its look.
+     */
+    @Test public void blackButtonsTurnTheRefineYourSearchRowsBlack() {
+        GradientDrawable resource = new GradientDrawable();
+        resource.setColor(ColorStateList.valueOf(SCRIM));
+        resource.setCornerRadius(24f);
+        LinearLayout row = new LinearLayout(themed(true));
+        row.setBackground(resource.getConstantState().newDrawable());
+        LinearLayout other = new LinearLayout(themed(true));
+        other.setBackground(resource.getConstantState().newDrawable());
+        AmoledBlack.searchBubble(row);
+        assertEquals("off, Pinterest's gray", SCRIM, guideFill(row));
+
+        Settings.BLACK_BUTTONS.save(true);
+        row.layout(0, 0, 320, 96);
+        assertEquals("the next layout paints it", Color.BLACK, guideFill(row));
+        assertEquals("a row not handed over keeps the shared gray", SCRIM, guideFill(other));
+        assertTrue(String.join("\n", HookStatus.report()).contains("search bubble tinted black"));
+        LinearLayout built = new LinearLayout(themed(true));
+        built.setBackground(resource.getConstantState().newDrawable());
+        AmoledBlack.searchBubble(built);
+        assertEquals("a row built with the switch on", Color.BLACK, guideFill(built));
+        assertEquals("the resource keeps its gray", SCRIM, resource.getColor().getDefaultColor());
+
+        LinearLayout colored = new LinearLayout(themed(true));
+        GradientDrawable green = new GradientDrawable();
+        green.setColor(0xFF2B6E5A);
+        colored.setBackground(green);
+        AmoledBlack.searchBubble(colored);
+        assertEquals("a colored row stays", 0xFF2B6E5A, guideFill(colored));
+        LinearLayout gradient = new LinearLayout(themed(true));
+        GradientDrawable blend = new GradientDrawable();
+        blend.setColors(new int[] {0xFF333333, 0xFF444444});
+        gradient.setBackground(blend);
+        AmoledBlack.searchBubble(gradient);
+        assertArrayEquals("a gradient stays", new int[] {0xFF333333, 0xFF444444}, blend.getColors());
+        LinearLayout day = new LinearLayout(themed(false));
+        day.setBackground(resource.getConstantState().newDrawable());
+        AmoledBlack.searchBubble(day);
+        assertEquals("light mode stays", SCRIM, guideFill(day));
+
+        PauseForTests.pause(HushPinterestPause.Reason.SWITCH);
+        row.layout(0, 0, 320, 97);
+        assertEquals("paused gives the gray back", SCRIM, guideFill(row));
+        PauseForTests.resume();
+        row.layout(0, 0, 320, 98);
+        assertEquals(Color.BLACK, guideFill(row));
+        Settings.BLACK_BUTTONS.save(false);
+        built.layout(0, 0, 320, 96);
+        assertEquals("off gives the gray back", SCRIM, guideFill(built));
+    }
+
+    /**
+     * #48: the account card at the top of Pinterest's settings takes a black tint with Black
+     * buttons on in dark mode, and off, Pause or light mode give back the tint it had on its next
+     * layout. A card with no background is left alone.
+     */
+    @Test public void blackButtonsTurnTheSettingsAccountCardBlack() {
+        View card = new View(themed(true));
+        GradientDrawable fill = new GradientDrawable();
+        fill.setColor(SUBTLE);
+        card.setBackground(fill);
+        AmoledBlack.settingsCard(card);
+        assertNull("off, Pinterest's own look", card.getBackgroundTintList());
+
+        Settings.BLACK_BUTTONS.save(true);
+        card.layout(0, 0, 320, 160);
+        assertEquals(Color.BLACK, card.getBackgroundTintList().getDefaultColor());
+        PauseForTests.pause(HushPinterestPause.Reason.SWITCH);
+        card.layout(0, 0, 320, 161);
+        assertNull("paused gives its look back", card.getBackgroundTintList());
+        PauseForTests.resume();
+        AmoledBlack.settingsCard(card);
+        assertEquals(Color.BLACK, card.getBackgroundTintList().getDefaultColor());
+        Settings.BLACK_BUTTONS.save(false);
+        card.layout(0, 0, 320, 162);
+        assertNull("off gives its look back", card.getBackgroundTintList());
+
+        Settings.BLACK_BUTTONS.save(true);
+        View day = new View(themed(false));
+        day.setBackground(new GradientDrawable());
+        AmoledBlack.settingsCard(day);
+        assertNull("light mode stays", day.getBackgroundTintList());
+        View bare = new View(themed(true));
+        AmoledBlack.settingsCard(bare);
+        assertNull("no background, nothing to tint", bare.getBackgroundTintList());
     }
 
     @Test public void separateTabsTintedGrayTurnBlackAndOffGivesTheTintBack() {
@@ -695,6 +888,35 @@ public class AmoledBlackTest {
         assertSame("light mode stays as it is", gray, lightButton.getBackgroundTintList());
     }
 
+    private static final int[] PRESSED = {android.R.attr.state_pressed};
+
+    /**
+     * #48, seen on the API 36 emulator (14.45.0): the filter buttons on a profile's Collages tab
+     * are Pinterest's opaque secondary gray, which the levels curve alone left #0C0C04. At rest the
+     * gray turns pure black, while a pressed button's lighter gray keeps the curve so a press still
+     * shows, and a picked one stays white.
+     */
+    @Test public void anOpaqueFilterGrayTurnsPureBlackAndAPressStillShows() {
+        Settings.BLACK_BOARDS.save(true);
+        FrameLayout row = sheet(true);
+        AmoledBlack.profileFilters(row);
+        Activity activity = Robolectric.buildActivity(Activity.class).setup().get();
+        activity.setContentView(row);
+        ColorStateList gray = new ColorStateList(new int[][] {PICKED, PRESSED, new int[0]},
+                new int[] {Color.WHITE, 0xFF6A6A64, SECONDARY});
+        View button = filterButton(row, gray);
+        row.layout(0, 0, 320, 48);
+        ColorStateList tint = button.getBackgroundTintList();
+        assertEquals("at rest", Color.BLACK, tint.getDefaultColor());
+        assertEquals("at rest, asked by state", Color.BLACK, tint.getColorForState(new int[0], Color.TRANSPARENT));
+        assertEquals("a press keeps the curve", AmoledBlack.leveled(0xFF6A6A64), tint.getColorForState(PRESSED, Color.TRANSPARENT));
+        assertTrue("and still shows", tint.getColorForState(PRESSED, Color.TRANSPARENT) != Color.BLACK);
+        assertEquals("a picked button", Color.WHITE, tint.getColorForState(PICKED, Color.TRANSPARENT));
+        Settings.BLACK_BOARDS.save(false);
+        row.getViewTreeObserver().dispatchOnPreDraw();
+        assertSame("off gives back Pinterest's tint", gray, button.getBackgroundTintList());
+    }
+
     private static final int[] PICKED = {android.R.attr.state_selected};
 
     /**
@@ -1001,6 +1223,112 @@ public class AmoledBlackTest {
         assertEquals(PAGE, color(band));
         band.getViewTreeObserver().dispatchOnPreDraw();
         assertEquals("the switch is off and the band turned black anyway", PAGE, color(band));
+    }
+
+    /** Pinterest's main screen, which the extension tells apart by its simple name. */
+    public static final class MainActivity extends Activity {}
+
+    /** The gray the window gives its own navigation bar band as Pinterest starts. */
+    private static final int STARTING_BAND = 0xFF222226;
+
+    /** A screen just started, its window holding the strip behind the gesture handle and its own band, both gray, and no bar yet. */
+    private static <T extends Activity> T starting(Class<T> screen) {
+        T activity = Robolectric.buildActivity(screen).setup().get();
+        FrameLayout content = new FrameLayout(activity);
+        View strip = new View(activity);
+        strip.setId(STRIP);
+        strip.setBackgroundColor(PAGE);
+        content.addView(strip);
+        View band = new View(activity);
+        band.setId(android.R.id.navigationBarBackground);
+        band.setBackgroundColor(STARTING_BAND);
+        content.addView(band);
+        activity.setContentView(content);
+        return activity;
+    }
+
+    private static View root(Activity activity) {
+        return activity.getWindow().getDecorView();
+    }
+
+    private static void nextFrame(Activity activity) {
+        root(activity).getViewTreeObserver().dispatchOnPreDraw();
+    }
+
+    @Test @Config(qualifiers = "night")
+    public void theMainScreensBandsAreBlackFromItsFirstFrameUntilTheBarTakesThemOver() {
+        Settings.BLACK_BOTTOM_BAR.save(true);
+        AmoledBlack.gestureStrip = STRIP;
+        MainActivity main = starting(MainActivity.class);
+        View strip = root(main).findViewById(STRIP), band = root(main).findViewById(android.R.id.navigationBarBackground);
+        AmoledBlack.mainScreenStarting(main);
+        nextFrame(main);
+        assertEquals(Color.BLACK, color(band));
+        assertEquals(Color.BLACK, color(strip));
+        // Pinterest colors the window again before its bar draws.
+        band.setBackgroundColor(STARTING_BAND);
+        nextFrame(main);
+        assertEquals("gray again before the bar drew", Color.BLACK, color(band));
+
+        // The bar's first frame takes both bands over, and the bar's switch decides from then on.
+        LinearLayout bar = bar(true);
+        ((FrameLayout) strip.getParent()).addView(bar);
+        AmoledBlack.bottomBar(bar);
+        nextFrame(main);
+        assertEquals(Color.BLACK, color(band));
+        Settings.BLACK_BOTTOM_BAR.save(false);
+        AmoledBlack.bottomBar(bar);
+        nextFrame(main);
+        assertEquals(PAGE, color(strip));
+        assertEquals("the start's hold let go once the bar drew", STARTING_BAND, color(band));
+    }
+
+    @Test @Config(qualifiers = "night")
+    public void aMainScreenWhoseBarNeverDrawsGetsItsGrayBackOnceTheHoldRunsOut() {
+        Settings.BLACK_BOTTOM_BAR.save(true);
+        AmoledBlack.gestureStrip = STRIP;
+        MainActivity main = starting(MainActivity.class);
+        View strip = root(main).findViewById(STRIP), band = root(main).findViewById(android.R.id.navigationBarBackground);
+        AmoledBlack.mainScreenStarting(main);
+        nextFrame(main);
+        assertEquals(Color.BLACK, color(band));
+        ShadowSystemClock.advanceBy(AmoledBlack.START_HOLD_MS + 1, TimeUnit.MILLISECONDS);
+        nextFrame(main);
+        assertEquals(STARTING_BAND, color(band));
+        assertEquals(PAGE, color(strip));
+        band.setBackgroundColor(ELEVATION);
+        nextFrame(main);
+        assertEquals("let go for good", ELEVATION, color(band));
+    }
+
+    @Test @Config(qualifiers = "night")
+    public void anotherScreenOrTheSwitchOffKeepsTheStartingGray() {
+        AmoledBlack.gestureStrip = STRIP;
+        MainActivity off = starting(MainActivity.class);
+        AmoledBlack.mainScreenStarting(off);
+        nextFrame(off);
+        assertEquals(STARTING_BAND, color(root(off).findViewById(android.R.id.navigationBarBackground)));
+        assertEquals(PAGE, color(root(off).findViewById(STRIP)));
+
+        Settings.BLACK_BOTTOM_BAR.save(true);
+        Activity other = starting(Activity.class);
+        AmoledBlack.mainScreenStarting(other);
+        nextFrame(other);
+        assertEquals(STARTING_BAND, color(root(other).findViewById(android.R.id.navigationBarBackground)));
+        PauseForTests.pause(HushPinterestPause.Reason.SWITCH);
+        MainActivity paused = starting(MainActivity.class);
+        AmoledBlack.mainScreenStarting(paused);
+        nextFrame(paused);
+        assertEquals("paused", STARTING_BAND, color(root(paused).findViewById(android.R.id.navigationBarBackground)));
+    }
+
+    @Test public void aMainScreenInLightModeKeepsItsBands() {
+        Settings.BLACK_BOTTOM_BAR.save(true);
+        AmoledBlack.gestureStrip = STRIP;
+        MainActivity light = starting(MainActivity.class);
+        AmoledBlack.mainScreenStarting(light);
+        nextFrame(light);
+        assertEquals(STARTING_BAND, color(root(light).findViewById(android.R.id.navigationBarBackground)));
     }
 
     /** A window on show holding the bar and the strip behind the gesture handle, in a pin page's gray. */

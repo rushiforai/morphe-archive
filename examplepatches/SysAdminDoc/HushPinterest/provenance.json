@@ -140,6 +140,7 @@
         "patches/src/main/kotlin/app/morphe/patches/pinterest/ui/**",
         "extensions/pinterest/src/main/java/app/hushpinterest/extension/pinterest/actions/**",
         "extensions/pinterest/src/main/java/app/hushpinterest/extension/pinterest/settings/DownloadHistoryPreference.java",
+        "extensions/pinterest/src/main/java/app/hushpinterest/extension/pinterest/settings/ActivityHistoryPreference.java",
         "extensions/pinterest/src/main/java/app/hushpinterest/extension/pinterest/settings/DownloadFolderPreference.java",
         "extensions/pinterest/src/main/java/app/hushpinterest/extension/pinterest/settings/SetupGuidancePreference.java",
         "extensions/pinterest/src/main/java/app/hushpinterest/extension/pinterest/settings/PushReadiness.java",
@@ -155,6 +156,7 @@
         "extensions/pinterest/src/main/java/app/hushpinterest/extension/pinterest/settings/PinMenuRowsPreference.java",
         "extensions/pinterest/src/main/java/app/hushpinterest/extension/pinterest/settings/BoardTabPositionPreference.java",
         "extensions/pinterest/src/main/java/app/hushpinterest/extension/pinterest/settings/SaveSoundPreference.java",
+        "extensions/pinterest/src/main/java/app/hushpinterest/extension/pinterest/settings/FontFilePreference.java",
         "patches/src/main/kotlin/app/morphe/patches/pinterest/actions/**"
       ],
       "origin": "original",
@@ -212,6 +214,17 @@
       ],
       "license": "GPL-3.0-only",
       "changes": "Renamed for Pinterest: packages app.hushpinterest.extension.pinterest and app.morphe.patches.pinterest. Pinterest's own permissions and providers in place of Threads', the app name option folded into Change package name, Redex's outlined string tables and Threads' own-package check left out, and Firebase's installation request from a copy naming Pinterest's package."
+    },
+    {
+      "paths": [
+        "extensions/pinterest/src/main/java/app/hushpinterest/extension/pinterest/ui/CustomFont.java"
+      ],
+      "origin": "ported",
+      "upstream": "https://github.com/SysAdminDoc/HushThreads",
+      "commit": "b493914142c5e6fd5dc0ae3c62e02d7b695afbd9",
+      "via": [],
+      "license": "GPL-3.0-only",
+      "changes": "Renamed for Pinterest: package app.hushpinterest.extension.pinterest.ui and HushPinterest's settings, pause and status flags. Pin Sans and its raw files are the text fonts in place of Threads' own, the font resource hook is the one way in, since Pinterest loads its fonts through AndroidX's ResourcesCompat, and the asset and Android family hooks were left out. The start step runs only in a build with the patch."
     }
   ]
 }

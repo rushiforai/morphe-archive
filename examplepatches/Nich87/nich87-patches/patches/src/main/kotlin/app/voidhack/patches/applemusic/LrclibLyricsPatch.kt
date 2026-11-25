@@ -23,10 +23,18 @@ import com.android.tools.smali.dexlib2.iface.reference.MethodReference
 import com.android.tools.smali.dexlib2.immutable.ImmutableMethod
 
 private const val CONTROLLER = "Lapp/voidhack/extension/applemusic/lyrics/LrclibController;"
+private const val LYRICS_REFLECTION = "Lapp/voidhack/extension/applemusic/lyrics/LrclibReflection;"
 private const val PLAYBACK_ITEM = "Lcom/apple/android/music/model/PlaybackItem;"
 private const val SONG_INFO_PTR = "Lcom/apple/android/music/ttml/javanative/model/SongInfo\$SongInfoPtr;"
 private const val LYRICS_VM = "Lcom/apple/android/music/player/viewmodel/PlayerLyricsViewModel;"
 private const val LYRICS_FRAGMENT = "Lcom/apple/android/music/player/fragment/PlayerLyricsViewFragment;"
+
+private object AppleMusicApplicationCreate : Fingerprint(
+    definingClass = "Lcom/apple/android/music/AppleMusicApplication;",
+    name = "onCreate",
+    parameters = emptyList(),
+    returnType = "V",
+)
 
 private val lrclibLyricsResources = resourcePatch {
     execute {
@@ -131,16 +139,81 @@ private object LyricsFragmentOfflineCheck : Fingerprint(
     ),
 )
 
+private object LyricsPronunciationAvailability : Fingerprint(
+    definingClass = LYRICS_FRAGMENT,
+    parameters = listOf(SONG_INFO_PTR),
+    returnType = "V",
+    filters = listOf(
+        methodCall(definingClass = "Ljava/lang/String;", name = "equalsIgnoreCase", returnType = "Z"),
+        methodCall(
+            definingClass = "Lcom/apple/android/music/ttml/javanative/model/SongInfo\$SongInfoNative;",
+            name = "setPronunciation",
+            returnType = "Z",
+        ),
+    ),
+)
+
+private object LyricsScriptMatch : Fingerprint(
+    definingClass = "Lcom/apple/android/music/playback/util/LocaleUtil;",
+    name = "matchToSystemLyricsScript",
+    accessFlags = listOf(AccessFlags.PUBLIC, AccessFlags.STATIC, AccessFlags.FINAL),
+    parameters = listOf("Lcom/apple/android/mediaservices/javanative/common/StringVector\$StringVectorNative;"),
+    returnType = "Ljava/lang/String;",
+)
+
 @Suppress("unused")
 val lrclibLyricsPatch = bytecodePatch(
     name = "LRCLIB lyrics",
-    description = "Fetches lyrics from LRCLIB for songs missing official or synced lyrics, allows per-song LRCLIB overrides and timing offsets, shows an Official / LRCLIB source indicator, and adds LRCLIB settings.",
+    description = "Loads synced and unsynced local LRC files (per-song or auto-matched folder) and fetches lyrics from LRCLIB with per-song overrides, timing offsets, and a source indicator. Optionally generates pronunciation guides on-device.",
 ) {
-    dependsOn(lrclibLyricsResources)
+
+    dependsOn(
+        lrclibLyricsResources,
+        lrclibRomanizationResources,
+        appleMusicOfficialPronunciation,
+        staticLyricsPronunciationPatch,
+        lyricsLineEditPatch,
+        karaokePronunciationPatch,
+        lyricsGuideSourceMenuPatch,
+        lyricsScrollSyncPatch,
+    )
     compatibleWith(appleMusicCompatibility)
     extendWith("extensions/extension.mpe")
 
     execute {
+        AppleMusicApplicationCreate.method.addInstruction(
+            0,
+            "invoke-static/range {p0 .. p0}, $CONTROLLER->captureContext(Landroid/content/Context;)V",
+        )
+
+        val availability = LyricsPronunciationAvailability.method
+        val comparison = availability.instructions.withIndex().single { (_, instruction) ->
+            val ref = (instruction as? ReferenceInstruction)?.reference as? MethodReference
+            ref?.definingClass == "Ljava/lang/String;" && ref.name == "equalsIgnoreCase"
+        }.index
+        val comparisonResult = availability.instructions[comparison + 1]
+        check(comparisonResult.opcode == Opcode.MOVE_RESULT)
+        val sameLanguage = (comparisonResult as OneRegisterInstruction).registerA
+        availability.addInstructions(
+            comparison + 2,
+            """
+                invoke-static {p1, v$sameLanguage}, $LYRICS_REFLECTION->sameLyricsLanguage(Ljava/lang/Object;Z)Z
+                move-result v$sameLanguage
+            """,
+        )
+
+        val scriptMatch = LyricsScriptMatch.method
+        scriptMatch.addInstructionsWithLabels(
+            0,
+            """
+                invoke-static {p0}, $LYRICS_REFLECTION->pronunciationScriptOverride(Ljava/lang/Object;)Ljava/lang/String;
+                move-result-object v0
+                if-eqz v0, :native_match
+                return-object v0
+            """,
+            ExternalLabel("native_match", scriptMatch.instructions.first()),
+        )
+
         // 1. Enable Now Playing lyrics button for tracks missing official lyrics (rename-and-wrap because p0 is clobbered).
         val availClass = LyricsAvailableCheck.classDef
         val availMethod = LyricsAvailableCheck.method
@@ -233,6 +306,9 @@ val lrclibLyricsPatch = bytecodePatch(
             coroutineMethod.addInstructionsWithLabels(
                 emitStart,
                 """
+                    invoke-static {${fmtReg(vmReg)}, ${fmtReg(firstReg)}}, $CONTROLLER->prepareNativeLyrics(Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;
+                    move-result-object ${fmtReg(firstReg)}
+                    check-cast ${fmtReg(firstReg)}, $SONG_INFO_PTR
                     invoke-static {${fmtReg(vmReg)}, ${fmtReg(firstReg)}, ${fmtReg(secondReg)}}, $CONTROLLER->onNativeLyricsResult(Ljava/lang/Object;Ljava/lang/Object;Ljava/lang/Throwable;)Z
                     move-result v$scratchReg
                     if-eqz v$scratchReg, :voidhack_emit_native

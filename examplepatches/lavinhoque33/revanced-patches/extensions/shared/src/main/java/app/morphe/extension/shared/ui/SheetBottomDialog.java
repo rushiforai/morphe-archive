@@ -31,6 +31,7 @@ import androidx.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.List;
 
+import app.morphe.extension.shared.patches.glassmenus.GlassMenusPatch;
 import app.morphe.extension.shared.utils.BaseThemeUtils;
 import app.morphe.extension.shared.utils.Logger;
 import app.morphe.extension.shared.utils.Utils;
@@ -89,6 +90,10 @@ public class SheetBottomDialog {
         // Set up animation on drag container.
         dialog.setAnimView(dragContainer);
         dialog.setAnimationDuration(animationDuration);
+
+        if (GlassMenusPatch.isPatchIncluded()) {
+            GlassMenusPatch.onSlideDialog(dialog, contentView, context);
+        }
 
         return dialog;
     }

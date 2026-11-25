@@ -613,7 +613,11 @@ export async function resolveDependencyItem(
         const res = await sources.resolveNodeLts();
         item.latest = res.latest;
         item.sourceUrl = res.sourceUrl;
-        item.status = 'moving';
+        item.status =
+          res.latest === item.declared ||
+          res.latest.startsWith(`${item.declared}.`)
+            ? 'current'
+            : 'moving';
       } else if (item.id === 'tool:ndk') {
         const res = await sources.resolveNdk();
         item.latest = `${res.label} (${res.revision})`;

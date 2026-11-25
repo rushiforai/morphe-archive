@@ -5,6 +5,7 @@
 package app.hushtelegram.extension.telegram.misc;
 
 import android.app.Activity;
+import android.app.Dialog;
 import android.content.ActivityNotFoundException;
 import android.content.Context;
 import android.content.Intent;
@@ -17,6 +18,7 @@ import app.hushtelegram.extension.shared.L10n;
 import app.hushtelegram.extension.shared.Logger;
 import app.hushtelegram.extension.shared.Utils;
 import app.hushtelegram.extension.shared.ui.CustomDialog;
+import app.hushtelegram.extension.telegram.settings.ApiIdPrompt;
 import java.security.MessageDigest;
 import java.util.Arrays;
 import java.util.List;
@@ -151,17 +153,20 @@ public final class SignInHelp {
     static String message(Context context, String code) {
         String reason = PUBLISHED_FLOOD.equals(code)
                 ? L10n.t(context, "Telegram turned down the API ID this app signs in with, so no login code was sent."
-                        + " Patch HushTelegram again with Use registered Telegram API credentials and your own ID from"
-                        + " my.telegram.org/apps. The guide walks you through it.")
-                : L10n.t(context, "Telegram didn't accept the API ID and hash this app was patched with, so no login"
-                        + " code was sent. Copy both again from my.telegram.org/apps and patch once more.");
+                        + " Register your own app at my.telegram.org/apps, then tap Enter your API ID and type its"
+                        + " App api_id and App api_hash. The guide walks you through it.")
+                : L10n.t(context, "Telegram didn't accept the API ID and hash this app signs in with, so no login"
+                        + " code was sent. Copy both again from my.telegram.org/apps and tap Enter your API ID.");
         return reason + "\n\n(" + code + ")";
     }
 
-    private static void show(Activity activity, String code) {
-        CustomDialog.create(activity, L10n.t(activity, "Telegram refused this app's ID"), message(activity, code),
-                null, L10n.t(activity, "Open the guide"), () -> openGuide(activity), () -> { },
-                null, null, false).first.show();
+    /** The refusal: the guide, or Enter your API ID, which asks for a pair and restarts Telegram with it. */
+    static Dialog show(Activity activity, String code) {
+        Dialog dialog = CustomDialog.create(activity, L10n.t(activity, "Telegram refused this app's ID"),
+                message(activity, code), null, L10n.t(activity, "Open the guide"), () -> openGuide(activity), () -> { },
+                L10n.t(activity, "Enter your API ID"), () -> ApiIdPrompt.ask(activity), true).first;
+        dialog.show();
+        return dialog;
     }
 
     /**

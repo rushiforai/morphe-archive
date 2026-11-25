@@ -3,6 +3,7 @@
  * https://github.com/MorpheApp/morphe-patches/pull/3384
  *
  * See the included NOTICE file for GPLv3 Section 7 terms that apply to this code.
+ * Modified by lavinhoque33, 2026-11-24.
  */
 
 package app.morphe.extension.youtube.patches.utils;
@@ -23,8 +24,6 @@ import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-
-import app.morphe.extension.shared.utils.Logger;
 
 /**
  * Field of a proto message parsed without a schema.
@@ -56,7 +55,7 @@ public final class ProtoNode {
      */
     private final int valueStart;
     private final int valueEnd;
-    private final boolean lengthDelimited;
+    private final int wireType;
 
     @Nullable
     public List<ProtoNode> children;
@@ -75,14 +74,14 @@ public final class ProtoNode {
     private boolean modified;
 
     private ProtoNode(@Nullable ProtoNode parent, int fieldNumber, byte[] bytes,
-                      int tagStart, int valueStart, int valueEnd, boolean lengthDelimited) {
+                      int tagStart, int valueStart, int valueEnd, int wireType) {
         this.parent = parent;
         this.fieldNumber = fieldNumber;
         this.bytes = bytes;
         this.tagStart = tagStart;
         this.valueStart = valueStart;
         this.valueEnd = valueEnd;
-        this.lengthDelimited = lengthDelimited;
+        this.wireType = wireType;
     }
 
     /**
@@ -127,7 +126,7 @@ public final class ProtoNode {
                 final int valueEnd = start + input.getTotalBytesRead();
 
                 ProtoNode node = new ProtoNode(parent, WireFormat.getTagFieldNumber(tag), bytes,
-                        tagStart, valueStart, valueEnd, lengthDelimited);
+                        tagStart, valueStart, valueEnd, wireType);
                 if (lengthDelimited) {
                     node.text = decodeText(bytes, valueStart, valueEnd, false);
                     if (node.text == null) {
@@ -172,8 +171,6 @@ public final class ProtoNode {
             }
             return text;
         } catch (CharacterCodingException ex) {
-            Logger.printDebug(() -> "Could not decode bytes: " +
-                    Arrays.toString(Arrays.copyOfRange(bytes, start, end)), ex);
             return null;
         }
     }
@@ -223,7 +220,7 @@ public final class ProtoNode {
         if (text != null) {
             return text;
         }
-        if (!lengthDelimited) {
+        if (!isLengthDelimited()) {
             return null;
         }
         return payload != null
@@ -263,6 +260,14 @@ public final class ProtoNode {
                 : Arrays.copyOfRange(bytes, valueStart, valueEnd);
     }
 
+    public boolean isLengthDelimited() {
+        return wireType == WireFormat.WIRETYPE_LENGTH_DELIMITED;
+    }
+
+    public boolean hasPayload() {
+        return payload != null ? payload.length != 0 : valueStart != valueEnd;
+    }
+
     /**
      * Replaces the bytes of a length delimited field, such as with a modified message.
      */
@@ -278,7 +283,7 @@ public final class ProtoNode {
      */
     @Nullable
     public Long getVarint() {
-        if (varint == null && !lengthDelimited && valueEnd - valueStart <= 10) {
+        if (varint == null && wireType == WireFormat.WIRETYPE_VARINT) {
             try {
                 varint = CodedInputStream.newInstance(bytes, valueStart, valueEnd - valueStart)
                         .readRawVarint64();
@@ -347,27 +352,41 @@ public final class ProtoNode {
     }
 
     public static byte[] write(List<ProtoNode> message) throws IOException {
+        return encode(output -> write(message, output));
+    }
+
+    @FunctionalInterface
+    public interface Writer {
+        void write(CodedOutputStream output) throws IOException;
+    }
+
+    /** Encodes fields to add to a message. */
+    public static byte[] encode(Writer writer) throws IOException {
         ByteArrayOutputStream bytes = new ByteArrayOutputStream();
         CodedOutputStream output = CodedOutputStream.newInstance(bytes);
-        write(message, output);
+        writer.write(output);
         output.flush();
         return bytes.toByteArray();
     }
 
     private static void write(List<ProtoNode> message, CodedOutputStream output) throws IOException {
         for (ProtoNode node : message) {
-            List<ProtoNode> children = node.children;
-            if (!node.modified) {
-                output.writeRawBytes(node.bytes, node.tagStart, node.valueEnd - node.tagStart);
-            } else if (node.payload != null) {
-                output.writeByteArray(node.fieldNumber, node.payload);
-            } else if (children != null) {
-                output.writeByteArray(node.fieldNumber, write(children));
-            } else if (node.text != null) {
-                output.writeString(node.fieldNumber, node.text);
-            } else if (node.varint != null) {
-                output.writeUInt64(node.fieldNumber, node.varint);
-            }
+            node.writeTo(output);
+        }
+    }
+
+    /** Writes this field, preserving its original encoding if unchanged. */
+    public void writeTo(CodedOutputStream output) throws IOException {
+        if (!modified) {
+            output.writeRawBytes(bytes, tagStart, valueEnd - tagStart);
+        } else if (payload != null) {
+            output.writeByteArray(fieldNumber, payload);
+        } else if (children != null) {
+            output.writeByteArray(fieldNumber, write(children));
+        } else if (text != null) {
+            output.writeString(fieldNumber, text);
+        } else if (varint != null) {
+            output.writeUInt64(fieldNumber, varint);
         }
     }
 

@@ -1734,6 +1734,8 @@ Long-press menu on every post	Her gönderide uzun basma menüsü
 TikTok's hold to speed up	TikTok'un basılı tutarak hızlandırması
 TikTok's background play and Auto scroll	TikTok'un arka planda oynatma ve otomatik kaydırması
 Post dates in the feed	Akışta gönderi tarihleri
+# context: a line of the Account facts sheet, the number of posts the account has
+Posts	Gönderiler
 Show exact counts	Tam sayıları göster
 Show counts as full numbers, like 1,234,567 instead of 1.2M.	Sayıları tam olarak gösterir, örneğin 1.2M yerine 1.234.567.
 Play SDR instead of HDR	HDR yerine SDR oynat
@@ -3001,7 +3003,9 @@ Find and reopen the videos you liked only on this phone	Yalnızca bu telefonda b
 Videos you like on this phone show up here	Bu telefonda beğendiğin videolar burada görünür
 Likes cleared	Beğeniler temizlendi
 Export followers and following	Takipçileri ve takip edilenleri dışa aktar
-Saves the accounts that follow you, or the ones you follow, as a CSV file in Download/Hushfeed. They're read at about the pace of scrolling the list, up to %1$s at a time.	Seni takip eden hesapları ya da senin takip ettiklerini Download/Hushfeed klasörüne CSV dosyası olarak kaydeder. Listeyi kaydırma hızına yakın bir hızla, bir seferde en fazla %1$s tane okunur.
+Saves the accounts that follow you, or the ones you follow, as a CSV, JSON or plain text file in Download/Hushfeed. They're read at about the pace of scrolling the list, up to %1$s at a time.	Seni takip eden hesapları ya da senin takip ettiklerini Download/Hushfeed klasörüne CSV, JSON ya da düz metin dosyası olarak kaydeder. Listeyi kaydırma hızına yakın bir hızla, bir seferde en fazla %1$s tane okunur.
+# context: a file type on the Export followers and following list, as in "Followers (Plain text)"
+Plain text	Düz metin
 A list is already being read	Zaten bir liste okunuyor
 Reading your followers (%1$s)	Takipçilerin okunuyor (%1$s)
 Reading who you follow (%1$s)	Takip ettiklerin okunuyor (%1$s)
@@ -3139,7 +3143,7 @@ Gives each video on profile grids rounded corners, on your own profile and on Li
 Gifter level	Hediye veren seviyesi
 SecUID	SecUID
 Unknown (TikTok didn't send it)	Bilinmiyor (TikTok göndermedi)
-A profile's share sheet gets an Account facts button. It shows what TikTok already sent about the account: when it joined, its region and language, its gifter level and SecUID, when its username and display name last changed, whether it's private and whether its liked videos are public. Nothing extra is fetched.	Bir profilin paylaşma menüsüne Hesap bilgileri düğmesi eklenir. TikTok'un hesap hakkında zaten gönderdiklerini gösterir: ne zaman katıldığını, bölgesini ve dilini, hediye veren seviyesini ve SecUID'sini, kullanıcı adının ve görünen adının en son ne zaman değiştiğini, gizli olup olmadığını ve beğendiği videoların herkese açık olup olmadığını. Fazladan hiçbir şey indirilmez.
+A profile's share sheet gets an Account facts button. It shows what TikTok already sent about the account: when it joined, its region and language, its gifter level and SecUID, how many posts, liked videos, favorites and reposts it has, when its username and display name last changed, whether it's private and whether its liked videos are public. Nothing extra is fetched.	Bir profilin paylaşma menüsüne Hesap bilgileri düğmesi eklenir. TikTok'un hesap hakkında zaten gönderdiklerini gösterir: ne zaman katıldığını, bölgesini ve dilini, hediye veren seviyesini ve SecUID'sini, kaç gönderisi, beğendiği video, favorisi ve yeniden göndereni olduğunu, kullanıcı adının ve görünen adının en son ne zaman değiştiğini, gizli olup olmadığını ve beğendiği videoların herkese açık olup olmadığını. Fazladan hiçbir şey indirilmez.
 # context: LIVE controls: a small line in a LIVE room with the room ID and the viewer's own connection (ping, latency, download speed) from TikTok's player; a tap copies the room ID
 Show the room ID and your connection	Oda kimliğini ve bağlantını göster
 Adds a small line to LIVE rooms with the room's ID and how your own connection to the stream is doing, as TikTok's player measures it: ping, latency and download speed. Tap the line to copy the room ID.	LIVE odalarına, oda kimliğini ve yayına olan kendi bağlantının durumunu TikTok oynatıcısının ölçtüğü şekliyle gösteren küçük bir satır ekler: ping, gecikme ve indirme hızı. Oda kimliğini kopyalamak için satıra dokun.
@@ -3217,3 +3221,28 @@ Random time each day	Her gün rastgele saat
 Sends at a different time each day, somewhere between When to send and Latest time.	Her gün farklı bir saatte, Ne zaman gönderilsin ile En geç saat arasında bir zamanda gönderir.
 Latest time	En geç saat
 The end of the random window, on the same day as When to send. If it isn't later, the message goes at When to send.	Rastgele aralığın sonu, Ne zaman gönderilsin ile aynı gün. Daha geç değilse mesaj Ne zaman gönderilsin saatinde gider.
+# context: Jump to a date on Favorites grids (#508): the Favorites tab holds the videos you saved with the bookmark icon
+Jump to a date on Favorites grids	Favoriler ızgaralarında bir tarihe git
+Adds a button to the Favorites grid's top corner that starts your saved videos at a year or month you pick, so older saves load without scrolling past newer ones. Pick Newest saves there to go back.	Favoriler ızgarasının üst köşesine, kaydettiğiniz videoları seçtiğiniz yıl veya aydan başlatan bir düğme ekler. Böylece eski kayıtlar, yenilerin arasından kaydırmadan yüklenir. Geri dönmek için orada En yeni favoriler seçeneğini seçin.
+Newest saves	En yeni favoriler
+# context: App > Use system font: fonts that come with Hushfeed (#487); a picked one becomes the imported font
+Pick a built-in font	Yerleşik bir yazı tipi seç
+Pick one of %1$s fonts that come with Hushfeed. Each is shown in its own style.	Hushfeed ile gelen %1$s yazı tipinden birini seçin. Her biri kendi stilinde gösterilir.
+Built-in fonts	Yerleşik yazı tipleri
+Delete	Sil
+Delete your picked posts	Seçtiğin gönderilerini sil
+Adds a trash button to the picking bar while every picked post is your own. It counts down from 5 so you can stop it, then deletes them from your account one at a time. A deleted post can't be brought back.	Seçilen tüm gönderiler senin olduğunda seçim çubuğuna bir çöp kutusu düğmesi ekler. Durdurabilmen için 5'ten geri sayar, sonra onları hesabından tek tek siler. Silinen bir gönderi geri getirilemez.
+Posts to delete: %1$d. Starting in %2$d	Silinecek gönderiler: %1$d. Başlamasına %2$d
+Posts deleted: %1$d of %2$d	Silinen gönderiler: %1$d / %2$d
+Swipe LIVEs in your Following row's order	CANLI yayınları Takip Edilenler satırının sırasıyla kaydır
+After a LIVE you open from the row at the top of Following, swiping takes you through the row's other LIVEs in the order they sit there, starting with the next one. TikTok's own picks come after them.	Takip Edilenler'in üstündeki satırdan açtığın bir CANLI yayından sonra kaydırmak, o satırdaki diğer CANLI yayınları orada durdukları sırayla, bir sonrakinden başlayarak gösterir. TikTok'un kendi önerileri onlardan sonra gelir.
+Remember saved videos	Kaydedilen videoları hatırla
+Keeps the cover, creator, caption and post date of each video in your Favorites on this phone as the grid loads it. If one is later deleted or made private, its tile shows the kept cover and creator instead of a grey box, and a tap shows the rest. Videos that were already gone can't be recovered.	Favorilerinizdeki her videonun kapağını, içerik üreticisini, açıklamasını ve paylaşım tarihini, ızgara videoyu yükledikçe bu telefonda saklar. Biri sonradan silinir veya gizli yapılırsa, kutucuğu gri bir kutu yerine saklanan kapağı ve içerik üreticisini gösterir, dokunmak da gerisini gösterir. Daha önce kaybolmuş videolar geri getirilemez.
+Unavailable saved videos	Kullanılamayan kayıtlı videolar
+See the saved videos that went away after Hushfeed remembered them	Hushfeed hatırladıktan sonra kaybolan kayıtlı videoları gör
+Saved videos that go away show up here	Kaybolan kayıtlı videolar burada görünür
+Unavailable saved videos cleared	Kullanılamayan videolar temizlendi
+Unavailable saved video	Kullanılamayan kayıtlı video
+Posted %1$s	Paylaşıldı: %1$s
+Remembered %1$s	Hatırlandı: %1$s
+Unavailable since %1$s	%1$s tarihinden beri kullanılamıyor

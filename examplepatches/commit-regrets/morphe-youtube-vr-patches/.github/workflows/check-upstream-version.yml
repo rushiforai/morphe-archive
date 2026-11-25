@@ -2,8 +2,7 @@ name: Check Upstream Version
 
 on:
   schedule:
-    # Run daily at 06:00 UTC
-    - cron: '0 6 * * *'
+    - cron: '0 10 * * *'
   workflow_dispatch:
 
 concurrency:
@@ -43,7 +42,9 @@ jobs:
           TITLE="Upstream Update: YouTube VR $NEW_VERSION is available on Meta Quest Store"
 
           echo "Searching for existing issue with title '$TITLE'..."
-          EXISTING_ISSUE=$(gh issue list --search "$TITLE in:title" --state all --json number --jq '.[0].number')
+          # Open issues only: a CLOSED issue with the same title must not mask a fresh detection
+          # (closed #40 suppressed the genuine 1.89.09 issue for five runs, 2026-10-22..26).
+          EXISTING_ISSUE=$(gh issue list --search "$TITLE in:title" --state open --json number --jq '.[0].number')
 
           if [ -n "$EXISTING_ISSUE" ]; then
             echo "Issue #$EXISTING_ISSUE already exists for version $NEW_VERSION. Skipping duplicate issue creation."

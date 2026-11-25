@@ -10,7 +10,6 @@ import static org.junit.Assert.assertTrue;
 import static org.robolectric.Shadows.shadowOf;
 
 import android.app.Activity;
-import android.content.ComponentName;
 import android.content.Intent;
 import android.graphics.Typeface;
 import android.graphics.drawable.ColorDrawable;
@@ -65,6 +64,7 @@ import app.morphe.extension.facebook.chats.MessengerHandoffForTests;
 import app.morphe.extension.facebook.chats.MessengerIconForTests;
 import app.morphe.extension.facebook.chats.OriginalChatMediaForTests;
 import app.morphe.extension.facebook.chats.ReadReceipts;
+import app.morphe.extension.facebook.chats.ShareToChatsForTests;
 import app.morphe.extension.facebook.chats.TypingIndicator;
 import app.morphe.extension.facebook.download.ClipboardLinkForTests;
 import app.morphe.extension.facebook.download.CommentGifForTests;
@@ -143,7 +143,6 @@ import app.morphe.extension.facebook.menu.MenuPanel;
 import app.morphe.extension.facebook.menu.MenuSectionsForTests;
 import app.morphe.extension.facebook.misc.MetaUpsells;
 import app.morphe.extension.facebook.misc.AnalyticsUploads;
-import app.morphe.extension.facebook.misc.AppIcons;
 import app.morphe.extension.facebook.misc.CarrierBanners;
 import app.morphe.extension.facebook.misc.Haptics;
 import app.morphe.extension.facebook.misc.LocationPrompts;
@@ -559,6 +558,8 @@ public class PausedHooksTest {
                 // The reaction preview is left undrawn only while the patch runs.
                 PostPrompts::hideReactionPreview,
                 () -> PostPrompts.hideReactionPreview(true),
+                // So is the count beside a comment's faces (#483).
+                () -> PostPrompts.commentReactionCount(12, true) == 0,
                 // A Like button's icon is noted, and with a count it takes the post's faces (#541).
                 // Hide the reaction preview on posts overrules it, so it's off for this probe.
                 () -> {
@@ -709,6 +710,7 @@ public class PausedHooksTest {
         probes.put(PatchFamily.POST_ACTION_BUTTONS, Arrays.asList(
                 PostActionButtonsForTests::hidesSave,
                 PostActionButtonsForTests::hidesLike,
+                PostActionButtonsForTests::hidesStars,
                 PostActionButtonsForTests::addsDownload,
                 PostActionButtonsForTests::leavesTheTapOff));
         // Marketplace's feed query asks to skip its ads, an ads-only query isn't sent, and a search
@@ -734,8 +736,16 @@ public class PausedHooksTest {
                 () -> ReelDeclutter.filterChips(Arrays.asList(new TypedFeedUnit("XFBFBShortsRemixAttribution"))) != null,
                 // The audio line goes under its own switch.
                 () -> ReelDeclutter.filterChips(Arrays.asList(new TypedFeedUnit("XFBFBShortsSoundtrackTitle"))) != null,
-                // So does the Reels tab's own audio line row.
-                ReelDeclutter::hideAudioLine,
+                // So does the Reels tab's own audio line row. With Show the post date on reels on as
+                // well the row stays to carry the date (#496), so it's off for this probe.
+                () -> {
+                    Settings.SHOW_REEL_POST_DATE.save(false);
+                    try {
+                        return ReelDeclutter.hideAudioLine();
+                    } finally {
+                        Settings.SHOW_REEL_POST_DATE.save(true);
+                    }
+                },
                 // And "Made with Edits" under the caption.
                 ReelDeclutter::hideEditsLabel,
                 // And the "Made with Edits" pill over a feed video (#314).
@@ -1293,11 +1303,6 @@ public class PausedHooksTest {
                 PausedHooksTest::letsALiveSeekThrough, ProgressBarForTests::rewindsForTheBarsSeek));
         // A tab asked for shows without its slide.
         probes.put(PatchFamily.SCREEN_TRANSITIONS, Collections.singletonList(() -> !ScreenTransitionsForTests.slides()));
-        // The app icon benefit is answered yes, at the provider's check and at the picker's own look,
-        // and the update reset leaves a picked icon alone.
-        probes.put(PatchFamily.APP_ICONS, Arrays.asList(
-                () -> AppIcons.unlocked(AppIcons.BENEFIT), () -> AppIcons.entitled(false),
-                () -> AppIcons.keepsIcon(new ComponentName("com.facebook.katana", AppIcons.LAUNCHER + ".vaporwave_ic"))));
         // A window's secure flag comes out.
         probes.put(PatchFamily.SCREENSHOTS, Collections.singletonList(
                 () -> Screenshots.layoutFlags(0x2000) == 0));
@@ -1317,6 +1322,8 @@ public class PausedHooksTest {
         // check says it can skip the re-encode.
         probes.put(PatchFamily.ORIGINAL_CHAT_MEDIA, Arrays.asList(OriginalChatMediaForTests::sendsAPhotoAsIs,
                 OriginalChatMediaForTests::sendsAPhotoAsyncAsIs, OriginalChatMediaForTests::passesAVideo));
+        // The share target is in the share menu only while its switch runs.
+        probes.put(PatchFamily.SHARE_TO_CHATS, Collections.singletonList(ShareToChatsForTests::putsItInTheShareMenu));
         // A push of each kind a notification switch blocks isn't posted, asked at 11 PM, inside
         // the quiet hours every switch on turns on.
         probes.put(PatchFamily.PROMO_NOTIFICATIONS, Arrays.asList(

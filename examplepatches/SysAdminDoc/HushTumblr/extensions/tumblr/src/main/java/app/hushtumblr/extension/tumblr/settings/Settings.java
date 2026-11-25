@@ -163,6 +163,17 @@ public class Settings extends BaseSettings {
             new BooleanSetting("hushtumblr_line_between_posts", FALSE);
     /** Swaps Tumblr's own font as fonts load. Tumblr keeps what it loaded for as long as it runs. */
     public static final BooleanSetting APP_FONT = new BooleanSetting("hushtumblr_app_font", FALSE, true);
+    /** Text size (#23): the size itself is {@link TextSettings#TEXT_SIZE_PERCENT}. Read as each screen opens. */
+    public static final BooleanSetting TEXT_SIZE = new BooleanSetting("hushtumblr_text_size", FALSE, true);
+    /** More images per post (#21): Tumblr builds the editor's image limit once a process. */
+    public static final BooleanSetting MORE_IMAGES_PER_POST = new BooleanSetting("hushtumblr_more_images_per_post", FALSE, true);
+    /** Fix hard-to-read text (#24): on to start. Read as each tag row and each blog search screen is built. */
+    public static final BooleanSetting FIX_HARD_TO_READ_TEXT = new BooleanSetting("hushtumblr_fix_hard_to_read_text", TRUE);
+    /** Dark search bar and Follow button (#24). Explore finds its bar once and keeps the screen, so both bar switches wait for a restart. */
+    public static final BooleanSetting DARK_SEARCH_BAR = new BooleanSetting("hushtumblr_dark_search_bar", FALSE, true);
+    public static final BooleanSetting HIDE_SEARCH_BAR_LABEL = new BooleanSetting("hushtumblr_hide_search_bar_label", FALSE, true);
+    /** Read each time a blog builds its top bar, so the next blog opened has it. */
+    public static final BooleanSetting DARK_BLOG_FOLLOW_BUTTON = new BooleanSetting("hushtumblr_dark_blog_follow_button", FALSE);
 
     /**
      * Tumblr stops watching for screenshots and offering to save the post as an image
@@ -206,6 +217,8 @@ public class Settings extends BaseSettings {
      */
     public static final BooleanSetting HIDE_WATCH_IT_ROWS =
             new BooleanSetting("hushtumblr_hide_watch_it_rows", FALSE);
+    public static final BooleanSetting HIDE_MORE_POSTS_LIKE_THIS =
+            new BooleanSetting("hushtumblr_hide_more_posts_like_this", FALSE);
 
     /**
      * The posts Tumblr's staff put in your feeds under a "Featured" header come out of each page
@@ -348,6 +361,14 @@ public class Settings extends BaseSettings {
      */
     public static final BooleanSetting HIDE_LIKED_POSTS =
             new BooleanSetting("hushtumblr_hide_liked_posts", FALSE);
+
+    /**
+     * Posts from blogs the signed-in account follows leave each page of the dashboard's For you
+     * tab. Following and every other tab keep them
+     * ({@link app.hushtumblr.extension.tumblr.timeline.DashboardPosts}).
+     */
+    public static final BooleanSetting HIDE_FOLLOWED_IN_FOR_YOU =
+            new BooleanSetting("hushtumblr_hide_followed_in_for_you", FALSE);
 
     /**
      * Posts with a video anywhere in them, the reblog trail included, leave each page of posts

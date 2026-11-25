@@ -13,12 +13,18 @@ public final class BookmarkCardClickHelper {
     private BookmarkCardClickHelper() {}
 
     public static void attach(View articleCard, Uri browseUrl, Uri originalUri) {
-        if (articleCard == null || !isWebUrl(browseUrl)) return;
+        if (articleCard == null) return;
+        if (!isWebUrl(browseUrl)) {
+            articleCard.setOnClickListener(null);
+            return;
+        }
         final Uri original = isWebUrl(originalUri) ? originalUri : null;
         articleCard.setOnClickListener(view -> {
             if (!isWebUrl(browseUrl)) return;
             try {
                 Context context = view.getContext();
+                if (!context.getSharedPreferences("hoshiori_settings", Context.MODE_PRIVATE)
+                        .getBoolean("openArticleFromBookmarkCard", true)) return;
                 Intent intent = new Intent(Intent.ACTION_VIEW);
                 intent.setClassName(context, WEBVIEW_ACTIVITY);
                 intent.setData(browseUrl);

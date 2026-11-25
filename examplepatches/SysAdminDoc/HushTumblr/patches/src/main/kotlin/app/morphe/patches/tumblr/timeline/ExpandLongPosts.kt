@@ -51,29 +51,29 @@ internal const val HUSH_READ_MORE_BINDER = "$EXTENSION_PACKAGE/timeline/HushRead
 internal const val HUSH_TIMELINE_ITEM = "$EXTENSION_PACKAGE/timeline/HushTimelineItem;"
 internal const val HUSH_EXPANDING_TIMELINE = "$EXTENSION_PACKAGE/timeline/HushExpandingTimeline;"
 
-// Tumblr 47.0.0.108's names: the binder of the Read more row under a post's own rows (the post row
+// Tumblr 47.3.0.110's names: the binder of the Read more row under a post's own rows (the post row
 // composer's `d`, POST_COMPOSER) and the screen it hands a tap to (the timeline screen,
 // TIMELINE_FRAGMENT, implements it), the row's view holder, a timeline item and the base class
 // that hands back its post, and the timeline screen's list adapter, a Graywater adapter.
-internal const val READ_MORE_BINDER = "Lr0h;"
-internal const val READ_MORE_SCREEN = "Lqfe;"
+internal const val READ_MORE_BINDER = "Lb1h;"
+internal const val READ_MORE_SCREEN = "Lyde;"
 internal const val READ_MORE_HOLDER = "Lcom/tumblr/ui/widget/graywater/viewholder/ReadMoreViewHolder;"
-internal const val TIMELINE_ITEM = "Lr4g;"
-internal const val TIMELINE_CARD = "La2k;"
-internal const val TIMELINE_ADAPTER = "Lw4a;"
-internal const val GRAYWATER_ADAPTER = "Lzx9;"
+internal const val TIMELINE_ITEM = "Lf3g;"
+internal const val TIMELINE_CARD = "Lb5k;"
+internal const val TIMELINE_ADAPTER = "Lm4a;"
+internal const val GRAYWATER_ADAPTER = "Lpx9;"
 internal const val RECYCLER_ADAPTER = "Landroidx/recyclerview/widget/RecyclerView\$h;"
 
-// Tumblr's own cut of a long post in some feeds, tag pages among them (`mm2.j`, `km2.o`): a timeline
-// item's post ([COMPOSED_POST], from the post base class) drops the cut once its `l2(true)` marks it
-// opened, which its `g2()` then reads, the way Tumblr's inline View post does (`ykn.l`), except when
-// the server sent it with force_truncate (`af1.C1`). A capped card item is cut to its own height
+// Tumblr's own cut of a long post in some feeds, tag pages among them (`gm2.j`, `em2.o`): a timeline
+// item's post ([COMPOSED_POST], from the post base class) drops the cut once its `n2(true)` marks it
+// opened, which its `i2()` then reads, the way Tumblr's inline View post does (`mnn.l`), except when
+// the server sent it with force_truncate (`ze1.E1`). A capped card item is cut to its own height
 // either way.
-internal const val POST_BASE = "Laf1;"
-internal const val CAPPED_ITEM = "Lkjh;"
-private const val LIFT_CUT = "l2"
-private const val CUT_LIFTED = "g2"
-private const val FORCED_CUT = "C1"
+internal const val POST_BASE = "Lze1;"
+internal const val CAPPED_ITEM = "Lrkh;"
+private const val LIFT_CUT = "n2"
+private const val CUT_LIFTED = "i2"
+private const val FORCED_CUT = "E1"
 private const val TIMELINEABLE = "Lcom/tumblr/rumblr/model/Timelineable;"
 private const val VIEW = "Landroid/view/View;"
 private const val CLICK_LISTENER = "Landroid/view/View\$OnClickListener;"
@@ -85,12 +85,12 @@ private const val LIST = "Ljava/util/List;"
 private const val SCREEN_FIELD = "b"
 private const val ENTRY_FIELD = "d"
 private const val BUTTON_GETTER = "f1"
-private const val OPEN = "x3"
+private const val OPEN = "z3"
 private const val POST_GETTER = "l"
-private const val ADAPTER_GETTER = "z5"
+private const val ADAPTER_GETTER = "B5"
 private const val ITEMS = "f0"
 private const val REMOVE = "y0"
-private const val INSERT = "U"
+private const val INSERT = "V"
 private const val REDRAW = "x"
 
 private val EXITS = setOf(Opcode.RETURN_VOID, Opcode.RETURN, Opcode.RETURN_WIDE, Opcode.RETURN_OBJECT, Opcode.THROW)

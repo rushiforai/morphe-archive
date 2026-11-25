@@ -465,6 +465,7 @@ public class SettingsBackupPreference extends Preference implements ImmediateAct
     static String textName(StringSetting setting) {
         if (setting == TextSettings.ALLOWED_WORDS) return L10n.t("Allowed words");
         if (setting == TextSettings.LONG_POST_SIZE) return L10n.t("Collapsed post length");
+        if (setting == TextSettings.TEXT_SIZE_PERCENT) return L10n.t("Text size percentage");
         return setting == TextSettings.TAB_ORDER ? L10n.t("Tab order") : L10n.t("Words to hide");
     }
 
@@ -474,6 +475,7 @@ public class SettingsBackupPreference extends Preference implements ImmediateAct
      */
     static String textShown(StringSetting setting, String value) {
         if (setting == TextSettings.LONG_POST_SIZE) return HushTumblrPreferenceFragment.longPostSizeShown(value);
+        if (setting == TextSettings.TEXT_SIZE_PERCENT) return HushTumblrPreferenceFragment.textSizeShown(value);
         if (setting == TextSettings.TAB_ORDER) {
             if (BottomBarTabs.parse(value).isEmpty()) return L10n.t("Tumblr's order");
             return HushTumblrPreferenceFragment.tabsShown(value);
@@ -507,6 +509,13 @@ public class SettingsBackupPreference extends Preference implements ImmediateAct
             case "hushtumblr_hide_suggested_communities": return L10n.t("Hide suggested communities");
             case "hushtumblr_hide_suggested_tags": return L10n.t("Hide suggested tags");
             case "hushtumblr_hide_watch_it_rows": return L10n.t("Hide Watch it rows");
+            case "hushtumblr_hide_more_posts_like_this": return L10n.t("Hide More posts like this");
+            case "hushtumblr_text_size": return L10n.t("Text size");
+            case "hushtumblr_more_images_per_post": return L10n.t("More images per post");
+            case "hushtumblr_fix_hard_to_read_text": return L10n.t("Fix hard-to-read text");
+            case "hushtumblr_dark_search_bar": return L10n.t("Dark search bar");
+            case "hushtumblr_hide_search_bar_label": return L10n.t("Hide the Search Tumblr label");
+            case "hushtumblr_dark_blog_follow_button": return L10n.t("Dark Follow button on blogs");
             case "hushtumblr_hide_featured_posts": return L10n.t("Hide Featured posts");
             case "hushtumblr_hide_hashtags": return L10n.t("Hide hashtags");
             case "hushtumblr_hide_follow_button": return L10n.t("Hide the Follow button");
@@ -529,6 +538,7 @@ public class SettingsBackupPreference extends Preference implements ImmediateAct
             case "hushtumblr_hide_own_reblogs": return L10n.t("Hide your own reblogs");
             case "hushtumblr_hide_reblogs_of_yours": return L10n.t("Hide reblogs of your posts");
             case "hushtumblr_hide_liked_posts": return L10n.t("Hide liked posts");
+            case "hushtumblr_hide_followed_in_for_you": return L10n.t("Hide followed blogs in For you");
             case "hushtumblr_hide_notification_likes": return L10n.t("Hide likes");
             case "hushtumblr_hide_notification_reblogs": return L10n.t("Hide reblog notifications");
             case "hushtumblr_hide_notification_replies": return L10n.t("Hide reply notifications");

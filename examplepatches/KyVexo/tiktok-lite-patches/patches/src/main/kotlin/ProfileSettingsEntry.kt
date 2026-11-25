@@ -4,8 +4,6 @@ import app.morphe.patcher.Fingerprint
 import app.morphe.patcher.extensions.InstructionExtensions.instructions
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
 import com.android.tools.smali.dexlib2.Opcode
-import app.morphe.patcher.patch.AppTarget
-import app.morphe.patcher.patch.Compatibility
 import app.morphe.patcher.patch.bytecodePatch
 
 private object SparkResume : Fingerprint(
@@ -13,6 +11,13 @@ private object SparkResume : Fingerprint(
     name = "onResume",
     returnType = "V",
     parameters = emptyList(),
+)
+
+private object BindNavigationTab4782 : Fingerprint(
+    definingClass = "LX/JnK;",
+    name = "LCI",
+    returnType = "V",
+    parameters = listOf("LX/KV2;", "LX/KPf;", "Z", "I"),
 )
 
 private object BindNavigationTab : Fingerprint(
@@ -28,18 +33,27 @@ val profileSettingsEntry = bytecodePatch(
     description = "Adds a separate entry to open mod settings from the native settings page.",
     default = false,
 ) {
-    compatibleWith(Compatibility(
-        name = "TikTok Lite",
-        packageName = "com.zhiliaoapp.musically.go",
-        targets = listOf(AppTarget(version = "47.8.15", minSdk = 21)),
-    ))
+    compatibleWith(tikTokLiteCompatibility)
+    dependsOn(modSettingsSupport)
     execute {
-        val bind = BindNavigationTab.method
-        check(bind.implementation!!.registerCount in 6..16)
-        bind.addInstructions(0, """
-            iget-object v0, p2, LX/Gwq;->L:Ljava/lang/String;
-            invoke-static {p1, v0}, Lapp/tiktoklitepatches/extension/ModSettings;->bindProfileGesture(Landroid/view/View;Ljava/lang/String;)V
-        """)
+        enableModSetting("profileGestureAvailable")
+        if (packageMetadata.versionName == "47.8.15") {
+            // In the split build the full feed model is patched in df_edit_filter.
+            filterFeedAccessor(fullFeedList, "getItems")
+            val bind = BindNavigationTab.method
+            check(bind.implementation!!.registerCount in 6..16)
+            bind.addInstructions(0, """
+                iget-object v0, p2, LX/Gwq;->L:Ljava/lang/String;
+                invoke-static {p1, v0}, Lapp/tiktoklitepatches/extension/ModSettings;->bindProfileGesture(Landroid/view/View;Ljava/lang/String;)V
+            """)
+        } else if (packageMetadata.versionName == "47.8.2") {
+            val bind = BindNavigationTab4782.method
+            val end = bind.instructions.indices.single { bind.instructions[it].opcode == Opcode.RETURN_VOID }
+            bind.addInstructions(end, """
+                iget-object v0, p2, LX/KPf;->L:Ljava/lang/String;
+                invoke-static {p1, v0}, Lapp/tiktoklitepatches/extension/ModSettings;->bindProfileGesture(Landroid/view/View;Ljava/lang/String;)V
+            """)
+        }
 
         val method = SparkResume.method
         val returns = method.instructions.indices.filter { method.instructions[it].opcode == Opcode.RETURN_VOID }

@@ -1,3 +1,10 @@
+## [1.7.0](https://github.com/Ser1-1y/nyandex/compare/v1.6.0...v1.7.0) (2026-11-24)
+
+### ✨ New Features
+
+* apply hidden tabs without restarting the app ([5e1c6a9](https://github.com/Ser1-1y/nyandex/commit/5e1c6a9b809f3b81a1adac07a1678e5cdd1a089c))
+* hide promo blocks, Plus offers and banners ([549fa22](https://github.com/Ser1-1y/nyandex/commit/549fa224dcb8bf8aaa17d255608083404ae5dd24))
+
 ## [1.6.0](https://github.com/Ser1-1y/nyandex/compare/v1.5.6...v1.6.0) (2026-11-21)
 
 ### ✨ New Features

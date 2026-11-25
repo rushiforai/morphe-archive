@@ -517,6 +517,8 @@ Turn on %1$s to use this slider.	Attiva %1$s per usare questo cursore.
 Turn on Story ring size to use this choice.	Attiva Dimensione dei cerchi delle storie per usare questa scelta.
 # context: Settings page, Reels: the line under the greyed-out Fill the screen switch while Show the whole reel is on
 Turn off Show the whole reel to use this choice.	Disattiva Mostra il reel intero per usare questa scelta.
+# context: Settings page, Feed: the line under the greyed-out Time in the top corner switch while Time under the tags button is on (#788)
+Turn off Time under the tags button to use this choice.	Disattiva Tempo sotto il pulsante dei tag per usare questa scelta.
 Turn on Default playback quality to use this choice.	Attiva Qualità di riproduzione predefinita per usare questa scelta.
 Updating remembered positions...	Aggiornamento delle posizioni memorizzate...
 Undo cleared positions	Annulla la cancellazione delle posizioni
@@ -893,7 +895,7 @@ Media link copied. It stops working after a few days.	Link del media copiato. Sm
 No direct link for this one	Nessun link diretto per questo
 Posted %1$s	Pubblicato %1$s
 Size %1$d × %2$d	Dimensione %1$d × %2$d
-Adds Details to a feed post's or reel's menu. It shows when it went up, who posted it, its media ID and the size Download saves, with buttons to copy the file link, username and caption.	Aggiunge Dettagli al menu di un post del feed o di un reel. Mostra quando è stato pubblicato, chi l'ha pubblicato, il suo ID media e la dimensione che Scarica salva, con pulsanti per copiare il link del file, il nome utente e la didascalia.
+Adds Details to a feed post's or reel's menu. It shows when it went up, who posted it, its media ID and the size Download saves, with buttons to copy the file link, username and caption, open the photo or video in another app, and read its text with Google Lens. A story's menu gets Copy username.	Aggiunge Dettagli al menu di un post del feed o di un reel. Mostra quando è stato pubblicato, chi l'ha pubblicato, il suo ID media e la dimensione che Scarica salva, con pulsanti per copiare il link del file, il nome utente e la didascalia, aprire la foto o il video in un'altra app e leggerne il testo con Google Lens. Il menu di una storia riceve Copia il nome utente.
 Caption	Didascalia
 Caption copied	Didascalia copiata
 Copy caption	Copia la didascalia
@@ -978,6 +980,11 @@ The red dots and counts for new messages and notifications take the color you pi
 Icons in the accent color	Icone nel colore di accento
 Reel buttons in the accent color	Pulsanti dei reel nel colore di accento
 The buttons beside a reel and their counts take the color you picked instead of white. Restart Instagram to see the change.	I pulsanti accanto a un reel e i loro contatori prendono il colore che hai scelto al posto del bianco. Riavvia Instagram per vedere la modifica.
+Text in the accent color	Testo nel colore di accento
+Names, captions and other main text take the same color as the icons. Gray text stays gray. Restart Instagram to see the change.	Nomi, didascalie e altro testo principale prendono lo stesso colore delle icone. Il testo grigio resta grigio. Riavvia Instagram per vedere la modifica.
+# context: Layout > Accent color switch. Saved is Instagram's own Saved page, in its label for this language.
+Filters in the accent color	Filtri nel colore di accento
+The filters along the top of Saved take the color you picked, and the one you're on is filled with it. Restart Instagram to see the change.	I filtri in alto in Elementi salvati prendono il colore che hai scelto, e quello attivo viene riempito con esso. Riavvia Instagram per vedere la modifica.
 Instagram's icons on the top bar, the tab bar and under posts take the color you picked. Text stays as it is. Restart Instagram to see the change.	Le icone di Instagram nella barra in alto, nella barra delle schede e sotto i post prendono il colore che hai scelto. Il testo resta com'è. Riavvia Instagram per vedere la modifica.
 Story rings in the accent color	Anelli delle storie nel colore di accento
 Story rings take the color you picked instead of Instagram's gradient. A few other gradients share those colors and change with them. Restart Instagram to see the change.	Gli anelli delle storie prendono il colore che hai scelto al posto della sfumatura di Instagram. Alcune altre sfumature usano quei colori e cambiano con loro. Riavvia Instagram per vedere la modifica.
@@ -1236,7 +1243,7 @@ Never. Pick a time and the tab bar slides away once a reel has played that long 
 # context: summary of the Hide the tab bar on Reels row; %1$d is the seconds picked, 2, 3, 5 or 8
 On Reels, the tab bar slides away after %1$d seconds without a touch. Tap the bottom edge of the screen, change tab or press Back to bring it back. Restart Instagram after changing it.	Nei reel, la barra delle schede scivola via dopo %1$d secondi senza un tocco. Tocca il bordo inferiore dello schermo, cambia scheda o premi Indietro per riportarla. Riavvia Instagram dopo averlo cambiato.
 Start feed videos with sound	Avvia i video del feed con l'audio
-Videos on Home play with their sound on, the same as tapping a video's speaker. Mute one and the ones after it stay muted. Your phone's ringer and volume still count, so on silent or with the volume down, they stay quiet.	I video nella Home partono con l'audio attivo, come toccando l'altoparlante di un video. Se ne silenzi uno, i successivi restano muti. La suoneria e il volume del telefono contano comunque, quindi in silenzioso o con il volume basso restano muti.
+Videos on Home play with their sound on, the same as tapping a video's speaker, and so do songs on photo posts. Mute one and the ones after it stay muted. Your phone's ringer and volume still count, so on silent or with the volume down, they stay quiet.	I video nella Home partono con l'audio attivo, come toccando l'altoparlante di un video, e anche i brani dei post con foto. Se ne silenzi uno, i successivi restano muti. La suoneria e il volume del telefono contano comunque, quindi in silenzioso o con il volume basso restano muti.
 Start feed videos muted	Avvia i video del feed senza audio
 Videos on Home start silent, even after you turn the sound on in Reels, so reels keep their sound. Tap a video's speaker to hear that one. Wins over Start feed videos with sound.	I video nella Home partono muti, anche dopo che hai attivato l'audio nei Reels, così i reel mantengono l'audio. Tocca l'altoparlante di un video per ascoltare quello. Ha la precedenza su Avvia i video del feed con l'audio.
 Tap a feed video to pause it	Tocca un video del feed per metterlo in pausa
@@ -1315,6 +1322,8 @@ Takes the heart out of the column of buttons beside a reel, and the like count u
 Hide the Comment button on reels	Nascondi il pulsante Commenta sui reel
 Takes the Comment button out of the column of buttons beside a reel, and the count under it. The comment bar under a reel has its own switch.	Toglie il pulsante Commenta dalla colonna di pulsanti accanto a un reel, e il conteggio sotto. La barra dei commenti sotto un reel ha un suo interruttore.
 Hide the Save button on reels	Nascondi il pulsante Salva sui reel
+Hide the More button on reels	Nascondi il pulsante Altro sui reel
+Takes the three dots, and the menu they open, off the bottom of the column of buttons beside a reel. Repost and Share have their own switches under Sharing.	Toglie i tre puntini, e il menu che aprono, dal fondo della colonna di pulsanti accanto a un reel. Ripubblica e Condividi hanno i loro interruttori in Condivisione.
 Burn-in guard	Protezione burn-in
 Dim when idle	Attenua quando inattivo
 Dim when idle and shift	Attenua e sposta quando inattivo
@@ -1884,6 +1893,12 @@ Instagram gradient on dark	Instagram sfumato su scuro
 Retro Instagram	Instagram retrò
 Menu button on Home's header	Pulsante Menu nell'intestazione della Home
 Adds a menu button at the top of Home with your viewing history, Ghost mode and HushGram settings. Restart Instagram to see the change.	Aggiunge in alto nella Home un pulsante Menu con la cronologia, la modalità fantasma e le impostazioni di HushGram. Riavvia Instagram per vedere la modifica.
+# context: entry of the menu that the menu button on Home's header opens; starts Instagram's own log out (#850)
+Log out	Esci
+# context: Tab bar settings: switch that adds Log out to the list of the menu button on Home's header (#850)
+Log out in Home's menu	Esci nel menu della Home
+# context: that switch summary (#850)
+Adds Log out after HushGram settings in the list the menu button on Home's header opens. It starts the same Log out as Instagram's own settings.	Aggiunge Esci dopo le impostazioni di HushGram nell'elenco che apre il pulsante Menu nell'intestazione della Home. Avvia la stessa uscita delle impostazioni di Instagram.
 History button on Home's header	Pulsante Cronologia nell'intestazione della Home
 Adds a clock at the top of Home that opens your viewing history in one tap. Restart Instagram to see the change.	Aggiunge in alto nella Home un orologio che apre la cronologia con un tocco. Riavvia Instagram per vedere la modifica.
 HushGram menu	Menu di HushGram
@@ -1937,6 +1952,30 @@ Minimum views	Visualizzazioni minime
 Reels with fewer views than this are left out. Type a whole number, or 0 to not look at views.	I reel con meno visualizzazioni di questo valore vengono esclusi. Scrivi un numero intero, o 0 per non contare le visualizzazioni.
 Fewer than %1$s views	Meno di %1$s visualizzazioni
 Minimum likes	Mi piace minimi
+Maximum likes	Mi piace massimi
+Minimum comments	Commenti minimi
+Maximum comments	Commenti massimi
+Minimum shares	Condivisioni minime
+Maximum shares	Condivisioni massime
+Minimum saves	Salvataggi minimi
+Maximum saves	Salvataggi massimi
+Reels with more likes than this are left out. Type a whole number, or 0 for no maximum.	I reel con più Mi piace di questo valore vengono esclusi. Scrivi un numero intero, o 0 per nessun massimo.
+Reels with fewer comments than this are left out. Type a whole number, or 0 to not look at comments.	I reel con meno commenti di questo valore vengono esclusi. Scrivi un numero intero, o 0 per non contare i commenti.
+Reels with more comments than this are left out. Type a whole number, or 0 for no maximum.	I reel con più commenti di questo valore vengono esclusi. Scrivi un numero intero, o 0 per nessun massimo.
+Reels with fewer shares than this are left out. Type a whole number, or 0 to not look at shares.	I reel con meno condivisioni di questo valore vengono esclusi. Scrivi un numero intero, o 0 per non contare le condivisioni.
+Reels with more shares than this are left out. Type a whole number, or 0 for no maximum.	I reel con più condivisioni di questo valore vengono esclusi. Scrivi un numero intero, o 0 per nessun massimo.
+Reels with fewer saves than this are left out. Type a whole number, or 0 to not look at saves.	I reel con meno salvataggi di questo valore vengono esclusi. Scrivi un numero intero, o 0 per non contare i salvataggi.
+Reels with more saves than this are left out. Type a whole number, or 0 for no maximum.	I reel con più salvataggi di questo valore vengono esclusi. Scrivi un numero intero, o 0 per nessun massimo.
+More than %1$s likes	Più di %1$s Mi piace
+Comments aren't looked at	I commenti non contano
+Fewer than %1$s comments	Meno di %1$s commenti
+More than %1$s comments	Più di %1$s commenti
+Shares aren't looked at	Le condivisioni non contano
+Fewer than %1$s shares	Meno di %1$s condivisioni
+More than %1$s shares	Più di %1$s condivisioni
+Saves aren't looked at	I salvataggi non contano
+Fewer than %1$s saves	Meno di %1$s salvataggi
+More than %1$s saves	Più di %1$s salvataggi
 Reels with fewer likes than this are left out. Type a whole number, or 0 to not look at likes.	I reel con meno Mi piace di questo valore vengono esclusi. Scrivi un numero intero, o 0 per non contare i Mi piace.
 Fewer than %1$s likes	Meno di %1$s Mi piace
 Likes aren't looked at	I Mi piace non contano
@@ -1990,6 +2029,12 @@ That picture is over %1$d MB.	L'immagine supera %1$d MB.
 Couldn't save the picture.	Impossibile salvare l'immagine.
 Open a chat, tap the clock button next to the call buttons at the top, or long press the chat's name, and pick Jump to the first message or Jump to a date. The chat loads its older messages on its own, with a count and a Cancel button.	Apri una chat, tocca il pulsante dell'orologio accanto ai pulsanti di chiamata in alto, o tieni premuto il nome della chat, e scegli Vai al primo messaggio o Vai a una data. La chat carica da sola i messaggi più vecchi, con un conteggio e un pulsante Annulla.
 Open a chat, tap the clock button next to the call buttons at the top, or long press the chat's name, and pick Export chat. The whole chat is saved as a text file in Downloads, HushGram folder, one line per message. Select messages in the same menu lets you tick messages to copy, share or save.	Apri una chat, tocca il pulsante dell'orologio accanto ai pulsanti di chiamata in alto, o tieni premuto il nome della chat, e scegli Esporta chat. L'intera chat viene salvata come file di testo in Download, cartella HushGram, con una riga per messaggio. Con Seleziona messaggi, nello stesso menu, spunti i messaggi da copiare, condividere o salvare.
+# context: settings switch title on the Messages page (#852): link buttons under a chat message, like the ones automated accounts send
+Copy links from chat buttons	Copia i link dai pulsanti della chat
+# context: that switch's summary (#852); Copy link is the row it adds to the menu you get when you hold a message, same words as the Copy link key
+Hold a message with link buttons, like the ones automated accounts send, and tap Copy link to copy where a button goes without opening it. With several buttons you pick one.	Tieni premuto un messaggio con pulsanti link, come quelli inviati dagli account automatici, e tocca Copia link per copiare dove porta un pulsante senza aprirlo. Con più pulsanti ne scegli uno.
+# context: toast after Copy link put a chat button's link on the clipboard (#852)
+Link copied	Link copiato
 Instagram stopped loading older messages.	Instagram non carica più i messaggi vecchi.
 Black settings page	Pagina delle impostazioni nera
 Black rows and dialogs, with HushGram's name at the top.	Righe e finestre nere, con il nome di HushGram in alto.
@@ -2105,6 +2150,8 @@ Speed button on reels	Pulsante velocità sui reel
 Puts a speed icon beside a reel. Tap it to pick a speed from 0.5x to 3x. With Keep the reel speed on, the next reels play at it too.	Mette un'icona della velocità accanto a un reel. Toccala per scegliere una velocità da 0,5x a 3x. Con Mantieni la velocità dei reel attivo, anche i reel successivi vanno a quella velocità.
 Speed in the reel menu	Velocità nel menu del reel
 Adds Playback speed to the menu a reel's three dots open. Pick a speed there from 0.5x to 3x. With Keep the reel speed on, the next reels play at it too.	Aggiunge Velocità di riproduzione al menu che si apre dai tre puntini di un reel. Scegli lì una velocità da 0,5x a 3x. Con Mantieni la velocità dei reel attivo, anche i reel successivi vanno a quella velocità.
+Whole reel in the reel menu	Reel intero nel menu del reel
+Adds Show the whole reel to the menu a reel's three dots open. A tap fits that reel inside the screen until you swipe to the next one. Fill the screen there crops it again.	Aggiunge Mostra il reel intero al menu che si apre dai tre puntini di un reel. Un tocco mostra quel reel intero sullo schermo finché non passi al successivo. Riempi lo schermo, nello stesso menu, lo ritaglia di nuovo.
 # context: Reels settings: a switch for an icon beside each reel that does what Instagram's own Full screen row in the reel's menu does (#480). Full screen is Instagram's term for it (bundled 453 string packs: Vollbild, pantalla completa, layar penuh, schermo intero, 전체 화면, tela cheia, tam ekran, toàn màn hình, 全螢幕); Start every reel in clear mode is HushGram's switch of that name
 Full screen button on reels	Pulsante Schermo intero sui reel
 Puts a Full screen icon beside a reel, so one tap does what Full screen in its menu does. Start every reel in clear mode opens every reel that way.	Mette un'icona Schermo intero accanto a un reel, così un tocco fa quello che fa Schermo intero nel suo menu. Avvia ogni reel in modalità pulita apre ogni reel così.
@@ -2120,6 +2167,9 @@ Full screen didn't open	Schermo intero non aperto
 Stories fill the screen	Le storie riempiono lo schermo
 # context: that switch's summary (#436)
 On a tall screen a story covers the whole screen, with the reply bar on top of it like on shorter phones, instead of a rounded card above the bar.	Su uno schermo alto la storia copre tutto lo schermo, con la barra di risposta sopra come sui telefoni più corti, invece di una scheda arrotondata sopra la barra.
+Show the whole story	Mostra la storia intera
+Whole story in the story menu	Storia intera nel menu della storia
+Adds Show the whole story to the menu a story's three dots open while Stories fill the screen is on. A tap fits that story inside the screen until the next one. Fill the screen there fills it again.	Aggiunge Mostra la storia intera al menu che si apre dai tre puntini di una storia mentre Le storie riempiono lo schermo è attivo. Un tocco mostra quella storia intera sullo schermo fino alla successiva. Riempi lo schermo, nello stesso menu, la riporta a tutto schermo.
 # context: a button in the select-text window that copies the whole text (#492)
 Copy all	Copia tutto
 # context: toast after Copy all in the select-text window (#492)
@@ -2148,6 +2198,28 @@ Who stopped following you, after you open your Followers list	Chi ha smesso di s
 Notify me of unfollowers	Avvisami di chi smette di seguirmi
 # context: that switch summary (#492)
 After you scroll your own Followers list to the end, posts a notification naming who has left since last time. Nothing extra is asked of Instagram.	Dopo che scorri fino in fondo la tua lista dei follower, mostra una notifica con chi se n'è andato dall'ultima volta. A Instagram non viene chiesto nulla in più.
+# context: settings switch title on the Profiles page (#847); holding a tab (Followers, Following) at the top of a follow list filters it
+Hold a follow list's tabs to filter it	Tieni premute le schede di una lista per filtrarla
+# context: that switch's summary (#847); Followers and Following are Instagram's own list names
+In any Followers or Following list, hold a tab at the top to show everyone, only public accounts or only private ones. Accounts Instagram hasn't said either way about stay.	In qualsiasi lista Follower o Seguiti, tieni premuta una scheda in alto per mostrare tutti, solo gli account pubblici o solo quelli privati. Gli account di cui Instagram non ha detto nulla restano.
+# context: settings switch title on the Profiles page (#847): dates on your own Followers and Following lists
+Follow dates in your lists	Date dei follow nelle tue liste
+# context: that switch's summary (#847)
+Your own Followers and Following lists show since when each account follows you, or you them. Dates start the first time you scroll a list to the end with this on, so accounts already there get none.	Le tue liste Follower e Seguiti mostrano da quando ogni account ti segue, o tu lo segui. Le date partono la prima volta che scorri una lista fino in fondo con questa opzione attiva, quindi gli account già presenti non ne hanno.
+# context: a choice in the follow list filter dialog (#847): only public accounts
+Public accounts	Account pubblici
+# context: a choice in the follow list filter dialog (#847): only private accounts
+Private accounts	Account privati
+# context: title of the follow list filter dialog, whose choices are Everyone, Public accounts and Private accounts (#847)
+Show in follow lists	Mostra nelle liste di follow
+# context: toast after picking Everyone in the follow list filter (#847)
+Showing everyone	Vengono mostrati tutti
+# context: toast after picking Public accounts in the follow list filter (#847)
+Showing public accounts	Vengono mostrati gli account pubblici
+# context: toast after picking Private accounts in the follow list filter (#847)
+Showing private accounts	Vengono mostrati gli account privati
+# context: before a follow list row's name: since when that follow started, %s is a short date like Mar 3 (#847)
+Since %s	Dal %s
 # context: settings switch title and button label, the row Instagram calls About this account (#492)
 About this account	Informazioni su questo account
 About this account button	Pulsante Informazioni su questo account
@@ -2516,6 +2588,10 @@ Tap sound volume	Volume del suono al tocco
 Auto scroll in Home	Scorrimento automatico nella Home
 Moves Home on to the next post by itself. A video moves on when it ends, a photo or carousel after Time on each post. Touch the screen to hold it.	La Home passa da sola al post successivo. Un video passa quando finisce, una foto o un carosello dopo Tempo su ogni post. Tocca lo schermo per fermarlo.
 Time on each post	Tempo su ogni post
+# context: Feed settings: switch that takes a blocked account's posts out of Home as soon as the block goes through (#861)
+Hide posts when you block someone	Nascondi i post quando blocchi qualcuno
+# context: Summary of Hide posts when you block someone, a Feed switch (#861)
+When you block someone, their posts in Home go away right away instead of after you refresh it.	Quando blocchi qualcuno, i suoi post nella Home spariscono subito invece che dopo un aggiornamento.
 # context: Reels settings: switch that lets a tap on the reel shown above an open comments sheet pause or play it, and a hold play it at 2x, without closing the comments (#665)
 Control the reel above comments	Controlla il reel sopra i commenti
 # context: Summary of Control the reel above comments (#665)
@@ -2559,6 +2635,10 @@ The time on the seek bar counts down what's left of the video, like -0:33 / 0:45
 Time under the tags button	Tempo sotto il pulsante dei tag
 # context: Summary of Time under the tags button (#711)
 Puts the time in the corner under the tags button instead of the middle of the bar.	Mette il tempo nell'angolo sotto il pulsante dei tag invece che al centro della barra.
+# context: Feed settings: a switch under Time on the seek bar that moves the time to the video's top corner, below Instagram's countdown (#788)
+Time in the top corner	Tempo nell'angolo in alto
+# context: Summary of Time in the top corner (#788)
+Puts the time in the top corner of the video instead of over the bar, just below anything Instagram shows there, like its countdown.	Mette il tempo nell'angolo in alto del video invece che sopra la barra, subito sotto ciò che Instagram mostra lì, come il suo conto alla rovescia.
 # context: Feed settings: a switch under Tap a feed video to pause it that keeps any tap on a feed video from opening Reels (#706)
 Taps on feed videos stay in the feed	I tocchi sui video del feed restano nel feed
 # context: Summary of Taps on feed videos stay in the feed; Tap a feed video to pause it is the switch above it, use its translation (#706)
@@ -2597,6 +2677,10 @@ A feed video you hold for 2x keeps playing at 2x after you let go. Hold it again
 Only after a long hold	Solo dopo una pressione lunga
 # context: Summary of Only after a long hold, a switch under Keep 2x after you let go (#552)
 Keeps 2x only when you hold the video for about 3 seconds. Let go sooner and it goes back to normal speed.	Mantiene 2x solo se tieni premuto il video per circa 3 secondi. Se rilasci prima, torna alla velocità normale.
+# context: Feed settings: a switch under Keep 2x after you let go that leaves Instagram's 2x label on a feed video kept at 2x (#860)
+Show 2x after you let go	Mostra 2x quando rilasci
+# context: Summary of Show 2x after you let go, a switch under Keep 2x after you let go (#860)
+A feed video that keeps playing at 2x shows a 2x label at the top until it goes back to normal speed.	Un video del feed che continua a 2x mostra un'etichetta 2x in alto finché non torna alla velocità normale.
 # context: Feed settings: a switch under Hold for 2x on feed videos that keeps the poster's name over the video while it's held at 2x (#552)
 Keep the name while you hold	Mostra il nome mentre tieni premuto
 # context: Summary of Keep the name while you hold, a switch under Hold for 2x on feed videos (#552)
@@ -2664,6 +2748,10 @@ Hold a finger on the liquid pill's bubble, or slide it across the tabs, and the 
 # context: Keep story viewers, its Stories settings rows and the Story viewers page.
 Keep story viewers	Tieni gli spettatori delle storie
 Each time you open who viewed one of your stories, the list is kept on this phone and set beside your followers. Nothing extra is asked of Instagram. Turn it off and it stops at once.	Ogni volta che apri chi ha visto una delle tue storie, l'elenco viene tenuto su questo telefono e messo accanto ai tuoi follower. A Instagram non viene chiesto niente in più. Disattivalo e si ferma subito.
+# context: Stories > Keep story viewers, the switch for a search bar HushGram adds to Instagram's list of who viewed your story, and the bar's own words.
+Search bar in the viewer list	Barra di ricerca nell'elenco degli spettatori
+Puts a Search viewers bar at the top of the list of who viewed your story. It searches the viewers kept on this phone, the ones Instagram has listed so far.	Mette una barra Cerca spettatori in cima all'elenco di chi ha visto la tua storia. Cerca tra gli spettatori tenuti su questo telefono, quelli che Instagram ha elencato finora.
+Search viewers	Cerca spettatori
 Story viewers	Spettatori delle storie
 Nothing here yet. With Keep story viewers on, open who viewed one of your stories in Instagram and the list is kept here.	Ancora niente. Con Tieni gli spettatori delle storie attivo, apri in Instagram chi ha visto una delle tue storie e l'elenco viene tenuto qui.
 %1$d story kept since %2$s. Tap to see who viewed it and who has no view recorded.	%1$d storia tenuta dal %2$s. Tocca per vedere chi l'ha vista e chi non ha visualizzazioni registrate.
@@ -2714,6 +2802,10 @@ Matches: %1$d of %2$d blocked accounts	Corrispondenze: %1$d su %2$d account bloc
 Long press a profile picture to view it	Tieni premuta una foto profilo per vederla
 # context: that switch summary (#737)
 Long press the picture at the top of a profile to open the whole square picture at full size, with Save under it, instead of Instagram's own preview. A tap works as before.	Tieni premuta la foto in cima a un profilo per aprire l'intera foto quadrata a grandezza piena, con Salva sotto, al posto dell'anteprima di Instagram. Un tocco funziona come prima.
+# context: Profiles settings: switch that makes a tap on a profile's picture open the account's story when the picture has a story ring, where Instagram sometimes opened the picture (#823)
+A story ring opens the story	L'anello della storia apre la storia
+# context: that switch summary (#823)
+Tapping the picture at the top of a profile with a story ring opens the story whenever Instagram has it, where Instagram sometimes opens the picture instead.	Toccare la foto in cima a un profilo con l'anello della storia apre la storia ogni volta che Instagram ce l'ha, dove a volte Instagram apre invece la foto.
 # context: Notifications settings: row that opens a list of the kinds of notification rows this phone has seen, to tick the ones to hide (#756)
 Hide notifications by type	Nascondi notifiche per tipo
 # context: that row's summary while nothing is ticked (#756)
@@ -2867,3 +2959,11 @@ Long press a chat to group it	Tieni premuta una chat per raggrupparla
 # context: Stories switch Story rings on saved posts and its summary, for posts on the Saved page (#790)
 Story rings on saved posts	Cerchi delle storie nei post salvati
 Posts you saved show the story ring around the author's picture, like Home does, and a tap on it opens their story. It only uses stories Instagram has already loaded.	I post che hai salvato mostrano il cerchio della storia attorno all'immagine dell'autore, come nella Home, e toccandolo si apre la sua storia. Usa solo le storie che Instagram ha già caricato.
+# context: Details in a post's menu (#839): a row under the facts that sends the photo, or a video's cover, to Google Lens to read its words
+Read text with Lens	Leggi testo con Lens
+# context: Details in a post's menu (#839): a toast while Open with or Read text with Lens fetches the post's file
+Getting the file ready	Preparo il file
+# context: Details in a post's menu (#839): a toast when Open with or Read text with Lens couldn't fetch the post's file
+Couldn't get the file	Impossibile ottenere il file
+# context: Details in a post's menu (#839): a toast when no app on the phone takes the photo or video Open with offers
+No app here can open it	Nessuna app qui lo apre

@@ -190,8 +190,8 @@ private fun hookFadingToolbarAlpha(
 
 @Suppress("unused")
 val expressiveMediaPagesPatch = patch(
-    name = "Expressive Material 3 albums, artists & my tracks",
-    description = "Extends the Material 3 Expressive design (fading hero covers, cover-adaptive & Monet palettes, 52dp pill buttons, connected secondary tiles, scroll-morphing toolbars, and clean collection headers) to Albums, Artists, My Tracks, My Albums, and My Artists.",
+    name = "M3 albums, artists & library",
+    description = "Extends M3 design (fading hero artwork, adaptive Monet colors, pill controls, and a Bento-style Collection tile grid) to Albums, Artists, My Tracks, and your Library.",
     default = true,
 ) {
     dependsOn(materialYouThemePatch, expressivePlaylistPatch)
@@ -204,7 +204,7 @@ val expressiveMediaPagesPatch = patch(
         key = "expressiveAlbums",
         default = true,
         title = "Expressive Album pages",
-        description = "Apply the downward-fading hero cover, adaptive Monet colors, pill controls, and connected action bar to Album pages and My Albums.",
+        description = "Apply fading hero artwork, adaptive Monet colors, pill controls, and connected action bars to Album pages and My Albums (also adjustable live in Settings → MaterialTidal).",
         required = true,
     )
 
@@ -212,7 +212,7 @@ val expressiveMediaPagesPatch = patch(
         key = "expressiveArtists",
         default = true,
         title = "Expressive Artist pages",
-        description = "Apply the downward-fading artist portrait hero, adaptive Monet colors, contributor chips, pill controls, and connected action bar to Artist pages and My Artists.",
+        description = "Apply fading portrait heroes, adaptive Monet colors, contributor chips, pill controls, and connected action bars to Artist pages and My Artists (also adjustable live in Settings → MaterialTidal).",
         required = true,
     )
 
@@ -220,7 +220,7 @@ val expressiveMediaPagesPatch = patch(
         key = "expressiveMyTracks",
         default = true,
         title = "Expressive My Tracks screen",
-        description = "Apply Monet pill Play/Shuffle buttons, a tonal rounded Offline Download card, and clean track rows to My Tracks.",
+        description = "Apply Monet pill Play/Shuffle controls, a tonal Offline Download card, and polished track rows to My Tracks (also adjustable live in Settings → MaterialTidal).",
         required = true,
     )
 
@@ -228,20 +228,22 @@ val expressiveMediaPagesPatch = patch(
         key = "expressiveCollection",
         default = true,
         title = "Expressive Collection tile grid",
-        description = "Redesigns the Collection screen category list into a Material 3 Expressive Bento tile grid with spring press animations and circular tonal top-bar buttons.",
+        description = "Redesigns the Library collection menu into a Bento-style tile grid with circular tonal top-bar buttons (also toggleable in Settings → MaterialTidal).",
         required = true,
     )
 
     execute {
         // 1. Wire MaterialYouConfig options.
         val configClass = mutableClassDefBy(MATERIAL_YOU_CONFIG_CLASS)
-        configClass.methods.single { it.name == "isExpressiveAlbumsEnabled" }
+        configClass.methods.single { it.name == "isExpressiveMediaPagesPatchInstalled" }
+            .returnEarly(true)
+        configClass.methods.single { it.name == "defaultExpressiveAlbumsEnabled" }
             .returnEarly(expressiveAlbumsOption ?: true)
-        configClass.methods.single { it.name == "isExpressiveArtistsEnabled" }
+        configClass.methods.single { it.name == "defaultExpressiveArtistsEnabled" }
             .returnEarly(expressiveArtistsOption ?: true)
-        configClass.methods.single { it.name == "isExpressiveMyTracksEnabled" }
+        configClass.methods.single { it.name == "defaultExpressiveMyTracksEnabled" }
             .returnEarly(expressiveMyTracksOption ?: true)
-        configClass.methods.single { it.name == "isExpressiveCollectionEnabled" }
+        configClass.methods.single { it.name == "defaultExpressiveCollectionEnabled" }
             .returnEarly(expressiveCollectionOption ?: true)
 
         // 2. DynamicPage base Fragment lifecycle (Albums, Artists, Contributors, Mixes).
@@ -340,9 +342,11 @@ val expressiveMediaPagesPatch = patch(
             "$EXPRESSIVE_MEDIA_PAGES_BRIDGE_CLASS->onMyArtistsViewCreated(Landroid/view/View;)V",
         )
 
-        // 7. Compose Profile / Artist Page v2 hero cover fade, Monet action buttons & tab indicator.
+        // 7. Compose Profile / Artist Page v2 hero cover fade, Monet action buttons, Light Mode theme & tabs.
         patchComposeProfileHeaderView(ProfileHeaderViewFingerprint.matchSingle().method)
         patchComposeProfileCircularActions(ProfileCircularActionFingerprint.matchSingle().method)
+        patchComposeProfileSecondaryAction(ProfileSecondaryActionFingerprint.matchSingle().method)
+        patchComposeProfilePageTheme(ProfilePageThemeLambdaFingerprint.matchSingle().method)
         patchComposeProfileScreenContent(ProfileScreenContentFingerprint.matchSingle().method)
         patchComposeProfileTopBar(ProfileTopBarFingerprint.matchSingle().method)
         patchComposeProfileTabsIndicator(ProfileTabsRowLambdaFingerprint.matchSingle().method)
@@ -669,8 +673,132 @@ private fun patchComposeProfileTopBar(method: MutableMethod) {
     )
 }
 
+private fun patchComposeProfilePageTheme(method: MutableMethod) {
+    val insns = method.instructions.toList()
+
+    val marketCopyIdx = insns.indexOfFirst { insn ->
+        insn.opcode == Opcode.INVOKE_STATIC_RANGE &&
+            ((insn as? ReferenceInstruction)?.reference as? MethodReference)?.let {
+                it.definingClass == "Lcom/squareup/ui/market/core/theme/MarketTheme;" &&
+                    it.returnType == "Lcom/squareup/ui/market/core/theme/MarketTheme;" &&
+                    it.parameterTypes.size == 11
+            } == true
+    }
+    if (marketCopyIdx < 0) {
+        throw PatchException("Missing MarketTheme.copy in ${method.definingClass}.${method.name}")
+    }
+    val maskReg = (insns[marketCopyIdx] as RegisterRangeInstruction).startRegister + 9
+    val maskIdx = (marketCopyIdx - 1 downTo maxOf(0, marketCopyIdx - 15)).firstOrNull { idx ->
+        val insn = insns[idx]
+        insn is NarrowLiteralInstruction &&
+            insn is OneRegisterInstruction &&
+            insn.registerA == maskReg &&
+            insn.narrowLiteral == 0xbc
+    } ?: throw PatchException(
+        "Missing MarketTheme.copy default mask 0xbc in v$maskReg before idx=$marketCopyIdx in ${method.definingClass}.${method.name}",
+    )
+
+    val hpeReadIdx = (0 until insns.size - 1).firstOrNull { idx ->
+        val first = insns[idx]
+        val second = insns[idx + 1]
+        if (first.opcode != Opcode.IGET_OBJECT || second.opcode != Opcode.IGET_OBJECT) {
+            return@firstOrNull false
+        }
+        val ref1 = (first as ReferenceInstruction).reference as? FieldReference ?: return@firstOrNull false
+        val ref2 = (second as ReferenceInstruction).reference as? FieldReference ?: return@firstOrNull false
+        val two1 = first as TwoRegisterInstruction
+        val two2 = second as TwoRegisterInstruction
+        ref1.type == "Ljava/lang/Integer;" &&
+            ref2.type == "Ljava/lang/Integer;" &&
+            ref1.definingClass == ref2.definingClass &&
+            ref1.name != ref2.name &&
+            two1.registerB == two2.registerB
+    } ?: throw PatchException("Missing ProfilePageColors Integer reads in ${method.definingClass}.${method.name}")
+
+    val firstRead = insns[hpeReadIdx] as TwoRegisterInstruction
+    val secondRead = insns[hpeReadIdx + 1] as TwoRegisterInstruction
+    val bgReg = firstRead.registerA
+    val fgReg = secondRead.registerA
+    val hpeReg = firstRead.registerB
+    val scratchReg = 7
+    if (bgReg > 15 || fgReg > 15 || bgReg == scratchReg || fgReg == scratchReg || hpeReg == scratchReg) {
+        throw PatchException(
+            "Unexpected registers in ${method.definingClass}.${method.name}: bg=v$bgReg fg=v$fgReg hpe=v$hpeReg",
+        )
+    }
+
+    // Apply edits in descending instruction-index order so earlier indices stay valid.
+    // Set bit 0 (0xbc -> 0xbd) so MarketTheme.copy keeps lightThemeColors intact in Light Mode.
+    method.replaceInstruction(maskIdx, "const/16 v$maskReg, 0xbd")
+
+    method.addInstructionsWithLabels(
+        hpeReadIdx + 2,
+        """
+            invoke-static {}, $MATERIAL_YOU_ENGINE_CLASS->isLightMode()Z
+            move-result v$scratchReg
+            if-eqz v$scratchReg, :mt_keep_profile_page_colors
+            const/4 v$bgReg, 0x0
+            const/4 v$fgReg, 0x0
+            :mt_keep_profile_page_colors
+            nop
+        """,
+    )
+}
+
+private fun patchComposeProfileSecondaryAction(method: MutableMethod) {
+    val insns = method.instructions.toList()
+    val colorMoveIdx = insns.withIndex().singleOrNull { (idx, insn) ->
+        idx > 0 && insn.opcode == Opcode.MOVE_RESULT_WIDE &&
+            insns[idx - 1].opcode == Opcode.INVOKE_STATIC &&
+            ((insns[idx - 1] as? ReferenceInstruction)?.reference as? MethodReference)?.let {
+                it.definingClass == "Landroidx/compose/ui/res/ColorResources_androidKt;" &&
+                    it.name == "colorResource" &&
+                    it.returnType == "J"
+            } == true
+    }?.index ?: throw PatchException("Expected single colorResource call in ${method.definingClass}.${method.name}")
+
+    val reg = (insns[colorMoveIdx] as OneRegisterInstruction).registerA
+    method.addInstructions(
+        colorMoveIdx + 1,
+        """
+            invoke-static/range { v$reg .. v${reg + 1} }, $MATERIAL_YOU_ENGINE_CLASS->resolveArtistSecondaryActionTextCompose(J)J
+            move-result-wide v$reg
+        """,
+    )
+}
+
 private fun patchComposeProfileTabsIndicator(method: MutableMethod) {
     val insns = method.instructions.toList()
+
+    val hpeReadIdx = (0 until insns.size - 1).firstOrNull { idx ->
+        val first = insns[idx]
+        val second = insns[idx + 1]
+        if (first.opcode != Opcode.IGET_OBJECT || second.opcode != Opcode.IGET_OBJECT) {
+            return@firstOrNull false
+        }
+        val ref1 = (first as ReferenceInstruction).reference as? FieldReference ?: return@firstOrNull false
+        val ref2 = (second as ReferenceInstruction).reference as? FieldReference ?: return@firstOrNull false
+        val two1 = first as TwoRegisterInstruction
+        val two2 = second as TwoRegisterInstruction
+        ref1.type == "Ljava/lang/Integer;" &&
+            ref2.type == "Ljava/lang/Integer;" &&
+            ref1.definingClass == ref2.definingClass &&
+            ref1.name != ref2.name &&
+            two1.registerB == two2.registerB
+    } ?: throw PatchException("Missing ProfilePageColors Integer reads in ${method.definingClass}.${method.name}")
+
+    val firstRead = insns[hpeReadIdx] as TwoRegisterInstruction
+    val secondRead = insns[hpeReadIdx + 1] as TwoRegisterInstruction
+    val fgReg = firstRead.registerA
+    val bgReg = secondRead.registerA
+    val hpeReg = firstRead.registerB
+    val scratchReg = 6
+    if (fgReg > 15 || bgReg > 15 || fgReg == scratchReg || bgReg == scratchReg || hpeReg == scratchReg) {
+        throw PatchException(
+            "Unexpected tab color registers in ${method.definingClass}.${method.name}: fg=v$fgReg bg=v$bgReg hpe=v$hpeReg",
+        )
+    }
+
     val makeColorIdx = insns.withIndex().firstOrNull { (idx, insn) ->
         idx > 0 && insn.opcode == Opcode.INVOKE_STATIC &&
             insns[idx - 1].opcode == Opcode.CONST_HIGH16 &&
@@ -693,7 +821,7 @@ private fun patchComposeProfileTabsIndicator(method: MutableMethod) {
                 it.returnType == it.definingClass && it.parameterTypes.contains(marketColorType)
             } == true
     }
-    if (styleCopyIdx < 0 || styleCopyIdx <= makeColorIdx) {
+    if (styleCopyIdx < 0 || styleCopyIdx <= makeColorIdx || styleCopyIdx <= hpeReadIdx + 1) {
         throw PatchException("Missing tab style copy call in ${method.definingClass}.${method.name}")
     }
     val copyRange = insns[styleCopyIdx] as RegisterRangeInstruction
@@ -703,26 +831,37 @@ private fun patchComposeProfileTabsIndicator(method: MutableMethod) {
     val copyEndReg = copyRange.startRegister + copyRange.registerCount
     if (rA > 15 || rB > 15 || rA == rB || rA in copyRange.startRegister until copyEndReg || rB in copyRange.startRegister until copyEndReg) {
         throw PatchException(
-            "Register overlap in ${method.definingClass}.${method.name}: rA=v$rA rB=v$rB range=v${copyRange.startRegister}..v${copyEndReg - 1}"
+            "Register overlap in ${method.definingClass}.${method.name}: rA=v$rA rB=v$rB range=v${copyRange.startRegister}..v${copyEndReg - 1}",
         )
     }
 
+    // Apply edits in descending instruction-index order so earlier indices remain valid.
     method.addInstructionsWithLabels(
         styleCopyIdx,
         """
-            invoke-static {}, $MATERIAL_YOU_CONFIG_CLASS->isExpressiveArtistsEnabled()Z
-            move-result v$rA
-            if-eqz v$rA, :mt_keep_tab_ind
             invoke-static {}, $MATERIAL_YOU_CONFIG_CLASS->isMaterialYouEnabled()Z
             move-result v$rA
             if-eqz v$rA, :mt_keep_tab_ind
-            invoke-static {}, $MATERIAL_YOU_ENGINE_CLASS->getArtistTabIndicatorArgb()I
+            invoke-static {}, $MATERIAL_YOU_ENGINE_CLASS->getArtistTabOverflowFadeArgb()I
             move-result v$rB
             const/high16 v$rA, 0x3f800000
             invoke-static { v$rA, v$rB }, $makeColorSig
             move-result-object v$rA
             move-object/from16 v$indReg, v$rA
             :mt_keep_tab_ind
+            nop
+        """,
+    )
+
+    method.addInstructionsWithLabels(
+        hpeReadIdx + 2,
+        """
+            invoke-static {}, $MATERIAL_YOU_ENGINE_CLASS->isLightMode()Z
+            move-result v$scratchReg
+            if-eqz v$scratchReg, :mt_keep_profile_tab_colors
+            const/4 v$fgReg, 0x0
+            const/4 v$bgReg, 0x0
+            :mt_keep_profile_tab_colors
             nop
         """,
     )

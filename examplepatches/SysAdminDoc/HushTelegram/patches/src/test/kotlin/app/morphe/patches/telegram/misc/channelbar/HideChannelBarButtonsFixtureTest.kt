@@ -97,13 +97,25 @@ class HideChannelBarButtonsFixtureTest {
             }
             assertEquals("$name: one bubble draw hooked", listOf("dispatchDraw"), drawn.map { it.name })
             val draw = drawn.single().controlBody()
-            val asked = draw.indexOfFirst { it.controlRef() == MUTE_BUBBLE }
             val self = drawn.single().implementation!!.registerCount - 2
-            assertEquals("$name: the flag is read first", Opcode.IGET_BOOLEAN, draw[asked - 1].opcode)
-            val flag = draw[asked - 1].namedRegisters().first()
-            assertEquals("$name: the holder and its flag", listOf(self, flag), draw[asked].namedRegisters())
-            assertEquals("$name: the answer replaces the flag", listOf(Opcode.MOVE_RESULT, Opcode.IF_EQZ), draw.subList(asked + 1, asked + 3).map { it.opcode })
-            assertEquals("$name: the guard tests the answer", listOf(flag, flag), listOf(draw[asked + 1], draw[asked + 2]).map { it.namedRegisters().single() })
+            // 13.3.1 tests the same flag again for what it draws inside the bubble: each test asks.
+            val askedAt = draw.indices.filter { draw[it].controlRef() == MUTE_BUBBLE }
+            val shown = draw[askedAt.first() - 1].controlField()
+            assertEquals("$name: every test of the bubble's flag asks", draw.count { it.opcode == Opcode.IGET_BOOLEAN && it.controlField() == shown },
+                askedAt.size)
+            for (asked in askedAt) {
+                assertEquals("$name: the flag is read first", Opcode.IGET_BOOLEAN, draw[asked - 1].opcode)
+                assertEquals("$name: the same flag", shown, draw[asked - 1].controlField())
+                val (flag, holder) = draw[asked - 1].namedRegisters()
+                assertEquals("$name: the holder and its flag", listOf(holder, flag), draw[asked].namedRegisters())
+                assertTrue("$name: the holder is this or the copy of it made first", holder == self ||
+                    draw.take(asked).any {
+                        it.opcode in setOf(Opcode.MOVE_OBJECT, Opcode.MOVE_OBJECT_FROM16, Opcode.MOVE_OBJECT_16) && it.namedRegisters() == listOf(holder, self)
+                    })
+                assertEquals("$name: the answer replaces the flag", listOf(Opcode.MOVE_RESULT, Opcode.IF_EQZ), draw.subList(asked + 1, asked + 3).map { it.opcode })
+                assertEquals("$name: the guard tests the answer", listOf(flag, flag), listOf(draw[asked + 1], draw[asked + 2]).map { it.namedRegisters().single() })
+            }
+            val asked = askedAt.first()
             // 13.2 calls draw on the bubble field's own class rather than on Drawable.
             assertEquals("$name: the guard reads the bubble", Opcode.IGET_OBJECT, draw[asked + 3].opcode)
             assertTrue("$name: the guard keeps the bubble's draw", drawsBubble(draw[asked + 4], draw[asked + 3].controlField()!!))

@@ -154,6 +154,12 @@ public final class ExpressiveMiniPlayerView extends View {
     private float downY;
     private float downRawX;
     private float downRawY;
+    private float verticalDragStartRawY;
+    private float lastMoveRawY;
+    private long lastMoveUptimeMs;
+    private float smoothVelYpxPerSec;
+    private float peakRecentDragUpPx;
+    private long peakRecentDragUptimeMs;
     private boolean isHorizontalSwiping;
     private boolean isVerticalPulling;
     private boolean isInteractiveOverlayDragging;
@@ -285,6 +291,8 @@ public final class ExpressiveMiniPlayerView extends View {
         if (coverChanged) {
             loadArtworkAsync(newCoverId);
             ExpressivePlayerView.prewarmArtwork(newCoverId);
+            dev.materialtidal.extension.tidal.player.waveform.SongWaveformExtractor
+                    .prewarmCurrentTrackIfEnabled(getContext());
         }
 
         startAnimationLoop();
@@ -618,7 +626,10 @@ public final class ExpressiveMiniPlayerView extends View {
     @Override
     protected void onAttachedToWindow() {
         super.onAttachedToWindow();
-        post(() -> ExpressiveMiniPlayerExpandOverlayView.ensureAttachedFromMiniPlayer(this));
+        post(() -> {
+            ExpressiveMiniPlayerExpandOverlayView.ensureAttachedFromMiniPlayer(this);
+            ExpressivePlayerView.prewarmIconCache(getContext());
+        });
     }
 
     @Override
@@ -679,6 +690,10 @@ public final class ExpressiveMiniPlayerView extends View {
     public float getCurrentArtCornerRadiusPx() {
         float clampedMorph = Math.max(0f, Math.min(1f, playShapeMorph));
         return (22f * (1f - clampedMorph) + 15f * clampedMorph) * density;
+    }
+
+    float getCurrentCardScale() {
+        return cardScale;
     }
 
     public void setExpandOverlayActive(boolean active) {
@@ -1394,12 +1409,22 @@ public final class ExpressiveMiniPlayerView extends View {
                 downY = y;
                 downRawX = rawX;
                 downRawY = rawY;
+                verticalDragStartRawY = rawY;
+                lastMoveRawY = rawY;
+                lastMoveUptimeMs = event.getEventTime();
+                smoothVelYpxPerSec = 0f;
+                peakRecentDragUpPx = 0f;
+                peakRecentDragUptimeMs = 0L;
                 isHorizontalSwiping = false;
                 isVerticalPulling = false;
                 isInteractiveOverlayDragging = false;
                 swipeThresholdCrossed = false;
                 pullThresholdCrossed = false;
                 activeHitTarget = hit;
+
+                if (coverId != null && !coverId.isEmpty()) {
+                    ExpressivePlayerView.prewarmArtwork(coverId);
+                }
 
                 recycleVelocityTracker();
                 velocityTracker = VelocityTracker.obtain();
@@ -1412,9 +1437,22 @@ public final class ExpressiveMiniPlayerView extends View {
                 return true;
             }
             case MotionEvent.ACTION_MOVE: {
+                long evTime = event.getEventTime();
+                long dtMs = evTime - lastMoveUptimeMs;
+                if (dtMs >= 1L && dtMs <= 80L) {
+                    float instVelY = ((rawY - lastMoveRawY) * 1000f) / dtMs;
+                    smoothVelYpxPerSec = smoothVelYpxPerSec == 0f
+                            ? instVelY
+                            : (smoothVelYpxPerSec * 0.55f + instVelY * 0.45f);
+                } else if (dtMs > 80L) {
+                    smoothVelYpxPerSec = 0f;
+                }
+                lastMoveRawY = rawY;
+                lastMoveUptimeMs = evTime;
+
                 if (velocityTracker != null) {
                     MotionEvent rawEv = MotionEvent.obtain(
-                            event.getDownTime(), event.getEventTime(), event.getAction(), rawX, rawY, 0);
+                            event.getDownTime(), evTime, event.getAction(), rawX, rawY, 0);
                     velocityTracker.addMovement(rawEv);
                     rawEv.recycle();
                 }
@@ -1436,6 +1474,9 @@ public final class ExpressiveMiniPlayerView extends View {
                         && -dy > Math.abs(dx) * 1.12f) {
                     isVerticalPulling = true;
                     activeHitTarget = HIT_NONE;
+                    verticalDragStartRawY = rawY;
+                    peakRecentDragUpPx = 0f;
+                    peakRecentDragUptimeMs = evTime;
                     requestDisallowInterceptOnAncestors();
                     isInteractiveOverlayDragging =
                             ExpressiveMiniPlayerExpandOverlayView.beginInteractiveDrag(this);
@@ -1458,10 +1499,14 @@ public final class ExpressiveMiniPlayerView extends View {
                     }
                     invalidate();
                 } else if (isVerticalPulling) {
-                    float dragUpPx = Math.max(0f, -dy);
                     if (isInteractiveOverlayDragging) {
+                        float dragUpPx = -(rawY - verticalDragStartRawY);
+                        if (dragUpPx >= peakRecentDragUpPx || (evTime - peakRecentDragUptimeMs) > 55L) {
+                            peakRecentDragUpPx = dragUpPx;
+                            peakRecentDragUptimeMs = evTime;
+                        }
                         ExpressiveMiniPlayerExpandOverlayView.updateInteractiveDrag(dragUpPx);
-                        boolean crossed = dragUpPx >= 86f * density;
+                        boolean crossed = dragUpPx >= 72f * density;
                         if (crossed && !pullThresholdCrossed) {
                             pullThresholdCrossed = true;
                             performHapticFeedback(HapticFeedbackConstants.CLOCK_TICK);
@@ -1489,10 +1534,6 @@ public final class ExpressiveMiniPlayerView extends View {
                 float vx = 0f;
                 float vy = 0f;
                 if (velocityTracker != null) {
-                    MotionEvent rawEv = MotionEvent.obtain(
-                            event.getDownTime(), event.getEventTime(), event.getAction(), rawX, rawY, 0);
-                    velocityTracker.addMovement(rawEv);
-                    rawEv.recycle();
                     velocityTracker.computeCurrentVelocity(1000);
                     vx = velocityTracker.getXVelocity();
                     vy = velocityTracker.getYVelocity();
@@ -1539,9 +1580,22 @@ public final class ExpressiveMiniPlayerView extends View {
                 }
 
                 if (wasPulling) {
-                    float dragUpPx = Math.max(0f, -(rawY - downRawY));
                     if (wasOverlayDrag) {
-                        ExpressiveMiniPlayerExpandOverlayView.endInteractiveDrag(dragUpPx, vy);
+                        long upTime = event.getEventTime();
+                        float rawDragUp = -(rawY - verticalDragStartRawY);
+                        float effectiveDragUp = rawDragUp;
+                        if ((upTime - peakRecentDragUptimeMs) <= 55L
+                                && rawDragUp < peakRecentDragUpPx
+                                && smoothVelYpxPerSec <= 180f * density) {
+                            effectiveDragUp = peakRecentDragUpPx;
+                        }
+                        float effectiveVy = vy;
+                        if ((upTime - lastMoveUptimeMs) < 70L
+                                && smoothVelYpxPerSec < -200f * density
+                                && vy > -200f * density) {
+                            effectiveVy = smoothVelYpxPerSec;
+                        }
+                        ExpressiveMiniPlayerExpandOverlayView.endInteractiveDrag(effectiveDragUp, effectiveVy);
                     } else {
                         ExpressiveScaffoldBridge.notifyMiniPlayerPullUp(0f);
                         if (-finalOffsetY >= PULL_UP_TRIGGER_DP * density || vy < -520f * density) {

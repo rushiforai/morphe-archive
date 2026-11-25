@@ -32,8 +32,6 @@ import java.io.OutputStream;
 import java.net.InetAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
-import java.nio.ByteBuffer;
-import java.nio.channels.FileChannel;
 import java.nio.charset.StandardCharsets;
 import java.security.SecureRandom;
 import java.util.Locale;
@@ -54,9 +52,9 @@ import app.morphe.extension.youtube.settings.Settings;
  * Plays downloaded videos in YouTube's own player, so the watch page (comments, related videos,
  * SponsorBlock, player buttons) works for them.
  * <p>
- * The file is served to the player over HTTP on the loopback address, and the player response of
- * that video is given one progressive stream that points there. YouTube plays such a stream with
- * the platform {@code MediaPlayer}, which needs nothing more than the url and a mime type.
+ * The progressive stream in the player response identifies the file with an authenticated loopback
+ * URL. The framework player reads HTTP byte ranges. With custom speeds enabled, YouTube's stock
+ * progressive Media3 adapter reads the same file directly through its local data source.
  * <p>
  * The watch page itself still needs the internet. The caller probes reachability and falls back to the
  * built-in player if the probe fails or the watch player cannot use the file.
@@ -73,6 +71,7 @@ public final class OfflineStreamSource {
     private static final long END_MARGIN_MS = 5_000;
     private static final int ITAG_MP4 = 18;
     private static final int ITAG_WEBM = 43;
+    private static final String LOOPBACK_HOST = "127.0.0.1";
     private static final Pattern FPS_IN_LABEL = Pattern.compile("p(\\d+)");
 
     /** Opened from the library, waiting for YouTube's player response. */
@@ -83,14 +82,17 @@ public final class OfflineStreamSource {
     @Nullable
     private static volatile String servingId;
     private static volatile long lastPositionSave;
+    @Nullable
+    private static volatile WatchSource watchSource;
 
     private static final Map<String, StreamInfo> infos = new ConcurrentHashMap<>();
 
     private static final Object SERVER_LOCK = new Object();
     @Nullable
-    private static ServerSocket server;
+    private static volatile ServerSocket server;
     /** Part of every url, so only the player that was given the url can read the files. */
     private static final String TOKEN = randomToken();
+    private static final String TOKEN_PATH = "/" + TOKEN + "/";
 
     private OfflineStreamSource() {
     }
@@ -157,6 +159,48 @@ public final class OfflineStreamSource {
         return servingId != null;
     }
 
+    /** Injection point for Medialib's progressive backend selection. */
+    public static boolean useStockProgressiveExo(@Nullable Uri uri) {
+        return progressiveLocalUri(uri) != null;
+    }
+
+    /** Captures the existing saved URI in the stock adapter, before it creates the media source. */
+    @Nullable
+    public static Uri stockProgressiveLocalUri(@Nullable Uri uri) {
+        Uri localUri = progressiveLocalUri(uri);
+        if (localUri != null) Logger.printInfo(() -> "Using stock progressive Media3 for a saved video");
+        return localUri;
+    }
+
+    @Nullable
+    private static Uri progressiveLocalUri(@Nullable Uri uri) {
+        WatchSource source = watchSource;
+        if (source == null) return null;
+        Uri localUri = source.resolve(uri, servingId, TOKEN_PATH);
+        return localUri != null && Settings.ENABLE_CUSTOM_PLAYBACK_SPEED.get() ? localUri : null;
+    }
+
+    record WatchSource(String videoId, int port, Uri localUri) {
+        @Nullable
+        Uri resolve(@Nullable Uri uri, @Nullable String activeId, String tokenPath) {
+            String scheme = localUri.getScheme();
+            return videoId.equals(activeId) && ("content".equals(scheme) || "file".equals(scheme))
+                    && matchesLoopbackSource(uri, port, tokenPath, videoId) ? localUri : null;
+        }
+    }
+
+    static boolean matchesLoopbackSource(@Nullable Uri uri, int port, String tokenPath, String videoId) {
+        if (uri == null || !"http".equals(uri.getScheme()) || !LOOPBACK_HOST.equals(uri.getHost())
+                || uri.getUserInfo() != null || uri.getPort() != port) {
+            return false;
+        }
+
+        // The app may append playback parameters. The host, port and authenticated path must still match.
+        String path = uri.getEncodedPath();
+        return path != null && path.length() == tokenPath.length() + videoId.length()
+                && path.startsWith(tokenPath) && path.startsWith(videoId, tokenPath.length());
+    }
+
     private static boolean isArmed() {
         return armedId != null && SystemClock.elapsedRealtime() - armedAt < ARM_TIMEOUT_MS;
     }
@@ -189,7 +233,8 @@ public final class OfflineStreamSource {
             Format.Builder format = Format.newBuilder()
                     .setItag(info.itag)
                     .setMimeType(info.mimeType)
-                    .setUrl("http://127.0.0.1:" + port + "/" + TOKEN + "/" + videoId)
+                    .setUrl("http://" + LOOPBACK_HOST + ":" + port + TOKEN_PATH + videoId)
+                    .setLastModified(video.downloadedAt * 1000)
                     .setContentLength(video.sizeBytes)
                     .setApproxDurationMs(info.durationMs)
                     .setBitrate(info.bitrate)
@@ -198,6 +243,7 @@ public final class OfflineStreamSource {
                     .setHeight(info.height)
                     .setFps(info.fps)
                     .setQualityLabel(video.qualityLabel);
+            watchSource = new WatchSource(videoId, port, Uri.parse(video.contentUri));
             Logger.printInfo(() -> "Serving " + videoId + " to the YouTube player on port " + port);
 
             return PlayerResponse.newBuilder()
@@ -236,7 +282,8 @@ public final class OfflineStreamSource {
      */
     public static void onVideoLoaded(String videoId) {
         final String serving = servingId;
-        if (serving != null && !serving.equals(videoId)) {
+        // A metadata refresh can publish an empty ID while the watch player is being initialized.
+        if (serving != null && !videoId.isEmpty() && !serving.equals(videoId)) {
             Logger.printDebug(() -> "Stopped serving " + serving + ", " + videoId + " loads");
             servingId = null;
         }
@@ -376,102 +423,37 @@ public final class OfflineStreamSource {
 
     /** @return True if the connection can take another request. */
     private static boolean serveRequest(BufferedReader in, OutputStream out) throws IOException {
-        String requestLine = in.readLine();
-        if (requestLine == null) return false;
-        String range = null;
-        boolean close = false;
-        for (String line = in.readLine(); line != null && !line.isEmpty(); line = in.readLine()) {
-            if (line.regionMatches(true, 0, "range:", 0, 6)) range = line.substring(6).trim();
-            else if (line.regionMatches(true, 0, "connection:", 0, 11)) close = line.toLowerCase(Locale.ROOT).contains("close");
-        }
+        OfflineStreamHttp.Request request = OfflineStreamHttp.readRequest(in);
+        if (request == null) return false;
 
-        String[] parts = requestLine.split(" ");
-        if (parts.length < 2 || (!"GET".equals(parts[0]) && !"HEAD".equals(parts[0]))) {
-            writeStatus(out, "405 Method Not Allowed");
+        String path = request.path();
+        if (path.isEmpty() || (!"GET".equals(request.method()) && !"HEAD".equals(request.method()))) {
+            OfflineStreamHttp.writeStatus(out, "405 Method Not Allowed");
             return false;
         }
-        String path = parts[1];
-        int query = path.indexOf('?');
-        if (query >= 0) path = path.substring(0, query);
         String[] segments = path.split("/");
         // "", token, video id
         if (segments.length != 3 || !TOKEN.equals(segments[1])) {
-            writeStatus(out, "404 Not Found");
+            OfflineStreamHttp.writeStatus(out, "404 Not Found");
             return false;
         }
         OfflineVideo video = OfflineIndex.get(segments[2]);
         if (video == null) {
-            writeStatus(out, "404 Not Found");
+            OfflineStreamHttp.writeStatus(out, "404 Not Found");
             return false;
         }
 
-        final Context context = Utils.getContext();
-        try (AssetFileDescriptor afd = context.getContentResolver().openAssetFileDescriptor(Uri.parse(video.contentUri), "r");
-             FileInputStream file = new FileInputStream(afd.getFileDescriptor())) {
-            final long total = afd.getLength() >= 0 ? afd.getLength() : video.sizeBytes;
-            long start = 0;
-            long end = total - 1;
-            boolean partial = false;
-            if (range != null && range.startsWith("bytes=")) {
-                String[] bounds = range.substring(6).split(",")[0].trim().split("-", 2);
-                try {
-                    if (bounds[0].isEmpty()) {
-                        // A suffix: the last bytes of the file.
-                        start = Math.max(0, total - Long.parseLong(bounds[1]));
-                    } else {
-                        start = Long.parseLong(bounds[0]);
-                        if (bounds.length > 1 && !bounds[1].isEmpty()) end = Math.min(end, Long.parseLong(bounds[1]));
-                    }
-                } catch (NumberFormatException | ArrayIndexOutOfBoundsException ex) {
-                    writeStatus(out, "400 Bad Request");
-                    return false;
-                }
-                if (start > end || start >= total) {
-                    out.write(("HTTP/1.1 416 Range Not Satisfiable\r\nContent-Range: bytes */" + total
-                            + "\r\nContent-Length: 0\r\n\r\n").getBytes(StandardCharsets.ISO_8859_1));
-                    return !close;
-                }
-                partial = true;
+        ContentResolver resolver = Utils.getContext().getContentResolver();
+        try (AssetFileDescriptor afd = resolver.openAssetFileDescriptor(Uri.parse(video.contentUri), "r")) {
+            if (afd == null) {
+                OfflineStreamHttp.writeStatus(out, "404 Not Found");
+                return false;
             }
-
-            final long length = end - start + 1;
-            String header = (partial ? "HTTP/1.1 206 Partial Content\r\n" : "HTTP/1.1 200 OK\r\n")
-                    + "Content-Type: " + OfflineMediaStore.mimeType(video.displayName) + "\r\n"
-                    + "Accept-Ranges: bytes\r\n"
-                    + "Content-Length: " + length + "\r\n"
-                    + (partial ? "Content-Range: bytes " + start + "-" + end + "/" + total + "\r\n" : "")
-                    + (close ? "Connection: close\r\n" : "")
-                    + "\r\n";
-            out.write(header.getBytes(StandardCharsets.ISO_8859_1));
-
-            if ("GET".equals(parts[0])) {
-                FileChannel channel = file.getChannel();
-                ByteBuffer buffer = ByteBuffer.allocate(256 * 1024);
-                long position = afd.getStartOffset() + start;
-                long left = length;
-                while (left > 0) {
-                    buffer.clear();
-                    buffer.limit((int) Math.min(buffer.capacity(), left));
-                    int read = channel.read(buffer, position);
-                    if (read <= 0) return false; // The file is shorter than the index says.
-                    out.write(buffer.array(), 0, read);
-                    position += read;
-                    left -= read;
-                }
+            try (FileInputStream file = new FileInputStream(afd.getFileDescriptor())) {
+                return OfflineStreamHttp.serve(request, out, file.getChannel(), afd.getStartOffset(),
+                        afd.getDeclaredLength(), OfflineMediaStore.mimeType(video.displayName));
             }
-        } catch (IOException ex) {
-            throw ex;
-        } catch (RuntimeException ex) {
-            Logger.printInfo(() -> "Could not read " + video.videoId + ": " + ex);
-            writeStatus(out, "500 Internal Server Error");
-            return false;
         }
-        return !close;
-    }
-
-    private static void writeStatus(OutputStream out, String status) throws IOException {
-        out.write(("HTTP/1.1 " + status + "\r\nContent-Length: 0\r\nConnection: close\r\n\r\n")
-                .getBytes(StandardCharsets.ISO_8859_1));
     }
 
     private static String randomToken() {

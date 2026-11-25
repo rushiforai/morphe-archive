@@ -1,12 +1,11 @@
 name: Patch idea
 description: Suggest a new patch or a change to an existing one.
-title: "feat: "
 labels: ["enhancement"]
 body:
   - type: markdown
     attributes:
       value: |
-        Please [search the existing ideas](https://github.com/JoFSlash/morphe-patches/issues?q=label%3Aenhancement) first.
+        Please [search the existing ideas](https://github.com/JoFSlash/morphe-patches/issues?q=label%3Aenhancement) first. Give it a short title that names the app and the idea, such as "Quora: hide the Spaces tab".
   - type: dropdown
     id: app
     attributes:
@@ -21,6 +20,9 @@ body:
         - Quora
         - Speedtest (Ookla)
         - The Crypto App (TrustSwap)
+        - Wikipedia (Wikimedia Foundation)
+        - Yalla Shoot (Yalla Group)
+        - YouTube Kids
         # APPS_END
         - Another app
     validations:

@@ -9,6 +9,6 @@
     <string name="voidhack_sing_download">モデルを準備</string>
     <string name="voidhack_sing_setup">端末内でボーカルを分離するには、初回に約 30 MB のモデルをダウンロードします。</string>
     <string name="voidhack_sing_preparing">分離モデルを準備中…</string>
-    <string name="voidhack_sing_format">分離には 32、44.1、48、88.2、96、176.4、192 kHz のいずれかのステレオ PCM 再生が必要です。</string>
+    <string name="voidhack_sing_format">分離には 32〜192 kHz の PCM 再生（ステレオまたはマルチチャンネル / ドルビーアトモス）が必要です。</string>
     <string name="voidhack_sing_failed">モデルを準備できませんでした。「モデルを準備」をタップすると再試行できます。</string>
 </resources>

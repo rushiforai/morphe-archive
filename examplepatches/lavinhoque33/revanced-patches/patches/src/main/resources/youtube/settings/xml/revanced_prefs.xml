@@ -35,6 +35,30 @@
         <!-- SETTINGS: THEME_SETTINGS
         </PreferenceScreen>SETTINGS: THEME_SETTINGS -->
 
+        <!-- SETTINGS: GLASS_MENUS
+        <PreferenceScreen
+            android:key="morphe_glass_menus_screen"
+            android:title="@string/morphe_glass_menus_screen_title"
+            android:orderingFromXml="true">
+            <SwitchPreference
+                android:key="morphe_glass_menus"
+                android:title="@string/morphe_glass_menus_title"
+                android:summary="@string/morphe_glass_menus_summary"
+                android:defaultValue="false" />
+            <app.morphe.extension.shared.settings.preference.SeekBarPreference
+                android:key="morphe_glass_menus_opacity"
+                android:title="@string/morphe_glass_menus_opacity_title"
+                android:dependency="morphe_glass_menus" />
+            <app.morphe.extension.shared.settings.preference.SeekBarPreference
+                android:key="morphe_glass_menus_blur"
+                android:title="@string/morphe_glass_menus_blur_title"
+                android:dependency="morphe_glass_menus" />
+            <app.morphe.extension.shared.settings.preference.SeekBarPreference
+                android:key="morphe_glass_menus_dim"
+                android:title="@string/morphe_glass_menus_dim_title"
+                android:dependency="morphe_glass_menus" />
+        </PreferenceScreen>SETTINGS: GLASS_MENUS -->
+
         <!-- SETTINGS: HIDE_LAYOUT_COMPONENTS
         <PreferenceScreen android:title="@string/revanced_preference_screen_account_menu_title" android:key="revanced_preference_screen_account_menu" android:summary="@string/revanced_preference_screen_account_menu_summary">
             <SwitchPreference android:title="@string/revanced_hide_account_menu_title" android:key="revanced_hide_account_menu" android:summary="@string/revanced_hide_account_menu_summary" />
@@ -556,6 +580,12 @@
         <SwitchPreference android:title="@string/morphe_home_feed_channel_names_title"
             android:key="morphe_home_feed_channel_names"
             android:summary="@string/morphe_home_feed_channel_names_summary" />SETTINGS: HOME_FEED_CHANNEL_NAMES -->
+
+        <!-- SETTINGS: UNGROUP_NOTIFICATIONS
+        <SwitchPreference
+            android:title="@string/morphe_ungroup_notifications_title"
+            android:key="morphe_ungroup_notifications"
+            android:summary="@string/morphe_ungroup_notifications_summary" />SETTINGS: UNGROUP_NOTIFICATIONS -->
 
         <!-- SETTINGS: DISABLE_AUTO_FEED_REFRESH
         <SwitchPreference android:title="@string/morphe_disable_auto_feed_refresh_title" android:key="morphe_disable_auto_feed_refresh" android:summary="@string/morphe_disable_auto_feed_refresh_summary" />SETTINGS: DISABLE_AUTO_FEED_REFRESH -->
@@ -1331,6 +1361,11 @@
         <SwitchPreference android:title="@string/revanced_swipe_haptic_feedback_title" android:key="revanced_swipe_haptic_feedback" android:summaryOn="@string/revanced_disable_haptic_feedback_chapters_summary_off" android:summaryOff="@string/revanced_disable_haptic_feedback_chapters_summary_on" />
         <SwitchPreference android:title="@string/revanced_swipe_gestures_lock_mode_title" android:key="revanced_swipe_gestures_lock_mode" android:summaryOn="@string/revanced_swipe_gestures_lock_mode_summary_on" android:summaryOff="@string/revanced_swipe_gestures_lock_mode_summary_off" />
         <app.morphe.extension.shared.settings.preference.ColorPickerPreference android:title="@string/revanced_swipe_overlay_background_color_title" android:key="revanced_swipe_overlay_background_color" android:summary="@string/revanced_swipe_overlay_background_color_summary" android:inputType="textCapCharacters" />
+        <app.morphe.extension.shared.settings.preference.ColorPickerPreference
+            android:title="@string/revanced_swipe_overlay_foreground_color_title"
+            android:key="revanced_swipe_overlay_foreground_color"
+            android:summary="@string/revanced_swipe_overlay_foreground_color_summary"
+            android:inputType="textCapCharacters" />
         <app.morphe.extension.shared.settings.preference.SliderPreference android:title="@string/revanced_swipe_overlay_background_opacity_title" android:key="revanced_swipe_overlay_background_opacity" android:summary="@string/revanced_swipe_overlay_background_opacity_summary" android:inputType="number" />
         <app.morphe.extension.shared.settings.preference.SliderPreference android:title="@string/revanced_swipe_threshold_title" android:key="revanced_swipe_threshold" android:summary="@string/revanced_swipe_threshold_summary" android:inputType="number" />
         <app.morphe.extension.shared.settings.preference.SliderPreference android:title="@string/revanced_swipe_overlay_timeout_title" android:key="revanced_swipe_overlay_timeout" android:summary="@string/revanced_swipe_overlay_timeout_summary" android:inputType="number" />

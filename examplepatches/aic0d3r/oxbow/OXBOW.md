@@ -7,7 +7,10 @@ cut off from the river's main current: Instagram off the stream, keeping what ma
 for new Instagram versions). On top of them, utilities that let you *keep* things, never ones
 that pull you back into scrolling.
 
-## Features (Instagram 455.0.0.51.72)
+## Features (Instagram 456.1.0.56.78)
+
+Patched on 456.1.0.56.78: all 20 (19 + Clone) apply and every hook was checked in the patched
+bytecode; the device smoke test is pending, so the on-device status below is still the 455/454 one.
 
 On-device status below is from a smoke test of the 455 clone on the test phone (classic docked
 tab bar, no pill highlight, no Create tab; tested with the Reels icon hidden and shown). The 455

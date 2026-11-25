@@ -261,6 +261,10 @@ final class VideoPages {
                             + "who posted it. A change shows from the next reel.")));
             // Asked as each reel's date is worded, so a change shows from the next reel (#357).
             reels.addPreference(reelDateStyleRow(context));
+            // Asked as each reel's caption and footer are built, so no restart (#490).
+            reels.addPreference(toggle(context, Settings.REEL_POST_DATE_AFTER_CAPTION,
+                    L10n.t("With Show the post date on reels on, puts the date at the end of the caption instead of "
+                            + "under the name, where the song and other labels crowd it. A change shows from the next reel.")));
             reels.addPreference(toggle(context, Settings.HIDE_REEL_NEW_FOR_YOU,
                     L10n.t("Takes \"New for you\", and other reasons Facebook gives for showing you a reel, off the line "
                             + "under its author, so the date and the song show right away. A change shows from the next reel.")));
@@ -335,6 +339,10 @@ final class VideoPages {
                     L10n.t("Reels and full-screen videos that would leave black bars fill the screen instead, with "
                             + "a little cut off the edges. Pinch in on a reel to see all of it, or pinch out to fill "
                             + "it again.")));
+            // Asked each time a player view is sized, like the switch above, which it needs (#571).
+            reels.addPreference(toggle(context, Settings.FILL_EVERY_REEL,
+                    L10n.t("With Fill the screen with reels on, every reel fills the screen, even when that cuts a lot "
+                            + "off the edges. Made for foldables and tablets, where most reels would keep their bars.")));
             // Asked as each tile of the feed's Reels row is drawn, so a change shows on the next tiles.
             reels.addPreference(toggle(context, Settings.PLAY_FEED_REELS_WHOLE,
                     L10n.t("The reels in your feed's Reels row play from the start and keep going, instead of "

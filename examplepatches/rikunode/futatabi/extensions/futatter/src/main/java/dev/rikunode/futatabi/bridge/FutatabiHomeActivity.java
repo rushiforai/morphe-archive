@@ -37,6 +37,7 @@ import java.util.concurrent.Executors;
 public final class FutatabiHomeActivity extends Activity {
     private static final String STORE = "futatabi_extension_private";
     private static final int CHOOSE_IMAGE = 12;
+    private static final int MEBUKI_LOGIN = 13;
     private final ExecutorService io = Executors.newSingleThreadExecutor();
     private LinearLayout root;
     private EditText bodyField, deleteKeyField;
@@ -163,8 +164,9 @@ public final class FutatabiHomeActivity extends Activity {
                 return;
             }
             try {
-                boolean loggedIn = new JSONObject(result.body).optBoolean("aimoge");
-                updateNotice("あいもげ：" + (loggedIn ? "ログイン中" : "未ログイン"));
+                JSONObject state = new JSONObject(result.body);
+                boolean loggedIn = state.optBoolean("aimoge");
+                updateNotice("あいもげ：" + (loggedIn ? "ログイン中" : "未ログイン") + "\nめぶき：" + state.optString("mebukiSessionState", "UNVERIFIED"));
             } catch (Exception ex) { updateNotice("状態を確認できませんでした"); }
         });
         addText("あいもげ");
@@ -178,8 +180,8 @@ public final class FutatabiHomeActivity extends Activity {
         action("あにまん：新規スレ", () -> composeAnimanch(""));
         action("あにまん：スレ一覧から返信", () -> threadPicker("animanch"));
         addText("めぶき：おためしカタログは5分遅延。新規スレ・添付は未対応。");
-        action("めぶき：ログイン画面（本人操作）", () ->
-                startActivity(new Intent(this, MebukiLoginActivity.class)));
+        action("めぶき：X／Discordログイン（本人操作）", () ->
+                startActivityForResult(new Intent(this, MebukiLoginActivity.class), MEBUKI_LOGIN));
         action("めぶき：一覧からレス投稿", () -> threadPicker("mebuki"));
     }
 
@@ -308,6 +310,10 @@ public final class FutatabiHomeActivity extends Activity {
 
     @Override protected void onActivityResult(int code, int result, Intent data) {
         super.onActivityResult(code, result, data);
+        if (code == MEBUKI_LOGIN) {
+            home(); // Revalidate the saved session when the owner returns.
+            return;
+        }
         if (code == CHOOSE_IMAGE && result == RESULT_OK && data != null && data.getData() != null) {
             attached.add(data.getData());
             updateNotice("画像を" + attached.size() + "件選択しました");

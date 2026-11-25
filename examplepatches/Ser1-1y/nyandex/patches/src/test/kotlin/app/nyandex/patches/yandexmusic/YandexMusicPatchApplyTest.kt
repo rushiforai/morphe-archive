@@ -14,6 +14,7 @@ import app.nyandex.patches.yandexmusic.misc.billing.disablePlayBillingPatch
 import app.nyandex.patches.yandexmusic.misc.entitlement.unlockYandexPlusPatch
 import app.nyandex.patches.yandexmusic.misc.haptics.hapticFeedbackPatch
 import app.nyandex.patches.yandexmusic.misc.lyrics.lyricsFallbackPatch
+import app.nyandex.patches.yandexmusic.misc.promo.hidePromoPatch
 import app.nyandex.patches.yandexmusic.misc.settings.hideBottomBarTabsPatch
 import app.nyandex.patches.yandexmusic.misc.settings.nyandexSettingsPatch
 import app.nyandex.patches.yandexmusic.misc.theme.monetThemePatch
@@ -61,6 +62,7 @@ private const val SETTINGS_ENTRY = "Lapp/nyandex/extension/yandexmusic/settings/
 private const val SETTINGS_ACTIVITY_TYPE = "Lapp/nyandex/extension/yandexmusic/settings/NyandexSettingsActivity;"
 private const val BOTTOM_TABS_HOOK = "Lapp/nyandex/extension/yandexmusic/settings/BottomTabsHook;"
 private const val HAPTICS_HOOK = "Lapp/nyandex/extension/yandexmusic/haptics/HapticsHook;"
+private const val PROMO_HOOK = "Lapp/nyandex/extension/yandexmusic/settings/PromoHook;"
 private const val SHARE_LINKS = "Lapp/nyandex/extension/yandexmusic/share/ShareLinks;"
 private const val MONET_COLORS = "Lapp/nyandex/extension/yandexmusic/monet/MonetColors;"
 
@@ -199,6 +201,7 @@ class YandexMusicPatchApplyTest {
                 monetThemePatch,
                 cleanShareLinksPatch,
                 hapticFeedbackPatch,
+                hidePromoPatch,
             )
 
             val results = runBlocking { patcher().toList() }
@@ -254,6 +257,7 @@ class YandexMusicPatchApplyTest {
         verifyShareLinks(dexFiles)
         verifySettingsAndTabs(dexFiles, output)
         verifyHaptics(dexFiles)
+        verifyHidePromo(dexFiles)
         verifyMonetTheme(output)
         verifyWaveButtonColors(dexFiles)
         verifyThemeLogoColor(dexFiles, output)
@@ -392,11 +396,42 @@ class YandexMusicPatchApplyTest {
         }
         assertEquals(1, tabSites.size, "Expected one bottom bar method calling filterTabs")
 
+        // The bar registers itself on every collect and can collect again on request, so tabs
+        // hidden on the settings page apply without a restart.
+        val barClass = classes.single { classDef -> classDef.methods.any { it == tabSites.single() } }
+        assertTrue(calls(tabSites.single()).any { it.isCall(BOTTOM_TABS_HOOK, "register") }, "The bar is not registered")
+        val refresh = barClass.methods.single { it.name == "nyandexRefreshTabs" }
+        assertTrue(
+            calls(refresh).any { it.definingClass == barClass.type && it.name == tabSites.single().name },
+            "nyandexRefreshTabs does not run the tab collection",
+        )
+
         // The settings activity is declared in the manifest.
         val manifest = aapt2("dump", "xmltree", "--file", "AndroidManifest.xml", apk.absolutePath)
         assertTrue(
             manifest.contains("\"app.nyandex.extension.yandexmusic.settings.NyandexSettingsActivity\""),
             "NyandexSettingsActivity is not declared in the manifest",
+        )
+    }
+
+    private fun verifyHidePromo(dexFiles: List<DexFile>) {
+        val classes = dexFiles.flatMap { it.classes }
+        val settings = classes.single { it.type == NYANDEX_SETTINGS }
+        val available = settings.methods.single { it.name == "promoAvailable" }
+        val first = available.implementation!!.instructions.first()
+        assertEquals(Opcode.CONST_4, first.opcode, "promoAvailable was not patched")
+        assertEquals(1, (first as NarrowLiteralInstruction).narrowLiteral, "promoAvailable does not return true")
+
+        // The block registry's lookup passes the block type through the extension.
+        val sites = classes.flatMap { classDef -> classDef.methods.map { classDef to it } }
+            .filter { (_, method) -> calls(method).any { it.isCall(PROMO_HOOK, "lookupKey") } }
+        assertEquals(1, sites.size, "Expected one block registry lookup calling lookupKey")
+        val (registry, lookup) = sites.single()
+        assertEquals(listOf("Ljava/lang/String;"), lookup.parameterTypes.map { it.toString() })
+        assertEquals("Ljava/lang/Object;", lookup.returnType)
+        assertTrue(
+            registry.methods.any { method -> method.parameterTypes.map { it.toString() } == listOf("[Ljava/lang/String;", "Lkotlin/jvm/functions/Function0;") },
+            "The hooked class is not the block registry",
         )
     }
 

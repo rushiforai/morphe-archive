@@ -1,3 +1,27 @@
+## [4.17.1](https://github.com/vortexnode/GboardSamsung/compare/v4.17.0...v4.17.1) (2026-11-24)
+
+### 🐛 Bug Fixes
+
+* AMOLED-чёрная тема теперь применяется и к нижней панели навигации ([#36](https://github.com/vortexnode/GboardSamsung/issues/36)) ([11fa688](https://github.com/vortexnode/GboardSamsung/commit/11fa688aacd8ad2033b9af68ae524644b4548094))
+
+## [4.17.0](https://github.com/vortexnode/GboardSamsung/compare/v4.16.1...v4.17.0) (2026-11-24)
+
+### ✨ New Features
+
+* AMOLED-чёрная тема, отключение звука микрофона, кнопка очистки буфера обмена и блокировка режима одной руки по удержанию Enter ([#35](https://github.com/vortexnode/GboardSamsung/issues/35)) ([2fd2365](https://github.com/vortexnode/GboardSamsung/commit/2fd236591957ac76930226af2ce903c286942309))
+
+## [4.16.1](https://github.com/vortexnode/GboardSamsung/compare/v4.16.0...v4.16.1) (2026-11-24)
+
+### 🐛 Bug Fixes
+
+* Приоритет скачивания APKM Bundle вместо обычного APK в Morphe для корректной работы расширенного голосового ввода ([#34](https://github.com/vortexnode/GboardSamsung/issues/34)) ([c74dcb4](https://github.com/vortexnode/GboardSamsung/commit/c74dcb45a133e72e5e2d514a7aaa499505bf129c))
+
+## [4.16.0](https://github.com/vortexnode/GboardSamsung/compare/v4.15.1...v4.16.0) (2026-11-24)
+
+### ✨ New Features
+
+* 2D-курсор пробелом (влево/вправо/вверх/вниз, логика Samsung и Gboard — точнее и без ложных срабатываний), подсветка новых настроек (0–10 дней) и патч Disable Play Store updates ([#33](https://github.com/vortexnode/GboardSamsung/issues/33)) ([ee8c65a](https://github.com/vortexnode/GboardSamsung/commit/ee8c65a10acbb1aef4d0d7965e4434023366d801))
+
 ## [4.15.1](https://github.com/vortexnode/GboardSamsung/compare/v4.15.0...v4.15.1) (2026-11-23)
 
 ### 🐛 Bug Fixes

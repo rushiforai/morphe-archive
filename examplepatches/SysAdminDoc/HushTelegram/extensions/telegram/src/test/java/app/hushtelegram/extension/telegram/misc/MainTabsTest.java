@@ -17,6 +17,7 @@ import android.app.Activity;
 import android.view.View;
 import android.widget.FrameLayout;
 import java.util.ArrayList;
+import java.util.List;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
@@ -44,6 +45,11 @@ public class MainTabsTest {
         Settings.HIDE_NEW_MESSAGE.resetToDefault();
         SettingReadsForTests.mend(Settings.BAR_OUTLINE);
         Settings.BAR_OUTLINE.resetToDefault();
+        SettingReadsForTests.mend(Settings.HIDE_DOWNLOADS_BUTTON);
+        Settings.HIDE_DOWNLOADS_BUTTON.resetToDefault();
+        SettingReadsForTests.mend(Settings.ALWAYS_SHOW_DOWNLOADS_BUTTON);
+        Settings.ALWAYS_SHOW_DOWNLOADS_BUTTON.resetToDefault();
+        MainTabs.clearDownloadsForTests();
         MainTabs.clearNewMessageButtonsForTests();
         HookStatus.clear();
     }
@@ -313,6 +319,263 @@ public class MainTabsTest {
         SettingsContextRule.withoutContext(() -> assertFalse(hidden(button)));
         SettingReadsForTests.breakReads(Settings.HIDE_NEW_MESSAGE);
         assertFalse(hidden(button));
+        assertFalse(HookStatus.missing(FamilyNames.HIDE_CONTACTS_TAB).isEmpty());
+    }
+
+    @Test public void theDownloadsButtonKeepsTelegramsFactorUntilTheSwitchIsOn() {
+        assertFalse(Settings.HIDE_DOWNLOADS_BUTTON.get());
+        for (float stock : new float[] {0f, 0.25f, 1f}) assertEquals(stock, MainTabs.downloadsButton(stock), 0f);
+        assertTrue(report().contains(FamilyNames.HIDE_CONTACTS_TAB));
+        assertFalse(report().contains("Downloads button hidden"));
+    }
+
+    @Test public void theSwitchFadesTheDownloadsButtonOutEvenMidDownload() {
+        Settings.HIDE_DOWNLOADS_BUTTON.save(true);
+        assertEquals(0f, MainTabs.downloadsButton(1f), 0f);
+        assertEquals(0f, MainTabs.downloadsButton(0.5f), 0f);
+        assertEquals(0f, MainTabs.downloadsButton(0f), 0f);
+        assertTrue(report().contains("Downloads button hidden"));
+        // The chat list asks again as it comes back, so turning it off brings the button back.
+        Settings.HIDE_DOWNLOADS_BUTTON.save(false);
+        assertEquals(1f, MainTabs.downloadsButton(1f), 0f);
+    }
+
+    @Test public void pausingAnEarlyStartOrAnUnreadableSwitchKeepsTheDownloadsButton() {
+        Settings.HIDE_DOWNLOADS_BUTTON.save(true);
+        for (HushTelegramPause.Reason reason : HushTelegramPause.Reason.values()) {
+            if (reason == HushTelegramPause.Reason.NONE) continue;
+            PauseForTests.pause(reason);
+            assertEquals(reason.name(), 1f, MainTabs.downloadsButton(1f), 0f);
+            PauseForTests.resume();
+        }
+        SettingsContextRule.withoutContext(() -> assertEquals(1f, MainTabs.downloadsButton(1f), 0f));
+        SettingReadsForTests.breakReads(Settings.HIDE_DOWNLOADS_BUTTON);
+        assertEquals(0.75f, MainTabs.downloadsButton(0.75f), 0f);
+        assertFalse(HookStatus.missing(FamilyNames.HIDE_CONTACTS_TAB).isEmpty());
+    }
+
+    /**
+     * Telegram's chat list as the patched app runs it: {@link #look} works its Downloads flag out the
+     * way it does on resume, on a download list change (forced) and around search, and {@link #show}
+     * turns the flag into the button's factor, times the search animation, the way it does every frame.
+     */
+    private static final class ChatList {
+        boolean downloading;
+        boolean unopened;
+        float search;
+        boolean flag;
+        int visibility = View.GONE;
+        float alpha;
+        /** A chat picker's list never builds the button. */
+        Object button = new Object();
+
+        void look(boolean forced) {
+            if (unopened || downloading) flag = true;
+            else flag = MainTabs.downloadsKept(visibility) == View.VISIBLE && alpha == 1f && !forced;
+            show();
+        }
+
+        void show() {
+            float factor = MainTabs.downloadsWanted(flag ? 1 : 0) != 0 ? 1f : 0f;
+            alpha = MainTabs.downloadsButton(factor * (1f - search));
+            MainTabs.downloadsDrawn(this, button);
+            visibility = alpha > 0f ? View.VISIBLE : View.GONE;
+        }
+
+        boolean up() { return visibility == View.VISIBLE; }
+    }
+
+    @Test public void alwaysShowIsOffByDefaultAndTelegramDecidesAsBefore() {
+        assertFalse(Settings.ALWAYS_SHOW_DOWNLOADS_BUTTON.get());
+        assertEquals(0, MainTabs.downloadsWanted(0));
+        assertEquals(1, MainTabs.downloadsWanted(1));
+        assertEquals(View.VISIBLE, MainTabs.downloadsKept(View.VISIBLE));
+        assertEquals(View.GONE, MainTabs.downloadsKept(View.GONE));
+        ChatList chats = new ChatList();
+        chats.look(false);
+        assertFalse(chats.up());
+        chats.downloading = true;
+        chats.look(true);
+        assertTrue(chats.up());
+        // Telegram keeps a button that's up once the download ends, until the list changes.
+        chats.downloading = false;
+        chats.look(false);
+        assertTrue(chats.up());
+        chats.look(true);
+        assertFalse(chats.up());
+        assertTrue(report().contains(FamilyNames.HIDE_CONTACTS_TAB));
+        assertFalse(report().contains("Downloads button always shown"));
+    }
+
+    @Test public void theSwitchKeepsTheDownloadsButtonUpWithNothingDownloadingButSearchStillHidesIt() {
+        Settings.ALWAYS_SHOW_DOWNLOADS_BUTTON.save(true);
+        ChatList chats = new ChatList();
+        chats.look(false);
+        assertTrue(chats.up());
+        assertEquals(1f, chats.alpha, 0f);
+        assertTrue(report().contains("Downloads button always shown"));
+        // Telegram's own flag stays its own: the button being up doesn't make Telegram want it.
+        chats.look(false);
+        assertTrue(chats.up());
+        assertFalse(chats.flag);
+        // Search fades it out the way it fades a download's button, and it comes back after.
+        chats.search = 0.5f;
+        chats.show();
+        assertEquals(0.5f, chats.alpha, 0f);
+        chats.search = 1f;
+        chats.show();
+        assertFalse(chats.up());
+        chats.search = 0f;
+        chats.look(false);
+        assertTrue(chats.up());
+        // A download changes nothing while the switch is on.
+        chats.downloading = true;
+        chats.look(true);
+        assertTrue(chats.up());
+        assertTrue(chats.flag);
+    }
+
+    @Test public void turningAlwaysShowOffTakesTheButtonAwayWithoutARestart() {
+        Settings.ALWAYS_SHOW_DOWNLOADS_BUTTON.save(true);
+        ChatList chats = new ChatList();
+        chats.look(false);
+        chats.look(false);
+        assertTrue(chats.up());
+        // Back from settings Telegram looks again first, not forced, and must not keep it.
+        Settings.ALWAYS_SHOW_DOWNLOADS_BUTTON.save(false);
+        chats.look(false);
+        assertFalse(chats.up());
+        chats.look(false);
+        assertFalse(chats.up());
+        // The same when a frame shows the button before Telegram looks again.
+        Settings.ALWAYS_SHOW_DOWNLOADS_BUTTON.save(true);
+        chats.look(false);
+        assertTrue(chats.up());
+        Settings.ALWAYS_SHOW_DOWNLOADS_BUTTON.save(false);
+        chats.show();
+        assertFalse(chats.up());
+        chats.look(false);
+        assertFalse(chats.up());
+    }
+
+    @Test public void aButtonUpForARealDownloadIsStillTelegramsToKeepAfterTheSwitchGoesOff() {
+        Settings.ALWAYS_SHOW_DOWNLOADS_BUTTON.save(true);
+        ChatList chats = new ChatList();
+        chats.downloading = true;
+        chats.look(true);
+        chats.downloading = false;
+        chats.look(false);
+        Settings.ALWAYS_SHOW_DOWNLOADS_BUTTON.save(false);
+        chats.look(false);
+        assertTrue("Telegram keeps a button its own download put up", chats.up());
+        chats.look(true);
+        assertFalse(chats.up());
+    }
+
+    @Test public void hideDownloadsButtonWinsOverAlwaysShow() {
+        Settings.ALWAYS_SHOW_DOWNLOADS_BUTTON.save(true);
+        Settings.HIDE_DOWNLOADS_BUTTON.save(true);
+        assertEquals(0, MainTabs.downloadsWanted(0));
+        ChatList chats = new ChatList();
+        chats.look(false);
+        assertFalse(chats.up());
+        chats.downloading = true;
+        chats.look(true);
+        assertFalse(chats.up());
+        assertFalse(report().contains("Downloads button always shown"));
+        // Hide off again, Always show takes over the next time the chat list looks.
+        Settings.HIDE_DOWNLOADS_BUTTON.save(false);
+        chats.downloading = false;
+        chats.look(true);
+        assertTrue(chats.up());
+    }
+
+    @Test public void pausingAnEarlyStartOrAnUnreadableSwitchLeavesTheDownloadsButtonToTelegram() {
+        Settings.ALWAYS_SHOW_DOWNLOADS_BUTTON.save(true);
+        for (HushTelegramPause.Reason reason : HushTelegramPause.Reason.values()) {
+            if (reason == HushTelegramPause.Reason.NONE) continue;
+            PauseForTests.pause(reason);
+            assertEquals(reason.name(), 0, MainTabs.downloadsWanted(0));
+            PauseForTests.resume();
+        }
+        SettingsContextRule.withoutContext(() -> assertEquals(0, MainTabs.downloadsWanted(0)));
+        ChatList chats = new ChatList();
+        chats.look(false);
+        assertTrue(chats.up());
+        SettingReadsForTests.breakReads(Settings.ALWAYS_SHOW_DOWNLOADS_BUTTON);
+        assertEquals(0, MainTabs.downloadsWanted(0));
+        assertFalse(HookStatus.missing(FamilyNames.HIDE_CONTACTS_TAB).isEmpty());
+        // A button the switch put up isn't kept once the switch can't be read.
+        chats.look(false);
+        assertFalse(chats.up());
+    }
+
+    @Test public void closingTheSettingsHasTheChatListThatDrewTheButtonDrawItOnce() {
+        List<Object> redrawn = new ArrayList<>();
+        MainTabsForTests.redrawWith(redrawn::add);
+        ChatList chats = new ChatList();
+        chats.look(false);
+        MainTabs.settingsClosed();
+        assertEquals(List.of(chats), redrawn);
+        // A chat picker's list draws with no button and doesn't take the main list's place.
+        ChatList picker = new ChatList();
+        picker.button = null;
+        picker.look(false);
+        MainTabs.settingsClosed();
+        assertEquals(List.of(chats, chats), redrawn);
+        assertTrue(report().contains("Downloads button drawn again"));
+    }
+
+    @Test public void closingTheSettingsWithNoChatListDrawnYetDoesNothing() {
+        List<Object> redrawn = new ArrayList<>();
+        MainTabsForTests.redrawWith(redrawn::add);
+        MainTabs.settingsClosed();
+        assertEquals(List.of(), redrawn);
+        // The stub as shipped, on a build the patch couldn't fill it for, does nothing either.
+        MainTabsForTests.restore();
+        new ChatList().look(false);
+        MainTabs.settingsClosed();
+        assertFalse(report().contains("Downloads button after the settings"));
+    }
+
+    @Test public void aChatListThatIsGoneIsNotDrawnAgain() {
+        List<Object> redrawn = new ArrayList<>();
+        MainTabsForTests.redrawWith(redrawn::add);
+        new ChatList().look(false);
+        MainTabs.downloadsScreen.clear();
+        MainTabs.settingsClosed();
+        assertEquals(List.of(), redrawn);
+    }
+
+    @Test public void bothDownloadsSwitchesTakeHoldAsTheSettingsClose() {
+        MainTabsForTests.redrawWith(screen -> ((ChatList) screen).show());
+        ChatList chats = new ChatList();
+        chats.downloading = true;
+        chats.look(true);
+        assertTrue(chats.up());
+        // Hide Downloads button turned on over a button that's up takes it away as the settings close.
+        Settings.HIDE_DOWNLOADS_BUTTON.save(true);
+        MainTabs.settingsClosed();
+        assertFalse(chats.up());
+        Settings.HIDE_DOWNLOADS_BUTTON.save(false);
+        MainTabs.settingsClosed();
+        assertTrue(chats.up());
+        // Always show puts it up with nothing downloading, and turning it off takes it away again.
+        chats.downloading = false;
+        chats.look(true);
+        assertFalse(chats.up());
+        Settings.ALWAYS_SHOW_DOWNLOADS_BUTTON.save(true);
+        MainTabs.settingsClosed();
+        assertTrue(chats.up());
+        Settings.ALWAYS_SHOW_DOWNLOADS_BUTTON.save(false);
+        MainTabs.settingsClosed();
+        assertFalse(chats.up());
+    }
+
+    @Test public void aChatListThatFailsToDrawAgainIsReportedAndTheSettingsStillClose() {
+        MainTabsForTests.redrawWith(screen -> { throw new IllegalStateException("gone"); });
+        new ChatList().look(false);
+        MainTabs.settingsClosed();
         assertFalse(HookStatus.missing(FamilyNames.HIDE_CONTACTS_TAB).isEmpty());
     }
 

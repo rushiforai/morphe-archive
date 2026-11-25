@@ -50,7 +50,11 @@ public final class HighestQuality {
     /** Injected into the React Native player: its qualities about to go to its Options (so they show what plays). */
     @SuppressWarnings("unused")
     public static void onQualities(Player player) {
-        if (player == null || !on()) return;
+        if (player == null) return;
+        if (!on()) {
+            seenWithoutIt(player);
+            return;
+        }
         apply(player);
     }
 
@@ -60,8 +64,24 @@ public final class HighestQuality {
      */
     @SuppressWarnings("unused")
     public static void onReady(Player player) {
-        if (player == null || !on()) return;
+        if (player == null) return;
+        if (!on()) {
+            seenWithoutIt(player);
+            return;
+        }
         App.MAIN.post(() -> apply(player));
+    }
+
+    /**
+     * A stream that started with the switch off is Twitch's to the end: the switch, turned on in it, doesn't take a
+     * quality picked by hand away (this hook also runs on each quality picked). It counts from the next stream.
+     */
+    static void seenWithoutIt(Player player) {
+        try {
+            newStreamsBest(player);
+        } catch (Throwable t) {
+            failed(t);
+        }
     }
 
     /**
@@ -93,13 +113,14 @@ public final class HighestQuality {
             if (quality == null) continue;
             choices.add(new Choice(quality.getName(), quality.getHeight(), quality.getFramerate(), quality.getBitrate()));
         }
+        int best = best(choices);
+        // An ad's unnamed qualities: not the stream's own yet, which come later in the same stream.
+        if (best < 0 || choices.get(best).name.isEmpty()) return null;
         String key = key(sessionOf(player), choices);
         synchronized (HANDLED) {
             if (key.equals(HANDLED.get(player))) return null; // this stream's done: what's chosen now stays
             HANDLED.put(player, key);
         }
-        int best = best(choices);
-        if (best < 0 || choices.get(best).name.isEmpty()) return null; // (an ad's or a preview's unnamed qualities)
         for (Quality quality : list) {
             if (quality != null && choices.get(best).name.equals(quality.getName())) return quality;
         }

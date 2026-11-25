@@ -53,6 +53,7 @@ import java.util.Map;
 import java.util.Set;
 
 import app.morphe.extension.hushthreads.coexist.FamilySignatureTrust;
+import app.morphe.extension.hushthreads.theme.CustomFont;
 import app.morphe.extension.shared.L10n;
 import app.morphe.extension.shared.Logger;
 import app.morphe.extension.shared.Utils;
@@ -434,7 +435,8 @@ public final class HushThreadsPreferenceFragment extends AbstractPreferenceFragm
             saves = new SaveSettingsRows.Saves(downloads);
         }
 
-        if (build.contains(PatchFamily.PURE_BLACK) || build.contains(PatchFamily.HIDE_INSTAGRAM_BUTTON)
+        if (build.contains(PatchFamily.PURE_BLACK) || build.contains(PatchFamily.HEADER_LOGO)
+                || build.contains(PatchFamily.CUSTOM_FONT) || build.contains(PatchFamily.HIDE_INSTAGRAM_BUTTON)
                 || build.contains(PatchFamily.HIDE_GHOST_POST_BUBBLES)
                 || build.contains(PatchFamily.FULL_SIZE_PROFILE_PICTURES)) {
             PreferenceCategory appearance = category(screen, L10n.t("Appearance"));
@@ -442,6 +444,19 @@ public final class HushThreadsPreferenceFragment extends AbstractPreferenceFragm
                 appearance.addPreference(toggle(context, Settings.PURE_BLACK, L10n.t("Pure black dark mode"),
                         L10n.t("Dark mode uses true black instead of dark gray. Turn on dark mode in Threads to see it. "
                             + "Restart Threads to see the change.")));
+            }
+            if (build.contains(PatchFamily.HEADER_LOGO)) {
+                appearance.addPreference(toggle(context, Settings.HEADER_LOGO, L10n.t("Use the HushThreads logo"),
+                        L10n.t("Shows the HushThreads logo at the top of your feed in place of the Threads logo. "
+                            + "It doesn't spin while the feed refreshes. Restart Threads to see the change.")));
+            }
+            if (build.contains(PatchFamily.CUSTOM_FONT)) {
+                appearance.addPreference(toggle(context, Settings.CUSTOM_FONT, L10n.t("Custom font"),
+                        L10n.t("Shows Threads' text in the font file you pick below. Icons keep their own font. "
+                            + "Restart Threads to see the change.")));
+                // Picked through the same file picker as the settings file, and copied into Threads' files.
+                appearance.addPreference(mark(new BackupRow(this, context, SettingsBackupPreference.FONT,
+                        L10n.t("Font file"), fontFileSummary(context)), SettingsIcons.APPEARANCE));
             }
             if (build.contains(PatchFamily.HIDE_INSTAGRAM_BUTTON)) {
                 appearance.addPreference(toggle(context, Settings.HIDE_INSTAGRAM_BUTTON, L10n.t("Hide the Instagram button"),
@@ -473,6 +488,20 @@ public final class HushThreadsPreferenceFragment extends AbstractPreferenceFragm
                         + "in your phone's 12 or 24-hour format.")));
         }
 
+        if (build.contains(PatchFamily.HIDE_POST_BUTTONS)) {
+            posts.addPreference(toggle(context, Settings.HIDE_LIKE_BUTTON, L10n.t("Hide the like button"),
+                    L10n.t("Takes the like button off posts and replies, with its count. Restart Threads to see the change.")));
+            posts.addPreference(toggle(context, Settings.HIDE_REPLY_BUTTON, L10n.t("Hide the reply button"),
+                    L10n.t("Takes the reply button off posts and replies, with its count. Restart Threads to see the change.")));
+            posts.addPreference(toggle(context, Settings.HIDE_REPOST_BUTTON, L10n.t("Hide the repost button"),
+                    L10n.t("Takes the repost button off posts and replies, with its count. Restart Threads to see the change.")));
+            posts.addPreference(toggle(context, Settings.HIDE_SHARE_BUTTON, L10n.t("Hide the share button"),
+                    L10n.t("Takes the share button off posts and replies. Restart Threads to see the change.")));
+            posts.addPreference(toggle(context, Settings.HIDE_SAVE_BUTTON, L10n.t("Hide the save button"),
+                    L10n.t("Takes the save button off posts and replies, so you can't tap it by mistake. "
+                        + "Restart Threads to see the change.")));
+        }
+
         // In every build: Android checks Threads' links against Meta's signing key, which no
         // re-signed build has, whatever its patches.
         PreferenceCategory links = category(screen, L10n.t("Links"));
@@ -501,7 +530,8 @@ public final class HushThreadsPreferenceFragment extends AbstractPreferenceFragm
         if (build.contains(PatchFamily.REMOVE_AD_ID) || build.contains(PatchFamily.RESTORE_TRUST)
                 || build.contains(PatchFamily.VERSION_CODE) || build.contains(PatchFamily.REMOVE_SHARE_TARGETS)
                 || build.contains(PatchFamily.TRUST_USER_CERTIFICATES)
-                || build.contains(PatchFamily.CHANGE_PACKAGE_NAME) || build.contains(PatchFamily.CHANGE_APP_NAME)) {
+                || build.contains(PatchFamily.CHANGE_PACKAGE_NAME) || build.contains(PatchFamily.CHANGE_APP_NAME)
+                || build.contains(PatchFamily.CUSTOM_LAUNCHER_ICON)) {
             PreferenceCategory patched = category(screen, L10n.t("Set when you patched"));
             // Each shows its value as Android has it, which is what the patch set, isolated so it
             // reads the same way round in a right-to-left sentence.
@@ -515,6 +545,10 @@ public final class HushThreadsPreferenceFragment extends AbstractPreferenceFragm
                         L10n.t("The name under the app's icon.") + "\n"
                                 + L10n.isolate(context.getApplicationInfo().loadLabel(context.getPackageManager()))),
                         SettingsIcons.BUILD));
+            }
+            if (build.contains(PatchFamily.CUSTOM_LAUNCHER_ICON)) {
+                patched.addPreference(mark(info(context, L10n.t("HushThreads icon"),
+                        L10n.t("The app's icon on your home screen is the HushThreads logo.")), SettingsIcons.APPEARANCE));
             }
             if (build.contains(PatchFamily.REMOVE_AD_ID)) {
                 patched.addPreference(mark(info(context, L10n.t("Advertising ID removed"),
@@ -1049,6 +1083,14 @@ public final class HushThreadsPreferenceFragment extends AbstractPreferenceFragm
                 + "then Open by default."));
     }
 
+    /** What the font file row says when nothing is running: the picked file's name, or how to pick one. */
+    static String fontFileSummary(Context context) {
+        String name = CustomFont.keptName(context);
+        if (name == null) return L10n.t("No font picked yet. Pick a .ttf or .otf file.");
+        if (name.isEmpty()) return L10n.t("A font file is picked. Tap to pick another.");
+        return L10n.f("%1$s is picked. Tap to pick another.", L10n.isolate(name));
+    }
+
     /**
      * A switch whose change waits for a restart: the card says what the next start brings, and
      * the restart row comes, goes or counts again.
@@ -1158,11 +1200,18 @@ public final class HushThreadsPreferenceFragment extends AbstractPreferenceFragm
         else if (setting == Settings.SPOOF_SIM_REGION) icon = SettingsIcons.SIM_CARD;
         else if (setting == Settings.SAVE_MEDIA) icon = SettingsIcons.DOWNLOADS;
         else if (setting == Settings.PURE_BLACK) icon = SettingsIcons.MOON;
+        else if (setting == Settings.HEADER_LOGO) icon = SettingsIcons.APPEARANCE;
+        else if (setting == Settings.CUSTOM_FONT) icon = SettingsIcons.APPEARANCE;
         else if (setting == Settings.HIDE_INSTAGRAM_BUTTON) icon = SettingsIcons.CAMERA;
         else if (setting == Settings.HIDE_GHOST_POST_BUBBLES) icon = SettingsIcons.CHAT;
         else if (setting == Settings.FULL_SIZE_PROFILE_PICTURES) icon = SettingsIcons.PERSON;
         else if (setting == Settings.COPY_TEXT) icon = SettingsIcons.CHAT;
         else if (setting == Settings.EXACT_POST_TIMES) icon = SettingsIcons.CALENDAR;
+        else if (setting == Settings.HIDE_LIKE_BUTTON) icon = SettingsIcons.HEART;
+        else if (setting == Settings.HIDE_REPLY_BUTTON) icon = SettingsIcons.CHAT;
+        else if (setting == Settings.HIDE_REPOST_BUTTON) icon = SettingsIcons.UPDATES;
+        else if (setting == Settings.HIDE_SHARE_BUTTON) icon = SettingsIcons.SHARE;
+        else if (setting == Settings.HIDE_SAVE_BUTTON) icon = SettingsIcons.BOOKMARK;
         else if (setting == Settings.CHECK_FOR_RELEASES) icon = SettingsIcons.UPDATES;
         mark(preference, icon);
         return preference;

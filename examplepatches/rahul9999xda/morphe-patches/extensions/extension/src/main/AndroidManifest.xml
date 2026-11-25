@@ -1,7 +1,25 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
+    <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
     <application>
         <activity
             android:name="app.template.extension.telegram.MorpheSettingsActivity"
-            android:exported="false" />
+            android:exported="false"
+            android:launchMode="singleTop" />
+        <receiver
+            android:name="app.template.extension.telegram.MorpheRulesBackupReceiver"
+            android:enabled="true"
+            android:exported="false">
+            <intent-filter>
+                <action android:name="app.template.extension.telegram.DAILY_RULE_BACKUP" />
+            </intent-filter>
+        </receiver>
+        <receiver
+            android:name="app.template.extension.telegram.MorpheRulesBootReceiver"
+            android:enabled="true"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.intent.action.BOOT_COMPLETED" />
+            </intent-filter>
+        </receiver>
     </application>
 </manifest>

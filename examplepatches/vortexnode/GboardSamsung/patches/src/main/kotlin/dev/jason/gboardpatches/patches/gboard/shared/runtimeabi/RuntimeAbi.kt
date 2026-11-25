@@ -19,6 +19,7 @@ internal enum class RuntimeCallId(internal val encodedAbi: String) {
     ADVANCED_VOICE_RUNTIME_CLAIM_MDD("Ldev/jason/gboardpatches/extension/advancedvoice/GboardAdvancedVoiceRuntime;->claimMddRequest()Z"),
     ADVANCED_VOICE_RUNTIME_RESET_MDD("Ldev/jason/gboardpatches/extension/advancedvoice/GboardAdvancedVoiceRuntime;->resetMddRequest()V"),
     ADVANCED_VOICE_RUNTIME_FORMATTER_GATE("Ldev/jason/gboardpatches/extension/advancedvoice/GboardAdvancedVoiceRuntime;->formatterGate(Ljava/util/Locale;ZZ)Z"),
+    ADVANCED_VOICE_RUNTIME_SHOULD_SUPPRESS_VOICE_BEEP("Ldev/jason/gboardpatches/extension/advancedvoice/GboardAdvancedVoiceRuntime;->shouldSuppressVoiceBeep()Z"),
     ACCESS_POINTS_MENU_RUNTIME_SELECT_BODY("Ldev/jason/gboardpatches/extension/accesspointsmenu/GboardAccessPointsMenuRuntime;->selectBody(I)I"),
     ACCESS_POINTS_MENU_RUNTIME_SELECT_KEYBOARD_LAYOUT("Ldev/jason/gboardpatches/extension/accesspointsmenu/GboardAccessPointsMenuRuntime;->selectKeyboardLayout(I)I"),
     ACCESS_POINTS_MENU_RUNTIME_WANTS_LEGACY("Ldev/jason/gboardpatches/extension/accesspointsmenu/GboardAccessPointsMenuRuntime;->wantsLegacy()Z"),

@@ -1,16 +1,20 @@
 package com.feurstagram.patches.signature
 
 import app.morphe.patcher.Fingerprint
-import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
-import app.morphe.patcher.extensions.InstructionExtensions.removeInstructions
+import app.morphe.patcher.extensions.InstructionExtensions.addInstructionsWithLabels
+import app.morphe.patcher.extensions.InstructionExtensions.getInstruction
 import app.morphe.patcher.patch.PatchException
 import app.morphe.patcher.patch.bytecodePatch
 import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod
+import app.morphe.patcher.util.smali.ExternalLabel
 import com.android.tools.smali.dexlib2.AccessFlags
 import com.android.tools.smali.dexlib2.iface.Method
 import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
 import com.android.tools.smali.dexlib2.iface.reference.MethodReference
 import com.feurstagram.patches.shared.Constants.COMPATIBILITY_INSTAGRAM
+import com.feurstagram.patches.shared.Constants.EXTENSION_PACKAGE
+import com.feurstagram.patches.shared.freeLocals
+import com.feurstagram.patches.shared.parameterRegister
 
 /**
  * Instagram wraps a signing certificate's SHA-256 in a "key hash" (Base64, 43 chars) via
@@ -28,6 +32,11 @@ import com.feurstagram.patches.shared.Constants.COMPATIBILITY_INSTAGRAM
  * X.0XS.A02 (the "is this APK signed by Meta" gate) turns false, and Instagram's deep-link
  * dispatcher silently drops navigation to the linked content (issue #36).
  *
+ * Each check therefore answers true for this APK's own key hash only (OwnSignature.isOwn
+ * compares it with the signing certificate PackageManager reports for this package) and
+ * otherwise runs Instagram's code. Answering true for every certificate, as the first version
+ * did, handed Instagram's phone id and the "family app" providers to any installed app.
+ *
  * Both methods take the X.3uq key-hash type, so they are matched structurally after locating
  * that type by its stable error string. The obfuscated class/method names therefore never
  * appear in this patch and it survives Instagram renaming them between releases.
@@ -36,20 +45,35 @@ internal object KeyHashClassFingerprint : Fingerprint(
     strings = listOf("Invalid SHA256 key hash"),
 )
 
-/** Rewrites a method body so it simply returns `true`. */
-private fun MutableMethod.replaceBodyToReturnTrue(reason: String) {
-    val count = implementation?.instructions?.size
-        ?: throw PatchException("$reason has no implementation")
-    removeInstructions(count)
-    addInstructions(0, "const/4 v0, 0x1\nreturn v0")
+/**
+ * At method entry: when the key hash a check is asked about is this APK's own, answer true;
+ * Instagram's code runs for every other certificate. [loadHashIntoV0] is smali that leaves
+ * that key hash (or null) in v0. Uses v0 only, which is free at entry whenever the method has
+ * a local register.
+ */
+private fun MutableMethod.returnTrueIfOwnCertificate(loadHashIntoV0: String) {
+    if (freeLocals() < 1) throw PatchException("$name has no free register for the signature hook")
+    addInstructionsWithLabels(
+        0,
+        """
+            $loadHashIntoV0
+            invoke-static {v0}, $EXTENSION_PACKAGE/OwnSignature;->isOwn(Ljava/lang/Object;)Z
+            move-result v0
+            if-eqz v0, :instagram
+            const/4 v0, 0x1
+            return v0
+        """,
+        ExternalLabel("instagram", getInstruction(0)),
+    )
 }
 
 @Suppress("unused")
 val signatureCheckBypassPatch = bytecodePatch(
     name = "Signature check bypass",
-    description = "Forces Instagram's signing-certificate trust checks to always pass, so a " +
-        "re-signed APK is treated as an official Meta build and deep links route to their " +
-        "content instead of falling back to the home feed.",
+    description = "Lets Instagram's two signing-certificate trust checks answer yes for this APK's own " +
+        "certificate, so a re-signed build is treated as an official Meta build and deep links route to " +
+        "their content. Every other certificate gets Instagram's own answer, so other apps are still " +
+        "checked.",
     default = true,
 ) {
     compatibleWith(COMPATIBILITY_INSTAGRAM)
@@ -59,15 +83,16 @@ val signatureCheckBypassPatch = bytecodePatch(
 
         // Only one method with signature boolean(X.3uq): X.1eX.A01, the allowlist membership
         // check powering X.0XS.A02 (the self-signature gate) and every other trust decision.
-        Fingerprint(
+        val allowlistCheck = Fingerprint(
             returnType = "Z",
             parameters = listOf(keyHashType),
             custom = { method, _ -> AccessFlags.STATIC.isSet(method.accessFlags) },
-        ).method.replaceBodyToReturnTrue("X.1eX.A01 signature allowlist check")
+        ).method
+        allowlistCheck.returnTrueIfOwnCertificate("move-object/from16 v0, v${allowlistCheck.parameterRegister(0)}")
 
         // The family-app scope trust check used by the deep-link resolver
         // (com.facebook.secure.deeplink). Up to Instagram 445 it is the only method with
-        // signature boolean(X.3uq, X.3uq, Z) (X.1eY.A01).
+        // signature boolean(X.3uq, X.3uq, Z) (X.1eY.A01), whose first parameter is the caller's.
         val legacyScopeCheck = Fingerprint(
             returnType = "Z",
             parameters = listOf(keyHashType, keyHashType, "Z"),
@@ -75,26 +100,40 @@ val signatureCheckBypassPatch = bytecodePatch(
         ).methodOrNull
 
         // From Instagram 446 it became an instance method boolean(CallerIdentity, Z) on the
-        // trusted-provider class, which reads both key hashes from the caller identity
-        // (a getter on its first parameter) instead of taking them as parameters. That shape
-        // is unique in the APK; the class's own "*|all_packages|*" string is not, so it is
-        // matched on structure alone.
+        // trusted-provider class, which reads the caller's key hash through a getter on its
+        // first parameter instead of taking it as one. That shape is unique in the APK; the
+        // class's own "*|all_packages|*" string is not, so it is matched on structure alone.
         val scopeCheck = legacyScopeCheck ?: Fingerprint(
             returnType = "Z",
             custom = { method, _ ->
                 !AccessFlags.STATIC.isSet(method.accessFlags) &&
                     method.parameterTypes.size == 2 &&
                     method.parameterTypes[1].toString() == "Z" &&
-                    method.readsKeyHashFrom(method.parameterTypes[0].toString(), keyHashType)
+                    method.keyHashGetter(method.parameterTypes[0].toString(), keyHashType) != null
             },
         ).method
-        scopeCheck.replaceBodyToReturnTrue("Signature scope check")
+
+        val caller = scopeCheck.parameterRegister(0)
+        val loadCallerHash = if (legacyScopeCheck != null) {
+            "move-object/from16 v0, v$caller"
+        } else {
+            val getter = scopeCheck.keyHashGetter(scopeCheck.parameterTypes[0].toString(), keyHashType)
+                ?: throw PatchException("signature scope check ${scopeCheck.name} reads no key hash")
+            // A null caller has no hash to read; isOwn(null) is false, so Instagram's code answers.
+            """
+                move-object/from16 v0, v$caller
+                if-eqz v0, :own
+                invoke-virtual {v0}, $getter
+                move-result-object v0
+                :own
+            """
+        }
+        scopeCheck.returnTrueIfOwnCertificate(loadCallerHash)
     }
 }
 
-/** True if the method calls a getter declared on [ownerType] that returns the key-hash type. */
-private fun Method.readsKeyHashFrom(ownerType: String, keyHashType: String): Boolean =
-    implementation?.instructions?.any { instruction ->
-        val reference = (instruction as? ReferenceInstruction)?.reference as? MethodReference
-        reference != null && reference.returnType == keyHashType && reference.definingClass == ownerType
-    } ?: false
+/** The getter declared on [ownerType] that returns the key-hash type, which the method calls; null when none. */
+private fun Method.keyHashGetter(ownerType: String, keyHashType: String): MethodReference? =
+    implementation?.instructions?.mapNotNull { instruction ->
+        (instruction as? ReferenceInstruction)?.reference as? MethodReference
+    }?.firstOrNull { it.returnType == keyHashType && it.definingClass == ownerType }

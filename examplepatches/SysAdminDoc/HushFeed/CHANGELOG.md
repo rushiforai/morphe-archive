@@ -4,8 +4,11 @@ Every Hushfeed release, newest first.
 
 ## Unreleased
 
+## 0.85.0 (2026-11-24)
+
 ### Features
 
+* `Remember saved videos` is new in Feed screen, next to the Favorites grid options. As your Favorites load, Hushfeed keeps each video's cover, creator, caption and post date on your phone. When TikTok later marks a saved video as deleted or unplayable, its grey tile shows the kept cover and creator instead, and a tap shows the rest. `Unavailable saved videos` lists them all with a search box. It can only keep what it saw while a video was still up, so tiles that were already grey stay grey (#516).
 * `Fill wide videos too`, right under `Fill the screen with the video`, crops landscape and square videos to cover the screen as well. Fill on its own still leaves those whole, so you see all of a landscape video with bars above and below it. Turn this on and every video fills the screen, showing the middle of a wide one (#505).
 * `Keep your place in chats` stops a chat you've scrolled up in from jumping to the bottom on its own. Coming back from a video you opened in the chat leaves you where you were, and so does sending a reply to an older message. A plain message you send and the down arrow still take you to the newest. It starts off and sits under `Show message times` in Hushfeed settings > Inbox (#503).
 * On the floating bottom bar, `Glass lens on the current tab` is the same thin outline as on TikTok's own bar now, with nothing filled inside, so the video shows through it like it does around it. The glass and see-through bars keep the glass bubble (#483).
@@ -25,8 +28,12 @@ Every Hushfeed release, newest first.
 * `Jump to a date on Favorites grids` does for your saved videos what the Liked one does for likes. A button in the Favorites grid's top corner starts the list at the year or month you pick, so old saves load without scrolling through thousands of newer ones, and Newest saves goes back. It starts off and sits under `Jump to a date on Liked grids` in Hushfeed settings > Feed screen (#508).
 * `Pick a built-in font` is new under `Import a font file` on the App page. It lists 26 fonts that come with Hushfeed, like Bebas Neue, Lobster, Press Start 2P and VT323, and each name in the list is drawn in its own font. The one you pick becomes your imported font, so turn on `Use an imported font` and restart TikTok to see it (#487).
 * `Delete your picked posts` is new under `Pick videos to save from profile grids` in Downloads. While every post you've picked on a grid is your own, the picking bar gets a trash button. It counts down from 5 with Stop, then deletes the posts from your account one at a time with a short pause between them, and each one leaves the grid as it goes. A deleted post can't be brought back, so it starts off (#487).
+* `Account facts on profiles` shows how many posts an account has. Liked videos, favorites and reposts get a line of their own on the profiles TikTok sends those numbers for, and many profiles come without them. A number TikTok left out or sent as 0 gets no line, since the two look the same (#487).
+* The settings screen now comes in Bulgarian, shown when TikTok runs in Bulgarian or when you pick it under `Hushfeed language`. It's a first pass, so corrections from Bulgarian speakers are welcome (#517).
+* `Export followers and following` can save a JSON or plain text file as well as CSV. Tapping it lists each choice, like `Followers (JSON)` or `Following (Plain text)`. The JSON file has the same details as the CSV, and the plain text one is a username on each line (#487).
 * TikTok Lite's settings no longer list switches that did nothing there. Lite's feed filter works on the videos in the feed and nothing else, so its Feed filter page drops `Hide TikTok Shop in search`, the search tab list, `Show only mutual friends on the Friends tab`, `Latest first on Following`, both offline video switches and `Show how many were filtered`. Its Feed screen page drops `Hide the search bar below videos`, `Hide the playlist bar` and `Hide the event badge`. Every rule that hides a kind of video stays, and so does `Hide inserted cards` (#48).
 * `Swipe LIVEs in your Following row's order` is new with the other LIVE options in Playback. Open a LIVE from the row at the top of Following, and swiping up takes you through the row's other LIVEs in the order they sit there, starting with the next one and then going round to the ones before it. TikTok's own picks come after them, and the row's LIVEs don't show up a second time among those (#511).
+* The Feature Gate Lab leaves TikTok's paid features alone. Gates tied to subscriptions, Super Fan, paid series, LIVE gifts, coins and the like aren't listed any more and can't be saved. A backup or shared profile holding one restores everything else, and a rule saved on one before this stays stored but does nothing.
 
 ### Bug Fixes
 
@@ -48,10 +55,12 @@ Every Hushfeed release, newest first.
 * Patching takes a lot less memory with most patches selected. All of them together now fit in a 1 GB patcher heap, where they used to run out at 1.5 GB. On a phone where Manager runs 32-bit, every patch now fits with TikTok's bundle and with the APK, where they ran out partway before. Several patches only look through TikTok's code, but every look made the patcher keep an editable copy of the method until the end. And each patch that changes TikTok's resources left the parsed resource table behind for the rest of the run, about 140 MB on the APK (#497, #460, #310, #441, #48).
 * Stickers made from a video get the save box in chats now. Tapping one opens it after TikTok's own preview, and holding one shows Save media, which photo stickers, GIF stickers and AI stickers get in that menu too. TikTok handles all of those apart from its own stickers, so neither showed up for them (#470).
 * With `Hide the music line` on, a video with a music line now has its caption the same distance above the progress bar as a video without one. The music line hid, but the space TikTok keeps under it stayed, so those captions sat a little higher (#512).
+* `Keep captions in Clear display` shows a video's first caption when it's spoken now. 0.84.0 held on to that first caption for the kept line, but on the phone it looked for it in the wrong place and never found it, so the line stayed empty until TikTok sent the next caption, sometimes seconds later (#456).
 
 ### Build
 
 * The release tools name only global TikTok's version in the README, the Manager text and the update steps. With TikTok Lite declared too, v0.84.0 went out saying "TikTok 47.8.2 and 47.9.3", and the README still pointed at 47.8.3.
+* Three of the patch tree's own checks pass on main again. The SIM spoof's network stack file has its source notice, TikTok Lite's region patch fills its reader stubs from a list the bridge check can read, and the check for made-up TikTok names no longer counts the month pattern `Jump to a date on Favorites grids` formats with.
 
 ## 0.84.0 (2026-11-22)
 

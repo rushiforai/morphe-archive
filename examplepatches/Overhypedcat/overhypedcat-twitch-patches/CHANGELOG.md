@@ -1,3 +1,15 @@
+## [4.3.2](https://github.com/[secure]/overhypedcat-twitch-patches/compare/v4.3.1...v4.3.2) (2026-11-24)
+
+### Bug Fixes
+
+* Ad blocker hands playlists to the player as its own clients do, keeps numbering across qualities after a break, and E4 playlists are blocked ([a09d82e](https://github.com/[secure]/overhypedcat-twitch-patches/commit/a09d82ea035adc20244949242f0826606ac67dc9))
+
+## [4.3.1](https://github.com/[secure]/overhypedcat-twitch-patches/compare/v4.3.0...v4.3.1) (2026-11-24)
+
+### Bug Fixes
+
+* Ad blocker leaves Twitch's playlists as they are outside ads (as Purple AdBlock), and the Debug mode row shows its state ([b3add12](https://github.com/[secure]/overhypedcat-twitch-patches/commit/b3add12890e199fc69464f8c35f4875d09326b6c))
+
 ## [4.3.0](https://github.com/[secure]/overhypedcat-twitch-patches/compare/v4.2.2...v4.3.0) (2026-11-23)
 
 ### New Features

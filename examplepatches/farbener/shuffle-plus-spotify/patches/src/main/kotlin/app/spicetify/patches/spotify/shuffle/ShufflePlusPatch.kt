@@ -106,17 +106,25 @@ val shufflePlusPatch = bytecodePatch(
         }
         if (mismatches.isNotEmpty()) throw PatchException("Spotify protocol changed: $mismatches")
 
-        // H1: hand each new SharedCosmosRouterService to the player bridge, right after it stores its
-        // native router, while p0 still holds the service.
-        val constructor = mutableClassDefBy(COSMOS_SERVICE).methods.single {
-            it.name == "<init>" &&
-                it.parameterTypes.getOrNull(1) == "Lcom/spotify/cosmos/servicebasedrouter/RemoteNativeRouter;"
+        // H1: hand Spotify's router to the player bridge. 9.2.0: each new SharedCosmosRouterService, right after
+        // it stores its native router, while p0 still holds the service. 9.2.4+: that service is gone; its
+        // router holder (an obfuscated class, found by shape) gets the hook at the end of its constructor.
+        if (classDefByOrNull(COSMOS_SERVICE) != null) {
+            val constructor = mutableClassDefBy(COSMOS_SERVICE).methods.single {
+                it.name == "<init>" &&
+                    it.parameterTypes.getOrNull(1) == "Lcom/spotify/cosmos/servicebasedrouter/RemoteNativeRouter;"
+            }
+            val code = constructor.implementation!!
+            val self = code.registerCount - 3 // two parameters plus `this`
+            val index = bridgeStoreIndex(code.instructions, self)
+                ?: throw PatchException("Spotify ABI changed: $COSMOS_SERVICE. $ABI_HINT")
+            constructor.addInstructions(index, "invoke-static/range {p0 .. p0}, $EXT/PlayerBridge;->onCosmos(Ljava/lang/Object;)V")
+        } else {
+            val holder = findRouterHolder()
+            val constructor = mutableClassDefBy(holder).methods.single { it.name == "<init>" && it.parameterTypes.isEmpty() }
+            val end = constructor.implementation!!.instructions.count() - 1
+            constructor.addInstructions(end, "invoke-static/range {p0 .. p0}, $EXT/PlayerBridge;->onCosmos(Ljava/lang/Object;)V")
         }
-        val code = constructor.implementation!!
-        val self = code.registerCount - 3 // two parameters plus `this`
-        val index = bridgeStoreIndex(code.instructions, self)
-            ?: throw PatchException("Spotify ABI changed: $COSMOS_SERVICE. $ABI_HINT")
-        constructor.addInstructions(index, "invoke-static/range {p0 .. p0}, $EXT/PlayerBridge;->onCosmos(Ljava/lang/Object;)V")
 
         // N1: Now Playing's shuffle button, found by shape (its class name is obfuscated and changes per build),
         // hooked at the end of its constructor, where the last stored value is the button view.
@@ -196,6 +204,29 @@ private fun bridgeStoreIndex(instructions: Iterable<Instruction>, self: Int): In
     }
     val store = stores.singleOrNull() ?: return null
     return (store + 1).takeIf { (list[store] as TwoRegisterInstruction).registerB == self }
+}
+
+private const val NATIVE_ROUTER = "Lcom/spotify/cosmos/cosmosimpl/NativeRouter;"
+
+/**
+ * Spotify 9.2.4+'s router holder: the one class (other than NativeRouter) whose no-argument constructor
+ * creates a NativeRouter and stores it, and that also holds a read-write lock. Exactly one must match.
+ */
+private fun BytecodePatchContext.findRouterHolder(): String {
+    val found = mutableListOf<String>()
+    classDefForEach { cls ->
+        if (cls.type == NATIVE_ROUTER) return@classDefForEach
+        if (cls.instanceFields.none { it.type == NATIVE_ROUTER } ||
+            cls.instanceFields.none { it.type == "Ljava/util/concurrent/locks/ReentrantReadWriteLock;" }
+        ) return@classDefForEach
+        val constructor = cls.methods.singleOrNull { it.name == "<init>" && it.parameterTypes.isEmpty() } ?: return@classDefForEach
+        val code = constructor.implementation?.instructions?.toList() ?: return@classDefForEach
+        if (code.any { (it as? ReferenceInstruction)?.reference?.toString() == NATIVE_ROUTER && it.opcode == Opcode.NEW_INSTANCE }) {
+            found += cls.type
+        }
+    }
+    return found.singleOrNull()
+        ?: throw PatchException("Spotify ABI changed: found ${found.size} router holders. $ABI_HINT")
 }
 
 private val CONTEXT_ONLY = listOf("Landroid/content/Context;")

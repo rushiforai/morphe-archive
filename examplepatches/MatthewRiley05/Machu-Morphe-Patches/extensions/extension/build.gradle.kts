@@ -13,4 +13,5 @@ android {
 
 dependencies {
     compileOnly(project(":stubs:earth"))
+    compileOnly(project(":stubs:moon"))
 }

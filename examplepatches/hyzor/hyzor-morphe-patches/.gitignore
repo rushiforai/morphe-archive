@@ -133,3 +133,12 @@ local.properties
 .kotlin/
 
 .tmp/
+
+# Signing material — never commit keys, even if copied into the tree.
+# The project key lives outside the repository at ~/Projects/hyzor/.signing/.
+*.keystore
+*.jks
+*.p12
+*.pfx
+*.bks
+.signing/

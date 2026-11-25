@@ -1,0 +1,38 @@
+{
+  "parakeet": {
+    "label": "Parakeet (default)",
+    "source": "gboard6.png",
+    "sha256": "93790fab64e5368e997ab3882a43c595882ae66218b96ed41ec789018b4a1e68",
+    "background": "#F0EEE7"
+  },
+  "glossy_3d": {
+    "label": "3D keys",
+    "source": "gboard1.png",
+    "sha256": "0bd31a22138673b27ce334b4e61f7bac62ee5c226519aa50bce4845b74188f83",
+    "background": "#FFFFFF"
+  },
+  "classic_blue": {
+    "label": "Classic blue",
+    "source": "gboard2.png",
+    "sha256": "28426813f85680c29f3705ab0651a7bde61a263465a124bf0bb3531137c979c2",
+    "background": "#387FEC"
+  },
+  "colourful": {
+    "label": "Colourful G",
+    "source": "gboard3.png",
+    "sha256": "aa6b1cdf2a3e4663337a772854138e0392c010db209b8be4ad667858c1e44e9f",
+    "background": "#FFFFFF"
+  },
+  "cartoon": {
+    "label": "Cartoon outline",
+    "source": "gboard4.png",
+    "sha256": "d1e78e2c3ec6e7d05088d972772d52877339cfc452bdfac7aec6b228b059d901",
+    "background": "#FFFFFF"
+  },
+  "soft_light": {
+    "label": "Soft light",
+    "source": "gboard5.png",
+    "sha256": "f9f47a496b54f1b5b45ec141695fa04663a6d298bb4da02db929c2fad367e5f3",
+    "background": "#E2EAF3"
+  }
+}

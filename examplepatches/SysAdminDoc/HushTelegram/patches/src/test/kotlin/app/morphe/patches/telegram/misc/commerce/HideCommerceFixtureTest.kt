@@ -37,7 +37,6 @@ import com.android.tools.smali.dexlib2.iface.instruction.OffsetInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
 import com.android.tools.smali.dexlib2.iface.reference.FieldReference
-import com.android.tools.smali.dexlib2.iface.instruction.RegisterRangeInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.TwoRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.reference.MethodReference
 import com.android.tools.smali.dexlib2.immutable.ImmutableClassDef
@@ -187,21 +186,28 @@ class HideCommerceFixtureTest {
             assertTrue("${build.name}: the admin log keeps the real status", keepers.any { it.origDefiningClass == MESSAGE_OBJECT })
             val swapped = (getters + keepers).map { it.key() }.toSet()
             val originalBodies = (getters + keepers).associate { it.key() to it.instructions().map(::operation) }
-            // Unlock Premium app icons asks after the flag read in the icon list's tap, lock and
-            // filter. The Premium page's preview reads the flag too and stays stock.
+            // The App Icon list's tap, lock and filter weigh an icon's Premium flag against Premium,
+            // and so does the Premium page's preview. All of them stay as Telegram has them.
             val premiumFlag = iconFlag(hosts)
             val iconBodies = iconReaders(hosts).associate { it.key() to it.instructions() }
             assertEquals("${build.name}: the icon list's tap, lock and filter", 3, iconBodies.size)
             assertEquals("${build.name}: the tap and the lock ask about the account", 2,
                 iconBodies.values.count { body -> body.any { it.reference() == PREMIUM_ON_ACCOUNTS } })
-            // Emoji status on this phone asks after the chat list title's status reads and Premium
-            // checks, and first thing in the account's own status send.
+            // The chat list title's status reads and Premium checks stay as Telegram has them.
             val title = titleStatus(hosts)
-            val send = statusSend(hosts)
-            val localBodies = listOf(title, send).associate { it.key() to it.instructions() }
+            // Keep emoji statuses moving asks right after AnimatedEmojiDrawable reads the cache type
+            // it sets an image's play count by. ImageReceiver's setter stays stock.
+            val ladder = statusLadder(hosts)
             val untouched = hosts.flatMap { it.methods.toList() }.filter {
-                (it.definingClass to it.name) !in changed && it.key() !in swapped && it.key() !in iconBodies && it.key() !in localBodies
+                (it.definingClass to it.name) !in changed && it.key() !in swapped &&
+                    it.key() != ladder.key()
             }
+            assertTrue("${build.name}: includes the chat list title's status and Premium star", untouched.any { it.key() == title.key() })
+            assertEquals("${build.name}: includes the icon list's tap, lock and filter", iconBodies.keys,
+                untouched.map { it.key() }.filter { it in iconBodies }.toSet())
+            assertTrue("${build.name}: includes ImageReceiver's play count setter", untouched.any { method ->
+                method.origDefiningClass == STATUS_IMAGE_RECEIVER && method.instructions().firstOrNull()?.reference() == STATUS_AUTO_REPEAT
+            })
             assertTrue("${build.name}: includes the Premium page's icon preview", untouched.any { method ->
                 method.instructions().any { it.opcode == Opcode.IGET_BOOLEAN && it.reference() == premiumFlag }
             })
@@ -235,25 +241,8 @@ class HideCommerceFixtureTest {
             CommerceTarget.entries.forEach { assertFact(context, it.capability, 1) }
             PremiumStickerTarget.entries.forEach { assertFact(context, it.capability, 1) }
             assertFact(context, "commerceEmojiStatus", 1)
-            assertFact(context, "commercePremiumIcons", 1)
-            assertFact(context, "commerceLocalEmojiStatus", 1)
-            assertLocalTitle(build.name, localBodies.getValue(title.key()),
-                context.tgMutableClassDefBy(title.definingClass).methods.single { it.key() == title.key() })
-            assertLocalSend(build.name, send, context.tgMutableClassDefBy(CONTROLLER).methods.single { it.key() == send.key() })
-            for ((key, before) in iconBodies) {
-                val after = context.tgMutableClassDefBy(key.substringBefore("->")).methods.single { it.key() == key }
-                    .instructions().filter { it.opcode != Opcode.NOP }
-                val read = after.indices.single { after[it].opcode == Opcode.IGET_BOOLEAN && after[it].reference() == premiumFlag }
-                val register = (after[read] as TwoRegisterInstruction).registerA
-                val call = after[read + 1] as RegisterRangeInstruction
-                assertEquals("${build.name}: $key asks AppIcons right after the read", ICON_PREMIUM, after[read + 1].reference())
-                assertEquals(listOf(register, 1), listOf(call.startRegister, call.registerCount))
-                assertEquals(Opcode.MOVE_RESULT, after[read + 2].opcode)
-                assertEquals(register, (after[read + 2] as OneRegisterInstruction).registerA)
-                // A goto past the new code can widen, which is still the same jump.
-                assertEquals("${build.name}: $key is otherwise stock", before.filter { it.opcode != Opcode.NOP }.map(::stockOperation),
-                    after.filterIndexed { index, _ -> index != read + 1 && index != read + 2 }.map(::stockOperation))
-            }
+            assertFact(context, "commerceMovingEmojiStatus", 1)
+            assertStatusMotion(build.name, ladder, context.tgMutableClassDefBy(ladder.definingClass).methods.single { it.key() == ladder.key() })
             for (getter in getters) {
                 val owner = context.tgMutableClassDefBy(getter.definingClass)
                 val stockName = if (getter.origDefiningClass == EMOJI_USERS) STOCK_USER_STATUS else STOCK_DIALOG_STATUS
@@ -671,96 +660,66 @@ class HideCommerceFixtureTest {
     }
 
     @Test
-    fun `a build without the App Icon list's enum keeps every icon locked and the rest of the patch`() {
+    fun `a build without the status play counts keeps each count and the rest of the patch`() {
         for (build in Fixtures.declaredBuilds()) {
             val hosts = hosts(build)
-            val icons = iconFlag(hosts).substringBefore("->")
-            val readers = iconReaders(hosts).associate { it.key() to it.instructions().map(::operation) }
-            assertEquals("${build.name}: the fixture still weighs icons against Premium", 3, readers.size)
-            val context = PatchContexts.of(ExtensionDex.classes() + hosts.filter { it.origType != icons })
+            val ladder = statusLadder(hosts)
+            val context = PatchContexts.of(ExtensionDex.classes() + hosts.filter { it.type != ladder.definingClass })
             val warnings = PatchLogCapture.warnings { hideCommercePatch.execute(context) }
-            assertEquals("${build.name}: one Premium app icon warning", 1, warnings.size)
-            assertTrue(warnings.single(), warnings.single().endsWith("The patch goes on without the Premium app icon switch."))
+            assertEquals("${build.name}: one moving emoji status warning", 1, warnings.size)
+            assertTrue(warnings.single(), warnings.single().endsWith("The patch goes on without the moving emoji status switch."))
             assertFact(context, "hideCommerce", 1)
-            assertFact(context, "commercePremiumIcons", 0)
+            assertFact(context, "commerceMovingEmojiStatus", 0)
             assertFact(context, "commerceEmojiStatus", 1)
             CommerceTarget.entries.forEach { assertFact(context, it.capability, 1) }
-            for ((key, before) in readers) {
-                val after = context.tgMutableClassDefBy(key.substringBefore("->")).methods.single { it.key() == key }
-                assertEquals("${build.name}: $key is stock", before, after.instructions().map(::operation))
-            }
         }
     }
 
     @Test
-    fun `a build whose chat list title no longer draws the status keeps the send and the rest of the patch`() {
+    fun `a status that no longer plays twice keeps its count and the rest of the patch`() {
         for (build in Fixtures.declaredBuilds()) {
             val hosts = hosts(build)
-            val title = titleStatus(hosts)
-            val send = statusSend(hosts)
-            val owner = hosts.single { it.origType == title.origDefiningClass }
-            val altered = ImmutableClassDef(owner.type, owner.accessFlags, owner.superclass, owner.interfaces,
-                owner.sourceFile, owner.annotations, owner.fields, owner.methods.filter { it.key() != title.key() })
-            val context = PatchContexts.of(ExtensionDex.classes() + hosts.filter { it.origType != owner.origType } + altered)
+            val context = PatchContexts.of(ExtensionDex.classes() + hosts)
+            val ladder = statusLadder(hosts)
+            val method = context.tgMutableClassDefBy(ladder.definingClass).methods.single { it.key() == ladder.key() }
+            val body = method.instructions()
+            // The block a status's 7 and 9 land on loads 2 for the setter call right after it.
+            val twice = body.indices.single { at ->
+                body[at].opcode == Opcode.CONST_4 && (body[at] as NarrowLiteralInstruction).narrowLiteral == 2 &&
+                    body.getOrNull(at + 1)?.opcode == Opcode.INVOKE_VIRTUAL
+            }
+            method.replaceInstruction(twice, "const/4 v${(body[twice] as OneRegisterInstruction).registerA}, 0x3")
+            val changed = method.instructions().map(::operation)
             val warnings = PatchLogCapture.warnings { hideCommercePatch.execute(context) }
-            assertEquals("${build.name}: one local emoji status warning", 1, warnings.size)
-            assertTrue(warnings.single(), warnings.single().endsWith("The patch goes on without the local emoji status switch."))
-            assertFact(context, "hideCommerce", 1)
-            assertFact(context, "commerceLocalEmojiStatus", 0)
-            assertFact(context, "commerceEmojiStatus", 1)
-            assertFact(context, "commercePremiumIcons", 1)
-            CommerceTarget.entries.forEach { assertFact(context, it.capability, 1) }
-            val after = context.tgMutableClassDefBy(CONTROLLER).methods.single { it.key() == send.key() }
-            assertEquals("${build.name}: the status send is stock", send.instructions().map(::operation), after.instructions().map(::operation))
-            val stub = context.tgMutableClassDefBy(LOCAL_STATUS).methods.single { it.origName == "statusDocument" }.instructions()
-            assertFalse("${build.name}: the stubs stay empty", stub.any { it.reference() != null })
+            assertEquals("${build.name}: one moving emoji status warning", 1, warnings.size)
+            assertTrue(warnings.single(), warnings.single().contains("no longer plays twice"))
+            assertTrue(warnings.single(), warnings.single().endsWith("The patch goes on without the moving emoji status switch."))
+            assertFact(context, "commerceMovingEmojiStatus", 0)
+            assertEquals("${build.name}: the play counts are left as they were", changed, method.instructions().map(::operation))
         }
     }
 
     /**
-     * Each status read in the title is followed by LocalEmojiStatus.documentId on the read's result
-     * and user, and each Premium check by LocalEmojiStatus.premium on its answer, each answer going
-     * back into the register stock code reads next. Nothing jumps past them, and the rest is stock.
+     * The cache type read is followed by EmojiStatus.statusRepeatType on it, whose answer goes
+     * back into the register the ladder compares next. Nothing jumps past it, and the rest is stock.
      */
-    private fun assertLocalTitle(where: String, before: List<Instruction>, method: Method) {
+    private fun assertStatusMotion(where: String, original: Method, method: Method) {
+        val before = original.instructions()
         val after = method.instructions()
-        val asks = after.indices.filter { after[it].reference() == LOCAL_STATUS_ID || after[it].reference() == LOCAL_STATUS_PREMIUM }
-        assertEquals("$where: two status reads", 2, asks.count { after[it].reference() == LOCAL_STATUS_ID })
-        assertEquals("$where: two Premium checks", 2, asks.count { after[it].reference() == LOCAL_STATUS_PREMIUM })
+        assertEquals("$where: reads the cache type first", Opcode.IGET, after[0].opcode)
+        assertEquals(before[0].reference(), after[0].reference())
+        val type = (after[0] as TwoRegisterInstruction).registerA
+        assertEquals("$where: asks right after the read", STATUS_REPEAT, after[1].reference())
+        assertEquals(Opcode.INVOKE_STATIC_RANGE, after[1].opcode)
+        assertEquals("$where: passes the cache type", listOf(type), after[1].namedRegisters())
+        assertEquals(Opcode.MOVE_RESULT, after[2].opcode)
+        assertEquals("$where: the answer replaces the cache type", type, (after[2] as OneRegisterInstruction).registerA)
         val flow = ControlFlow.of(method)
-        fun into(index: Int) = after.indices.filter { index in flow.normal[it] || index in flow.exceptional[it] }
-        for (at in asks) {
-            val result = after[at - 1].namedRegisters().single()
-            if (after[at].reference() == LOCAL_STATUS_ID) {
-                assertEquals("$where: reads the getter", USER_STATUS_ID, after[at - 2].reference())
-                assertEquals(Opcode.MOVE_RESULT_OBJECT, after[at - 1].opcode)
-                assertEquals("$where: passes the id and the user", listOf(result) + after[at - 2].namedRegisters(), after[at].namedRegisters())
-                assertEquals(Opcode.MOVE_RESULT_OBJECT, after[at + 1].opcode)
-            } else {
-                assertEquals("$where: asks isPremiumUser", IS_PREMIUM_USER, after[at - 2].reference())
-                assertEquals(Opcode.MOVE_RESULT, after[at - 1].opcode)
-                assertEquals(Opcode.INVOKE_STATIC_RANGE, after[at].opcode)
-                assertEquals(listOf(result), after[at].namedRegisters())
-                assertEquals(Opcode.MOVE_RESULT, after[at + 1].opcode)
-            }
-            assertEquals("$where: the answer replaces Telegram's", listOf(result), after[at + 1].namedRegisters())
-            for (step in at..at + 2) assertEquals("$where: only the hook reaches $step", listOf(step - 1), into(step))
-        }
-        val inserted = asks.flatMap { listOf(it, it + 1) }.toSet()
-        assertEquals("$where: the title is otherwise stock", before.filter { it.opcode != Opcode.NOP }.map(::stockOperation),
-            after.filterIndexed { index, _ -> index !in inserted }.filter { it.opcode != Opcode.NOP }.map(::stockOperation))
-    }
-
-    /** The send asks LocalEmojiStatus first, returns when it kept the status, and otherwise runs whole. */
-    private fun assertLocalSend(where: String, original: Method, method: Method) {
-        val after = method.instructions()
+        for (step in 1..3) assertEquals("$where: only the hook reaches $step", listOf(step - 1),
+            after.indices.filter { step in flow.normal[it] || step in flow.exceptional[it] })
         assertEquals("$where: register allocation stays stock", original.implementation!!.registerCount, method.implementation!!.registerCount)
-        assertEquals(listOf(Opcode.INVOKE_STATIC_RANGE, Opcode.MOVE_RESULT, Opcode.IF_EQZ, Opcode.RETURN_VOID), after.take(4).map { it.opcode })
-        assertEquals(LOCAL_STATUS_KEEP, after[0].reference())
-        val receiver = method.implementation!!.registerCount - 3
-        assertEquals("$where: passes the controller and the status", listOf(receiver, receiver + 1), after[0].namedRegisters())
-        assertEquals("$where: a sent status goes on to stock code", setOf(3, 4), ControlFlow.of(method).normal[2].toSet())
-        assertEquals("$where: the send is otherwise stock", original.instructions().map(::stockOperation), after.drop(4).map(::stockOperation))
+        assertEquals("$where: the play counts are otherwise stock", before.map(::stockOperation),
+            after.filterIndexed { index, _ -> index != 1 && index != 2 }.map(::stockOperation))
     }
 
     /** No early return or new stock branch: every original operation and handler survives. */
@@ -892,8 +851,21 @@ class HideCommerceFixtureTest {
             .map { ((it as ReferenceInstruction).reference as FieldReference).type }.toSet()
         // LocaleController holds the getString(int) wrapper whose forwarded call 13.2 inlined into the title sites.
         val kept = FixtureDex.classes(build, setOf(TABS, CONTROLLER, USER_CONFIG, EMOJI_USERS, EMOJI_DIALOGS, MESSAGE_OBJECT,
-            "Lorg/telegram/messenger/LocaleController;") + flags).values
-        return (icons + anchors + title + kept).distinctBy { it.type }
+            "Lorg/telegram/messenger/LocaleController;", STATUS_IMAGE_RECEIVER) + flags).values
+        val motion = FixtureDex.classesWhere(build, { true }) { it.isStatusLadder() }
+        return (icons + anchors + title + kept + motion).distinctBy { it.type }
+    }
+
+    /** AnimatedEmojiDrawable's one method that sets an image's play count by the drawable's cache type. */
+    private fun statusLadder(hosts: List<ClassDef>) = hosts.flatMap { it.methods.toList() }.single { it.isStatusLadder() }
+
+    /** Takes an ImageReceiver, reads an int first and weighs it against a status's cache types, 7 and 9. */
+    private fun Method.isStatusLadder(): Boolean {
+        val body = instructions()
+        return returnType == "V" && parameterTypes.map { it.toString() } == listOf(STATUS_IMAGE_RECEIVER) &&
+            body.firstOrNull()?.opcode == Opcode.IGET && listOf(7, 9).all { type ->
+                body.any { it.opcode in setOf(Opcode.CONST_4, Opcode.CONST_16) && (it as NarrowLiteralInstruction).narrowLiteral == type }
+            }
     }
 
     /** The chat list title's one method that draws the account's status or the Premium star. */
@@ -902,9 +874,6 @@ class HideCommerceFixtureTest {
         method.origReturnType == "V" && method.parameterTypes.map { it.toString() } == listOf(USER, "Z") &&
             LIST_STAR in refs && USER_STATUS_ID in refs && IS_PREMIUM_USER in refs
     }
-
-    /** MessagesController's send of the account's own new status. */
-    private fun statusSend(hosts: List<ClassDef>) = hosts.single { it.origType == CONTROLLER }.methods.single { it.sendsOwnStatus() }
 
     /** The App Icon list's Premium flag: the one instance boolean of the enum naming the launcher aliases. */
     private fun iconFlag(hosts: List<ClassDef>): String {
@@ -998,6 +967,10 @@ class HideCommerceFixtureTest {
         const val CONTROLLER = "Lorg/telegram/messenger/MessagesController;"
         const val USER_CONFIG = "Lorg/telegram/messenger/UserConfig;"
         const val USER = "Lorg/telegram/tgnet/TLRPC\$User;"
+        const val PREMIUM_ON_ACCOUNTS = "Lorg/telegram/messenger/UserConfig;->hasPremiumOnAccounts()Z"
+        const val LIST_STAR = "Lorg/telegram/messenger/R\$drawable;->msg_premium_liststar:I"
+        const val USER_STATUS_ID = "$EMOJI_USERS->$EMOJI_GETTER($USER)Ljava/lang/Long;"
+        const val IS_PREMIUM_USER = "$STICKER_CONTROLLER->isPremiumUser($USER)Z"
         const val JOIN = "Lorg/telegram/messenger/R\$string;->ChannelJoinNoCaps:I"
         const val UNMUTE = "Lorg/telegram/messenger/R\$string;->ChannelUnmuteNoCaps:I"
         const val SIDE_MENU = "Lorg/telegram/tgnet/TLRPC\$TL_attachMenuBot;->show_in_side_menu:Z"

@@ -25,7 +25,7 @@ internal object BetterPlayerAttachAdsFingerprint : Fingerprint(
  * "yr1" platform exception and returns it to Dart.
  */
 internal object ImaAdsLoaderRequestAdsFingerprint : Fingerprint(
-    definingClass = "Lfz5;",
+    definingClass = "Lez5;",
     name = "c",
     parameters = listOf("Lt8;"),
     returnType = "V",
@@ -44,9 +44,9 @@ internal object ImaAdsLoaderRequestAdsFingerprint : Fingerprint(
  * IMA AdsLoader.requestStreamAds implementation for live streams.
  */
 internal object ImaAdsLoaderRequestStreamAdsFingerprint : Fingerprint(
-    definingClass = "Lfz5;",
+    definingClass = "Lez5;",
     name = "d",
-    parameters = listOf("Lhj4;"),
+    parameters = listOf("Lgj4;"),
     returnType = "Ljava/lang/String;",
     accessFlags = listOf(AccessFlags.PUBLIC, AccessFlags.FINAL),
     custom = { method, _ ->
@@ -67,7 +67,7 @@ internal object ImaAdsLoaderRequestStreamAdsFingerprint : Fingerprint(
  * even when Dart explicitly enables them.
  */
 internal object FirebaseCollectionToggleFingerprint : Fingerprint(
-    definingClass = "Lcs1;",
+    definingClass = "Lbs1;",
     name = "run",
     parameters = emptyList(),
     returnType = "V",
@@ -76,7 +76,7 @@ internal object FirebaseCollectionToggleFingerprint : Fingerprint(
         method.implementation?.instructions?.any { instruction ->
             instruction is ReferenceInstruction &&
                 (instruction.reference as? FieldReference)?.let { reference ->
-                    reference.definingClass == "Lcs1;" &&
+                    reference.definingClass == "Lbs1;" &&
                         reference.name == "I" &&
                         reference.type == "Z"
                 } == true
@@ -95,7 +95,7 @@ internal object BetterPlayerConstructorFingerprint : Fingerprint(
     accessFlags = listOf(AccessFlags.PUBLIC, AccessFlags.CONSTRUCTOR),
     parameters = listOf(
         "Landroid/content/Context;",
-        "Lif1;",
+        "Lhf1;",
         "Lio/flutter/view/TextureRegistry\$SurfaceProducer;",
         "Luz/shs/better_player_plus/CustomDefaultLoadControl;",
         "Lio/flutter/plugin/common/MethodChannel\$Result;"

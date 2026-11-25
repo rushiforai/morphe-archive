@@ -25,7 +25,8 @@ import app.hushpinterest.extension.pinterest.settings.PatchFamily;
  * holders before anything is drawn. The patch passes the list each holder is built with through
  * {@link #filter}, which drops what Hide ads and Hide AI-labeled pins each say to and hands back the
  * rest in order. A module that stays, such as a row of ideas or a group of products, has the same
- * done to the pins inside it, and goes when none are left ({@link ModuleItems}). With every switch
+ * done to the pins inside it, and goes when none are left ({@link ModuleItems}). A pin of yours, such
+ * as one on your own board, only ever goes for being an ad ({@link YourPins}). With every switch
  * off, or paused, the list goes through untouched.
  *
  * <p>Download board reads what's left, untouched, to keep the pins of a board's own pages. It never
@@ -57,24 +58,40 @@ public final class FeedFilter {
         ai = ai && AiPins.active();
         shopping = shopping && Shopping.active();
         videos = videos && VideoPins.active();
+        // Hide Refine your search reads story types on the same capability as Home suggestions, on its own switch.
+        boolean refine = suggestions && RefineSearch.active();
         suggestions = suggestions && HomeSuggestions.active();
         List<String> muted = muting ? MutedWords.phrases() : Collections.emptyList();
-        if (!ads && !ai && !aiWords && !shopping && !videos && !suggestions && muted.isEmpty()) {
+        if (!ads && !ai && !aiWords && !shopping && !videos && !suggestions && !refine && muted.isEmpty()) {
             BoardDownloads.record(items);
             return items;
         }
         boolean hideAds = ads, hideAi = ai, hideAiWords = aiWords, hideShopping = shopping, hideVideos = videos,
-                hideSuggestions = suggestions;
-        ModuleItems.Verdict verdict = model -> family(model, hideAds, hideAi, hideAiWords, hideShopping, hideVideos, muted,
-                hideSuggestions);
-        String owner = ads ? FamilyNames.HIDE_ADS : ai || aiWords ? FamilyNames.HIDE_AI_PINS
-                : shopping ? FamilyNames.HIDE_SHOPPING : FamilyNames.FILTER_FEED;
+                hideSuggestions = suggestions, hideRefine = refine;
         boolean debug = debugLogging();
-        List<?> shown;
         // What the loop takes out, counted only once the whole list went through: a list that fails
         // partway is shown as it was, so nothing was removed from it. A module pruned before the
-        // failure keeps its own counts, since it did lose those entries.
+        // failure keeps its own counts, since it did lose those entries. Pins of yours left in are
+        // counted here too.
         List<String[]> removed = new ArrayList<>();
+        // A pin you saved keeps its place on your boards and anywhere else it shows (#49). Ads still go.
+        String viewer = YourPins.viewer();
+        ModuleItems.Verdict verdict = model -> {
+            String family = family(model, hideAds, hideAi, hideAiWords, hideShopping, hideVideos, muted, hideSuggestions,
+                    hideRefine);
+            if (family == null || FamilyNames.HIDE_ADS.equals(family)) return family;
+            String yours = YourPins.why(model, viewer);
+            if (yours == null) {
+                if (debug) Logger.printDebug(() -> "Took out a pin that " + family + " matched " + YourPins.signals(model, viewer));
+                return family;
+            }
+            removed.add(new String[]{owner(family), "pin of yours left in"});
+            if (debug) Logger.printDebug(() -> "Kept a pin of yours (" + yours + ") that " + family + " matched");
+            return null;
+        };
+        String owner = ads ? FamilyNames.HIDE_ADS : ai || aiWords ? FamilyNames.HIDE_AI_PINS
+                : shopping ? FamilyNames.HIDE_SHOPPING : FamilyNames.FILTER_FEED;
+        List<?> shown;
         try {
             List<Object> kept = null;
             int size = items.size();
@@ -141,26 +158,29 @@ public final class FeedFilter {
 
     /**
      * The first switch on that takes [item] out, in the order ads, AI label, AI words, shopping,
-     * video, muted words, Home suggestions, or null to keep it. A pin that says it's AI is named
-     * {@link AiPins#SELF_DESCRIBED}, a muted one {@link MutedWords#MUTED} and a suggestion row
-     * {@link HomeSuggestions#SUGGESTION}, each counted apart.
+     * video, muted words, Home suggestions, Refine your search, or null to keep it. A pin that says
+     * it's AI is named {@link AiPins#SELF_DESCRIBED}, a muted one {@link MutedWords#MUTED}, a
+     * suggestion row {@link HomeSuggestions#SUGGESTION} and a Refine your search list
+     * {@link RefineSearch#REFINE}, each counted apart.
      */
     private static String family(Object item, boolean ads, boolean ai, boolean aiWords, boolean shopping, boolean videos,
-                                 List<String> muted, boolean suggestions) {
+                                 List<String> muted, boolean suggestions, boolean refine) {
         return ads && Ads.isAd(item) ? FamilyNames.HIDE_ADS
                 : ai && AiPins.isLabeled(item) ? FamilyNames.HIDE_AI_PINS
                 : aiWords && AiPins.saysItIsAi(item) ? AiPins.SELF_DESCRIBED
                 : shopping && Shopping.isShopping(item) ? FamilyNames.HIDE_SHOPPING
                 : videos && VideoPins.isVideo(item) ? FamilyNames.FILTER_FEED
                 : MutedWords.isMuted(item, muted) ? MutedWords.MUTED
-                : suggestions && HomeSuggestions.isSuggestion(item) ? HomeSuggestions.SUGGESTION : null;
+                : suggestions && HomeSuggestions.isSuggestion(item) ? HomeSuggestions.SUGGESTION
+                : refine && RefineSearch.isRefine(item) ? RefineSearch.REFINE : null;
     }
 
     /** The family whose report counts a removal [family] names. */
     static String owner(String family) {
         return AiPins.SELF_DESCRIBED.equals(family) ? FamilyNames.HIDE_AI_PINS
                 : MutedWords.MUTED.equals(family) || SavedPins.SAVED.equals(family)
-                    || HomeSuggestions.SUGGESTION.equals(family) ? FamilyNames.FILTER_FEED : family;
+                    || HomeSuggestions.SUGGESTION.equals(family) || RefineSearch.REFINE.equals(family)
+                    ? FamilyNames.FILTER_FEED : family;
     }
 
     /** What a removal by [family] is counted as. English, for the report. */
@@ -171,6 +191,7 @@ public final class FeedFilter {
                 : family.equals(FamilyNames.FILTER_FEED) ? "video pin removed"
                 : family.equals(MutedWords.MUTED) ? "muted word pin removed"
                 : family.equals(SavedPins.SAVED) ? "saved pin removed"
-                : family.equals(HomeSuggestions.SUGGESTION) ? "Home suggestion removed" : "shopping placement removed";
+                : family.equals(HomeSuggestions.SUGGESTION) ? "Home suggestion removed"
+                : family.equals(RefineSearch.REFINE) ? "Refine your search list removed" : "shopping placement removed";
     }
 }

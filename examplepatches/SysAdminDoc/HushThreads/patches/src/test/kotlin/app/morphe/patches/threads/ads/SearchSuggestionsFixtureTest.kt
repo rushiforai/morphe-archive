@@ -17,6 +17,9 @@ import app.morphe.patcher.extensions.InstructionExtensions.replaceInstruction
 import app.morphe.patcher.patch.BytecodePatchContext
 import app.morphe.patcher.patch.PatchException
 import app.morphe.patcher.util.smali.ExternalLabel
+import app.morphe.patches.threads.misc.extension.composeNoteKeys
+import app.morphe.patches.threads.misc.extension.holdsNote
+import app.morphe.patches.threads.misc.extension.noteAt
 import app.morphe.util.RegisterLiveness
 import app.morphe.util.addInstructionsAtControlFlowLabel
 import app.morphe.util.argumentRegister
@@ -58,9 +61,9 @@ internal object SearchSuggestionsFixture {
 
     fun classes(build: File): List<ClassDef> = loaded.getOrPut(build) {
         val noted = FixtureDex.classesWhere(build, { true }) { method ->
-            method.strings().any { it.startsWith(SUGGESTED_ROW_NOTE) || it.startsWith(DISCOVERY_UI) || it == SEARCH_CAROUSEL_KEY }
+            method.holdsNote(SUGGESTED_ROW_NOTE) || method.holdsNote(DISCOVERY_UI) || method.strings().any { it == SEARCH_CAROUSEL_KEY }
         }
-        val rows = noted.filter { classDef -> classDef.methods.any { method -> method.strings().any { it.startsWith(SUGGESTED_ROW_NOTE) } } }
+        val rows = noted.filter { classDef -> classDef.methods.any { it.holdsNote(SUGGESTED_ROW_NOTE) } }
             .map { it.type }.toSet()
         // Profiles, Activity, topic pages and the rest of the row's callers.
         val callers = FixtureDex.classesWhere(build, { dex -> dex.methodSection.any { it.definingClass in rows } }) { method ->
@@ -281,10 +284,9 @@ class SearchSuggestionsFixtureTest {
             val targets = context.searchSuggestionTargets()
             val lambda = context.mutableClassDefBy(targets.lambda).findMutableMethodOf(targets.row.method)
             val body = lambda.body()
-            val note = (targets.row.call - 1 downTo 0).first { body[it].getReference<StringReference>()?.string == targets.row.note }
+            val note = (targets.row.call - 1 downTo 0).first { body.noteAt(it) == targets.row.note }
             val register = (body[note] as OneRegisterInstruction).registerA
-            lambda.replaceInstruction(note,
-                "const-string v$register, \"com.instagram.barcelona.profile.ui.ProfileScreen.<anonymous> (ProfileScreen.kt:1)\"")
+            lambda.replaceInstruction(note, "const v$register, ${composeNoteKeys(PROFILE_UI).first()}")
             val error = assertThrows(build.name, PatchException::class.java) { context.searchSuggestionTargets() }
             assertTrue(error.message.orEmpty(), error.message.orEmpty().contains("draws under a $DISCOVERY_FILE note"))
             assertTrue(error.message.orEmpty(), error.message.orEmpty().contains("found 0"))

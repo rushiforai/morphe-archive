@@ -65,18 +65,17 @@ object VerdictHFingerprint : Fingerprint(
 )
 
 /**
- * Signed-request launcher (ka/e.b): the single choke point every licence,
- * config and update request goes through. Constructs the jf/o coroutine and
- * dispatches it with c0.F. The request-data parameter is R8-renamed between
- * versions (Lia/l9 -> Lia/m9), so the fingerprint pins the call structure
- * instead of the parameter types.
+ * Request executor companion (ka/e.a): the instance method that builds and
+ * awaits an async request. Its signature is stable across versions, so it
+ * anchors the class; the static signed-request launcher b(...) in the same
+ * class is resolved at patch time because its request-data parameter is
+ * R8-renamed between versions (Lia/l9 -> Lia/m9) and cannot be pinned.
  */
-object SignedRequestLauncherFingerprint : Fingerprint(
-    isStatic = true,
+object RequestExecutorFingerprint : Fingerprint(
     returnType = "Ljava/lang/Object;",
+    parameters = listOf("I", "Lorg/json/JSONObject;", "Ljava/lang/String;", "Lle/i;"),
     filters = listOf(
-        methodCall(definingClass = "Ljf/o;", name = "<init>"),
-        methodCall(definingClass = "Lef/c0;", name = "F"),
+        methodCall(definingClass = "Lje/i;", name = "<init>"),
     ),
 )
 

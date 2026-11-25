@@ -58,6 +58,7 @@ public final class ForwardingRule {
         if (this.destinationChatIds.isEmpty()) throw new IllegalArgumentException("At least one destination chat is required");
     }
 
+
     private static Set<Long> immutableSet(Set<Long> values) {
         if (values == null) return Collections.emptySet();
         LinkedHashSet<Long> copy = new LinkedHashSet<>();

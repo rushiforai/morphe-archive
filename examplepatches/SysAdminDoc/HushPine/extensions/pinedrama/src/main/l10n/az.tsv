@@ -1857,3 +1857,9 @@ Preferred subtitles	Üstün tutulan altyazılar
 Preferred dubs	Üstün tutulan dublajlar
 Always open on Home	Həmişə Ana səhifədə aç
 PineDrama sometimes starts on Discover, like in the first days after an install. This starts it on Home instead.	PineDrama bəzən Kəşf et bölməsində açılır, məsələn quraşdırmadan sonrakı ilk günlərdə. Bu, onu Ana səhifədə açır.
+Search this list	Bu siyahıda axtarın
+Nothing in this list matches	Bu siyahıda uyğun gələn heç nə yoxdur
+Tap the tab you're on to go back to the top	Yuxarı qayıtmaq üçün olduğunuz taba toxunun
+Tapping the tab you're already on in History or Favorites takes that list back to its first row.	Tarixçə və ya Sevimlilərdə artıq olduğunuz taba toxunduqda həmin siyahı ilk sırasına qayıdır.
+Search History and Favorites	Tarixçə və Sevimlilərdə axtarış
+Puts a search bar above these lists. It looks through the whole list, loading the rest as it goes, and tapping a result opens it.	Bu siyahıların üstünə axtarış zolağı qoyur. Bütün siyahını nəzərdən keçirir, qalanını yolda yükləyir, nəticəyə toxunduqda isə onu açır.

@@ -1,17 +1,20 @@
 version: 2
-# Pull requests go to dev, like every change; main only gets the weekly stable release.
+# Pull requests go to main (the default branch), like every change.
 updates:
   - package-ecosystem: github-actions
     labels: []
     directory: /
-    target-branch: dev
     schedule:
       interval: monthly
+    # One pull request for every action. Actions often have to move together
+    # (upload-artifact and download-artifact), so majors are in it too.
+    groups:
+      actions:
+        patterns: ["*"]
 
   - package-ecosystem: npm
     labels: []
     directory: /
-    target-branch: dev
     schedule:
       interval: monthly
     ignore:
@@ -22,10 +25,17 @@ updates:
       # most fragile part of the repository. Revisit once 26 has settled.
       - dependency-name: "semantic-release"
         update-types: ["version-update:semver-major"]
+    # Minor and patch updates come in one pull request; a major update still
+    # gets its own, so a breaking one can't hold back the others.
+    groups:
+      npm:
+        update-types: ["minor", "patch"]
 
   - package-ecosystem: gradle
     labels: []
     directory: /
-    target-branch: dev
     schedule:
       interval: monthly
+    groups:
+      gradle:
+        update-types: ["minor", "patch"]

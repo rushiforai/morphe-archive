@@ -45,6 +45,7 @@ public final class FutatabiProvider extends ContentProvider {
     private static final String DEFAULTS_MIGRATED = "futatabi.v04.default_boards_done";
     private static final String AIMOGE = "http://127.0.0.1:18765/aimoge/";
     private static final String ANIMANCH = "http://127.0.0.1:18765/animanch/";
+    private static final String MEBUKI = "http://127.0.0.1:18765/mebuki/";
     private static final String NEKO = "https://may.2chan.net/27/";
     private static final String IMG = "https://img.2chan.net/b/";
     private static final String MAY = "https://may.2chan.net/b/";
@@ -53,17 +54,18 @@ public final class FutatabiProvider extends ContentProvider {
         SharedPreferences prefs = context.getSharedPreferences("FlutterSharedPreferences", Context.MODE_PRIVATE);
         SharedPreferences migration = context.getSharedPreferences("futatabi_default_migration", Context.MODE_PRIVATE);
         String raw = prefs.getString("flutter.itaList", null);
-        JSONArray items;
-        if (raw == null) {
-            items = new JSONArray();
-        } else {
-            if (!raw.startsWith(FLUTTER_PREFIX)) return;
-            items = new JSONArray(raw.substring(FLUTTER_PREFIX.length()));
-        }
-        boolean change = raw == null;
-        // A one-time migration only touches a provably pristine built-in list.
-        // Customized user boards are preserved byte-for-byte as JSON entries.
+        if (raw != null && !raw.startsWith(FLUTTER_PREFIX)) return;
         boolean firstPass = !migration.getBoolean(DEFAULTS_MIGRATED, false);
+        String updated = completeBoards(raw, firstPass);
+        if (!updated.equals(raw) && !prefs.edit().putString("flutter.itaList", updated).commit()) return;
+        if (firstPass) migration.edit().putBoolean(DEFAULTS_MIGRATED, true).commit();
+    }
+
+    // Pure saved-list transformation; also used by the host regression test.
+    static String completeBoards(String raw, boolean firstPass) throws Exception {
+        if (raw != null && !raw.startsWith(FLUTTER_PREFIX)) return raw;
+        JSONArray items = raw == null ? new JSONArray() : new JSONArray(raw.substring(FLUTTER_PREFIX.length()));
+        boolean change = raw == null;
         if (firstPass) {
             boolean pristine = true;
             boolean stockNeko = raw == null;
@@ -71,47 +73,52 @@ public final class FutatabiProvider extends ContentProvider {
                 JSONObject board = new JSONObject(items.getString(i));
                 String url = board.optString("url");
                 if (!NEKO.equals(url) && !IMG.equals(url) && !MAY.equals(url)
-                        && !AIMOGE.equals(url) && !ANIMANCH.equals(url)) {
+                        && !AIMOGE.equals(url) && !ANIMANCH.equals(url) && !MEBUKI.equals(url)) {
                     pristine = false;
                     break;
                 }
                 if (NEKO.equals(url)) stockNeko = true;
-                if (NEKO.equals(url) && !"\u306d\u3053".equals(board.optString("name"))) {
+                if (NEKO.equals(url) && !"ねこ".equals(board.optString("name"))) {
                     pristine = false;
                     break;
                 }
             }
-            // Never reconstruct an existing user-managed subset of img/may.
             if (pristine && stockNeko) {
                 JSONArray updated = new JSONArray();
-                boolean img = false, may = false;
                 for (int i = 0; i < items.length(); i++) {
                     JSONObject board = new JSONObject(items.getString(i));
-                    String url = board.optString("url");
-                    if (NEKO.equals(url)) continue;
-                    if (IMG.equals(url)) img = true;
-                    if (MAY.equals(url)) may = true;
-                    updated.put(items.getString(i));
+                    if (!NEKO.equals(board.optString("url"))) updated.put(items.getString(i));
                 }
-                if (!img) updated.put(board("img", IMG).toString());
-                if (!may) updated.put(board("may", MAY).toString());
                 items = updated;
                 change = true;
             }
         }
-        boolean aimoge = false, animanch = false;
+        // The flag gates only the legacy replacement, not missing default boards.
+        change |= ensureBoard(items, "二次元裏（img)", IMG, true);
+        change |= ensureBoard(items, "二次元裏（may)", MAY, true);
+        change |= ensureBoard(items, "あいもげ", AIMOGE, false);
+        change |= ensureBoard(items, "あにまん", ANIMANCH, false);
+        change |= ensureBoard(items, "めぶき", MEBUKI, false);
+        return change ? FLUTTER_PREFIX + items.toString() : raw;
+    }
+
+    private static boolean ensureBoard(JSONArray items, String name, String url, boolean normalizeName) throws Exception {
+        boolean found = false, changed = false;
         for (int i = 0; i < items.length(); i++) {
-            JSONObject board = new JSONObject(items.getString(i));
-            String url = board.optString("url");
-            if (AIMOGE.equals(url)) aimoge = true;
-            if (ANIMANCH.equals(url)) animanch = true;
+            JSONObject existing = new JSONObject(items.getString(i));
+            if (!url.equals(existing.optString("url"))) continue;
+            found = true;
+            if (normalizeName && !name.equals(existing.optString("name"))) {
+                existing.put("name", name);
+                items.put(i, existing.toString());
+                changed = true;
+            }
         }
-        if (!aimoge) { items.put(board("\u3042\u3044\u3082\u3052", AIMOGE).toString()); change = true; }
-        if (!animanch) { items.put(board("\u3042\u306b\u307e\u3093", ANIMANCH).toString()); change = true; }
-        if (change && !prefs.edit().putString("flutter.itaList", FLUTTER_PREFIX + items.toString()).commit()) {
-            return; // Retry on the next launch if Flutter persistence failed.
+        if (!found) {
+            items.put(board(name, url).toString());
+            changed = true;
         }
-        if (firstPass) migration.edit().putBoolean(DEFAULTS_MIGRATED, true).commit();
+        return changed;
     }
 
     private static JSONObject board(String name, String url) throws Exception {

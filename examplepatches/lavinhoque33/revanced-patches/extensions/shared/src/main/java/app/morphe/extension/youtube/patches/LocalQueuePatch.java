@@ -5,6 +5,7 @@
  * See the included NOTICE file for GPLv3 Section 7 terms that apply to this code.
  *
  * Modified by lavinhoque33, 2026-11-23.
+ * Modified by lavinhoque33, 2026-11-24
  */
 
 package app.morphe.extension.youtube.patches;
@@ -167,7 +168,7 @@ public final class LocalQueuePatch {
         add(videoId, playNext, true);
     }
 
-    /** Unlike the flyout action, a thumbnail tap must not start playback with an empty player. */
+    /** Appends to an existing watch session without affecting its playback. */
     public static void appendFromThumbnail(String videoId) {
         add(videoId, false, false);
     }

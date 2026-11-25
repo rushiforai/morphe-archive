@@ -12,6 +12,7 @@ import app.morphe.PerBuild
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructionsWithLabels
 import app.morphe.patcher.extensions.InstructionExtensions.getInstruction
+import app.morphe.patcher.extensions.InstructionExtensions.replaceInstruction
 import app.morphe.patcher.patch.BytecodePatchContext
 import app.morphe.patcher.patch.PatchException
 import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod.Companion.toMutable
@@ -29,6 +30,7 @@ import com.android.tools.smali.dexlib2.iface.instruction.NarrowLiteralInstructio
 import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.RegisterRangeInstruction
 import com.android.tools.smali.dexlib2.iface.reference.MethodReference
+import com.android.tools.smali.dexlib2.iface.reference.StringReference
 import com.android.tools.smali.dexlib2.iface.reference.TypeReference
 import com.android.tools.smali.dexlib2.immutable.ImmutableMethod
 import org.junit.Assert.assertEquals
@@ -42,8 +44,8 @@ import java.io.File
 /**
  * Filter comments on each declared build: the opened post's parse hands the answer's reply list to
  * the extension right after reading it, into the register it iterates, and the four reads the
- * extension needs are written in from getters Threads can actually call. A second reply list or a
- * second caption helper is refused before anything changes.
+ * extension needs are written in from getters Threads can actually call. A second reply list, a
+ * second caption getter or a second caption text getter is refused before anything changes.
  */
 class FilterCommentsFixtureTest {
     @Test
@@ -57,11 +59,11 @@ class FilterCommentsFixtureTest {
             RepliesParseFingerprint.clearMatch()
             val where = build.name
             val classes = classes(build)
-            assertEquals("$where: kept types", TYPES, classes.keys)
+            assertTrue("$where: kept types", classes.keys.containsAll(TYPES))
 
-            // Read apart from the patch: the repository's one parse of an opened post's answer. A
-            // void method beside it takes the same answer and repository but answers no state.
-            val parses = classes.getValue(PERMALINK_REPOSITORY).methods.filter { it.isParse() }
+            // Read apart from the patch: the coordinator's one parse of an opened post's answer. A
+            // void method beside it takes the same answer and coordinator but answers no state.
+            val parses = classes.getValue(PERMALINK_SCREEN).methods.filter { it.isParse() }
             assertEquals("$where: parses of the answer", 1, parses.size)
             val stock = parses.single()
             val stockBody = stock.body()
@@ -86,13 +88,21 @@ class FilterCommentsFixtureTest {
                 it.parameterTypes.isEmpty() && it.returnType == TEXT_WITH_ENTITIES && !AccessFlags.STATIC.isSet(it.accessFlags)
             }
             val textBody = classes.getValue(TEXT_WITH_ENTITIES).methods.single { it.parameterTypes.isEmpty() && it.returnType == STRING }
-            val captions = classes.getValue(MEDIA_EXT).methods.filter {
-                AccessFlags.STATIC.isSet(it.accessFlags) && it.returnType == STRING &&
-                    it.parameterTypes.joinToString("") == MEDIA && it.readsGetterThenString()
+            // The caption: the post's getter naming Pando's "caption" field, then the getter its
+            // Pando model reads from the field "text". Read by hand: A2y and Cxn on 512708508, A2y
+            // and Cxm on 512708483.
+            val captionGetter = classes.getValue(MEDIA).methods.single { it.parameterTypes.isEmpty() && it.namesCaption() }
+            val captionType = captionGetter.returnType
+            val model = classes.getValue(captionGetter.body().single { it.opcode == Opcode.CONST_CLASS }.getReference<TypeReference>()!!.type)
+            assertTrue(where, captionType in model.interfaces)
+            val captionText = classes.getValue(captionType).methods.single { method ->
+                method.parameterTypes.isEmpty() && method.returnType == STRING &&
+                    model.methods.single { it.name == method.name && it.parameterTypes.isEmpty() }.readsField("text")
             }
-            assertEquals("$where: caption helpers", 1, captions.size)
-            val caption = captions.single()
-            for (method in listOf(threadList, itemMedia, mediaText, textBody, caption)) {
+            BY_HAND.entries.singleOrNull { where.contains(it.key) }?.let { (_, names) ->
+                assertEquals(where, names, captionGetter.name to captionText.name)
+            }
+            for (method in listOf(threadList, itemMedia, mediaText, textBody, captionGetter, captionText)) {
                 assertTrue("$where: ${method.signature()} is public", AccessFlags.PUBLIC.isSet(method.accessFlags))
             }
 
@@ -122,7 +132,11 @@ class FilterCommentsFixtureTest {
                 listOf("$MEDIA->${mediaText.name}()$TEXT_WITH_ENTITIES", "$TEXT_WITH_ENTITIES->${textBody.name}()$STRING"),
                 context.stubCalls("mediaText"),
             )
-            assertEquals(where, listOf("$MEDIA_EXT->${caption.name}($MEDIA)$STRING"), context.stubCalls("mediaCaption"))
+            assertEquals(
+                where,
+                listOf("$MEDIA->${captionGetter.name}()$captionType", "$captionType->${captionText.name}()$STRING"),
+                context.stubCalls("mediaCaption"),
+            )
             assertEquals(where, 1, status(context))
         }
     }
@@ -200,23 +214,36 @@ class FilterCommentsFixtureTest {
     }
 
     @Test
-    fun `a second caption helper is refused before any stub is written`() {
+    fun `a second caption getter or caption text getter is refused before any stub is written`() {
         for (build in Fixtures.declaredBuilds()) {
             RepliesParseFingerprint.clearMatch()
             val context = context(build)
-            val helpers = context.mutableClassDefBy(MEDIA_EXT)
-            val caption = helpers.methods.single {
-                AccessFlags.STATIC.isSet(it.accessFlags) && it.returnType == STRING &&
-                    it.parameterTypes.joinToString("") == MEDIA && it.readsGetterThenString()
-            }
-            helpers.methods.add(
+            val media = context.mutableClassDefBy(MEDIA)
+            val getter = media.methods.single { it.parameterTypes.isEmpty() && it.namesCaption() }
+            media.methods.add(
                 ImmutableMethod(
-                    caption.definingClass, "hushThreadsOther", caption.parameters, caption.returnType,
-                    caption.accessFlags, caption.annotations, caption.hiddenApiRestrictions, caption.implementation,
+                    getter.definingClass, "hushThreadsOther", getter.parameters, getter.returnType,
+                    getter.accessFlags, getter.annotations, getter.hiddenApiRestrictions, getter.implementation,
                 ).toMutable(),
             )
             val error = assertThrows(build.name, PatchException::class.java) { filterCommentsPatch.execute(context) }
-            assertTrue(error.message.orEmpty(), error.message.orEmpty().contains("caption helper") &&
+            assertTrue(error.message.orEmpty(), error.message.orEmpty().contains("\"caption\" getter") &&
+                error.message.orEmpty().contains("expected exactly one match, found 2"))
+            assertUntouched(build.name, context, context.mutable(stockParse(build)))
+        }
+        for (build in Fixtures.declaredBuilds()) {
+            RepliesParseFingerprint.clearMatch()
+            val context = context(build)
+            val getter = classes(build).getValue(MEDIA).methods.single { it.parameterTypes.isEmpty() && it.namesCaption() }
+            val type = getter.body().single { it.opcode == Opcode.CONST_CLASS }.getReference<TypeReference>()!!.type
+            val model = context.mutableClassDefBy(type)
+            val names = classes(build).getValue(getter.returnType).methods
+                .filter { it.parameterTypes.isEmpty() && it.returnType == STRING }.map { it.name }.toSet()
+            // Another of the caption's String getters reads "text" too.
+            val other = model.methods.first { it.name in names && !it.readsField("text") && it.body().size == 4 }
+            other.replaceInstruction(0, "const v${(other.getInstruction(0) as OneRegisterInstruction).registerA}, ${"text".hashCode()}")
+            val error = assertThrows(build.name, PatchException::class.java) { filterCommentsPatch.execute(context) }
+            assertTrue(error.message.orEmpty(), error.message.orEmpty().contains("\"text\" getter") &&
                 error.message.orEmpty().contains("expected exactly one match, found 2"))
             assertUntouched(build.name, context, context.mutable(stockParse(build)))
         }
@@ -268,11 +295,11 @@ class FilterCommentsFixtureTest {
         return stub.body().mapNotNull { it.getReference<MethodReference>()?.toString() }
     }
 
-    private fun stockParse(build: File): Method = classes(build).getValue(PERMALINK_REPOSITORY).methods.single { it.isParse() }
+    private fun stockParse(build: File): Method = classes(build).getValue(PERMALINK_SCREEN).methods.single { it.isParse() }
 
-    /** A method taking the answer, the repository, two objects and two flags, and answering an object. */
+    /** A method taking the answer, the coordinator, two objects and two flags, and answering an object. */
     private fun Method.isParse() = returnType.startsWith("L") && parameterTypes.size == 6 &&
-        parameterTypes[0] == REPLIES_RESPONSE && parameterTypes[1] == PERMALINK_REPOSITORY &&
+        parameterTypes[0] == REPLIES_RESPONSE && parameterTypes[1] == PERMALINK_SCREEN &&
         parameterTypes.drop(2).map { it.first() } == listOf('L', 'L', 'Z', 'Z')
 
     private fun Method.body(): List<Instruction> = implementation!!.instructions.toList()
@@ -292,7 +319,13 @@ class FilterCommentsFixtureTest {
 
     private fun context(build: File) = PatchContexts.of(ExtensionDex.classes() + classes(build).values)
 
-    private fun classes(build: File): Map<String, ClassDef> = fixtures.getOrPut(build) { FixtureDex.classes(build, TYPES) }
+    private fun classes(build: File): Map<String, ClassDef> = fixtures.getOrPut(build) { filterCommentsClasses(build, TYPES) }
+
+    /** Whether this reads a String through Pando by the hash of [field]'s name. */
+    private fun Method.readsField(field: String) = body().let { body ->
+        body.any { it.opcode == Opcode.CONST && (it as NarrowLiteralInstruction).narrowLiteral == field.hashCode() } &&
+            body.any { it.getReference<MethodReference>()?.name == "getStringValueByHashCode" }
+    }
 
     private fun status(context: BytecodePatchContext) = (context.mutableClassDefBy(SETTINGS_STATUS).methods
         .single { it.name == "filterComments" }.implementation!!.instructions.first() as NarrowLiteralInstruction).narrowLiteral
@@ -301,9 +334,30 @@ class FilterCommentsFixtureTest {
         const val LIST = "Ljava/util/List;"
         const val STRING = "Ljava/lang/String;"
         const val FILTER = "$COMMENTS->filter($LIST)$LIST"
-        val TYPES = setOf(PERMALINK_REPOSITORY, REPLIES_RESPONSE, THREAD, THREAD_ITEM, MEDIA, TEXT_WITH_ENTITIES, MEDIA_EXT)
+        val TYPES = FILTER_COMMENTS_TYPES
+
+        /** The caption's getter and its text getter, read off by hand. */
+        val BY_HAND = mapOf("512708508" to ("A2y" to "Cxn"), "512708483" to ("A2y" to "Cxm"))
 
         /** One read of each build serves every test; each test patches its own copy. */
         val fixtures = PerBuild<Map<String, ClassDef>>()
     }
 }
+
+/** The classes Filter comments reads that keep their names. */
+internal val FILTER_COMMENTS_TYPES = setOf(PERMALINK_SCREEN, REPLIES_RESPONSE, THREAD, THREAD_ITEM, MEDIA, TEXT_WITH_ENTITIES)
+
+/** [types] from [build], with the caption's interface and every class the post's caption getter names, one of them its Pando model. */
+internal fun filterCommentsClasses(build: File, types: Set<String>): Map<String, ClassDef> {
+    val kept = FixtureDex.classes(build, types)
+    val getter = kept.getValue(MEDIA).methods.single { it.parameterTypes.isEmpty() && it.namesCaption() }
+    val named = getter.implementation!!.instructions.mapNotNull {
+        if (it.opcode == Opcode.CONST_CLASS) it.getReference<TypeReference>()?.type else null
+    }
+    return kept + FixtureDex.classes(build, setOf(getter.returnType) + named)
+}
+
+/** Whether this checks Pando's "caption" field. Media's static initializer names it too, so it never counts. */
+internal fun Method.namesCaption() = !AccessFlags.STATIC.isSet(accessFlags) && implementation?.instructions?.any {
+    it.opcode == Opcode.CONST_STRING && it.getReference<StringReference>()?.string == "caption"
+} == true

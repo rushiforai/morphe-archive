@@ -9,6 +9,7 @@
  * - inotia00 (https://github.com/inotia00)
  *
  * Licensed under the GNU General Public License v3.0.
+ * Modified by lavinhoque33, 2026-11-24.
  *
  * ------------------------------------------------------------------------
  * GPLv3 Section 7 – Additional Terms & Attribution Requirements
@@ -41,19 +42,25 @@
 
 package app.morphe.patches.shared.drawable
 
+import app.morphe.patcher.extensions.InstructionExtensions.addInstruction
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
 import app.morphe.patcher.extensions.InstructionExtensions.getInstruction
+import app.morphe.patcher.patch.PatchException
 import app.morphe.patcher.patch.bytecodePatch
 import app.morphe.patcher.util.getReference
+import app.morphe.patcher.util.proxy.mutableTypes.MutableClass
 import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod
 import app.morphe.patches.youtube.utils.playservice.is_21_07_or_greater
 import app.morphe.patches.youtube.utils.playservice.versionCheckPatch
 import app.morphe.util.cloneMutableAndPreserveParameters
 import app.morphe.util.indexOfFirstInstructionReversedOrThrow
 import com.android.tools.smali.dexlib2.iface.instruction.FiveRegisterInstruction
+import com.android.tools.smali.dexlib2.iface.instruction.Instruction
 import com.android.tools.smali.dexlib2.iface.reference.MethodReference
 
-private lateinit var insertMethod: MutableMethod
+private var insertMethod: MutableMethod? = null
+private lateinit var insertClass: MutableClass
+private var parametersPreserved = false
 private var insertIndex: Int = 0
 private var insertRegister: Int = 0
 private var offset = 0
@@ -64,22 +71,34 @@ val drawableColorHookPatch = bytecodePatch(
     dependsOn(versionCheckPatch)
 
     execute {
-        val drawableColorMethod = DrawableColorFingerprint.let {
-            if (is_21_07_or_greater) {
-                it.method.cloneMutableAndPreserveParameters(it.classDef)
-            } else {
-                it.method
-            }
-        }
+        insertMethod = null
+        offset = 0
+        parametersPreserved = false
 
-        drawableColorMethod.apply {
-            insertMethod = this
-            insertIndex = indexOfFirstInstructionReversedOrThrow {
-                getReference<MethodReference>()?.name == "setColor"
-            }
-            insertRegister = getInstruction<FiveRegisterInstruction>(insertIndex).registerD
+        val match = DrawableColorFingerprint.matchOrNull() ?: return@execute
+        val method = match.method
+        val paintIndex = method.indexOfFirstInstructionReversedOrThrow {
+            val reference = getReference<MethodReference>()
+            reference != null && reference.definingClass == "Landroid/graphics/Paint;" && reference.name == "setColor"
         }
+        val paintCall = method.getInstruction<Instruction>(paintIndex) as? FiveRegisterInstruction ?: return@execute
+        insertMethod = method
+        insertClass = match.classDef
+        insertIndex = paintIndex
+        insertRegister = paintCall.registerD
     }
+}
+
+private fun preserveDrawableReceiver(method: MutableMethod): MutableMethod {
+    if (parametersPreserved) return method
+
+    // The stock method can overwrite its receiver register with the Paint before setColor.
+    val instructionCount = method.implementation!!.instructions.size
+    val cloned = method.cloneMutableAndPreserveParameters(insertClass)
+    insertIndex += cloned.implementation!!.instructions.size - instructionCount
+    insertMethod = cloned
+    parametersPreserved = true
+    return cloned
 }
 
 internal fun addDrawableColorHook(
@@ -87,8 +106,10 @@ internal fun addDrawableColorHook(
     highPriority: Boolean = false,
     passDrawable: Boolean = false,
 ) {
+    val method = insertMethod ?: throw PatchException("Litho background drawable color hook unavailable.")
+    val target = if (is_21_07_or_greater) preserveDrawableReceiver(method) else method
     val callRegister = if (passDrawable) "p0, v$insertRegister" else "v$insertRegister"
-    insertMethod.addInstructions(
+    target.addInstructions(
         if (highPriority) insertIndex else insertIndex + offset,
         """
             invoke-static {$callRegister}, $methodDescriptor
@@ -96,4 +117,18 @@ internal fun addDrawableColorHook(
             """
     )
     offset += 2
+}
+
+/** Observe the color after all overrides, without replacing what is passed to Paint. */
+internal fun addDrawableDrawnColorHook(methodDescriptor: String): Boolean {
+    val method = insertMethod ?: return false
+    if (!parametersPreserved && method.implementation!!.registerCount > 14) return false
+    val target = preserveDrawableReceiver(method)
+
+    // Keep offset unchanged so later color overrides are still inserted before this observer.
+    target.addInstruction(
+        insertIndex + offset,
+        "invoke-static {p0, v$insertRegister}, $methodDescriptor",
+    )
+    return true
 }

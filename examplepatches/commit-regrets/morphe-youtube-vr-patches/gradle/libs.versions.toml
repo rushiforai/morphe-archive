@@ -1,18 +1,12 @@
 [versions]
-# 2.0.0 -- the version the official bundle builds against, and binary-compatible with both
-# current hosts (Manager 2.2.0 runs patcher 2.0.1, Desktop 1.20 runs 2.1.0). The bundle stayed on
-# 1.12.0 until issue #45: its sources compiled there, but `getAllClassesWithString` is
-# `DeprecationLevel.HIDDEN` from Kotlin on 2.0 (the JVM method still exists, which is why the
-# 1.12-built bundle ran), so the 2.x move is the rename to `classDefByStrings` plus the option
-# `values` orientation fix (see docs/INTERNALS.md, "The patcher 2.x alignment").
-morphe-patcher = "2.0.0"
-# Must be the commit the compiled-against patcher pins (morphe-patcher 2.0.0 -> 4220ae75f7):
-# R8's whole-program view over the bundle finds the patcher referencing dexlib2 APIs a
-# mismatched smali jar lacks, and the assembly step fails -- measured against the v2.0.0
-# composite 2026-10-30 with the 1.x-era d92701d947 pin still here. jitpack hashes do not
-# order, so Gradle will not resolve the conflict for us. Bump this together with
-# morphe-patcher above; the current pin is readable from the patcher's libs.versions.toml
-# at that tag.
+# 2.4.0 -- the version the official bundle (morphe-patches v2.3.0) builds against. The current
+# hosts (Manager 2.7.1 and Desktop 2.3.0, both running patcher 2.5.0) must run 2.4-built
+# bundles because the official bundle ships exactly this pairing. Re-checked 2026-11-24.
+morphe-patcher = "2.4.0"
+# The commit the official bundle pins alongside patcher 2.4.0 -- deliberately NOT the commit
+# patcher 2.4.0's own build pins (5eaff5a2c9). If the assembly step ever fails on missing
+# dexlib2 APIs, the patcher's own pin is the fallback. jitpack hashes do not order, so Gradle
+# will not resolve the conflict for us.
 smali = "4220ae75f7"
 gson = "2.15.0"
 junit = "6.1.3"
@@ -26,6 +20,6 @@ morphe-patcher = { module = "app.morphe:morphe-patcher", version.ref = "morphe-p
 smali = { module = "com.github.MorpheApp.smali:smali", version.ref = "smali" }
 # The dexlib2 classes proper (incl. the immutable instruction builders the mining test uses).
 # The plugin puts this on the MAIN compile classpath itself; the tests need their own copy.
-# Same pairing rule as `smali` above: the commit the compiled-against patcher pins.
+# Same commit as the `smali` alias above.
 smali-dexlib2 = { module = "com.github.MorpheApp.smali:smali-dexlib2", version.ref = "smali" }
 junit-jupiter = { module = "org.junit.jupiter:junit-jupiter", version.ref = "junit" }

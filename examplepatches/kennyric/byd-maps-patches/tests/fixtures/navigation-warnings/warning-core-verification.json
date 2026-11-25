@@ -1,0 +1,98 @@
+{
+  "format": 1,
+  "scope": "Shared codec/journal component verification only; Binder, ownership, native capture and complete audio acceptance remain pending",
+  "production_source_sha256": {
+    "support/navigation-alerts/src/main/java/nl/johninnl/navigation/alerts/WarningCodec.java": "82c474a49d02495b55145874184e1843d7b377e4fbc3129894fe6d02331d4f18",
+    "support/navigation-alerts/src/main/java/nl/johninnl/navigation/alerts/WarningEvent.java": "863ee6bcf1b3c631ae9f68dba891ebf311346e585b6453bc55900102f975a63c",
+    "support/navigation-alerts/src/main/java/nl/johninnl/navigation/alerts/WarningJournal.java": "1f1d0df91e68cd7e3e9a8ed242844f1c93507e0f51ef14788662822a8b52effb"
+  },
+  "native_codec": {
+    "status": "observed",
+    "actual_android_parcel": true,
+    "event_bytes": 1260,
+    "batch_sizes": [
+      121940,
+      40708
+    ],
+    "events_preserved": 8,
+    "utf8_limit_rejection": true,
+    "immutable_copy": true,
+    "original_sha256": "f168bc730568b98ee8132131658d9220ef5be3557af41fd373bdaf104c31b20f",
+    "test_signed_sha256": "2221baf807b02eb7acdf75c6deaa37e270df576af52d21fa5647a7ccccc7181e",
+    "probe_sha256": "12ac7870311761ac4fcac613f7038fede6ba894c3aefc4484b48ce4d3e2e0138",
+    "installed_apk_sha256": {
+      "app.vela": "2221baf807b02eb7acdf75c6deaa37e270df576af52d21fa5647a7ccccc7181e",
+      "nl.johninnl.warningprobe.vela": "12ac7870311761ac4fcac613f7038fede6ba894c3aefc4484b48ce4d3e2e0138"
+    },
+    "process_uid": 10192,
+    "target_uid": 10192,
+    "android_sdk": 34,
+    "serial": "emulator-5580",
+    "run_id": "b9a8b668650c4c6a9591bc8ddff6c8d7",
+    "raw_report_sha256": "2359841460272fe67aa1f708cc2c5052eb10ea8d17efe628dbfad5d32e098786"
+  },
+  "gradle_tests": {
+    "flitsmeister": {
+      "tests": 39,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    "maps": {
+      "tests": 43,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    "vela": {
+      "tests": 36,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    "waze": {
+      "tests": 57,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    "patches": {
+      "tests": 39,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 15
+    }
+  },
+  "payload_definitions": {
+    "flitsmeister": {
+      "sha256": "e9b50f44ba45fab49cb8150b0514f134b011b535cab93accb3733dbb63f7d786",
+      "core_classes": [
+        "Lnl/johninnl/navigation/alerts/WarningEvent;",
+        "Lnl/johninnl/navigation/alerts/WarningCodec;",
+        "Lnl/johninnl/navigation/alerts/WarningJournal;"
+      ]
+    },
+    "maps": {
+      "sha256": "a513715d6c0c7073bc62dfcc38d149bcfe2dbadd08a006486ca0da969d637132",
+      "core_classes": [
+        "Lnl/johninnl/navigation/alerts/WarningEvent;",
+        "Lnl/johninnl/navigation/alerts/WarningCodec;",
+        "Lnl/johninnl/navigation/alerts/WarningJournal;"
+      ]
+    },
+    "vela": {
+      "sha256": "8bacc530678e6ad5c76b582fe8fd2a792137f852ea8c10267eda0de96c3cde69",
+      "core_classes": [
+        "Lnl/johninnl/navigation/alerts/WarningEvent;",
+        "Lnl/johninnl/navigation/alerts/WarningCodec;",
+        "Lnl/johninnl/navigation/alerts/WarningJournal;"
+      ]
+    },
+    "waze": {
+      "sha256": "903556237d0a4543e9c8c403569555e4d9784135695fa2ea84d164a20574fd4d",
+      "core_classes": []
+    }
+  },
+  "evidence_date": "2026-11-02",
+  "build_base_commit": "8c33424"
+}

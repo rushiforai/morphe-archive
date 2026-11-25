@@ -1,3 +1,9 @@
+## [1.3.2](https://github.com/sircoderin/morphe-patches/compare/v1.3.1...v1.3.2) (2026-11-24)
+
+### 🚀 Updated App Support
+
+* **spotify:** support Spotify 9.2.4.2644 ([64b1062](https://github.com/sircoderin/morphe-patches/commit/64b1062742f0f5bbf22f2fc23f791c29f24e4b95))
+
 ## [1.3.1](https://github.com/sircoderin/morphe-patches/compare/v1.3.0...v1.3.1) (2026-11-23)
 
 ### 🐛 Bug Fixes

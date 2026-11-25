@@ -11,16 +11,22 @@ package app.morphe.patches.pinterest.coexist
 import app.morphe.patcher.StringComparisonType
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
 import app.morphe.patcher.extensions.InstructionExtensions.getInstruction
+import app.morphe.patcher.extensions.InstructionExtensions.replaceInstruction
 import app.morphe.patcher.patch.BytecodePatchContext
 import app.morphe.patcher.patch.PatchException
 import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod
 import app.morphe.patches.pinterest.misc.extension.EXTENSION_PACKAGE
 import app.morphe.patches.pinterest.misc.settings.EXTENSION_ROOT
 import com.android.tools.smali.dexlib2.Opcode
+import com.android.tools.smali.dexlib2.iface.Method
+import com.android.tools.smali.dexlib2.iface.instruction.FiveRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.Instruction
+import com.android.tools.smali.dexlib2.iface.instruction.OffsetInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
+import com.android.tools.smali.dexlib2.iface.reference.MethodReference
 import com.android.tools.smali.dexlib2.iface.reference.StringReference
+import com.android.tools.smali.dexlib2.util.MethodUtil
 import org.w3c.dom.Attr
 import org.w3c.dom.Document
 import org.w3c.dom.Element
@@ -180,5 +186,84 @@ internal fun BytecodePatchContext.routeOwnAuthorities(owner: String, packageName
         mutableClassDefBy(type).methods
             .filter { method -> method.implementation?.instructions?.any { it.loadedString()?.ownAuthority(authorities) != null } == true }
             .sumOf { it.routeLiterals(AUTHORITY_CALL, owner, "an authority") { literal -> literal.ownAuthority(authorities) != null } }
+    }
+}
+
+/** The call reCAPTCHA's report of the app's package goes through, taking the Context it asked. */
+internal const val REPORTED_PACKAGE_CALL =
+    "$EXTENSION_PACKAGE/coexist/OwnAuthorities;->reportedPackage(Landroid/content/Context;)Ljava/lang/String;"
+
+/** The reCAPTCHA SDK Pinterest's sign-in carries, which keeps its package even in an R8 build. */
+internal const val RECAPTCHA_SDK = "Lcom/google/android/recaptcha/"
+
+private val PACKAGE_OWNERS = setOf("Landroid/content/Context;", "Landroid/content/ContextWrapper;", "Landroid/app/Application;")
+
+/** How far past a package read the SDK may hand it on; its builders take a few instructions to reach the field. */
+private const val REPORT_REACH = 10
+
+/**
+ * Where [this] sends the app's package to reCAPTCHA: a `getPackageName()` call and its
+ * move-result, with that result reaching, before anything writes over it or jumps, either a
+ * two-argument `put` in the SDK (the signals sent with a token) or a one-String setter on an SDK
+ * class (the request fields, the init request's among them, which is the one the server refuses a
+ * copy on). R8 moves some of those builders out of the SDK's package, so the sender can sit
+ * anywhere. The SDK's other reads of the package look the app up in PackageManager, which needs
+ * the real name, and none of them reaches a send.
+ */
+internal fun Method.reportedPackageSites(): List<Int> {
+    val body = implementation?.instructions?.toList() ?: return emptyList()
+    return body.indices.filter { at ->
+        val call = body[at]
+        val asked = (call as? ReferenceInstruction)?.reference as? MethodReference
+        if (call.opcode != Opcode.INVOKE_VIRTUAL || asked == null || asked.name != "getPackageName" ||
+            asked.parameterTypes.isNotEmpty() || asked.definingClass !in PACKAGE_OWNERS
+        ) return@filter false
+        val kept = body.getOrNull(at + 1)
+        if (kept?.opcode != Opcode.MOVE_RESULT_OBJECT) return@filter false
+        val value = (kept as OneRegisterInstruction).registerA
+        for (next in body.subList(at + 2, minOf(body.size, at + REPORT_REACH))) {
+            if (next.sendsToRecaptcha(value, definingClass)) return@filter true
+            val op = next.opcode
+            if (!op.canContinue() || next is OffsetInstruction) return@filter false
+            if (op.setsRegister() && next is OneRegisterInstruction &&
+                (next.registerA == value || (op.setsWideRegister() && next.registerA + 1 == value))
+            ) return@filter false
+        }
+        false
+    }
+}
+
+/** Whether this call hands register [value] to reCAPTCHA: a signals `put` inside the SDK, or a one-String setter of an SDK class. */
+private fun Instruction.sendsToRecaptcha(value: Int, owner: String): Boolean {
+    val call = this as? FiveRegisterInstruction ?: return false
+    val to = (this as ReferenceInstruction).reference as? MethodReference ?: return false
+    val put = (opcode == Opcode.INVOKE_VIRTUAL || opcode == Opcode.INVOKE_INTERFACE) && to.name == "put" &&
+        to.parameterTypes.size == 2 && call.registerCount == 3 && call.registerE == value && owner.startsWith(RECAPTCHA_SDK)
+    val setter = opcode == Opcode.INVOKE_VIRTUAL && to.definingClass.startsWith(RECAPTCHA_SDK) && call.registerCount == 2 &&
+        call.registerD == value && to.parameterTypes.map { it.toString() } == listOf("Ljava/lang/String;") && to.returnType == "V"
+    return put || setter
+}
+
+/**
+ * Has the reCAPTCHA SDK send the app's package through the extension, which answers Pinterest's
+ * own in a renamed copy. Pinterest's reCAPTCHA key accepts only `com.pinterest`, so without this
+ * the SDK's init request is refused ("Package name not allowed") and every email sign-in on a copy
+ * fails with "Something went wrong". The call takes the same register the SDK asked, in a 4-bit
+ * form like the call it replaces. Answers how many it replaced.
+ */
+internal fun BytecodePatchContext.reportPinterestToRecaptcha(): Int {
+    val found = mutableListOf<Method>()
+    classDefForEach { owner ->
+        if (owner.type.startsWith(EXTENSION_ROOT)) return@classDefForEach
+        owner.methods.filterTo(found) { it.reportedPackageSites().isNotEmpty() }
+    }
+    return found.sumOf { original ->
+        val method = mutableClassDefBy(original.definingClass).methods.single { MethodUtil.methodSignaturesMatch(it, original) }
+        val sites = method.reportedPackageSites()
+        sites.forEach { at ->
+            val context = method.getInstruction<FiveRegisterInstruction>(at).registerC
+            method.replaceInstruction(at, "invoke-static { v$context }, $REPORTED_PACKAGE_CALL")
+        }
+        sites.size
     }
 }

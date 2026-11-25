@@ -72,7 +72,6 @@ private fun mirrored(classes: Iterable<ClassDef>, skip: Set<String>, find: (List
             val savedThreads = readReceiptThreadFields
             val savedRecipe = markReadRecipe
             val savedLogButton = messageLogButtonRecipe
-            val savedThemePick = appThemePick
             val savedVoiceMenu = saveVoiceMenuRecipe
             val savedPicture = autoReplyPictureRecipe
             val savedGallery = galleryRoute
@@ -103,7 +102,6 @@ private fun mirrored(classes: Iterable<ClassDef>, skip: Set<String>, find: (List
                 readReceiptThreadFields = savedThreads
                 markReadRecipe = savedRecipe
                 messageLogButtonRecipe = savedLogButton
-                appThemePick = savedThemePick
                 saveVoiceMenuRecipe = savedVoiceMenu
                 autoReplyPictureRecipe = savedPicture
                 galleryRoute = savedGallery

@@ -106,7 +106,8 @@ public final class MessageMenu {
             copy = copy && forwardable && photo(message) && downloaded(message) != null;
             quick = quick && forwardable && quickable(chat, message);
             text = text && restricted(message) && !copyable(chat, message).isEmpty();
-            save = save && (restricted(message) || secretSaving(message)) && downloaded(message) != null;
+            save = save && (restricted(message) || secretSaving(message) || timedSaving(message))
+                    && (downloaded(message) != null || sealedCopy(message) != null);
             again = again && restricted(message) && (!copyable(chat, message).isEmpty() || media(message));
             offer(icons, items, options, repeat, copy, details, quick, text, save, again, forwardOption());
             if (tools) MessageMenuTools.offer(chat, message, icons, items, options, forwardable);
@@ -411,11 +412,19 @@ public final class MessageMenu {
     private static void saveToDownloads(Context context, Object chat, Object message) {
         List<File> files = new ArrayList<>();
         List<String> names = new ArrayList<>();
+        List<String> documents = new ArrayList<>();
         for (Object each : batch(chat, message)) {
             File file = downloaded(each);
-            if (file == null) continue;
+            String document = file == null ? null : file.getName();
+            if (file == null) {
+                file = sealedCopy(each);
+                if (file == null) continue;
+                // Only a sealed copy loses the ending: that's what tells the copy to decrypt it.
+                document = SaveDownloads.plain(file.getName());
+            }
             files.add(file);
-            names.add(SaveDownloads.displayName(documentName(each), file.getName()));
+            documents.add(document);
+            names.add(SaveDownloads.displayName(documentName(each), document));
         }
         if (files.isEmpty()) {
             feedback(context, L10n.t(context, "Couldn't save that. Try again."));
@@ -425,7 +434,7 @@ public final class MessageMenu {
             int saved = 0;
             boolean failed = false;
             for (int i = 0; i < files.size(); i++) {
-                String result = SaveDownloads.saveByHand(files.get(i), names.get(i), files.get(i).getName());
+                String result = SaveDownloads.saveByHand(files.get(i), names.get(i), documents.get(i));
                 if (SaveDownloads.SAVED.equals(result)) saved++;
                 else if (!SaveDownloads.ALREADY_SAVED.equals(result)) failed = true;
             }
@@ -604,10 +613,28 @@ public final class MessageMenu {
 
     /**
      * Whether Save to Downloads fits a secret chat's message: Also save from secret chats is on (#82)
-     * and it isn't view-once or timed media, whose file Telegram keeps encrypted.
+     * and it isn't view-once or timed media, which {@link #timedSaving} answers for.
      */
     private static boolean secretSaving(Object message) {
         return on(Settings.SAVE_SECRET_CHATS) && secret(dialog(message)) && !SaveDownloads.timedMedia(message);
+    }
+
+    /**
+     * Whether Save to Downloads fits view-once or timed media: Also save view-once and timed media is
+     * on, and in a secret chat Also save from secret chats as well (#82).
+     */
+    private static boolean timedSaving(Object message) {
+        return on(Settings.SAVE_TIMED_MEDIA) && SaveDownloads.timedMedia(message)
+                && (!secret(dialog(message)) || on(Settings.SAVE_SECRET_CHATS));
+    }
+
+    /** The encrypted file Telegram keeps of view-once or timed media, when that can be saved and is there. */
+    private static File sealedCopy(Object message) {
+        if (!timedSaving(message)) return null;
+        File plain = photoFile(message);
+        if (plain == null) return null;
+        File sealed = new File(plain.getPath() + SaveDownloads.ENCRYPTED);
+        return sealed.isFile() ? sealed : null;
     }
 
     /** The photo's file once it's on the phone: the sent original first, then Telegram's own copy. */

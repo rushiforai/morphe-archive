@@ -20,11 +20,26 @@ final class LrclibModels {
         }
     }
 
+    enum LocalLrcPriority {
+        PREFER_LOCAL,
+        MISSING_AND_UNSYNCED,
+        MISSING_ONLY;
+
+        static LocalLrcPriority fromName(String name) {
+            if (name == null) return PREFER_LOCAL;
+            for (LocalLrcPriority mode : values()) {
+                if (mode.name().equals(name)) return mode;
+            }
+            return PREFER_LOCAL;
+        }
+    }
+
     enum OverrideMode {
         AUTO,
         FORCE_OFFICIAL,
         FORCE_LRCLIB_AUTO,
-        FORCE_LRCLIB_ID;
+        FORCE_LRCLIB_ID,
+        FORCE_LOCAL_LRC;
 
         static OverrideMode fromName(String name) {
             if (name == null) return AUTO;
@@ -44,6 +59,9 @@ final class LrclibModels {
         LRCLIB_LINE,
         LRCLIB_PLAIN,
         LRCLIB_INSTRUMENTAL,
+        LOCAL_WORD,
+        LOCAL_LINE,
+        LOCAL_PLAIN,
         LOADING_LRCLIB,
         NONE;
 
@@ -52,8 +70,16 @@ final class LrclibModels {
                     || this == LRCLIB_PLAIN || this == LRCLIB_INSTRUMENTAL;
         }
 
+        boolean isLocal() {
+            return this == LOCAL_WORD || this == LOCAL_LINE || this == LOCAL_PLAIN;
+        }
+
         boolean hasUsableLrclibLyrics() {
             return this == LRCLIB_WORD || this == LRCLIB_LINE || this == LRCLIB_PLAIN;
+        }
+
+        boolean hasUsableExternalLyrics() {
+            return hasUsableLrclibLyrics() || isLocal();
         }
 
         boolean isOfficial() {
@@ -246,9 +272,17 @@ final class LrclibModels {
         final long lrclibId;
         final int offsetMs;
         final long updatedAt;
+        final String localFileName;
+        final boolean localForceUnsynced;
 
         TrackOverride(String trackKey, String trackTitle, String artistName,
                       OverrideMode mode, long lrclibId, int offsetMs, long updatedAt) {
+            this(trackKey, trackTitle, artistName, mode, lrclibId, offsetMs, updatedAt, "", false);
+        }
+
+        TrackOverride(String trackKey, String trackTitle, String artistName,
+                      OverrideMode mode, long lrclibId, int offsetMs, long updatedAt,
+                      String localFileName, boolean localForceUnsynced) {
             this.trackKey = trackKey == null ? "" : trackKey;
             this.trackTitle = trackTitle == null ? "" : trackTitle;
             this.artistName = artistName == null ? "" : artistName;
@@ -256,6 +290,8 @@ final class LrclibModels {
             this.lrclibId = lrclibId;
             this.offsetMs = offsetMs;
             this.updatedAt = updatedAt;
+            this.localFileName = localFileName == null ? "" : localFileName;
+            this.localForceUnsynced = localForceUnsynced;
         }
 
         boolean isEmpty() {
@@ -271,6 +307,8 @@ final class LrclibModels {
             obj.put("lrclibId", lrclibId);
             obj.put("offsetMs", offsetMs);
             obj.put("updatedAt", updatedAt);
+            if (!localFileName.isEmpty()) obj.put("localFileName", localFileName);
+            if (localForceUnsynced) obj.put("localForceUnsynced", true);
             return obj;
         }
 
@@ -283,7 +321,9 @@ final class LrclibModels {
                     OverrideMode.fromName(obj.optString("mode", OverrideMode.AUTO.name())),
                     obj.optLong("lrclibId", -1L),
                     obj.optInt("offsetMs", 0),
-                    obj.optLong("updatedAt", 0L)
+                    obj.optLong("updatedAt", 0L),
+                    obj.optString("localFileName", ""),
+                    obj.optBoolean("localForceUnsynced", false)
             );
         }
     }

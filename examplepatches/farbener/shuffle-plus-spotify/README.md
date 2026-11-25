@@ -29,7 +29,8 @@ Spotify arm64 builds, as an APKM or XAPK bundle. Any other build is refused:
 
 | Version | Version code |
 |---|---|
-| **9.2.0.2053** | 148387875 |
+| **9.2.4.2644** | 148916300 |
+| 9.2.0.2053 | 148387875 |
 | 9.1.94.1929 | 147600575 |
 
 ## Morphe Manager
@@ -54,7 +55,7 @@ Log tag for `adb logcat`: `ShufflePlus`.
 ## How it works
 
 - **Bridge** (`PlayerBridge`, `CosmosRouter`, `Esperanto`, `Wire`): talks to Spotify's native core over its
-  own router, found at the end of `SharedCosmosRouterService.<init>`. It keeps the player-state stream open
+  own router, found at the end of the constructor of the class that holds Spotify's `NativeRouter` (`SharedCosmosRouterService` on 9.2.0). It keeps the player-state stream open
   to know what plays.
 - **Shuffle** (`ShufflePlus`): lists the context's songs, shuffles them, sends one explicit play order, then
   queues the first 100 songs of it and tops the queue up when 20 are left. The queue is what makes the order

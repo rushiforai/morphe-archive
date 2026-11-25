@@ -469,7 +469,7 @@ class MarkReadButtonTest {
         val clickMethod = click()
         mirroredControls(markReadFixture(barMethod = barMethod, clickMethod = clickMethod, factoryMethod = factoryMethod))
         val clickBefore = clickMethod.code()
-        assertEquals(setOf(HIDE_CALL_BAR, CALL_BUTTON_BUILT), controlHooks.getValue("call_confirm"))
+        assertEquals(setOf(HIDE_CALL_BAR, CALL_BUTTON_BUILT, PROFILE_MENU_CALL), controlHooks.getValue("call_confirm"))
         injectControl("call_confirm", mapOf(HIDE_CALL_BAR to listOf(barMethod, factoryMethod)))
         assertEquals(MARK_READ_ADD, barMethod.code()[BAR_SITE].ref())
         assertEquals(1, factoryMethod.code().count { it.ref() == MARK_READ_ADD_TO })

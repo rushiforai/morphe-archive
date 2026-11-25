@@ -1,3 +1,22 @@
+## [2.1.1](https://github.com/MatthewRiley05/Machu-Morphe-Patches/compare/v2.1.0...v2.1.1) (2026-11-24)
+
+### 🐛 Bug Fixes
+
+* **moon-wallpaper:** drop privileged moon phase settings writes ([e4b2267](https://github.com/MatthewRiley05/Machu-Morphe-Patches/commit/e4b226708dc2219c43428379cb8f0bc3b5a72a1a))
+* **moon-wallpaper:** publish moon phase crash fix ([2183b5a](https://github.com/MatthewRiley05/Machu-Morphe-Patches/commit/2183b5a6c3281baeb26de1f5d3fce1fd29cb2155))
+
+## [2.1.1-dev.1](https://github.com/MatthewRiley05/Machu-Morphe-Patches/compare/v2.1.0...v2.1.1-dev.1) (2026-11-24)
+
+### 🐛 Bug Fixes
+
+* **moon-wallpaper:** drop privileged moon phase settings writes ([e4b2267](https://github.com/MatthewRiley05/Machu-Morphe-Patches/commit/e4b226708dc2219c43428379cb8f0bc3b5a72a1a))
+
+## [2.1.0](https://github.com/MatthewRiley05/Machu-Morphe-Patches/compare/v2.0.0...v2.1.0) (2026-11-24)
+
+### ✨ New Features
+
+* **moon-wallpaper:** publish Moon Super Wallpaper AOSP patches ([6ce0004](https://github.com/MatthewRiley05/Machu-Morphe-Patches/commit/6ce00048b12815ce2359677af51a392b68fbeea3))
+
 ## [2.0.0](https://github.com/MatthewRiley05/Machu-Morphe-Patches/compare/v1.0.0...v2.0.0) (2026-11-01)
 
 ### ⚠ BREAKING CHANGES

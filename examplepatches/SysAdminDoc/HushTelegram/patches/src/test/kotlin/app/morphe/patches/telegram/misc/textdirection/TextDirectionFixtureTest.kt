@@ -61,9 +61,9 @@ class TextDirectionFixtureTest {
             val name = build.name
             val context = PatchContexts.of(hosts(build))
             val site = context.resolveTextDirection()
-            if (name.contains("-73039")) {
-                assertEquals("Lorg/telegram/ui/Components/ft;", site.box)
-                assertEquals("G", site.choose.name)
+            if (name.contains("-73469")) {
+                assertEquals("Lorg/telegram/ui/Components/tt;", site.box)
+                assertEquals("H", site.choose.name)
             }
             // Plus Messenger's box wraps its callback in a class R8 merged with other callbacks.
             if (name.startsWith("plus-")) {

@@ -69,6 +69,8 @@ private const val DIALOG_TRANSLATABLE = "$TRANSLATE_CONTROLLER->isDialogTranslat
 private const val IS_TRANSLATABLE = "$TRANSLATE_CONTROLLER->isTranslatable($MESSAGE_OBJECT)Z"
 /** Hide translate bar's stand-in for the chat screen's [BAR_HIDDEN] reads, with the same registers. */
 internal const val BAR_HIDDEN_HOOK = "$TRANSLATE_BAR->hidden(Ljava/lang/Object;J)Z"
+/** Always show translate bar's stand-in for the translate item updater's [DIALOG_TRANSLATABLE] question, with the same registers. */
+internal const val BAR_OFFERED_HOOK = "$TRANSLATE_BAR->offered(Ljava/lang/Object;J)Z"
 private const val TL_MESSAGE = "Lorg/telegram/tgnet/TLRPC\$Message;"
 private const val TL_TEXT = "Lorg/telegram/tgnet/TLRPC\$TL_textWithEntities;"
 private const val NOTIFICATIONS = "Lorg/telegram/messenger/NotificationCenter;"
@@ -255,11 +257,11 @@ internal class ChatHeader(
  */
 internal fun BytecodePatchContext.resolveChatHeader(chat: String, chatClass: MutableClass, patch: String): ChatHeader {
     // The chat's own Translate item and the updater that follows its creation. Hide translate bar
-    // may already have swapped the updater's hidden-bar read for its own, with the same registers.
+    // may already have swapped the updater's two questions for its own, with the same registers.
     val asksHidden = { ref: String? -> ref == BAR_HIDDEN || ref == BAR_HIDDEN_HOOK }
     val visibility = chatClass.methods.filter { m ->
         !AccessFlags.STATIC.isSet(m.accessFlags) && m.origReturnType == "V" && m.parameterTypes.isEmpty() &&
-            m.controlBody().map { it.controlRef() }.let { refs -> refs.any(asksHidden) && DIALOG_TRANSLATABLE in refs }
+            m.controlBody().map { it.controlRef() }.let { refs -> refs.any(asksHidden) && (DIALOG_TRANSLATABLE in refs || BAR_OFFERED_HOOK in refs) }
     }.controlSingle("translate item updater")
     val shown = visibility.controlBody()
     val translateItem = shown.firstOrNull { it.opcode == Opcode.IGET_OBJECT && it.controlField()?.origDefiningClass == chat }?.controlField()
@@ -340,8 +342,14 @@ internal fun BytecodePatchContext.resolveChatHeader(chat: String, chatClass: Mut
     val outer = delegateClass.fields.filter { it.origType == chat && !AccessFlags.STATIC.isSet(it.accessFlags) }.controlSingle("the delegate's chat field")
     controlShape(AccessFlags.PUBLIC.isSet(outer.accessFlags), "the delegate's chat field is inaccessible")
 
-    // The account the chat screen is in, from the public getter on Telegram's base screen class,
-    // which R8 renames per build (s2 on the web build) but leaves this name on.
+    return ChatHeader(visibility, translateItem, header, lazyCall, setHeaderText, getter, delegate, outer, chatAccountGetter(chat))
+}
+
+/**
+ * The account the chat screen is in, from the public getter on Telegram's base screen class, which
+ * R8 renames per build (s2 on the web build) but leaves this name on.
+ */
+internal fun BytecodePatchContext.chatAccountGetter(chat: String): String {
     val accountGetter = superclassChain(chat).mapNotNull { tgClassDefByOrNull(it) }
         .flatMap { it.methods.asSequence() }
         .firstOrNull { it.origName == "getCurrentAccount" && it.parameterTypes.isEmpty() && it.origReturnType == "I" && !AccessFlags.STATIC.isSet(it.accessFlags) }
@@ -349,8 +357,7 @@ internal fun BytecodePatchContext.resolveChatHeader(chat: String, chatClass: Mut
         tgClassDefByOrNull(accountGetter.definingClass)?.let { AccessFlags.PUBLIC.isSet(it.accessFlags) } == true &&
         accountGetter.controlBody().any { it.opcode == Opcode.IGET && it.controlField()?.let { f -> f.origName == "currentAccount" && f.origType == "I" } == true },
         "the chat screen no longer says which account it's in")
-
-    return ChatHeader(visibility, translateItem, header, lazyCall, setHeaderText, getter, delegate, outer, signature(accountGetter!!))
+    return signature(accountGetter!!)
 }
 
 private fun branches(opcode: Opcode): Boolean {

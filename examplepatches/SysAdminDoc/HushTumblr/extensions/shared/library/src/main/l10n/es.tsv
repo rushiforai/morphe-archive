@@ -256,6 +256,25 @@ Hide gift purchase popups	Ocultar ventanas de compra de regalos
 Hides the pop-up suggesting you buy a gift for a blog. You can still open gifting yourself.	Oculta la ventana que sugiere comprar un regalo para un blog. Puedes abrir la opción de regalos por tu cuenta.
 Line between posts	Línea entre publicaciones
 Draws a thin line in the gap between posts, so it's easier to see where one ends and the next begins.	Dibuja una línea fina en el espacio entre publicaciones, para ver mejor dónde termina una y empieza la siguiente.
+# context: the Text size switch on the Interface page and the Size row under it, whose summary names a percentage of the phone's own text size, such as 115%.
+Text size	Tamaño del texto
+Makes Tumblr's text bigger or smaller than your phone's font size makes it. Pick how big below.	Hace el texto de Tumblr más grande o más pequeño que el tamaño de fuente de tu teléfono. Elige el tamaño abajo.
+Size	Tamaño
+%1$s of your phone's text size. Tap to change.	%1$s del tamaño de texto de tu teléfono. Toca para cambiarlo.
+Couldn't save the size. Try again.	No se pudo guardar el tamaño. Inténtalo de nuevo.
+# context: the More images per post switch on the Interface page (the post editor's image limit), and the name the settings backup preview gives the Text size row's percentage.
+More images per post	Más imágenes por publicación
+Lets you add up to 30 images to a post, as Tumblr's website does, instead of 10.	Te deja añadir hasta 30 imágenes a una publicación, como en la web de Tumblr, en vez de 10.
+Fix hard-to-read text	Corregir texto difícil de leer
+Fits the related tags under a trending topic at bigger text sizes, where Tumblr cuts them in half, and shades the box you type in when you search a blog so the words show over a bright header.	Ajusta las etiquetas relacionadas bajo un tema en tendencia con tamaños de texto más grandes, donde Tumblr las corta por la mitad, y pone un fondo en el cuadro donde escribes al buscar en un blog para que las palabras se vean sobre una cabecera clara.
+Dark search bar and Follow button	Barra de búsqueda y botón Seguir oscuros
+Dark search bar	Barra de búsqueda oscura
+Turns the white search bar on Explore dark.	Vuelve oscura la barra de búsqueda blanca de Explorar.
+Hide the Search Tumblr label	Ocultar el texto Buscar en Tumblr
+Takes the Search Tumblr text off Explore's search bar and leaves the icon.	Quita el texto Buscar en Tumblr de la barra de búsqueda de Explorar y deja el icono.
+Dark Follow button on blogs	Botón Seguir oscuro en los blogs
+Turns the white Follow button at the top of a blog dark.	Vuelve oscuro el botón Seguir blanco de la parte superior de un blog.
+Text size percentage	Porcentaje del tamaño del texto
 App font	Fuente de la app
 Replaces Tumblr's own font with your phone's font, or a font file you choose below. Fonts a post's author picked stay as they are.	Cambia la fuente de Tumblr por la de tu teléfono o por un archivo de fuente que elijas abajo. Las fuentes que eligió el autor de una publicación se quedan como están.
 Choose a font file	Elegir un archivo de fuente
@@ -291,6 +310,9 @@ Hide suggested tags	Ocultar etiquetas sugeridas
 Takes the tags Tumblr suggests you follow, and their headings, out of your dashboard and other feeds.	Quita las etiquetas que Tumblr te sugiere seguir, y sus encabezados, de tu panel y otros feeds.
 Hide Watch it rows	Ocultar filas de Watch it
 Takes Tumblr TV's Watch it rows and video hub cards, and their headings, out of your dashboard and other feeds.	Quita las filas de Watch it y las tarjetas de video de Tumblr TV, y sus encabezados, de tu panel y otros feeds.
+# context: the Hide More posts like this switch on the Interface page. More posts like this is the heading Tumblr shows over related posts under a post you open; use the words Tumblr shows in your language.
+Hide More posts like this	Ocultar Más publicaciones como esta
+Takes the More posts like this grid out from under a post you open, along with its heading.	Quita la cuadrícula Más publicaciones como esta, con su título, de debajo de una publicación que abres.
 # context: the Hide Featured posts switch on the Feed page. Featured is the header Tumblr shows over posts its own staff promote; use the word Tumblr shows in your language.
 Hide Featured posts	Ocultar publicaciones destacadas
 Takes the posts Tumblr's staff feature under a Featured header out of your dashboard and other feeds.	Quita de tu panel y otros feeds las publicaciones que el equipo de Tumblr muestra bajo el encabezado Destacado.
@@ -407,6 +429,8 @@ Hide reblogs of your posts	Ocultar reblogs de tus publicaciones
 Takes other people's reblogs of your posts out of your dashboard. Your blog and the rest of Tumblr still show them.	Quita de tu panel los reblogs que otras personas hacen de tus publicaciones. Tu blog y el resto de Tumblr los siguen mostrando.
 Hide liked posts	Ocultar publicaciones que te gustan
 Takes the posts you've already liked out of your dashboard. Your likes and the rest of Tumblr still show them.	Quita de tu panel las publicaciones que ya te gustaron. Tus Me gusta y el resto de Tumblr las siguen mostrando.
+Hide followed blogs in For you	Ocultar blogs que sigues en A tu medida
+Takes posts from blogs you follow out of the For you tab. Following still shows them.	Quita de la pestaña A tu medida las publicaciones de los blogs que sigues. Siguiendo las sigue mostrando.
 Match current post text	Buscar en el texto de la publicación actual
 Match reblog trail text	Buscar en el texto de la cadena de reblogs
 Match current post tags	Buscar en las etiquetas de la publicación actual
@@ -516,6 +540,8 @@ Collapse long posts	Acortar publicaciones largas
 Cuts long posts with a Read more row, at the length below. Tap it to open the whole post.	Corta las publicaciones largas a la longitud de abajo, con una fila de Leer más. Tócala para abrir la publicación completa.
 # context: the Collapsed post length row under that switch: its title, the lengths a tap moves through, its summary and the note when a save fails
 Collapsed post length	Longitud de las publicaciones acortadas
+About 5 lines	Unas 5 líneas
+About 10 lines	Unas 10 líneas
 About half a screen	Más o menos media pantalla
 About a screen	Más o menos una pantalla
 About two screens	Más o menos dos pantallas

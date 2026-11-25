@@ -170,6 +170,26 @@ public final class ExpressiveScaffoldBridge {
         }
     }
 
+    public static void refreshActiveViews() {
+        MAIN_HANDLER.post(() -> {
+            ExpressiveNavbarView nav = activeNavbarRef.get();
+            if (nav != null) {
+                if (latestTabState != null) {
+                    applyTabState(nav, latestTabState);
+                }
+                nav.refreshFromConfig();
+            }
+            ExpressiveMiniPlayerView mp = activeMiniPlayerRef.get();
+            if (mp != null) {
+                if (latestMiniState != null) {
+                    applyMiniState(mp, latestMiniState);
+                }
+                mp.invalidate();
+            }
+            ExpressiveProgressiveBlurOverlayView.invalidateActive();
+        });
+    }
+
     private static void applyTabStateOnUiThread(ExpressiveNavbarView view, Object state) {
         if (Looper.myLooper() == Looper.getMainLooper()) {
             applyTabState(view, state);
@@ -307,7 +327,7 @@ public final class ExpressiveScaffoldBridge {
         }
         long now = SystemClock.uptimeMillis();
         pendingInstantSheetSnap = true;
-        pendingInstantSheetSnapUntilUptimeMs = now + 1100L;
+        pendingInstantSheetSnapUntilUptimeMs = now + 1250L;
         markMiniPlayerOpeningFull();
         try {
             nativeDispatchMiniPlayerOpenFull(vm);
@@ -365,7 +385,7 @@ public final class ExpressiveScaffoldBridge {
 
     public static void onRealFullPlayerDrawn() {
         if (pendingInstantSheetSnap) {
-            long tighten = SystemClock.uptimeMillis() + 120L;
+            long tighten = SystemClock.uptimeMillis() + 220L;
             if (tighten < pendingInstantSheetSnapUntilUptimeMs) {
                 pendingInstantSheetSnapUntilUptimeMs = tighten;
             }

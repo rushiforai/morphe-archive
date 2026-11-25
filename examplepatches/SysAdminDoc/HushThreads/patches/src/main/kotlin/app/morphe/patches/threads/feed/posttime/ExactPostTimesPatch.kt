@@ -6,7 +6,6 @@
  */
 package app.morphe.patches.threads.feed.posttime
 
-import app.morphe.patcher.StringComparisonType
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructionsWithLabels
 import app.morphe.patcher.extensions.InstructionExtensions.getInstruction
@@ -17,11 +16,12 @@ import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod
 import app.morphe.patcher.util.smali.ExternalLabel
 import app.morphe.patches.shared.compat.AppCompatibilities
 import app.morphe.patches.threads.misc.extension.EXTENSION_PACKAGE
+import app.morphe.patches.threads.misc.extension.classesNoted
 import app.morphe.patches.threads.misc.extension.enableStatus
+import app.morphe.patches.threads.misc.extension.holdsNote
 import app.morphe.patches.threads.misc.extension.requireLocals
 import app.morphe.patches.threads.misc.extension.requireStatusMethod
 import app.morphe.patches.threads.misc.extension.threadsExtensionPatch
-import app.morphe.patches.threads.misc.settings.EXTENSION_ROOT
 import app.morphe.patches.threads.misc.settings.settingsPatch
 import app.morphe.util.findMutableMethodOf
 import app.morphe.util.getReference
@@ -29,10 +29,8 @@ import app.morphe.util.singleOrPatchException
 import com.android.tools.smali.dexlib2.AccessFlags
 import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.iface.instruction.FiveRegisterInstruction
-import com.android.tools.smali.dexlib2.iface.instruction.Instruction
 import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.reference.MethodReference
-import com.android.tools.smali.dexlib2.iface.reference.StringReference
 
 private const val PATCH = "Show exact post times"
 internal const val POST_TIME = "$EXTENSION_PACKAGE/feed/PostTime;"
@@ -112,21 +110,17 @@ val exactPostTimesPatch = bytecodePatch(
 /** A method's full signature. A Method is a MethodReference too. */
 private fun MethodReference.signature() = "$definingClass->$name(${parameterTypes.joinToString("")})$returnType"
 
-private fun Instruction.isPostTimestampNote(): Boolean =
-    opcode == Opcode.CONST_STRING && getReference<StringReference>()?.string?.startsWith(POST_TIMESTAMP_NOTE) == true
-
 private fun MethodReference.isFormatterShape(): Boolean =
     parameterTypes.map { it.toString() } == FORMATTER_PARAMETERS && returnType == FORMATTER_RETURNS
 
 /** The post header's time composable: the one method outside the extension that holds [POST_TIMESTAMP_NOTE]. */
 internal fun BytecodePatchContext.postTimestampComposable(): MutableMethod =
-    classDefByStrings(POST_TIMESTAMP_NOTE, StringComparisonType.STARTS_WITH)
-        .filterNot { it.type.startsWith(EXTENSION_ROOT) }
+    classesNoted(POST_TIMESTAMP_NOTE)
         .flatMap { it.methods }
         .distinctBy { it.signature() }
         // Read through the mutable copy, so what's checked is what the patch changes.
         .map { mutableClassDefBy(it.definingClass).findMutableMethodOf(it) }
-        .filter { method -> method.implementation?.instructions?.any { it.isPostTimestampNote() } == true }
+        .filter { it.holdsNote(POST_TIMESTAMP_NOTE) }
         .singleOrPatchException("$PATCH: the post header time's \"$POST_TIMESTAMP_NOTE\" note")
 
 /**

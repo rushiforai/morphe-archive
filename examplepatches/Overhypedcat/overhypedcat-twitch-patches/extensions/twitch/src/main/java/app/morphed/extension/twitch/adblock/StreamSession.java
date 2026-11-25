@@ -44,6 +44,20 @@ final class StreamSession {
     final Map<String, BackupStreamFinder.Result> backupResults = new ConcurrentHashMap<>();
     /** Refreshes in a row of the backup in use that failed or ran out of time, per quality. */
     final Map<String, Integer> refreshFailures = new ConcurrentHashMap<>();
+    /** Per quality: the refresh of its backup on its way (a poll doesn't wait it out). */
+    final Map<String, Refresh> refreshes = new ConcurrentHashMap<>();
+
+    static final class Refresh {
+        final String url;
+        final java.util.concurrent.Future<String> future;
+        final long startedAt;
+
+        Refresh(String url, java.util.concurrent.Future<String> future, long startedAt) {
+            this.url = url;
+            this.future = future;
+            this.startedAt = startedAt;
+        }
+    }
     final Map<String, Long> failedPlayerTypes = new ConcurrentHashMap<>();
     final AtomicBoolean searching = new AtomicBoolean();
     /** Counts finished ad breaks; a search from an earlier break must not change the next one. */
@@ -54,6 +68,14 @@ final class StreamSession {
     Future<BackupStreamFinder.Result> pendingSearch;
     /** When a search last found no ad-free player type; searches pause for a while after. */
     volatile long lastEmptySearchAt = Long.MIN_VALUE / 2;
+
+    /**
+     * A playlist no stream it knows owns, blocked on its own (its stream's playlist list wasn't seen, or another
+     * player's): no backup for it, and it never stands for the stream watched when a stream moves server.
+     */
+    boolean standalone;
+    /** Standalone and not the stream watched (another player, another stream): it shows no label. */
+    boolean quiet;
 
     /** The playlist carries ad markers (with or without ad segments). */
     boolean inAdBreak;
@@ -76,12 +98,15 @@ final class StreamSession {
         return alias != null ? alias : url;
     }
 
+    /** The stream's numbering, shared by its qualities (see PlaylistStitcher.Numbering). */
+    private final PlaylistStitcher.Numbering numbering = new PlaylistStitcher.Numbering();
+
     PlaylistStitcher stitcherFor(String url) {
         // A moved playlist continues the same stitched stream.
         String key = UrlKey.of(variantUrlFor(url));
         PlaylistStitcher stitcher = stitchers.get(key);
         if (stitcher == null) {
-            stitcher = new PlaylistStitcher();
+            stitcher = new PlaylistStitcher(numbering);
             stitchers.put(key, stitcher);
         }
         return stitcher;
@@ -130,6 +155,8 @@ final class StreamSession {
         state.cleanPolls = 0;
         backupResults.remove(key);
         refreshFailures.remove(key);
+        Refresh refresh = refreshes.remove(key);
+        if (refresh != null) refresh.future.cancel(true);
         for (QualityState other : qualities.values()) {
             // A quality the player switched away from mid-break would otherwise hold it open forever.
             if (other.swappingAds && now - other.lastPoll < QUALITY_LEFT_MS) return false;
@@ -145,6 +172,8 @@ final class StreamSession {
         breakGeneration.incrementAndGet();
         backupResults.clear();
         refreshFailures.clear();
+        for (Refresh refresh : refreshes.values()) refresh.future.cancel(true);
+        refreshes.clear();
         failedPlayerTypes.clear();
         lastEmptySearchAt = Long.MIN_VALUE / 2;
     }

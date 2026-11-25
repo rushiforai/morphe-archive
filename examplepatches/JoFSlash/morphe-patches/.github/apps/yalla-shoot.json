@@ -1,0 +1,75 @@
+{
+  "name": "Yalla Shoot",
+  "patches": "patches/src/main/kotlin/app/jofslash/patches/yallashoot",
+  "docs": "docs/yalla-shoot/README.md",
+  "readme": {
+    "style": "generated",
+    "order": [
+      "Ads",
+      "Privacy"
+    ],
+    "intro": {
+      "Ads": "Banners, native ads, full-screen and rewarded ads.",
+      "Privacy": "Trackers and permissions. They change nothing you see."
+    }
+  },
+  "store": "https://play.google.com/store/apps/details?id=com.yallagroup.yallashoot",
+  "package": "com.yallagroup.yallashoot",
+  "store_note": "(Yalla Group)",
+  "summary": "Remove the ads from the live football scores app and keep its Firebase tracking off, without an account.",
+  "owners": [
+    "Yalla Group"
+  ],
+  "apk": {
+    "release": "yalla-shoot",
+    "version": "first",
+    "asset": "*.apk",
+    "file": "yalla-shoot.apk"
+  },
+  "android": {
+    "note": "Yalla Shoot 6.0.15 needs Android 7 (minSdk 24), and its APK has x86_64 libraries, so the emulator needs no arm translation. The release tries an older supported version, the newest stable one and the next one; a pull request an older one and the newest stable.",
+    "pull_request": [
+      {
+        "api": "30",
+        "android": "11",
+        "channel": "stable"
+      },
+      {
+        "api": "36",
+        "android": "16",
+        "channel": "stable"
+      }
+    ],
+    "full": [
+      {
+        "api": "30",
+        "android": "11",
+        "channel": "stable"
+      },
+      {
+        "api": "36",
+        "android": "16",
+        "channel": "stable"
+      },
+      {
+        "api": "37.0",
+        "android": "17",
+        "channel": "canary"
+      }
+    ]
+  },
+  "check": [
+    "python3 .github/scripts/check_app.py yalla-shoot \"$APK\" --cli \"$CLI\" --install --expect-screen --compare-original --adb adb"
+  ],
+  "versions": {
+    "pattern": "\\d+(\\.\\d+)+",
+    "example": "6.0.17",
+    "source": "hand",
+    "play_country": "EG",
+    "file": "apk",
+    "cert_sha256": "d3a11cb88e2f5ace53d36a40fa360dcd03fa32b09b14b476fa28ed7db2b07f94",
+    "signer": "Yalla Group",
+    "shows": "shows its own screen",
+    "phone_test": "open today's matches, a match page and the news on a phone: the emulator test only starts the app."
+  }
+}

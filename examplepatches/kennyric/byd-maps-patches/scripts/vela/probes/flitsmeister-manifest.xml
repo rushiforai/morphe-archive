@@ -1,0 +1,6 @@
+<manifest xmlns:android="http://schemas.android.com/apk/res/android" package="nl.johninnl.velaprobe.flitsmeister">
+    <uses-sdk android:minSdkVersion="34" android:targetSdkVersion="36" />
+    <queries><package android:name="app.vela" /></queries>
+    <application android:label="Vela native flitsmeister probe" android:debuggable="true" />
+    <instrumentation android:name="nl.johninnl.velaprobe.FlitsmeisterProbe" android:targetPackage="nl.flitsmeister" android:functionalTest="true" />
+</manifest>

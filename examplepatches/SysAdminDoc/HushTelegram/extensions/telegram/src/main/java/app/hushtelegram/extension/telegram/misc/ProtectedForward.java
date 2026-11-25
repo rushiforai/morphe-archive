@@ -24,9 +24,8 @@ import java.util.concurrent.Executors;
  * messages, so nothing would arrive. Called first in {@code SendMessagesHelper.sendMessage(ArrayList, ...)},
  * which every forward goes through (the Forward picker, the share sheet, Quick forward and Repeat),
  * it takes those messages out and sends each as a new message instead: its text, or its photo,
- * video or file from the phone, downloading a video or file first when it isn't there yet. The
- * rest go to Telegram as before. A secret chat is left alone, since Telegram sends copies there
- * itself.
+ * video or file from the phone, downloading it first when it isn't there yet. The rest go to
+ * Telegram as before. A secret chat is left alone, since Telegram sends copies there itself.
  */
 public final class ProtectedForward {
     private ProtectedForward() {}
@@ -66,8 +65,11 @@ public final class ProtectedForward {
         /** The message's photo or file once it's on the phone, or null. */
         File file(Object message);
 
-        /** Starts downloading the message's document. False when it has none, as for a photo. */
+        /** Starts downloading the message's photo or document. False when it has neither. */
         boolean load(Object message);
+
+        /** Whether Telegram is downloading that photo or document right now. */
+        boolean loading(Object message);
 
         boolean sendText(int account, long dialog, String text);
 
@@ -110,6 +112,8 @@ public final class ProtectedForward {
 
         @Override public boolean load(Object message) { return ProtectedForward.load(message); }
 
+        @Override public boolean loading(Object message) { return ProtectedForward.loading(message); }
+
         @Override public boolean sendText(int account, long dialog, String text) {
             return ProtectedForward.sendText(account, dialog, text);
         }
@@ -127,17 +131,28 @@ public final class ProtectedForward {
         }
     };
 
-    /** Copies go out here one at a time, in the order they were picked, off Telegram's own thread. Tests swap in a direct one. */
-    static Executor work = Executors.newSingleThreadExecutor(task -> {
+    /**
+     * Each forward runs here off Telegram's own thread, its copies one at a time in the order they
+     * were picked. Forwards don't share a thread, so one waiting on a long download doesn't hold up
+     * the next. Tests swap in a direct one.
+     */
+    static Executor work = Executors.newCachedThreadPool(task -> {
         Thread thread = new Thread(task, "HushTelegram ProtectedForward");
         thread.setDaemon(true);
         return thread;
     });
 
-    /** How long a video or file may take to download before it's given up on. Tests shorten it. */
-    static long waitMs = 15L * 60 * 1000;
+    /** How long a photo, video or file may take to download before it's given up on. Tests shorten it. */
+    static long waitMs = 2L * 60 * 60 * 1000;
 
-    private static final long POLL_MS = 500;
+    /** How often a download is looked at. Tests shorten it. */
+    static long pollMs = 500;
+
+    /** Looks in a row with nothing downloading before the download is started again. */
+    private static final int IDLE_POLLS = 6;
+
+    /** Times a download that keeps stopping is started again before it's given up on. */
+    static final int MAX_RESTARTS = 20;
 
     /**
      * Called first in Telegram's forward with the messages and the chat they go to. Sends the ones
@@ -189,35 +204,48 @@ public final class ProtectedForward {
         }
     }
 
+    /** What one forward has run into, for the one message it ends with. */
+    private static final class Progress {
+        final Context context;
+        boolean toldWaiting;
+        boolean nothingToLoad;
+        boolean loadFailed;
+        boolean refused;
+
+        Progress(Context context) {
+            this.context = context;
+        }
+    }
+
     private static void sendAll(int account, long dialog, List<Copy> copies) {
         Context context = Utils.getContext();
-        boolean missing = false;
-        boolean refused = false;
+        Progress progress = new Progress(context);
         for (Copy copy : copies) {
             try {
-                Boolean sent = send(context, account, dialog, copy);
-                if (sent == null) missing = true;
-                else if (!sent) refused = true;
+                send(progress, account, dialog, copy);
             } catch (InterruptedException stopped) {
                 Thread.currentThread().interrupt();
                 return;
             } catch (Throwable failure) {
                 HookStatus.threw(FamilyNames.BYPASS_CHANNEL_RESTRICTIONS, "protected forward send", failure);
-                refused = true;
+                progress.refused = true;
             }
         }
-        if (missing) MessageMenu.feedback(context, L10n.t(context, "Open it first to download it"));
-        else if (refused) MessageMenu.feedback(context, L10n.t(context, "Can't forward there"));
+        if (progress.loadFailed) MessageMenu.feedback(context, L10n.t(context, "Couldn't download that. Try again."));
+        else if (progress.nothingToLoad) MessageMenu.feedback(context, L10n.t(context, "Open it first to download it"));
+        else if (progress.refused) MessageMenu.feedback(context, L10n.t(context, "Can't forward there"));
     }
 
-    /** Whether Telegram took the copy, or null when its photo or file isn't on the phone. */
-    private static Boolean send(Context context, int account, long dialog, Copy copy) throws Exception {
+    /** Sends the copy, noting on [progress] what kept it from going out. */
+    private static void send(Progress progress, int account, long dialog, Copy copy) throws Exception {
         String text = telegram.text(copy.message);
         if (copy.kind == Kind.TEXT) {
-            return text != null && !text.isEmpty() && telegram.sendText(account, dialog, text);
+            if (text == null || text.isEmpty() || !telegram.sendText(account, dialog, text)) progress.refused = true;
+            return;
         }
-        File file = fetch(copy.message);
-        if (file == null) return null;
+        File file = fetch(progress, copy.message);
+        if (file == null) return;
+        Context context = progress.context;
         String name = SaveDownloads.displayName(telegram.documentName(copy.message), file.getName());
         // Sent from a copy in the cache under the document's own name, the way Forward as copy does.
         String path = MessageMenu.renamed(context, file, name).getPath();
@@ -233,19 +261,43 @@ public final class ProtectedForward {
                 sent = telegram.sendFile(account, dialog, path, MessageMenu.mimeOf(name), text);
         }
         if (sent) HookStatus.counted(FamilyNames.BYPASS_CHANNEL_RESTRICTIONS, "protected media sent as new message");
-        return sent;
+        else progress.refused = true;
     }
 
-    /** The message's file, downloading it first when it's a document that isn't on the phone. */
-    private static File fetch(Object message) throws InterruptedException {
+    /**
+     * The message's file, downloading it first when it isn't on the phone. Telegram drops a download
+     * when anything else showing that file lets go of it, a video preview scrolling away for one, so
+     * a download that stopped without the file arriving is started again.
+     */
+    private static File fetch(Progress progress, Object message) throws InterruptedException {
         File file = telegram.file(message);
-        if (file != null || !telegram.load(message)) return file;
+        if (file != null) return file;
+        if (!telegram.load(message)) {
+            progress.nothingToLoad = true;
+            return null;
+        }
+        if (!progress.toldWaiting) {
+            progress.toldWaiting = true;
+            MessageMenu.feedback(progress.context, L10n.t(progress.context, "Downloading it first. It'll send when it's done."));
+        }
         long until = System.currentTimeMillis() + waitMs;
+        int idle = 0;
+        int restarts = 0;
         while (true) {
             file = telegram.file(message);
-            if (file != null || System.currentTimeMillis() >= until) return file;
-            Thread.sleep(POLL_MS);
+            if (file != null) return file;
+            if (System.currentTimeMillis() >= until) break;
+            if (telegram.loading(message)) {
+                idle = 0;
+            } else if (++idle >= IDLE_POLLS) {
+                if (restarts++ >= MAX_RESTARTS) break;
+                idle = 0;
+                telegram.load(message);
+            }
+            Thread.sleep(pollMs);
         }
+        progress.loadFailed = true;
+        return null;
     }
 
     /** Whether the chat is a secret chat. True until patched, which leaves every forward to Telegram. */
@@ -272,8 +324,11 @@ public final class ProtectedForward {
     /** Where Telegram keeps the message's photo or file once downloaded. Replaced when patching. */
     public static File messageFile(Object message) { return null; }
 
-    /** Starts downloading the message's document; false when it has none. Replaced when patching. */
+    /** Starts downloading the message's photo or document; false when it has neither. Replaced when patching. */
     public static boolean load(Object message) { return false; }
+
+    /** Whether Telegram is downloading the message's photo or document. Replaced when patching. */
+    public static boolean loading(Object message) { return false; }
 
     /** Sends the text to the chat as a new message. Replaced when patching. */
     public static boolean sendText(int account, long dialog, String text) { return false; }

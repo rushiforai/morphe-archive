@@ -11,6 +11,7 @@ import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
 import android.app.Activity;
+import android.app.AlertDialog;
 import android.app.Dialog;
 import android.content.Context;
 import android.content.ContextWrapper;
@@ -20,6 +21,9 @@ import android.content.pm.PackageManager;
 import android.content.pm.Signature;
 import android.content.pm.SigningInfo;
 import android.os.Looper;
+import android.view.View;
+import android.view.ViewGroup;
+import android.widget.TextView;
 import app.hushtelegram.extension.shared.Utils;
 import java.security.MessageDigest;
 import java.util.Arrays;
@@ -122,11 +126,40 @@ public class SignInHelpTest {
     public void theMessageSaysWhichErrorItWas() {
         Activity activity = Robolectric.buildActivity(Activity.class).setup().get();
         String flood = SignInHelp.message(activity, "API_ID_PUBLISHED_FLOOD");
-        assertTrue(flood, flood.contains("Use registered Telegram API credentials"));
+        assertTrue(flood, flood.contains("Register your own app at my.telegram.org/apps, then tap Enter your API ID"));
         assertTrue(flood, flood.endsWith("(API_ID_PUBLISHED_FLOOD)"));
         String invalid = SignInHelp.message(activity, "API_ID_INVALID");
-        assertTrue(invalid, invalid.contains("Copy both again"));
+        assertTrue(invalid, invalid.contains("Copy both again from my.telegram.org/apps and tap Enter your API ID."));
         assertTrue(invalid, invalid.endsWith("(API_ID_INVALID)"));
+    }
+
+    @Test
+    public void enterYourApiIdSwapsTheRefusalForTheBox() {
+        Utils.setContext(RuntimeEnvironment.getApplication());
+        Activity activity = Robolectric.buildActivity(Activity.class).setup().get();
+        Dialog refusal = SignInHelp.show(activity, "API_ID_PUBLISHED_FLOOD");
+        View button = withText(refusal.getWindow().getDecorView(), "Enter your API ID");
+        assertNotNull("the refusal offers it", button);
+        assertNotNull(withText(refusal.getWindow().getDecorView(), "Open the guide"));
+        button.performClick();
+        Shadows.shadowOf(Looper.getMainLooper()).idle();
+        assertFalse("the refusal goes", refusal.isShowing());
+        Dialog box = ShadowDialog.getLatestDialog();
+        assertTrue(box instanceof AlertDialog);
+        assertTrue(box.isShowing());
+        assertEquals("Enter your API ID", String.valueOf(Shadows.shadowOf((AlertDialog) box).getTitle()));
+        box.dismiss();
+    }
+
+    private static View withText(View view, String text) {
+        if (view instanceof TextView && text.contentEquals(((TextView) view).getText()) && view.isClickable()) return view;
+        if (!(view instanceof ViewGroup)) return null;
+        ViewGroup group = (ViewGroup) view;
+        for (int i = 0; i < group.getChildCount(); i++) {
+            View found = withText(group.getChildAt(i), text);
+            if (found != null) return found;
+        }
+        return null;
     }
 
     @Test

@@ -58,11 +58,12 @@ public class MessageMenuSaveTest {
         @Implementation protected static ArrayList<?> grouped(Object chat) { return album; }
         @Implementation protected static boolean restricted(Object message) { return restricted; }
         @Implementation protected static String attachPath(Object message) { return paths.getOrDefault(message, attachPath); }
-        @Implementation protected static File photoFile(Object message) { return null; }
+        @Implementation protected static File photoFile(Object message) { return photo; }
         @Implementation protected static String documentName(Object message) { return documentName; }
         @Implementation protected static long dialog(Object message) { return 7L; }
         @Implementation protected static boolean secret(long dialog) { return secret; }
         static boolean secret;
+        static File photo;
     }
 
     @Implements(value = SaveDownloads.class, isInAndroidSdk = false)
@@ -88,12 +89,15 @@ public class MessageMenuSaveTest {
         Native.album = null;
         Native.paths.clear();
         Native.secret = false;
+        Native.photo = null;
         Timed.timed = false;
         PauseForTests.resume();
         SettingReadsForTests.mend(Settings.MESSAGE_MENU_SAVE_PROTECTED);
         Settings.MESSAGE_MENU_SAVE_PROTECTED.resetToDefault();
         SettingReadsForTests.mend(Settings.SAVE_SECRET_CHATS);
         Settings.SAVE_SECRET_CHATS.resetToDefault();
+        SettingReadsForTests.mend(Settings.SAVE_TIMED_MEDIA);
+        Settings.SAVE_TIMED_MEDIA.resetToDefault();
         HookStatus.clear();
         ShadowToast.reset();
     }

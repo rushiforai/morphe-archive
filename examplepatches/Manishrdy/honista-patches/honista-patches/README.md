@@ -2,6 +2,12 @@
 
 A local Morphe `.mpp` bundle implementing the retained changes in the workspace's `action_items.md`. One selectable patch, **Honista v13 complete local fixes**, installs all dependent changes together. This is an independent bundle; it does not require Piko.
 
+## Local 1.1.3 startup candidate
+
+Direct-reference auditing found stale calls in 1.1.2 that can fail at runtime despite successful DEX compilation. The candidate updates the startup/interceptor references and stream-provider call and preserves the native startup loader instead of substituting an old Java body. The four native UI overrides are also removed to preserve native registration. The frozen module asset/helper remain packaged, but the obsolete native-loader replacement is removed, so dynamic module substitution is no longer active. This is a compatibility tradeoff, not a verified restoration of all startup/integrity behavior.
+
+No device was connected during this investigation. Successful launch and the exact reported crash remain unverified; use a crash log to confirm the next step. The published remote source is still 1.1.2.
+
 ## Supported input
 
 Use the **original** `Honista_v13.1__x64.apk`, package `cc.honista.app`, version `426.0.0.37.70`, version code `383207254`. It contains ARM64 native libraries despite its filename.
@@ -45,13 +51,13 @@ There is no new media-picker patch: normal-gallery access worked after the dual 
 
 ## Build and edit
 
-The project includes Kotlin patch code, replacement method bodies in `payload-smali/` (17 source files across 15 obfuscated classes and 2 `com.instagram` classes), both helper Java sources, and the tested dynamic-module DEX asset. The full APK is not embedded. Original method annotations/register counts/exception tables are retained in the replacements; unrelated methods stay in the input APK.
+The project includes Kotlin patch code, replacement method bodies in `payload-smali/` (15 source files across 13 obfuscated classes and 2 `com.instagram` classes), both helper Java sources, and the tested dynamic-module DEX asset. The full APK is not embedded. Original method annotations/register counts/exception tables are retained in the replacements; unrelated methods stay in the input APK.
 
 Requirements: JDK 17+, Python 3 for optional helper regeneration, Android SDK platform 36/build-tools 36.1.0, and the pinned Gradle/Morphe dependencies. Set `ANDROID_HOME` and run:
 
 ```sh
 ./gradlew :patches:buildAndroid
-# Result: patches/build/libs/patches-1.1.2.mpp
+# Result: patches/build/libs/patches-1.1.3.mpp
 ```
 
 `buildAndroid` is required: `build`/`jar` alone produce JVM classes without the root Android patch-loader DEX. Re-run `buildAndroid` after any task that recreates the jar. GitHub Packages dependencies may require a token with read-package access on a fresh computer. Override the offline placeholders with `-Pgpr.user="$GITHUB_ACTOR" -Pgpr.key="$GITHUB_TOKEN"`; do not commit credentials. This workspace builds offline using its cached dependencies.
@@ -61,7 +67,7 @@ To edit filtering logic, change `helper-src/X/LocalSponsoredFilter.java`, run `p
 For input-guard regressions and patching/compiling the available original APK:
 
 ```sh
-./gradlew :patches:verifyInput :patches:verifyOriginal
+./gradlew :patches:verifyInput :patches:verifyReferences :patches:verifyOriginal
 ```
 
 These check all nine protected target classes, acceptance after DEX reserialization, rejection of missing/modified classes and existing helpers, and full patch execution/DEX compilation. They do not replace testing Manager on Android.

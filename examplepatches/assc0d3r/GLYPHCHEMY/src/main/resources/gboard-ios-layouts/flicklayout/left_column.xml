@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Left column of the Japanese 12-key keyboards, as on iOS with "flick only" enabled:
+     [123] [ABC] [あいう] [globe]. Replaces layout 0x7f0e0241, and is also the template of the
+     left column of each keyboard, where the patch sets the style of the three mode keys. -->
+<FrameLayout style="{{0x7f1503a1}}"
+  xmlns:android="http://schemas.android.com/apk/res/android" xmlns:app="http://schemas.android.com/apk/res-auto">
+    <ImageView style="{{0x7f15039c}}" />
+    <LinearLayout style="{{0x7f15044f}}">
+        <com.google.android.libraries.inputmethod.widgets.SoftKeyView android:id="@id/ios_flick_key_pos_digit" android:layout_weight="250.0" style="%STYLE_DIGIT%" />
+        <com.google.android.libraries.inputmethod.widgets.SoftKeyView android:id="@id/ios_flick_key_pos_alphabet" android:layout_weight="250.0" style="%STYLE_ALPHABET%" />
+        <com.google.android.libraries.inputmethod.widgets.SoftKeyView android:id="@id/ios_flick_key_pos_kana" android:layout_weight="250.0" style="%STYLE_KANA%" />
+        <com.google.android.libraries.inputmethod.widgets.SoftKeyView android:id="@id/ios_flick_key_pos_globe" android:layout_weight="250.0" style="{{0x7f150712}}" />
+    </LinearLayout>
+</FrameLayout>

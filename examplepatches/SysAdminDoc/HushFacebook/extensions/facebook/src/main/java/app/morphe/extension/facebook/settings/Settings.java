@@ -701,8 +701,9 @@ public class Settings extends BaseSettings {
     /**
      * Each takes one button out of the row under a post (issue #265, {@link
      * app.morphe.extension.facebook.feed.PostSaveButton}): Like, Comment, Repost (#450), Share,
-     * Send, or Save, which Facebook now shows some accounts on its own (#541) and which this wins
-     * over POST_SAVE_BUTTON. Start off.
+     * Send, Stars (the button some creators' posts get for sending them Stars or gifts, #483), or
+     * Save, which Facebook now shows some accounts on its own (#541) and which this wins over
+     * POST_SAVE_BUTTON. Start off.
      */
     public static final BooleanSetting HIDE_POST_LIKE_BUTTON =
             new BooleanSetting("hushfacebook_hide_post_like_button", FALSE);
@@ -714,6 +715,8 @@ public class Settings extends BaseSettings {
             new BooleanSetting("hushfacebook_hide_post_share_button", FALSE);
     public static final BooleanSetting HIDE_POST_SEND_BUTTON =
             new BooleanSetting("hushfacebook_hide_post_send_button", FALSE);
+    public static final BooleanSetting HIDE_POST_STARS_BUTTON =
+            new BooleanSetting("hushfacebook_hide_post_stars_button", FALSE);
     public static final BooleanSetting HIDE_POST_SAVE_BUTTON =
             new BooleanSetting("hushfacebook_hide_post_save_button", FALSE);
 
@@ -1097,6 +1100,15 @@ public class Settings extends BaseSettings {
             new EnumSetting<>("hushfacebook_reel_post_date_style", ReelDateStyle.AGO);
 
     /**
+     * Post date after the caption: while {@link #SHOW_REEL_POST_DATE} is on, the date shows in the row
+     * Facebook draws after a reel's caption instead of on the line under its author, where the song
+     * and other labels crowd it ({@link app.morphe.extension.facebook.reels.ReelDeclutter#captionDateShows},
+     * #490). Off by default. A change shows from the next reel.
+     */
+    public static final BooleanSetting REEL_POST_DATE_AFTER_CAPTION =
+            new BooleanSetting("hushfacebook_reel_post_date_after_caption", FALSE);
+
+    /**
      * "New for you", the reason Facebook picked a reel, is left off the line under its author
      * ({@link app.morphe.extension.facebook.reels.ReelDeclutter#slotNewForYou}, #520). Off by
      * default. A change shows from the next reel.
@@ -1262,6 +1274,15 @@ public class Settings extends BaseSettings {
             new BooleanSetting("hushfacebook_fill_reels", FALSE);
 
     /**
+     * Fill every reel: while {@link #FILL_REELS} is on, a reel fills the screen however much of its
+     * picture that cuts off, not only up to {@link app.morphe.extension.facebook.reels.ReelFill#MOST_CUT},
+     * for foldables and tablets where most reels would keep their bars (#571). Off by default. Asked
+     * each time a player view is sized, so a change shows on the next reel.
+     */
+    public static final BooleanSetting FILL_EVERY_REEL =
+            new BooleanSetting("hushfacebook_fill_every_reel", FALSE);
+
+    /**
      * The batches of watched reels the Reels viewer sends as FbShortsSeenStateMutation: only their
      * ids, the record Facebook ranks the Reels feed with, which nobody else sees. Held back, reels
      * already watched may come back in the feed.
@@ -1317,25 +1338,6 @@ public class Settings extends BaseSettings {
      */
     public static final BooleanSetting ALLOW_SCREENSHOTS =
             new BooleanSetting("hushfacebook_allow_screenshots", FALSE);
-
-    /**
-     * Facebook's Facebook Plus app icons on its App icon page ({@link app.morphe.extension.facebook.misc.AppIcons}).
-     * Starts off. The App icon page reads it each time it opens. An icon picked while it's on is a
-     * launcher alias, so it stays when the switch goes off, unless Facebook's start-up rollback (behind
-     * a server flag, off on the accounts seen so far) puts the blue one back. Facebook's component
-     * manager resets it on the first start after an update, which the switch skips while it's on.
-     */
-    public static final BooleanSetting UNLOCK_APP_ICONS =
-            new BooleanSetting("hushfacebook_unlock_app_icons", FALSE);
-
-    /**
-     * The picked app icon stands in for the Facebook wordmark at the top of Home
-     * ({@link app.morphe.extension.facebook.misc.AppIcons#dressLogo}, #172). Starts off, so Facebook's
-     * wordmark stays. Needs {@link #UNLOCK_APP_ICONS}. Facebook builds the header once, so a change
-     * waits for a restart. It never changes which launcher alias is on.
-     */
-    public static final BooleanSetting USE_APP_ICON_IN_HEADER =
-            new BooleanSetting("hushfacebook_use_app_icon_in_header", FALSE, true, Setting.parent(UNLOCK_APP_ICONS));
 
     /**
      * Facebook's haptics on its own taps and gestures ({@link app.morphe.extension.facebook.misc.Haptics}).
@@ -2557,6 +2559,40 @@ public class Settings extends BaseSettings {
             new BooleanSetting("hushfacebook_open_chats_in_messenger", FALSE, true);
 
     /**
+     * Facebook chats in Android's share menu (#568): a photo or video shared there goes to the
+     * gallery and text to the clipboard, and Facebook opens on Chats to pick one. Starts off, and
+     * the share target stays out of the share menu until it's on.
+     */
+    public static final BooleanSetting SHARE_TO_CHATS =
+            new BooleanSetting("hushfacebook_share_to_chats", FALSE);
+
+    /**
+     * The color behind the messages of every chat inside Facebook, drawn on this phone only (#573,
+     * {@link app.morphe.extension.facebook.chats.ChatBackground}): blank for Facebook's own, one
+     * {@code #RRGGBB} code, or two for a fade from top to bottom. A chat with a color of its own in
+     * {@link #CHAT_BACKGROUNDS} takes that one. Not a switch, and a paused Facebook reads it blank.
+     * A settings file leaves it out for now.
+     */
+    public static final StringSetting CHAT_BACKGROUND_COLOR =
+            new StringSetting("hushfacebook_chat_background_color", "");
+
+    /**
+     * The chats with a color of their own, one {@code <thread key><TAB><code>} line each, the code
+     * kept as {@link #CHAT_BACKGROUND_COLOR}'s is. The keys are this account's chats, so a settings
+     * file leaves it out.
+     */
+    public static final StringSetting CHAT_BACKGROUNDS =
+            new StringSetting("hushfacebook_chat_backgrounds", "");
+
+    /**
+     * The last chat seen inside Facebook, as {@code <thread key><TAB><name on its top bar>}, which the
+     * settings offer a color of its own. Hushfacebook writes it, never a person, and a settings file
+     * leaves it out.
+     */
+    public static final StringSetting CHAT_BACKGROUND_LAST =
+            new StringSetting("hushfacebook_chat_background_last", "");
+
+    /**
      * The Upgrades section of Facebook's Menu, the group Facebook types UPSELL, with its offers.
      * Only that group goes: Settings, Help and support and the rest of the Menu stay. A Menu built
      * before the switch changed keeps the group on screen even though its sections ask again (#184),
@@ -2767,6 +2803,13 @@ public class Settings extends BaseSettings {
      */
     public static final BooleanSetting SEARCH_POSTS_TAB =
             new BooleanSetting("hushfacebook_search_posts_tab", TRUE);
+
+    /**
+     * A Videos chip goes in the row over search results, after Posts, labelled and opened through
+     * Facebook's own table of tab labels like the Posts chip (#483). Off by default.
+     */
+    public static final BooleanSetting SEARCH_VIDEOS_TAB =
+            new BooleanSetting("hushfacebook_search_videos_tab", FALSE);
 
     /**
      * A Saved button at the end of the search bar opens Facebook's Saved screen
@@ -3595,6 +3638,15 @@ public class Settings extends BaseSettings {
      */
     public static final BooleanSetting HIDE_COMMENT_REACTIONS =
             new BooleanSetting("hushfacebook_hide_comment_reaction_preview", FALSE);
+
+    /**
+     * The number beside the reaction faces on a comment is left out, and the faces, their tap and
+     * what TalkBack reads stay ({@link app.morphe.extension.facebook.feed.PostPrompts#commentReactionCount},
+     * #483). Facebook's own setting for reaction counts misses comments. Off by default. A change
+     * shows on the comments drawn after it.
+     */
+    public static final BooleanSetting HIDE_COMMENT_REACTION_COUNTS =
+            new BooleanSetting("hushfacebook_hide_comment_reaction_counts", FALSE);
 
     /**
      * A post's stacked reaction faces leave the end of its button row and sit on its Like button,

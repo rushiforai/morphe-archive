@@ -113,11 +113,13 @@ internal fun BytecodePatchContext.sayWhenGoogleFails(): Boolean {
  * sendCode, so API_ID_PUBLISHED_FLOOD left the screen sitting there with nothing said. The handler
  * now asks the extension first; it answers only for API_ID_PUBLISHED_FLOOD and API_ID_INVALID on
  * sendCode and leaves every other error to Telegram. A failed Google sign-in on the login email
- * screen, which Telegram only logs, gets a toast pointing at the email box. Part of HushTelegram
- * settings, which every selection carries, and it doesn't stop patching when a build moves either.
+ * screen, which Telegram only logs, gets a toast pointing at the email box. The refusal offers Enter
+ * your API ID, and [savedApiCredentialsPatch] puts a pair typed there in place on the next start. Part
+ * of HushTelegram settings, which every selection carries, and it doesn't stop patching when a build
+ * moves either.
  */
 internal val signInHelpPatch = bytecodePatch {
-    dependsOn(telegramExtensionPatch)
+    dependsOn(telegramExtensionPatch, savedApiCredentialsPatch)
 
     execute {
         controlHook(SIGN_IN_HELP, "explain", listOf(OBJECT, OBJECT, OBJECT), "Z")

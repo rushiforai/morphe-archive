@@ -21,14 +21,21 @@ import android.os.Build;
 import android.os.Bundle;
 import android.os.SystemClock;
 import android.util.Log;
+import android.view.ActionMode;
+import android.view.KeyEvent;
+import android.view.KeyboardShortcutGroup;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.MotionEvent;
+import android.view.SearchEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.ViewParent;
 import android.view.ViewTreeObserver;
 import android.view.Window;
 import android.view.WindowInsetsController;
+import android.view.WindowManager;
+import android.view.accessibility.AccessibilityEvent;
 import android.view.animation.Animation;
 import android.widget.CheckBox;
 import android.widget.CompoundButton;
@@ -167,6 +174,9 @@ public final class MaterialYouColorEngine {
     private static volatile Class<?> cachedIconTextBtnClass;
     private static volatile Method cachedGetUseLightThemeMethod;
     private static volatile boolean iconTextBtnReflectionResolved;
+    private static volatile float lastTouchRawX;
+    private static volatile float lastTouchRawY;
+    private static volatile long lastTouchUptimeMs;
 
     static {
         SYSTEM_COLOR_IDS[IDX_ACCENT1_50] = android.R.color.system_accent1_50;
@@ -2237,6 +2247,7 @@ public final class MaterialYouColorEngine {
      */
     public static long getArtistHeroFadeStopCompose(int stopIndex) {
         int base = getSurfaceBase();
+        boolean light = isLightMode();
         int argb;
         switch (stopIndex) {
             case 0:
@@ -2244,13 +2255,13 @@ public final class MaterialYouColorEngine {
                 argb = withAlpha(base, 0x00);
                 break;
             case 2:
-                argb = withAlpha(base, 0x1A);
+                argb = withAlpha(base, light ? 0x2E : 0x1A);
                 break;
             case 3:
-                argb = withAlpha(base, 0x6E);
+                argb = withAlpha(base, light ? 0x92 : 0x6E);
                 break;
             case 4:
-                argb = withAlpha(base, 0xD8);
+                argb = withAlpha(base, light ? 0xE6 : 0xD8);
                 break;
             default:
                 argb = withAlpha(base, 0xFF);
@@ -2300,10 +2311,23 @@ public final class MaterialYouColorEngine {
     }
 
     /**
-     * Returns the Monet active tab indicator ARGB color for Artist Page tabs ({@code All | Music | About}).
+     * Returns high-contrast {@code onSurface} text/icon color for secondary Artist action buttons
+     * ({@code SecondaryAction}) in Light Mode where {@code R$color.glass_lighten_90} would otherwise
+     * render white-on-white.
      */
-    public static int getArtistTabIndicatorArgb() {
-        return getPrimaryAccent();
+    public static long resolveArtistSecondaryActionTextCompose(long original) {
+        if (!MaterialYouConfig.isMaterialYouEnabled() || !isLightMode()) {
+            return original;
+        }
+        return getOnSurfaceCompose();
+    }
+
+    /**
+     * Returns the Monet surfaceBase ARGB color for Artist Page tab-row horizontal overflow fade
+     * ({@code MarketPagingTabsStyle.gradientColor}) so edges blend seamlessly into the page canvas.
+     */
+    public static int getArtistTabOverflowFadeArgb() {
+        return getSurfaceBase();
     }
 
     /**
@@ -3124,6 +3148,178 @@ public final class MaterialYouColorEngine {
         }
     }
 
+    public static void recordLastTouchScreenPoint(float rawX, float rawY) {
+        lastTouchRawX = rawX;
+        lastTouchRawY = rawY;
+        lastTouchUptimeMs = SystemClock.uptimeMillis();
+    }
+
+    public static boolean getLastTouchScreenPoint(float[] outXY, long maxAgeMs) {
+        if (outXY == null || outXY.length < 2) {
+            return false;
+        }
+        long ts = lastTouchUptimeMs;
+        if (ts <= 0L || (SystemClock.uptimeMillis() - ts) > maxAgeMs) {
+            return false;
+        }
+        outXY[0] = lastTouchRawX;
+        outXY[1] = lastTouchRawY;
+        return true;
+    }
+
+    public static void installTouchTracker(Window window) {
+        if (window == null) {
+            return;
+        }
+        try {
+            Window.Callback existing = window.getCallback();
+            if (existing == null || existing instanceof TouchTrackingWindowCallback) {
+                return;
+            }
+            window.setCallback(new TouchTrackingWindowCallback(existing));
+        } catch (Throwable ignored) {
+        }
+    }
+
+    private static final class TouchTrackingWindowCallback implements Window.Callback {
+        private final Window.Callback wrapped;
+
+        TouchTrackingWindowCallback(Window.Callback wrapped) {
+            this.wrapped = wrapped;
+        }
+
+        @Override
+        public boolean dispatchKeyEvent(KeyEvent event) {
+            return wrapped.dispatchKeyEvent(event);
+        }
+
+        @Override
+        public boolean dispatchKeyShortcutEvent(KeyEvent event) {
+            return wrapped.dispatchKeyShortcutEvent(event);
+        }
+
+        @Override
+        public boolean dispatchTouchEvent(MotionEvent event) {
+            if (event != null) {
+                int action = event.getActionMasked();
+                if (action == MotionEvent.ACTION_DOWN || action == MotionEvent.ACTION_UP) {
+                    recordLastTouchScreenPoint(event.getRawX(), event.getRawY());
+                }
+            }
+            return wrapped.dispatchTouchEvent(event);
+        }
+
+        @Override
+        public boolean dispatchTrackballEvent(MotionEvent event) {
+            return wrapped.dispatchTrackballEvent(event);
+        }
+
+        @Override
+        public boolean dispatchGenericMotionEvent(MotionEvent event) {
+            return wrapped.dispatchGenericMotionEvent(event);
+        }
+
+        @Override
+        public boolean dispatchPopulateAccessibilityEvent(AccessibilityEvent event) {
+            return wrapped.dispatchPopulateAccessibilityEvent(event);
+        }
+
+        @Override
+        public View onCreatePanelView(int featureId) {
+            return wrapped.onCreatePanelView(featureId);
+        }
+
+        @Override
+        public boolean onCreatePanelMenu(int featureId, Menu menu) {
+            return wrapped.onCreatePanelMenu(featureId, menu);
+        }
+
+        @Override
+        public boolean onPreparePanel(int featureId, View view, Menu menu) {
+            return wrapped.onPreparePanel(featureId, view, menu);
+        }
+
+        @Override
+        public boolean onMenuOpened(int featureId, Menu menu) {
+            return wrapped.onMenuOpened(featureId, menu);
+        }
+
+        @Override
+        public boolean onMenuItemSelected(int featureId, MenuItem item) {
+            return wrapped.onMenuItemSelected(featureId, item);
+        }
+
+        @Override
+        public void onWindowAttributesChanged(WindowManager.LayoutParams attrs) {
+            wrapped.onWindowAttributesChanged(attrs);
+        }
+
+        @Override
+        public void onContentChanged() {
+            wrapped.onContentChanged();
+        }
+
+        @Override
+        public void onWindowFocusChanged(boolean hasFocus) {
+            wrapped.onWindowFocusChanged(hasFocus);
+        }
+
+        @Override
+        public void onAttachedToWindow() {
+            wrapped.onAttachedToWindow();
+        }
+
+        @Override
+        public void onDetachedFromWindow() {
+            wrapped.onDetachedFromWindow();
+        }
+
+        @Override
+        public void onPanelClosed(int featureId, Menu menu) {
+            wrapped.onPanelClosed(featureId, menu);
+        }
+
+        @Override
+        public boolean onSearchRequested() {
+            return wrapped.onSearchRequested();
+        }
+
+        @Override
+        public boolean onSearchRequested(SearchEvent searchEvent) {
+            return wrapped.onSearchRequested(searchEvent);
+        }
+
+        @Override
+        public ActionMode onWindowStartingActionMode(ActionMode.Callback callback) {
+            return wrapped.onWindowStartingActionMode(callback);
+        }
+
+        @Override
+        public ActionMode onWindowStartingActionMode(ActionMode.Callback callback, int type) {
+            return wrapped.onWindowStartingActionMode(callback, type);
+        }
+
+        @Override
+        public void onActionModeStarted(ActionMode mode) {
+            wrapped.onActionModeStarted(mode);
+        }
+
+        @Override
+        public void onActionModeFinished(ActionMode mode) {
+            wrapped.onActionModeFinished(mode);
+        }
+
+        @Override
+        public void onProvideKeyboardShortcuts(List<KeyboardShortcutGroup> data, Menu menu, int deviceId) {
+            wrapped.onProvideKeyboardShortcuts(data, menu, deviceId);
+        }
+
+        @Override
+        public void onPointerCaptureChanged(boolean hasCapture) {
+            wrapped.onPointerCaptureChanged(hasCapture);
+        }
+    }
+
     public static void applyActivityTheme(Activity activity) {
         if (activity == null || !MaterialYouConfig.isMaterialYouEnabled()) {
             return;
@@ -3141,6 +3337,7 @@ public final class MaterialYouColorEngine {
             if (window == null) {
                 return;
             }
+            installTouchTracker(window);
             int bg = getSurfaceBase();
             applyWindowSurface(window, bg);
             final View decor = window.getDecorView();
@@ -3160,6 +3357,30 @@ public final class MaterialYouColorEngine {
                     .attachToActivity(activity);
             dev.materialtidal.extension.tidal.navbar.ExpressiveProgressiveBlurOverlayView
                     .invalidateActive();
+        } catch (Throwable ignored) {
+        }
+    }
+
+    /**
+     * Invalidates cached Monet palettes, re-syncs Wave 2 and active Activity surfaces, and
+     * refreshes any live expressive navbar, mini-player, or full-player views after an in-app
+     * patch setting changes.
+     */
+    public static void refreshAfterConfigChange(Activity activity) {
+        try {
+            invalidatePaletteCache();
+            syncWave2IfActive();
+            if (activity != null && !activity.isFinishing() && !activity.isDestroyed()) {
+                applyActivityTheme(activity);
+            }
+        } catch (Throwable ignored) {
+        }
+        try {
+            dev.materialtidal.extension.tidal.navbar.ExpressiveScaffoldBridge.refreshActiveViews();
+        } catch (Throwable ignored) {
+        }
+        try {
+            dev.materialtidal.extension.tidal.player.ExpressivePlayerBridge.refreshActivePlayer();
         } catch (Throwable ignored) {
         }
     }

@@ -13,6 +13,7 @@ Every patch is on by default except GmsCore support. Morphe Manager groups them 
 | Premium | Premium unlock | Unlocks premium on your phone: no ads and every premium feature. The patched app also opens normally instead of closing on Google Play's license check, and the ad SDK never starts. |
 | Premium | Fix song playback | Makes songs play. A patched app is signed with a different key, which the server rejects when it hands out the encrypted song, so without this every song hangs on "loading". |
 | Privacy | Disable analytics | Stops Adjust and TikTok from tracking installs and in-app events, and turns off Firebase Analytics, Crashlytics, Performance and Sessions. |
+| Theme | Themed icon | Adds the themed (monochrome) app icon of Android 13 and later, which follows the wallpaper colors. |
 
 ## How the unlock works
 

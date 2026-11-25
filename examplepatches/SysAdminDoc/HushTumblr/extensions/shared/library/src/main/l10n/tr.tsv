@@ -256,6 +256,25 @@ Hide gift purchase popups	Hediye satın alma pencerelerini gizle
 Hides the pop-up suggesting you buy a gift for a blog. You can still open gifting yourself.	Bir blog için hediye satın almanızı öneren pencereyi gizler. Hediye özelliğini kendiniz açabilirsiniz.
 Line between posts	Gönderiler arasında çizgi
 Draws a thin line in the gap between posts, so it's easier to see where one ends and the next begins.	Gönderiler arasındaki boşluğa ince bir çizgi çizer, böylece birinin nerede bitip diğerinin nerede başladığı daha kolay görülür.
+# context: the Text size switch on the Interface page and the Size row under it, whose summary names a percentage of the phone's own text size, such as 115%.
+Text size	Metin boyutu
+Makes Tumblr's text bigger or smaller than your phone's font size makes it. Pick how big below.	Tumblr'ın metnini telefonunun yazı tipi boyutundan daha büyük ya da küçük yapar. Boyutu aşağıdan seç.
+Size	Boyut
+%1$s of your phone's text size. Tap to change.	Telefonunun metin boyutunun %1$s kadarı. Değiştirmek için dokun.
+Couldn't save the size. Try again.	Boyut kaydedilemedi. Tekrar dene.
+# context: the More images per post switch on the Interface page (the post editor's image limit), and the name the settings backup preview gives the Text size row's percentage.
+More images per post	Gönderi başına daha fazla görsel
+Lets you add up to 30 images to a post, as Tumblr's website does, instead of 10.	Tumblr'ın web sitesinde olduğu gibi bir gönderiye 10 yerine en fazla 30 görsel eklemeni sağlar.
+Fix hard-to-read text	Okunması zor metni düzelt
+Fits the related tags under a trending topic at bigger text sizes, where Tumblr cuts them in half, and shades the box you type in when you search a blog so the words show over a bright header.	Trend bir konunun altındaki ilgili etiketleri, Tumblr'ın yarıdan kestiği büyük metin boyutlarında sığdırır ve bir blogda arama yaparken yazdığın kutuya zemin ekler, böylece yazı açık renkli bir başlığın üzerinde de okunur.
+Dark search bar and Follow button	Koyu arama çubuğu ve Takip et düğmesi
+Dark search bar	Koyu arama çubuğu
+Turns the white search bar on Explore dark.	Keşfet'teki beyaz arama çubuğunu koyu yapar.
+Hide the Search Tumblr label	Tumblr'da ara yazısını gizle
+Takes the Search Tumblr text off Explore's search bar and leaves the icon.	Keşfet'in arama çubuğundan Tumblr'da ara yazısını kaldırır ve simgeyi bırakır.
+Dark Follow button on blogs	Bloglarda koyu Takip et düğmesi
+Turns the white Follow button at the top of a blog dark.	Bir blogun üstündeki beyaz Takip et düğmesini koyu yapar.
+Text size percentage	Metin boyutu yüzdesi
 App font	Uygulama yazı tipi
 Replaces Tumblr's own font with your phone's font, or a font file you choose below. Fonts a post's author picked stay as they are.	Tumblr'ın kendi yazı tipini telefonunun yazı tipiyle veya aşağıdan seçtiğin bir yazı tipi dosyasıyla değiştirir. Gönderi yazarının seçtiği yazı tipleri olduğu gibi kalır.
 Choose a font file	Yazı tipi dosyası seç
@@ -291,6 +310,9 @@ Hide suggested tags	Önerilen etiketleri gizle
 Takes the tags Tumblr suggests you follow, and their headings, out of your dashboard and other feeds.	Tumblr'ın takip etmeni önerdiği etiketleri ve başlıklarını panondan ve diğer akışlardan kaldırır.
 Hide Watch it rows	Watch it satırlarını gizle
 Takes Tumblr TV's Watch it rows and video hub cards, and their headings, out of your dashboard and other feeds.	Tumblr TV'nin Watch it satırlarını ve video kartlarını, başlıklarıyla birlikte panondan ve diğer akışlardan kaldırır.
+# context: the Hide More posts like this switch on the Interface page. More posts like this is the heading Tumblr shows over related posts under a post you open; use the words Tumblr shows in your language.
+Hide More posts like this	Buna benzer diğer gönderileri gizle
+Takes the More posts like this grid out from under a post you open, along with its heading.	Açtığın bir gönderinin altındaki Buna benzer diğer gönderiler ızgarasını başlığıyla birlikte kaldırır.
 # context: the Hide Featured posts switch on the Feed page. Featured is the header Tumblr shows over posts its own staff promote; use the word Tumblr shows in your language.
 Hide Featured posts	Öne çıkan gönderileri gizle
 Takes the posts Tumblr's staff feature under a Featured header out of your dashboard and other feeds.	Tumblr ekibinin Öne çıkanlar başlığı altında gösterdiği gönderileri panondan ve diğer akışlardan kaldırır.
@@ -407,6 +429,8 @@ Hide reblogs of your posts	Gönderilerinin yeniden bloglarını gizle
 Takes other people's reblogs of your posts out of your dashboard. Your blog and the rest of Tumblr still show them.	Başkalarının senin gönderilerinden yaptığı yeniden blogları panondan kaldırır. Blogun ve Tumblr'ın geri kalanı onları göstermeye devam eder.
 Hide liked posts	Beğenilen gönderileri gizle
 Takes the posts you've already liked out of your dashboard. Your likes and the rest of Tumblr still show them.	Zaten beğendiğin gönderileri panondan kaldırır. Beğenilerin ve Tumblr'ın geri kalanı onları göstermeye devam eder.
+Hide followed blogs in For you	Senin için sekmesinde takip edilen blogları gizle
+Takes posts from blogs you follow out of the For you tab. Following still shows them.	Takip ettiğin blogların gönderilerini Senin için sekmesinden kaldırır. Takip Edilenler onları göstermeye devam eder.
 Match current post text	Geçerli gönderi metninde eşleştir
 Match reblog trail text	Yeniden bloglama zinciri metninde eşleştir
 Match current post tags	Geçerli gönderi etiketlerinde eşleştir
@@ -516,6 +540,8 @@ Collapse long posts	Uzun gönderileri kısalt
 Cuts long posts with a Read more row, at the length below. Tap it to open the whole post.	Uzun gönderileri aşağıdaki uzunlukta Devamını oku satırıyla keser. Gönderinin tamamını açmak için ona dokun.
 # context: the Collapsed post length row under that switch: its title, the lengths a tap moves through, its summary and the note when a save fails
 Collapsed post length	Kısaltılmış gönderi uzunluğu
+About 5 lines	Yaklaşık 5 satır
+About 10 lines	Yaklaşık 10 satır
 About half a screen	Yaklaşık yarım ekran
 About a screen	Yaklaşık bir ekran
 About two screens	Yaklaşık iki ekran

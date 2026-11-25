@@ -68,7 +68,8 @@ internal val Method.loadedStrings: Set<String>
     get() {
         val instructions = implementation?.instructions?.toList() ?: return emptySet()
 
-        return instructions.indices.mapNotNullTo(mutableSetOf()) { instructions.stringAt(it) }
+        return instructions.indices.mapNotNullTo(mutableSetOf()) { instructions.stringAt(it) } +
+            instructions.sharedPoolStrings()
     }
 
 /**
@@ -104,15 +105,41 @@ private fun List<Instruction>.stringAt(index: Int): String? {
 
     if (instruction.opcode != Opcode.MOVE_RESULT_OBJECT || index < 2) return null
 
-    val call = this[index - 1] as? FiveRegisterInstruction ?: return null
-    if (call.opcode != Opcode.INVOKE_STATIC || call.registerCount != 1) return null
+    // The index must be a constant loaded into the argument right before the call; anything
+    // computed is not known until the app runs.
+    return poolString(this[index - 1], this[index - 2])
+}
+
+/**
+ * The strings of a pool call that several branches share, as R8 emits for a switch over pooled
+ * strings from 457: each branch loads its index and jumps to the one call.
+ */
+private fun List<Instruction>.sharedPoolStrings(): List<String> {
+    val addresses = IntArray(size)
+    val byAddress = mutableMapOf<Int, Instruction>()
+    var address = 0
+    forEachIndexed { index, instruction ->
+        addresses[index] = address
+        byAddress[address] = instruction
+        address += instruction.codeUnits
+    }
+
+    return (0 until size - 1).mapNotNull { index ->
+        val jump = this[index + 1]
+        if (jump.opcode != Opcode.GOTO && jump.opcode != Opcode.GOTO_16 && jump.opcode != Opcode.GOTO_32) return@mapNotNull null
+        val call = byAddress[addresses[index + 1] + (jump as OffsetInstruction).codeOffset] ?: return@mapNotNull null
+
+        poolString(call, this[index])
+    }
+}
+
+/** The string a pool [call] returns for the index [literal] loads into its argument. */
+private fun poolString(call: Instruction, literal: Instruction): String? {
+    if (call !is FiveRegisterInstruction || call.opcode != Opcode.INVOKE_STATIC || call.registerCount != 1) return null
     val method = (call as ReferenceInstruction).reference as MethodReference
     if (method.returnType != "Ljava/lang/String;" || method.parameterTypes.singleOrNull()?.toString() != "I") return null
     val pool = pools[method.id] ?: return null
 
-    // The index must be a constant loaded into the argument right before the call; anything
-    // computed is not known until the app runs.
-    val literal = this[index - 2]
     if (literal !is NarrowLiteralInstruction || (literal as OneRegisterInstruction).registerA != call.registerC) return null
 
     return pool[literal.narrowLiteral]

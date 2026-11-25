@@ -33,6 +33,7 @@ tasks {
     }
     jar {
         exclude("app/morphe/generator")
+        from(rootProject.file("NOTICE")) { into("META-INF") }
     }
     register<JavaExec>("generatePatchesList") {
         description = "Build patch with patch list"

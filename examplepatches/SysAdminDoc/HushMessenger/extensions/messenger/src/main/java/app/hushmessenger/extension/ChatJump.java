@@ -1,12 +1,20 @@
 package app.hushmessenger.extension;
 
+import android.animation.ValueAnimator;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.DatePickerDialog;
 import android.app.Dialog;
 import android.content.Context;
 import android.content.ContextWrapper;
+import android.content.SharedPreferences;
+import android.graphics.Canvas;
+import android.graphics.ColorFilter;
+import android.graphics.Paint;
+import android.graphics.Path;
+import android.graphics.PixelFormat;
 import android.graphics.Rect;
+import android.graphics.drawable.Drawable;
 import android.os.Handler;
 import android.os.Looper;
 import android.text.TextUtils;
@@ -20,6 +28,7 @@ import android.view.ViewTreeObserver;
 import android.view.Window;
 import android.view.WindowManager;
 import android.view.accessibility.AccessibilityNodeInfo;
+import android.view.animation.DecelerateInterpolator;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.FrameLayout;
@@ -59,6 +68,11 @@ import java.util.TreeSet;
  */
 public final class ChatJump {
     static final String KEY = "chat_jump";
+    /** Page up and down buttons over the chat, a switch under this one (#207). */
+    static final String PAGES = "chat_page_buttons";
+    /** How much of the list a page moves, leaving the last lines in sight so you don't lose your place. */
+    static final float PAGE_SHARE = 0.85f;
+    static final long PAGE_MS = 220;
     static final long TICK_MS = 450;
     /** Looks at the very top with the count unchanged before the chat counts as fully loaded. */
     static final int STALL_LOOKS = 8;
@@ -843,6 +857,76 @@ public final class ChatJump {
         return arrows.get(chat);
     }
 
+    /** Whether the arrow brings page buttons along: its own switch, read while the jump's is on. */
+    static boolean pagesWanted() {
+        SharedPreferences prefs = Settings.preferences;
+        return prefs != null && Settings.running() && prefs.getBoolean(PAGES, false);
+    }
+
+    /**
+     * Moves [chat]'s messages most of a screen toward older ones ([direction] -1) or newer ones (1), in one short
+     * slide. The list only answers to the View API, so the slide is a run of scrollBy calls.
+     */
+    static void page(View chat, int direction) {
+        View list = listIn(chat);
+        if (list == null || !list.canScrollVertically(direction)) return;
+        int distance = Math.max(1, Math.round(list.getHeight() * PAGE_SHARE)) * direction;
+        ValueAnimator slide = ValueAnimator.ofInt(0, distance);
+        slide.setDuration(PAGE_MS);
+        slide.setInterpolator(new DecelerateInterpolator());
+        int[] moved = {0};
+        slide.addUpdateListener(step -> {
+            try {
+                int at = (int) step.getAnimatedValue();
+                if (at != moved[0]) list.scrollBy(0, at - moved[0]);
+                moved[0] = at;
+            } catch (Throwable error) {
+                step.cancel();
+                Settings.hookFailed(KEY, "Can't turn the page", error);
+            }
+        });
+        slide.start();
+    }
+
+    /** A plain chevron pointing up or down, so the page buttons don't look like the arrow to the first message. */
+    static final class Chevron extends Drawable {
+        private final Paint paint = new Paint(Paint.ANTI_ALIAS_FLAG);
+        private final Path path = new Path();
+        final boolean up;
+
+        Chevron(int color, float width, boolean up) {
+            this.up = up;
+            paint.setColor(color);
+            paint.setStyle(Paint.Style.STROKE);
+            paint.setStrokeWidth(width);
+            paint.setStrokeCap(Paint.Cap.ROUND);
+            paint.setStrokeJoin(Paint.Join.ROUND);
+        }
+
+        @Override public void draw(Canvas canvas) {
+            Rect bounds = getBounds();
+            float x = bounds.exactCenterX(), y = bounds.exactCenterY();
+            float half = bounds.width() * 0.3f, rise = bounds.height() * 0.15f * (up ? 1 : -1);
+            path.reset();
+            path.moveTo(x - half, y + rise);
+            path.lineTo(x, y - rise);
+            path.lineTo(x + half, y + rise);
+            canvas.drawPath(path, paint);
+        }
+
+        @Override public void setAlpha(int alpha) {
+            paint.setAlpha(alpha);
+        }
+
+        @Override public void setColorFilter(ColorFilter filter) {
+            paint.setColorFilter(filter);
+        }
+
+        @Override public int getOpacity() {
+            return PixelFormat.TRANSLUCENT;
+        }
+    }
+
     /**
      * Takes [view] off [parent] once whatever is going on now is done. A window handing its children their detach
      * walks the very list our view sits in, so taking it out right there leaves a hole the walk then trips over.
@@ -864,8 +948,8 @@ public final class ChatJump {
     /**
      * A round arrow at the bottom left of a chat that goes to its first message, the other way round from
      * Messenger's own arrow down to the newest one, since a long press on the chat's name is easy to miss (#177).
-     * A long press on the arrow asks for a day instead. It's only up while the chat has older messages to go to,
-     * and it stands down while the count bar or a message's menu is on screen.
+     * A long press on the arrow asks for a day instead. It's only up once you've scrolled away from the newest messages
+     * and there are older ones to go to, and it stands down while the count bar or a message's menu is on screen.
      */
     static final class Arrow implements ViewTreeObserver.OnGlobalLayoutListener, ViewTreeObserver.OnScrollChangedListener {
         private final View chat;
@@ -874,7 +958,11 @@ public final class ChatJump {
         private ViewGroup content;
         /** How far up from the bottom the arrow sits, clearing the chat box. */
         private int above;
+        /** How far each page button sits above the one under it. */
+        private int step;
         ImageView button;
+        /** The page buttons, stacked over the arrow, or null with their switch off. */
+        ImageView pageUp, pageDown;
 
         Arrow(View chat) {
             this.chat = chat;
@@ -919,25 +1007,67 @@ public final class ChatJump {
             params.setMarginStart(ui.dp(12));
             params.bottomMargin = above;
             content.addView(button, params);
+            if (pagesWanted()) {
+                step = size + ui.dp(10);
+                pageDown = pageButton(ui, size, 1, "chat_page_down", above + step);
+                pageUp = pageButton(ui, size, -1, "chat_page_up", above + 2 * step);
+            }
             content.getViewTreeObserver().addOnGlobalLayoutListener(this);
             content.getViewTreeObserver().addOnScrollChangedListener(this);
             update();
         }
 
-        /** Whether the arrow is up and takes the touch at (x, y), which the date rows under it then leave alone. */
-        boolean holds(int x, int y) {
-            return button != null && button.getVisibility() == View.VISIBLE && contains(button, x, y);
+        private ImageView pageButton(SettingsUi ui, int size, int direction, String name, int bottom) {
+            Context context = chat.getContext();
+            ImageView view = new ImageView(context);
+            view.setImageDrawable(new Chevron(ui.text, ui.dp(5) / 2f, direction < 0));
+            view.setScaleType(ImageView.ScaleType.FIT_XY);
+            int pad = ui.dp(12);
+            view.setPadding(pad, pad, pad, pad);
+            view.setBackground(ui.interactive(ui.surface, ui.line, size / 2));
+            view.setElevation(ui.dp(3));
+            view.setContentDescription(new SettingsText(context).get(name));
+            view.setOnClickListener(tapped -> {
+                try {
+                    page(chat, direction);
+                } catch (Throwable error) {
+                    Settings.hookFailed(KEY, "Can't turn the page", error);
+                }
+            });
+            view.setVisibility(View.GONE);
+            FrameLayout.LayoutParams params = new FrameLayout.LayoutParams(size, size, Gravity.BOTTOM | Gravity.START);
+            params.setMarginStart(ui.dp(12));
+            params.bottomMargin = bottom;
+            content.addView(view, params);
+            return view;
         }
 
-        /** Up while the chat is on screen with older messages to go to, down while a jump holds the bar. */
+        /** Whether the arrow is up and takes the touch at (x, y), which the date rows under it then leave alone. */
+        boolean holds(int x, int y) {
+            return up(button, x, y) || up(pageUp, x, y) || up(pageDown, x, y);
+        }
+
+        private boolean up(View view, int x, int y) {
+            return view != null && view.getVisibility() == View.VISIBLE && contains(view, x, y);
+        }
+
+        /** Up on a chat scrolled away from its newest messages with older ones to go to, down while a jump holds the bar. */
         void update() {
             if (button == null || content == null) return;
             View list = chat.isShown() ? listIn(chat) : null;
             Jump jump = running;
-            boolean up = list != null && list.canScrollVertically(-1) && (jump == null || jump.chat != chat)
-                && !InChatMenu.isUp(button);
+            boolean free = list != null && (jump == null || jump.chat != chat) && !InChatMenu.isUp(button);
+            boolean up = free && list.canScrollVertically(-1) && list.canScrollVertically(1);
+            raise(button, up);
+            // Each page button stays up while its way has more to show, so the pair works from the newest message too.
+            raise(pageUp, free && list.canScrollVertically(-1));
+            raise(pageDown, free && list.canScrollVertically(1));
+        }
+
+        private static void raise(View view, boolean up) {
+            if (view == null) return;
             int wanted = up ? View.VISIBLE : View.GONE;
-            if (button.getVisibility() != wanted) button.setVisibility(wanted);
+            if (view.getVisibility() != wanted) view.setVisibility(wanted);
         }
 
         @Override public void onScrollChanged() {
@@ -949,12 +1079,19 @@ public final class ChatJump {
             content.getWindowVisibleDisplayFrame(visible);
             content.getLocationOnScreen(where);
             int covered = Math.max(0, where[1] + content.getHeight() - visible.bottom);
-            FrameLayout.LayoutParams params = (FrameLayout.LayoutParams) button.getLayoutParams();
-            if (params.bottomMargin != covered + above) {
-                params.bottomMargin = covered + above;
-                button.setLayoutParams(params);
-            }
+            place(button, covered + above);
+            place(pageDown, covered + above + step);
+            place(pageUp, covered + above + 2 * step);
             update();
+        }
+
+        private static void place(View view, int bottom) {
+            if (view == null) return;
+            FrameLayout.LayoutParams params = (FrameLayout.LayoutParams) view.getLayoutParams();
+            if (params.bottomMargin != bottom) {
+                params.bottomMargin = bottom;
+                view.setLayoutParams(params);
+            }
         }
 
         void hide() {
@@ -962,8 +1099,12 @@ public final class ChatJump {
             content.getViewTreeObserver().removeOnGlobalLayoutListener(this);
             content.getViewTreeObserver().removeOnScrollChangedListener(this);
             takeOut(content, button);
+            takeOut(content, pageUp);
+            takeOut(content, pageDown);
             content = null;
             button = null;
+            pageUp = null;
+            pageDown = null;
         }
     }
 

@@ -166,11 +166,27 @@ public final class MorphedHttpClient implements HttpClient {
                     callback.onResponse(response);
                     return;
                 }
+                // When the server answered, apart from when its body was in: a slow server or connection
+                // shows in the first, a slow download in the second.
+                long headers = SystemClock.elapsedRealtime();
+                try {
+                    readBody(response, request, callback, url, start, headers, unlock, inspect, opened);
+                } catch (Throwable t) {
+                    // Unanswered, the player would wait out its 10 second timeout.
+                    logRequest(url, start, -1, t instanceof Exception ? (Exception) t : new RuntimeException(t));
+                    callback.onError(t instanceof Exception ? (Exception) t : new RuntimeException(t));
+                }
+            }
+        });
+    }
+
+    private static void readBody(Response response, Request request, ResponseCallback callback, String url, long start,
+                                 long headers, boolean unlock, boolean inspect, boolean opened) {
                 response.readContent(new BodyCollector(request) {
                     @Override
                     void onBody(byte[] body) {
                         long downloaded = SystemClock.elapsedRealtime();
-                        EXECUTOR.execute(() -> deliver(request, response, callback, url, body, start, downloaded,
+                        EXECUTOR.execute(() -> deliver(request, response, callback, url, body, start, headers, downloaded,
                                 unlock, inspect, opened));
                     }
 
@@ -180,8 +196,6 @@ public final class MorphedHttpClient implements HttpClient {
                         callback.onError(exception);
                     }
                 });
-            }
-        });
     }
 
     private static final Pattern VOD = Pattern.compile("usher\\.ttvnw\\.net/vod/(?:v2/)?(\\d+)");
@@ -260,7 +274,7 @@ public final class MorphedHttpClient implements HttpClient {
                     response.setHeader(name, header.getValue());
                 }
                 response.setHeader("Content-Length", String.valueOf(body.length));
-                response.setConsumer(null, new BytesConsumer(request, body));
+                response.setConsumer(EXECUTOR, new BytesConsumer(request, body)); // (as the player's own clients: never inline)
                 callback.onResponse(response);
             } catch (Throwable t) {
                 Log.e(App.TAG, "Answering a tunneled request failed", t);
@@ -275,7 +289,8 @@ public final class MorphedHttpClient implements HttpClient {
     }
 
     private static void deliver(Request request, Response response, ResponseCallback callback, String url,
-                                byte[] body, long start, long downloaded, boolean unlock, boolean inspect, boolean opened) {
+                                byte[] body, long start, long headers, long downloaded, boolean unlock, boolean inspect,
+                                boolean opened) {
         // The player may have given up on this request (left the stream, switched quality, timed out).
         if (request.isCancelled()) {
             if (DebugLog.isOn()) DebugLog.log("Playlist " + UrlKey.of(url) + " cancelled before processing");
@@ -302,7 +317,7 @@ public final class MorphedHttpClient implements HttpClient {
                 StreamAdsPatch.deliveryFailed(url, t);
             } catch (Throwable reportFailed) {
                 // The playlist must still be answered below, or the player waits for its timeout.
-                Log.e(App.TAG, "Playlist processing failed for " + url, t);
+                Log.e(App.TAG, "Playlist processing failed for " + UrlKey.of(url), t);
             }
         }
         // Same rule as IVS's own callbacks: the native side is only called under the request lock and
@@ -317,7 +332,9 @@ public final class MorphedHttpClient implements HttpClient {
                 if (response.getHeader("Content-Length") != null) {
                     response.setHeader("Content-Length", String.valueOf(output.length));
                 }
-                response.setConsumer(null, new BytesConsumer(request, output));
+                // Handed over as the player's own clients do it, on a thread of its own: without one, readContent
+                // would run the player's read callback inside the player's own call, which it never does otherwise.
+                response.setConsumer(EXECUTOR, new BytesConsumer(request, output));
                 answered = true;
                 callback.onResponse(response);
             } catch (Throwable t) {
@@ -325,7 +342,7 @@ public final class MorphedHttpClient implements HttpClient {
                 try {
                     StreamAdsPatch.deliveryFailed(url, t);
                 } catch (Throwable reportFailed) {
-                    Log.e(App.TAG, "Playlist delivery failed for " + url, t);
+                    Log.e(App.TAG, "Playlist delivery failed for " + UrlKey.of(url), t);
                 }
                 if (!answered) callback.onError(t instanceof Exception ? (Exception) t : new RuntimeException(t));
                 return;
@@ -335,7 +352,8 @@ public final class MorphedHttpClient implements HttpClient {
         if (DebugLog.isOn()) {
             long end = SystemClock.elapsedRealtime();
             RequestStats.record(end - start, true);
-            DebugLog.log("Playlist " + UrlKey.of(url) + " -> 200, download " + (downloaded - start) + "ms, waited "
+            DebugLog.log("Playlist " + UrlKey.of(url) + " -> 200, answered in " + (headers - start) + "ms, body in "
+                    + (downloaded - headers) + "ms, waited "
                     + (processingStart - downloaded) + "ms, processing " + (end - processingStart) + "ms, "
                     + body.length + " -> " + output.length + " bytes" + (output == body ? "" : " (rewritten)"));
         }

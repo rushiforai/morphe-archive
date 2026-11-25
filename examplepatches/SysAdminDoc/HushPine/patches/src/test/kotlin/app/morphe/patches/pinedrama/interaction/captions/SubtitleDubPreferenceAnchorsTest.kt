@@ -235,6 +235,15 @@ class SubtitleDubPreferenceAnchorsTest {
         assertTrue("nothing overwrites the shown track first: $written", written.isEmpty())
     }
 
+    @Test
+    fun `a video's audio getter hands back one register that isn't the video's`() = forEachBuild { classes, _ ->
+        val getter = audioGetter(classes.getValue(AWEME_TYPE).methods)
+        val site = audioReturnSite(getter)
+        val video = getter.implementation!!.registerCount - 1
+        assertTrue("the audio is in v${site.audio}, not the video's register", site.audio != video)
+        assertEquals("the last instruction hands the audio back", code(getter).lastIndex, site.at)
+    }
+
     private companion object {
         const val FINAL_OR_PRIVATE = 0x10 or 0x2
     }

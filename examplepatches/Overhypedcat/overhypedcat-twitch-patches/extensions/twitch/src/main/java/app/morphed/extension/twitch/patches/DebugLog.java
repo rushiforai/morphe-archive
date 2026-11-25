@@ -185,7 +185,12 @@ public final class DebugLog {
         }
         Context context = AdBreakIndicator.currentApplication();
         if (context != null) preferences(context).edit().putBoolean(KEY_ENABLED, false).apply();
-        tell(what + ": " + e.getMessage());
+        tell(what + ": " + app.morphed.extension.twitch.Messages.of(e));
+        // Off everywhere it shows: no log window left up, the Settings row saying Off.
+        app.morphed.extension.twitch.App.onMain(() -> {
+            app.morphed.extension.twitch.ui.LogWindow.hide();
+            app.morphed.extension.twitch.ui.Screens.refreshSettingsRows();
+        });
     }
 
     /** A short message on screen; the log's own failures cannot go into the log. */

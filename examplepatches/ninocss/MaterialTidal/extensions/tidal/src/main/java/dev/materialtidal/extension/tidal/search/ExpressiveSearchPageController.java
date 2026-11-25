@@ -3,7 +3,6 @@ package dev.materialtidal.extension.tidal.search;
 import android.content.Context;
 import android.content.res.ColorStateList;
 import android.graphics.Canvas;
-import android.graphics.Paint;
 import android.graphics.RecordingCanvas;
 import android.os.SystemClock;
 import android.view.View;
@@ -329,7 +328,7 @@ final class ExpressiveSearchPageController {
                 0f, ExpressiveMediaStyleKit.dpf(density, 28f), (float) scrollY);
         if (Math.abs(frac - currentScrollFrac) > 0.01f) {
             currentScrollFrac = frac;
-            headerGlassView.updateAppearance(frac, palette.surfaceContainer);
+            headerGlassView.updateAppearance(frac, palette.surfaceBase);
         }
     }
 
@@ -363,16 +362,18 @@ final class ExpressiveSearchPageController {
      */
     private static final class SearchHeaderGlassView extends View {
 
+        private static final float[] TIER_RADII_DP = new float[]{4f, 11f, 24f, 44f};
+        private static final float[] TIER_STARTS = new float[]{0.00f, 0.24f, 0.50f, 0.72f};
+
         private final MultiTierProgressiveBlurRenderer renderer =
                 new MultiTierProgressiveBlurRenderer("searchHeaderBlur");
-        private final Paint borderPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
-        private final Paint fallbackPaint = new Paint();
         private final float density;
 
         private ViewGroup backdropRoot;
         private int headerHeightPx = 1;
         private float scrollFraction = 0f;
         private int tintBaseColor;
+        private boolean lastLightMode;
         private boolean waitingForOwnDraw = false;
         private long lastInvalidateUptime = 0L;
         private boolean listenersAttached = false;
@@ -399,7 +400,8 @@ final class ExpressiveSearchPageController {
         SearchHeaderGlassView(Context context) {
             super(context);
             this.density = context.getResources().getDisplayMetrics().density;
-            this.tintBaseColor = MaterialYouColorEngine.getSurfaceContainer();
+            this.tintBaseColor = MaterialYouColorEngine.getSurfaceBase();
+            this.lastLightMode = MaterialYouColorEngine.isLightMode(context);
             setWillNotDraw(false);
             setForceDarkAllowed(false);
             setClickable(false);
@@ -407,8 +409,6 @@ final class ExpressiveSearchPageController {
             setFocusableInTouchMode(false);
             setImportantForAccessibility(IMPORTANT_FOR_ACCESSIBILITY_NO);
             setVisibility(GONE);
-            borderPaint.setStyle(Paint.Style.STROKE);
-            borderPaint.setStrokeWidth(Math.max(1f, 0.75f * density));
         }
 
         void attach(ViewGroup root, View searchAnchor, View filterAnchor) {
@@ -432,8 +432,10 @@ final class ExpressiveSearchPageController {
 
         void updateAppearance(float frac, int tintColor) {
             float clamped = ExpressiveMediaStyleKit.clamp01(frac);
+            boolean lightMode = MaterialYouColorEngine.isLightMode(getContext());
             boolean changed = Math.abs(this.scrollFraction - clamped) > 0.01f
-                    || this.tintBaseColor != tintColor;
+                    || this.tintBaseColor != tintColor
+                    || this.lastLightMode != lightMode;
             this.scrollFraction = clamped;
             this.tintBaseColor = tintColor;
 
@@ -448,16 +450,17 @@ final class ExpressiveSearchPageController {
         }
 
         private void configureRenderer() {
-            float[] radii = new float[]{24f, 14f, 6f};
-            float[] starts = new float[]{0.00f, 0.55f, 0.82f};
+            boolean lightMode = MaterialYouColorEngine.isLightMode(getContext());
+            lastLightMode = lightMode;
+            int veilBase = MaterialYouColorEngine.getSurfaceBase();
             renderer.configure(
                     MultiTierProgressiveBlurRenderer.DIR_TOP_DOWN,
-                    0.04f,
-                    radii,
-                    starts,
-                    tintBaseColor,
-                    0.18f,
-                    0.78f * scrollFraction);
+                    0.05f,
+                    TIER_RADII_DP,
+                    TIER_STARTS,
+                    veilBase,
+                    0.16f,
+                    (lightMode ? 0.72f : 0.60f) * scrollFraction);
         }
 
         @Override
@@ -472,11 +475,15 @@ final class ExpressiveSearchPageController {
                 if (w <= 0 || h <= 0) {
                     return;
                 }
+                boolean lightMode = MaterialYouColorEngine.isLightMode(getContext());
+                if (lightMode != lastLightMode) {
+                    configureRenderer();
+                }
+                float bleedPx = 24f * density;
                 boolean allowBlur = renderer.canUseHardwareBlur(canvas)
                         && !MaterialYouColorEngine.isEffectiveAmoledBlack()
                         && !ExpressiveBlurKit.CAPTURING_BACKDROP;
                 if (allowBlur) {
-                    float bleedPx = 14f * density;
                     RecordingCanvas rc = renderer.beginBackdropCapture(
                             w, h, bleedPx, 0.5f, MaterialYouColorEngine.getSurfaceBase());
                     if (rc != null) {
@@ -507,23 +514,13 @@ final class ExpressiveSearchPageController {
                             renderer.endBackdropCapture(density);
                         }
                     }
-                    int layerAlpha = Math.max(0, Math.min(255, Math.round(255f * scrollFraction)));
-                    canvas.saveLayerAlpha(0f, 0f, w, h, layerAlpha);
-                    renderer.draw(canvas, w, h, bleedPx);
-                    canvas.restore();
-                } else {
-                    fallbackPaint.setColor(MaterialYouColorEngine.withAlpha(
-                            MaterialYouColorEngine.getSurfaceBase(),
-                            Math.round(232f * scrollFraction)));
-                    canvas.drawRect(0f, 0f, w, h, fallbackPaint);
                 }
-
-                int hairAlpha = Math.round(28f * scrollFraction);
-                if (hairAlpha > 2) {
-                    borderPaint.setColor(MaterialYouColorEngine.withAlpha(
-                            MaterialYouColorEngine.getOutlineVariant(), hairAlpha));
-                    float y = h - Math.max(0.5f, 0.5f * density);
-                    canvas.drawLine(0f, y, w, y, borderPaint);
+                int layerAlpha = Math.max(0, Math.min(255, Math.round(255f * scrollFraction)));
+                int sc = canvas.saveLayerAlpha(0f, 0f, w, h, layerAlpha);
+                try {
+                    renderer.draw(canvas, w, h, bleedPx);
+                } finally {
+                    canvas.restoreToCount(sc);
                 }
             } catch (Throwable ignored) {
             }

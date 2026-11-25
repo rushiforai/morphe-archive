@@ -1,7 +1,7 @@
 ![Hushfeed. Take back your feed with focused controls for filtering, gestures, playback, downloads and privacy.](assets/readme-hero.png)
 
 <p align="center">
-  <a href="CHANGELOG.md"><img alt="version" src="https://img.shields.io/badge/version-0.84.0-6f42c1.svg" /></a>
+  <a href="CHANGELOG.md"><img alt="version" src="https://img.shields.io/badge/version-0.85.0-6f42c1.svg" /></a>
   <a href="LICENSE"><img alt="license" src="https://img.shields.io/badge/license-GPLv3-blue.svg" /></a>
   <a href="https://www.android.com/"><img alt="platform" src="https://img.shields.io/badge/platform-Android-3ddc84.svg" /></a>
   <a href="https://github.com/MorpheApp/morphe-manager"><img alt="Morphe" src="https://img.shields.io/badge/works%20with-Morphe-00b894.svg" /></a>
@@ -44,7 +44,7 @@ The main branch contains 156 patches, v0.84.0's set plus `Fix notifications on O
 - **Privacy:** Turn off supported telemetry, hide that you viewed a story or that you're typing, keep videos out of Watch history and put TikTok behind your fingerprint or PIN.
 - **Screen time:** Set a daily budget in videos or minutes with a hold when it runs out, or lock the feed and keep TikTok for messages.
 
-The settings screen comes in English, German, Spanish, Italian, Indonesian, Brazilian Portuguese, Russian, Turkish, Azerbaijani, Vietnamese, Thai, Simplified Chinese and Arabic. It follows the language TikTok runs in. Simplified Chinese and Arabic are first passes, so corrections are welcome.
+The settings screen comes in English, German, Spanish, Italian, Indonesian, Brazilian Portuguese, Russian, Turkish, Azerbaijani, Vietnamese, Thai, Simplified Chinese, Arabic and Bulgarian. It follows the language TikTok runs in. Simplified Chinese, Arabic and Bulgarian are first passes, so corrections are welcome.
 
 The block, hide, sound and Not interested buttons Hushfeed can put on a video:
 
@@ -89,7 +89,7 @@ The status chip next to the Hushfeed title scrolls down to the full status card.
 - **Diagnostics** exports a report you can attach to a bug, and the report stays on your phone until you share it. Its **Hook status** row says whether the hooks found what they need in your TikTok build. It hears from comments, comment translation, the inbox, the share sheet, the feed overlay, the bottom navigation and the story viewer, feed models, playback quality, sensitive warnings, CAPTCHA account state, the external browser, sticker saves and story saves. A switch can read on while its hook found nothing, and this row is how you'd know.
 
 Exported diagnostics have a PUSH DELIVERY section. Its counters cover stages observed in the current process. Zero means unobserved. During timed capture, actual notification attempts also record Android permission and channel state. Native registration tracing covers global TikTok 47.7.2, and any other build marks it unsupported. Shared upload counters cover all transports, and cache hits aren't fresh server acknowledgments. Tokens and message contents stay out of the report.
-- **Feature Gate Lab** changes values TikTok reads for its own features. Its reviewed presets show each value before you apply it, and Undo last Lab change puts the old ones back. A gate outside those presets can break sign-in or the feed, so leave it alone unless you know what it does.
+- **Feature Gate Lab** changes values TikTok reads for its own features. Its reviewed presets show each value before you apply it, and Undo last Lab change puts the old ones back. A gate outside those presets can break sign-in or the feed, so leave it alone unless you know what it does. Gates tied to what TikTok sells (subscriptions, LIVE gifts, coins, paid series) aren't in the Lab at all.
 
 Unreleased settings use flat rows with the same controls in dark and light mode.
 
@@ -140,7 +140,7 @@ Simple mode in Morphe Manager selects 137 of these patches. Each row says what t
 |---|---|
 | `Accent color` | Swaps the red of TikTok's main buttons and red text for blue, green, purple, orange, teal or a color code you type in this patch's options, or for the color of the phone's wallpaper theme on Android 12 and up. Unread dots and counts change with it. Warnings stay red, and so can icons with the red drawn in. The feed's like heart and save bookmark can take colors of their own. It's built in while patching, so only patching again without it undoes it. |
 | `Account cleanup` | Adds Remove all reposts, Remove all likes, Clear Favorites, Remove all comments, Remove selected comments and Unfollow accounts that don't follow you back to Hushfeed settings > Privacy. Each one takes items off your account one at a time through TikTok's own requests, with a pause between them, and stops on the first error. A switch there also lets one tap remove a video from your own Liked videos, Favorites or Reposts. |
-| `Advanced downloads` | Adds more ways to save: pick the video quality, save full-size photos, the sound on its own or a photo post as one video, hold a profile picture or story to save it, save a story, a video's cover or a mini drama's episodes from the share sheet, put a save button on the video, and pick videos on a profile grid to save in one run. Starts off. Turn it on in Hushfeed settings > Downloads. The save button's switch is in Feed screen > Buttons on videos. |
+| `Advanced downloads` | Adds more ways to save: pick the video quality, save full-size photos, the sound on its own or a photo post as one video, hold a profile picture or story to save it, save a story, a video's cover or a mini drama's episodes from the share sheet, put a save button on the video, and pick videos on a profile grid to save in one run (or delete your own picked posts). Starts off. Turn it on in Hushfeed settings > Downloads. The save button's switch is in Feed screen > Buttons on videos. |
 | `Allow Duet and Stitch` | Shows the Duet and Stitch buttons on videos whose creator turned them off, so you can still make one, and Add to Story in the share sheet and on stories when the creator turned off content reuse. TikTok may still refuse some videos or the upload. Starts off. Turn it on in Hushfeed settings > Share sheet. |
 | `Allow screenshots and Circle to Search` | Lets screenshots, screen recordings and Circle to Search work on TikTok screens that would otherwise come out black. Starts off. Turn it on in Hushfeed settings > App, then restart TikTok. |
 | `Always show publish date` | Shows the date a video was posted next to the creator's name, so you can tell how old it is. It can also show the exact time, dates and lengths on profile grids, hide the view counts there, sort the videos a grid has loaded, start your Liked grid at a year or month you pick, or add a drag handle and jump buttons to long grids. On by default. Turn it off in Hushfeed settings > Feed screen. |
@@ -227,7 +227,7 @@ Simple mode in Morphe Manager selects 137 of these patches. Each row says what t
 | `Keep the screen's refresh rate` | Stops TikTok slowing your screen down to the video's frame rate, so scrolling stays smooth on 90 or 120 Hz phones. TikTok doesn't ask on every phone, and where it doesn't, this changes nothing. Starts off. Turn it on in Hushfeed settings > App. |
 | `Lift text length limits` | Lets you write longer comments, repost notes and bios than the app normally allows. TikTok can still refuse one that's too long. Starts off. Turn it on in Hushfeed settings > Comments. |
 | `Limit background traffic` | Lets you stop TikTok loading upcoming videos ahead of time, which uses less data in the background, but videos may take a moment longer to start. Starts off. Turn it on in Hushfeed settings > App. |
-| `LIVE controls` | Stops a LIVE in the feed from opening by itself after a countdown. It can show a LIVE's exact viewer count and battle scores instead of rounded ones, offer a quality choice and clear screen in more LIVE rooms, keep clear screen on as you swipe to the next room, and keep your quality pick after TikTok restarts (on by itself once the quality choice is). Starts off. Turn it on in Hushfeed settings > Playback. It also keeps a LIVE in the feed from showing the Service+ row of the LIVE before it (or hides that row altogether), can hide the AI summary on LIVE previews, and can add a Record button to a LIVE room that saves what you watch from when you tap it. |
+| `LIVE controls` | Stops a LIVE in the feed from opening by itself after a countdown. It can show a LIVE's exact viewer count and battle scores instead of rounded ones, offer a quality choice and clear screen in more LIVE rooms, keep clear screen on as you swipe to the next room, keep your quality pick after TikTok restarts (on by itself once the quality choice is), and line up the LIVEs you swipe to after one from the Following row in that row's order. Starts off. Turn it on in Hushfeed settings > Playback. It also keeps a LIVE in the feed from showing the Service+ row of the LIVE before it (or hides that row altogether), can hide the AI summary on LIVE previews, and can add a Record button to a LIVE room that saves what you watch from when you tap it. |
 | `Load all saved stickers` | Loads every sticker you saved in one go when you open the sticker panel, instead of the first 100. Works as soon as you patch it in, with no switch. |
 | `Location access governor` | Gives TikTok no location when it asks, so it can't see where you are from your phone's location services. Starts off. Turn it on in Hushfeed settings > Privacy. |
 | `Long-press controls` | Lets a long press on a video like it, open the comments, copy the link, save the video, its sound or the frame on screen, name the song with Shazam, or set a sleep timer, and can give a creator's videos For You's full long-press menu. Starts off. Pick an action in Hushfeed settings > Feed screen. |
@@ -293,7 +293,7 @@ Simple mode in Morphe Manager selects 137 of these patches. Each row says what t
 | `Turn profiles and comment pictures on tablets` | On a tablet where TikTok lets its main screen turn, a profile opened from search and a comment's picture turn with it instead of flipping the screen to portrait. Works as soon as you patch it in, with no switch. |
 | `UI scale` | Makes TikTok's whole interface smaller, text and buttons alike, so more fits on screen. Starts at 100%, which changes nothing. Pick a size in Hushfeed settings > App, then restart TikTok. |
 | `Use non-personalized search` | Shows search results that aren't tailored to your account. Starts off. Turn it on in Hushfeed settings > App. |
-| `Use system font` | Shows TikTok's text in your phone's own font or in a .ttf or .otf font file you import, instead of TikTok's, and can use your phone's emoji too. Starts off. Turn it on in Hushfeed settings > App, then restart TikTok. |
+| `Use system font` | Shows TikTok's text in your phone's own font, in one of 26 fonts that come with Hushfeed or in a .ttf or .otf font file you import, instead of TikTok's, and can use your phone's emoji too. Starts off. Turn it on in Hushfeed settings > App, then restart TikTok. |
 
 Unreleased builds keep a profile grid's sort menu available after you choose Original order.
 
@@ -466,6 +466,7 @@ Hushfeed stands on a lot of other people's work, and the licence asks that this 
 - [@oscski](https://github.com/oscski) for `Disable the long press repost`.
 - [@inxomnyaa](https://github.com/inxomnyaa) for `Smaller text sizes`, `UI scale` and the home top bar hook in `Hide the Tako bubble`.
 - [marin-m/SongRec](https://github.com/marin-m/SongRec) for the Shazam fingerprint behind `Identify the song with Shazam`, ported to Java from its Rust code.
+- [Google Fonts](https://github.com/google/fonts) for the 26 fonts behind `Pick a built-in font`. They're under the SIL Open Font License 1.1, apart from Permanent Marker and Special Elite (Apache License 2.0).
 - The [Morphe](https://github.com/MorpheApp) team for the patcher, the manager and the patches template.
 
 Files that came from another project keep their original notices, and files written here say so in their header. A test holds every source file the bundle ships to having one, so a file cannot arrive without saying where it came from.

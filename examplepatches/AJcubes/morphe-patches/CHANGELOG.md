@@ -1,3 +1,9 @@
+## [1.10.0](https://github.com/AJcubes/morphe-patches/compare/v1.9.0...v1.10.0) (2026-11-24)
+
+### ✨ New Features
+
+* bump up Macrodroid version to 6.2.6 ([bda6fe7](https://github.com/AJcubes/morphe-patches/commit/bda6fe75bd508de3ee24f8ee460362469f19fc2d))
+
 ## [1.9.0](https://github.com/AJcubes/morphe-patches/compare/v1.8.0...v1.9.0) (2026-11-21)
 
 ### ✨ New Features

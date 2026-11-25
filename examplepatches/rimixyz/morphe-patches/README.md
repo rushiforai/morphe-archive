@@ -38,7 +38,26 @@ Click the button below to add this source directly in **Morphe Manager**, or pas
 ## 🩹 Patches
 
 <!-- PATCHES_START -->
-> **[v1.6.6](https://github.com/rimixyz/morphe-patches/releases/tag/v1.6.6)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;21 patches total
+> **[v1.7.0](https://github.com/rimixyz/morphe-patches/releases/tag/v1.7.0)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;24 patches total
+<details>
+<summary>📦 HabitNow&nbsp;&nbsp;•&nbsp;&nbsp;3 patches</summary>
+<br>
+
+**Package name:** `com.habitnow`
+
+**🎯 Supported versions:**
+
+| 2.5.5 |
+| :---: |
+
+| 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
+|----------|----------------|-----------|
+| [Bypass PairIP protection](#bypass-pairip-protection) | Restores the obfuscated runtime values and disables the PairIP virtual machine. |  |
+| [Disable analytics and tracking](#disable-analytics-and-tracking) | Disables Firebase Analytics and Crashlytics collection and removes advertising ID permissions. |  |
+| [Unlock premium](#unlock-premium) | Grants the local premium state the app reads for its paid features. |  |
+
+</details>
+
 <details>
 <summary>📦 New Star Soccer&nbsp;&nbsp;•&nbsp;&nbsp;11 patches</summary>
 <br>

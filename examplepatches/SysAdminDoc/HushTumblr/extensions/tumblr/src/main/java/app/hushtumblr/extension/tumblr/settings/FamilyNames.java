@@ -59,6 +59,11 @@ public final class FamilyNames {
     public static final String HIDE_SUGGESTED_COMMUNITIES = "Hide suggested communities";
     public static final String HIDE_SUGGESTED_TAGS = "Hide suggested tags";
     public static final String HIDE_WATCH_IT_ROWS = "Hide Watch it rows";
+    public static final String HIDE_MORE_POSTS_LIKE_THIS = "Hide More posts like this";
+    public static final String TEXT_SIZE = "Text size";
+    public static final String MORE_IMAGES_PER_POST = "More images per post";
+    public static final String FIX_HARD_TO_READ_TEXT = "Fix hard-to-read text";
+    public static final String DARK_SEARCH_BAR_AND_FOLLOW = "Dark search bar and Follow button";
     public static final String HIDE_FEATURED_POSTS = "Hide Featured posts";
     public static final String HIDE_HASHTAGS = "Hide hashtags";
     public static final String HIDE_FOLLOW_BUTTON = "Hide the Follow button";
@@ -75,6 +80,7 @@ public final class FamilyNames {
     public static final String HIDE_OWN_REBLOGS = "Hide your own reblogs";
     public static final String HIDE_REBLOGS_OF_YOURS = "Hide reblogs of your posts";
     public static final String HIDE_LIKED_POSTS = "Hide liked posts";
+    public static final String HIDE_FOLLOWED_IN_FOR_YOU = "Hide followed blogs in For you";
     public static final String HIDE_VIDEO_POSTS = "Hide video posts";
     public static final String HIDE_PHOTO_POSTS = "Hide photo posts";
     public static final String HIDE_TEXT_POSTS = "Hide text posts";

@@ -1,6 +1,5 @@
 {
   "name": "Kalorické Tabulky",
-  "workflow": "emulator-kaloricke-tabulky.yml",
   "patches": "patches/src/main/kotlin/app/jofslash/patches/kaloricketabulky",
   "extension": "extensions/kaloricketabulky",
   "docs": "docs/kaloricke-tabulky/README.md",

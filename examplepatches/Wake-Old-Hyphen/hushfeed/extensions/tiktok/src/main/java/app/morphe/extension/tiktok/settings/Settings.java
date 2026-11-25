@@ -254,6 +254,9 @@ public class Settings extends BaseSettings {
             Setting.parentsAny(SAVE_STORY, SAVE_STORY_FROM_SHARE));
     /** A circle on each profile, Liked or Favorites grid cell, to pick posts and save them in one run (#27). */
     public static final BooleanSetting PICK_GRID_VIDEOS = new BooleanSetting("pick_grid_videos", FALSE);
+    /** Delete on the picking bar while every picked post is your own, to delete them in one run (#487). */
+    public static final BooleanSetting DELETE_PICKED_POSTS = new BooleanSetting("delete_picked_posts", FALSE, false,
+            Setting.parent(PICK_GRID_VIDEOS));
     /**
      * Each quarter of the video runs its own double tap choice (#232). The plain Double tap
      * choice then only covers a tap the window can't place.
@@ -880,6 +883,11 @@ public class Settings extends BaseSettings {
      */
     public static final BooleanSetting LIVE_RUNNING_TIME = new BooleanSetting("live_running_time", FALSE);
     /**
+     * A LIVE opened from the row at the top of Following is followed, on a swipe, by the row's
+     * other LIVEs in the row's order (#511); the LIVE controls patch. Read as the room opens.
+     */
+    public static final BooleanSetting LIVE_FOLLOWING_ROW_ORDER = new BooleanSetting("live_following_row_order", FALSE);
+    /**
      * Offers TikTok's quality picker in more LIVE rooms and carries the last pick to the next
      * room; the LIVE controls patch. Read when a room builds its menu and picks its starting
      * quality, so the next room follows a change.
@@ -1072,6 +1080,10 @@ public class Settings extends BaseSettings {
     public static final StringSetting SOUND_GRID_SORT = new StringSetting("sound_grid_sort", "off");
     /** A chip on Liked grids that starts the list at a chosen year or month (#350). */
     public static final BooleanSetting LIKED_JUMP_TO_DATE = new BooleanSetting("liked_jump_to_date", FALSE);
+    /** A chip on Favorites grids that starts the list at a chosen year or month (#508). */
+    public static final BooleanSetting FAVORITES_JUMP_TO_DATE = new BooleanSetting("favorites_jump_to_date", FALSE);
+    /** Keeps what each video in the reader's Favorites looked like, for the day one is deleted (#516). */
+    public static final BooleanSetting REMEMBER_SAVED_VIDEOS = new BooleanSetting("remember_saved_videos", FALSE);
     /** A chip on Liked and Favorites grids that narrows the loaded videos to a search. */
     public static final BooleanSetting GRID_SEARCH = new BooleanSetting("grid_search", FALSE);
     public static final BooleanSetting GRID_POSITION_CONTROLS = new BooleanSetting("grid_position_controls", FALSE);

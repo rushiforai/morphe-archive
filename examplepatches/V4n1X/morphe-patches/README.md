@@ -41,26 +41,27 @@ Based on patches from:
 
 - [hoo-dles/morphe-patches](https://github.com/hoo-dles/morphe-patches) — AMOLED dark theme, analytics/telemetry patch
 - [kondratjev/morphe-patches](https://github.com/kondratjev/morphe-patches) — Enable SoundCloud Go, consent popup & analytics patches
+- [johninnld/nl-morphe-patches](https://gitlab.com/johninnld/nl-morphe-patches) — SoundCloud Go reference implementation, ad-config handling and plan-transition hooks
 
 Built on the official [MorpheApp/morphe-patches-template](https://github.com/MorpheApp/morphe-patches-template).
 
 <!-- PATCHES_START EXPANDED -->
-> **[v1.4.1](https://github.com/V4n1X/morphe-patches/releases/tag/v1.4.1)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;6 patches total
+> **[v1.5.0](https://github.com/V4n1X/morphe-patches/releases/tag/v1.5.0)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;6 patches total
 <details open>
 <summary>📦 SoundCloud&nbsp;&nbsp;•&nbsp;&nbsp;5 patches</summary>
 <br>
 
 **🎯 Supported versions:**
 
-| 2026.11.02-release | 2026.08.26-release | 🧪&nbsp;2026.09.23-release |
-| :---: | :---: | :---: |
+| 2026.11.02-release | 2026.08.26-release | 🧪&nbsp;2026.09.23-release | 2026.11.20-release |
+| :---: | :---: | :---: | :---: |
 
 | 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
 |----------|----------------|-----------|
 | [AMOLED dark theme](#amoled-dark-theme) | Changes the default dark theme to use true blacks for AMOLED screens. |  |
 | [Disable analytics](#disable-analytics) | Disables SoundCloud's analytics. |  |
 | [Disable consent popup](#disable-consent-popup) | Disables the OneTrust consent/cookies popup and collapses banner views. |  |
-| [Enable SoundCloud Go+](#enable-soundcloud-go) | Enables SoundCloud Go+ premium features, offline listening, HQ audio, and disables audio/visual ads. |  |
+| [Enable SoundCloud Go](#enable-soundcloud-go) | Enables the local SoundCloud Go plan controls and the offline_sync, no_audio_ads and hq_audio feature switches, hides Go upsells and fan plan-transition screens, and disables client ad requests and display placements. SoundCloud's servers still decide which streams, downloads and audio quality the account may fetch: high-bitrate audio and encrypted offline copies require a real Go+ subscription. |  |
 | [Material You dynamic theme](#material-you-dynamic-theme) | Applies Android 12+ Material You dynamic accent colors from the system wallpaper palette. |  |
 
 </details>

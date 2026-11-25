@@ -4,8 +4,8 @@ import java.util.Arrays;
 
 /** Rational windowed-sinc conversion for interleaved stereo PCM. */
 final class StereoResampler {
-    private static final int BASE_RADIUS = 24;
-    private static final double CUTOFF_MARGIN = 0.92;
+    private static final int BASE_RADIUS = 8;
+    private static final double CUTOFF_MARGIN = 0.90;
 
     private final int frameStep;
     private final int phaseStep;

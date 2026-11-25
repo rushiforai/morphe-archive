@@ -1709,6 +1709,7 @@ Long-press menu on every post,Menu tekan lama di setiap postingan
 TikTok's hold to speed up,Tahan untuk mempercepat dari TikTok
 TikTok's background play and Auto scroll,Putar di latar belakang dan gulir otomatis dari TikTok
 Post dates in the feed,Tanggal postingan di feed
+Posts,Postingan
 Show exact counts,Tampilkan angka persis
 "Show counts as full numbers, like 1,234,567 instead of 1.2M.","Tampilkan angka secara lengkap, misalnya 1.234.567, bukan 1.2M."
 Play SDR instead of HDR,"Putar SDR, bukan HDR"
@@ -2851,7 +2852,8 @@ Find and reopen the videos you liked only on this phone,Cari dan buka lagi video
 Videos you like on this phone show up here,Video yang kamu sukai di ponsel ini muncul di sini
 Likes cleared,Suka dihapus
 Export followers and following,Ekspor pengikut dan yang diikuti
-"Saves the accounts that follow you, or the ones you follow, as a CSV file in Download/Hushfeed. They're read at about the pace of scrolling the list, up to %1$s at a time.","Menyimpan akun yang mengikuti kamu, atau yang kamu ikuti, sebagai file CSV di Download/Hushfeed. Akun dibaca kira-kira secepat menggulir daftarnya, hingga %1$s sekaligus."
+"Saves the accounts that follow you, or the ones you follow, as a CSV, JSON or plain text file in Download/Hushfeed. They're read at about the pace of scrolling the list, up to %1$s at a time.","Menyimpan akun yang mengikuti kamu, atau yang kamu ikuti, sebagai file CSV, JSON, atau teks biasa di Download/Hushfeed. Akun dibaca kira-kira secepat menggulir daftarnya, hingga %1$s sekaligus."
+Plain text,Teks biasa
 A list is already being read,Sebuah daftar sedang dibaca
 Reading your followers (%1$s),Membaca pengikut kamu (%1$s)
 Reading who you follow (%1$s),Membaca akun yang kamu ikuti (%1$s)
@@ -2981,7 +2983,7 @@ Round the corners on profile grids,Bulatkan sudut di kisi profil
 Gifter level,Level pemberi hadiah
 SecUID,SecUID
 Unknown (TikTok didn't send it),Tidak diketahui (TikTok tidak mengirimnya)
-"A profile's share sheet gets an Account facts button. It shows what TikTok already sent about the account: when it joined, its region and language, its gifter level and SecUID, when its username and display name last changed, whether it's private and whether its liked videos are public. Nothing extra is fetched.","Lembar bagikan profil mendapat tombol Fakta akun. Tombol ini menampilkan apa yang sudah dikirim TikTok tentang akun itu: kapan bergabung, wilayah dan bahasanya, level pemberi hadiah dan SecUID-nya, kapan nama pengguna dan nama tampilannya terakhir diubah, apakah akunnya privat, dan apakah video yang disukainya publik. Tidak ada data tambahan yang diambil."
+"A profile's share sheet gets an Account facts button. It shows what TikTok already sent about the account: when it joined, its region and language, its gifter level and SecUID, how many posts, liked videos, favorites and reposts it has, when its username and display name last changed, whether it's private and whether its liked videos are public. Nothing extra is fetched.","Lembar bagikan profil mendapat tombol Fakta akun. Tombol ini menampilkan apa yang sudah dikirim TikTok tentang akun itu: kapan bergabung, wilayah dan bahasanya, level pemberi hadiah dan SecUID-nya, berapa banyak postingan, video yang disukai, favorit, dan postingan ulangnya, kapan nama pengguna dan nama tampilannya terakhir diubah, apakah akunnya privat, dan apakah video yang disukainya publik. Tidak ada data tambahan yang diambil."
 Show the room ID and your connection,Tampilkan ID ruang dan koneksimu
 "Adds a small line to LIVE rooms with the room's ID and how your own connection to the stream is doing, as TikTok's player measures it: ping, latency and download speed. Tap the line to copy the room ID.","Menambahkan baris kecil di ruang LIVE berisi ID ruang dan kondisi koneksimu sendiri ke siaran, sesuai ukuran pemutar TikTok: ping, latensi, dan kecepatan unduh. Ketuk baris itu untuk menyalin ID ruang."
 Room ID %1$s,ID ruang %1$s
@@ -3050,3 +3052,26 @@ Random time each day,Waktu acak setiap hari
 "Sends at a different time each day, somewhere between When to send and Latest time.","Mengirim pada waktu berbeda setiap hari, di antara Kapan dikirim dan Waktu paling lambat."
 Latest time,Waktu paling lambat
 "The end of the random window, on the same day as When to send. If it isn't later, the message goes at When to send.","Akhir rentang acak, pada hari yang sama dengan Kapan dikirim. Jika tidak lebih lambat, pesan dikirim pada waktu Kapan dikirim."
+Jump to a date on Favorites grids,Lompat ke tanggal di kisi Favorit
+"Adds a button to the Favorites grid's top corner that starts your saved videos at a year or month you pick, so older saves load without scrolling past newer ones. Pick Newest saves there to go back.","Menambahkan tombol di sudut atas kisi Favorit yang memulai video tersimpan Anda dari tahun atau bulan yang Anda pilih, sehingga yang lebih lama dimuat tanpa harus menggulir melewati yang lebih baru. Pilih Favorit terbaru di sana untuk kembali."
+Newest saves,Favorit terbaru
+Pick a built-in font,Pilih font bawaan
+Pick one of %1$s fonts that come with Hushfeed. Each is shown in its own style.,Pilih salah satu dari %1$s font bawaan Hushfeed. Setiap font ditampilkan dengan gayanya sendiri.
+Built-in fonts,Font bawaan
+Delete,Hapus
+Delete your picked posts,Hapus postingan pilihanmu
+"Adds a trash button to the picking bar while every picked post is your own. It counts down from 5 so you can stop it, then deletes them from your account one at a time. A deleted post can't be brought back.","Menambahkan tombol tempat sampah ke bilah pilihan selama semua postingan yang dipilih adalah milikmu. Menghitung mundur dari 5 agar kamu bisa menghentikannya, lalu menghapusnya dari akunmu satu per satu. Postingan yang dihapus tidak bisa dikembalikan."
+Posts to delete: %1$d. Starting in %2$d,Postingan yang akan dihapus: %1$d. Mulai dalam %2$d
+Posts deleted: %1$d of %2$d,Postingan dihapus: %1$d dari %2$d
+Swipe LIVEs in your Following row's order,Geser LIVE sesuai urutan baris Mengikuti
+"After a LIVE you open from the row at the top of Following, swiping takes you through the row's other LIVEs in the order they sit there, starting with the next one. TikTok's own picks come after them.","Setelah LIVE yang kamu buka dari baris di atas Mengikuti, menggeser membawamu ke LIVE lain di baris itu sesuai urutannya, mulai dari yang berikutnya. Pilihan TikTok sendiri muncul setelahnya."
+Remember saved videos,Ingat video tersimpan
+"Keeps the cover, creator, caption and post date of each video in your Favorites on this phone as the grid loads it. If one is later deleted or made private, its tile shows the kept cover and creator instead of a grey box, and a tap shows the rest. Videos that were already gone can't be recovered.","Menyimpan sampul, kreator, keterangan, dan tanggal posting setiap video di Favorit Anda di ponsel ini saat kisi memuatnya. Jika salah satunya kemudian dihapus atau dijadikan pribadi, petaknya menampilkan sampul dan kreator yang disimpan sebagai ganti kotak abu-abu, dan ketukan menampilkan sisanya. Video yang sudah hilang sebelumnya tidak dapat dipulihkan."
+Unavailable saved videos,Video tersimpan yang tidak tersedia
+See the saved videos that went away after Hushfeed remembered them,Lihat video tersimpan yang hilang setelah Hushfeed mengingatnya
+Saved videos that go away show up here,Video tersimpan yang hilang muncul di sini
+Unavailable saved videos cleared,Video tidak tersedia dihapus
+Unavailable saved video,Video tersimpan tidak tersedia
+Posted %1$s,Diposting %1$s
+Remembered %1$s,Diingat %1$s
+Unavailable since %1$s,Tidak tersedia sejak %1$s

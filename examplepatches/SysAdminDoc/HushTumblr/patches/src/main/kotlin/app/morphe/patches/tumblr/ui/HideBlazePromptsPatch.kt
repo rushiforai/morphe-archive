@@ -87,7 +87,7 @@ internal class BlazeSite(val method: MutableMethod, val at: Int, val register: I
  * flame under your own posts, the Blaze item in a post's three-dot menu, Blaze in the share sheet
  * and Promote in a community post's menu. All four or none: a build where one doesn't fit keeps
  * every Blaze button on posts, logs why, and the switch still hides the prompts above. Found by
- * reading Tumblr 47.0.0.108 (2026-11-13).
+ * reading Tumblr 47.3.0.110 (2026-11-13).
  */
 @Suppress("unused")
 val hideBlazePromptsPatch = bytecodePatch(
@@ -114,7 +114,7 @@ val hideBlazePromptsPatch = bytecodePatch(
 
 /**
  * Puts each Blaze button's hook in, all four or none. False, with a warning and nothing changed,
- * when this build doesn't show them the way 47.0.0.108 does.
+ * when this build doesn't show them the way 47.3.0.110 does.
  */
 internal fun BytecodePatchContext.hookBlazeButtons(): Boolean {
     val sites = try {
@@ -183,8 +183,8 @@ internal fun BytecodePatchContext.resolveOwnPostFlame(): BlazeSite {
  * Blazed and adds the item, labeled [BLAZE_MENU_LABEL], only when it can: a no-argument boolean
  * getter, its answer and an `if-eqz` on it right before the label is read. Every builder asks the
  * same getter, which reads the post's field and returns it, and the hook goes in front of that
- * return. In 47.0.0.108 that's `r4g.J()`, asked by the post header's menu (`PostCardHeader.H2`) and
- * the notes screen's (`flh.y`). The other readers of the label draw the flame and the blog
+ * return. In 47.3.0.110 that's `f3g.J()`, asked by the post header's menu (`PostCardHeader.H2`) and
+ * the notes screen's (`mmh.y`). The other readers of the label draw the flame and the blog
  * header's Blaze entry, which aren't asked that way.
  */
 internal fun BytecodePatchContext.resolvePostMenuBlaze(): BlazeSite {
@@ -244,7 +244,7 @@ private fun BytecodePatchContext.getterSite(getter: Method, hook: String): Blaze
 /**
  * Blaze in the share sheet. The sheet builds its targets in a method that reads [CAN_BLAZE] from
  * its arguments with `getBoolean` and adds the Blaze target only when it's true, an `if-eqz` on the
- * answer. The hook goes in front of that test. In 47.0.0.108 that's `com.tumblr.sharing.d.Q6()`.
+ * answer. The hook goes in front of that test. In 47.3.0.110 that's `com.tumblr.sharing.d.S6()`.
  * The sheet's argument comes from the same Blaze check the Blaze dashboard reads, so it's
  * answered here, where only the share sheet reads it.
  */
@@ -275,7 +275,7 @@ internal fun BytecodePatchContext.resolveShareSheetBlaze(): BlazeSite {
  * Promote in a community post's menu. The menu's model hands over the items for a
  * [COMMUNITY_POST_INFO] as a list, and the menu turns each [COMMUNITY_MENU_ITEM] into a row. The
  * hook takes that list right after it's handed over and hands back one without
- * [COMMUNITY_PROMOTE]. In 47.0.0.108 that's `t2g$a.invokeSuspend`, the only caller of `bm4.a`.
+ * [COMMUNITY_PROMOTE]. In 47.3.0.110 that's `h1g$a.invokeSuspend`, the only caller of `nl4.a`.
  */
 internal fun BytecodePatchContext.resolveCommunityPromote(): BlazeSite {
     requireShape(PATCH, classDefByOrNull(COMMUNITY_PROMOTE)?.superclass == COMMUNITY_MENU_ITEM,

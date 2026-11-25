@@ -49,6 +49,7 @@ val blockAdsInAppBrowserPatch = bytecodePatch(
         description = "Update the local snapshot from the repository at most once per 24 hours.",
     )
 
+    dependsOn(hoshioriSettingsEntryPatch)
     extendWith("extensions/adblock.mpe")
 
     execute {

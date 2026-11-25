@@ -63,10 +63,17 @@ public enum PatchFamily {
             Settings.SAVE_MEDIA, Settings.DOWNLOAD_COMPATIBLE),
     PURE_BLACK(FamilyNames.PURE_BLACK, "pureBlack", null,
             Settings.PURE_BLACK),
+    HEADER_LOGO(FamilyNames.HEADER_LOGO, "headerLogo", null,
+            Settings.HEADER_LOGO),
+    CUSTOM_FONT(FamilyNames.CUSTOM_FONT, "customFont", null,
+            Settings.CUSTOM_FONT),
     HIDE_INSTAGRAM_BUTTON(FamilyNames.HIDE_INSTAGRAM_BUTTON, "hideInstagramButton", null,
             Settings.HIDE_INSTAGRAM_BUTTON),
     HIDE_GHOST_POST_BUBBLES(FamilyNames.HIDE_GHOST_POST_BUBBLES, "hideGhostPostBubbles", null,
             Settings.HIDE_GHOST_POST_BUBBLES),
+    HIDE_POST_BUTTONS(FamilyNames.HIDE_POST_BUTTONS, "hidePostButtons", null,
+            Settings.HIDE_LIKE_BUTTON, Settings.HIDE_REPLY_BUTTON, Settings.HIDE_REPOST_BUTTON,
+            Settings.HIDE_SHARE_BUTTON, Settings.HIDE_SAVE_BUTTON),
     FULL_SIZE_PROFILE_PICTURES(FamilyNames.FULL_SIZE_PROFILE_PICTURES, "fullSizeProfilePictures", null,
             Settings.FULL_SIZE_PROFILE_PICTURES),
     EXACT_POST_TIMES(FamilyNames.EXACT_POST_TIMES, "exactPostTimes", null,
@@ -82,7 +89,9 @@ public enum PatchFamily {
     TRUST_USER_CERTIFICATES(FamilyNames.TRUST_USER_CERTIFICATES, "trustUserCertificates", "the user certificate trust"),
     // Both are in the manifest, which Pause can't change either.
     CHANGE_PACKAGE_NAME(FamilyNames.CHANGE_PACKAGE_NAME, "changePackageName", "the new package name"),
-    CHANGE_APP_NAME(FamilyNames.CHANGE_APP_NAME, "changeAppName", "the new app name");
+    CHANGE_APP_NAME(FamilyNames.CHANGE_APP_NAME, "changeAppName", "the new app name"),
+    // The icon is in the APK's resources, which Pause can't change either.
+    CUSTOM_LAUNCHER_ICON(FamilyNames.CUSTOM_LAUNCHER_ICON, "customLauncherIcon", "the HushThreads icon");
 
     /** The patch's name in Morphe Manager. */
     public final String patchName;
@@ -125,7 +134,8 @@ public enum PatchFamily {
      * starting off.
      */
     private static final EnumSet<PatchFamily> OPT_IN =
-            EnumSet.of(VERSION_CODE, REMOVE_SHARE_TARGETS, TRUST_USER_CERTIFICATES, CHANGE_PACKAGE_NAME, CHANGE_APP_NAME);
+            EnumSet.of(VERSION_CODE, REMOVE_SHARE_TARGETS, TRUST_USER_CERTIFICATES, CHANGE_PACKAGE_NAME, CHANGE_APP_NAME,
+                    CUSTOM_LAUNCHER_ICON);
 
     /**
      * Manager's defaults, held to patches-list.json by PatchFamilyTest (Hushfacebook 814acd23), so a

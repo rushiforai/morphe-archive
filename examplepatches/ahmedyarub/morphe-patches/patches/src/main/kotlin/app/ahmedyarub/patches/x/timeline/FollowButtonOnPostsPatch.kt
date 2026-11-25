@@ -262,12 +262,20 @@ val followButtonOnPostsPatch = bytecodePatch(
                     }
                     // ... or, from 12.44 (where that group draws the Grok button through its own
                     // composable), the group whose end is followed by the post's ⋯ menu state,
-                    // with no other post flag in between.
+                    // with no other post flag tested in between. A flag only read as an argument
+                    // (12.46 passes one to the Grok button) opens no group of its own.
+                    fun isTested(i: Int): Boolean {
+                        val register = (instructions[i] as TwoRegisterInstruction).registerA
+                        return (i + 1..minOf(i + 2, instructions.size - 1)).any { next ->
+                            instructions[next].opcode.let { it == Opcode.IF_EQZ || it == Opcode.IF_NEZ } &&
+                                (instructions[next] as OneRegisterInstruction).registerA == register
+                        }
+                    }
                     val beforeMenu = !drawsIcon && (group + 1 until minOf(group + 200, instructions.size)).firstNotNullOfOrNull { i ->
                         val field = instructions[i].getReference<FieldReference>()?.takeIf { it.definingClass == postState }
                         when {
                             field == null -> null
-                            instructions[i].opcode == Opcode.IGET_BOOLEAN -> false
+                            instructions[i].opcode == Opcode.IGET_BOOLEAN -> if (isTested(i)) false else null
                             instructions[i].opcode == Opcode.IGET_OBJECT && field.type.startsWith(postOptions) -> true
                             else -> null
                         }

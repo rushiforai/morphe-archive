@@ -10,30 +10,14 @@ import app.morphe.patcher.patch.loadPatchesFromJar
 import com.google.gson.GsonBuilder
 import com.google.gson.JsonObject
 import java.io.File
-import java.net.URLClassLoader
-import java.util.jar.Manifest
+import java.util.jar.JarFile
 
-fun main() {
-    val patchFiles = setOf(
-        File("build/libs/").listFiles { file ->
-            val fileName = file.name
-            !fileName.contains("javadoc") &&
-                    !fileName.contains("sources") &&
-                    fileName.endsWith(".mpp")
-        }!!.first()
-    )
-    val loadedPatches = loadPatchesFromJar(patchFiles)
-    val patchClassLoader = URLClassLoader(patchFiles.map { it.toURI().toURL() }.toTypedArray())
-    val manifest = patchClassLoader.getResources("META-INF/MANIFEST.MF")
-
-    while (manifest.hasMoreElements()) {
-        Manifest(manifest.nextElement().openStream())
-            .mainAttributes
-            .getValue("Version")
-            ?.let {
-                generatePatchList(it, loadedPatches)
-            }
+fun main(args: Array<String>) {
+    val bundle = File(args.single())
+    val version = JarFile(bundle).use { jar ->
+        requireNotNull(jar.manifest.mainAttributes.getValue("Version"))
     }
+    generatePatchList(version, loadPatchesFromJar(setOf(bundle)))
 }
 
 @Suppress("DEPRECATION")

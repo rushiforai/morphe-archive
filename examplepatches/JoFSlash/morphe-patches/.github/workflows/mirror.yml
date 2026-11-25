@@ -1,0 +1,56 @@
+name: Mirror to GitLab
+
+# Keeps a copy of this repository on GitLab: every branch and tag, so the code and its history stay
+# available if GitHub ever takes this repository or account down. Issues, pull requests and release
+# files aren't in git and aren't copied.
+#
+# Runs after a push to main or dev, after a release (the release pushes with GITHUB_TOKEN, which
+# starts no workflows, so a push alone would miss it) and once a week, to catch anything else.
+#
+# Set up once:
+#   - the repository variable GITLAB_REPO: the GitLab project's path, for example <user>/morphe-patches;
+#   - the secret GITLAB_TOKEN: a GitLab project access token with the write_repository scope
+#     (role Maintainer), for example with
+#       gh secret set GITLAB_TOKEN -R JoFSlash/morphe-patches
+# Without them the job only says what is missing.
+
+on:
+  push:
+    branches: [main, dev]
+    tags: ['*']
+  workflow_run:
+    workflows: [Release]
+    types: [completed]
+  schedule:
+    - cron: '30 3 * * 0'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: mirror
+  cancel-in-progress: false
+
+jobs:
+  mirror:
+    name: Push to GitLab
+    runs-on: ubuntu-latest
+    steps:
+      - name: Push every branch and tag
+        env:
+          GITLAB_REPO: ${{ vars.GITLAB_REPO }}
+          GITLAB_TOKEN: ${{ secrets.GITLAB_TOKEN }}
+          GH_REPO: ${{ github.server_url }}/${{ github.repository }}.git
+        run: |
+          if [ -z "$GITLAB_REPO" ] || [ -z "$GITLAB_TOKEN" ]; then
+            echo "::warning::Set the variable GITLAB_REPO and the secret GITLAB_TOKEN to mirror to GitLab."
+            exit 0
+          fi
+          # A bare mirror clone has every branch and tag under its own name. Only those are pushed
+          # (GitHub's pull request refs aren't GitLab's business), and --prune drops on GitLab what
+          # was deleted here.
+          git clone --quiet --mirror "$GH_REPO" repo.git
+          cd repo.git
+          git push --prune "https://oauth2:${GITLAB_TOKEN}@gitlab.com/${GITLAB_REPO}.git" \
+            '+refs/heads/*:refs/heads/*' '+refs/tags/*:refs/tags/*'

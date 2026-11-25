@@ -72,7 +72,9 @@ if (-not $ChatIdentity) { throw '-ChatIdentity or HUSHPINE_CHAT_IDENTITY names w
 if (-not $Out) { $Out = Join-Path $root 'build/walk/walk-receipt.json' }
 $work = Split-Path -Parent ([IO.Path]::GetFullPath($Out))
 $dumps = Join-Path $work 'screens'
-if (Test-Path -LiteralPath $dumps) { Remove-Item -LiteralPath $dumps -Recurse -Force }
+# Empty the folder rather than delete it: a folder another process has as its working directory
+# (a shell started inside it) can't be removed, and that stopped the 0.3.0 walk before it began.
+if (Test-Path -LiteralPath $dumps) { Get-ChildItem -LiteralPath $dumps -Force | Remove-Item -Recurse -Force }
 New-Item -ItemType Directory -Path $dumps -Force | Out-Null
 $logPath = Join-Path $work 'walk-log.txt'
 Set-Content -LiteralPath $logPath -Value @() -Encoding UTF8
@@ -282,11 +284,22 @@ function Complete-WalkScreen([string]$Name) {
 # Leaves sheets, pages and the keyboard with Back until the bottom tabs show, never Back from
 # a feed tab itself, which would close PineDrama.
 function Restore-WalkTabs([string]$From, [int]$Height) {
+    $reopened = $false
     for ($i = 0; $i -lt 6; $i++) {
         Close-WalkKeyboard
         $nodes = Get-WalkScreen "restore-$From" -AllowPause
         if (Find-WalkNav $nodes $WalkLabels.Home $Height) { return $nodes }
-        if (-not (Get-WalkForeground).StartsWith("$WalkPackage/", [StringComparison]::Ordinal)) { return @() }
+        if (-not (Get-WalkForeground).StartsWith("$WalkPackage/", [StringComparison]::Ordinal)) {
+            # On Android 16 a Back from the search page after a search can drop PineDrama to the
+            # launcher with its process still running (emulator-5570, 2026-11-25). That's no
+            # crash, so open it again once; a second exit or a new process ends the restore.
+            if ($reopened -or (Get-WalkPid) -ne $script:appPid) { return @() }
+            Write-WalkLog "$appName went to the launcher on Back from $From, opening it again"
+            Invoke-WalkAdb shell monkey -p $WalkPackage -c android.intent.category.LAUNCHER 1 | Out-Null
+            Start-Sleep -Seconds 5
+            $reopened = $true
+            continue
+        }
         Invoke-WalkBack $From
     }
     return @()

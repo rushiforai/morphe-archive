@@ -63,6 +63,7 @@ public class SettingsStatus {
     public static boolean landscapeEpisodesEnabled = false;
     public static boolean subtitleDubPreferenceEnabled = false;
     public static boolean keepListPositionEnabled = false;
+    public static boolean listToolsEnabled = false;
     public static boolean keepPulledSoundsEnabled = false;
     public static boolean resumeVideoAfterScrollEnabled = false;
     public static boolean externalBrowserEnabled = false;
@@ -343,6 +344,10 @@ public class SettingsStatus {
 
     public static void enableKeepListPosition() {
         keepListPositionEnabled = true;
+    }
+
+    public static void enableListTools() {
+        listToolsEnabled = true;
     }
 
     public static void enableResumeVideoAfterScroll() {

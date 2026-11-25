@@ -33,6 +33,7 @@ import org.robolectric.RobolectricTestRunner;
 import org.robolectric.RuntimeEnvironment;
 import org.robolectric.android.controller.ActivityController;
 
+import app.hushgram.extension.instagram.settings.Settings;
 import app.hushgram.extension.shared.SettingsContextRule;
 import app.hushgram.extension.shared.diagnostics.HookStatus;
 
@@ -47,6 +48,26 @@ public class ProfileSavedTest {
         assertTrue(ProfileSaved.isSavedLabel("  saved "));
     }
 
+    /**
+     * The bookmark is drawn in the idle tabs' gray, and with Icons in the accent color on in the picked
+     * color's shade at that gray's alpha, like Instagram's own tabs beside it (#187).
+     */
+    @Test
+    public void theBookmarkTakesThePickedShadeWithIconsInTheAccentColor() {
+        try {
+            assertEquals("gray", 0x99000000, new ProfileSaved.Icon(RuntimeEnvironment.getApplication()).color());
+            Settings.ACCENT_COLOR.save(true);
+            Settings.ACCENT_HUE.save(AccentHue.TEAL);
+            Settings.ACCENT_ICONS.save(true);
+            int shade = AccentColor.swap(0xff3143e3, AccentHue.TEAL);
+            assertEquals("the picked shade", 0x99000000 | (shade & 0xffffff), new ProfileSaved.Icon(RuntimeEnvironment.getApplication()).color());
+        } finally {
+            Settings.ACCENT_COLOR.resetToDefault();
+            Settings.ACCENT_HUE.resetToDefault();
+            Settings.ACCENT_ICONS.resetToDefault();
+        }
+    }
+
     /** The menu's rows are found through this lookup, so a refusal shows the menu at once. */
     @Test
     public void theChildLookupIsFoundOnce() {
@@ -59,19 +80,20 @@ public class ProfileSavedTest {
         private final UserSession A06 = new UserSession("token-1");
     }
 
-    /** Puts Instagram's Saved screen in [activity]'s app, the way 453 and 454 have it. */
+    /** Puts Instagram's Saved screen in [activity]'s app, the way 457 names it. */
     private static void addSavedScreen(Activity activity) {
-        shadowOf(activity.getPackageManager()).addActivityIfNotPresent(savedScreen());
+        shadowOf(activity.getPackageManager()).addActivityIfNotPresent(savedScreen(ProfileSaved.SAVED_HANDLER));
     }
 
-    private static ComponentName savedScreen() {
-        return new ComponentName(RuntimeEnvironment.getApplication().getPackageName(), ProfileSaved.SAVED_HANDLER);
+    private static ComponentName savedScreen(String name) {
+        return new ComponentName(RuntimeEnvironment.getApplication().getPackageName(), name);
     }
 
-    /** Takes out the screen a test added, so no other test finds it. */
+    /** Takes out the screens a test added, so no other test finds them. */
     @After
     public void removeSavedScreen() {
-        shadowOf(RuntimeEnvironment.getApplication().getPackageManager()).removeActivity(savedScreen());
+        shadowOf(RuntimeEnvironment.getApplication().getPackageManager()).removeActivity(savedScreen(ProfileSaved.SAVED_HANDLER));
+        shadowOf(RuntimeEnvironment.getApplication().getPackageManager()).removeActivity(savedScreen(ProfileSaved.OLD_SAVED_HANDLER));
     }
 
     /**
@@ -88,7 +110,7 @@ public class ProfileSavedTest {
 
         Intent started = shadowOf(activity).getNextStartedActivity();
         assertNotNull("Saved was asked for", started);
-        assertEquals(new ComponentName(activity.getPackageName(), "com.instagram.urlhandlers.saved.SavedUrlHandlerActivity"),
+        assertEquals(new ComponentName(activity.getPackageName(), "com.instagram.save.urlhandlers.saved.SavedUrlHandlerActivity"),
                 started.getComponent());
         assertEquals("instagram://saved", String.valueOf(started.getData()));
         Bundle bundle = started.getBundleExtra("com.instagram.url.extra.BUNDLE");
@@ -104,6 +126,20 @@ public class ProfileSavedTest {
         addSavedScreen(activity);
         assertFalse(ProfileSaved.openSavedScreen(activity));
         assertNull(shadowOf(activity).getNextStartedActivity());
+    }
+
+    /** 456.1 and before keep the screen under its old package, and the bookmark still finds it there. */
+    @Test
+    public void aBuildWithTheSavedScreensOldNameOpensThatOne() {
+        Activity activity = Robolectric.buildActivity(SignedIn.class).setup().get();
+        shadowOf(activity.getPackageManager()).addActivityIfNotPresent(savedScreen(ProfileSaved.OLD_SAVED_HANDLER));
+
+        assertTrue(ProfileSaved.openSavedScreen(activity));
+
+        Intent started = shadowOf(activity).getNextStartedActivity();
+        assertEquals(new ComponentName(activity.getPackageName(), "com.instagram.urlhandlers.saved.SavedUrlHandlerActivity"),
+                started.getComponent());
+        assertEquals("token-1", started.getBundleExtra(ProfileSaved.LINK_BUNDLE).getString(ProfileSaved.SESSION_TOKEN));
     }
 
     @Test

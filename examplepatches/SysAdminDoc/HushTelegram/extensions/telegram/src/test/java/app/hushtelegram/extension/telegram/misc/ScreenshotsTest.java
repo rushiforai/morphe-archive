@@ -6,6 +6,7 @@ package app.hushtelegram.extension.telegram.misc;
 
 import static org.junit.Assert.*;
 
+import android.view.WindowManager;
 import app.hushtelegram.extension.shared.SettingsContextRule;
 import app.hushtelegram.extension.shared.diagnostics.HookStatus;
 import app.hushtelegram.extension.shared.settings.HushTelegramPause;
@@ -31,7 +32,18 @@ public class ScreenshotsTest {
         Settings.ALLOW_SCREENSHOTS.resetToDefault();
         SettingReadsForTests.mend(Settings.SECRET_CHAT_SCREENSHOTS);
         Settings.SECRET_CHAT_SCREENSHOTS.resetToDefault();
+        SettingReadsForTests.mend(Settings.TIMED_MEDIA_SCREENSHOTS);
+        Settings.TIMED_MEDIA_SCREENSHOTS.resetToDefault();
         HookStatus.clear();
+    }
+
+    /** Whether the timed media viewer's window, secure as Telegram makes it, can be captured after the hook. */
+    private static boolean timedViewerCapturable(boolean secretChat) {
+        WindowManager.LayoutParams params = new WindowManager.LayoutParams();
+        params.flags = WindowManager.LayoutParams.FLAG_SECURE | WindowManager.LayoutParams.FLAG_DIM_BEHIND;
+        Screenshots.decideTimedViewer(params, new Object(), message -> secretChat);
+        assertTrue("other flags stay", (params.flags & WindowManager.LayoutParams.FLAG_DIM_BEHIND) != 0);
+        return (params.flags & WindowManager.LayoutParams.FLAG_SECURE) == 0;
     }
 
     @Test public void offKeepsTelegramsAnswers() {
@@ -93,5 +105,65 @@ public class ScreenshotsTest {
         SettingReadsForTests.breakReads(Settings.SECRET_CHAT_SCREENSHOTS);
         assertSame(chat, Screenshots.secretChat(chat));
         assertFalse(HookStatus.missing(FamilyNames.MESSAGE_MENU_REPEAT).isEmpty());
+    }
+
+    @Test public void theTimedViewerOpensUpOnlyWithBothSwitchesOn() {
+        // #82: neither switch does it alone.
+        assertFalse(timedViewerCapturable(false));
+        Settings.ALLOW_SCREENSHOTS.save(true);
+        assertFalse(timedViewerCapturable(false));
+        Settings.ALLOW_SCREENSHOTS.save(false);
+        Settings.TIMED_MEDIA_SCREENSHOTS.save(true);
+        assertFalse(timedViewerCapturable(false));
+        Settings.ALLOW_SCREENSHOTS.save(true);
+        assertTrue(timedViewerCapturable(false));
+        assertTrue(String.join("\n", HookStatus.report()).contains("timed media screenshot allowed"));
+    }
+
+    @Test public void aSecretChatsTimedViewerNeedsItsSwitchToo() {
+        Settings.ALLOW_SCREENSHOTS.save(true);
+        Settings.TIMED_MEDIA_SCREENSHOTS.save(true);
+        assertFalse(timedViewerCapturable(true));
+        Settings.SECRET_CHAT_SCREENSHOTS.save(true);
+        assertTrue(timedViewerCapturable(true));
+    }
+
+    @Test public void theSecretChatSwitchAloneLeavesTheTimedViewerBlocked() {
+        Settings.ALLOW_SCREENSHOTS.save(true);
+        Settings.SECRET_CHAT_SCREENSHOTS.save(true);
+        assertFalse(timedViewerCapturable(true));
+        assertFalse(timedViewerCapturable(false));
+    }
+
+    @Test public void theTimedViewerStaysSecureWhenPausedOrBroken() {
+        Settings.ALLOW_SCREENSHOTS.save(true);
+        Settings.TIMED_MEDIA_SCREENSHOTS.save(true);
+        PauseForTests.pause(HushTelegramPause.Reason.SWITCH);
+        assertFalse(timedViewerCapturable(false));
+        PauseForTests.resume();
+        WindowManager.LayoutParams params = new WindowManager.LayoutParams();
+        Screenshots.decideTimedViewer(params, new Object(), message -> { throw new IllegalStateException("message gone"); });
+        assertTrue((params.flags & WindowManager.LayoutParams.FLAG_SECURE) != 0);
+        assertFalse(HookStatus.missing(FamilyNames.MESSAGE_MENU_REPEAT).isEmpty());
+        SettingReadsForTests.breakReads(Settings.TIMED_MEDIA_SCREENSHOTS);
+        assertFalse(timedViewerCapturable(false));
+    }
+
+    @Test public void aWindowOpenedUpEarlierGoesBackToSecure() {
+        // Telegram keeps one set of params for the viewer, so the last opening's answer is still in it.
+        WindowManager.LayoutParams params = new WindowManager.LayoutParams();
+        Settings.ALLOW_SCREENSHOTS.save(true);
+        Settings.TIMED_MEDIA_SCREENSHOTS.save(true);
+        Screenshots.decideTimedViewer(params, new Object(), message -> false);
+        assertEquals(0, params.flags & WindowManager.LayoutParams.FLAG_SECURE);
+        Settings.TIMED_MEDIA_SCREENSHOTS.save(false);
+        Screenshots.decideTimedViewer(params, new Object(), message -> false);
+        assertTrue((params.flags & WindowManager.LayoutParams.FLAG_SECURE) != 0);
+    }
+
+    @Test public void noParamsIsLeftAlone() {
+        Settings.ALLOW_SCREENSHOTS.save(true);
+        Settings.TIMED_MEDIA_SCREENSHOTS.save(true);
+        Screenshots.decideTimedViewer(null, new Object(), message -> { throw new AssertionError("not asked"); });
     }
 }

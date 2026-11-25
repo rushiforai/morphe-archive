@@ -94,8 +94,11 @@ public class HushThreadsPreferenceFragmentTest {
         ROW_TITLES.put(PatchFamily.SPOOF_SIM_REGION, "Spoof SIM region");
         ROW_TITLES.put(PatchFamily.SAVE_MEDIA, "Save photos and videos");
         ROW_TITLES.put(PatchFamily.PURE_BLACK, "Pure black dark mode");
+        ROW_TITLES.put(PatchFamily.HEADER_LOGO, "Use the HushThreads logo");
+        ROW_TITLES.put(PatchFamily.CUSTOM_FONT, "Custom font");
         ROW_TITLES.put(PatchFamily.HIDE_INSTAGRAM_BUTTON, "Hide the Instagram button");
         ROW_TITLES.put(PatchFamily.HIDE_GHOST_POST_BUBBLES, "Hide ghost post bubbles");
+        ROW_TITLES.put(PatchFamily.HIDE_POST_BUTTONS, "Hide the like button");
         ROW_TITLES.put(PatchFamily.FULL_SIZE_PROFILE_PICTURES, "Full size profile pictures");
         ROW_TITLES.put(PatchFamily.EXACT_POST_TIMES, "Show the date and time");
         ROW_TITLES.put(PatchFamily.FILTER_COMMENTS, "Filter comments");
@@ -106,6 +109,7 @@ public class HushThreadsPreferenceFragmentTest {
         ROW_TITLES.put(PatchFamily.TRUST_USER_CERTIFICATES, "User certificates trusted");
         ROW_TITLES.put(PatchFamily.CHANGE_PACKAGE_NAME, "Own package name");
         ROW_TITLES.put(PatchFamily.CHANGE_APP_NAME, "Own app name");
+        ROW_TITLES.put(PatchFamily.CUSTOM_LAUNCHER_ICON, "HushThreads icon");
     }
 
     /** The sections every build has, in the order they're drawn. */
@@ -217,7 +221,8 @@ public class HushThreadsPreferenceFragmentTest {
                 }
                 if (build.contains(PatchFamily.FILTER_COMMENTS)) expected.add("Comments");
                 if (build.contains(PatchFamily.SAVE_MEDIA)) expected.add("Downloads");
-                if (build.contains(PatchFamily.PURE_BLACK) || build.contains(PatchFamily.HIDE_INSTAGRAM_BUTTON)
+                if (build.contains(PatchFamily.PURE_BLACK) || build.contains(PatchFamily.HEADER_LOGO)
+                        || build.contains(PatchFamily.CUSTOM_FONT) || build.contains(PatchFamily.HIDE_INSTAGRAM_BUTTON)
                         || build.contains(PatchFamily.HIDE_GHOST_POST_BUBBLES)
                         || build.contains(PatchFamily.FULL_SIZE_PROFILE_PICTURES)) {
                     expected.add("Appearance");
@@ -226,7 +231,8 @@ public class HushThreadsPreferenceFragmentTest {
                 if (build.contains(PatchFamily.REMOVE_AD_ID) || build.contains(PatchFamily.RESTORE_TRUST)
                         || build.contains(PatchFamily.VERSION_CODE) || build.contains(PatchFamily.REMOVE_SHARE_TARGETS)
                         || build.contains(PatchFamily.TRUST_USER_CERTIFICATES)
-                        || build.contains(PatchFamily.CHANGE_PACKAGE_NAME) || build.contains(PatchFamily.CHANGE_APP_NAME)) {
+                        || build.contains(PatchFamily.CHANGE_PACKAGE_NAME) || build.contains(PatchFamily.CHANGE_APP_NAME)
+                        || build.contains(PatchFamily.CUSTOM_LAUNCHER_ICON)) {
                     expected.add("Set when you patched");
                 }
                 expected.addAll(EVERY_BUILD.subList(3, EVERY_BUILD.size()));
@@ -301,6 +307,17 @@ public class HushThreadsPreferenceFragmentTest {
             assertEquals("Dark mode uses true black instead of dark gray. Turn on dark mode in Threads to see it. "
                 + "Restart Threads to see the change.",
                     String.valueOf(page.findPreference(Settings.PURE_BLACK.key).getSummary()));
+            assertEquals("Use the HushThreads logo", String.valueOf(page.findPreference(Settings.HEADER_LOGO.key).getTitle()));
+            assertEquals("Shows the HushThreads logo at the top of your feed in place of the Threads logo. "
+                + "It doesn't spin while the feed refreshes. Restart Threads to see the change.",
+                    String.valueOf(page.findPreference(Settings.HEADER_LOGO.key).getSummary()));
+            assertEquals("Custom font", String.valueOf(page.findPreference(Settings.CUSTOM_FONT.key).getTitle()));
+            assertEquals("Shows Threads' text in the font file you pick below. Icons keep their own font. "
+                + "Restart Threads to see the change.",
+                    String.valueOf(page.findPreference(Settings.CUSTOM_FONT.key).getSummary()));
+            assertEquals("Font file", String.valueOf(page.findPreference("action_font_file").getTitle()));
+            assertEquals("No font picked yet. Pick a .ttf or .otf file.",
+                    String.valueOf(page.findPreference("action_font_file").getSummary()));
             assertEquals("Hide the Instagram button", String.valueOf(page.findPreference(Settings.HIDE_INSTAGRAM_BUTTON.key).getTitle()));
             assertEquals("Takes the Instagram button off the top of profiles, yours and other people's. "
                 + "Restart Threads to see the change.",
@@ -317,6 +334,24 @@ public class HushThreadsPreferenceFragmentTest {
             assertEquals("Show the date and time", String.valueOf(page.findPreference(Settings.EXACT_POST_TIMES.key).getTitle()));
             assertEquals("Posts and replies show the date and time they went up instead of 3h or 2d, in your phone's "
                 + "12 or 24-hour format.", String.valueOf(page.findPreference(Settings.EXACT_POST_TIMES.key).getSummary()));
+            // Each post button has its own switch under Posts, right after the post times.
+            String[][] buttons = {
+                {Settings.HIDE_LIKE_BUTTON.key, "Hide the like button",
+                    "Takes the like button off posts and replies, with its count. Restart Threads to see the change."},
+                {Settings.HIDE_REPLY_BUTTON.key, "Hide the reply button",
+                    "Takes the reply button off posts and replies, with its count. Restart Threads to see the change."},
+                {Settings.HIDE_REPOST_BUTTON.key, "Hide the repost button",
+                    "Takes the repost button off posts and replies, with its count. Restart Threads to see the change."},
+                {Settings.HIDE_SHARE_BUTTON.key, "Hide the share button",
+                    "Takes the share button off posts and replies. Restart Threads to see the change."},
+                {Settings.HIDE_SAVE_BUTTON.key, "Hide the save button",
+                    "Takes the save button off posts and replies, so you can't tap it by mistake. "
+                        + "Restart Threads to see the change."},
+            };
+            for (String[] button : buttons) {
+                assertEquals(button[1], String.valueOf(page.findPreference(button[0]).getTitle()));
+                assertEquals(button[2], String.valueOf(page.findPreference(button[0]).getSummary()));
+            }
             // A reply is matched with the posts shown under it, and a bare domain with no path isn't
             // a link, so both summaries say so.
             assertEquals("Replies matching the patterns below are left out of a post's replies, so a spam reply never "
@@ -335,12 +370,14 @@ public class HushThreadsPreferenceFragmentTest {
             }
             // The ones that joined it later start off, so a default build looks like Threads, and so
             // do Hide the Instagram button, Hide ghost post bubbles, Disable swipe to Search, Show
-            // exact post times and Full size profile pictures, which came after.
+            // exact post times, Full size profile pictures and the post buttons, which came after.
             for (BooleanSetting setting : Arrays.asList(Settings.BLOCK_RETURN_REFRESH, Settings.DISABLE_VIDEO_AUTOPLAY,
                     Settings.MAX_IMAGE_QUALITY, Settings.DISABLE_SCREENSHOT_DETECTION, Settings.SPOOF_SIM_REGION,
-                    Settings.PURE_BLACK,
+                    Settings.PURE_BLACK, Settings.HEADER_LOGO, Settings.CUSTOM_FONT,
                     Settings.HIDE_INSTAGRAM_BUTTON, Settings.HIDE_GHOST_POST_BUBBLES, Settings.DISABLE_SWIPE_TO_SEARCH,
-                    Settings.EXACT_POST_TIMES, Settings.FULL_SIZE_PROFILE_PICTURES)) {
+                    Settings.EXACT_POST_TIMES, Settings.FULL_SIZE_PROFILE_PICTURES, Settings.HIDE_LIKE_BUTTON,
+                    Settings.HIDE_REPLY_BUTTON, Settings.HIDE_REPOST_BUTTON, Settings.HIDE_SHARE_BUTTON,
+                    Settings.HIDE_SAVE_BUTTON)) {
                 assertFalse(setting.key, ((SwitchPreference) page.findPreference(setting.key)).isChecked());
             }
             // The time limit holds until someone lifts it.

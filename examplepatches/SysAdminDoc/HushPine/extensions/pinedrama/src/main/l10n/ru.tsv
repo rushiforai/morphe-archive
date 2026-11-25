@@ -2019,3 +2019,9 @@ Preferred subtitles	Предпочитаемые субтитры
 Preferred dubs	Предпочитаемая озвучка
 Always open on Home	Всегда открывать на Главной
 PineDrama sometimes starts on Discover, like in the first days after an install. This starts it on Home instead.	Иногда PineDrama открывается на вкладке Обзор, например в первые дни после установки. С этим он открывается на Главной.
+Search this list	Поиск по этому списку
+Nothing in this list matches	В этом списке ничего не найдено
+Tap the tab you're on to go back to the top	Нажмите на текущую вкладку, чтобы вернуться наверх
+Tapping the tab you're already on in History or Favorites takes that list back to its first row.	Если в истории или избранном нажать на вкладку, на которой вы уже находитесь, этот список вернётся к первой строке.
+Search History and Favorites	Поиск по истории и избранному
+Puts a search bar above these lists. It looks through the whole list, loading the rest as it goes, and tapping a result opens it.	Добавляет строку поиска над этими списками. Она просматривает весь список, подгружая остальное по ходу, а нажатие на результат открывает его.

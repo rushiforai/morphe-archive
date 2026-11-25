@@ -51,7 +51,7 @@ for a crash at start.
 python .github/scripts/check_app.py quora com.quora.android_X.Y.Z.apkm --cli morphe-cli.jar --install
 ```
 
-This mostly runs on its own. `.github/workflows/quora-version.yml` (with the shared
+This mostly runs on its own. `.github/workflows/versions.yml` (with the shared
 `app-version.yml` and the settings in `.github/apps/quora.json`) checks APKMirror and Google Play
 every day. For a new version it downloads the APKM, checks that every split is signed by Quora,
 keeps it as a release in the private repository `JoFSlash/morphe-apks`, patches it, starts it on an
@@ -67,16 +67,15 @@ page no longer has the class names some patches rely on, it names those patches.
 - `.github/page-scripts/run.sh` writes every script the page patches inject, checks that each one
   parses, and runs the DOM checks in `dom-test.js` on trimmed copies of Quora's markup. Add a check
   there when you change what a script hides.
-- `emulator.yml` patches the newest supported version on every pull request, installs it on an
-  emulator and checks that it starts and loads the sign-in page.
+- `emulator-pr.yml` patches the newest supported version on every pull request that changes Quora's
+  patches or the shared build, installs it on emulators and checks that it starts and loads the
+  sign-in page.
 - `feed-test.yml` signs in with a test account and checks the page patches on the real feed and on
   an answer (`.github/scripts/feed-test.mjs`). It leaves out "Start tab", so the app opens on the
   Home feed.
-- `release.yml` makes the Wednesday pre-release from `dev` and the Saturday stable release from `main`
-  (it merges the newest pre-release into `main` first, and `main` is merged back into `dev` after
-  the release). It runs the emulator test and the feed test first and releases only when both pass;
-  a skipped feed test doesn't count as passed. When a run doesn't pass, the issues "Weekly release
-  stopped" (or "Weekly pre-release stopped") and "Feed test needs attention" say why, and the next passing run closes them. An urgent
+- `release.yml` makes the Saturday release from `main`. It runs the emulator test and the feed test
+  first and releases only when both pass; a skipped feed test doesn't count as passed. When a run
+  doesn't pass, the issues "Weekly release stopped" and "Feed test needs attention" say why, and the next passing run closes them. An urgent
   fix can be released by hand with "Skip the feed test" while the feed test can't run.
 - The workflows use the Morphe CLI release in `.github/morphe-cli-version`. `morphe-cli.yml` looks
   for a newer stable one every Sunday, runs the emulator test with it and opens a pull request.
@@ -94,27 +93,19 @@ page no longer has the class names some patches rely on, it names those patches.
 
 ## Pull requests
 
-- Target the `dev` branch. Every Wednesday the `feat` and `fix` commits merged into `dev` that week go
-  out as a pre-release (`vX.Y.Z-dev.N`) for people who turn on "Pre-release patches" in Morphe
-  Manager. On Saturday that pre-release becomes the stable release on `main`, unless an open issue
-  is labelled `release blocker`. Both need the emulator and feed tests to pass; urgent fixes are
-  released right away by hand (see below).
-- GitHub closes the issues a pull request names with "Closes #N" only when it is merged into
-  `main`. For pull requests into `dev`, close them by hand once the stable release has them.
+- Target the `main` branch. Every Saturday the `feat` and `fix` commits merged into `main` that week
+  go out as a release, unless an open issue is labelled `release blocker`. It needs the emulator and
+  feed tests to pass; urgent fixes are released right away by hand (see below).
 
 ### Urgent fixes
 
 A crash at start or a broken sign-in shouldn't wait for Saturday:
 
-1. Branch from `main` and open the pull request against `main`. Label the issue `release blocker`
-   if the current pre-release has the bug too, so Saturday doesn't make it stable.
+1. Open the pull request against `main` as usual. If something already merged that week must not
+   go out yet, label an issue about it `release blocker` (that only stops the Saturday run).
 2. After merging, run the Release workflow by hand on `main` (Actions > Release > Run workflow).
    It releases a patch version once the emulator and feed tests pass. "Skip the feed test" is only
    for when the feed test itself can't run.
-3. The release merges `main` back into `dev`, so the next pre-release has the fix. If that merge
-   fails, merge `main` into `dev` by hand. On Saturday, conflicts in the files the releases
-   generate (`CHANGELOG.md`, `gradle.properties`, `patches-bundle.json`, `patches-list.json`,
-   `README.md`) are resolved by the workflow; any other conflict stops the stable release.
 - Use [Conventional Commits](https://www.conventionalcommits.org/) (`feat:`, `fix:`, `docs:` and so
   on); the release notes and version numbers are generated from them.
 - Describe what you tested and on which Quora version.

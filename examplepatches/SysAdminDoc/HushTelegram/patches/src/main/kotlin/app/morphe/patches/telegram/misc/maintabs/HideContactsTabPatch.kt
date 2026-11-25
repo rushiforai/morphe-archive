@@ -88,6 +88,7 @@ private const val WALK_STEPS = 4000
 
 internal val CONSTANTS = setOf(Opcode.CONST_4, Opcode.CONST_16, Opcode.CONST, Opcode.CONST_HIGH16)
 private val MOVES = setOf(Opcode.MOVE, Opcode.MOVE_FROM16, Opcode.MOVE_16)
+private val OBJECT_MOVES = setOf(Opcode.MOVE_OBJECT, Opcode.MOVE_OBJECT_FROM16, Opcode.MOVE_OBJECT_16)
 private val GOTOS = setOf(Opcode.GOTO, Opcode.GOTO_16, Opcode.GOTO_32)
 private val ENDS = setOf(Opcode.RETURN_VOID, Opcode.RETURN, Opcode.RETURN_WIDE, Opcode.RETURN_OBJECT, Opcode.THROW)
 private val COMPARES: Map<Opcode, (Int, Int) -> Boolean> = mapOf(
@@ -119,16 +120,23 @@ val hideContactsTabPatch = bytecodePatch(
         requireStatusMethod("sideMenu")
         requireStatusMethod("hideNewMessage")
         requireStatusMethod("barOutline")
+        requireStatusMethod("hideDownloadsButton")
+        requireStatusMethod("alwaysShowDownloadsButton")
         val compact = resolveCompactBar(plan)
         val side = resolveSideMenu(plan)
         val newMessage = resolveNewMessageButton()
         val outline = resolveBarOutline(plan)
+        val downloads = resolveDownloadsButton()
+        val shown = resolveDownloadsShown(downloads)
         // Assembled on copies first, so a refusal leaves the app untouched.
         plan.insert { target, apply -> apply(MutableMethod(ImmutableMethod.of(target))) }
         compact.rehearse()
         side.rehearse()
         newMessage.rehearse()
         outline.rehearse()
+        downloads.rehearse()
+        shown.rehearse()
+        downloads.redrawStub()?.let { writeStub(MAIN_TABS, "redrawDownloads", 1, it, install = false) }
         writeMainTabsStubs(plan)
         plan.insert { target, apply -> apply(target) }
         // Each extra switch's own targets: a build where one changed keeps the Contacts switch.
@@ -156,6 +164,26 @@ val hideContactsTabPatch = bytecodePatch(
         } else {
             patchLog.warning("$PATCH: ${outline.missing}. The patch goes on without the bar outline.")
         }
+        if (downloads.missing == null) {
+            downloads.apply()
+            // The chat list under the settings draws its button again as they close, for both Downloads switches.
+            val redraw = downloads.redrawStub()
+            if (redraw != null) {
+                writeStub(MAIN_TABS, "redrawDownloads", 1, redraw)
+            } else {
+                patchLog.warning("$PATCH: ${downloads.redrawMissing}. The Downloads switches go on from the chat list's next update.")
+            }
+            enableCapability("hideDownloadsButton")
+        } else {
+            patchLog.warning("$PATCH: ${downloads.missing}. The patch goes on without the Downloads switch.")
+        }
+        // After the Downloads switch's call, which sits further down the same method.
+        if (shown.missing == null) {
+            shown.apply()
+            enableCapability("alwaysShowDownloadsButton")
+        } else {
+            patchLog.warning("$PATCH: ${shown.missing}. The patch goes on without Always show Downloads button.")
+        }
         enableStatus("hideContactsTab")
     }
 }
@@ -166,6 +194,12 @@ val hideContactsTabPatch = bytecodePatch(
  * nothing reads before the method's own first instruction writes them.
  */
 internal class SwipeGate(val method: MutableMethod, val forward: Boolean, val position: Int, val direction: Int)
+
+/**
+ * A call in the main screen's build, at [at] of [method], that sets the Contacts tab after the bar's
+ * method already hid it. [self] holds the screen there and [animated] is the flag the call passes.
+ */
+internal class TabSetAgain(val method: MutableMethod, val at: Int, val self: Int, val animated: Int)
 
 /**
  * What the main screen is made of, by the shapes that find it.
@@ -184,6 +218,7 @@ internal class SwipeGate(val method: MutableMethod, val forward: Boolean, val po
  * @property swipeStart the pager's start of a swipe, which takes the event and whether it goes forward
  * @property hostFlag the app's own switch that drops the Contacts page (Plus has one), or null
  * @property pins each read of [hostFlag] in the main screen and its pager, which reads off once patched
+ * @property setAgain the build's own later settings of the Contacts tab (Plus has one), each followed by the hide
  */
 internal class MainTabsPlan(
     val screen: String,
@@ -201,15 +236,18 @@ internal class MainTabsPlan(
     val swipeStart: String,
     val hostFlag: String? = null,
     val pins: List<Pair<MutableMethod, Int>> = emptyList(),
+    val setAgain: List<TabSetAgain> = emptyList(),
 ) {
     /**
      * Hands each method that gets code to [change] with the edit that does it, copy or real. The
-     * pins go first: they keep every index, and the inserts after them don't.
+     * pins go first: they keep every index, and the inserts after them don't. The last of the
+     * build's own settings goes in first, so the earlier ones keep their indices too.
      */
     fun insert(change: (MutableMethod, (MutableMethod) -> Unit) -> Unit) {
         pins.forEach { (method, at) -> change(method) { pin(it, at) } }
         change(shown) { tabsShown(it, shownReturn) }
         gates.forEach { gate -> change(gate.method) { swipeGate(it, gate, position) } }
+        setAgain.sortedByDescending { it.at }.forEach { again -> change(again.method) { hideAgain(it, again) } }
     }
 }
 
@@ -229,6 +267,11 @@ private fun pin(target: MutableMethod, at: Int) {
 private fun tabsShown(target: MutableMethod, at: Int) {
     val self = target.localRegisterCount()
     target.addInstructionsAtControlFlowLabel(at, "invoke-static {v$self, v${target.parameterRegisterNumber(1)}}, $TABS_SHOWN")
+}
+
+/** Right behind the build's own setting of the Contacts tab: the same hook, so the hide has the last word. */
+private fun hideAgain(target: MutableMethod, again: TabSetAgain) {
+    target.addInstructionsAtControlFlowLabel(again.at + 1, "invoke-static {v${again.self}, v${again.animated}}, $TABS_SHOWN")
 }
 
 /**
@@ -373,6 +416,24 @@ internal fun BytecodePatchContext.resolveMainTabs(): MainTabsPlan {
     shown.requireThisIntact(PATCH, listOf(shownReturn))
     shown.requireParameterIntact(PATCH, 1, listOf(shownReturn))
 
+    // Plus goes on to set the Contacts tab by its own switch once that method has run, which would
+    // bring the tab back, so the hide comes again right behind each such call.
+    val firstShown = body.indices.first { body[it].controlRef() == shownRef }
+    val setAgain = body.indices.filter { at ->
+        at > firstShown && body[at].opcode == Opcode.INVOKE_VIRTUAL && body[at].controlRef() == setTab &&
+            setsContactsTab(body, flow, at, tabs)
+    }.map { at ->
+        val registers = body[at].namedRegisters()
+        val animatedHere = registers[3]
+        val barRead = defined(flow, at, registers[0])
+        shape(barRead != null && body[barRead].opcode == Opcode.IGET_OBJECT && body[barRead].controlRef() == bar,
+            "the Contacts tab is set again by something other than the screen's bar")
+        val holder = body[barRead!!].namedRegisters()[1]
+        shape(holdsThis(build, body, flow, at, holder), "the screen is out of reach where the Contacts tab is set again")
+        shape(holder <= 15 && animatedHere <= 15, "the registers where the Contacts tab is set again are out of a call's reach")
+        TabSetAgain(build, at, holder, animatedHere)
+    }
+
     // The pager: the superclass's one field whose type answers the two swipe questions for this screen.
     val superType = screen.superclass ?: throw shapeError("the main screen has no superclass")
     val holder = tgClassDefByOrNull(superType) ?: throw shapeError("the main screen's superclass is missing")
@@ -466,7 +527,23 @@ internal fun BytecodePatchContext.resolveMainTabs(): MainTabsPlan {
     shape(tgClassDefByOrNull(tabType)?.let { AccessFlags.PUBLIC.isSet(it.accessFlags) } == true, "the tab views are inaccessible")
 
     return MainTabsPlan(screenType, tabs, bar, setTab, shown, shownReturn, pager, turn.position, slide, set, mark, gates, turn.start,
-        hostFlag, pins)
+        hostFlag, pins, setAgain)
+}
+
+/** Whether the bar call at [at] is handed the Contacts tab, read from the kept [tabs] by a plain constant. */
+private fun setsContactsTab(body: List<Instruction>, flow: ControlFlow, at: Int, tabs: String): Boolean {
+    val view = defined(flow, at, body[at].namedRegisters()[1])?.takeIf { body[it].opcode == Opcode.AGET_OBJECT } ?: return false
+    val (_, array, index) = body[view].namedRegisters()
+    val read = defined(flow, view, array) ?: return false
+    return body[read].opcode == Opcode.IGET_OBJECT && body[read].controlRef() == tabs && constant(body, flow, view, index) == CONTACTS
+}
+
+/** Whether [register] holds `this` at [use]: it's the parameter itself, or the one copy of it that reaches there. */
+private fun holdsThis(method: Method, body: List<Instruction>, flow: ControlFlow, use: Int, register: Int): Boolean {
+    val self = method.localRegisterCount()
+    if (register == self) return true
+    val copy = defined(flow, use, register) ?: return false
+    return body[copy].opcode in OBJECT_MOVES && body[copy].namedRegisters()[1] == self
 }
 
 /** The stubs' bodies: hide the Contacts tab, read the page showing, and turn the screen to Chats. */

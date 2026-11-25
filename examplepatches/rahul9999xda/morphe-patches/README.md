@@ -11,7 +11,7 @@
 
 <p align="center">
   <a href="https://github.com/rahul9999xda/morphe-patches/stargazers"><img src="https://img.shields.io/github/stars/rahul9999xda/morphe-patches?label=STARS&style=flat-square&color=D4A72C" alt="Stars"></a>
-  <img src="https://img.shields.io/badge/PATCHES-17-D05A9B?style=flat-square" alt="Patches">
+  <img src="https://img.shields.io/badge/PATCHES-16-D05A9B?style=flat-square" alt="Patches">
 </p>
 
 <p align="center">
@@ -47,22 +47,22 @@ Releases and test builds are produced through the repository's configured build 
 <!-- PATCHES_START -->
 ## 🩹 Patches list
 
-> [v1.18.0](https://github.com/rahul9999xda/morphe-patches/releases/tag/v1.18.0) · `main` · **17 patches total**
+> [v1.19.0](https://github.com/rahul9999xda/morphe-patches/releases/tag/v1.19.0) · `main` · **16 patches total**
 
 
 <details>
-<summary><strong>Telegram</strong> · 17 patches</summary>
+<summary><strong>Telegram</strong> · 16 patches</summary>
 
 🎯 **Supported versions:**
 
-`13.1.1`
+`13.3.1`
 
 ---
 
 | 💊 Patch | 📜 Description |
 | --- | --- |
-| **Anti-delete messages** | Prevents messages deleted by other users from being removed locally. |
-| **Anti-disappearing media** | Keeps view-once photos, videos and voice messages viewable indefinitely without modifying SecretMediaViewer lifecycle callbacks. |
+| **Anti-delete messages** | Ignores incoming remote deletion updates while leaving the local delete action path intact. |
+| **Anti-disappearing media** | Keeps secret media in local storage after viewing without disabling Telegram's media viewer or read-state setup. |
 | **Anti-screenshot notification** | Blocks screenshot notifications from being sent to the other user. |
 | **Bypass channel restrictions** | Allows opening and viewing content from restricted, sensitive, and copyright-restricted channels. |
 | **Bypass content restrictions** | Allows saving and forwarding content from restricted channels, chats, and users. |
@@ -72,28 +72,27 @@ Releases and test builds are produced through the repository's configured build 
 | **Disable telemetry and analytics** | Disables Firebase Analytics and Crashlytics collection where bundled and blocks app telemetry logging entry points. |
 | **Download speed boost** | Increases download chunk size to 1 MB and max concurrent requests to 12. |
 | **Hide Stories read status** | Prevents the client from processing and sending Stories read receipts. |
-| **Hide typing indicator** | Blocks Telegram's controller-level sendTyping dispatch on audited Telegram/Web 13.1.1 and Plus 13.1.1.0 builds. |
+| **Hide typing indicator** | Blocks Telegram's controller-level sendTyping dispatch on audited Telegram/Web 13.2.2 and Plus 13.2.2.1 builds. |
 | **Morphe Settings** | Adds Morphe Settings to Telegram Android and Telegram Web and initializes forwarding at startup. |
 | **Remove ads** | Removes sponsored messages and video ads. On Telegram Plus also blocks current and legacy Plus ad-loader entry points. |
-| **Unlock Premium** | Unlocks Telegram Premium features for the current account. |
-| **Use normal paste for Rich HTML clipboard content** | Bypasses Telegram's custom Rich HTML clipboard handling and delegates paste to the normal superclass implementation. |
+| **Unlock Premium** | Unlocks the local Premium entitlement gates and supported legacy Premium conveniences. |
 | **Voice to music** | Plays voice notes through the music-player path while preserving Raise-to-Listen. |
 
 </details>
 
 <details>
-<summary><strong>Telegram Plus</strong> · 16 patches</summary>
+<summary><strong>Telegram Plus</strong> · 15 patches</summary>
 
 🎯 **Supported versions:**
 
-`13.1.1.0`
+`13.1.1.1`
 
 ---
 
 | 💊 Patch | 📜 Description |
 | --- | --- |
-| **Anti-delete messages** | Prevents messages deleted by other users from being removed locally. |
-| **Anti-disappearing media** | Keeps view-once photos, videos and voice messages viewable indefinitely without modifying SecretMediaViewer lifecycle callbacks. |
+| **Anti-delete messages** | Ignores incoming remote deletion updates while leaving the local delete action path intact. |
+| **Anti-disappearing media** | Keeps secret media in local storage after viewing without disabling Telegram's media viewer or read-state setup. |
 | **Anti-screenshot notification** | Blocks screenshot notifications from being sent to the other user. |
 | **Bypass channel restrictions** | Allows opening and viewing content from restricted, sensitive, and copyright-restricted channels. |
 | **Bypass content restrictions** | Allows saving and forwarding content from restricted channels, chats, and users. |
@@ -103,27 +102,26 @@ Releases and test builds are produced through the repository's configured build 
 | **Disable telemetry and analytics** | Disables Firebase Analytics and Crashlytics collection where bundled and blocks app telemetry logging entry points. |
 | **Download speed boost** | Increases download chunk size to 1 MB and max concurrent requests to 12. |
 | **Hide Stories read status** | Prevents the client from processing and sending Stories read receipts. |
-| **Hide typing indicator** | Blocks Telegram's controller-level sendTyping dispatch on audited Telegram/Web 13.1.1 and Plus 13.1.1.0 builds. |
+| **Hide typing indicator** | Blocks Telegram's controller-level sendTyping dispatch on audited Telegram/Web 13.2.2 and Plus 13.2.2.1 builds. |
 | **Remove ads** | Removes sponsored messages and video ads. On Telegram Plus also blocks current and legacy Plus ad-loader entry points. |
-| **Unlock Premium** | Unlocks Telegram Premium features for the current account. |
-| **Use normal paste for Rich HTML clipboard content** | Bypasses Telegram's custom Rich HTML clipboard handling and delegates paste to the normal superclass implementation. |
+| **Unlock Premium** | Unlocks the local Premium entitlement gates and supported legacy Premium conveniences. |
 | **Voice to music** | Plays voice notes through the music-player path while preserving Raise-to-Listen. |
 
 </details>
 
 <details>
-<summary><strong>Telegram Web</strong> · 17 patches</summary>
+<summary><strong>Telegram Web</strong> · 16 patches</summary>
 
 🎯 **Supported versions:**
 
-`13.1.1`
+`13.3.1`
 
 ---
 
 | 💊 Patch | 📜 Description |
 | --- | --- |
-| **Anti-delete messages** | Prevents messages deleted by other users from being removed locally. |
-| **Anti-disappearing media** | Keeps view-once photos, videos and voice messages viewable indefinitely without modifying SecretMediaViewer lifecycle callbacks. |
+| **Anti-delete messages** | Ignores incoming remote deletion updates while leaving the local delete action path intact. |
+| **Anti-disappearing media** | Keeps secret media in local storage after viewing without disabling Telegram's media viewer or read-state setup. |
 | **Anti-screenshot notification** | Blocks screenshot notifications from being sent to the other user. |
 | **Bypass channel restrictions** | Allows opening and viewing content from restricted, sensitive, and copyright-restricted channels. |
 | **Bypass content restrictions** | Allows saving and forwarding content from restricted channels, chats, and users. |
@@ -133,11 +131,10 @@ Releases and test builds are produced through the repository's configured build 
 | **Disable telemetry and analytics** | Disables Firebase Analytics and Crashlytics collection where bundled and blocks app telemetry logging entry points. |
 | **Download speed boost** | Increases download chunk size to 1 MB and max concurrent requests to 12. |
 | **Hide Stories read status** | Prevents the client from processing and sending Stories read receipts. |
-| **Hide typing indicator** | Blocks Telegram's controller-level sendTyping dispatch on audited Telegram/Web 13.1.1 and Plus 13.1.1.0 builds. |
+| **Hide typing indicator** | Blocks Telegram's controller-level sendTyping dispatch on audited Telegram/Web 13.2.2 and Plus 13.2.2.1 builds. |
 | **Morphe Settings** | Adds Morphe Settings to Telegram Android and Telegram Web and initializes forwarding at startup. |
 | **Remove ads** | Removes sponsored messages and video ads. On Telegram Plus also blocks current and legacy Plus ad-loader entry points. |
-| **Unlock Premium** | Unlocks Telegram Premium features for the current account. |
-| **Use normal paste for Rich HTML clipboard content** | Bypasses Telegram's custom Rich HTML clipboard handling and delegates paste to the normal superclass implementation. |
+| **Unlock Premium** | Unlocks the local Premium entitlement gates and supported legacy Premium conveniences. |
 | **Voice to music** | Plays voice notes through the music-player path while preserving Raise-to-Listen. |
 
 </details>

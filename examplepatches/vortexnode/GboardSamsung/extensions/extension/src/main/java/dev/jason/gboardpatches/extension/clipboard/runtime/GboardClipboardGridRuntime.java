@@ -30,6 +30,12 @@ final class GboardClipboardGridRuntime {
             SharedPreferences prefs=observe(context);
             View recycler=ACCESS.recycler(keyboard);
             if(recycler==null)return;
+            GboardClipboardClearAllButton.sync(
+                    recycler,
+                    context,
+                    GboardClipboardSettings.readClipboardEnabled(prefs)
+                            && GboardClipboardSettings.readClipboardClearAllButton(prefs),
+                    support);
             Object manager=ACCESS.manager(recycler);
             if(manager==null || !ACCESS.isManager(manager))return;
             Integer stock;synchronized(STOCK_COUNTS){stock=STOCK_COUNTS.get(keyboard);}

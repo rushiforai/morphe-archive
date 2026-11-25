@@ -154,7 +154,7 @@ final class LrclibMatcher {
         return score;
     }
 
-    private static boolean hasVariantMismatch(String qTitle, String cTitle) {
+    static boolean hasVariantMismatch(String qTitle, String cTitle) {
         String[] markers = {"inst", "instrumental", "off vocal", "karaoke", "live", "remix", "sped up", "slowed", "nightcore", "tv size"};
         for (String marker : markers) {
             boolean qHas = containsTokenOrPhrase(qTitle, marker);

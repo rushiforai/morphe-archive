@@ -2,6 +2,8 @@ package app.voidhack.extension.applemusic.lyrics;
 
 import android.app.Activity;
 import android.app.Dialog;
+import android.content.ClipData;
+import android.content.ClipboardManager;
 import android.content.Context;
 import android.content.res.ColorStateList;
 import android.graphics.Color;
@@ -14,6 +16,7 @@ import android.os.Build;
 import android.os.Handler;
 import android.os.Looper;
 import android.text.TextUtils;
+import android.util.Log;
 import android.view.Gravity;
 import android.view.KeyEvent;
 import android.view.View;
@@ -42,6 +45,8 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 final class LrclibUi {
     private static final Handler MAIN = new Handler(Looper.getMainLooper());
+    private static boolean dictionaryDownloading;
+    private static boolean folderScanning;
     private static final ExecutorService UI_EXECUTOR = Executors.newSingleThreadExecutor(r -> {
         Thread t = new Thread(r, "VoidhackLrclibUi");
         t.setDaemon(true);
@@ -49,6 +54,55 @@ final class LrclibUi {
     });
 
     private LrclibUi() {}
+
+    private static void rescanLocalFolder(final Activity activity, final Runnable rebuild, final boolean showToast) {
+        if (folderScanning) return;
+        folderScanning = true;
+        if (rebuild != null) rebuild.run();
+        final Context context = activity.getApplicationContext();
+        UI_EXECUTOR.execute(() -> {
+            LocalLrcFolder.ScanResult result = LocalLrcFolder.rescanNow(context);
+            MAIN.post(() -> {
+                folderScanning = false;
+                LrclibController.onLocalFolderChanged(context);
+                if (showToast) {
+                    String msg = result.accessible
+                            ? LrclibStrings.text(context, "local_folder_rescanned", result.fileCount)
+                            : LrclibStrings.text(context, "local_folder_inaccessible");
+                    Toast.makeText(context, msg, Toast.LENGTH_SHORT).show();
+                }
+                if (rebuild != null && !activity.isDestroyed()) rebuild.run();
+            });
+        });
+    }
+
+    private static void downloadDictionary(Activity activity, Runnable rebuild) {
+        if (dictionaryDownloading) return;
+        dictionaryDownloading = true;
+        rebuild.run();
+        Context context = activity.getApplicationContext();
+        UI_EXECUTOR.execute(() -> {
+            boolean installed;
+            try {
+                KuromojiDictionary.install(context);
+                installed = true;
+            } catch (IOException e) {
+                Log.w("AppleMusicLrclib", "Could not install the Japanese lyrics dictionary", e);
+                installed = false;
+            }
+            boolean success = installed;
+            MAIN.post(() -> {
+                dictionaryDownloading = false;
+                if (success) {
+                    LrclibController.reloadCurrentTrack(context, null, false);
+                } else {
+                    Toast.makeText(context, LrclibStrings.text(context, "dictionary_download_failed"),
+                            Toast.LENGTH_LONG).show();
+                }
+                if (!activity.isDestroyed()) rebuild.run();
+            });
+        });
+    }
 
     // =========================================================================
     // 1. Quick Lyrics Source & Override Sheet
@@ -148,6 +202,21 @@ final class LrclibUi {
                         () -> {}
                 );
             }
+            if (activeMode == LrclibModels.OverrideMode.FORCE_LOCAL_LRC && ov != null) {
+                modeCard.addView(page.separator(), page.sepParams());
+                String fileLabel = ov.localFileName.isEmpty() ? "lyrics.lrc" : ov.localFileName;
+                String subLabel = ov.localForceUnsynced
+                        ? LrclibStrings.text(activity, "override_local_file_unsynced")
+                        : null;
+                page.addRadioRow(
+                        modeCard,
+                        LrclibStrings.text(activity, "override_local_file", fileLabel),
+                        subLabel,
+                        true,
+                        true,
+                        () -> {}
+                );
+            }
             content.addView(modeCard, page.cardParams());
 
             // Search & Pick button (prominent filled CTA)
@@ -158,6 +227,29 @@ final class LrclibUi {
             LinearLayout.LayoutParams ctaParams = new LinearLayout.LayoutParams(-1, page.dp(48));
             ctaParams.setMargins(0, page.dp(12), 0, page.dp(4));
             content.addView(searchBtn, ctaParams);
+
+            // Load local LRC file button (secondary CTA)
+            TextView localBtn = page.secondaryButton(LrclibStrings.text(activity, "local_pick_action"));
+            localBtn.setOnClickListener(v -> LrcPickerFragment.pickFile(activity, (fileName, decoded) -> {
+                openLocalLrcPreview(activity, fragment, query, fileName, decoded, () -> page.dismiss());
+            }));
+            LinearLayout.LayoutParams localCtaParams = new LinearLayout.LayoutParams(-1, page.dp(46));
+            localCtaParams.setMargins(0, page.dp(6), 0, page.dp(4));
+            content.addView(localBtn, localCtaParams);
+
+            // Per-song edited lines review/restore (shown whenever current lyrics have edited lines)
+            LyricsLineEditor.Sheet activeSheet = LyricsLineEditor.getActiveSheet(fragment, query.trackKey);
+            List<LyricsEditTtml.EditedLine> editedLines = LyricsLineEditor.listEditedLines(activity, activeSheet);
+            if (!editedLines.isEmpty()) {
+                LinearLayout editsCard = page.card();
+                page.addActionRow(
+                        editsCard,
+                        LrclibStrings.text(activity, "review_edited_lines", editedLines.size()),
+                        page.accent,
+                        () -> openEditedLinesPage(activity, fragment, query, activeSheet, rebuild[0])
+                );
+                content.addView(editsCard, page.cardParams());
+            }
 
             // Per-song timing offset stepper
             LinearLayout offsetCard = page.card();
@@ -172,8 +264,14 @@ final class LrclibUi {
             );
             content.addView(offsetCard, page.cardParams());
 
-            // Utility actions: Reload & Settings
+            // Utility actions: Export LRC, Reload & Settings
             LinearLayout utilCard = page.card();
+            if (activeSheet != null && activeSheet.displayed != null && !activeSheet.displayed.isEmpty()) {
+                page.addActionRow(utilCard, LrclibStrings.text(activity, "export_lrc_action"), page.primary, () -> {
+                    openExportLrcPage(activity, query, activeSheet, !editedLines.isEmpty());
+                });
+                utilCard.addView(page.separator(), page.sepParams());
+            }
             page.addActionRow(utilCard, LrclibStrings.text(activity, "reload_action"), page.accent, () -> {
                 LrclibController.reloadCurrentTrack(activity, fragment, true);
                 page.dismiss();
@@ -466,6 +564,227 @@ final class LrclibUi {
     }
 
     // =========================================================================
+    // 2b. Local LRC File Preview & Import Page
+    // =========================================================================
+
+    private static void openLocalLrcPreview(
+            final Activity activity,
+            final Object fragment,
+            final LrclibModels.TrackQuery query,
+            final String fileName,
+            final LocalLrcParser.DecodedText decoded,
+            final Runnable onApplied) {
+        final Page page = new Page(activity, LrclibStrings.text(activity, "local_preview_title"));
+        final LinearLayout content = page.createScrollBody();
+        final LocalLrcParser.LrcMetadata meta = LocalLrcParser.parseMetadata(decoded.text);
+        final boolean[] forceUnsynced = new boolean[]{false};
+
+        page.addFooterButton(LrclibStrings.text(activity, "apply_lyrics"), true, () -> {
+            boolean saved = LrclibController.applyLocalLrcFile(
+                    activity, fragment, query, fileName, decoded.text, forceUnsynced[0]);
+            if (!saved) {
+                Toast.makeText(activity, LrclibStrings.text(activity, "local_save_error"), Toast.LENGTH_LONG).show();
+                return;
+            }
+            page.dismiss();
+            if (onApplied != null) onApplied.run();
+        });
+
+        final Runnable[] render = new Runnable[1];
+        render[0] = () -> {
+            content.removeAllViews();
+            boolean allowWord = LrclibPrefs.isWordSyncEnabled(activity);
+            LrclibParser.PreparedRecord prepared = LocalLrcParser.prepareLocalLrc(
+                    decoded.text, query.durationSec, allowWord, forceUnsynced[0]);
+            int lineCount = (prepared.parsed != null) ? prepared.parsed.lines.size() : 0;
+
+            LinearLayout header = page.card();
+            TextView nameTv = page.text(fileName, 17, true, page.primary);
+            nameTv.setMaxLines(2);
+            nameTv.setEllipsize(TextUtils.TruncateAt.END);
+            header.addView(nameTv);
+
+            if (meta.hasAnyTag()) {
+                StringBuilder tagLine = new StringBuilder();
+                if (!meta.title.isEmpty()) tagLine.append(meta.title);
+                if (!meta.artist.isEmpty()) {
+                    if (tagLine.length() > 0) tagLine.append(" · ");
+                    tagLine.append(meta.artist);
+                }
+                if (!meta.album.isEmpty()) {
+                    if (tagLine.length() > 0) tagLine.append(" · ");
+                    tagLine.append(meta.album);
+                }
+                TextView tagTv = page.text(tagLine.toString(), 13, false, page.secondary);
+                tagTv.setPadding(0, page.dp(3), 0, 0);
+                tagTv.setMaxLines(2);
+                tagTv.setEllipsize(TextUtils.TruncateAt.END);
+                header.addView(tagTv);
+            }
+
+            LinearLayout chips = new LinearLayout(activity);
+            chips.setOrientation(LinearLayout.HORIZONTAL);
+            chips.setGravity(Gravity.CENTER_VERTICAL);
+            chips.setPadding(0, page.dp(8), 0, 0);
+
+            if (prepared.sourceType == LrclibModels.LyricsSource.LOCAL_WORD) {
+                chips.addView(page.chip(LrclibStrings.text(activity, "tag_word"), 0x26FA2D48, page.accent));
+            } else if (prepared.sourceType == LrclibModels.LyricsSource.LOCAL_LINE) {
+                chips.addView(page.chip(LrclibStrings.text(activity, "tag_synced"), 0x260A84FF, 0xFF0A84FF));
+            } else {
+                chips.addView(page.chip(LrclibStrings.text(activity, "tag_unsynced"), 0x268E8E93, page.secondary));
+            }
+
+            TextView metaTv = page.text(
+                    LrclibStrings.text(activity, "local_preview_meta", lineCount, decoded.charsetName),
+                    12, false, page.secondary);
+            metaTv.setPadding(page.dp(8), 0, 0, 0);
+            chips.addView(metaTv);
+            header.addView(chips);
+            content.addView(header, page.cardParams());
+
+            if (meta.hasSyncedTimestamps) {
+                LinearLayout modeCard = page.card();
+                page.addSwitchRow(
+                        modeCard,
+                        LrclibStrings.text(activity, "local_force_unsynced"),
+                        LrclibStrings.text(activity, "local_force_unsynced_summary"),
+                        forceUnsynced[0],
+                        checked -> {
+                            forceUnsynced[0] = checked;
+                            render[0].run();
+                        }
+                );
+                content.addView(modeCard, page.cardParams());
+            }
+
+            String previewBody = LocalLrcParser.formatPreviewText(decoded.text, forceUnsynced[0]);
+            if (previewBody.isEmpty()) previewBody = LrclibStrings.text(activity, "preview_empty");
+            TextView lyricsTv = page.text(previewBody, 15, false, page.primary);
+            lyricsTv.setLineSpacing(page.dp(4), 1f);
+            lyricsTv.setPadding(page.dp(4), page.dp(8), page.dp(4), page.dp(16));
+            lyricsTv.setTextIsSelectable(true);
+            content.addView(lyricsTv);
+        };
+
+        render[0].run();
+    }
+
+    // =========================================================================
+    // 2c. LRC Export Preview & Save Page
+    // =========================================================================
+
+    private static void openExportLrcPage(
+            final Activity activity,
+            final LrclibModels.TrackQuery query,
+            final LyricsLineEditor.Sheet sheet,
+            final boolean includesEdits) {
+        final LyricsLrcExporter.Capabilities caps = LyricsLrcExporter.inspect(sheet.displayed);
+        if (caps.lineCount <= 0) {
+            Toast.makeText(activity, LrclibStrings.text(activity, "export_unavailable"), Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        final Page page = new Page(activity, LrclibStrings.text(activity, "export_lrc_title"));
+        final LinearLayout content = page.createScrollBody();
+        final String suggestedName = LyricsLrcExporter.suggestFileName(query);
+        final LyricsLrcExporter.Format[] selectedFormat = new LyricsLrcExporter.Format[]{caps.defaultFormat()};
+        final String[] generated = new String[]{""};
+
+        page.addFooterButton(LrclibStrings.text(activity, "export_save_button"), true, () -> {
+            if (!generated[0].isEmpty()) {
+                LrcPickerFragment.saveFile(activity, suggestedName, generated[0], savedName -> {});
+            }
+        });
+
+        final Runnable[] render = new Runnable[1];
+        render[0] = () -> {
+            content.removeAllViews();
+            generated[0] = LyricsLrcExporter.export(sheet.displayed, query, selectedFormat[0]);
+
+            LinearLayout header = page.card();
+            TextView nameTv = page.text(suggestedName, 16, true, page.primary);
+            nameTv.setMaxLines(2);
+            nameTv.setEllipsize(TextUtils.TruncateAt.END);
+            header.addView(nameTv);
+
+            String metaLine = LrclibStrings.text(activity, "local_preview_meta", caps.lineCount, "UTF-8");
+            if (includesEdits) {
+                metaLine += " · " + LrclibStrings.text(activity, "export_includes_edits");
+            }
+            TextView metaTv = page.text(metaLine, 12, false, page.secondary);
+            metaTv.setPadding(0, page.dp(4), 0, 0);
+            header.addView(metaTv);
+            content.addView(header, page.cardParams());
+
+            if (caps.hasLineTiming) {
+                LinearLayout formatCard = page.card();
+                TextView fmtHeader = page.text(LrclibStrings.text(activity, "export_format_title"), 13, true, page.secondary);
+                fmtHeader.setPadding(0, 0, 0, page.dp(6));
+                formatCard.addView(fmtHeader);
+
+                page.addRadioRow(
+                        formatCard,
+                        LrclibStrings.text(activity, "export_format_line"),
+                        LrclibStrings.text(activity, "export_format_line_desc"),
+                        selectedFormat[0] == LyricsLrcExporter.Format.LINE_SYNCED,
+                        true,
+                        () -> {
+                            selectedFormat[0] = LyricsLrcExporter.Format.LINE_SYNCED;
+                            render[0].run();
+                        }
+                );
+                if (caps.hasWordTiming) {
+                    formatCard.addView(page.separator(), page.sepParams());
+                    page.addRadioRow(
+                            formatCard,
+                            LrclibStrings.text(activity, "export_format_word"),
+                            LrclibStrings.text(activity, "export_format_word_desc"),
+                            selectedFormat[0] == LyricsLrcExporter.Format.WORD_SYNCED,
+                            true,
+                            () -> {
+                                selectedFormat[0] = LyricsLrcExporter.Format.WORD_SYNCED;
+                                render[0].run();
+                            }
+                    );
+                }
+                formatCard.addView(page.separator(), page.sepParams());
+                page.addRadioRow(
+                        formatCard,
+                        LrclibStrings.text(activity, "export_format_unsynced"),
+                        LrclibStrings.text(activity, "export_format_unsynced_desc"),
+                        selectedFormat[0] == LyricsLrcExporter.Format.UNSYNCED,
+                        true,
+                        () -> {
+                            selectedFormat[0] = LyricsLrcExporter.Format.UNSYNCED;
+                            render[0].run();
+                        }
+                );
+                content.addView(formatCard, page.cardParams());
+            }
+
+            LinearLayout copyCard = page.card();
+            page.addActionRow(copyCard, LrclibStrings.text(activity, "export_copy_clipboard"), page.accent, () -> {
+                ClipboardManager cm = (ClipboardManager) activity.getSystemService(Context.CLIPBOARD_SERVICE);
+                if (cm != null && !generated[0].isEmpty()) {
+                    cm.setPrimaryClip(ClipData.newPlainText(suggestedName, generated[0]));
+                    Toast.makeText(activity, LrclibStrings.text(activity, "export_copied"), Toast.LENGTH_SHORT).show();
+                }
+            });
+            content.addView(copyCard, page.cardParams());
+
+            TextView previewTv = page.text(generated[0], 13, false, page.primary);
+            previewTv.setTypeface(Typeface.MONOSPACE);
+            previewTv.setLineSpacing(page.dp(3), 1f);
+            previewTv.setPadding(page.dp(4), page.dp(10), page.dp(4), page.dp(16));
+            previewTv.setTextIsSelectable(true);
+            content.addView(previewTv);
+        };
+
+        render[0].run();
+    }
+
+    // =========================================================================
     // 3. Full LRCLIB Settings Page
     // =========================================================================
 
@@ -493,6 +812,104 @@ final class LrclibUi {
                     }
             );
             content.addView(mainCard, page.cardParams());
+
+            // Local LRC folder & priority section
+            content.addView(page.sectionHeader(LrclibStrings.text(activity, "section_local")));
+            LinearLayout localFolderCard = page.card();
+            localFolderCard.addView(page.text(LrclibStrings.text(activity, "local_folder_title"), 15, true, page.primary));
+            boolean hasFolder = LrclibPrefs.hasLocalFolder(activity);
+            String folderSummary;
+            if (folderScanning) {
+                folderSummary = LrclibStrings.text(activity, "local_folder_scanning");
+            } else if (hasFolder) {
+                String label = LrclibPrefs.getLocalFolderLabel(activity);
+                if (label.isEmpty()) label = LrclibPrefs.getLocalFolderUri(activity);
+                folderSummary = LrclibStrings.text(
+                        activity, "local_folder_status", label, LrclibPrefs.getLocalFolderCount(activity));
+            } else {
+                folderSummary = LrclibStrings.text(activity, "local_folder_not_set");
+            }
+            TextView folderDescTv = page.text(folderSummary, 12, false, hasFolder ? page.accent : page.secondary);
+            folderDescTv.setPadding(0, page.dp(4), 0, page.dp(8));
+            folderDescTv.setLineSpacing(page.dp(2), 1f);
+            localFolderCard.addView(folderDescTv);
+
+            localFolderCard.addView(page.separator(), page.sepParams());
+            page.addActionRow(
+                    localFolderCard,
+                    LrclibStrings.text(activity, hasFolder ? "local_folder_change" : "local_folder_choose"),
+                    page.accent,
+                    () -> LrcPickerFragment.pickFolder(activity, (treeUri, displayLabel) -> {
+                        LrclibPrefs.setLocalFolder(activity, treeUri.toString(), displayLabel);
+                        rescanLocalFolder(activity, rebuild[0], true);
+                    })
+            );
+            if (hasFolder) {
+                localFolderCard.addView(page.separator(), page.sepParams());
+                page.addActionRow(
+                        localFolderCard,
+                        LrclibStrings.text(activity, "local_folder_rescan"),
+                        page.primary,
+                        () -> rescanLocalFolder(activity, rebuild[0], true)
+                );
+                localFolderCard.addView(page.separator(), page.sepParams());
+                page.addActionRow(
+                        localFolderCard,
+                        LrclibStrings.text(activity, "local_folder_clear"),
+                        page.secondary,
+                        () -> {
+                            LrclibPrefs.clearLocalFolder(activity);
+                            LrclibController.onLocalFolderChanged(activity);
+                            rebuild[0].run();
+                        }
+                );
+            }
+            content.addView(localFolderCard, page.cardParams());
+
+            LinearLayout localPriorityCard = page.card();
+            TextView localPrioHeader = page.text(LrclibStrings.text(activity, "local_priority_title"), 13, true, page.secondary);
+            localPrioHeader.setPadding(0, 0, 0, page.dp(6));
+            localPriorityCard.addView(localPrioHeader);
+            LrclibModels.LocalLrcPriority localPriority = LrclibPrefs.getLocalLrcPriority(activity);
+            page.addRadioRow(
+                    localPriorityCard,
+                    LrclibStrings.text(activity, "local_priority_prefer"),
+                    LrclibStrings.text(activity, "local_priority_prefer_desc"),
+                    localPriority == LrclibModels.LocalLrcPriority.PREFER_LOCAL,
+                    true,
+                    () -> {
+                        LrclibPrefs.setLocalLrcPriority(activity, LrclibModels.LocalLrcPriority.PREFER_LOCAL);
+                        LrclibController.clearResolvedStates();
+                        rebuild[0].run();
+                    }
+            );
+            localPriorityCard.addView(page.separator(), page.sepParams());
+            page.addRadioRow(
+                    localPriorityCard,
+                    LrclibStrings.text(activity, "local_priority_missing_unsynced"),
+                    LrclibStrings.text(activity, "local_priority_missing_unsynced_desc"),
+                    localPriority == LrclibModels.LocalLrcPriority.MISSING_AND_UNSYNCED,
+                    true,
+                    () -> {
+                        LrclibPrefs.setLocalLrcPriority(activity, LrclibModels.LocalLrcPriority.MISSING_AND_UNSYNCED);
+                        LrclibController.clearResolvedStates();
+                        rebuild[0].run();
+                    }
+            );
+            localPriorityCard.addView(page.separator(), page.sepParams());
+            page.addRadioRow(
+                    localPriorityCard,
+                    LrclibStrings.text(activity, "local_priority_missing_only"),
+                    LrclibStrings.text(activity, "local_priority_missing_only_desc"),
+                    localPriority == LrclibModels.LocalLrcPriority.MISSING_ONLY,
+                    true,
+                    () -> {
+                        LrclibPrefs.setLocalLrcPriority(activity, LrclibModels.LocalLrcPriority.MISSING_ONLY);
+                        LrclibController.clearResolvedStates();
+                        rebuild[0].run();
+                    }
+            );
+            content.addView(localPriorityCard, page.cardParams());
 
             // Lyrics priority section
             content.addView(page.sectionHeader(LrclibStrings.text(activity, "section_mode")));
@@ -548,6 +965,27 @@ final class LrclibUi {
                     LrclibPrefs.isWordSyncEnabled(activity),
                     checked -> LrclibPrefs.setWordSyncEnabled(activity, checked)
             );
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                playbackCard.addView(page.separator(), page.sepParams());
+                page.addSwitchRow(
+                        playbackCard,
+                        LrclibStrings.text(activity, "romanization"),
+                        LrclibStrings.text(activity, "romanization_summary"),
+                        LrclibPrefs.isRomanizationEnabled(activity),
+                        checked -> {
+                            LrclibPrefs.setRomanizationEnabled(activity, checked);
+                            LrclibController.reloadCurrentTrack(activity, null, false);
+                        }
+                );
+                playbackCard.addView(page.separator(), page.sepParams());
+                if (dictionaryDownloading || KuromojiDictionary.isInstalled(activity)) {
+                    String status = dictionaryDownloading ? "dictionary_downloading" : "dictionary_installed";
+                    playbackCard.addView(page.text(LrclibStrings.text(activity, status), 15, false, page.secondary));
+                } else {
+                    page.addActionRow(playbackCard, LrclibStrings.text(activity, "dictionary_download"), page.accent,
+                            () -> downloadDictionary(activity, rebuild[0]));
+                }
+            }
             playbackCard.addView(page.separator(), page.sepParams());
             page.addSwitchRow(
                     playbackCard,
@@ -611,6 +1049,14 @@ final class LrclibUi {
                     LrclibStrings.text(activity, "manage_overrides", overrideCount),
                     page.primary,
                     () -> openOverridesManager(activity, rebuild[0])
+            );
+            dataCard.addView(page.separator(), page.sepParams());
+            int editedDocCount = LyricsEdits.countDocuments(activity);
+            page.addActionRow(
+                    dataCard,
+                    LrclibStrings.text(activity, "manage_edited_lyrics", editedDocCount),
+                    page.primary,
+                    () -> openEditedLyricsManager(activity, rebuild[0])
             );
             dataCard.addView(page.separator(), page.sepParams());
             int cacheCount = LrclibPrefs.getCacheFileCount(activity);
@@ -682,7 +1128,7 @@ final class LrclibUi {
                 remove.setBackground(page.ripple(null));
                 remove.setOnClickListener(v -> {
                     LrclibPrefs.removeOverride(activity, item.trackKey);
-                    LrclibController.refreshAllUi();
+                    LrclibController.clearResolvedStates();
                     if (onChanged != null) onChanged.run();
                     rebuild[0].run();
                 });
@@ -694,7 +1140,7 @@ final class LrclibUi {
             TextView clearAll = page.button(LrclibStrings.text(activity, "clear_all_overrides"), false);
             clearAll.setOnClickListener(v -> {
                 LrclibPrefs.clearAllOverrides(activity);
-                LrclibController.refreshAllUi();
+                LrclibController.clearResolvedStates();
                 if (onChanged != null) onChanged.run();
                 rebuild[0].run();
             });
@@ -706,12 +1152,404 @@ final class LrclibUi {
         rebuild[0].run();
     }
 
+    private static void openEditedLinesPage(
+            final Activity activity,
+            final Object fragment,
+            final LrclibModels.TrackQuery query,
+            final LyricsLineEditor.Sheet sheet,
+            final Runnable onChanged) {
+        final Page page = new Page(activity, LrclibStrings.text(activity, "edited_lines_title"));
+        final LinearLayout content = page.createScrollBody();
+
+        final TextView restoreAllBtn = page.addFooterButton(
+                LrclibStrings.text(activity, "restore_all_song_edits"),
+                true,
+                () -> {
+                    if (LyricsLineEditor.restoreAll(activity, sheet.documentKey)) {
+                        LrclibController.reloadCurrentTrack(activity, fragment, false);
+                        Toast.makeText(activity, LrclibStrings.text(activity, "song_edits_restored"), Toast.LENGTH_SHORT).show();
+                        if (onChanged != null) onChanged.run();
+                        page.dismiss();
+                    }
+                });
+
+        final Runnable[] rebuild = new Runnable[1];
+        rebuild[0] = () -> {
+            content.removeAllViews();
+            List<LyricsEditTtml.EditedLine> list = LyricsLineEditor.listEditedLines(activity, sheet);
+            if (list.isEmpty()) {
+                restoreAllBtn.setEnabled(false);
+                restoreAllBtn.setAlpha(0.45f);
+                content.addView(page.emptyMessage(LrclibStrings.text(activity, "edited_lines_empty")));
+                return;
+            }
+            restoreAllBtn.setEnabled(true);
+            restoreAllBtn.setAlpha(1f);
+
+            for (final LyricsEditTtml.EditedLine entry : list) {
+                LinearLayout card = page.card();
+
+                LinearLayout topRow = new LinearLayout(activity);
+                topRow.setOrientation(LinearLayout.HORIZONTAL);
+                topRow.setGravity(Gravity.CENTER_VERTICAL);
+
+                String lineMeta = LrclibStrings.text(activity, "edited_line_number", entry.index + 1);
+                if (entry.startMs >= 0L) {
+                    lineMeta += " · " + formatShortTimestamp(entry.startMs);
+                }
+                topRow.addView(page.text(lineMeta, 12, true, page.secondary),
+                        new LinearLayout.LayoutParams(0, -2, 1f));
+
+                TextView restoreBtn = page.text(LrclibStrings.text(activity, "reset_lyric_line"), 13, true, page.accent);
+                restoreBtn.setPadding(page.dp(10), page.dp(4), page.dp(2), page.dp(4));
+                restoreBtn.setBackground(page.ripple(null));
+                restoreBtn.setClickable(true);
+                restoreBtn.setFocusable(true);
+                restoreBtn.setOnClickListener(v -> {
+                    if (LyricsLineEditor.restoreLine(activity, sheet.documentKey, entry.index)) {
+                        LrclibController.reloadCurrentTrack(activity, fragment, false);
+                        if (onChanged != null) onChanged.run();
+                        if (LyricsLineEditor.listEditedLines(activity, sheet).isEmpty()) {
+                            page.dismiss();
+                        } else {
+                            rebuild[0].run();
+                        }
+                    }
+                });
+                topRow.addView(restoreBtn);
+                card.addView(topRow);
+
+                appendDiffSection(
+                        activity, page, card,
+                        entry.originalText, entry.currentText, entry.textChanged,
+                        entry.originalReading, entry.currentReading, entry.readingChanged);
+
+                content.addView(card, page.cardParams());
+            }
+        };
+
+        rebuild[0].run();
+    }
+
+    private static void openEditedLyricsManager(final Activity activity, final Runnable onChanged) {
+        final Page page = new Page(activity, LrclibStrings.text(activity, "edited_lyrics_title"));
+        final LinearLayout content = page.createScrollBody();
+
+        final Runnable[] rebuild = new Runnable[1];
+        rebuild[0] = () -> {
+            content.removeAllViews();
+            List<LyricsEdits.DocumentRecord> list = LyricsEdits.listAll(activity);
+            if (list.isEmpty()) {
+                content.addView(page.emptyMessage(LrclibStrings.text(activity, "edited_lyrics_empty")));
+                return;
+            }
+
+            for (final LyricsEdits.DocumentRecord item : list) {
+                LinearLayout card = page.card();
+                card.setClickable(true);
+                card.setFocusable(true);
+                card.setBackground(page.ripple(page.round(page.cardFill, 12)));
+                card.setOnClickListener(v -> openStoredEditedDocumentPage(activity, item.documentKey, () -> {
+                    if (onChanged != null) onChanged.run();
+                    rebuild[0].run();
+                }));
+
+                LinearLayout row = new LinearLayout(activity);
+                row.setOrientation(LinearLayout.HORIZONTAL);
+                row.setGravity(Gravity.CENTER_VERTICAL);
+
+                LinearLayout textCol = new LinearLayout(activity);
+                textCol.setOrientation(LinearLayout.VERTICAL);
+                boolean hasTitle = !item.trackTitle.isEmpty();
+                String titleStr = hasTitle
+                        ? item.trackTitle
+                        : (!item.trackKey.isEmpty() ? item.trackKey : LrclibStrings.text(activity, "edited_lyrics_untitled"));
+                TextView titleTv = page.text(titleStr, 15, true, page.primary);
+                titleTv.setMaxLines(1);
+                titleTv.setEllipsize(TextUtils.TruncateAt.END);
+                textCol.addView(titleTv);
+
+                StringBuilder detail = new StringBuilder();
+                if (!item.artistName.isEmpty()) detail.append(item.artistName).append(" · ");
+                detail.append(LrclibStrings.text(activity, "edited_lines_count", item.editedLineCount));
+                TextView detailTv = page.text(detail.toString(), 13, false, page.secondary);
+                detailTv.setPadding(0, page.dp(3), 0, 0);
+                detailTv.setMaxLines(2);
+                detailTv.setEllipsize(TextUtils.TruncateAt.END);
+                textCol.addView(detailTv);
+
+                row.addView(textCol, new LinearLayout.LayoutParams(0, -2, 1f));
+
+                TextView remove = page.text(LrclibStrings.text(activity, "reset_lyric_line"), 14, true, page.accent);
+                remove.setPadding(page.dp(12), page.dp(8), page.dp(4), page.dp(8));
+                remove.setBackground(page.ripple(null));
+                remove.setOnClickListener(v -> {
+                    LyricsEdits.clearDocument(activity, item.documentKey);
+                    LrclibController.reloadCurrentTrack(activity, null, false);
+                    if (onChanged != null) onChanged.run();
+                    rebuild[0].run();
+                });
+                row.addView(remove);
+                card.addView(row);
+
+                if (!item.lines.isEmpty()) {
+                    card.addView(page.separator(), page.sepParams());
+                    int previewCount = Math.min(2, item.lines.size());
+                    for (int i = 0; i < previewCount; i++) {
+                        LyricsEdits.StoredLineEdit line = item.lines.get(i);
+                        TextView snippetTv = page.text(
+                                formatStoredLinePreview(activity, line), 12, false, page.secondary);
+                        snippetTv.setMaxLines(4);
+                        snippetTv.setEllipsize(TextUtils.TruncateAt.END);
+                        snippetTv.setLineSpacing(page.dp(2), 1f);
+                        snippetTv.setPadding(0, i == 0 ? 0 : page.dp(6), 0, 0);
+                        card.addView(snippetTv);
+                    }
+                    if (item.lines.size() > previewCount) {
+                        TextView moreTv = page.text(
+                                LrclibStrings.text(activity, "edited_lines_more", item.lines.size() - previewCount),
+                                12, true, page.accent);
+                        moreTv.setPadding(0, page.dp(4), 0, 0);
+                        card.addView(moreTv);
+                    }
+                    if (!hasTitle) {
+                        TextView legacyHint = page.text(
+                                LrclibStrings.text(activity, "edited_lyrics_legacy_hint"),
+                                11, false, page.secondary);
+                        legacyHint.setPadding(0, page.dp(4), 0, 0);
+                        card.addView(legacyHint);
+                    }
+                }
+
+                content.addView(card, page.cardParams());
+            }
+
+            TextView clearAll = page.button(LrclibStrings.text(activity, "clear_all_edited_lyrics"), false);
+            clearAll.setOnClickListener(v -> {
+                LyricsEdits.clearAll(activity);
+                LrclibController.reloadCurrentTrack(activity, null, false);
+                Toast.makeText(activity, LrclibStrings.text(activity, "all_edits_restored"), Toast.LENGTH_SHORT).show();
+                if (onChanged != null) onChanged.run();
+                rebuild[0].run();
+            });
+            LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(-1, page.dp(44));
+            params.setMargins(0, page.dp(12), 0, page.dp(16));
+            content.addView(clearAll, params);
+        };
+
+        rebuild[0].run();
+    }
+
+    private static void openStoredEditedDocumentPage(
+            final Activity activity,
+            final String documentKey,
+            final Runnable onChanged) {
+        final LyricsEdits.DocumentRecord initial = LyricsEdits.getDocument(activity, documentKey);
+        if (initial == null) return;
+        String heading = !initial.trackTitle.isEmpty()
+                ? initial.trackTitle
+                : LrclibStrings.text(activity, "edited_lines_title");
+        final Page page = new Page(activity, heading);
+        final LinearLayout content = page.createScrollBody();
+
+        final TextView restoreAllBtn = page.addFooterButton(
+                LrclibStrings.text(activity, "restore_all_song_edits"),
+                true,
+                () -> {
+                    if (LyricsEdits.clearDocument(activity, documentKey)) {
+                        LrclibController.reloadCurrentTrack(activity, null, false);
+                        Toast.makeText(activity, LrclibStrings.text(activity, "song_edits_restored"), Toast.LENGTH_SHORT).show();
+                        if (onChanged != null) onChanged.run();
+                        page.dismiss();
+                    }
+                });
+
+        final Runnable[] rebuild = new Runnable[1];
+        rebuild[0] = () -> {
+            content.removeAllViews();
+            LyricsEdits.DocumentRecord rec = LyricsEdits.getDocument(activity, documentKey);
+            if (rec == null || rec.lines.isEmpty()) {
+                restoreAllBtn.setEnabled(false);
+                restoreAllBtn.setAlpha(0.45f);
+                content.addView(page.emptyMessage(LrclibStrings.text(activity, "edited_lines_empty")));
+                return;
+            }
+            restoreAllBtn.setEnabled(true);
+            restoreAllBtn.setAlpha(1f);
+
+            if (!rec.trackTitle.isEmpty() || !rec.artistName.isEmpty()) {
+                LinearLayout header = page.card();
+                if (!rec.trackTitle.isEmpty()) {
+                    header.addView(page.text(rec.trackTitle, 16, true, page.primary));
+                }
+                if (!rec.artistName.isEmpty()) {
+                    TextView artistTv = page.text(rec.artistName, 13, false, page.secondary);
+                    artistTv.setPadding(0, page.dp(3), 0, 0);
+                    header.addView(artistTv);
+                }
+                content.addView(header, page.cardParams());
+            }
+
+            for (final LyricsEdits.StoredLineEdit line : rec.lines) {
+                LinearLayout card = page.card();
+                LinearLayout topRow = new LinearLayout(activity);
+                topRow.setOrientation(LinearLayout.HORIZONTAL);
+                topRow.setGravity(Gravity.CENTER_VERTICAL);
+
+                String lineMeta = LrclibStrings.text(activity, "edited_line_number", line.index + 1);
+                if (line.startMs >= 0L) {
+                    lineMeta += " · " + formatShortTimestamp(line.startMs);
+                }
+                topRow.addView(page.text(lineMeta, 12, true, page.secondary),
+                        new LinearLayout.LayoutParams(0, -2, 1f));
+
+                TextView restoreBtn = page.text(LrclibStrings.text(activity, "reset_lyric_line"), 13, true, page.accent);
+                restoreBtn.setPadding(page.dp(10), page.dp(4), page.dp(2), page.dp(4));
+                restoreBtn.setBackground(page.ripple(null));
+                restoreBtn.setClickable(true);
+                restoreBtn.setFocusable(true);
+                restoreBtn.setOnClickListener(v -> {
+                    if (LyricsLineEditor.restoreLine(activity, documentKey, line.index)) {
+                        LrclibController.reloadCurrentTrack(activity, null, false);
+                        if (onChanged != null) onChanged.run();
+                        LyricsEdits.DocumentRecord remaining = LyricsEdits.getDocument(activity, documentKey);
+                        if (remaining == null || remaining.lines.isEmpty()) {
+                            page.dismiss();
+                        } else {
+                            rebuild[0].run();
+                        }
+                    }
+                });
+                topRow.addView(restoreBtn);
+                card.addView(topRow);
+
+                appendDiffSection(
+                        activity, page, card,
+                        line.originalText, line.displayCurrentText(), line.isTextChanged(),
+                        line.originalReading, line.displayCurrentReading(), line.isReadingChanged());
+
+                content.addView(card, page.cardParams());
+            }
+        };
+
+        rebuild[0].run();
+    }
+
+    private static void appendDiffSection(
+            Activity activity,
+            Page page,
+            LinearLayout card,
+            String originalText,
+            String currentText,
+            boolean textChanged,
+            String originalReading,
+            String currentReading,
+            boolean readingChanged) {
+        String emptyVal = LrclibStrings.text(activity, "edit_diff_none");
+
+        // Lyric text diff block
+        String textHeader = LrclibStrings.text(
+                activity, textChanged ? "edit_diff_lyrics_changed" : "edit_diff_lyrics_unchanged");
+        TextView textHdrTv = page.text(textHeader, 11, true, textChanged ? page.accent : page.secondary);
+        textHdrTv.setPadding(0, page.dp(8), 0, 0);
+        card.addView(textHdrTv);
+
+        if (textChanged) {
+            TextView origTv = page.text(
+                    LrclibStrings.text(activity, "edit_original_line",
+                            originalText.isEmpty() ? emptyVal : originalText),
+                    13, false, page.secondary);
+            origTv.setPadding(0, page.dp(3), 0, 0);
+            card.addView(origTv);
+
+            TextView currTv = page.text(
+                    LrclibStrings.text(activity, "edit_current_line",
+                            currentText.isEmpty() ? emptyVal : currentText),
+                    15, true, page.primary);
+            currTv.setPadding(0, page.dp(2), 0, 0);
+            card.addView(currTv);
+        } else {
+            String shownText = !currentText.isEmpty() ? currentText
+                    : (!originalText.isEmpty() ? originalText : emptyVal);
+            TextView sameTv = page.text(shownText, 14, false, page.primary);
+            sameTv.setPadding(0, page.dp(3), 0, 0);
+            card.addView(sameTv);
+        }
+
+        // Pronunciation / reading diff block (always shown alongside lyric text)
+        card.addView(page.separator(), page.sepParams());
+        String readHeader = LrclibStrings.text(
+                activity, readingChanged ? "edit_diff_reading_changed" : "edit_diff_reading_unchanged");
+        TextView readHdrTv = page.text(readHeader, 11, true, readingChanged ? page.accent : page.secondary);
+        card.addView(readHdrTv);
+
+        if (readingChanged) {
+            TextView origRead = page.text(
+                    LrclibStrings.text(activity, "edit_original_reading",
+                            originalReading.isEmpty() ? emptyVal : originalReading),
+                    12, false, page.secondary);
+            origRead.setPadding(0, page.dp(3), 0, 0);
+            card.addView(origRead);
+
+            TextView currRead = page.text(
+                    LrclibStrings.text(activity, "edit_current_reading",
+                            currentReading.isEmpty() ? emptyVal : currentReading),
+                    13, true, page.accent);
+            currRead.setPadding(0, page.dp(2), 0, 0);
+            card.addView(currRead);
+        } else {
+            String shownRead = !currentReading.isEmpty() ? currentReading
+                    : (!originalReading.isEmpty() ? originalReading : emptyVal);
+            TextView sameRead = page.text(shownRead, 13, false, page.secondary);
+            sameRead.setPadding(0, page.dp(3), 0, 0);
+            card.addView(sameRead);
+        }
+    }
+
+    private static String formatStoredLinePreview(Context ctx, LyricsEdits.StoredLineEdit line) {
+        StringBuilder sb = new StringBuilder();
+        sb.append(LrclibStrings.text(ctx, "edited_line_number", line.index + 1));
+        if (line.startMs >= 0L) {
+            sb.append(' ').append(formatShortTimestamp(line.startMs));
+        }
+        String textPart;
+        if (line.isTextChanged()) {
+            textPart = !line.originalText.isEmpty()
+                    ? (line.originalText + " → " + line.editedText)
+                    : LrclibStrings.text(ctx, "edit_current_line", line.editedText);
+        } else {
+            textPart = line.displayCurrentText();
+        }
+        if (!textPart.isEmpty()) {
+            sb.append("\n").append(LrclibStrings.text(ctx, "edit_lyric_text")).append(": ").append(textPart);
+        }
+        String currRead = line.displayCurrentReading();
+        if (line.isReadingChanged()) {
+            String readPart = !line.originalReading.isEmpty()
+                    ? (line.originalReading + " → " + currRead)
+                    : currRead;
+            sb.append("\n").append(LrclibStrings.text(ctx, "edit_lyric_reading")).append(": ").append(readPart);
+        } else if (!currRead.isEmpty()) {
+            sb.append("\n").append(LrclibStrings.text(ctx, "edit_lyric_reading")).append(": ").append(currRead);
+        }
+        return sb.toString();
+    }
+
+    private static String formatShortTimestamp(long totalMs) {
+        long clamped = Math.max(0L, totalMs);
+        long minutes = clamped / 60000L;
+        long seconds = (clamped % 60000L) / 1000L;
+        long centis = (clamped % 1000L) / 10L;
+        return String.format(Locale.ROOT, "[%02d:%02d.%02d]", minutes, seconds, centis);
+    }
+
     // =========================================================================
     // Formatting helpers
     // =========================================================================
 
     private static String describeCurrentState(Context ctx, LrclibController.TrackLyricsState state) {
         if (state == null) return LrclibStrings.text(ctx, "status_none");
+        String localName = state.localLabel.isEmpty() ? "lyrics.lrc" : state.localLabel;
         switch (state.source) {
             case OFFICIAL_WORD: return LrclibStrings.text(ctx, "status_official_word");
             case OFFICIAL_LINE: return LrclibStrings.text(ctx, "status_official_line");
@@ -720,6 +1558,12 @@ final class LrclibUi {
             case LRCLIB_LINE: return LrclibStrings.text(ctx, "status_lrclib_line", state.lrclibId);
             case LRCLIB_PLAIN: return LrclibStrings.text(ctx, "status_lrclib_plain", state.lrclibId);
             case LRCLIB_INSTRUMENTAL: return LrclibStrings.text(ctx, "status_lrclib_instrumental", state.lrclibId);
+            case LOCAL_WORD:
+                return LrclibStrings.text(ctx, state.localFromFolder ? "status_local_folder_word" : "status_local_word", localName);
+            case LOCAL_LINE:
+                return LrclibStrings.text(ctx, state.localFromFolder ? "status_local_folder_line" : "status_local_line", localName);
+            case LOCAL_PLAIN:
+                return LrclibStrings.text(ctx, state.localFromFolder ? "status_local_folder_plain" : "status_local_plain", localName);
             case LOADING_LRCLIB: return LrclibStrings.text(ctx, "status_loading");
             case NONE:
             default:
@@ -734,6 +1578,14 @@ final class LrclibUi {
             case FORCE_OFFICIAL: return LrclibStrings.text(ctx, "override_official");
             case FORCE_LRCLIB_AUTO: return LrclibStrings.text(ctx, "override_lrclib_auto");
             case FORCE_LRCLIB_ID: return LrclibStrings.text(ctx, "override_lrclib_pinned", ov.lrclibId);
+            case FORCE_LOCAL_LRC: {
+                String name = ov.localFileName.isEmpty() ? "lyrics.lrc" : ov.localFileName;
+                String base = LrclibStrings.text(ctx, "override_local_file", name);
+                if (ov.localForceUnsynced) {
+                    return base + " · " + LrclibStrings.text(ctx, "tag_unsynced");
+                }
+                return base;
+            }
             case AUTO:
             default: return LrclibStrings.text(ctx, "override_auto");
         }
@@ -1063,6 +1915,15 @@ final class LrclibUi {
             TextView tv = text(label, 15, true, filled ? Color.WHITE : accent);
             tv.setGravity(Gravity.CENTER);
             tv.setBackground(ripple(filled ? round(accent, 10) : null));
+            tv.setClickable(true);
+            tv.setFocusable(true);
+            return tv;
+        }
+
+        TextView secondaryButton(String label) {
+            TextView tv = text(label, 15, true, accent);
+            tv.setGravity(Gravity.CENTER);
+            tv.setBackground(ripple(round(cardFill, 10)));
             tv.setClickable(true);
             tv.setFocusable(true);
             return tv;

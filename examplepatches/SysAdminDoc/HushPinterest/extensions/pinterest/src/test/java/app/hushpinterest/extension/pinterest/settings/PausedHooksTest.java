@@ -78,6 +78,7 @@ import java.util.function.Function;
 
 import app.hushpinterest.extension.pinterest.actions.BoardDownloads;
 import app.hushpinterest.extension.pinterest.actions.ExternalBrowser;
+import app.hushpinterest.extension.pinterest.actions.PinchZoom;
 import app.hushpinterest.extension.pinterest.actions.LongPressDownloadForTests;
 import app.hushpinterest.extension.pinterest.actions.LongPressDownloadTest;
 import app.hushpinterest.extension.pinterest.actions.PinDownloads;
@@ -87,6 +88,8 @@ import app.hushpinterest.extension.pinterest.ads.Ads;
 import app.hushpinterest.extension.pinterest.ads.FeedFilter;
 import app.hushpinterest.extension.pinterest.ads.HomeFeed;
 import app.hushpinterest.extension.pinterest.ads.SavedPins;
+import app.hushpinterest.extension.pinterest.privacy.ActivityHistory;
+import app.hushpinterest.extension.pinterest.privacy.ActivityHistoryForTests;
 import app.hushpinterest.extension.pinterest.privacy.Analytics;
 import app.hushpinterest.extension.pinterest.privacy.AdvertisingId;
 import app.hushpinterest.extension.pinterest.notifications.PushNotificationsTest;
@@ -94,8 +97,11 @@ import app.hushpinterest.extension.pinterest.privacy.LinkTracking;
 import app.hushpinterest.extension.pinterest.privacy.PlainPinLinks;
 import app.hushpinterest.extension.pinterest.ui.AmoledBlack;
 import app.hushpinterest.extension.pinterest.ui.CloseupButtons;
+import app.hushpinterest.extension.pinterest.ui.CustomFontForTests;
 import app.hushpinterest.extension.pinterest.ui.InterfaceControls;
+import app.hushpinterest.extension.pinterest.ui.Experiments;
 import app.hushpinterest.extension.pinterest.ui.PostedDate;
+import app.hushpinterest.extension.pinterest.ui.SearchSuggestions;
 import app.hushpinterest.extension.pinterest.ui.UiHooks;
 import app.hushpinterest.extension.pinterest.ui.UiHooksForTests;
 import app.hushpinterest.extension.shared.SettingsContextRule;
@@ -158,6 +164,11 @@ public class PausedHooksTest {
         @Json("board_name") String boardName = "Kitchen";
         @Json("header_text") String header = "More ideas for your board";
         @Json("image_dominant_color_rgb") List<String> colors = Collections.singletonList("#aabbcc");
+    }
+
+    /** A "Refine your search" list on a results page, known by its story type (14.45.0, #48). */
+    static final class ProbeRefineStory {
+        @Json("story_type") String storyType = "related_searches_organic";
     }
 
     /** One hook with its switch on: true when it changed what Pinterest would have done. */
@@ -443,10 +454,17 @@ public class PausedHooksTest {
             List<Object> page = new ArrayList<>(Arrays.asList(new ProbeBoardIdeas(), new ProbePin()));
             return FeedFilter.filter(page).size() != page.size();
         }, () -> UiHooks.feedbackFlyout(Boolean.TRUE) != Boolean.TRUE));
+        // A results page's "Refine your search" lists leave it.
+        probes.put(Settings.HIDE_REFINE_SEARCH, Arrays.asList(() -> {
+            List<Object> page = new ArrayList<>(Arrays.asList(new ProbeRefineStory(), new ProbePin()));
+            return FeedFilter.filter(page).size() != page.size();
+        }));
         probes.put(Settings.KEEP_HOME_FEED, Arrays.asList(() -> HomeFeed.holdResumeRefresh(10 * 60 * 1000L),
                 () -> HomeFeed.holdHomeRefresh(null, 1)));
         // Back on a scrolled-down Home goes on out instead of jumping to the top.
         probes.put(Settings.BACK_LEAVES_HOME, Arrays.asList(HomeFeed::leave));
+        // Home's refresh pill never comes up after time away (#48).
+        probes.put(Settings.HIDE_REFRESH_PILL, Arrays.asList(HomeFeed::hideRefreshPill));
         probes.put(Settings.DISABLE_ANALYTICS, Arrays.asList(Analytics::blockUpload,
                 () -> Analytics.blockTask(Task.TAG_APPSFLYER_INIT), PausedHooksTest::quietsSdkConnection));
         probes.put(Settings.STRIP_LINK_TRACKING, Arrays.asList(
@@ -477,6 +495,12 @@ public class PausedHooksTest {
                 () -> !"real".equals(AdvertisingId.id("real")),
                 () -> AdvertisingId.limitTracking(false),
                 () -> AdvertisingId.skipBrowserId("pid")));
+        // A like, an unlike, a comment and a reply each change the list.
+        probes.put(Settings.LIKE_COMMENT_HISTORY, Arrays.asList(
+                () -> ActivityHistoryForTests.notes(() -> ActivityHistory.likeSent(null, "4242", 1)),
+                () -> ActivityHistoryForTests.unlikes("4242"),
+                () -> ActivityHistoryForTests.notes(() -> ActivityHistory.commentPosted("4242", "Nice")),
+                () -> ActivityHistoryForTests.notes(() -> ActivityHistory.replyPosted("4242", "Thanks"))));
         probes.put(Settings.DOWNLOAD_PINS, Collections.singletonList(PausedHooksTest::queuesPinDownload));
         probes.put(Settings.SAVE_IN_PINTEREST_FOLDER, Collections.singletonList(PausedHooksTest::savesInPinterestsFolder));
         probes.put(Settings.DOWNLOAD_UNMETERED_ONLY, Collections.singletonList(
@@ -539,6 +563,8 @@ public class PausedHooksTest {
             return window.press(window.searchTab, UiHooksForTests.Screen.SEARCH_LANDING) != 0;
         }));
         probes.put(Settings.BLANK_SEARCH_PAGE, Collections.singletonList(PausedHooksTest::blanksSearchPage));
+        probes.put(Settings.HIDE_SEARCH_SUGGESTIONS, Collections.singletonList(() -> SearchSuggestions.drop(
+                "{\"action\":{\"search_query\":\"x\"},\"display\":{\"background_color_hex\":\"#E8DCCB\"}}")));
         probes.put(Settings.HIDE_HOME_TABS, Collections.singletonList(() -> InterfaceControls.homeTabsHeight(
                 namedView("home_feed_view_pager_tab_layout"), MEASURE_SPEC, MEASURE_SPEC) != MEASURE_SPEC));
         probes.put(Settings.HIDE_HEADER_BUTTONS, Collections.singletonList(() -> {
@@ -554,6 +580,7 @@ public class PausedHooksTest {
         probes.put(Settings.BLACK_BOARDS, Arrays.asList(PausedHooksTest::paintsBoardBarBlack,
                 PausedHooksTest::paintsBoardHeaderBlack, PausedHooksTest::tintsProfileFilters));
         probes.put(Settings.BLACK_TOASTS, Collections.singletonList(PausedHooksTest::paintsToastBlack));
+        probes.put(Settings.BLACK_BUTTONS, Collections.singletonList(UiHooksForTests::tintsButtonBlack));
         probes.put(Settings.HIDE_CLOSEUP_BACK, Arrays.asList(() -> hidesCloseupButton(true), () -> keepsCloseupButtonHidden(true)));
         probes.put(Settings.HIDE_CLOSEUP_LENS, Arrays.asList(() -> hidesCloseupButton(false), () -> keepsCloseupButtonHidden(false)));
         probes.put(Settings.HIDE_CLOSEUP_SEARCH_LABEL, Collections.singletonList(() -> !CloseupButtons.searchLabel(true)));
@@ -569,6 +596,7 @@ public class PausedHooksTest {
         probes.put(Settings.HIDE_CLOSEUP_VISIT_SITE, Arrays.asList(
                 () -> UiHooksForTests.hidesVisitSite(false), () -> UiHooksForTests.hidesVisitSite(true)));
         probes.put(Settings.SMALLER_SAVE_BUTTON, Collections.singletonList(UiHooksForTests::shrinksSaveButton));
+        probes.put(Settings.SAVE_COLOR_ON_RED_BUTTONS, Collections.singletonList(UiHooksForTests::paintsRedButton));
         probes.put(Settings.HIDE_PIN_MENU_COLLAGE, Collections.singletonList(() -> hidesMenuItem("overflow_menu_add_to_collage")));
         probes.put(Settings.HIDE_PIN_MENU_VISUAL_SEARCH, Collections.singletonList(() -> hidesMenuItem("contextmenu_visual_search_image")));
         probes.put(Settings.HIDE_PIN_MENU_PIN_BOOST, Collections.singletonList(() -> hidesMenuItem("overflow_menu_pin_boost")));
@@ -590,17 +618,26 @@ public class PausedHooksTest {
         probes.put(Settings.QUIET_EMAIL_REMINDER, Collections.singletonList(UiHooks::quietEmailReminder));
         probes.put(Settings.HIDE_SURVEY_PROMPTS, Arrays.asList(UiHooks::hideSurveyPrompts, UiHooks::hideSponsoredPolls));
         probes.put(Settings.HIDE_POPUP_BANNERS, Collections.singletonList(PausedHooksTest::closesPopupBanner));
+        // The bar that says you're offline is skipped before it's built (#48).
+        probes.put(Settings.HIDE_OFFLINE_BANNER, Collections.singletonList(() -> UiHooks.hideOfflineBanner(0)));
         probes.put(Settings.HIDE_RELATED_PINS, Collections.singletonList(UiHooks::hideRelatedPins));
         probes.put(Settings.HIDE_CREATOR_NAME, Collections.singletonList(PausedHooksTest::hidesCreatorName));
         probes.put(Settings.HIDE_PIN_AUTHOR, Collections.singletonList(UiHooksForTests::hidesPinAuthor));
         probes.put(Settings.HIDE_PIN_DESCRIPTION, Collections.singletonList(UiHooksForTests::hidesPinDescription));
         probes.put(Settings.SHOW_IMAGE_SIZE, Collections.singletonList(PausedHooksTest::addsImageSize));
+        probes.put(Settings.SWIPE_TO_CLOSE_PINS, Collections.singletonList(
+                () -> Experiments.group("android_closeup_pull_to_dismiss") != null));
+        probes.put(Settings.FULL_SIZE_PROFILE_PHOTOS, Collections.singletonList(
+                () -> Experiments.group("ce_android_enlarge_other_user_profile_pic") != null));
+        probes.put(Settings.BEST_VIDEO_QUALITY, Collections.singletonList(
+                () -> Experiments.group("android_video_remove_track_selector_max_video_size") != null));
         probes.put(Settings.HIDE_HIGHLIGHT_RING, Collections.singletonList(UiHooks::hideHighlightRing));
         probes.put(Settings.HIDE_VISUAL_SEARCH_THUMBNAILS, Collections.singletonList(PausedHooksTest::withholdsVisualSearchCrops));
         probes.put(Settings.FOLD_RELATED_PINS, Collections.singletonList(UiHooksForTests::foldSwitchedOn));
         probes.put(Settings.LET_SCREEN_SLEEP, Collections.singletonList(UiHooksForTests::letsScreenSleep));
         probes.put(Settings.CUSTOM_SAVE_SOUND, Collections.singletonList(UiHooksForTests::playsPickedSaveSound));
         probes.put(Settings.CUSTOM_SPLASH_LOGO, Collections.singletonList(UiHooksForTests::nextStartShowsPickedLogo));
+        probes.put(Settings.CUSTOM_FONT, Collections.singletonList(CustomFontForTests::swaps));
         probes.put(Settings.HIDE_BOARD_TAB_BUTTON, Collections.singletonList(UiHooksForTests::foldsBoardTabButton));
         probes.put(Settings.HIDE_BOARD_TAB_SUBTITLE, Collections.singletonList(UiHooksForTests::foldsBoardTabSubtitle));
         probes.put(Settings.BOARD_TAB_COVERS, Collections.singletonList(UiHooksForTests::coversBoardTab));
@@ -618,6 +655,13 @@ public class PausedHooksTest {
             return cells.isEmpty();
         }));
         probes.put(Settings.EXPAND_BOARD_LIST, Collections.singletonList(() -> UiHooks.saveSheetHeight(73) != 73));
+        probes.put(Settings.BOARD_ORDER_WHEN_SAVING, Collections.singletonList(() -> {
+            UiHooks.profileBoardSort("custom");
+            return !"alphabetical".equals(UiHooks.boardPickerSort("alphabetical"));
+        }));
+        probes.put(Settings.NO_PIN_VIDEO_AUTOPLAY, Collections.singletonList(() -> UiHooks.pinVideoWaits() != 0));
+        probes.put(Settings.START_PIN_VIDEOS_MUTED, Collections.singletonList(() -> UiHooks.pinVideoStartsMuted() != 0));
+        probes.put(Settings.PINCH_TO_ZOOM_ONLY, Collections.singletonList(() -> PinchZoom.pinch(null) != 0));
         probes.put(Settings.DISABLE_UPDATE_NAG, Collections.singletonList(UiHooks::disableUpdateNag));
         probes.put(Settings.FIX_PUSH_NOTIFICATIONS, Collections.singletonList(PushNotificationsTest::fixesACertificate));
         return probes;

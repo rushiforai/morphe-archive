@@ -28,6 +28,7 @@ import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.RegisterRangeInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.TwoRegisterInstruction
+import com.android.tools.smali.dexlib2.iface.reference.FieldReference
 import com.android.tools.smali.dexlib2.iface.reference.MethodReference
 import com.android.tools.smali.dexlib2.immutable.ImmutableClassDef
 import com.android.tools.smali.dexlib2.immutable.ImmutableMethod
@@ -180,6 +181,10 @@ class KeepHomeFeedFixtureTest {
                 ImmutableClassDef(owner.type, owner.accessFlags, owner.superclass, owner.interfaces, owner.sourceFile,
                     owner.annotations, owner.fields, owner.methods.filterNot { it.name == "homeFeed" }) }
                 to "no boolean method homeFeed()"),
+            "missing refresh pill stub" to (build.classes + extension.map { owner -> if (owner.type != SETTINGS_STATUS) owner else
+                ImmutableClassDef(owner.type, owner.accessFlags, owner.superclass, owner.interfaces, owner.sourceFile,
+                    owner.annotations, owner.fields, owner.methods.filterNot { it.name == "refreshPill" }) }
+                to "no boolean method refreshPill()"),
         )
         // A build that inlines the presenter's check into the return check has no presenter check to lose.
         if (build.check != build.resume) {
@@ -195,6 +200,60 @@ class KeepHomeFeedFixtureTest {
             assertEquals("$reason left the family flag set", 0, flag(context, "keepHomeFeed"))
         }
     }
+
+    /**
+     * #48: once Home's time-away handler has handed its event to the presenter, which takes it off
+     * the bus, it asks before it inflates the pill, and a yes returns before the pill or its timer.
+     */
+    @Test
+    fun `each declared original APK asks before Home shows its refresh pill`() {
+        for (file in Fixtures.declaredBuilds()) {
+            val build = read(file)
+            val handlers = FixtureDex.classesWhere(file, { true }) { method ->
+                method.name == "onEventMainThread" && method.instructions().any { it.readsStub() }
+            }
+            assertEquals("${build.name}: classes holding the pill handler", 1, handlers.size)
+            val context = PatchContexts.of(ExtensionDex.classes() + (build.classes + handlers).distinctBy { it.type })
+            val handler = context.refreshPillHandler()
+            val at = refreshPillIndex(handler)
+            val clean = handler.implementation!!.instructions.toList()
+            val taken = clean[at - 1]
+            assertEquals("${build.name}: the event goes to the presenter first", Opcode.INVOKE_VIRTUAL, taken.opcode)
+            assertTrue("${build.name}: Pinterest takes the event before the pill", clean.take(at).none { it.readsStub() })
+            assertTrue("${build.name}: the pill comes after", clean.drop(at).any { it.readsStub() })
+
+            keepHomeFeedPatch.execute(context)
+            for (flag in listOf("keepHomeFeed", "homeFeed", "homeBack", "refreshPill")) {
+                assertEquals("${build.name}: $flag", 1, flag(context, flag))
+            }
+            val body = patched(context, handler)
+            assertEquals("${build.name}: Pinterest's call stays first", reference(taken), reference(body[at - 1]))
+            assertEquals("${build.name}: the pill asks", PILL_HOOK, reference(body[at]))
+            assertEquals(build.name, Opcode.MOVE_RESULT, body[at + 1].opcode)
+            val answer = (body[at + 1] as OneRegisterInstruction).registerA
+            assertEquals(build.name, Opcode.IF_EQZ, body[at + 2].opcode)
+            assertEquals(build.name, answer, (body[at + 2] as OneRegisterInstruction).registerA)
+            assertEquals("${build.name}: no goes on to the pill", address(body, at + 4),
+                address(body, at + 2) + (body[at + 2] as OffsetInstruction).codeOffset)
+            assertEquals(build.name, Opcode.RETURN_VOID, body[at + 3].opcode)
+            assertTrue("${build.name}: the answer borrows a local", answer < handler.implementation!!.registerCount - handler.parameterTypes.size - 1)
+            assertEquals("${build.name}: the handler stays", clean.map { it.opcode }.filter { it != Opcode.NOP },
+                (body.take(at) + body.drop(at + 4)).map { it.opcode }.filter { it != Opcode.NOP })
+        }
+    }
+
+    /** Without the pill handler Keep Home feed goes in whole and only the pill's switch goes missing. */
+    @Test
+    fun `without the refresh pill handler the holds go in and the pill's capability stays off`() {
+        val build = read(Fixtures.declaredBuilds().last())
+        val context = PatchContexts.of(ExtensionDex.classes() + build.classes)
+        keepHomeFeedPatch.execute(context)
+        for (flag in listOf("keepHomeFeed", "homeFeed", "homeBack")) assertEquals(flag, 1, flag(context, flag))
+        assertEquals(0, flag(context, "refreshPill"))
+    }
+
+    private fun Instruction.readsStub() = opcode == Opcode.SGET &&
+        ((this as ReferenceInstruction).reference as? FieldReference)?.let { it.name == REFRESH_PROMPT_STUB && it.type == "I" } == true
 
     /** Checks the guard the hook at 0 opens and answers the register its answer lands in. */
     private fun guarded(name: String, body: List<Instruction>): Int {
@@ -291,6 +350,7 @@ class KeepHomeFeedFixtureTest {
         const val RESUME_HOOK = "Lapp/hushpinterest/extension/pinterest/ads/HomeFeed;->holdResumeRefresh(J)Z"
         const val REFRESH_HOOK = "Lapp/hushpinterest/extension/pinterest/ads/HomeFeed;->holdHomeRefresh(Ljava/util/Map;I)Z"
         const val BACK_HOOK = "Lapp/hushpinterest/extension/pinterest/ads/HomeFeed;->leave()Z"
+        const val PILL_HOOK = "Lapp/hushpinterest/extension/pinterest/ads/HomeFeed;->hideRefreshPill()Z"
         val CONSTANTS = setOf(Opcode.CONST_4, Opcode.CONST_16, Opcode.CONST)
     }
 }

@@ -166,7 +166,7 @@ internal fun BytecodePatchContext.resolveTimelinePaging(): TimelinePagingPlan {
         "the page delivery no longer compares its load type with $PAGINATION on an empty page",
     )
     // Nothing branches past the question or into the hook, so it runs once a page, right after the
-    // answer. 47.0.0.108 skips one call on the last parameter first (`if-nez`, then `k6(Map)`), a
+    // answer. 47.3.0.110 skips one call on the last parameter first (`if-nez`, then `k6(Map)`), a
     // forward branch that lands at or before the question, so every path still meets the hook once.
     val addresses = body.runningFold(0) { address, instruction -> address + instruction.codeUnits }
     requireShape(

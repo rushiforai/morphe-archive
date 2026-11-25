@@ -1,6 +1,8 @@
 package app.ahmedyarub.patches.instagram.distractionFree
 
 import app.ahmedyarub.patches.shared.Constants.COMPATIBILITY_INSTAGRAM
+import app.ahmedyarub.patches.shared.loadedStrings
+import app.ahmedyarub.patches.shared.stringPoolsPatch
 import app.crimera.utils.changeString
 import app.morphe.library.instagram.patches.instagramExtensionPatch
 import app.morphe.patcher.Fingerprint
@@ -33,27 +35,23 @@ private object ActionSheetViewCreatedFingerprint : Fingerprint(
     name = "onViewCreated",
 )
 
-/** Finds a reel's ⋯ button by its integer tag, then by its name. */
+/** Finds a reel's ⋯ button by its integer tag, then by its name (pooled from 457). */
 private object FindMoreButtonFingerprint : Fingerprint(
     returnType = "Landroid/view/View;",
     parameters = listOf("Landroid/view/View;"),
-    strings = listOf("clips_ufi_more_button_component"),
+    custom = { method, _ -> "clips_ufi_more_button_component" in method.loadedStrings },
 )
 
 /**
  * The Reels ⋯ menu's options helper adding a row (context, option, ..., icon, text); the helper is
- * bound to that menu's reel. 456 dropped the row's log string; the helper's constructor still
- * names its class.
+ * bound to that menu's reel. 456 dropped the row's log string; the helper still names its class,
+ * in its constructor up to 456 and in other methods, pooled, from 457.
  */
 private object AddMenuRowFingerprint : Fingerprint(
     returnType = "V",
     parameters = listOf("Landroid/content/Context;", MEDIA_OPTION, "L", "L", "Ljava/lang/Integer;", "Ljava/lang/String;"),
     custom = { _, classDef ->
-        classDef.methods.any { method ->
-            method.name == "<init>" && method.implementation?.instructions?.any {
-                it.getReference<StringReference>()?.string == "ClipsOrganicMoreOptionsHelper"
-            } == true
-        }
+        classDef.methods.any { method -> "ClipsOrganicMoreOptionsHelper" in method.loadedStrings }
     },
 )
 
@@ -87,7 +85,7 @@ val reelsInterestedButtonsPatch = bytecodePatch(
     default = true,
 ) {
     compatibleWith(COMPATIBILITY_INSTAGRAM)
-    dependsOn(instagramExtensionPatch)
+    dependsOn(instagramExtensionPatch, stringPoolsPatch)
 
     execute {
         FindMoreButtonFingerprint.method.apply {

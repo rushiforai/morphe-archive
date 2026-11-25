@@ -123,7 +123,11 @@ public class UnlockTest {
     @Test
     public void aVpnFailureIsToldOnceForEachUnlockedStream() {
         QualityUnlock.TUNNEL_FAILURE_TOLD.set(false);
+        QualityUnlock.learnAddresses(UNLOCKED);
+        assertTrue(QualityUnlock.knows("https://b.playlist.ttvnw.net/v1/1440.m3u8?p=2"));
         QualityUnlock.tunnelFailed("timed out");
+        assertTrue("the stream leaves the dead tunnel at once",
+                !QualityUnlock.knows("https://b.playlist.ttvnw.net/v1/1440.m3u8?p=2"));
         assertTrue(QualityUnlock.status().problem);
         assertTrue(QualityUnlock.TUNNEL_FAILURE_TOLD.get());
         QualityUnlock.tunnelFailed("timed out again"); // the next pieces: not told again

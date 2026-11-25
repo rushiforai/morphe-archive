@@ -26,6 +26,7 @@ import app.morphe.util.names.addInstructionsWithLabels
 import app.morphe.util.names.origDescriptor
 import app.morphe.util.names.origName
 import app.morphe.util.names.tgMutableClassDefByOrNull
+import app.morphe.util.writesReaching
 import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.iface.instruction.NarrowLiteralInstruction
 import com.android.tools.smali.dexlib2.iface.reference.MethodReference
@@ -112,12 +113,15 @@ internal fun BytecodePatchContext.resolveDoNotDisturb(site: ProxyMenuSite): DoNo
     val add = adds.map { body[it].call()!! }.distinctBy { "${it.name}${it.parameterTypes.joinToString("")}" }
         .controlSingle("the chat list menu's add-an-item call")
     val flag = add.parameterTypes.map(CharSequence::toString).indexOf("Z")
-    // Telegram's own items pass a plain false for that word, the stub's red-text flag.
+    // Telegram's own items pass a plain false for that word, the stub's red-text flag. 13.3.1's R8
+    // loads that false well before some adds and reuses it, so every write reaching the add counts.
+    val menuFlow = ControlFlow.of(site.method)
     controlShape(adds.any { at ->
         val register = body[at].namedRegisters().getOrNull(flag + 1)
-        val before = body.getOrNull(at - 1)
-        before != null && before.opcode == Opcode.CONST_4 && before.namedRegisters() == listOf(register) &&
-            (before as NarrowLiteralInstruction).narrowLiteral == 0
+        val writes = if (register == null) emptySet<Int>() else menuFlow.writesReaching(at, register)
+        writes.isNotEmpty() && writes.all { from ->
+            from >= 0 && body[from].opcode == Opcode.CONST_4 && (body[from] as NarrowLiteralInstruction).narrowLiteral == 0
+        }
     }, "the chat list menu no longer adds its items with false for the red text")
     requireReachable("$owner->${add.name}(${add.parameterTypes.joinToString("")})V", false)
 

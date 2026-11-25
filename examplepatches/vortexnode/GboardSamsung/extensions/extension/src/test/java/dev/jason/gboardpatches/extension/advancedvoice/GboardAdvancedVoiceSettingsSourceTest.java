@@ -37,7 +37,7 @@ public final class GboardAdvancedVoiceSettingsSourceTest {
                         + "(colorful microphone), and Rambler."));
         Assert.assertTrue(settingsText.contains(
                 "Доступны три режима голосового ввода: Стандартный, Стандартный — Расширенные функции (цветной микрофон) и Rambler. Для режима «Стандартный — Расширенные функции» требуется компонент диктовки."));
-        Assert.assertEquals(2, count(feature,
+        Assert.assertEquals(3, count(feature,
                 "new GboardPatchesSettingsContract.ToggleRow("));
         Assert.assertEquals(0, count(feature,
                 "new GboardPatchesSettingsContract.SelectorRow("));

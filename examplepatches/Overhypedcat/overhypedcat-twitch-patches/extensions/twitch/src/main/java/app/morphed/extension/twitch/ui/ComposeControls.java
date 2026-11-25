@@ -92,6 +92,8 @@ final class ComposeControls {
                 childId.setAccessible(true);
             } catch (ReflectiveOperationException | RuntimeException blocked) {
                 childId = null; // Android blocks it: the ids are tried one by one
+                app.morphed.extension.twitch.patches.DebugLog.log("Screen: Android blocks reading the vertical player's"
+                        + " controls by their children (" + blocked + "); looking them up one by one instead");
             }
         }
         return childId;

@@ -46,25 +46,68 @@ interface CosmosRouter {
         private final Class<?> callbackClass;
         private final Constructor<?> newRequest;
         private final Method performNativeResolve;
-        private final Method getRouterDestroyed;
+        private final Method getRouterDestroyed; // 9.2.0: RemoteNativeRouter.getRouterDestroyed
+        private final Object nativeRouter; // 9.2.4+: the NativeRouter itself, with Spotify's own lock and flag
+        private final java.util.concurrent.locks.ReentrantReadWriteLock lock;
+        private final java.lang.reflect.Field destroyedFlag;
         private final Method getStatus;
         private final Method getBody;
         private final Method release;
 
+        /**
+         * @param service 9.2.0: the {@code SharedCosmosRouterService}. 9.2.4+: Spotify's router holder (an
+         *     obfuscated class), which has the {@code NativeRouter}, a read-write lock and the destroyed flag.
+         */
         Reflective(Object service) throws ReflectiveOperationException {
             loader = service.getClass().getClassLoader();
-            remoteNativeRouter = service.getClass().getMethod("getRemoteNativeRouter").invoke(service);
             Class<?> requestClass = type("com.spotify.cosmos.cosmos.Request");
             callbackClass = type("com.spotify.cosmos.cosmos.ResolveCallback");
             Class<?> responseClass = type("com.spotify.cosmos.cosmos.Response");
             newRequest = requestClass.getConstructor(String.class, String.class, byte[].class);
-            Class<?> routerClass = remoteNativeRouter.getClass();
-            performNativeResolve = routerClass.getMethod("performNativeResolve", requestClass, callbackClass);
-            getRouterDestroyed = routerClass.getMethod("getRouterDestroyed");
             getStatus = responseClass.getMethod("getStatus");
             getBody = responseClass.getMethod("getBody");
             // From the interface: the Lifetime Spotify returns may be a class the extension can't access.
             release = type("com.spotify.cosmos.cosmos.Lifetime").getMethod("release");
+            Method getRemote = null;
+            try {
+                getRemote = service.getClass().getMethod("getRemoteNativeRouter");
+            } catch (NoSuchMethodException ignored) {
+                // 9.2.4+
+            }
+            if (getRemote != null) {
+                remoteNativeRouter = getRemote.invoke(service);
+                Class<?> routerClass = remoteNativeRouter.getClass();
+                performNativeResolve = routerClass.getMethod("performNativeResolve", requestClass, callbackClass);
+                getRouterDestroyed = routerClass.getMethod("getRouterDestroyed");
+                nativeRouter = null;
+                lock = null;
+                destroyedFlag = null;
+            } else {
+                Class<?> nativeRouterClass = type("com.spotify.cosmos.cosmosimpl.NativeRouter");
+                Object router = null;
+                java.util.concurrent.locks.ReentrantReadWriteLock rw = null;
+                java.lang.reflect.Field flag = null;
+                for (java.lang.reflect.Field f : service.getClass().getDeclaredFields()) {
+                    if (java.lang.reflect.Modifier.isStatic(f.getModifiers())) continue;
+                    f.setAccessible(true);
+                    if (f.getType() == nativeRouterClass) router = f.get(service);
+                    else if (f.getType() == java.util.concurrent.locks.ReentrantReadWriteLock.class) {
+                        rw = (java.util.concurrent.locks.ReentrantReadWriteLock) f.get(service);
+                    } else if (f.getType() == boolean.class) {
+                        if (flag != null) throw new NoSuchFieldException("more than one boolean field on " + service.getClass());
+                        flag = f;
+                    }
+                }
+                if (router == null || rw == null || flag == null) {
+                    throw new NoSuchFieldException("router, lock or destroyed flag missing on " + service.getClass());
+                }
+                remoteNativeRouter = service;
+                nativeRouter = router;
+                lock = rw;
+                destroyedFlag = flag;
+                performNativeResolve = nativeRouterClass.getMethod("resolve", requestClass, callbackClass);
+                getRouterDestroyed = null;
+            }
         }
 
         private Class<?> type(String name) throws ClassNotFoundException {
@@ -79,6 +122,16 @@ interface CosmosRouter {
                 Object request = newRequest.newInstance(action, uri, body);
                 // Spotify's own resolve checks the flag and calls in while it holds this monitor,
                 // and destroy() takes it to set the flag, so nothing reaches a destroyed native router.
+                if (nativeRouter != null) {
+                    // 9.2.4+: Spotify's own holder resolves under the read lock and checks its flag.
+                    lock.readLock().lock();
+                    try {
+                        if (destroyed()) throw new IllegalStateException("Spotify's router is destroyed");
+                        return new Release(performNativeResolve.invoke(nativeRouter, request, proxy), proxy);
+                    } finally {
+                        lock.readLock().unlock();
+                    }
+                }
                 synchronized (remoteNativeRouter) {
                     if (destroyed()) throw new IllegalStateException("Spotify's router is destroyed");
                     return new Release(performNativeResolve.invoke(remoteNativeRouter, request, proxy), proxy);
@@ -91,6 +144,7 @@ interface CosmosRouter {
         @Override
         public boolean destroyed() {
             try {
+                if (destroyedFlag != null) return destroyedFlag.getBoolean(remoteNativeRouter);
                 return (Boolean) getRouterDestroyed.invoke(remoteNativeRouter);
             } catch (ReflectiveOperationException e) {
                 throw unchecked(e);

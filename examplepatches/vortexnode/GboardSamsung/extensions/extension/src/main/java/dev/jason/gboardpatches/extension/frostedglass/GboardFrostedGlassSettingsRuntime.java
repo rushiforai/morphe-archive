@@ -67,4 +67,13 @@ public final class GboardFrostedGlassSettingsRuntime {
             return false;
         }
     }
+
+    public static boolean isAmoledBlackEnabled() {
+        try {
+            SharedPreferences p = prefs();
+            return p != null && GboardFrostedGlassSettings.readAmoledBlackEnabled(p);
+        } catch (Throwable ignored) {
+            return GboardFrostedGlassSettings.DEFAULT_AMOLED_BLACK_ENABLED;
+        }
+    }
 }

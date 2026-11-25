@@ -9,6 +9,7 @@ import android.widget.Toast;
 import java.io.File;
 import java.util.List;
 import java.util.Locale;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
  * Clears Instagram's media caches on a background thread, then kills every
@@ -16,6 +17,9 @@ import java.util.Locale;
  * newly chosen blocks applied. Auth/session state is deliberately preserved.
  */
 public final class CacheCleaner implements Runnable {
+
+    /** One wipe per process: a double tap on Done must not run two wipes and two relays. */
+    private static final AtomicBoolean RUNNING = new AtomicBoolean();
 
     private final Context context;
 
@@ -25,7 +29,7 @@ public final class CacheCleaner implements Runnable {
 
     /** Show a toast, then run the wipe + restart on a worker thread. */
     public static void clearAndRestart(Context context) {
-        if (context == null) return;
+        if (context == null || !RUNNING.compareAndSet(false, true)) return;
         try {
             Toast.makeText(context, "Oxbow: clearing cache...", Toast.LENGTH_SHORT).show();
         } catch (Throwable ignored) {
@@ -35,6 +39,10 @@ public final class CacheCleaner implements Runnable {
 
     @Override
     public void run() {
+        // Kill Instagram's other processes first: they hold prefetch state and would refill caches
+        // or reopen databases mid-delete. This one stays for now, to hand the restart to the relay.
+        stopAppProcesses(context, true);
+
         try {
             wipeKnownVideoCaches(context);
             wipeKnownReelsArtifacts(context);
@@ -58,10 +66,6 @@ public final class CacheCleaner implements Runnable {
             wipeKnownReelsArtifacts(context);
         } catch (Throwable ignored) {
         }
-
-        // Kill Instagram's other processes first — they hold prefetch state too —
-        // but keep this one alive long enough to hand the restart to the relay.
-        stopAppProcesses(context, true);
 
         if (startRestartRelay(context)) {
             // The relay kills this process from the outside and relaunches the app.
@@ -199,11 +203,7 @@ public final class CacheCleaner implements Runnable {
         if (children == null) return;
         for (File child : children) {
             if (!child.isDirectory()) continue; // loose files often hold session data
-            String name = child.getName().toLowerCase(Locale.ROOT);
-            if (looksLikeAuth(name)) continue;
-            if (looksLikeMediaCache(name)) {
-                deleteRecursive(child);
-            }
+            if (isMediaCache(child.getName())) deleteRecursive(child);
         }
     }
 
@@ -211,6 +211,13 @@ public final class CacheCleaner implements Runnable {
             "auth", "session", "login", "token", "account", "cred",
             "cookie", "secure", "profile", "pref", "mqtt", "device", "user",
     };
+
+    /**
+     * Folder names that sound like media but hold what the user made themselves: reel drafts
+     * (files/pending_media_images, clips_draft_asset — Instagram logs "draft file missing on
+     * device" without them) and the unedited originals of edited posts (original_images).
+     */
+    private static final String[] OWN_WORK_MARKERS = {"draft", "pending_media", "original"};
 
     private static final String[] MEDIA_MARKERS = {
             "cache", "video", "media", "exo", "clip", "reel", "story",
@@ -224,11 +231,21 @@ public final class CacheCleaner implements Runnable {
         return false;
     }
 
-    private static boolean looksLikeMediaCache(String lower) {
-        for (String marker : MEDIA_MARKERS) {
+    /** Whether a files/ subfolder with this name is a media cache to wipe when a setting changes. */
+    static boolean isMediaCache(String name) {
+        String lower = name.toLowerCase(Locale.ROOT);
+        return !looksLikeAuth(lower) && !containsAny(lower, OWN_WORK_MARKERS) && looksLikeMediaCache(lower);
+    }
+
+    private static boolean containsAny(String lower, String[] markers) {
+        for (String marker : markers) {
             if (lower.contains(marker)) return true;
         }
         return false;
+    }
+
+    private static boolean looksLikeMediaCache(String lower) {
+        return containsAny(lower, MEDIA_MARKERS);
     }
 
     private static void deleteRecursive(File file) {

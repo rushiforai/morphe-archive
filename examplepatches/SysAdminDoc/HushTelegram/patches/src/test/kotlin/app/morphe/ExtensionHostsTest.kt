@@ -54,9 +54,20 @@ class ExtensionHostsTest {
                 "up, for Free proxies to download a proxy list and time a connect to each proxy, for V2Ray-style " +
                 "servers to reach the person's own servers, and for Lyrics to look a song up on lrclib.net. " +
                 "These files open connections",
-            (TRANSPORTS + TUNNELS).toSortedSet(),
+            (TRANSPORTS + TUNNELS + VIDEO_STREAM).toSortedSet(),
             openers,
         )
+    }
+
+    @Test
+    fun `the video stream for another player listens on the phone itself and nowhere else`() {
+        val code = split(sources().single { it.first == VIDEO_STREAM }.second).second
+        assertEquals("the stream opens one listening socket", 1, Regex("""new ServerSocket\s*\(""").findAll(code).count())
+        assertTrue("the socket is made on 127.0.0.1, on a port the system picks",
+            Regex("""new ServerSocket\s*\(\s*0\s*,\s*\w+\s*,\s*InetAddress\.getByAddress\s*\(\s*new byte\s*\[\s*]\s*\{\s*127\s*,\s*0\s*,\s*0\s*,\s*1\s*}\s*\)\s*\)""")
+                .containsMatchIn(code))
+        assertFalse("nothing binds the socket again somewhere else", Regex("""\.bind\s*\(""").containsMatchIn(code))
+        assertFalse("the stream never connects out", Regex("""new Socket\s*\(|openConnection\s*\(""").containsMatchIn(code))
     }
 
     @Test
@@ -216,6 +227,9 @@ class ExtensionHostsTest {
         )
         const val V2RAY_SERVER =
             "extensions/telegram/src/main/java/app/hushtelegram/extension/telegram/misc/V2RayServer.java"
+        /** Play videos in another app: listens on 127.0.0.1 for the player and never goes online itself. */
+        const val VIDEO_STREAM =
+            "extensions/telegram/src/main/java/app/hushtelegram/extension/telegram/misc/VideoStreamServer.java"
         const val TRANSLATOR =
             "extensions/telegram/src/main/java/app/hushtelegram/extension/telegram/misc/GoogleTranslate.java"
         const val AI_TRANSLATOR =

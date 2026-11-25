@@ -9,10 +9,10 @@ Patches for apps I use, for use with [Morphe](https://morphe.software).
 | [NYT Games](docs/apps/nyt-games.md) | `com.nytimes.crossword` | `6.50.0` |
 | [Chess.com](docs/apps/chess-com.md) | `com.chess` | `4.10.27` |
 | [Duolingo](docs/apps/duolingo.md) | `com.duolingo` | `6.104.5` |
-| [Nova Launcher](docs/apps/nova-launcher.md) | `com.teslacoilsw.launcher` | `8.9.7` |
+| [Nova Launcher](docs/apps/nova-launcher.md) | `com.teslacoilsw.launcher` | `9.0.1` |
 | [FolderSync](docs/apps/foldersync.md) | `dk.tacit.android.foldersync.lite` | `4.14.0` |
 | [Projectivy Launcher](docs/apps/projectivy-launcher.md) | `com.spocky.projengmenu` | `4.73` |
-| [Solid Explorer](docs/apps/solidexplorer.md) | `pl.solidexplorer2` | `3.6.4` |
+| [Solid Explorer](docs/apps/solidexplorer.md) | `pl.solidexplorer2` | `3.6.5` |
 | [nzb360](docs/apps/nzb360.md) | `com.kevinforeman.nzb360` | `25.3` |
 | [Trakt](docs/apps/trakt.md) | `tv.trakt.trakt` | `3.28.0` |
 | [Sparkle TV](docs/apps/sparkle.md) | `se.hedekonsult.sparkle` | `2.4.0` |
@@ -32,7 +32,7 @@ before you do. Updating an install signed by the same Morphe key keeps its data.
 ## 🩹 Patches list
 
 <!-- PATCHES_START EXPANDED -->
-> **[v1.10.0](https://github.com/hyzor/hyzor-morphe-patches/releases/tag/v1.10.0)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;37 patches total
+> **[v1.10.2](https://github.com/hyzor/hyzor-morphe-patches/releases/tag/v1.10.2)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;37 patches total
 <details open>
 <summary>📦 NYT Games&nbsp;&nbsp;•&nbsp;&nbsp;2 patches</summary>
 <br>
@@ -153,7 +153,7 @@ before you do. Updating an install signed by the same Morphe key keeps its data.
 
 **🎯 Supported versions:**
 
-| 89700 (8.9.7) |
+| 90100 (9.0.1) |
 | :---: |
 
 | 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
@@ -168,7 +168,7 @@ before you do. Updating an install signed by the same Morphe key keeps its data.
 
 **🎯 Supported versions:**
 
-| 3.6.4 |
+| 3.6.5 |
 | :---: |
 
 | 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
@@ -330,17 +330,18 @@ patch depends on.
 
 ## 📱 Nova Launcher
 
-Supported target: `89700 (8.9.7)` (APK, versionCode `89700`).
+Supported target: `90100 (9.0.1)` (APK, versionCode `90100`).
 
 | Patch | Default | What it does |
 |---|---|---|
 | Enable Prime | on | Unlocks the features gated on Nova Prime. |
 
 Nova keeps the Prime decision on the device. The patch returns `true` from the static Prime
-gate (`ix.i1.b()`), forces the persisted `"1"` value read at startup to `0x200` (the app's own
-"direct licence" state), and returns `true` from the active-subscription check (`xx.b0.w()`),
-which also keeps the Play licence revocation path from starting. Client-side only: anything
-Nova asks its backend for still needs a real account.
+gate (`rw.e1.b()`), forces the persisted `"1"` value read at startup to `0x200` (the app's own
+"direct licence" state), and returns `true` from the subscription-on-record check
+(`lx.v0.v()`), which also keeps the licence revocation path from starting. 9.0.1 split the old
+subscription check in two; only the Prime-level half is forced, so the newer Plus tier stays
+gated. Client-side only: anything Nova asks its backend for still needs a real account.
 
 [Port notes, hook map and on-device verification →](docs/apps/nova-launcher.md)
 
@@ -388,7 +389,7 @@ devices with `INSTALL_FAILED_NO_MATCHING_ABIS`.
 
 ## 📱 Solid Explorer
 
-Supported target: `3.6.4` (APKM, versionCode `306041`).
+Supported target: `3.6.5` (APKM, versionCode `306051`).
 
 | Patch | Default | What it does |
 |---|---|---|
@@ -484,7 +485,7 @@ expressed as class/method names, so for Duolingo the script only checks its pinn
 class/method signatures — build and apply the bundle for the rest.
 
 Run it after every app update, before bumping the matching `Constants.kt`. The full
-device checklist is in [AGENTS.md](AGENTS.md#testing-on-a-phone).
+device checklist is in [AGENTS.md](AGENTS.md#testing-on-a-device).
 
 ## 🚀 Development
 
@@ -501,6 +502,18 @@ export GITHUB_TOKEN=<token with read:packages>
 ```
 
 The bundle lands in `patches/build/libs/patches-*.mpp`.
+
+New patching work uses the globally installed Morphe CLI (`morphe --version` →
+Morphe Desktop 2.3.0) and the project signing key kept outside this repository at
+`$HOME/Projects/hyzor/.signing/hyzor-morphe-patches.keystore`. Never let Morphe generate a
+key, and never commit the key. The full command, the key's alias and the
+`.tmp/<app>/<version>/` working-directory convention are in
+[AGENTS.md](AGENTS.md#morphe-cli-and-signing).
+
+For a new app version, scaffold the version directory first with
+`tools/new-workdir.sh <app> <version>`. The stock APK/APKM/XAPK is supplied manually
+(APKMirror does not always carry a plain APK); put it in the printed `in/` path. See
+[AGENTS.md](AGENTS.md#supporting-a-new-app-version).
 
 - Make changes on `dev`. `fix:` / `feat:` / `bump:` commits produce pre-releases;
   `chore:`, `docs:` and `ci:` commits do not.
@@ -537,7 +550,7 @@ attribution:
 - **Nova Launcher:** port of
   [rushiranpise/morphe-patches](https://github.com/rushiranpise/morphe-patches) and
   [hoo-dles/morphe-patches](https://github.com/hoo-dles/morphe-patches) (both GPLv3),
-  re-resolved for 8.9.7.
+  re-resolved for 9.0.1.
 - **FolderSync:** port of
   [arandomhooman/hoomans-morphe-patches](https://github.com/arandomhooman/hoomans-morphe-patches)
   (GPLv3), re-resolved for 4.14.0.
@@ -546,7 +559,7 @@ attribution:
   (GPLv3), re-resolved for 4.73 with the APK/APKM split targets.
 - **Solid Explorer:** port of
   [hoo-dles/morphe-patches](https://github.com/hoo-dles/morphe-patches) (GPLv3), re-resolved
-  for 3.6.4.
+  for 3.6.5.
 - **nzb360:** port of
   [rushiranpise/morphe-patches](https://github.com/rushiranpise/morphe-patches) (GPLv3),
   re-resolved for 25.3.

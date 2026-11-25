@@ -11,7 +11,7 @@ android {
     namespace = "app.hushtumblr.extension.shared"
 
     defaultConfig {
-        // The library it carries runs only inside Tumblr 47.0.0.108, which declares API 26.
+        // The library it carries runs only inside Tumblr 47.3.0.110, which declares API 26.
         minSdk = 26
     }
 }

@@ -5,6 +5,7 @@ import android.content.res.ColorStateList;
 import android.content.res.Configuration;
 import android.content.res.Resources;
 import android.graphics.Paint;
+import android.graphics.Typeface;
 import android.graphics.drawable.ColorDrawable;
 import android.graphics.drawable.GradientDrawable;
 import android.text.TextUtils;
@@ -23,7 +24,6 @@ import android.widget.TextView;
 import androidx.core.view.ViewCompat;
 import androidx.recyclerview.widget.RecyclerView;
 
-import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.WeakHashMap;
@@ -581,9 +581,9 @@ final class ExpressivePlaylistController implements ExpressivePlaylistBridge.Acc
                 continue;
             }
             btn.setMinimumWidth(0);
-            btn.setPadding(dp(4f), dp(4f), dp(4f), dp(4f));
-            attachSpringPressEffect(btn);
-            LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(0, dp(62f), 1f);
+            btn.setPadding(dp(4f), dp(9f), dp(4f), dp(8f));
+            ExpressiveMediaStyleKit.attachConnectedExpressivePressEffect(secondaryActionRow, btn);
+            LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(0, dp(56f), 1f);
             secondaryActionRow.addView(btn, lp);
         }
 
@@ -591,8 +591,11 @@ final class ExpressivePlaylistController implements ExpressivePlaylistBridge.Acc
                 ViewGroup.LayoutParams.MATCH_PARENT,
                 ViewGroup.LayoutParams.WRAP_CONTENT
         );
-        secLp.topMargin = dp(12f);
+        secLp.topMargin = dp(10f);
         foregroundColumn.addView(secondaryActionRow, secLp);
+        if (MaterialYouConfig.isHidePlaylistActionButtonsEnabled()) {
+            secondaryActionRow.setVisibility(View.GONE);
+        }
 
         container.addView(foregroundColumn, new FrameLayout.LayoutParams(
                 ViewGroup.LayoutParams.MATCH_PARENT,
@@ -664,7 +667,7 @@ final class ExpressivePlaylistController implements ExpressivePlaylistBridge.Acc
             toolbarBlurView.attach(parent, toolbar, recyclerView != null ? recyclerView : headerAppBar);
             float bgFrac = smoothstep(0.52f, 0.94f, lastCollapseFraction);
             boolean useBlur = isToolbarBlurActive();
-            toolbarBlurView.updateAppearance(useBlur ? bgFrac : 0f, activePalette.surfaceContainer);
+            toolbarBlurView.updateAppearance(useBlur ? bgFrac : 0f, activePalette.surfaceBase);
         }
         ExpressiveMediaStyleKit.attachToolbarChromeAutoRefresh(toolbar, this::styleToolbarIcons);
     }
@@ -759,7 +762,7 @@ final class ExpressivePlaylistController implements ExpressivePlaylistBridge.Acc
         float bgFrac = smoothstep(0.52f, 0.94f, collapse);
         boolean useToolbarBlur = toolbarBlurView != null && isToolbarBlurActive();
         if (toolbarBlurView != null) {
-            toolbarBlurView.updateAppearance(useToolbarBlur ? bgFrac : 0f, activePalette.surfaceContainer);
+            toolbarBlurView.updateAppearance(useToolbarBlur ? bgFrac : 0f, activePalette.surfaceBase);
         }
         if (toolbarBgDrawable != null) {
             toolbarBgDrawable.setColor(activePalette.surfaceBase);
@@ -861,7 +864,7 @@ final class ExpressivePlaylistController implements ExpressivePlaylistBridge.Acc
         float bgFrac = smoothstep(0.52f, 0.94f, lastCollapseFraction);
         boolean useToolbarBlur = toolbarBlurView != null && isToolbarBlurActive();
         if (toolbarBlurView != null) {
-            toolbarBlurView.updateAppearance(useToolbarBlur ? bgFrac : 0f, activePalette.surfaceContainer);
+            toolbarBlurView.updateAppearance(useToolbarBlur ? bgFrac : 0f, activePalette.surfaceBase);
         }
         if (toolbarBgDrawable != null) {
             toolbarBgDrawable.setColor(activePalette.surfaceBase);
@@ -918,6 +921,13 @@ final class ExpressivePlaylistController implements ExpressivePlaylistBridge.Acc
     }
 
     private void syncSecondaryButtons() {
+        if (secondaryActionRow == null) {
+            return;
+        }
+        if (MaterialYouConfig.isHidePlaylistActionButtonsEnabled()) {
+            secondaryActionRow.setVisibility(View.GONE);
+            return;
+        }
         View[] all = new View[]{favoriteButton, editButton, downloadButton, privacyButton, shareButton};
         ExpressiveMediaStyleKit.styleConnectedSecondaryBar(
                 secondaryActionRow,

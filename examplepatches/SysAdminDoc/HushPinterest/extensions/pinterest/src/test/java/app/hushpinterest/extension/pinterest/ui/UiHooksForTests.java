@@ -7,11 +7,14 @@
 package app.hushpinterest.extension.pinterest.ui;
 
 import android.content.Context;
+import android.content.res.ColorStateList;
+import android.content.res.Configuration;
 import android.content.res.Resources;
 import android.media.MediaPlayer;
 import android.net.Uri;
 import android.view.MotionEvent;
 import android.view.View;
+import android.widget.Button;
 import android.widget.FrameLayout;
 import android.widget.LinearLayout;
 import android.widget.Toast;
@@ -327,6 +330,43 @@ public final class UiHooksForTests {
         } finally {
             CloseupButtons.saveId = -1;
         }
+    }
+
+    /**
+     * A button for a probe that hands it to a styling hook and then lets it go. A stock Button
+     * starts its press animator on the hook's refreshDrawableState, and once the button is collected
+     * that animator cancels and re-arms on every frame, so the main looper never goes idle.
+     */
+    private static Button probeButton(Context context) {
+        Button button = new Button(context);
+        button.setStateListAnimator(null);
+        return button;
+    }
+
+    /** A red Gestalt button other than Save, with a color saved for Save: true when it took that color. */
+    public static boolean paintsRedButton() {
+        Button button = probeButton(RuntimeEnvironment.getApplication());
+        button.setBackgroundTintList(ColorStateList.valueOf(0xFFE60023));
+        app.hushpinterest.extension.pinterest.settings.SaveButtonColorSetting.SAVE_BUTTON_COLOR.save("#3366FF");
+        CloseupButtons.saveId = 0;
+        try {
+            CloseupButtons.saveButton(button);
+            return button.getBackgroundTintList().getDefaultColor() != 0xFFE60023;
+        } finally {
+            CloseupButtons.saveId = -1;
+            app.hushpinterest.extension.pinterest.settings.SaveButtonColorSetting.SAVE_BUTTON_COLOR.resetToDefault();
+        }
+    }
+
+    /** A dark-mode Gestalt button in Pinterest's night gray: true when its fill went black. */
+    public static boolean tintsButtonBlack() {
+        Context context = RuntimeEnvironment.getApplication();
+        Configuration night = new Configuration(context.getResources().getConfiguration());
+        night.uiMode = Configuration.UI_MODE_NIGHT_YES | (night.uiMode & ~Configuration.UI_MODE_NIGHT_MASK);
+        Button button = probeButton(context.createConfigurationContext(night));
+        button.setBackgroundTintList(ColorStateList.valueOf(0x4D72727E));
+        AmoledBlack.gestaltButton(button);
+        return button.getBackgroundTintList().getDefaultColor() == 0xFF000000;
     }
 
     private static boolean hidden(View view, boolean held) {

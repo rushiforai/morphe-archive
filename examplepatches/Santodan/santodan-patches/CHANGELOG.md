@@ -1,3 +1,10 @@
+## [0.21.2](https://github.com/Santodan/santodan-patches/compare/v0.21.1...v0.21.2) (2026-11-24)
+
+### 🚀 Updated App Support
+
+* **monet:** support 1.1.2 for displayed cards and catalog rows ([1352bd8](https://github.com/Santodan/santodan-patches/commit/1352bd83cd82171c0e4f7de88dedf88c3ed21947))
+* **monet:** support 1.1.2 for premium and harden the experimental matcher [skip ci] ([909c339](https://github.com/Santodan/santodan-patches/commit/909c33974cb0c7cd0b4a5b6b84774a49bc789e8d))
+
 ## [0.21.1](https://github.com/Santodan/santodan-patches/compare/v0.21.0...v0.21.1) (2026-11-23)
 
 ### 🚀 Updated App Support

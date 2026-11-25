@@ -78,10 +78,35 @@ patches. Each patch can be selected independently.
 Android 13+ provides live refraction. Older versions retain the native blur;
 that fallback has not been verified on a device.
 
+### Lyrics pronunciation
+
+Turn on **Generate pronunciation guide** in the LRCLIB settings, then select
+**Show Pronunciation** in Apple Music's playback lyrics controls. This works
+with synced and unsynced Apple Music, custom and LRCLIB lyrics. Apple Music's
+existing pronunciation guides take precedence. The patch generates missing
+readings on-device using Kuromoji IPADIC for Japanese and Android ICU for
+supported scripts. For Japanese lyrics containing kanji, download the 13.3 MB
+Kuromoji IPADIC dictionary once from the LRCLIB settings. The app verifies the
+archive's SHA-256 and reads the dictionary entries from app-private storage.
+Subsequent Japanese readings work offline.
+Readings are approximate, especially for names and
+unusual spellings. The original lyrics and their timing are preserved.
+In word-synced Japanese lyrics, generated readings appear on a separate row
+and highlight at the corresponding source timings. A reading that spans
+multiple source segments uses their combined interval. If the reading cannot
+be aligned, its whole row highlights with the active line. The pronunciation
+menu shows the source of the guide.
+
+Long-press a lyric line to edit its text or pronunciation. The app stores
+changes locally for the exact lyric source and line. Restore Original removes
+that line's changes. A text edit in word-synced lyrics uses the original
+line interval, and the rest of the song keeps its existing timings.
+
 ### On-device vocal separation
 
-Enable `On-device vocal separation` for a merged arm64 Apple Music 7.0.3
-(1626) APK. Tap the microphone above the lyrics screen's playback controls.
+Enable `On-device vocal separation` for a merged arm64 Apple Music 7.0.0
+(1614), 7.0.1 (1622), 7.0.2 (1624), or 7.0.3 (1626) APK. Tap the microphone
+above the lyrics screen's playback controls.
 Select `Prepare model` to download the approximately 30 MB UVR-MDX-NET 3 model.
 After preparation, drag the vertical slider between accompaniment, the
 original mix and isolated vocals.
@@ -90,12 +115,33 @@ Ultimate Vocal Remover and its core developers Anjok07 and aufr33 provide the
 model under MIT terms. The downloaded file is verified against the SHA-256 of
 the original release's `UVR_MDXNET_3_9662.onnx`. [UVR license and credits](https://github.com/Anjok07/ultimatevocalremovergui#license)
 
-Separation runs on the device CPU for stereo PCM at 32, 44.1, 48, 88.2, 96,
-176.4 and 192 kHz. The model receives a 44.1 kHz copy of the decoded audio.
-The estimated vocals are converted back to the original sample rate before
-mixing, so playback retains its original rate and frame count. The first
-processed audio requires a window of approximately 5.92 seconds. Other
-formats use the app's normal audio path.
+Separation runs on-device for decoded PCM (mono, stereo, and multichannel
+surround / Dolby Atmos up to 24 channels, including 5.1, 7.1, 5.1.4 and 7.1.4)
+at 24, 32, 44.1, 48, 88.2, 96, 176.4 and 192 kHz. For Dolby Atmos
+(`audio/eac3-joc`) and Dolby Audio (`audio/eac3`, `audio/ac3`, `audio/ac4`)
+played through `SVMediaCodecAudioRenderer`, encoded bitstream passthrough is
+bypassed when the device provides a platform `MediaCodec` decoder so decoded
+PCM flows through `SingAudioProcessor`; multichannel streams run one MDX-Net
+pass on the stereo downmix and apply per-bin Wiener masks to all audible
+non-LFE channels (skipping silent channels) to preserve spatial placement and
+subwoofer bass without extra neural inference passes. On first model preparation, calibration prefers GPU-free low-load CPU
+(2 threads at `nice +6`, escalating to 4 threads if needed) whenever CPU
+inference comfortably meets real-time, avoiding shared mobile GPU contention
+with `SurfaceFlinger` and system UI rendering. Only when CPU alone exceeds the
+real-time budget does Android 10+ probe hardware accelerators (NNAPI FP16 with
+CPU disabled, then WebGPU over Vulkan batched with `maxNumPendingDispatches=16`
+and capped at 1.2 s) against the CPU reference output, caching the verified
+backend per OS build, blocking accelerators that fail or crash natively, and
+falling back to CPU at runtime on failure. Memory pattern allocation is disabled
+to avoid duplicate large buffers while keeping the CPU/NNAPI arena warm during
+playback to prevent per-window page-fault stalls. Playback paces output frames
+against decoded input to preserve lookahead pipelining across 1024/1536-frame
+decoder chunks, seamlessly streams original audio if an inference window ever
+runs late, and pauses inference when the mix remains at `Original mix`. The model
+receives a 44.1 kHz copy of the decoded audio. The estimated vocals are
+converted back to the original sample rate before mixing, so playback retains
+its original rate and frame count. The first processed audio requires a window
+of approximately 5.92 seconds. Other formats use the app's normal audio path.
 
 ### Liquid Glass rendering
 

@@ -45,6 +45,8 @@ public enum TimelineObjectType {
     VIDEO_HUB_FEATURED_BORDERED,
     VIDEO_HUBS_CONTAINER,
     VIDEO_HUBS_ROW,
+    CHICLET,
+    CHICLET_ROW,
     CAROUSEL,
     AVATAR_CAROUSEL,
 }

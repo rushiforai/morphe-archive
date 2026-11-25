@@ -55,13 +55,15 @@ val hideTranslateBarPatch = bytecodePatch(
     execute {
         val sites = resolveTranslateBar()
         val pinned = resolvePinnedBar(sites.first().method.definingClass)
+        val always = resolveAlwaysBar(sites)
         // Assembled on copies first, so a refusal leaves the app untouched.
         sites.forEach { it.replace(MutableMethod(ImmutableMethod.of(it.method))) }
         val pinnedMissing = pinned.rehearse()
         val resume = if (pinnedMissing == null) resolvePinnedResume(pinned.method!!) else null
         val resumeMissing = resume?.rehearse()
-        writeStub(TRANSLATE_BAR, "stockHidden", 3, bridge(BAR_HIDDEN))
-        writeStub(TRANSLATE_BAR, "translating", 3, bridge(TRANSLATING))
+        val alwaysMissing = always.rehearse()
+        writeStub(TRANSLATE_BAR, "stockHidden", 3, controllerBridge(BAR_HIDDEN))
+        writeStub(TRANSLATE_BAR, "translating", 3, controllerBridge(TRANSLATING))
         sites.forEach { it.replace(it.method) }
         enableStatus("hideTranslateBar")
         // The pinned message bar is a switch of its own: a chat screen shaped another way keeps its
@@ -71,6 +73,7 @@ val hideTranslateBarPatch = bytecodePatch(
             // Without it the switch still works, from the next time a chat is opened.
             if (resumeMissing == null) {
                 resume!!.apply(resume.method!!)
+                resume.decideStub()?.let { writeStub(TRANSLATE_BAR, "decidePinnedBar", 3, it) }
             } else {
                 patchLog.warning("Hide translate bar: $resumeMissing. A chat left open keeps its pinned message bar until it's opened again.")
             }
@@ -78,30 +81,39 @@ val hideTranslateBarPatch = bytecodePatch(
         } else {
             patchLog.warning("Hide translate bar: $pinnedMissing. The patch goes on without the pinned message bar switch.")
         }
+        // Always show is a switch of its own too, with the same way out.
+        if (alwaysMissing == null) {
+            always.install(this)
+            enableCapability("alwaysTranslateBar")
+        } else {
+            patchLog.warning("Hide translate bar: $alwaysMissing. The patch goes on without the Always show translate bar switch.")
+        }
     }
 }
 
 /** A stub body that asks Telegram's translate controller [target] about the chat. */
-private fun bridge(target: String) = """
+internal fun controllerBridge(target: String) = """
     check-cast p0, $TRANSLATE_CONTROLLER
     invoke-virtual {p0, p1, p2}, $target
     move-result p0
     return p0
 """
 
+/** The instance call at [index] goes to the static [hook] instead, with the same registers. */
+internal fun MutableMethod.swapForHook(index: Int, hook: String) {
+    val call = getInstruction(index)
+    val registers = call.namedRegisters()
+    replaceInstruction(index, if (call.opcode == Opcode.INVOKE_VIRTUAL_RANGE) {
+        "invoke-static/range {v${registers.first()} .. v${registers.last()}}, $hook"
+    } else {
+        "invoke-static {${registers.joinToString { "v$it" }}}, $hook"
+    })
+}
+
 /** One read of whether the bar is hidden on the chat screen, at instruction [index] of [method]. */
 internal class TranslateBarSite(val method: MutableMethod, val index: Int) {
     /** The same registers, the controller and the chat id, go to the extension instead. */
-    fun replace(target: MutableMethod) {
-        val call = target.getInstruction(index)
-        val registers = call.namedRegisters()
-        val hook = "$TRANSLATE_BAR->hidden(Ljava/lang/Object;J)Z"
-        target.replaceInstruction(index, if (call.opcode == Opcode.INVOKE_VIRTUAL_RANGE) {
-            "invoke-static/range {v${registers.first()} .. v${registers.last()}}, $hook"
-        } else {
-            "invoke-static {${registers.joinToString { "v$it" }}}, $hook"
-        })
-    }
+    fun replace(target: MutableMethod) = target.swapForHook(index, BAR_HIDDEN_HOOK)
 }
 
 /**

@@ -19,6 +19,7 @@ import app.morphe.patches.telegram.misc.forward.IS_PREMIUM
 import app.morphe.patches.telegram.misc.forward.NAME_HIDE
 import app.morphe.patches.telegram.misc.localcontrols.controlBody
 import app.morphe.patches.telegram.misc.localcontrols.controlRef
+import app.morphe.patches.telegram.misc.localcontrols.controlString
 import app.morphe.patches.telegram.misc.messagemenu.CHOSEN
 import app.morphe.patches.telegram.misc.messagemenu.FILL
 import app.morphe.patches.telegram.misc.messagemenu.isSelectionCanCopy
@@ -67,7 +68,7 @@ class OutsideTranslateFixtureTest {
         "Lorg/telegram/messenger/ChatObject;", "Lorg/telegram/messenger/UserObject;", "Lorg/telegram/messenger/DialogObject;",
         "Lorg/telegram/messenger/FileLoader;", "Lorg/telegram/messenger/ApplicationLoader;", "Landroidx/core/content/FileProvider;",
         "Lorg/telegram/messenger/SendMessagesHelper;", "Lorg/telegram/messenger/AccountInstance;", "Lorg/telegram/tgnet/TLRPC\$Dialog;",
-        "Lorg/telegram/tgnet/TLRPC\$Chat;", "Lorg/telegram/messenger/R\$string;",
+        "Lorg/telegram/tgnet/TLRPC\$Chat;", "Lorg/telegram/messenger/R\$string;", "Lorg/telegram/messenger/BaseController;",
     )
 
     private fun Instruction.shape() = listOf(opcode, namedRegisters(), origRef())
@@ -84,7 +85,11 @@ class OutsideTranslateFixtureTest {
                 neighbours && (AccessFlags.STATIC.isSet(m.accessFlags) && params == listOf("I", "I", list, list) && m.origReturnType == "V" ||
                     AccessFlags.STATIC.isSet(m.accessFlags) && params == listOf("I", list, "I", list, "I") && m.origReturnType == "Ljava/lang/Integer;" ||
                     m.origName == "getParentActivity" && params.isEmpty() || m.isSelectionCanCopy() ||
-                    m.controlBody().map { it.controlRef() }.let { IS_PREMIUM in it && FORWARDS in it && NAME_HIDE in it })
+                    m.controlBody().map { it.controlRef() }.let { IS_PREMIUM in it && FORWARDS in it && NAME_HIDE in it } ||
+                    // The translate bar's tap, close and label, which Hide translate bar's Always show switch reads.
+                    m.name == "onClick" && params == listOf("Landroid/view/View;") && m.controlBody().any { it.controlString() == "dialog_show_translate_count" } ||
+                    params.isEmpty() && m.returnType == "V" && m.controlBody().map { it.controlRef() }.let {
+                        TRANSLATING in it && "$TRANSLATE_CONTROLLER->getDialogTranslateTo(J)Ljava/lang/String;" in it })
         }
         val items = found.flatMap { it.methods }.filter { m ->
             m.parameterTypes.map(CharSequence::toString) in listOf(listOf("I", "I", "Ljava/lang/String;"), listOf("I", "I", "Ljava/lang/CharSequence;")) &&
@@ -100,7 +105,7 @@ class OutsideTranslateFixtureTest {
             next = loaded.mapNotNull { it.superclass }.filter { it.startsWith("Lorg/telegram/") }.toSet() - bases.map { it.type }.toSet()
         }
         val base = (FixtureDex.classes(build, types).values + found + bases).distinctBy { it.type }.map(ImmutableClassDef::of)
-        // The message menu reads its tools' and story save's classes too, so the neighbours take its whole slice.
+        // The message menu reads its tools' classes too, so the neighbours take its whole slice.
         return if (neighbours) (base + MessageMenuFixtureTest().hosts(build)).distinctBy { it.type } else base
     }
 
@@ -109,10 +114,11 @@ class OutsideTranslateFixtureTest {
             val name = build.name
             val context = PatchContexts.of(ExtensionDex.classes() + hosts(build))
             val site = context.resolveOutsideTranslate()
-            // 13.1's R8 gave both builds v0, x0 and u, 13.2.2's gives both r0, t0 and z, and Plus Messenger's s0, u0 and C.
+            // 13.1's R8 gave both builds v0, x0 and u. 13.3.1's gives telegram.org's o0, q0 and A and Google Play's
+            // q0, s0 and A, and Plus Messenger's are s0, u0 and C.
             val (itemType, menuType, adder) = when {
-                name.contains("-73039") || name.contains("-73031") ->
-                    Triple("Lorg/telegram/ui/ActionBar/r0;", "Lorg/telegram/ui/ActionBar/t0;", "z")
+                name.contains("-73469") -> Triple("Lorg/telegram/ui/ActionBar/o0;", "Lorg/telegram/ui/ActionBar/q0;", "A")
+                name.contains("-73461") -> Triple("Lorg/telegram/ui/ActionBar/q0;", "Lorg/telegram/ui/ActionBar/s0;", "A")
                 name.startsWith("plus-") -> Triple("Lorg/telegram/ui/ActionBar/s0;", "Lorg/telegram/ui/ActionBar/u0;", "C")
                 else -> Triple("Lorg/telegram/ui/ActionBar/v0;", "Lorg/telegram/ui/ActionBar/x0;", "u")
             }
@@ -297,6 +303,8 @@ class OutsideTranslateFixtureTest {
             assertEquals("$name: the header menu call comes first", "$OUTSIDE_TRANSLATE->headerMenu(Ljava/lang/Object;)V", shown[0].controlRef())
             assertEquals("$name: the bar read is Hide translate bar's", listOf(BAR_HIDDEN_HOOK),
                 shown.mapNotNull { it.controlRef() }.filter { it == BAR_HIDDEN || it == BAR_HIDDEN_HOOK })
+            assertEquals("$name: the offer is Always show translate bar's", listOf("$TRANSLATE_BAR->offered(Ljava/lang/Object;J)Z"),
+                shown.mapNotNull { it.controlRef() }.filter { it.endsWith("isDialogTranslatable(J)Z") || it.endsWith("->offered(Ljava/lang/Object;J)Z") })
 
             val built = site.fill.controlBody()
             assertEquals("$name: both builder calls and nothing else", builtBefore.size + 2, built.size)

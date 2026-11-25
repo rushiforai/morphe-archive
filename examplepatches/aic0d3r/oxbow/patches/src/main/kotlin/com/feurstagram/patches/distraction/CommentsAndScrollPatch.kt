@@ -11,7 +11,9 @@ import app.morphe.patcher.patch.bytecodePatch
 import app.morphe.patcher.util.smali.ExternalLabel
 import app.morphe.util.getReference
 import com.android.tools.smali.dexlib2.Opcode
+import com.android.tools.smali.dexlib2.iface.Method
 import com.android.tools.smali.dexlib2.iface.instruction.FiveRegisterInstruction
+import com.android.tools.smali.dexlib2.iface.instruction.NarrowLiteralInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.reference.MethodReference
 import com.android.tools.smali.dexlib2.AccessFlags
@@ -41,19 +43,57 @@ internal object FeedUfiStateToStringFingerprint : Fingerprint(
 )
 
 // Reels' comment button state: logs "ReelsCommentButton", then picks hidden / button / count.
+// 456 dropped the purge-log marker that seconded the match, so the hook's own anchor confirms
+// it instead: the hidden state's singleton, loaded right after that log line.
 internal object ReelsCommentStateFingerprint : Fingerprint(
     strings = listOf("ReelsCommentButton"),
-    custom = { method, _ -> method.hasStringEndingWith("UfiUseCase_getCommentButtonAndCount") },
+    custom = { method, _ ->
+        val insns = method.implementation?.instructions?.toList().orEmpty()
+        val log = insns.indexOfFirst { it.getReference<StringReference>()?.string == "ReelsCommentButton" }
+        log >= 0 && insns.drop(log + 1).take(6).any {
+            it.opcode == Opcode.SGET_OBJECT &&
+                it.getReference<FieldReference>()?.let { f -> f.type == f.definingClass } == true
+        }
+    },
 )
 
+// --- Endless reels ---
+// The reel viewer's pager setup: the static view setup (BaseBundle, View, …) that stores the
+// ViewPager2 into the pager wrapper's field. 455 took five arguments, 456 the inlined helper's
+// dozen; 456 also dropped its purge-log marker, so the head and the store are the anchor.
 internal object ReelPagerSetupFingerprint : Fingerprint(
     returnType = "V",
-    custom = { method, _ -> method.hasStringEndingWith("ClipsViewPagerImpl_setupView") },
+    custom = { method, _ ->
+        val p = method.parameterTypes.map(CharSequence::toString)
+        AccessFlags.STATIC.isSet(method.accessFlags) && p.size >= 2 &&
+            p[0] == "Landroid/os/BaseBundle;" && p[1] == "Landroid/view/View;" &&
+            method.implementation?.instructions?.any {
+                it.opcode == Opcode.IPUT_OBJECT && it.getReference<FieldReference>()?.type == VIEW_PAGER2
+            } == true
+    },
 )
 
+// The pager wrapper's "enable scrolling": stores true into its flag, then calls the class's
+// static lambda that lets ViewPager2 take input again. 456 dropped the purge-log tag that told
+// it from "disable scrolling" (same body, false); the stored value does now.
 internal object ReelPagerEnableScrollingFingerprint : Fingerprint(
     returnType = "V",
-    custom = { method, _ -> method.hasStringEndingWith("ClipsViewPagerImpl_enableScrolling") },
+    parameters = emptyList(),
+    custom = { method, classDef ->
+        val own = method.definingClass
+        val insns = method.implementation?.instructions?.toList().orEmpty()
+        fun letsInput(m: Method) = m.implementation?.instructions?.any {
+            it.getReference<MethodReference>()?.toString() == "Landroidx/viewpager2/widget/ViewPager2;->setUserInputEnabled(Z)V"
+        } == true
+        !AccessFlags.STATIC.isSet(method.accessFlags) && insns.zipWithNext().any { (a, b) ->
+            a.opcode == Opcode.CONST_4 && (a as NarrowLiteralInstruction).narrowLiteral == 1 &&
+                b.opcode == Opcode.IPUT_BOOLEAN && b.getReference<FieldReference>()?.definingClass == own
+        } && classDef.methods.any { m ->
+            AccessFlags.STATIC.isSet(m.accessFlags) && m.returnType == "V" &&
+                m.parameterTypes.map(CharSequence::toString) == listOf(own) && letsInput(m) &&
+                insns.any { it.opcode == Opcode.INVOKE_STATIC && it.getReference<MethodReference>()?.name == m.name }
+        }
+    },
 )
 
 // The story viewer's swipe-up dispatcher: the gesture detector's onScroll hands every

@@ -29,4 +29,15 @@ public final class PinFacts {
         if (media.width == null || media.height == null) return null;
         return new int[] {media.width, media.height};
     }
+
+    /** The pin's title as Pinterest sent it, else its grid title, trimmed. Null when it has neither. */
+    @Nullable
+    public static String title(@Nullable Object pin) {
+        if (pin == null) return null;
+        for (String name : new String[] {"title", "grid_title"}) {
+            Object value = PinMedia.field(pin, name);
+            if (value instanceof String && !((String) value).trim().isEmpty()) return ((String) value).trim();
+        }
+        return null;
+    }
 }

@@ -1,13 +1,13 @@
 # MaterialTidal
 
-**Material 3 Expressive redesign, Material You dynamic theming, swipe gestures, and optional Linn DSM Wi-Fi playback patches for TIDAL on Android.**
+**M3 redesign, Material You dynamic theming, swipe gestures, and optional Linn DSM Wi-Fi playback patches for TIDAL on Android.**
 
 [![Build](https://github.com/ninocss/MaterialTidal/actions/workflows/build.yml/badge.svg)](https://github.com/ninocss/MaterialTidal/actions/workflows/build.yml)
 [![Release](https://github.com/ninocss/MaterialTidal/actions/workflows/release.yml/badge.svg)](https://github.com/ninocss/MaterialTidal/actions/workflows/release.yml)
 [![Release](https://img.shields.io/github/v/release/ninocss/MaterialTidal?label=release)](https://github.com/ninocss/MaterialTidal/releases/latest)
 [![License: GPL-3.0](https://img.shields.io/badge/license-GPL--3.0-blue.svg)](LICENSE)
 
-MaterialTidal is an unofficial, open-source collection of **Morphe** patches for the Android **TIDAL** app (`com.aspiro.tidal`). It brings Android 12+ Material You Monet color extraction, Material 3 Expressive floating surfaces, GPU frosted-glass blur, spring physics, gesture controls, and an optional bit-perfect Linn OpenHome Wi-Fi output directly into stock TIDAL without replacing TIDAL's core playback or library logic.
+MaterialTidal is an unofficial, open-source collection of **Morphe** patches for the Android **TIDAL** app (`com.aspiro.tidal`). It brings Android 12+ Material You Monet color extraction, M3 floating surfaces, GPU frosted-glass blur, spring physics, gesture controls, and an optional bit-perfect Linn OpenHome Wi-Fi output directly into stock TIDAL without replacing TIDAL's core playback or library logic.
 
 > [!IMPORTANT]
 > - **Supported target app:** TIDAL **`v2.220.1`** (`com.aspiro.tidal`)
@@ -41,116 +41,152 @@ Add this repository as a remote patch source in **Morphe Manager** to receive au
 
 | Patch | Default | Depends On | Summary |
 | :--- | :---: | :--- | :--- |
-| [Material You dynamic theme](#1-material-you-dynamic-theme) | On | — | Wallpaper Monet colors, Expressive shapes, GPU frosted glass |
-| [System Light & Dark theme](#2-system-light--dark-theme) | On | Material You dynamic theme | Monet Light (White) & Dark themes following system setting |
-| [Material 3 Expressive navbar & mini-player](#3-material-3-expressive-navbar--mini-player) | On | — | Split-pill dock, detached Search button, floating mini-player card |
-| [Material 3 Expressive full player](#4-material-3-expressive-full-player) | On | — | Blurred cover backdrop, wavy seekbar, animated lyrics & queue |
-| [Expressive Material 3 homepage](#5-expressive-material-3-homepage) | On | Material You dynamic theme | Expressive shortcuts, pull-to-refresh unlock, promo cleanup |
-| [Expressive Material 3 playlist screen](#6-expressive-material-3-playlist-screen) | On | Material You dynamic theme | Fading hero cover, adaptive Monet palette, pill buttons & rows |
-| [Expressive Material 3 albums, artists & my tracks](#7-expressive-material-3-albums-artists--my-tracks) | On | Material You, Playlist screen | Expressive headers, fading covers, and tiles across media pages |
-| [Expressive Material 3 search](#8-expressive-material-3-search) | On | Material You dynamic theme | Pill search bars, frosted sticky headers, Expressive genre tiles |
-| [Expressive Material 3 bottom sheets & menus](#9-expressive-material-3-bottom-sheets--menus) | On | Material You dynamic theme | Grouped menu cards, tonal icon badges, frosted popups & dialogs |
-| [Track swipe gestures](#10-track-swipe-gestures) | On | — | Spring-back swipe actions on track rows across TIDAL |
-| [Linn Majik DSM Wi-Fi playback](#11-linn-majik-dsm-wi-fi-playback) | Off | — | Optional OpenHome SSDP discovery & Lossless/Hi-Res FLAC streaming |
+| [Material You dynamic theme](#1-material-you-dynamic-theme) | On | — | Wallpaper Monet colors, M3 shapes & frosted-glass blur |
+| [System Light & Dark theme](#2-system-light--dark-theme) | On | Material You dynamic theme | Monet Light & Dark themes following your Android system setting |
+| [In-app patch settings](#3-in-app-patch-settings) | On | — | Clean MaterialTidal settings menu inside TIDAL Settings for live toggles |
+| [M3 navbar & mini-player](#4-m3-navbar--mini-player) | On | — | Floating split-pill dock, detached Search circle & floating mini-player |
+| [M3 full player](#5-m3-full-player) | On | — | Blurred cover backdrop, wavy seekbar, tablet two-pane layout & queue |
+| [Song waveform seekbar](#6-song-waveform-seekbar) | Off | M3 full player | Track-derived animated audio waveform seekbar with scrub zoom & pulse |
+| [Syllable-synced karaoke lyrics](#7-syllable-synced-karaoke-lyrics) | On | M3 full player | Word-by-word karaoke sweep, lift physics & depth blur |
+| [Seamless track transitions (Crossfade)](#8-seamless-track-transitions-crossfade) | On | — | Dual-player Crossfade (0–12 s), 4 fade curves, blend strength & gapless albums |
+| [Track swipe gestures](#9-track-swipe-gestures) | On | — | Spring-back left & right swipe actions on track rows across TIDAL |
+| [M3 homepage](#10-m3-homepage) | On | Material You dynamic theme | Expressive shortcuts, pull-to-refresh & optional promo banner removal |
+| [M3 playlist screen](#11-m3-playlist-screen) | On | Material You dynamic theme | Fading hero cover, adaptive Monet palette, pill buttons & rows |
+| [M3 albums, artists & library](#12-m3-albums-artists--library) | On | Material You, M3 playlist screen | Fading covers, pill controls & Bento collection grid across media pages |
+| [M3 search](#13-m3-search) | On | Material You dynamic theme | Rounded search bars, frosted headers & Expressive browse cards |
+| [M3 bottom sheets & menus](#14-m3-bottom-sheets--menus) | On | Material You dynamic theme | Tap-anchored action popups, crisp vector icons, sheets & dialogs |
+| [Linn Majik DSM Wi-Fi playback](#15-linn-majik-dsm-wi-fi-playback) | Off | — | OpenHome Wi-Fi discovery & Lossless/Hi-Res FLAC streaming |
+
+*(All patch options configured in Morphe Manager serve as your initial reset defaults and can also be tweaked live inside **Settings → MaterialTidal** when **In-app patch settings** is enabled.)*
 
 ### 1. Material You dynamic theme
-Remaps TIDAL's hardcoded cyan accents, Market colors, dark zinc surfaces, and corner shapes across Wave 1, Wave 2, and Square Market to Android Material 3 Expressive Monet tokens, including `MainActivity` window surfaces and a shared API 31+ `RenderNode`/`RenderEffect` blur kit.
+Applies your Android wallpaper's Material You Monet colors, rounder M3 shapes, and smooth frosted-glass blur across TIDAL's surfaces, accents, and cards.
 
-- `amoledPureBlack` (*AMOLED pure black background*, default: `false`) — Keeps `#000000` background while preserving dynamic Monet accents and cards.
-- `monetPaletteStyle` (*Monet palette intensity*, default: `"expressive"`) — `Expressive Monet (Rich Tonal)` (`expressive`), `Vibrant Monet (High Chroma)` (`vibrant`), or `Subtle Tonal (Classic Material You)` (`subtle`).
-- `expressiveShapes` (*Material 3 Expressive rounded shapes*, default: `true`) — Upgrades Square Market and Wave 1/Wave 2 corner radii to M3 Expressive squircle/pill geometry.
-- `expressiveGlassBlur` (*Expressive GPU blur & frosted glass*, default: `true`) — Hardware-accelerated `RenderEffect` & cross-window blur across hero fades, toolbars, sheets, menus, and dialogs.
-- `blurIntensity` (*Blur intensity*, default: `"balanced"`) — `Balanced (Recommended)` (`balanced`), `Subtle` (`subtle`), or `Rich frosted glass` (`rich`).
+- `amoledPureBlack` (*AMOLED pure black background*, default: `false`) — Uses `#000000` in Dark Mode while keeping dynamic Monet accents and cards.
+- `monetPaletteStyle` (*Monet palette intensity*, default: `"expressive"`) — `Expressive (Rich Tonal, recommended)` (`expressive`), `Vibrant (High Chroma)` (`vibrant`), or `Subtle (Classic Material You)` (`subtle`).
+- `expressiveShapes` (*M3 rounded shapes*, default: `true`) — Upgrades buttons, cards, and containers to rounder M3 squircle and pill geometry.
+- `expressiveGlassBlur` (*Expressive frosted-glass blur*, default: `true`) — Smooth hardware-accelerated blur across hero fades, toolbars, floating bars, menus, and sheets.
+- `blurIntensity` (*Blur intensity*, default: `"balanced"`) — `Balanced (Recommended)` (`balanced`), `Subtle` (`subtle`), or `Strong frosted glass` (`rich`).
 
 ### 2. System Light & Dark theme
 *(Depends on: **Material You dynamic theme**)*
 
-Adds a Material 3 Expressive Monet Light (White) Mode and switches TIDAL automatically between Light and Dark themes based on your Android system setting (or forces Light/Dark), adapting Compose surfaces, icons, text contrast, dialogs, and system bars.
+Adds a Material You Light Mode and automatically switches TIDAL between Light and Dark themes following your Android system setting (or locks to Light or Dark), adapting surfaces, icons, text contrast, dialogs, and system bars.
 
-- `themeMode` (*App theme mode*, default: `"system"`) — `Follow System (Light & Dark)` (`system`), `Light Mode (White)` (`light`), or `Dark Mode` (`dark`).
+- `themeMode` (*App theme mode*, default: `"system"`) — `Follow System (Recommended)` (`system`), `Light Mode` (`light`), or `Dark Mode` (`dark`).
 
-### 3. Material 3 Expressive navbar & mini-player
-Replaces TIDAL's fused bottom bar and mini-player with a **Material 3 Expressive** split-pill floating navbar (`64dp`), a detached circular Search button, and a separate floating stadium-pill mini-player card with spring physics, morphing Play/Pause states, and progressive backdrop blur.
+### 3. In-app patch settings
+Adds a **`MaterialTidal`** menu inside TIDAL's main Settings screen so you can toggle and customize installed MaterialTidal patches live without re-patching, with quick controls, organized sub-pages, and per-page or full reset.
 
-- `navbarColorStyle` (*Navbar & mini-player color style*, default: `0`) — `Material You Dark Tonal` (`0`), `Material You Pastel (Screenshot)` (`1`), or `Material You Vibrant Contrast` (`2`).
-- `hideUploadTab` (*Keep 3 core tabs in pill*, default: `true`) — Keeps Home, Explore, and Library in the main pill (disable to include Uploads).
-- `miniPlayerSwipeToSkip` (*Swipe mini-player gestures*, default: `true`) — Horizontal swipe-to-skip with reveal preview and vertical pull-up to open Now Playing.
-- `navbarProgressiveBlur` (*Progressive blur under navigation bar*, default: `true`) — 4-tier GPU progressive blur + translucent frosted dock behind the floating bars.
+### 4. M3 navbar & mini-player
+Replaces TIDAL's bottom bar and mini-player with a floating M3 split-pill navigation dock, detached circular Search button, and separate floating mini-player card with swipe gestures and progressive backdrop blur.
 
-### 4. Material 3 Expressive full player
-Replaces TIDAL's Now Playing screen with a **Material 3 Expressive** player featuring a heavily blurred album-art backdrop, cover-derived + Monet palettes, connected split pills, animated squiggly seekbar, morphing transport buttons, full-screen animated lyrics, and an expressive Play Queue.
+- `navbarColorStyle` (*Navbar & mini-player style*, default: `0`) — `Dark Tonal (Recommended)` (`0`), `Pastel Monet` (`1`), or `Vibrant Contrast` (`2`).
+- `hideUploadTab` (*Keep 3 core tabs in dock*, default: `true`) — Shows Home, Explore, and Library in the dock while hiding Uploads.
+- `miniPlayerSwipeToSkip` (*Mini-player swipe gestures*, default: `true`) — Horizontal swipe-to-skip and vertical pull-up to expand Now Playing.
+- `navbarProgressiveBlur` (*Progressive dock blur*, default: `true`) — Multi-tier GPU progressive blur behind the floating dock and mini-player.
 
-- `playerColorStyle` (*Player blurred background style*, default: `0`) — `Cover Pastel & Blurred Art (Screenshot)` (`0`), `Dark Tonal Blurred Cover` (`1`), or `Pure Heavy Cover Blur` (`2`).
+### 5. M3 full player
+Redesigns the Now Playing screen with a blurred cover-art backdrop, adaptive Monet colors, animated squiggly seekbar, expressive transport controls, responsive tablet two-pane layout (`>= 600dp`), full-screen lyrics, and a refreshed Play Queue.
+
+- `playerColorStyle` (*Player backdrop style*, default: `0`) — `Cover Pastel & Blur (Recommended)` (`0`), `Dark Tonal Blur` (`1`), or `Heavy Cover Blur` (`2`).
 - `playerCoverSwipeToSkip` (*Swipe cover art to skip tracks*, default: `true`).
-- `playerSquigglySeekbar` (*Expressive wavy seekbar*, default: `true`).
-- `expressivePlayQueue` (*Expressive Material 3 Play Queue*, default: `true`).
+- `playerSquigglySeekbar` (*Squiggly sine-wave seekbar*, default: `true`).
+- `expressivePlayQueue` (*Expressive Play Queue*, default: `true`).
+- `tabletDesktopLayout` (*Desktop-style tablet layout*, default: `true`).
 
-### 5. Expressive Material 3 homepage
-*(Depends on: **Material You dynamic theme**)*
+### 6. Song waveform seekbar
+*(Optional — disabled by default · Depends on: **M3 full player**)*
 
-Redesigns TIDAL's Homepage with Material 3 Expressive shortcut cards, rounded carousel artwork, Monet-styled Vibe chips and AppBar, unlocked pull-to-refresh, and optional promo decluttering.
+Replaces the player seekbar (overriding the squiggly line) with an animated audio waveform generated from the playing track, featuring smooth track transitions, scrub zoom, and optional real-time beat pulse.
 
-- `homeCoverRadiusStyle` (*Homepage cover & shortcut shape*, default: `"expressive"`) — `Expressive Squircle (20dp)` (`expressive`), `Rounded (14dp)` (`rounded`), or `Subtle (8dp)` (`subtle`).
-- `enableHomePullToRefresh` (*Unlock homepage pull-to-refresh*, default: `true`).
-- `hideHomeHeadlinersBanner` (*Hide Headliners upload banner*, default: `true`).
-- `hideHomePromoModules` (*Hide promo modules*, default: `true`).
-- `hideHomeMerchModules` (*Hide merch store modules*, default: `true`).
+- `waveformStyle` (*Waveform shape*, default: `0`) — `Mirrored Bars (Recommended)` (`0`), `Bottom Spectrum Bars` (`1`), or `Smooth Filled Wave` (`2`).
+- `waveformBarDensity` (*Waveform detail*, default: `1`) — `Chunky (36 bars)` (`0`), `Balanced (56 bars, recommended)` (`1`), or `Fine (76 bars)` (`2`).
+- `waveformLiveReactivity` (*Live beat pulse at playhead*, default: `true`).
 
-### 6. Expressive Material 3 playlist screen
-*(Depends on: **Material You dynamic theme**)*
+### 7. Syllable-synced karaoke lyrics
+*(Depends on: **M3 full player**)*
 
-Redesigns TIDAL's Playlist screen with a full-bleed downward-fading & progressively blurred hero cover, cover-adaptive + Monet colors, `52dp` pill Play/Shuffle buttons, connected secondary action tiles, scroll-morphing frosted toolbar, and clean `68dp` track rows.
+Upgrades full-screen lyrics with word-by-word karaoke sweep highlighting, gentle lift physics, depth-of-field blur on inactive lines, duet layout, and open community providers ([`lrc.red`](https://lrc.red), BetterLyrics, LyricsPlus, [LRCLIB](https://lrclib.net), KuGou KRC) with automatic fallback to TIDAL lyrics.
 
-- `playlistAccentMode` (*Playlist accent palette*, default: `"adaptive"`) — `Dynamic Cover + Monet (Recommended)` (`adaptive`) or `System Monet Wallpaper` (`monet`).
-- `playlistHeroCoverFade` (*Full-bleed downward-fading hero cover*, default: `true`).
-- `playlistTrackRowPolish` (*Material 3 Expressive track rows*, default: `true`).
+- `lyricsProgressiveBlur` (*Progressive blur on inactive lines*, default: `true`).
+- `lyricsBlurStrength` (*Lyrics blur intensity*, default: `"balanced"`) — `Balanced (Recommended)` (`balanced`), `Subtle` (`subtle`), or `Strong` (`strong`).
 
-### 7. Expressive Material 3 albums, artists & my tracks
-*(Depends on: **Material You dynamic theme**, **Expressive Material 3 playlist screen**)*
+### 8. Seamless track transitions (Crossfade)
+Unlocks dual-player Crossfade playback with configurable overlap (`0–12 s`), 4 audio fade curves, blend intensity (`0–100%`), optional gapless-album preservation, and an interactive full-screen **Crossfade** menu in Settings and the Now Playing menu.
 
-Extends the Material 3 Expressive design system (fading hero covers, cover-adaptive & Monet palettes, `52dp` pill buttons, connected secondary tiles, scroll-morphing toolbars, and collection grid styling) to Albums, Artists, My Tracks, My Albums, and My Artists.
+- `crossfadeDefaultSeconds` (*Default crossfade duration*, default: `5`) — `0` (`Off`), `2`, `3`, `4`, `5`, `6`, `8`, `10`, or `12` seconds.
+- `crossfadeDefaultCurve` (*Default transition curve*, default: `0`) — `Equal Power (Recommended)` (`0`), `Smooth S-Curve` (`1`), `Soft Dip` (`2`), or `DJ Blend` (`3`).
+- `crossfadeDefaultStrength` (*Default blend intensity*, default: `50`) — `Gentle (25%)` (`25`), `Balanced (50%, recommended)` (`50`), `Strong (75%)` (`75`), or `Maximum (100%)` (`100`).
+- `crossfadePreserveGaplessAlbums` (*Keep albums gapless by default*, default: `false`).
 
-- `expressiveAlbums` (*Expressive Album pages*, default: `true`).
-- `expressiveArtists` (*Expressive Artist pages*, default: `true`).
-- `expressiveMyTracks` (*Expressive My Tracks screen*, default: `true`).
-- `expressiveCollection` (*Expressive Collection tile grid*, default: `true`).
-
-### 8. Expressive Material 3 search
-*(Depends on: **Material You dynamic theme**)*
-
-Redesigns TIDAL's Search & Explore landing page, default `UnifiedSearchView`, and Compose Wave 2 Search screen with stadium-pill Monet search bars, frosted sticky glass headers, animated filter pills, suggestion badges, and Monet-harmonized genre/explore cards.
-
-- `searchBarPillStyle` (*Search bar corner shape*, default: `"pill"`) — `Expressive Pill (28dp)` (`pill`) or `Expressive Squircle (18dp)` (`squircle`).
-- `expressiveSearchCards` (*Expressive Genre & Explore cards*, default: `true`).
-- `expressiveSearchHeaderBlur` (*Frosted glass Search header blur*, default: `true`).
-
-### 9. Expressive Material 3 bottom sheets & menus
-*(Depends on: **Material You dynamic theme**)*
-
-Redesigns bottom sheets, track/media context menus, toolbar overflow & dropdown menus, and dialogs across XML Views and Jetpack Compose Material 3 with expressive corners, segmented grouped menu cards, circular icon badges, pill drag handles, frosted backdrop blur, and Monet surfaces.
-
-- `sheetCornerStyle` (*Bottom sheet & menu corner style*, default: `"expressive"`) — `Expressive M3 (28dp Sheets / 22dp Menus)` (`expressive`), `Extra Expressive (32dp Sheets / 24dp Menus)` (`extra`), or `Subtle Rounded (20dp Sheets / 16dp Menus)` (`rounded`).
-- `groupedContextMenuCards` (*Segmented grouped context menu rows*, default: `true`).
-- `expressivePopupMenus` (*Expressive overflow & dropdown menus*, default: `true`).
-- `expressiveDialogs` (*Expressive Material 3 dialogs*, default: `true`).
-
-### 10. Track swipe gestures
-Adds **Material 3 Expressive** spring-back swipe gestures with Monet pill reveal to track rows across TIDAL (Playlists, Favorite Tracks, Albums, Search Results, Downloads, Mixes & Dynamic Pages).
+### 9. Track swipe gestures
+Adds spring-back left and right swipe actions to track rows across playlists, albums, search, and your library.
 
 - `swipeRightAction` (*Swipe right action*, default: `"Add to Queue"`) — `Add to Queue`, `Play Next`, `Toggle Favorite`, `Add to Playlist`, or `Disabled`.
 - `swipeLeftAction` (*Swipe left action*, default: `"Toggle Favorite"`) — `Add to Queue`, `Play Next`, `Toggle Favorite`, `Add to Playlist`, or `Disabled`.
 - `hapticFeedback` (*Haptic feedback*, default: `true`).
 - `swipeThresholdDp` (*Swipe threshold (dp)*, default: `72`).
 
-### 11. Linn Majik DSM Wi-Fi playback
+### 10. M3 homepage
+*(Depends on: **Material You dynamic theme**)*
+
+Redesigns the Homepage with rounded M3 shortcut and carousel cards, Monet-styled Vibe chips and top bar, pull-to-refresh support, and optional removal of promotional banners.
+
+- `homeCoverRadiusStyle` (*Cover & shortcut corner shape*, default: `"expressive"`) — `Squircle (20dp, recommended)` (`expressive`), `Rounded (14dp)` (`rounded`), or `Subtle (8dp)` (`subtle`).
+- `enableHomePullToRefresh` (*Homepage pull-to-refresh*, default: `true`).
+- `hideHomeHeadlinersBanner` (*Hide Headliners upload banner*, default: `true`).
+- `hideHomePromoModules` (*Hide promo modules*, default: `true`).
+- `hideHomeMerchModules` (*Hide merch store modules*, default: `true`).
+
+### 11. M3 playlist screen
+*(Depends on: **Material You dynamic theme**)*
+
+Redesigns Playlist pages with a full-bleed fading hero cover, cover-adaptive or Monet colors, pill Play/Shuffle controls, compact expressive action buttons (or full hide), scroll-morphing toolbar, and polished track rows.
+
+- `playlistAccentMode` (*Playlist accent palette*, default: `"adaptive"`) — `Cover + Monet (Recommended)` (`adaptive`) or `System Monet` (`monet`).
+- `playlistHeroCoverFade` (*Full-bleed fading hero cover*, default: `true`).
+- `playlistTrackRowPolish` (*Expressive track rows*, default: `true`).
+- `hidePlaylistActionButtons` (*Hide playlist action buttons*, default: `false`).
+
+### 12. M3 albums, artists & library
+*(Depends on: **Material You dynamic theme**, **M3 playlist screen**)*
+
+Extends M3 design (fading hero artwork, adaptive Monet colors, pill controls, and a Bento-style Collection tile grid) to Albums, Artists, My Tracks, and your Library.
+
+- `expressiveAlbums` (*Expressive Album pages*, default: `true`).
+- `expressiveArtists` (*Expressive Artist pages*, default: `true`).
+- `expressiveMyTracks` (*Expressive My Tracks screen*, default: `true`).
+- `expressiveCollection` (*Expressive Collection tile grid*, default: `true`).
+
+### 13. M3 search
+*(Depends on: **Material You dynamic theme**)*
+
+Redesigns Search & Explore with rounded Monet search bars, frosted sticky headers, expressive filter pills, and Monet-harmonized genre and browse cards.
+
+- `searchBarPillStyle` (*Search bar shape*, default: `"pill"`) — `Pill (28dp, recommended)` (`pill`) or `Squircle (18dp)` (`squircle`).
+- `expressiveSearchCards` (*Expressive Genre & Explore cards*, default: `true`).
+- `expressiveSearchHeaderBlur` (*Frosted glass Search header*, default: `true`).
+
+### 14. M3 bottom sheets & menus
+*(Depends on: **Material You dynamic theme**)*
+
+Redesigns Song & Playlist action menus as clean tap-anchored M3 popups with crisp vector icons, alongside rounded bottom sheets, grouped menu cards, overflow menus, and M3 dialogs.
+
+- `sheetCornerStyle` (*Sheet & menu corner style*, default: `"expressive"`) — `Expressive (28dp Sheets / 22dp Menus, recommended)` (`expressive`), `Extra Rounded (32dp Sheets / 24dp Menus)` (`extra`), or `Subtle (20dp Sheets / 16dp Menus)` (`rounded`).
+- `groupedContextMenuCards` (*Grouped context menu cards*, default: `true`).
+- `expressivePopupMenus` (*Expressive overflow & dropdown menus*, default: `true`).
+- `expressiveDialogs` (*M3 dialogs*, default: `true`).
+
+### 15. Linn Majik DSM Wi-Fi playback
 *(Optional — disabled by default)*
 
-Discovers Linn DS/DSM OpenHome speakers on your local Wi-Fi inside TIDAL's Devices sheet and streams Lossless or 24-bit/192 kHz Hi-Res FLAC (via lossless DASH-FLAC remuxing over a local HTTP proxy) with full transport, queue, hardware volume, and lockscreen controls.
+Discovers Linn DS/DSM OpenHome speakers on your local Wi-Fi in TIDAL's Devices sheet and streams Lossless or 24-bit/192 kHz Hi-Res FLAC audio with full transport, queue, hardware volume, and lockscreen controls.
 
-- `linnAudioQuality` (*Preferred audio quality*, default: `0`) — `Hi-Res FLAC (up to 24-bit/192 kHz, Auto fallback)` (`0`), `Lossless FLAC (16-bit/44.1 kHz)` (`1`), or `High (320 kbps AAC)` (`2`).
-- `linnStreamMode` (*Stream delivery mode*, default: `0`) — `Local HTTP Proxy (All Majik DSM models, recommended)` (`0`) or `Direct CDN for Lossless BTS + Proxy for Hi-Res` (`1`).
+- `linnAudioQuality` (*Preferred audio quality*, default: `0`) — `Hi-Res FLAC (up to 24-bit/192 kHz, recommended)` (`0`), `Lossless FLAC (16-bit/44.1 kHz)` (`1`), or `High (320 kbps AAC)` (`2`).
+- `linnStreamMode` (*Stream delivery mode*, default: `0`) — `Local HTTP Proxy (Recommended)` (`0`) or `Direct Lossless + Hi-Res Proxy` (`1`).
 - `linnAutoWakeAndSwitch` (*Auto-wake standby & switch input*, default: `true`).
-- `linnManualDeviceIp` (*Manual Linn DSM IP (optional fallback)*, default: `""`) — Optional LAN IP (`192.168.1.50` or `192.168.1.50:55178`) if SSDP multicast discovery is blocked on your Wi-Fi network.
+- `linnManualDeviceIp` (*Manual Linn DSM IP (optional fallback)*, default: `""`).
 
 ---
 
@@ -181,7 +217,7 @@ $env:GITHUB_TOKEN = "<your-github-pat-with-read-packages>"
 .\gradlew.bat clean packageZip :patches:verifyLinnProtocol
 ```
 
-If you have a local `tidal.apkm` (`v2.220.1`) in the repository root, you can also run full end-to-end bytecode & DEX verification across all 11 patches:
+If you have a local `tidal.apkm` (`v2.220.1`) in the repository root, you can also run full end-to-end bytecode & DEX verification across all 15 patches:
 
 ```powershell
 .\gradlew.bat :patches:verifyPatchTidal
@@ -199,8 +235,8 @@ Automated builds and GitHub Releases are driven by [`.github/workflows/release.y
 
 1. **Tag push (`v*`):**
    ```bash
-   git tag -a v0.2.1 -m "Release v0.2.1"
-   git push origin v0.2.1
+   git tag -a v0.3.0 -m "Release v0.3.0"
+   git push origin v0.3.0
    ```
 2. **Manual run (`workflow_dispatch`):** Run **Release** from the **Actions** tab with an optional `version`, `prerelease` flag, and custom `release_notes`.
 
@@ -222,5 +258,7 @@ For every release, the workflow:
 ## Disclaimer & License
 
 MaterialTidal is an independent, unofficial open-source project and is not affiliated with, endorsed by, or associated with TIDAL, Square/Block, or Linn Products. All trademarks belong to their respective owners.
+
+Syllable-synced and fallback lyrics are fetched from open community lyrics providers — thank you to [`lrc.red`](https://lrc.red), [BetterLyrics](https://docs.betterlyrics.org), [LyricsPlus](https://github.com/ibratabian17/LyricsPlus), and [LRCLIB](https://lrclib.net).
 
 Licensed under the [GNU General Public License v3.0](LICENSE).

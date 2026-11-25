@@ -103,12 +103,17 @@ public class HushTumblrPreferenceFragmentTest {
         ROW_TITLES.put(PatchFamily.HIDE_GIFT_MESSAGE_POPUPS, "Hide gift purchase popups");
         ROW_TITLES.put(PatchFamily.LINE_BETWEEN_POSTS, "Line between posts");
         ROW_TITLES.put(PatchFamily.APP_FONT, "App font");
+        ROW_TITLES.put(PatchFamily.TEXT_SIZE, "Text size");
+        ROW_TITLES.put(PatchFamily.MORE_IMAGES_PER_POST, "More images per post");
+        ROW_TITLES.put(PatchFamily.FIX_HARD_TO_READ_TEXT, "Fix hard-to-read text");
+        ROW_TITLES.put(PatchFamily.DARK_SEARCH_BAR_AND_FOLLOW, "Dark search bar");
         ROW_TITLES.put(PatchFamily.TURN_OFF_SCREENSHOT_SHARING, "Turn off screenshot sharing");
         ROW_TITLES.put(PatchFamily.DISABLE_UPDATE_PROMPTS, "Disable update prompts");
         ROW_TITLES.put(PatchFamily.HIDE_SUGGESTED_BLOGS, "Hide suggested blogs");
         ROW_TITLES.put(PatchFamily.HIDE_SUGGESTED_COMMUNITIES, "Hide suggested communities");
         ROW_TITLES.put(PatchFamily.HIDE_SUGGESTED_TAGS, "Hide suggested tags");
         ROW_TITLES.put(PatchFamily.HIDE_WATCH_IT_ROWS, "Hide Watch it rows");
+        ROW_TITLES.put(PatchFamily.HIDE_MORE_POSTS_LIKE_THIS, "Hide More posts like this");
         ROW_TITLES.put(PatchFamily.HIDE_FEATURED_POSTS, "Hide Featured posts");
         ROW_TITLES.put(PatchFamily.HIDE_HASHTAGS, "Hide hashtags");
         ROW_TITLES.put(PatchFamily.TAG_BLOG_SEARCH, "Tags open the blog's tag search");
@@ -126,6 +131,7 @@ public class HushTumblrPreferenceFragmentTest {
         ROW_TITLES.put(PatchFamily.HIDE_OWN_REBLOGS, "Hide your own reblogs");
         ROW_TITLES.put(PatchFamily.HIDE_REBLOGS_OF_YOURS, "Hide reblogs of your posts");
         ROW_TITLES.put(PatchFamily.HIDE_LIKED_POSTS, "Hide liked posts");
+        ROW_TITLES.put(PatchFamily.HIDE_FOLLOWED_IN_FOR_YOU, "Hide followed blogs in For you");
         ROW_TITLES.put(PatchFamily.HIDE_VIDEO_POSTS, "Hide video posts");
         ROW_TITLES.put(PatchFamily.HIDE_PHOTO_POSTS, "Hide photo posts");
         ROW_TITLES.put(PatchFamily.HIDE_TEXT_POSTS, "Hide text posts");
@@ -233,6 +239,7 @@ public class HushTumblrPreferenceFragmentTest {
         editors.put(HushTumblrPreferenceFragment.FONT_FILE_ROW, PatchFamily.APP_FONT);
         editors.put(HushTumblrPreferenceFragment.PHONE_FONT_ROW, PatchFamily.APP_FONT);
         editors.put(HushTumblrPreferenceFragment.LONG_POST_SIZE_ROW, PatchFamily.COLLAPSE_LONG_POSTS);
+        editors.put(HushTumblrPreferenceFragment.TEXT_SIZE_ROW, PatchFamily.TEXT_SIZE);
         editors.put("hushtumblr_manage_root_mutes", PatchFamily.MUTE_ROOT_POSTS);
 
         List<String> wrong = new ArrayList<>();

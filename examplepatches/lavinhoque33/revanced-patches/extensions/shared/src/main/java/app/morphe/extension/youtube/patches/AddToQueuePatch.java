@@ -5,6 +5,7 @@
  * See the included NOTICE file for GPLv3 Section 7 terms that apply to this code.
  *
  * Modified by lavinhoque33, 2026-11-10
+ * Modified by lavinhoque33, 2026-11-24
  */
 
 package app.morphe.extension.youtube.patches;
@@ -42,13 +43,14 @@ public final class AddToQueuePatch {
             "QUEUE_PLAY_LAST"
     );
 
-    private static final Drawable queueButtonDrawable = getQueueButtonDrawable();
+    private static final Drawable queueButtonDrawable = createQueueButtonDrawable();
     private static final String queueButtonName = str("morphe_queue_flyout_title");
 
     private static final int SECONDARY_CONTAINER_ID =
             ResourceUtils.getIdentifier(ResourceType.ID, "list_item_secondary_container");
 
-    private static Drawable getQueueButtonDrawable() {
+    @Nullable
+    public static Drawable createQueueButtonDrawable() {
         final String iconName = YouTubeActivityHook.useBoldFlyoutIcons()
                 ? "yt_outline_experimental_queue_vd_theme_24"
                 : "yt_outline_experimental_queue_black_24";

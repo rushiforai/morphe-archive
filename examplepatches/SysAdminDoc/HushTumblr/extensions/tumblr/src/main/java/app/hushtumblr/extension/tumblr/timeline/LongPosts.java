@@ -38,7 +38,7 @@ import app.hushtumblr.extension.tumblr.settings.TextSettings;
  *
  * <p>Row heights aren't known when the rows are picked, so each row counts as an estimate in lines
  * of text: a text block by its length, an image row by how many images share it, a video as one
- * video. A post is long when its rows past the cap add up to {@link #MIN_HIDDEN} lines or more, so
+ * video. A post is long when its rows past the cap add up to {@link #minHidden} lines or more, so
  * a post that only just runs over stays whole. The first row always stays.
  *
  * <p>A reblog trail entry is cut a different way, see {@link #trail}: Tumblr builds each entry once,
@@ -62,8 +62,13 @@ public final class LongPosts {
      * length is picked ({@link TextSettings#LONG_POST_SIZE}).
      */
     static final int CAP = 40;
-    /** The fewest lines a collapse may hide, so a post that runs only a little over stays whole. */
+    /**
+     * The fewest lines a collapse may hide at a length of half a screen or more, so a post that runs
+     * only a little over stays whole. A shorter length hides less before it cuts, see {@link #minHidden}.
+     */
     static final int MIN_HIDDEN = 10;
+    /** The fewest lines a collapse ever hides, at the shortest lengths. */
+    static final int MIN_HIDDEN_SHORT = 3;
     /** The characters a line of post text holds on a phone, near enough. */
     static final int LINE = 45;
     /** A full width image: a square one is about this many lines tall. */
@@ -271,10 +276,11 @@ public final class LongPosts {
 
     /**
      * How many of [rows] to keep, the first ones up to the {@link #cap} in lines and always at least
-     * one, or -1 when the rest would hide fewer than {@link #MIN_HIDDEN} lines or nothing at all.
+     * one, or -1 when the rest would hide fewer than {@link #minHidden} lines or nothing at all.
      */
     static int keep(List<?> rows) {
         int cap = cap();
+        int least = minHidden(cap);
         int count = rows.size();
         int kept = 0;
         long used = 0;
@@ -286,8 +292,17 @@ public final class LongPosts {
         }
         if (kept >= count) return -1;
         long hidden = 0;
-        for (int at = kept; at < count && hidden < MIN_HIDDEN; at++) hidden += lines(rows.get(at));
-        return hidden < MIN_HIDDEN ? -1 : kept;
+        for (int at = kept; at < count && hidden < least; at++) hidden += lines(rows.get(at));
+        return hidden < least ? -1 : kept;
+    }
+
+    /**
+     * The fewest lines a cut at [cap] lines may hide: {@link #MIN_HIDDEN} from half a screen up, and
+     * half the length below that, never under {@link #MIN_HIDDEN_SHORT}. A 5-line cut doesn't wait
+     * for 10 hidden lines before it folds a post.
+     */
+    static int minHidden(int cap) {
+        return Math.min(MIN_HIDDEN, Math.max(MIN_HIDDEN_SHORT, cap / 2));
     }
 
     /** The length picked on the Posts page, in lines, or {@link #CAP} for one its row never offers. */

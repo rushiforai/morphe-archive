@@ -14,11 +14,14 @@ public final class GboardAdvancedVoiceSettings {
             "pref_advanced_voice_backend";
     public static final String PREF_KEY_ZH_TW_PUNCTUATION_ENABLED =
             "pref_advanced_voice_zh_tw_punctuation_enabled";
+    public static final String PREF_KEY_DISABLE_VOICE_BEEP =
+            "pref_advanced_voice_disable_voice_beep";
     public static final String BACKEND_ADVANCED = "advanced";
     public static final String BACKEND_RAMBLER = "rambler";
     public static final boolean DEFAULT_ENABLED = true;
     public static final String DEFAULT_BACKEND = BACKEND_ADVANCED;
     public static final boolean DEFAULT_ZH_TW_PUNCTUATION_ENABLED = false;
+    public static final boolean DEFAULT_DISABLE_VOICE_BEEP = false;
 
     private GboardAdvancedVoiceSettings() {
     }
@@ -47,6 +50,12 @@ public final class GboardAdvancedVoiceSettings {
                     DEFAULT_ZH_TW_PUNCTUATION_ENABLED);
             changed = true;
         }
+        if (!preferences.contains(PREF_KEY_DISABLE_VOICE_BEEP)) {
+            editor.putBoolean(
+                    PREF_KEY_DISABLE_VOICE_BEEP,
+                    DEFAULT_DISABLE_VOICE_BEEP);
+            changed = true;
+        }
         if (changed) {
             if (editor.commit()) {
                 GboardAdvancedVoiceRuntimeSettings.invalidateCachedSnapshot();
@@ -63,6 +72,13 @@ public final class GboardAdvancedVoiceSettings {
                 preferences,
                 PREF_KEY_ZH_TW_PUNCTUATION_ENABLED,
                 DEFAULT_ZH_TW_PUNCTUATION_ENABLED);
+    }
+
+    public static boolean readDisableVoiceBeep(SharedPreferences preferences) {
+        return readBooleanStrict(
+                preferences,
+                PREF_KEY_DISABLE_VOICE_BEEP,
+                DEFAULT_DISABLE_VOICE_BEEP);
     }
 
     public static String readBackend(SharedPreferences preferences) {
@@ -110,6 +126,19 @@ public final class GboardAdvancedVoiceSettings {
                 preferences,
                 PREF_KEY_ZH_TW_PUNCTUATION_ENABLED,
                 enabled);
+    }
+
+    public static boolean writeDisableVoiceBeep(Context context, boolean disabled) {
+        return context != null && writeDisableVoiceBeep(preferences(context), disabled);
+    }
+
+    public static boolean writeDisableVoiceBeep(
+            SharedPreferences preferences,
+            boolean disabled) {
+        return writeBoolean(
+                preferences,
+                PREF_KEY_DISABLE_VOICE_BEEP,
+                disabled);
     }
 
     private static boolean readBooleanStrict(

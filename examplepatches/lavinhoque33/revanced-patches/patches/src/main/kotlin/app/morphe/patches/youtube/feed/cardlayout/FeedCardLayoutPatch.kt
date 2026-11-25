@@ -4,7 +4,7 @@
  * https://github.com/MorpheApp/morphe-patches/pull/3769
  *
  * See the included NOTICE file for GPLv3 Section 7 terms that apply to this code.
- * Modified by lavinhoque33, 2026-10-29
+ * Modified by lavinhoque33, 2026-11-24
  */
 
 package app.morphe.patches.youtube.feed.cardlayout
@@ -14,10 +14,12 @@ import app.morphe.patcher.extensions.InstructionExtensions.addInstruction
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructionsWithLabels
 import app.morphe.patcher.extensions.InstructionExtensions.getInstruction
+import app.morphe.patcher.extensions.InstructionExtensions.replaceInstruction
 import app.morphe.patcher.patch.BytecodePatchContext
 import app.morphe.patcher.patch.bytecodePatch
 import app.morphe.patcher.util.proxy.mutableTypes.MutableClass
 import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod.Companion.toMutable
+import app.morphe.patches.shared.drawable.DrawableColorFingerprint
 import app.morphe.patches.shared.drawable.addDrawableColorHook
 import app.morphe.patches.shared.drawable.drawableColorHookPatch
 import app.morphe.patches.shared.litho.relayout.COMPONENT_HOST_CLASS
@@ -27,18 +29,23 @@ import app.morphe.patches.youtube.utils.compatibility.Constants.COMPATIBILITY_YO
 import app.morphe.patches.youtube.utils.extension.Constants.FEED_PATH
 import app.morphe.patches.youtube.utils.extension.sharedExtensionPatch
 import app.morphe.patches.youtube.utils.patch.PatchList.FEED_CARD_LAYOUT
+import app.morphe.patches.youtube.utils.playservice.is_21_14_or_greater
+import app.morphe.patches.youtube.utils.playservice.versionCheckPatch
 import app.morphe.patches.youtube.utils.proto.elementProtoParserHookPatch
 import app.morphe.patches.youtube.utils.proto.hookElement
 import app.morphe.patches.youtube.utils.settings.ResourceUtils.addPreference
 import app.morphe.patches.youtube.utils.settings.settingsPatch
 import app.morphe.util.Utils.printWarn
+import app.morphe.util.addFreeRegisters
 import app.morphe.util.getReference
 import app.morphe.util.indexOfFirstInstruction
+import app.morphe.util.numberOfParameterRegisters
 import app.morphe.util.indexOfFirstInstructionReversedOrThrow
 import com.android.tools.smali.dexlib2.AccessFlags
 import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.builder.MutableMethodImplementation
 import com.android.tools.smali.dexlib2.iface.instruction.FiveRegisterInstruction
+import com.android.tools.smali.dexlib2.iface.instruction.TwoRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.reference.FieldReference
 import com.android.tools.smali.dexlib2.iface.reference.MethodReference
 import com.android.tools.smali.dexlib2.immutable.ImmutableMethod
@@ -49,6 +56,8 @@ private const val EXTENSION_CLASS = "$FEED_PATH/FeedCardLayoutPatch;"
 private const val EXTENSION_ELEMENT_ITEM_INTERFACE = $$"$$FEED_PATH/FeedCardLayoutPatch$ElementItemInterface;"
 
 private const val RECYCLER_VIEW_CLASS = "Landroid/support/v7/widget/RecyclerView;"
+private const val FLOW_LAYOUT_MANAGER_CLASS = "Lcom/google/android/libraries/elements/converters/layout/FlowLayoutManager;"
+private const val WEAK_REFERENCE_CLASS = "Ljava/lang/ref/WeakReference;"
 
 private object CardHostDrawFingerprint : Fingerprint(
     definingClass = COMPONENT_HOST_CLASS,
@@ -104,6 +113,106 @@ private fun BytecodePatchContext.hookMountedCardBackgrounds() {
 }
 
 /**
+ * The app's native card paint can be a View background or inside a Litho drawable wrapper.
+ * Hook the shape itself so neither mount path can bypass tinting once its host is laid out.
+ */
+private fun BytecodePatchContext.hookNativeCardShape() {
+    val shape = DrawableColorFingerprint.originalClassDefOrNull
+    val draw = shape?.let { mutableClassDefBy(it.type) }?.methods?.singleOrNull { method ->
+        method.name == "draw" && method.returnType == "V" &&
+                method.parameterTypes.singleOrNull()?.toString() == "Landroid/graphics/Canvas;"
+    }
+    if (draw == null) {
+        printWarn("Feed card layout: native card paint not found; keeping its original color.")
+        return
+    }
+
+    draw.addInstruction(
+        0,
+        "invoke-static/range { p0 .. p0 }, $EXTENSION_CLASS->onCardShapeDraw(Landroid/graphics/drawable/Drawable;)V",
+    )
+}
+
+/**
+ * Newer feeds add a gap through FlowLayoutManager on top of the RecyclerView divider offsets.
+ * Filter the row gap where it is read so non-feed lists and multi-column sections retain it.
+ */
+private fun BytecodePatchContext.hookFeedSectionRowGap() {
+    fun warn() = printWarn("Feed card layout: section row gap lookup not found; keeping stock row gaps.")
+
+    val descriptor = SectionLayoutDescriptorToStringFingerprint
+    descriptor.methodOrNull ?: return warn()
+    val columnCount = descriptor.instructionMatches[1].getFieldAccessed()
+    val rowGap = descriptor.instructionMatches[3].getFieldAccessed()
+
+    val providerType = SectionRowGapLookupFingerprint(rowGap).methodOrNull?.definingClass ?: return warn()
+    val provider = mutableClassDefBy(providerType)
+    val managerReference = provider.fields.singleOrNull { it.type == WEAK_REFERENCE_CLASS } ?: return warn()
+    val managerBase = classDefByOrNull(FLOW_LAYOUT_MANAGER_CLASS)?.superclass ?: return warn()
+    val attachedList = classDefByOrNull(managerBase)?.fields?.singleOrNull {
+        it.type == RECYCLER_VIEW_CLASS && AccessFlags.PUBLIC.isSet(it.accessFlags) &&
+                !AccessFlags.STATIC.isSet(it.accessFlags)
+    } ?: return warn()
+
+    val gapReads = provider.methods.mapNotNull { method ->
+        if (method.returnType != "I" || method.implementation == null ||
+            method.implementation!!.registerCount >= 16
+        ) return@mapNotNull null
+
+        val index = method.indexOfFirstInstruction {
+            opcode == Opcode.IGET && getReference<FieldReference>() == rowGap
+        }
+        if (index < 0) null else method to index
+    }
+    if (gapReads.size != 2) return warn()
+
+    val helper = "patch_getFeedSectionRowGap"
+    val descriptorType = rowGap.definingClass
+    provider.methods.add(
+        ImmutableMethod(
+            providerType,
+            helper,
+            listOf(ImmutableMethodParameter(descriptorType, null, null)),
+            "F",
+            AccessFlags.PRIVATE.value or AccessFlags.FINAL.value,
+            null,
+            null,
+            MutableMethodImplementation(5),
+        ).toMutable().apply {
+            addInstructionsWithLabels(
+                0,
+                """
+                    iget v2, p1, $rowGap
+                    iget-object v0, p0, $managerReference
+                    invoke-virtual { v0 }, $WEAK_REFERENCE_CLASS->get()Ljava/lang/Object;
+                    move-result-object v0
+                    check-cast v0, $FLOW_LAYOUT_MANAGER_CLASS
+                    if-eqz v0, :keep_gap
+                    iget-object v0, v0, $attachedList
+                    iget v1, p1, $columnCount
+                    invoke-static { v0, v1, v2 }, $EXTENSION_CLASS->getSectionRowGap(${RECYCLER_VIEW_CLASS}IF)F
+                    move-result v2
+                    :keep_gap
+                    return v2
+                """,
+            )
+        },
+    )
+
+    gapReads.forEach { (original, index) ->
+        val read = original.getInstruction<TwoRegisterInstruction>(index)
+        // The app reuses its original receiver register for the descriptor. The clone preserves p0.
+        val (method, parameterCopies) = original.addFreeRegisters(original.numberOfParameterRegisters)
+        val readIndex = index + parameterCopies
+        method.replaceInstruction(
+            readIndex,
+            "invoke-direct { p0, v${read.registerB} }, $providerType->$helper($descriptorType)F",
+        )
+        method.addInstruction(readIndex + 1, "move-result v${read.registerA}")
+    }
+}
+
+/**
  * Calls the extension method with the list and the parameter at the start of a method of the list,
  * which overrides a method of ViewGroup. If the list doesn't override the method, the method is added
  * and calls the method of ViewGroup first.
@@ -153,6 +262,7 @@ val feedCardLayoutPatch = bytecodePatch(
         settingsPatch,
         elementProtoParserHookPatch,
         drawableColorHookPatch,
+        versionCheckPatch,
     )
 
     compatibleWith(COMPATIBILITY_YOUTUBE)
@@ -264,6 +374,10 @@ val feedCardLayoutPatch = bytecodePatch(
             }
         }
 
+        if (is_21_14_or_greater) {
+            hookFeedSectionRowGap()
+        }
+
         mutableClassDefBy(RECYCLER_VIEW_CLASS).apply {
             // The extension gets the position of an item, which the class looks up with a method
             // that is obfuscated.
@@ -303,6 +417,7 @@ val feedCardLayoutPatch = bytecodePatch(
         }
 
         hookMountedCardBackgrounds()
+        hookNativeCardShape()
 
         // The comment button opens the video, and the comments are opened when the watch page is ready.
         VideoPlaybackIntentFingerprint.method.addInstruction(

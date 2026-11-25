@@ -22,6 +22,8 @@ public final class NyandexSettings {
     static final String PREFERENCES = "nyandex";
     static final String HIDDEN_TAB_PREFIX = "hide_tab_";
     static final String TAB_TOUCH_AREA_KEY = "tab_touch_area";
+    static final String HIDE_PROMO_KEY = "hide_promo_blocks";
+    static final String HIDE_OFFERS_KEY = "hide_offer_blocks";
 
     /** Keys read by the LRCLIB lyrics extension (LrcLibLyrics). */
     static final String LYRICS_OFFSET_KEY = "lyrics_offset_ms";
@@ -90,6 +92,34 @@ public final class NyandexSettings {
     static SharedPreferences preferences() {
         Context current = context();
         return current == null ? null : current.getSharedPreferences(PREFERENCES, Context.MODE_PRIVATE);
+    }
+
+    /**
+     * Whether the "Hide promo and offers" patch is applied. The patch replaces this method so it
+     * returns true; the settings page shows the promo section only then.
+     */
+    public static boolean promoAvailable() {
+        return false;
+    }
+
+    static boolean hidePromo() {
+        SharedPreferences preferences = preferences();
+        return preferences == null || preferences.getBoolean(HIDE_PROMO_KEY, true);
+    }
+
+    static boolean hideOffers() {
+        SharedPreferences preferences = preferences();
+        return preferences == null || preferences.getBoolean(HIDE_OFFERS_KEY, true);
+    }
+
+    static void setHidePromo(boolean hide) {
+        SharedPreferences preferences = preferences();
+        if (preferences != null) preferences.edit().putBoolean(HIDE_PROMO_KEY, hide).apply();
+    }
+
+    static void setHideOffers(boolean hide) {
+        SharedPreferences preferences = preferences();
+        if (preferences != null) preferences.edit().putBoolean(HIDE_OFFERS_KEY, hide).apply();
     }
 
     /** Whether a touch anywhere in a tab's share of the bottom bar counts as a tap on the tab. */

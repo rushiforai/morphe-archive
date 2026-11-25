@@ -1,0 +1,170 @@
+package app.morphe.patches.shared
+
+import app.morphe.patcher.patch.ApkFileType
+import app.morphe.patcher.patch.AppTarget
+import app.morphe.patcher.patch.Compatibility
+
+object Constants {
+    const val BRAVE_TARGET_VERSION = "1.99.57"
+    const val BRAVE_PACKAGE_NAME = "com.brave.browser"
+
+    val COMPATIBILITY_BRAVE = Compatibility(
+        name = "Brave Private Web Browser, VPN",
+        packageName = BRAVE_PACKAGE_NAME,
+        apkFileType = ApkFileType.APK,
+        appIconColor = 0xFF4500,
+        targets = listOf(
+            AppTarget(
+                version = BRAVE_TARGET_VERSION,
+                description = "Download Bravemonoarm64.apk (arm64) or BraveMonoarm.apk (arm32) v$BRAVE_TARGET_VERSION from github.com/brave/brave-browser/releases; Universal builds unsupported"
+            )
+        )
+    )
+
+    const val GBOARD_PACKAGE_NAME = "com.google.android.inputmethod.latin"
+    const val GBOARD_TARGET_VERSION = "18.6.3.1002251336-release-arm64-v8a"
+
+    val COMPATIBILITY_GBOARD = Compatibility(
+        name = "Gboard",
+        packageName = GBOARD_PACKAGE_NAME,
+        apkFileType = ApkFileType.APK,
+        appIconColor = 0x4285F4,
+        targets = listOf(
+            AppTarget(
+                version = GBOARD_TARGET_VERSION,
+                description = "Download com.google.android.inputmethod.latin v$GBOARD_TARGET_VERSION from APKMirror"
+            )
+        )
+    )
+
+
+    const val TIKTOK_PACKAGE_NAME = "com.zhiliaoapp.musically"
+    const val TIKTOK_TARGET_VERSION = "47.7.3"
+
+    val COMPATIBILITY_TIKTOK = Compatibility(
+        name = "TikTok",
+        packageName = TIKTOK_PACKAGE_NAME,
+        apkFileType = ApkFileType.APK,
+        appIconColor = 0xFE2C55,
+        targets = listOf(
+            AppTarget(
+                version = TIKTOK_TARGET_VERSION,
+                description = "Download com.zhiliaoapp.musically v$TIKTOK_TARGET_VERSION (APK) arm64-v8a nodpi versionCode 2024707030 (APK) from APKMirror"
+            )
+        )
+    )
+
+    const val TIKTOK_LITE_PACKAGE_NAME = "com.tiktok.lite.go"
+    const val TIKTOK_LITE_TARGET_VERSION = "47.6.51"
+
+    val COMPATIBILITY_TIKTOK_LITE = Compatibility(
+        name = "TikTok Lite",
+        packageName = TIKTOK_LITE_PACKAGE_NAME,
+        apkFileType = ApkFileType.APKM,
+        appIconColor = 0xFE2C55,
+        targets = listOf(
+            AppTarget(
+                version = TIKTOK_LITE_TARGET_VERSION,
+                description = "Download com.tiktok.lite.go v$TIKTOK_LITE_TARGET_VERSION (APKM) arm64-v8a versionCode 470651 (APKM) from APKMirror"
+            )
+        )
+    )
+
+    const val TIKTOK_EXTENSION_FILTER_CLASS = "Lcom/kveld9/morphe/extension/tiktok/TikTokFeedAdFilter;"
+    const val TIKTOK_EXTENSION_MEDIA_HOOK = "Lcom/kveld9/morphe/extension/tiktok/TikTokMediaHook;"
+    const val TIKTOK_EXTENSION_SPEED_HOOK = "Lcom/kveld9/morphe/extension/tiktok/TikTokSpeedHook;"
+    const val TIKTOK_EXTENSION_QUALITY_HOOK = "Lcom/kveld9/morphe/extension/tiktok/TikTokVideoQualityHook;"
+    const val TIKTOK_EXTENSION_BROWSER_HOOK = "Lcom/kveld9/morphe/extension/tiktok/TikTokBrowserHook;"
+    const val TIKTOK_EXTENSION_COMMENT_HOOK = "Lcom/kveld9/morphe/extension/tiktok/TikTokCommentHook;"
+    const val TIKTOK_EXTENSION_COMMENT_TRANSLATE_HOOK = "Lcom/kveld9/morphe/extension/tiktok/TikTokCommentTranslateHook;"
+    const val TIKTOK_EXTENSION_SEEKBAR_HOOK = "Lcom/kveld9/morphe/extension/tiktok/TikTokSeekbarHook;"
+    const val TIKTOK_EXTENSION_COUNTS_HOOK = "Lcom/kveld9/morphe/extension/tiktok/TikTokCountsHook;"
+    const val TIKTOK_EXTENSION_PRIVACY_HOOK = "Lcom/kveld9/morphe/extension/tiktok/TikTokPrivacyHook;"
+    const val TIKTOK_EXTENSION_REFRESH_RATE_HOOK = "Lcom/kveld9/morphe/extension/tiktok/TikTokRefreshRateHook;"
+    const val TIKTOK_EXTENSION_OFFLINE_VIDEOS_HOOK = "Lcom/kveld9/morphe/extension/tiktok/TikTokOfflineVideosHook;"
+    const val TIKTOK_EXTENSION_AUTOPAUSE_HOOK = "Lcom/kveld9/morphe/extension/tiktok/TikTokAutoPauseHook;"
+    const val TIKTOK_EXTENSION_SEARCH_HOOK = "Lcom/kveld9/morphe/extension/tiktok/TikTokSearchHook;"
+    const val TIKTOK_EXTENSION_SHARE_HOOK = "Lcom/kveld9/morphe/extension/tiktok/TikTokShareHook;"
+    const val TIKTOK_EXTENSION_LOGIN_HOOK = "Lcom/kveld9/morphe/extension/tiktok/TikTokLoginHook;"
+    const val TIKTOK_EXTENSION_SPOTIFY_AUTH_HOOK = "Lcom/kveld9/morphe/extension/tiktok/TikTokSpotifyAuthHook;"
+    const val TIKTOK_EXTENSION_SEEN_VIDEO_HOOK = "Lcom/kveld9/morphe/extension/tiktok/TikTokSeenVideoHook;"
+    const val TIKTOK_EXTENSION_FONT_HOOK = "Lcom/kveld9/morphe/extension/tiktok/TikTokFontHook;"
+    const val TIKTOK_EXTENSION_POPUP_HOOK = "Lcom/kveld9/morphe/extension/tiktok/TikTokPopupHook;"
+    const val TIKTOK_EXTENSION_CLEARDISPLAY_HOOK = "Lcom/kveld9/morphe/extension/tiktok/TikTokClearDisplayHook;"
+    const val TIKTOK_EXTENSION_CONTENT_FILTER_HOOK = "Lcom/kveld9/morphe/extension/tiktok/TikTokContentFilterHook;"
+    const val TIKTOK_EXTENSION_CAMERA_MIC_HOOK = "Lcom/kveld9/morphe/extension/tiktok/TikTokCameraMicHook;"
+    const val TIKTOK_EXTENSION_AUTHOR_REGION_HOOK = "Lcom/kveld9/morphe/extension/tiktok/TikTokAuthorRegionHook;"
+    const val TIKTOK_EXTENSION_SHARE_HOST_HOOK = "Lcom/kveld9/morphe/extension/tiktok/TikTokShareHostHook;"
+    const val TIKTOK_EXTENSION_GESTURE_HOOK = "Lcom/kveld9/morphe/extension/tiktok/TikTokGestureHook;"
+    const val TIKTOK_EXTENSION_VIDEO_FIT_HOOK = "Lcom/kveld9/morphe/extension/tiktok/TikTokVideoFitHook;"
+    const val TIKTOK_EXTENSION_SENSITIVE_WARNINGS_HOOK = "Lcom/kveld9/morphe/extension/tiktok/SensitiveWarnings;"
+    const val BRAVE_EXTENSION_CLASS = "Lcom/kveld9/morphe/extension/BraveExtension;"
+    const val GBOARD_EXTENSION_CLASS = "Lcom/kveld9/morphe/extension/gboard/GboardExtension;"
+
+    object GboardPrefs {
+        const val KEY_HEADER = "morphe_patches_header"
+        const val KEY_SCREEN = "morphe_patches_screen"
+        const val KEY_CAT_ACTIONS = "morphe_cat_actions"
+        const val KEY_CAT_APPEARANCE = "morphe_cat_appearance"
+        const val KEY_CAT_TOOLBAR = "morphe_cat_toolbar"
+        const val KEY_CAT_CLIPBOARD = "morphe_cat_clipboard"
+        const val KEY_CAT_HAPTICS = "morphe_cat_haptics"
+        const val KEY_CAT_SMART = "morphe_cat_smart"
+        const val KEY_CAT_PRIVACY = "morphe_cat_privacy"
+
+        const val KEY_RESTART_GBOARD = "morphe_restart_gboard"
+        const val KEY_ENABLE_IME = "morphe_enable_ime"
+        const val KEY_SELECT_IME = "morphe_select_ime"
+        const val KEY_AMOLED = "morphe_amoled_enabled"
+        const val KEY_ZERO_BOTTOM_INSET = "morphe_zero_bottom_inset"
+        const val KEY_BOTTOM_PADDING = "morphe_bottom_padding"
+        const val KEY_HIDE_IME_NAV_BAR = "morphe_hide_ime_nav_bar"
+        const val KEY_TOOLBAR_ITEM_COUNT = "morphe_toolbar_item_count"
+        const val KEY_KEY_SHAPE_SELECTION = "morphe_key_shape_selection"
+        const val KEY_ACCESS_POINTS_REDESIGN = "morphe_access_points_redesign"
+        const val KEY_DISMISS_SUGGESTIONS = "morphe_dismiss_suggestions"
+        const val KEY_CURSOR_TRACKPAD = "morphe_cursor_trackpad"
+        const val KEY_CLIPBOARD_EXTENDED_RETENTION = "morphe_clipboard_extended_retention"
+        const val KEY_CLIPBOARD_RETENTION_HOURS = "morphe_clipboard_retention_hours"
+        const val KEY_CLIPBOARD_RAISE_LIMIT = "morphe_clipboard_raise_limit"
+        const val KEY_CLIPBOARD_UNPINNED_LIMIT = "morphe_clipboard_unpinned_limit"
+        const val KEY_CLIPBOARD_GRID_LAYOUT = "morphe_clipboard_grid_layout"
+        const val KEY_CLIPBOARD_GRID_COLUMNS = "morphe_clipboard_grid_columns"
+        const val KEY_CLIPBOARD_CHAR_LIMIT = "morphe_clipboard_char_limit"
+        const val KEY_GRAMMAR_CHECKER = "morphe_grammar_checker"
+        const val KEY_BLUETOOTH_MIC = "morphe_bluetooth_mic"
+        const val KEY_FORCE_INCOGNITO = "morphe_force_incognito"
+        const val KEY_HIDE_INCOGNITO_ICON = "morphe_hide_incognito_icon"
+        const val KEY_VOICE_INCOGNITO = "morphe_voice_typing_incognito"
+        const val KEY_CLIPBOARD_INCOGNITO = "morphe_clipboard_incognito"
+        const val KEY_DECOUPLE_TOUCH_FEEDBACK = "morphe_decouple_touch_feedback"
+        const val KEY_MODERN_HAPTICS = "morphe_modern_haptics"
+
+        const val MIN_BOTTOM_PADDING = 0
+        const val MAX_BOTTOM_PADDING = 150
+        const val DEFAULT_BOTTOM_PADDING = 0
+
+        const val MIN_TOOLBAR_ITEM_COUNT = 4
+        const val MAX_TOOLBAR_ITEM_COUNT = 8
+        const val DEFAULT_TOOLBAR_ITEM_COUNT = 5
+
+        const val MIN_CLIPBOARD_RETENTION_HOURS = 1
+        const val MAX_CLIPBOARD_RETENTION_HOURS = 720
+        const val DEFAULT_CLIPBOARD_RETENTION_HOURS = 24
+
+        const val MIN_CLIPBOARD_UNPINNED_LIMIT = 5
+        const val MAX_CLIPBOARD_UNPINNED_LIMIT = 200
+        const val DEFAULT_CLIPBOARD_UNPINNED_LIMIT = 50
+
+        const val MIN_CLIPBOARD_GRID_COLUMNS = 1
+        const val MAX_CLIPBOARD_GRID_COLUMNS = 3
+        const val DEFAULT_CLIPBOARD_GRID_COLUMNS = 2
+
+        // Thousands of characters per text clip; Gboard ships text_clip_item_char_limit = 20000.
+        const val MIN_CLIPBOARD_CHAR_LIMIT_K = 5
+        const val MAX_CLIPBOARD_CHAR_LIMIT_K = 200
+        const val DEFAULT_CLIPBOARD_CHAR_LIMIT_K = 20
+    }
+}
+
+

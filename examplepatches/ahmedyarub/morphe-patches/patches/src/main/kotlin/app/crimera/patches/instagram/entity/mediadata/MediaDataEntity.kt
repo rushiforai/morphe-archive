@@ -27,6 +27,7 @@ import app.morphe.patcher.patch.bytecodePatch
 import app.morphe.util.getReference
 import app.morphe.util.indexOfFirstInstruction
 import com.android.tools.smali.dexlib2.Opcode
+import com.android.tools.smali.dexlib2.iface.reference.FieldReference
 import com.android.tools.smali.dexlib2.iface.reference.MethodReference
 import com.android.tools.smali.dexlib2.iface.reference.StringReference
 import app.morphe.library.instagram.patches.instagramExtensionPatch
@@ -96,26 +97,34 @@ val mediaDataEntity =
                     ?: throw PatchException("Could not identify the video variants getter")
             GetVideoVariantsV1ExtensionFingerprint.changeFirstString(videoVariantsGetter.name)
 
-            // Extracting method is video used in media class: the boolean a media logger computes
-            // right before it logs "is_video" (piko's anchor). Up to 452 that is the media getter
-            // itself; from 453 the logger calls the getter's static helper inline, and the getter is
-            // the one media method that calls that helper.
-            val isVideoCall = MediaIsVideoLoggerFingerprint.method.instructions.toList().let { instructions ->
-                val label = instructions.indexOfFirst { it.getReference<StringReference>()?.string == "is_video" }
-                instructions.take(label).lastOrNull { instruction ->
-                    instruction.opcode in setOf(Opcode.INVOKE_VIRTUAL, Opcode.INVOKE_STATIC) &&
-                        instruction.getReference<MethodReference>()?.returnType == "Z"
-                }?.getReference<MethodReference>()
-            } ?: throw PatchException("The media logger computes no boolean before is_video")
-            val isVideoGetter =
-                if (isVideoCall.definingClass == MEDIA_CLASS_NAME) {
-                    isVideoCall.name
-                } else {
-                    classDefBy(MEDIA_CLASS_NAME).methods.singleOrNull { getter ->
-                        getter.returnType == "Z" && getter.parameterTypes.isEmpty() &&
-                            getter.implementation?.instructions?.any { it.getReference<MethodReference>() == isVideoCall } == true
-                    }?.name ?: throw PatchException("Could not identify the media is video getter")
-                }
+            // Extracting method is video used in media class. piko took the boolean a media logger
+            // computed before logging "is_video", which 457 no longer logs. The getter calls a
+            // static helper comparing the media type with VIDEO (and LIVE). The media getters
+            // telling a photo or a carousel apart have helpers of the same shape; the one also
+            // matching videos inside a carousel compares with PHOTO too.
+            val mediaTypes = classDefBy(MEDIA_TYPE_CLASS).methods.first { it.name == "<clinit>" }
+                .implementation!!.instructions.toList()
+            fun mediaType(name: String): String {
+                val index = mediaTypes.indexOfFirst { it.getReference<StringReference>()?.string == name }
+                return mediaTypes.drop(index).first { it.opcode == Opcode.SPUT_OBJECT }.getReference<FieldReference>()!!.name
+            }
+            val videoType = mediaType("VIDEO")
+            val photoType = mediaType("PHOTO")
+            fun comparesWithVideo(call: MethodReference): Boolean {
+                val types = classDefByOrNull(call.definingClass)?.methods?.firstOrNull { helper ->
+                    helper.name == call.name && helper.parameterTypes.map { it.toString() } == call.parameterTypes.map { it.toString() }
+                }?.implementation?.instructions?.mapNotNull { instruction ->
+                    instruction.getReference<FieldReference>()?.takeIf { it.definingClass == MEDIA_TYPE_CLASS }?.name
+                }?.toSet() ?: return false
+                return videoType in types && photoType !in types
+            }
+            val isVideoGetter = classDefBy(MEDIA_CLASS_NAME).methods.singleOrNull { getter ->
+                getter.returnType == "Z" && getter.parameterTypes.isEmpty() &&
+                    getter.implementation?.instructions?.any { instruction ->
+                        instruction.opcode == Opcode.INVOKE_STATIC &&
+                            instruction.getReference<MethodReference>()?.let { it.returnType == "Z" && comparesWithVideo(it) } == true
+                    } == true
+            }?.name ?: throw PatchException("Could not identify the media is video getter")
             IsVideoExtensionFingerprint.changeFirstString(isVideoGetter)
 
             // Extraction of the carousel media list getter.
@@ -240,9 +249,4 @@ val mediaDataEntity =
         }
     }
 
-/** A media logger that logs whether a media is a video, under the key "is_video". */
-private object MediaIsVideoLoggerFingerprint : Fingerprint(
-    parameters = listOf("Lcom/instagram/feed/media/Media;"),
-    returnType = "V",
-    strings = listOf("is_carousel", "is_video"),
-)
+private const val MEDIA_TYPE_CLASS = "Lcom/instagram/model/mediatype/MediaType;"

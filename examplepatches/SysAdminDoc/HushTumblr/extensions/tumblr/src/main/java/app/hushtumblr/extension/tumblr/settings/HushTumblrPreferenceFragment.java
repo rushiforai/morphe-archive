@@ -102,6 +102,7 @@ import app.hushtumblr.extension.tumblr.rootmute.RootPostMutePreference;
 import app.hushtumblr.extension.tumblr.timeline.PostRules;
 import app.hushtumblr.extension.tumblr.ui.AppFont;
 import app.hushtumblr.extension.tumblr.ui.BottomBarTabs;
+import app.hushtumblr.extension.tumblr.ui.TextSize;
 import app.hushtumblr.extension.shared.settings.StringSetting;
 
 /**
@@ -140,6 +141,8 @@ public final class HushTumblrPreferenceFragment extends AbstractPreferenceFragme
     static final String TAB_ORDER_ROW = "action_tab_order";
     /** The Collapsed post length row's key. What it picked is {@link TextSettings#LONG_POST_SIZE}. */
     static final String LONG_POST_SIZE_ROW = "action_long_post_size";
+    /** The Text size row's key. What it picked is {@link TextSettings#TEXT_SIZE_PERCENT}. */
+    static final String TEXT_SIZE_ROW = "action_text_size";
     /** The Choose a font file row's key. What it chose is {@link TextSettings#APP_FONT_FILE}. */
     static final String FONT_FILE_ROW = "action_font_file";
     static final String PHONE_FONT_ROW = "action_phone_font";
@@ -580,6 +583,8 @@ public final class HushTumblrPreferenceFragment extends AbstractPreferenceFragme
         if (tabs != null) tabs.setSummary(tabOrderSummary(TextSettings.TAB_ORDER.savedValue()));
         Preference size = findPreference(LONG_POST_SIZE_ROW);
         if (size != null) size.setSummary(longPostSizeSummary(TextSettings.LONG_POST_SIZE.savedValue()));
+        Preference textSize = findPreference(TEXT_SIZE_ROW);
+        if (textSize != null) textSize.setSummary(textSizeSummary(TextSettings.TEXT_SIZE_PERCENT.savedValue()));
         String font = TextSettings.APP_FONT_FILE.savedValue();
         Preference fontFile = findPreference(FONT_FILE_ROW);
         if (fontFile != null) fontFile.setSummary(fontFileSummary(font));
@@ -672,6 +677,9 @@ public final class HushTumblrPreferenceFragment extends AbstractPreferenceFragme
             patchToggle(feed, context, build, PatchFamily.HIDE_LIKED_POSTS, Settings.HIDE_LIKED_POSTS,
                     L10n.t("Hide liked posts"), L10n.t("Takes the posts you've already liked out of your dashboard. "
                         + "Your likes and the rest of Tumblr still show them."), SettingsIcons.BLOCK);
+            patchToggle(feed, context, build, PatchFamily.HIDE_FOLLOWED_IN_FOR_YOU, Settings.HIDE_FOLLOWED_IN_FOR_YOU,
+                    L10n.t("Hide followed blogs in For you"), L10n.t("Takes posts from blogs you follow out of the For you tab. "
+                        + "Following still shows them."), SettingsIcons.BLOCK);
             patchToggle(feed, context, build, PatchFamily.MUTE_ROOT_POSTS, Settings.MUTE_ROOT_POSTS,
                     L10n.t("Mute posts locally"),
                     L10n.t("Add posts to a private list from their menu. Originals and their reblogs stay hidden for this account. "
@@ -835,6 +843,10 @@ public final class HushTumblrPreferenceFragment extends AbstractPreferenceFragme
                     L10n.t("Tap to play feed videos"),
                     L10n.t("Tap a stopped video in your feed to play it right there. Tap it again while it plays to open it full screen."),
                     SettingsIcons.INTERFACE);
+            patchToggle(ui, context, build, PatchFamily.HIDE_MORE_POSTS_LIKE_THIS, Settings.HIDE_MORE_POSTS_LIKE_THIS,
+                    L10n.t("Hide More posts like this"),
+                    L10n.t("Takes the More posts like this grid out from under a post you open, along with its heading."),
+                    SettingsIcons.BLOCK);
             patchToggle(ui, context, build, PatchFamily.LINE_BETWEEN_POSTS,
                     Settings.LINE_BETWEEN_POSTS, L10n.t("Line between posts"),
                     L10n.t("Draws a thin line in the gap between posts, so it's easier to see where one ends and the next begins."),
@@ -846,6 +858,30 @@ public final class HushTumblrPreferenceFragment extends AbstractPreferenceFragme
                 ui.addPreference(mark(fontFileRow(context), SettingsIcons.INTERFACE));
                 ui.addPreference(mark(phoneFontRow(context), SettingsIcons.INTERFACE));
             }
+            patchToggle(ui, context, build, PatchFamily.TEXT_SIZE, Settings.TEXT_SIZE, L10n.t("Text size"),
+                    L10n.t("Makes Tumblr's text bigger or smaller than your phone's font size makes it. Pick how big below."),
+                    SettingsIcons.INTERFACE);
+            if (build.contains(PatchFamily.TEXT_SIZE)) ui.addPreference(mark(textSizeRow(context), SettingsIcons.INTERFACE));
+            patchToggle(ui, context, build, PatchFamily.MORE_IMAGES_PER_POST, Settings.MORE_IMAGES_PER_POST,
+                    L10n.t("More images per post"),
+                    L10n.t("Lets you add up to 30 images to a post, as Tumblr's website does, instead of 10."),
+                    SettingsIcons.INTERFACE);
+            patchToggle(ui, context, build, PatchFamily.FIX_HARD_TO_READ_TEXT, Settings.FIX_HARD_TO_READ_TEXT,
+                    L10n.t("Fix hard-to-read text"),
+                    L10n.t("Fits the related tags under a trending topic at bigger text sizes, where Tumblr cuts them in half, and shades the box you type in when you search a blog so the words show over a bright header."),
+                    SettingsIcons.INTERFACE);
+            // Explore keeps its screen, so the two bar switches show after a restart. A blog reads its switch as it opens.
+            patchToggle(ui, context, build, PatchFamily.DARK_SEARCH_BAR_AND_FOLLOW, Settings.DARK_SEARCH_BAR,
+                    L10n.t("Dark search bar"), L10n.t("Turns the white search bar on Explore dark."),
+                    SettingsIcons.INTERFACE);
+            patchToggle(ui, context, build, PatchFamily.DARK_SEARCH_BAR_AND_FOLLOW, Settings.HIDE_SEARCH_BAR_LABEL,
+                    L10n.t("Hide the Search Tumblr label"),
+                    L10n.t("Takes the Search Tumblr text off Explore's search bar and leaves the icon."),
+                    SettingsIcons.INTERFACE);
+            patchToggle(ui, context, build, PatchFamily.DARK_SEARCH_BAR_AND_FOLLOW, Settings.DARK_BLOG_FOLLOW_BUTTON,
+                    L10n.t("Dark Follow button on blogs"),
+                    L10n.t("Turns the white Follow button at the top of a blog dark."),
+                    SettingsIcons.INTERFACE);
             // Read when a screen's theme is made (DarkBackground), so screens already open keep their colors.
             patchToggle(ui, context, build, PatchFamily.DARK_BACKGROUND, Settings.DARK_BACKGROUND,
                     L10n.t("Dark background color"), L10n.t("Makes newly opened Dark Mode screens black, or the dark "
@@ -1655,6 +1691,7 @@ public final class HushTumblrPreferenceFragment extends AbstractPreferenceFragme
     static String restartKeyOf(@Nullable String rowKey) {
         if (rowKey == null) return null;
         if (FONT_FILE_ROW.equals(rowKey) || PHONE_FONT_ROW.equals(rowKey)) return TextSettings.APP_FONT_FILE.key;
+        if (TEXT_SIZE_ROW.equals(rowKey)) return TextSettings.TEXT_SIZE_PERCENT.key;
         return app.hushtumblr.extension.shared.settings.Setting.getSettingFromPath(rowKey) == null ? null : rowKey;
     }
 
@@ -1820,6 +1857,8 @@ public final class HushTumblrPreferenceFragment extends AbstractPreferenceFragme
 
     /** About how much of a long post [size] keeps, read as {@link app.hushtumblr.extension.tumblr.timeline.LongPosts} reads it. */
     static String longPostSizeShown(String size) {
+        if (size.equals("5")) return L10n.t("About 5 lines");
+        if (size.equals("10")) return L10n.t("About 10 lines");
         if (size.equals("20")) return L10n.t("About half a screen");
         if (size.equals("80")) return L10n.t("About two screens");
         return L10n.t("About a screen");
@@ -1853,6 +1892,79 @@ public final class HushTumblrPreferenceFragment extends AbstractPreferenceFragme
             if (!saved[0]) rowResult(LONG_POST_SIZE_ROW, L10n.t("Couldn't save the length. Try again."));
         })) {
             rowResult(LONG_POST_SIZE_ROW, L10n.t("Couldn't start that. Try again in a moment."));
+        }
+    }
+
+    /**
+     * The row that picks how big Text size makes Tumblr's text. A tap saves the next size at once,
+     * back to the smallest after the largest, and its summary names the one saved. While the
+     * switch is on, a new size waits for a restart, so every screen draws at one size.
+     */
+    private Preference textSizeRow(Context context) {
+        Row row = new Row(context);
+        row.actsAtOnce = true;
+        row.setKey(TEXT_SIZE_ROW);
+        row.setTitle(L10n.t("Size"));
+        row.setPersistent(false);
+        row.setSummary(textSizeSummary(TextSettings.TEXT_SIZE_PERCENT.savedValue()));
+        row.setOnPreferenceClickListener(p -> {
+            saveNextTextSize();
+            return true;
+        });
+        return row;
+    }
+
+    private static String textSizeSummary(String saved) {
+        return L10n.f("%1$s of your phone's text size. Tap to change.", textSizeShown(saved));
+    }
+
+    /** The size [saved] names as the phone writes a percentage. One its row never offers reads as the default. */
+    static String textSizeShown(String saved) {
+        String size = TextSettings.TEXT_SIZES.contains(saved) ? saved : TextSettings.TEXT_SIZE_PERCENT.defaultValue;
+        TextSize.Scale scale = TextSize.Scale.fromFile(size);
+        return scale == null ? size : scale.label();
+    }
+
+    /** The size after [saved], back to the smallest after the largest. One its row never offers reads as the default. */
+    static String nextTextSize(String saved) {
+        List<String> sizes = TextSettings.TEXT_SIZES;
+        int at = sizes.indexOf(saved);
+        if (at < 0) at = sizes.indexOf(TextSettings.TEXT_SIZE_PERCENT.defaultValue);
+        return sizes.get((at + 1) % sizes.size());
+    }
+
+    /**
+     * Saves the size after the saved one. The next size is read as the save runs, so taps in a row
+     * each move it on. With the switch on, the restart it waits for is said under the row.
+     */
+    private void saveNextTextSize() {
+        rowResult(TEXT_SIZE_ROW, null);
+        boolean[] saved = new boolean[1];
+        if (!submitEdit(() -> {
+            try {
+                synchronized (app.hushtumblr.extension.shared.settings.Setting.class) {
+                    String before = TextSettings.TEXT_SIZE_PERCENT.persistedValue();
+                    saved[0] = SettingsBackup.saveText(TextSettings.TEXT_SIZE_PERCENT,
+                            nextTextSize(TextSettings.TEXT_SIZE_PERCENT.savedValue()));
+                    if (saved[0] && Settings.TEXT_SIZE.savedValue()) {
+                        recordRestartPendingChanges(Collections.singletonMap(TextSettings.TEXT_SIZE_PERCENT, before));
+                    }
+                }
+            } catch (SettingsBackup.Rejected | RuntimeException failure) {
+                Logger.printInfo(() -> "Could not save the text size: " + failure.getClass().getSimpleName());
+            }
+        }, () -> {
+            if (!saved[0]) {
+                rowResult(TEXT_SIZE_ROW, L10n.t("Couldn't save the size. Try again."));
+                return;
+            }
+            if (!isAdded()) return;
+            if (restartPending.contains(TextSettings.TEXT_SIZE_PERCENT.key)) {
+                restartOwed(TEXT_SIZE_ROW, String.valueOf(restartMessage(getContext())));
+            }
+            onRestartPendingChanged();
+        })) {
+            rowResult(TEXT_SIZE_ROW, L10n.t("Couldn't start that. Try again in a moment."));
         }
     }
 

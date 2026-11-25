@@ -1,0 +1,33 @@
+{
+  "format": 1,
+  "scope": "Final current Maps ordinaryP1, controlled warm source and actual receiving app, 4GiB/4core API34 emulator; no physical/car or natural detector acceptance.",
+  "run": ".analysis/native-warning-bindings/maps-final-ordinary-100",
+  "apps": {
+    "nl.flitsmeister": "3e3c2e987bb6e9b28bc5692e52828ee03d317cf925f719ed4aece29f11614ac8",
+    "com.google.android.apps.maps": "979dba530da9c9c09c0d7867288206a1aa357a27e3701c63f8123bbe72ba9815",
+    "nl.johninnl.warningprobe.integration.maps": "32c97e90a6d4570c6bf2ae8db1953ca0af613709d685aa44ec74a535ba341c32"
+  },
+  "announcements": 100,
+  "actual_starts": 100,
+  "source_completed": 100,
+  "duplicate_starts": 0,
+  "all_owner_ready": true,
+  "all_before_original_deadline": true,
+  "all_cleanup_verified": true,
+  "delivery": {
+    "samples": 100,
+    "p95_ms": 4,
+    "p99_ms": 8,
+    "maximum_ms": 9
+  },
+  "acceptance_to_start": {
+    "samples": 100,
+    "p95_ms": 194,
+    "p99_ms": 349,
+    "maximum_ms": 398
+  },
+  "raw_source": ".analysis/native-warning-bindings/maps-final-ordinary-100/source/f2acf9f5-ba03-420c-afbc-bf3ddfa4657f/result.json",
+  "raw_source_sha256": "ce03231c68e50708058bd66f2426a1f9aed5beeae743e39b5673fdfe8756594b",
+  "raw_receiver": ".analysis/native-warning-bindings/maps-final-ordinary-100/receiver-result.json",
+  "raw_receiver_sha256": "8537125ed7a6dbb756bd4199206c95dc3a21b54f4d73b2c1312d277df531753b"
+}

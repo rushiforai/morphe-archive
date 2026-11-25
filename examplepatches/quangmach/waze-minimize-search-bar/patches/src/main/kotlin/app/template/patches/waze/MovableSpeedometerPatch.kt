@@ -9,6 +9,7 @@ import app.morphe.patcher.patch.Compatibility
 import app.morphe.patcher.patch.patch
 import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod
 import com.android.tools.smali.dexlib2.Opcode
+import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.formats.Instruction35c
 import com.android.tools.smali.dexlib2.iface.instruction.formats.Instruction3rc
@@ -25,6 +26,23 @@ private object SpeedometerView : Fingerprint(
 private object MainActivityResume : Fingerprint(
     definingClass = "Lcom/waze/MainActivity;", name = "onResume", parameters = emptyList(),
 )
+
+private object MainMenuFragment : Fingerprint(
+    strings = listOf("com.waze.main_screen.WazeMainMenuFragment.onCreateView.<anonymous>.<anonymous> (WazeMainMenuFragment.kt:65)"),
+)
+
+private fun markMainMenu() {
+    val menu = MainMenuFragment.matchOrNull()?.classDef?.methods?.singleOrNull {
+        it.name == "onCreateView" && it.returnType == "Landroid/view/View;"
+            && it.parameterTypes == listOf("Landroid/view/LayoutInflater;", "Landroid/view/ViewGroup;", "Landroid/os/Bundle;")
+    } ?: return
+    val returns = menu.implementation!!.instructions.withIndex()
+        .filter { it.value.opcode == Opcode.RETURN_OBJECT }
+    for ((index, instruction) in returns.asReversed()) {
+        val view = (instruction as OneRegisterInstruction).registerA
+        menu.addInstructions(index, "invoke-static/range {v$view .. v$view}, $SPEEDOMETER_EXTENSION->markMainMenu(Landroid/view/View;)V")
+    }
+}
 
 private fun speedometerScreen(
     screen: String,
@@ -97,6 +115,7 @@ val movableSpeedometerPatch = patch(
         val method = MainActivityResume.method
         // At entry, p0 is guaranteed to be the Activity; Waze reuses that register later.
         method.addInstructions(0, "invoke-static {p0}, $SPEEDOMETER_EXTENSION->install(Landroid/app/Activity;)V")
+        markMainMenu()
 
         // Unknown experimental builds retain gesture support when no visibility profile matches.
         when {

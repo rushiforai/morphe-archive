@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Right column of the Japanese 12-key keyboards, as on iOS:
+     [backspace] [space] [enter, two rows high]. The cursor-right key is dropped.
+     Replaces layout 0x7f0e0244. -->
+<FrameLayout style="{{0x7f1503a1}}"
+  xmlns:android="http://schemas.android.com/apk/res/android">
+    <ImageView style="{{0x7f15039b}}" />
+    <LinearLayout style="{{0x7f15044f}}">
+        <com.google.android.libraries.inputmethod.widgets.SoftKeyView android:id="@id/key_pos_del" android:layout_weight="250.0" style="{{0x7f150710}}" />
+        <com.google.android.libraries.inputmethod.widgets.SoftKeyView android:id="@id/key_pos_space" android:layout_weight="250.0" style="{{0x7f150710}}" />
+        <com.google.android.libraries.inputmethod.widgets.SoftKeyView android:id="@id/key_pos_ime_action" android:layout_weight="500.0" style="{{0x7f15071c}}" />
+    </LinearLayout>
+</FrameLayout>

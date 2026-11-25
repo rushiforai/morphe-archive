@@ -35,10 +35,46 @@ private const val TOOLS_DRAWABLES = "Lorg/telegram/messenger/R\$drawable;"
 private const val TOOLS_PATH_TO_ATTACH = "getPathToAttach(${TOOLS_TL_OBJECT}Z)$TOOLS_FILE"
 
 /** FileLoader's public getPathToAttach(TLObject, boolean). The build makes it static, since it never reads its loader. */
-private fun BytecodePatchContext.pathToAttach() = tgClassDefByOrNull(TOOLS_FILE_LOADER)?.methods?.filter {
+internal fun BytecodePatchContext.pathToAttach() = tgClassDefByOrNull(TOOLS_FILE_LOADER)?.methods?.filter {
     "${it.origName}${it.origDescriptor}" == TOOLS_PATH_TO_ATTACH && AccessFlags.PUBLIC.isSet(it.accessFlags) &&
         !AccessFlags.ABSTRACT.isSet(it.accessFlags)
 }?.singleOrNull()
+
+/** Fails the patch cleanly when what [shownDocumentFile] reaches is missing. */
+internal fun BytecodePatchContext.requireShownDocumentFile() {
+    controlMembers(TOOLS_MESSAGE, "currentAccount:I", "getDocument()$TOOLS_DOCUMENT")
+    controlMembers(TOOLS_FILE_LOADER, "static getInstance(I)$TOOLS_FILE_LOADER")
+    controlShape(pathToAttach() != null, "$TOOLS_FILE_LOADER no longer has $TOOLS_PATH_TO_ATTACH")
+}
+
+/**
+ * The start of a stub looking for a message's downloaded file, with the MessageObject in p0 and v0 to
+ * v2 free: returns the file of the document Telegram shows when it's there, else carries on. A video
+ * offered in several qualities plays and downloads one of them, while getPathToMessage only knows the
+ * message's original document, so it would wait for a file that never arrives (#84).
+ */
+internal fun BytecodePatchContext.shownDocumentFile(): String {
+    val call = if (AccessFlags.STATIC.isSet(pathToAttach()!!.accessFlags)) "invoke-static {v1, v2}" else """
+        iget v0, p0, $TOOLS_MESSAGE->currentAccount:I
+        invoke-static {v0}, $TOOLS_FILE_LOADER->getInstance(I)$TOOLS_FILE_LOADER
+        move-result-object v0
+        invoke-virtual {v0, v1, v2}
+    """.trimIndent()
+    return """
+        invoke-virtual {p0}, $TOOLS_MESSAGE->getDocument()$TOOLS_DOCUMENT
+        move-result-object v1
+        if-eqz v1, :hush_message
+        const/4 v2, 0x0
+        $call, $TOOLS_FILE_LOADER->$TOOLS_PATH_TO_ATTACH
+        move-result-object v0
+        if-eqz v0, :hush_message
+        invoke-virtual {v0}, $TOOLS_FILE->isFile()Z
+        move-result v1
+        if-eqz v1, :hush_message
+        return-object v0
+        :hush_message
+    """.trimIndent()
+}
 
 /** Fails the patch cleanly when the extension's stubs or the Telegram members they reach are missing. */
 internal fun BytecodePatchContext.resolveMessageMenuTools() {

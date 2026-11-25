@@ -19,6 +19,7 @@ import app.morphe.patcher.patch.bytecodePatch
 import app.crimera.patches.shared.declaredParameterRegister
 import app.crimera.patches.shared.parameterRegisterStart
 import app.morphe.util.getReference
+import com.android.tools.smali.dexlib2.AccessFlags
 import com.android.tools.smali.dexlib2.iface.reference.StringReference
 import app.morphe.library.instagram.patches.instagramExtensionPatch
 
@@ -70,11 +71,17 @@ val hookReelOverflowMenuButton =
         execute {
             val helperClass = ReelMenuRowFingerprint.classDef
 
-            val mediaField =
-                helperClass.fields.singleOrNull { it.type == MEDIA_CLASS_NAME }
+            // The media, or from 457 the reel item holding it: the one helper field whose type
+            // holds a single media.
+            fun mediaFieldOf(type: String) = classDefByOrNull(type)?.fields
+                ?.filter { !AccessFlags.STATIC.isSet(it.accessFlags) && it.type == MEDIA_CLASS_NAME }?.singleOrNull()
+            val mediaPath =
+                helperClass.fields.singleOrNull { it.type == MEDIA_CLASS_NAME }?.name
+                    ?: helperClass.fields.filter { !AccessFlags.STATIC.isSet(it.accessFlags) }
+                        .mapNotNull { field -> mediaFieldOf(field.type)?.let { "${field.name}.${it.name}" } }.singleOrNull()
                     ?: throw PatchException("Could not identify the media field on the reel menu helper")
 
-            ReelMediaFieldExtensionFingerprint.changeFirstString(mediaField.name)
+            ReelMediaFieldExtensionFingerprint.changeFirstString(mediaPath)
 
             ReelMenuRowFingerprint.method.apply {
                 val self = parameterRegisterStart(this)

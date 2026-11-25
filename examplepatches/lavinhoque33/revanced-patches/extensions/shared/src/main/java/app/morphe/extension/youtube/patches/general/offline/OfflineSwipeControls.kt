@@ -1,17 +1,16 @@
 /*
  * Copyright (C) 2026 lavinhoque33
  * Licensed under the GNU General Public License v3.0.
+ * Modified by lavinhoque33, 2026-11-24.
  * Written by lavinhoque33, 2026-11-24.
  */
 package app.morphe.extension.youtube.patches.general.offline
 
 import android.app.Activity
-import android.os.Build
 import android.provider.Settings.System
 import android.view.MotionEvent
 import android.view.View
 import android.view.ViewConfiguration
-import android.view.WindowInsets
 import android.widget.FrameLayout
 import app.morphe.extension.shared.utils.Logger
 import app.morphe.extension.shared.utils.ResourceType
@@ -52,7 +51,6 @@ internal class OfflineSwipeControls private constructor(activity: Activity, root
     private val volume = if (config.enableVolumeControls) AudioVolumeController(activity, allowBoost = false) else null
     private val overlay = SwipeControlsOverlayLayout(activity, config)
     private val zones = SwipeZonesController(config, activity) { Rectangle(0, 0, root.width, root.height) }
-    private val windowLocation = IntArray(2)
     private val detector = SwipeDetectorImpl(
         maxOf(config.swipeMagnitudeThreshold, ViewConfiguration.get(activity).scaledTouchSlop).toDouble(),
     )
@@ -106,20 +104,23 @@ internal class OfflineSwipeControls private constructor(activity: Activity, root
         if (config.hasAssignedZones()) root.addView(overlay, FrameLayout.LayoutParams(-1, -1))
     }
 
-    fun begin(view: View, event: MotionEvent, fullscreen: Boolean) {
+    /** @return Whether the origin is reserved for a vertical action, even before a long press. */
+    fun begin(view: View, event: MotionEvent, fullscreen: Boolean, viewport: Rectangle): Boolean {
         finish(false)
-        val current = OfflinePlayer.getCurrent() ?: return
-        if ((!fullscreen && !config.portraitSwipeEnabled) || !config.hasAssignedZones()) return
-        zones.setOfflineViewport(gestureViewport(view))
+        val current = OfflinePlayer.getCurrent() ?: return false
+        if ((!fullscreen && !config.portraitSwipeEnabled) || !config.hasAssignedZones()) return false
+        zones.setOfflineViewport(viewport)
 
         val point = event.toPoint()
-        if (!zones.containsActiveZone(point)) return
+        val verticalReserved = zones.actionAt(point, SwipeDirection.VERTICAL) != SwipeZoneAction.OFF
+        if (!verticalReserved && !zones.containsActiveZone(point)) return false
 
         origin = point
         touchView = view
         item = current
         lastX = event.x
         lastY = event.y
+        return verticalReserved
     }
 
     fun onLongPress() {
@@ -225,31 +226,5 @@ internal class OfflineSwipeControls private constructor(activity: Activity, root
         if (config.shouldSaveAndRestoreBrightness) brightness?.save()
         brightness?.restoreDefaultBrightness()
         overlay.hideFeedback()
-    }
-
-    @Suppress("DEPRECATION")
-    private fun gestureViewport(view: View): Rectangle {
-        val width = view.width
-        val height = view.height
-        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.Q) return Rectangle(0, 0, width, height)
-        val insets = view.rootWindowInsets ?: return Rectangle(0, 0, width, height)
-        val gestures = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
-            insets.getInsets(WindowInsets.Type.systemGestures())
-        } else insets.systemGestureInsets
-
-        // The player may already be inset by the decor. Intersect the window's
-        // safe area with the player bounds instead of insetting the player twice.
-        val decor = view.rootView
-        view.getLocationInWindow(windowLocation)
-        val viewX = windowLocation[0]
-        val viewY = windowLocation[1]
-        decor.getLocationInWindow(windowLocation)
-        val offsetX = viewX - windowLocation[0]
-        val offsetY = viewY - windowLocation[1]
-        val left = (gestures.left - offsetX).coerceIn(0, width)
-        val top = (gestures.top - offsetY).coerceIn(0, height)
-        val right = (decor.width - gestures.right - offsetX).coerceIn(left, width)
-        val bottom = (decor.height - gestures.bottom - offsetY).coerceIn(top, height)
-        return Rectangle(left, top, right - left, bottom - top)
     }
 }

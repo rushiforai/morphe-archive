@@ -1,7 +1,54 @@
 ## Unreleased
 
+### Bug Fixes
+
+* **YouTube – Seekbar:** In Dark theme, the custom gradient ends at its accent color when portrait player
+  controls fade. The thumb still appears when the controls are shown. On 20.05.46, the Minimal and Tablet
+  miniplayers also show how much of the video has buffered.
+* **YouTube – Home feed:** **Show channel names on Home** keeps showing available channel names after
+  searching, returning to Home, and refreshing the feed. Search results keep their original bylines.
+* **YouTube – Downloads:** Fixed long seeks in YouTube’s watch player for saved videos larger than 2 GiB.
+  The built-in player and YouTube’s watch player support custom speeds such as 0.05× and 2.75× without
+  changing audio pitch. In the built-in player, changing speed while paused keeps playback paused.
+
 ### Features
 
+* **YouTube – Downloads:** Swipe up in the built-in player to enter fullscreen or down to leave it.
+  Assigned volume and brightness zones keep their existing gestures.
+* **Patch Managers:** The RVX repository URL supports switching between stable and prerelease bundles
+  in Morphe Manager, and the same URL works in UP Manager. The separate JSON links still work.
+  The feeds now update automatically when new patch bundles are published.
+
+## [1.51.0](https://github.com/lavinhoque33/revanced-patches/compare/v1.50.0...v1.51.0) (2026-11-24)
+
+### Features
+
+* **YouTube – Swipe controls:** **Swipe overlay foreground color** sets the color of the text and icon
+  independently of the background and progress bar. The default is white.
+* **YouTube – Ungroup notifications:** **RVX → Feed → Ungroup notifications** shows grouped channel uploads
+  as individual rows in the Notifications tab. Each video keeps its own actions and unread dot. Off by default.
+  Pages with no standalone notification to use as a row template stay grouped.
+
+### Bug Fixes
+
+* **YouTube – Swipe controls:** The overlay no longer shifts or changes size as the percentage gains a digit.
+* **YouTube – Feed card layout:** **Cards** now hides the like, comment and save buttons on native Home video
+  cards; **Cards with like, comment and save buttons** keeps them. The thumbnail and details share the same
+  rounded card and side insets, and consecutive cards no longer have an extra gap.
+* **YouTube Music – Third-party lyrics:** Translated lines now brighten when their own line is sung.
+  Upcoming translations no longer outshine the active line during a repeated chorus.
+* **YouTube – Add to queue:** The thumbnail button now uses the RVX queue icon in the upper-left corner,
+  including on Classic feed cards. Tapping it starts the selected video if the player is closed; otherwise
+  it adds the video to the queue without interrupting playback.
+
+## [1.50.0](https://github.com/lavinhoque33/revanced-patches/compare/v1.49.0...v1.50.0) (2026-11-24)
+
+### Features
+
+* **YouTube & YouTube Music – Glass menus:** On Android 12 or newer, **General → Glass menus** lets you frost
+  supported menus and adjust the blur, panel opacity and background dimming. Menus keep their original
+  background when system blur is unavailable or Battery Saver is on. Glass menus are off by default and
+  independent of the glass navigation bar and miniplayer.
 * **YouTube – Seekbar:** **Hide old seekbar thumbnail border** removes the white frame around the old-style
   seek preview. The image keeps its size, position and rounded corners. The option is off by default.
 * **YouTube & YouTube Music – Custom branding:** Patch options choose which icon packs are bundled. Only the

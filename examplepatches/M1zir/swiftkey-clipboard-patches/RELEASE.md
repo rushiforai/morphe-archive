@@ -1,68 +1,62 @@
-# M1zir’s SwiftKey Clipboard Patches v0.3.1 (experimental)
+# M1zir's SwiftKey Clipboard Patches v0.4.0 (experimental)
 
 Maintained by **Abubakr Ahmed (M1zir)**. Targets **Microsoft SwiftKey 9.13.19.3**
 (`com.touchtype.swiftkey`).
 
-## Fixed: the intended Arabic 123 legacy arrangement
+## New: Mac clipboard sync
 
-SwiftKey contains two different layouts named **Arabic 123 - Legacy**. Version
-0.3.0 exposed the wrong one for the requested arrangement. This release selects
-the correct native variant:
+The optional **Mac clipboard sync** patch connects SwiftKey to
+[SyncClipboard](https://github.com/Jeric-X/SyncClipboard) on a Mac. It is off by default.
 
-- **ط** is at the end of the middle letter row.
-- **و** is the third letter on the bottom row.
-- There is **no separate ؤ key**; ؤ remains available by long-pressing و.
+- Text you copy on the phone reaches the Mac in about a second. SwiftKey only has
+  to be the default keyboard. No app, overlay, Accessibility service or root is needed.
+- Text you copy on the Mac reaches the phone's clipboard when the keyboard opens,
+  and every 2 seconds while it stays open.
+- It works on the same Wi-Fi or through Tailscale, and switches between them by itself.
+- Clips Android marks as sensitive stay on the phone. Images, files and text over
+  10,240 characters are not synced.
+- HTTPS to the Mac's own certificate, pinned by its public key, plus a random password.
+  The phone keeps the pairing encrypted with an Android Keystore key and out of backups.
 
-Enable **Restore Arabic 123 legacy layout** when patching, then open
-**SwiftKey → Languages → your Arabic language** and select **Arabic 123 - Legacy**.
-**Select it again even if you used the legacy choice in v0.3.0**: the saved
-selection is not automatically migrated. The current layouts and default remain
-available. Clipboard retention is unchanged.
+Set up the Mac and pair the phone once, as described in the README's
+**Mac clipboard sync** section. The Mac scripts are in `scripts/mac`.
 
 ## Included patches
 
+- Mac clipboard sync (off by default)
 - Restore Arabic 123 legacy layout
 - Keep clipboard history forever
 - Customise toolbar
 - Disable cloud sign-in prompt
 - Disable telemetry
 
-Clipboard retention still removes local one-hour expiration, including images
-saved to SwiftKey’s clipboard, and fixes sorting for entries weeks apart.
-Manual deletion and pinning are preserved. Storage and memory set practical
-limits; expired clips cannot be recovered and cloud behavior is unchanged.
-
 ## Install or update
 
 [Add source to Morphe](https://morphe.software/add-source?github=M1zir/swiftkey-clipboard-patches)
 
 Enable pre-releases for this experimental source if needed, then refresh it.
-Alternatively download `swiftkey-clipboard-patches-0.3.1.mpp` below and import it
+Alternatively download `swiftkey-clipboard-patches-0.4.0.mpp` below and import it
 through **Sources → Add → Local**. Apply all desired patches in one pass to an
-**original, unpatched SwiftKey 9.13.19.3 APK**, including when updating from v0.3.0.
-For clipboard retention, enable **Remember copied items** in SwiftKey.
+**original, unpatched SwiftKey 9.13.19.3 APK**.
 
 Use the same Morphe signing key as your previous patched installation to permit
-an in-place update. The official Microsoft installation has a different signature;
-Android may refuse to install over it. Save important data before any uninstall.
+an in-place update. The official Microsoft installation has a different signature,
+and Android may refuse to install over it. Save important data before any uninstall.
 
 ## Validation
 
-Applied the layout patch alone and all five patches together to Microsoft’s
-original ARM64 APK using Morphe Desktop 2.1.1 / Patcher 2.3.0. Both APKs rebuilt
-and signed. Each passed 380 layout behavior assertions and 144 structural/resource
-checks on the emitted DEX and decoded key-map resources. These now verify the
-actual letter rows and distinguish primary keys from long-press alternatives.
-The new tests also reject the incorrect v0.3.0 output. The combined output passed
-394 clipboard behavior assertions and the upstream toolbar/telemetry verifier.
+All six patches applied together to Microsoft's original ARM64 APK with Morphe
+Desktop 2.1.1. The emitted DEX passed the clipboard, Arabic layout and toolbar
+verifiers, and a new check that each keyboard service hook is in place. The sync
+client ran against a real SyncClipboard 3.3.4 server: it sent and fetched text,
+moved from an unreachable address to a working one, and refused a wrong key and a
+wrong password.
 
-**These are bytecode execution-model checks. Android Manager import, actual
-Arabic typing/layout previews, clipboard retention and large-history performance
-still require physical-device testing.** See VALIDATION.md and docs/ARABIC_LAYOUT.md.
+**The keyboard hooks and the pairing screen still need testing on a phone.**
 
 ## Attribution
 
 Independent GPL-3.0 fork of murilosimao/swiftkey-patch v0.1.1, preserving credit
-to Murilo and arandomhooman. Not an official Microsoft, Morphe or upstream release.
-No SwiftKey APKs, original layout assets, decompiled app code or signing keys are
-distributed.
+to Murilo and arandomhooman. Not an official Microsoft, Morphe, SyncClipboard or
+upstream release. No SwiftKey APKs, original layout assets, decompiled app code or
+signing keys are distributed.

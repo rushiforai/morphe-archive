@@ -51,7 +51,7 @@ internal data class SizeReturn(val at: Int, val pick: Int)
 internal class SharperImagesPlan(val chooser: MutableMethod, val returns: List<SizeReturn>, val sizes: Int, val width: Int)
 
 /**
- * Tumblr picks which copy of an image to load (`r5f.f` in 47.0.0.108) from the sizes the post
+ * Tumblr picks which copy of an image to load (`x3f.f` in 47.3.0.110) from the sizes the post
  * lists, for a width it caps at 640 before asking, then shrinks again on a slow connection. Each
  * return of that chooser goes through the extension with the full list and the width asked for,
  * and the extension can answer a larger listed copy. Tumblr's image size answers the extension's

@@ -5,7 +5,7 @@
  * https://github.com/MorpheApp/morphe-patches/pull/3801
  *
  * See the included NOTICE file for GPLv3 Section 7 terms that apply to this code.
- * Modified by lavinhoque33, 2026-11-23.
+ * Modified by lavinhoque33, 2026-11-24.
  */
 
 package app.morphe.extension.youtube.patches.feed;
@@ -149,6 +149,7 @@ import app.morphe.extension.youtube.innertube.PlaylistEdit;
 import app.morphe.extension.youtube.innertube.queue.PlaylistQueueRenderer;
 import app.morphe.extension.youtube.patches.components.FeedComponentsFilter;
 import app.morphe.extension.youtube.patches.player.SeekbarColorPatch;
+import app.morphe.extension.youtube.patches.queue.ThumbnailQueuePatch;
 import app.morphe.extension.youtube.patches.utils.ProtoNode;
 import app.morphe.extension.youtube.settings.Settings;
 import app.morphe.extension.youtube.shared.NavigationBar;
@@ -181,12 +182,7 @@ public class FeedCardLayoutPatch {
     }
 
     private static final FeedCardLayout LAYOUT = Settings.FEED_CARD_LAYOUT.get();
-    /**
-     * Whether the elements are converted at all. The default layout keeps the feed as YouTube sends it.
-     */
-    private static final boolean ENABLED = LAYOUT != FeedCardLayout.DEFAULT;
-    private static final boolean CARD_LAYOUT = LAYOUT == FeedCardLayout.CARDS
-            || LAYOUT == FeedCardLayout.CARDS_WITH_ACTION_BUTTONS;
+    private static final boolean CARD_LAYOUT = usesCards(LAYOUT);
     private static final boolean ACTION_BUTTONS = LAYOUT == FeedCardLayout.CARDS_WITH_ACTION_BUTTONS;
 
     /**
@@ -262,6 +258,12 @@ public class FeedCardLayoutPatch {
      */
     static final int CARD_HORIZONTAL_PADDING_DP = 12;
     static final int CARD_VERTICAL_PADDING_DP = 6;
+    private static final LockupPadding CARD_PADDING = LockupPadding.newBuilder()
+            .setStart(CARD_HORIZONTAL_PADDING_DP)
+            .setEnd(CARD_HORIZONTAL_PADDING_DP)
+            .setTop(CARD_VERTICAL_PADDING_DP)
+            .setBottom(CARD_VERTICAL_PADDING_DP)
+            .build();
     /**
      * Spacing between the rows of a Shorts shelf, in addition to the small gap of the Shorts themselves,
      * which makes the gap between the rows the same as the gap between the cards (12 dp).
@@ -390,13 +392,10 @@ public class FeedCardLayoutPatch {
      */
     private static final Pattern METADATA_SEPARATOR_PATTERN = Pattern.compile(" {2,}| · ");
 
-    private static final ByteTrieSearch elementSearch = new ByteTrieSearch(
-            CARD_LAYOUT
-                    ? ByteTrieSearch.convertStringsToBytes(CLASSIC_TEMPLATE, SHELF_HEADER_TEMPLATE,
-                    HORIZONTAL_SHELF_TEMPLATE, SHORTS_VIDEO_CELL_TEMPLATE, SHORTS_SHELF_TEMPLATE,
-                    GRID_VIDEO_TEMPLATE, GRID_COLLECTION_TEMPLATE, COMPACT_PLAYLIST_TEMPLATE)
-                    : ByteTrieSearch.convertStringsToBytes(CARD_TEMPLATE)
-    );
+    private static final ByteTrieSearch cardElementSearch = new ByteTrieSearch(ByteTrieSearch.convertStringsToBytes(
+            CLASSIC_TEMPLATE, CARD_TEMPLATE, SHELF_HEADER_TEMPLATE, HORIZONTAL_SHELF_TEMPLATE,
+            SHORTS_VIDEO_CELL_TEMPLATE, SHORTS_SHELF_TEMPLATE, GRID_VIDEO_TEMPLATE, GRID_COLLECTION_TEMPLATE,
+            COMPACT_PLAYLIST_TEMPLATE));
     /**
      * Label of the shelf headers, in the bytes of the converted elements. The header of a vertical shelf
      * is a list item of its own.
@@ -746,62 +745,31 @@ public class FeedCardLayoutPatch {
      * Injection point.
      */
     public static byte[] setFeedCardLayout(byte[] bytes) {
-        if (!ENABLED || bytes == null) {
+        return setFeedCardLayout(bytes, LAYOUT);
+    }
+
+    static byte[] setFeedCardLayout(byte[] bytes, FeedCardLayout layout) {
+        if (layout == FeedCardLayout.DEFAULT || bytes == null) {
             return bytes;
         }
 
         try {
-            if (!elementSearch.matches(bytes)) {
-                // The elements of the layout of the setting give the current version of its template:
-                // the uri and the fields are taken from the element, if it's an element of the template.
-                // After the first element, the elements are checked once in a while, to follow a new version.
-                VideoTemplate template = CARD_LAYOUT ? CARD : CLASSIC;
-                final long now = System.currentTimeMillis();
-                if ((!template.fromElement || now - template.checkTime >= TEMPLATE_CHECK_INTERVAL_MILLIS)
-                        && template.search.matches(bytes)) {
-                    ComponentType componentType = Element.parseFrom(bytes).getType().getComponentType();
-                    String elementUri = componentType.getTemplateConfig().getUriTemplateConfig().getUri();
-                    if (isTemplate(elementUri, template.name)) {
-                        template.checkTime = now;
-
-                        SubscriptionConfig config = componentType.getSubscriptionConfig();
-                        if (config.hasThemeSubscriptionConfig()) {
-                            ThemeSubscriptionConfig theme = config.getThemeSubscriptionConfig();
-                            if (theme.getModelField() == template.modelField
-                                    && theme.getMapping().getResultField() > 0) {
-                                template.themeField = theme.getMapping().getResultField();
-                            }
-                        }
-                        if (config.hasCapabilitiesSubscriptionConfig()) {
-                            CapabilitiesSubscriptionConfig capabilities = config.getCapabilitiesSubscriptionConfig();
-                            if (capabilities.getModelField() == template.modelField
-                                    && capabilities.getMapping().getResultField() > 0) {
-                                template.capabilitiesField = capabilities.getMapping().getResultField();
-                            }
-                        }
-
-                        if (!elementUri.equals(template.uri)) {
-                            Logger.printDebug(() -> "Template of an element: " + elementUri + " theme field: "
-                                    + template.themeField + " capabilities field: " + template.capabilitiesField);
-                        }
-                        // A lookup of the cache can replace the uri at the same time.
-                        synchronized (template) {
-                            template.uri = elementUri;
-                            template.fromElement = true;
-                            template.missingInCache = false;
-                        }
-                    }
-                }
-                return enableColorSampledBackground(bytes);
+            final boolean cardLayout = usesCards(layout);
+            VideoTemplate template = cardLayout ? CARD : CLASSIC;
+            if (cardLayout ? !cardElementSearch.matches(bytes)
+                    : (!CARD.search.matches(bytes) && !CLASSIC.search.matches(bytes))) {
+                return bytes;
             }
 
             Element element = Element.parseFrom(bytes);
             ComponentType componentType = element.getType().getComponentType();
             String uri = componentType.getTemplateConfig().getUriTemplateConfig().getUri();
             ElementModel model = componentType.getModel();
+            rememberTemplate(componentType, uri, template);
 
             ComponentType converted = null;
-            if (CARD_LAYOUT) {
+            if (cardLayout) {
+                boolean actionButtons = layout == FeedCardLayout.CARDS_WITH_ACTION_BUTTONS;
                 if (isTemplate(uri, CLASSIC_TEMPLATE) && model.hasVideoWithContextModel()) {
                     VideoWithContextModel classic = model.getVideoWithContextModel();
                     toCard: {
@@ -1020,7 +988,7 @@ public class FeedCardLayoutPatch {
 
                         // The comment button opens the video with the comments, which are opened when the watch page
                         // is loaded, and the save button saves the video to 'Watch later'.
-                        if (ACTION_BUTTONS && !isPlaylist) {
+                        if (actionButtons && !isPlaylist && metadata.getActionButtonsCount() == 0) {
                             if (icons == null) {
                                 // The bold icons are not available on older versions of the app.
                                 if (ResourceUtils.getDrawableIdentifier("yt_delhi_thumbs_up_not_filled_24dp") != 0
@@ -1088,6 +1056,9 @@ public class FeedCardLayoutPatch {
                                                     .setToggleButtonViewModel(toggleButton(
                                                             button(icons.save, "", saveOnTap),
                                                             button(icons.saved, "", saveOnTap)))));
+                        } else if (!actionButtons && !isPlaylist && metadata.getActionButtonsCount() != 0) {
+                            // The newer classic renderer can also carry native actions in its lockup metadata.
+                            metadata.clearActionButtons();
                         }
 
                         // The template draws the background below the thumbnail only for the cards with inline
@@ -1116,11 +1087,7 @@ public class FeedCardLayoutPatch {
                                 .setViewModel(LockupViewModelHolder.newBuilder().setLockupViewModel(lockupViewModel))
                                 .setContext(setCardExperiments(classic.getContext(), true))
                                 .setEnvironment(classic.getEnvironment())
-                                .setPadding(LockupPadding.newBuilder()
-                                        .setStart(CARD_HORIZONTAL_PADDING_DP)
-                                        .setEnd(CARD_HORIZONTAL_PADDING_DP)
-                                        .setTop(CARD_VERTICAL_PADDING_DP)
-                                        .setBottom(CARD_VERTICAL_PADDING_DP))
+                                .setPadding(CARD_PADDING)
                                 .build();
 
                         converted = componentType.toBuilder()
@@ -1222,6 +1189,9 @@ public class FeedCardLayoutPatch {
                                                         + VIDEO_SHELF_ROW_LABEL_MARKER))))
                                 .build();
                     }
+                } else {
+                    converted = normalizeNativeCard(componentType, actionButtons,
+                            Settings.FEED_CARD_LAYOUT_DYNAMIC_COLORS.get());
                 }
             } else if (isTemplate(uri, CARD_TEMPLATE) && model.hasLockupModel()) {
                 LockupModel card = model.getLockupModel();
@@ -1412,11 +1382,13 @@ public class FeedCardLayoutPatch {
                                 .build();
                     }
                     RendererContext rendererContext = lockupViewModel.getRendererContext();
+                    String label = ThumbnailQueuePatch.markConvertedClassicLabel(
+                            lockupViewModel, rendererContext.getAccessibilityContext().getLabel());
                     VideoWithContextModel classic = VideoWithContextModel.newBuilder()
                             .setData(VideoWithContextData.newBuilder()
                                     .setCollectionStack(isPlaylist ? 1 : 0)
                                     .setVideoData(videoData)
-                                    .setAccessibilityText(rendererContext.getAccessibilityContext().getLabel())
+                                    .setAccessibilityText(label)
                                     .setMenuAccessibilityText(menuButton.getAccessibilityText())
                                     .setOnTap(rendererContext.getCommandContext().getOnTap())
                                     .setMenuOnTap(menuOnTap.toByteString())
@@ -1458,6 +1430,44 @@ public class FeedCardLayoutPatch {
         }
 
         return bytes;
+    }
+
+    private static boolean usesCards(FeedCardLayout layout) {
+        return layout == FeedCardLayout.CARDS || layout == FeedCardLayout.CARDS_WITH_ACTION_BUTTONS;
+    }
+
+    private static void rememberTemplate(ComponentType componentType, String uri, VideoTemplate template) {
+        final long now = System.currentTimeMillis();
+        if ((template.fromElement && now - template.checkTime < TEMPLATE_CHECK_INTERVAL_MILLIS)
+                || !isTemplate(uri, template.name)) {
+            return;
+        }
+        template.checkTime = now;
+
+        SubscriptionConfig config = componentType.getSubscriptionConfig();
+        if (config.hasThemeSubscriptionConfig()) {
+            ThemeSubscriptionConfig theme = config.getThemeSubscriptionConfig();
+            if (theme.getModelField() == template.modelField && theme.getMapping().getResultField() > 0) {
+                template.themeField = theme.getMapping().getResultField();
+            }
+        }
+        if (config.hasCapabilitiesSubscriptionConfig()) {
+            CapabilitiesSubscriptionConfig capabilities = config.getCapabilitiesSubscriptionConfig();
+            if (capabilities.getModelField() == template.modelField && capabilities.getMapping().getResultField() > 0) {
+                template.capabilitiesField = capabilities.getMapping().getResultField();
+            }
+        }
+
+        if (!uri.equals(template.uri)) {
+            Logger.printDebug(() -> "Template of an element: " + uri + " theme field: "
+                    + template.themeField + " capabilities field: " + template.capabilitiesField);
+        }
+        // A lookup of the cache can replace the uri at the same time.
+        synchronized (template) {
+            template.uri = uri;
+            template.fromElement = true;
+            template.missingInCache = false;
+        }
     }
 
     /**
@@ -1527,15 +1537,20 @@ public class FeedCardLayoutPatch {
     }
 
     /**
+     * Injection point. Native Elements shapes can also draw outside the Litho mount loop.
+     */
+    public static void onCardShapeDraw(Drawable drawable) {
+        if (CARD_LAYOUT) {
+            FeedCardColorSampler.onCardShapeDraw(drawable);
+        }
+    }
+
+    /**
      * Injection point.
      * Called with the original color of a Litho background drawable, before the theme changes it.
      */
     public static int getCardColor(Drawable drawable, int color) {
         try {
-            if (CARD_LAYOUT) {
-                FeedCardColorSampler.setCardBackgroundClass(drawable.getClass());
-            }
-
             if (CARD_LAYOUT && Color.alpha(color) == 255) {
                 boolean inCard = false;
                 final View drawableView = getDrawableView(drawable);
@@ -1575,14 +1590,6 @@ public class FeedCardLayoutPatch {
                 }
 
                 if (inCard) {
-                    // The background of a card is tinted with the color sampled from its thumbnail.
-                    // The tint is not one of the colors of the theme, so the theme patch keeps it.
-                    Integer tint = FeedCardColorSampler.getCardColor(
-                            findCardListItem(drawableView), drawableView, drawable);
-                    if (tint != null) {
-                        return tint;
-                    }
-
                     // The theme patch changes only some exact colors, such as the background of the cards.
                     // The lowest bit of blue is not visible.
                     return color ^ 1;
@@ -1625,6 +1632,23 @@ public class FeedCardLayoutPatch {
             Logger.printException(() -> "getDividerItem failure", ex);
         }
         return item;
+    }
+
+    /**
+     * Injection point. The one-column feed's cards and shelves supply their own row spacing.
+     * Other lists and multi-column grids keep the gap described by the section.
+     */
+    public static float getSectionRowGap(@Nullable RecyclerView list, int columnCount, float rowGapDp) {
+        return getSectionRowGap(list, columnCount, rowGapDp, LAYOUT);
+    }
+
+    static float getSectionRowGap(@Nullable RecyclerView list, int columnCount, float rowGapDp, FeedCardLayout layout) {
+        if (!usesCards(layout) || list == null || columnCount != 1) {
+            return rowGapDp;
+        }
+
+        int resultsId = getFeedId();
+        return resultsId != 0 && list.getId() == resultsId ? 0 : rowGapDp;
     }
 
     /**
@@ -3092,43 +3116,80 @@ public class FeedCardLayoutPatch {
     }
 
     /**
-     * The cards that YouTube sends keep their layout, but the server can send the colors sampled from
-     * their thumbnails, which are shown by the experiment of the background of the cards.
+     * YouTube can send a native lockup instead of a classic model to convert. Keep its commands and
+     * overlays; give full-bleed lockups the same insets and outline marker as converted cards.
      *
-     * @return The element with the sampled background enabled and the metadata background disabled,
-     *         or the same bytes if the element is not a card or already has them.
+     * @return The changed component, or null if it already has the requested layout or is not a card.
      */
-    private static byte[] enableColorSampledBackground(byte[] bytes) {
-        if (!Settings.FEED_CARD_LAYOUT_DYNAMIC_COLORS.get() || !CARD.search.matches(bytes)) {
-            return bytes;
+    @Nullable
+    private static ComponentType normalizeNativeCard(ComponentType component, boolean actionButtons,
+                                                     boolean dynamicColors) {
+        ElementModel model = component.getModel();
+        String uri = component.getTemplateConfig().getUriTemplateConfig().getUri();
+        if (!isTemplate(uri, CARD_TEMPLATE) || !model.hasLockupModel()) {
+            return null;
         }
 
+        LockupModel card = model.getLockupModel();
+        LockupViewModelHolder holder = card.getViewModel();
+        if (!holder.hasLockupViewModel()) {
+            return null;
+        }
+
+        LockupViewModel lockup = holder.getLockupViewModel();
+        LockupMetadata metadata = lockup.getMetadata();
+        LockupMetadataViewModel details = metadata.getLockupMetadataViewModel();
+        RendererContext renderer = lockup.getRendererContext();
+        AccessibilityContext accessibility = renderer.getAccessibilityContext();
+        String label = accessibility.getLabel();
+        boolean addPadding = !card.hasPadding() || card.getPadding().equals(LockupPadding.getDefaultInstance());
+        boolean fittedCard = addPadding || CARD_PADDING.equals(card.getPadding());
+        boolean markCard = fittedCard && !isCardLabel(label);
+        boolean removeActions = fittedCard && !actionButtons && lockup.getContentType() == LOCKUP_CONTENT_TYPE_VIDEO
+                && details.getActionButtonsCount() != 0;
+
+        ElementContext context = card.getContext();
+        CardLayoutExperiments experiments = context.getElementsExperiments().getCardLayoutExperiments();
+        boolean changeBackground = dynamicColors
+                && (!experiments.getEnableColorSampledBackground() || experiments.getEnableMetadataBackground());
+        if (!addPadding && !markCard && !removeActions && !changeBackground) {
+            return null;
+        }
+
+        LockupModel.Builder updatedCard = card.toBuilder();
+        if (addPadding) {
+            updatedCard.setPadding(CARD_PADDING);
+        }
+        if (markCard || removeActions) {
+            LockupViewModel.Builder updatedLockup = lockup.toBuilder();
+            if (markCard) {
+                if (label.isEmpty()) {
+                    label = nativeCardTitle(details);
+                }
+                if (lockup.getInlinePlayback().getInlinePlayback().isEmpty()) {
+                    label += NO_INLINE_PLAYBACK_CARD_LABEL_MARKER;
+                }
+                updatedLockup.setRendererContext(renderer.toBuilder()
+                        .setAccessibilityContext(accessibility.toBuilder().setLabel(label + CARD_LABEL_MARKER)));
+            }
+            if (removeActions) {
+                updatedLockup.setMetadata(metadata.toBuilder()
+                        .setLockupMetadataViewModel(details.toBuilder().clearActionButtons()));
+            }
+            updatedCard.setViewModel(holder.toBuilder().setLockupViewModel(updatedLockup));
+        }
+        if (changeBackground) {
+            updatedCard.setContext(setColorSampledBackground(context));
+        }
+        return component.toBuilder().setModel(model.toBuilder().setLockupModel(updatedCard)).build();
+    }
+
+    private static String nativeCardTitle(LockupMetadataViewModel details) {
         try {
-            Element element = Element.parseFrom(bytes);
-            ComponentType componentType = element.getType().getComponentType();
-            String uri = componentType.getTemplateConfig().getUriTemplateConfig().getUri();
-            ElementModel model = componentType.getModel();
-            if (!isTemplate(uri, CARD_TEMPLATE) || !model.hasLockupModel()) {
-                return bytes;
-            }
-
-            LockupModel card = model.getLockupModel();
-            ElementContext context = card.getContext();
-            CardLayoutExperiments experiments = context.getElementsExperiments().getCardLayoutExperiments();
-            if (experiments.getEnableColorSampledBackground() && !experiments.getEnableMetadataBackground()) {
-                return bytes;
-            }
-
-            Logger.printDebug(() -> "Card color: enabling the sampled background of a card");
-            return element.toBuilder()
-                    .setType(element.getType().toBuilder().setComponentType(componentType.toBuilder()
-                            .setModel(ElementModel.newBuilder().setLockupModel(card.toBuilder()
-                                    .setContext(setColorSampledBackground(context))))))
-                    .build()
-                    .toByteArray();
-        } catch (Exception ex) {
-            Logger.printException(() -> "enableColorSampledBackground failure", ex);
-            return bytes;
+            return AttributedText.parseFrom(details.getTitle()).getContent();
+        } catch (InvalidProtocolBufferException ex) {
+            // The optional title fallback must not prevent fixing the card's spacing.
+            return "";
         }
     }
 

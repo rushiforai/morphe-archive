@@ -59,7 +59,7 @@ class UseSystemFontFixtureTest {
             val oldBuilders = site.built.associate { key(it.method) to ImmutableMethod.of(it.method) }
             val untouched = hostState(build, context, setOf(loader) + builders)
             assertEquals(emptyList<String>(), PatchLogCapture.warnings { useSystemFontPatch.execute(context) })
-            assertWalletBuilders(name, site.built, oldBuilders)
+            assertWalletBuilders(name, site.built, oldBuilders, walletBuilds(build))
 
             val before = old.controlBody()
             val after = site.method.controlBody()
@@ -107,8 +107,11 @@ class UseSystemFontFixtureTest {
             assertEquals("${build.name}: digits, Instant View and the Gram sign keep Telegram's files", setOf("fonts/num.otf",
                 "fonts/mw_bold.ttf", "fonts/mw_bolditalic.ttf", "fonts/gram.ttf"), named - ROBOTO_ASSETS - BUILT_ASSETS)
             val built = context(build).resolveSystemFont().built
-            assertEquals("${build.name}: Wallet's three builds", 3, built.size)
-            assertEquals("${build.name}: one build per method", 3, built.map { key(it.method) }.toSet().size)
+            // 13.2 builds the face in three methods, and 13.3.1 adds a fourth in a Wallet text span.
+            val builds = walletBuilds(build)
+            assertTrue("${build.name}: Wallet builds its face at least three times", builds >= 3)
+            assertEquals("${build.name}: every Wallet build", builds, built.size)
+            assertEquals("${build.name}: one build per method", builds, built.map { key(it.method) }.toSet().size)
             // bold() is the medium face most of Telegram draws with.
             val bold = hosts(build).single { it.origType == ANDROID_UTILITIES }.methods.single { it.origName == "bold" && it.parameterTypes.isEmpty() }.controlBody()
             assertTrue("${build.name}: bold() loads the medium file through the loader", bold.any { it.controlString() == "fonts/rmedium.ttf" } &&
@@ -161,8 +164,8 @@ class UseSystemFontFixtureTest {
     private fun index(s: SystemFontSite, ref: String) = s.method.controlBody().indexOfFirst { it.controlRef() == ref }
 
     /** Each Wallet build gains two instructions right after its face lands, with the path it was built from. */
-    private fun assertWalletBuilders(name: String, sites: List<BuiltFontSite>, old: Map<String, Method>) {
-        assertEquals("$name: Wallet's three builds", 3, sites.size)
+    private fun assertWalletBuilders(name: String, sites: List<BuiltFontSite>, old: Map<String, Method>, builds: Int) {
+        assertEquals("$name: every Wallet build", builds, sites.size)
         for (site in sites) {
             val where = "$name ${key(site.method)}"
             val original = old.getValue(key(site.method))
@@ -194,6 +197,12 @@ class UseSystemFontFixtureTest {
     }
 
     private fun context(build: File) = PatchContexts.of(ExtensionDex.classes() + hosts(build))
+
+    /** Methods that build a face from Wallet's own font file, counted off the build's dex rather than the patch. */
+    private fun walletBuilds(build: File) = hosts(build).flatMap { it.methods }.count { method ->
+        val body = method.controlBody()
+        body.any { it.controlString() in BUILT_ASSETS } && body.any { it.controlRef() == BUILDER_FROM_ASSET }
+    }
     private fun completeState(build: File, c: BytecodePatchContext) = (hosts(build).map { it.type } + listOf(SYSTEM_FONT, SETTINGS_STATUS))
         .filter { c.tgClassDefByOrNull(it) != null }.associateWith { type -> c.tgMutableClassDefBy(type).let { cls ->
             listOf(cls.accessFlags, cls.methods.map { key(it) to it.state() }) } }

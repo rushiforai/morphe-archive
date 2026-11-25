@@ -11,6 +11,7 @@ Every patch is on by default. Morphe Manager groups them by category.
 | Ads | Hide ads | Removes the ad banners, native "Promoted" ads, sticky ads and full-screen ads, and the ads on cnnindonesia.com pages opened in the app. |
 | Feature | Merge article pages | Shows every page of a multi-page article in one continuous article, without the page numbers. |
 | Privacy | Disable analytics | Stops Detik Analytics and Google Analytics from recording screens and events, and turns off Firebase Analytics, Crashlytics, Performance and Sessions. |
+| Theme | Themed icon | Adds the themed (monochrome) app icon of Android 13 and later, which follows the wallpaper colors. |
 
 ## How the patches work
 

@@ -7,10 +7,12 @@ package app.hushtelegram.extension.telegram.misc;
 import android.content.res.Resources;
 import android.view.View;
 
+import java.lang.ref.WeakReference;
 import java.util.Collections;
 import java.util.Map;
 import java.util.Set;
 import java.util.WeakHashMap;
+import java.util.function.Consumer;
 
 import app.hushtelegram.extension.shared.Utils;
 import app.hushtelegram.extension.shared.diagnostics.HookStatus;
@@ -130,6 +132,123 @@ public final class MainTabs {
         }
         if (stock != null) view.setVisibility(stock);
     }
+
+    /**
+     * How visible the chat list's Downloads button should be, from 0 (gone) to 1. Telegram works the
+     * factor out from whether a download runs or waits and its own animations, then hands it to
+     * the button's animator; the switch answers 0 so the button fades out the way Telegram fades it.
+     * The chat list asks again as the settings close ({@link #settingsClosed()}) and as it comes
+     * back, so the switch takes hold either way.
+     *
+     * @param stock the factor Telegram worked out
+     */
+    public static float downloadsButton(float stock) {
+        HookStatus.invoked(FamilyNames.HIDE_CONTACTS_TAB);
+        try {
+            if (Utils.settingsReady() && Settings.HIDE_DOWNLOADS_BUTTON.get()) {
+                if (stock > 0f) HookStatus.counted(FamilyNames.HIDE_CONTACTS_TAB, "Downloads button hidden");
+                return 0f;
+            }
+        } catch (Throwable failure) {
+            HookStatus.threw(FamilyNames.HIDE_CONTACTS_TAB, "Downloads button", failure);
+        }
+        return stock;
+    }
+
+    /**
+     * Whether the chat list's Downloads button is up only because Always show Downloads button
+     * asked for it. Only the main chat list builds the button and checks whether to keep it, so one
+     * flag covers it.
+     */
+    private static volatile boolean downloadsUpForSwitch;
+
+    /**
+     * Whether the chat list wants its Downloads button, non-zero for yes. Telegram says yes while a
+     * file downloads or one you haven't opened waits, and the switch says yes all the time. The
+     * button's search, side and Done animations still hide it the way they hide it for a download,
+     * and Hide Downloads button still wins.
+     *
+     * @param stock Telegram's answer, non-zero for yes
+     */
+    public static int downloadsWanted(int stock) {
+        HookStatus.invoked(FamilyNames.HIDE_CONTACTS_TAB);
+        try {
+            if (Utils.settingsReady() && Settings.ALWAYS_SHOW_DOWNLOADS_BUTTON.get() && !Settings.HIDE_DOWNLOADS_BUTTON.get()) {
+                downloadsUpForSwitch = stock == 0;
+                if (stock == 0) HookStatus.counted(FamilyNames.HIDE_CONTACTS_TAB, "Downloads button always shown");
+                return 1;
+            }
+        } catch (Throwable failure) {
+            HookStatus.threw(FamilyNames.HIDE_CONTACTS_TAB, "Always show Downloads button", failure);
+        }
+        return stock;
+    }
+
+    /**
+     * The Downloads button's visibility as Telegram reads it to decide whether a button already up
+     * stays up once nothing downloads. A button up only because of Always show Downloads button
+     * reads as gone, so Telegram's own say is never the switch's echo and turning the switch off
+     * takes the button away the next time the chat list looks.
+     *
+     * @param visibility the button's visibility
+     */
+    public static int downloadsKept(int visibility) {
+        if (!downloadsUpForSwitch) return visibility;
+        boolean on = false;
+        try {
+            on = Utils.settingsReady() && Settings.ALWAYS_SHOW_DOWNLOADS_BUTTON.get() && !Settings.HIDE_DOWNLOADS_BUTTON.get();
+        } catch (Throwable failure) {
+            HookStatus.threw(FamilyNames.HIDE_CONTACTS_TAB, "Always show Downloads button", failure);
+        }
+        if (!on) downloadsUpForSwitch = false;
+        return View.GONE;
+    }
+
+    /** Forgets that the switch put the Downloads button up and the chat list that drew it, for tests. */
+    static void clearDownloadsForTests() {
+        downloadsUpForSwitch = false;
+        downloadsScreen = new WeakReference<>(null);
+        downloadsRedraw = MainTabs::redrawDownloads;
+    }
+
+    /** The chat list that last drew its Downloads button. */
+    static volatile WeakReference<Object> downloadsScreen = new WeakReference<>(null);
+
+    /** Has a chat list draw its Downloads button again. A field so a test can stand in for the patched stub. */
+    static Consumer<Object> downloadsRedraw = MainTabs::redrawDownloads;
+
+    /**
+     * The chat list is about to draw its Downloads button. Only a chat list that has the button is
+     * kept, so a chat picker's list, which never builds one, doesn't take the main list's place.
+     *
+     * @param screen the chat list
+     * @param button its Downloads button, null on a list without one
+     */
+    public static void downloadsDrawn(Object screen, Object button) {
+        if (button != null && downloadsScreen.get() != screen) downloadsScreen = new WeakReference<>(screen);
+    }
+
+    /**
+     * The settings dialog closed. The chat list under it stayed up the whole time, so its Downloads
+     * button would keep its old look until the bar's next update; it draws again now, with both
+     * Downloads switches as they're set. Nothing happens when no chat list drew the button yet, when
+     * that chat list is gone, or when the build had no way to have it draw again.
+     */
+    public static void settingsClosed() {
+        Object screen = downloadsScreen.get();
+        if (screen == null) return;
+        Utils.runOnMainThreadNowOrLater(() -> {
+            try {
+                downloadsRedraw.accept(screen);
+                HookStatus.counted(FamilyNames.HIDE_CONTACTS_TAB, "Downloads button drawn again");
+            } catch (Throwable failure) {
+                HookStatus.threw(FamilyNames.HIDE_CONTACTS_TAB, "Downloads button after the settings", failure);
+            }
+        });
+    }
+
+    /** Runs the chat list's own Downloads button method. Replaced when patching. */
+    public static void redrawDownloads(Object screen) { }
 
     /**
      * Replaces only the floating-button animator's visibility write. Its story, progress and other

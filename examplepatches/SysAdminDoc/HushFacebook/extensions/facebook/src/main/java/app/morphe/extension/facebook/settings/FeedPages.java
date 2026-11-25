@@ -355,6 +355,7 @@ final class FeedPages {
                 feed.addPreference(toggle(context, Settings.HIDE_POST_REPOST_BUTTON, hides));
                 feed.addPreference(toggle(context, Settings.HIDE_POST_SHARE_BUTTON, hides));
                 feed.addPreference(toggle(context, Settings.HIDE_POST_SEND_BUTTON, hides));
+                feed.addPreference(toggle(context, Settings.HIDE_POST_STARS_BUTTON, hides));
                 feed.addPreference(toggle(context, Settings.HIDE_POST_SAVE_BUTTON, hides));
                 feed.addPreference(toggle(context, Settings.IGNORE_POST_ROW_TAPS,
                         L10n.t("A tap on the empty part of the row under a post, between the buttons and the reaction "
@@ -1076,6 +1077,9 @@ final class FeedPages {
             comments.addPreference(toggle(context, Settings.HIDE_COMMENT_REACTIONS,
                     L10n.t("Hides the stacked reaction icons in the corner of a comment. The space stays, so a tap "
                             + "where they were still opens the list of reactions.")));
+            comments.addPreference(toggle(context, Settings.HIDE_COMMENT_REACTION_COUNTS,
+                    L10n.t("Hides the number next to the reaction icons on a comment. The icons stay, and a tap on them "
+                            + "still opens the list of reactions.")));
         }
         if (pictures) {
             // Read as each comment is built, so a change shows on the comments drawn after it.

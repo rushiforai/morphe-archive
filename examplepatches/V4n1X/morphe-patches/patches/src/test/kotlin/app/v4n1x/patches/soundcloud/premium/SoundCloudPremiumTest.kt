@@ -180,11 +180,16 @@ private fun verifyOriginalApk(input: File) = runBlocking {
             }.first()
     }
     val bundle = File(checkNotNull(System.getProperty("soundcloudPatchBundle")))
-    val patch = loadPatchesFromJar(setOf(bundle)).single { it.name == "Enable SoundCloud Go+" }
+    val patch = loadPatchesFromJar(setOf(bundle)).single { it.name == "Enable SoundCloud Go" }
     Patcher(PatcherConfig(apkFile = apk, temporaryFilesPath = File(output, "temporary"))).use { patcher ->
         patcher += setOf(patch)
         check(patcher.context.packageMetadata.packageName == "com.soundcloud.android")
-        val supportedVersions = mapOf("2026.08.26-release" to "369070", "2026.09.23-release" to "374050", "2026.11.02-release" to "379060")
+        val supportedVersions = mapOf(
+            "2026.08.26-release" to "369070",
+            "2026.09.23-release" to "374050",
+            "2026.11.02-release" to "379060",
+            "2026.11.20-release" to "381130",
+        )
         val version = patcher.context.packageMetadata.versionName
         check(supportedVersions[version] == patcher.context.packageMetadata.versionCode)
         patcher().collect { result ->

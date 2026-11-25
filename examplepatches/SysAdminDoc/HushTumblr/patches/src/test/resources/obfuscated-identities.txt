@@ -3,140 +3,140 @@
 # short class with no package at all.
 # One path|descriptor per line. ObfuscatedIdentityTest fails on a descriptor found in the code
 # that is not listed here, and on a line here that no longer matches the code.
-# The exceptions below are restricted to Tumblr 47.0.0.108. Their native preflights and exact
+# The exceptions below are restricted to Tumblr 47.3.0.110. Their native preflights and exact
 # DEX fixture tests bind the descriptors to the stated behavior and refuse changed shapes.
 
-# Mature content. Lui4.k(Lr4g;)Z is the checked four-register content-label cover predicate.
-# Lpdn.b returns Lrgn and calls Laf1.U0()Z before the cover predicate, preserving the separate
+# Mature content. Lgi4.k(Lf3g;)Z is the checked four-register content-label cover predicate.
+# Ldgn.b returns Lfjn and calls Lze1.U0()Z before the cover predicate, preserving the separate
 # NSFW restriction. The repository a constructor binds its CommunityLabelService field and
-# retains Lik7 only as that constructor's other verified parameter. The service method is GET.
-# Ladb is the Moshi reader ABI for both explicit age and permission presence masks.
-# Lzy5/Lrg5 are the checked continuation/context ABI. Lv88 carries EmptyCoroutineContext;
-# Lq7b extends Ls7b, whose g() returns Lab6.COROUTINE_SUSPENDED. The continuation bridge uses
+# retains Ltj7 only as that constructor's other verified parameter. The service method is GET.
+# Lkcb is the Moshi reader ABI for both explicit age and permission presence masks.
+# Lzy5/Lrg5 are the checked continuation/context ABI. Ll88 carries EmptyCoroutineContext;
+# Ld7b extends Lf7b, whose g() returns Lva6.COROUTINE_SUSPENDED. The continuation bridge uses
 # those verified singleton and suspension paths without changing native coroutine outcomes.
-patches/src/main/kotlin/app/morphe/patches/tumblr/mature/RevealAllowedMatureContentPatch.kt|Ls7b;
+patches/src/main/kotlin/app/morphe/patches/tumblr/mature/RevealAllowedMatureContentPatch.kt|Lf7b;
 patches/src/main/kotlin/app/morphe/patches/tumblr/mature/RevealAllowedMatureContentPatch.kt|Lcom/tumblr/communitylabel/data/settings/a;
-patches/src/main/kotlin/app/morphe/patches/tumblr/mature/RevealAllowedMatureContentPatch.kt|Lrgn;
-patches/src/main/kotlin/app/morphe/patches/tumblr/mature/RevealAllowedMatureContentPatch.kt|Ladb;
-patches/src/main/kotlin/app/morphe/patches/tumblr/mature/RevealAllowedMatureContentPatch.kt|Lui4;
-patches/src/main/kotlin/app/morphe/patches/tumblr/mature/RevealAllowedMatureContentPatch.kt|Lpdn;
-patches/src/main/kotlin/app/morphe/patches/tumblr/mature/RevealAllowedMatureContentPatch.kt|Lmz5;
-patches/src/main/kotlin/app/morphe/patches/tumblr/mature/RevealAllowedMatureContentPatch.kt|Lik7;
-patches/src/main/kotlin/app/morphe/patches/tumblr/mature/RevealAllowedMatureContentPatch.kt|Lab6;
-patches/src/main/kotlin/app/morphe/patches/tumblr/mature/RevealAllowedMatureContentPatch.kt|Lv88;
-patches/src/main/kotlin/app/morphe/patches/tumblr/mature/RevealAllowedMatureContentPatch.kt|Lja6;
-patches/src/main/kotlin/app/morphe/patches/tumblr/mature/RevealAllowedMatureContentPatch.kt|Laf1;
-patches/src/main/kotlin/app/morphe/patches/tumblr/mature/RevealAllowedMatureContentPatch.kt|Lq7b;
-patches/src/main/kotlin/app/morphe/patches/tumblr/mature/RevealAllowedMatureContentPatch.kt|Lr4g;
+patches/src/main/kotlin/app/morphe/patches/tumblr/mature/RevealAllowedMatureContentPatch.kt|Lfjn;
+patches/src/main/kotlin/app/morphe/patches/tumblr/mature/RevealAllowedMatureContentPatch.kt|Lkcb;
+patches/src/main/kotlin/app/morphe/patches/tumblr/mature/RevealAllowedMatureContentPatch.kt|Lgi4;
+patches/src/main/kotlin/app/morphe/patches/tumblr/mature/RevealAllowedMatureContentPatch.kt|Ldgn;
+patches/src/main/kotlin/app/morphe/patches/tumblr/mature/RevealAllowedMatureContentPatch.kt|Lhz5;
+patches/src/main/kotlin/app/morphe/patches/tumblr/mature/RevealAllowedMatureContentPatch.kt|Ltj7;
+patches/src/main/kotlin/app/morphe/patches/tumblr/mature/RevealAllowedMatureContentPatch.kt|Lva6;
+patches/src/main/kotlin/app/morphe/patches/tumblr/mature/RevealAllowedMatureContentPatch.kt|Ll88;
+patches/src/main/kotlin/app/morphe/patches/tumblr/mature/RevealAllowedMatureContentPatch.kt|Lea6;
+patches/src/main/kotlin/app/morphe/patches/tumblr/mature/RevealAllowedMatureContentPatch.kt|Lze1;
+patches/src/main/kotlin/app/morphe/patches/tumblr/mature/RevealAllowedMatureContentPatch.kt|Ld7b;
+patches/src/main/kotlin/app/morphe/patches/tumblr/mature/RevealAllowedMatureContentPatch.kt|Lf3g;
 
-# Mutual markers. PostCardHeader.t2(Lr4g;Ljxn;ZBlogInfo;Z)V has the checked 21-register
+# Mutual markers. PostCardHeader.t2(Lf3g;Lwzn;ZBlogInfo;Z)V has the checked 21-register
 # displayed-blog/name/TextView flow; full bind and detach provide unconditional cleanup.
-# Lzdb is the Moshi writer ABI used to bind primary/following/name/uuid getters to JSON keys.
-# Lh47 is the synthetic constructor marker in the field-bound false defaults for primary and
-# following. Lsyl is returned by the native Retrofit Call.timeout() ABI and accepts the bounded
+# Lkdb is the Moshi writer ABI used to bind primary/following/name/uuid getters to JSON keys.
+# Lc47 is the synthetic constructor marker in the field-bound false defaults for primary and
+# following. Li1m is returned by the native Retrofit Call.timeout() ABI and accepts the bounded
 # millisecond timeout before the annotated followers GET is executed.
-patches/src/main/kotlin/app/morphe/patches/tumblr/mutual/ShowMutualMarkersPatch.kt|Lzdb;
-patches/src/main/kotlin/app/morphe/patches/tumblr/mutual/ShowMutualMarkersPatch.kt|Ljxn;
-patches/src/main/kotlin/app/morphe/patches/tumblr/mutual/ShowMutualMarkersPatch.kt|Lsyl;
-patches/src/main/kotlin/app/morphe/patches/tumblr/mutual/ShowMutualMarkersPatch.kt|Lh47;
-patches/src/main/kotlin/app/morphe/patches/tumblr/mutual/ShowMutualMarkersPatch.kt|Lr4g;
+patches/src/main/kotlin/app/morphe/patches/tumblr/mutual/ShowMutualMarkersPatch.kt|Lkdb;
+patches/src/main/kotlin/app/morphe/patches/tumblr/mutual/ShowMutualMarkersPatch.kt|Lwzn;
+patches/src/main/kotlin/app/morphe/patches/tumblr/mutual/ShowMutualMarkersPatch.kt|Li1m;
+patches/src/main/kotlin/app/morphe/patches/tumblr/mutual/ShowMutualMarkersPatch.kt|Lc47;
+patches/src/main/kotlin/app/morphe/patches/tumblr/mutual/ShowMutualMarkersPatch.kt|Lf3g;
 
-# Account identity. Lsw5's exact constructor/accept bodies bind Llw5 and UserInfoResponse.
-# Llw5.v -> D constructs UserInfo and calls M; M's immutable UUID field is bound to
-# getUserUuid(), y0(), and Remember's user_uuid key. Llw5.f creates Lsw5 before Lauj.t()
-# subscribes to the Lpo4 request. Liy0.r has AuthToken2/AuthTokenSecret2 writes inside its
-# checked monitor transaction; p(Liym;) clears credentials inside the same reset boundary.
-# Ll8c.m(Context,Z,Lmz5) is the verified logout coroutine that calls Remember.b() once.
-patches/src/main/kotlin/app/morphe/patches/tumblr/rootmute/AccountIdentityPatch.kt|Liy0;
-patches/src/main/kotlin/app/morphe/patches/tumblr/rootmute/AccountIdentityPatch.kt|Liym;
-patches/src/main/kotlin/app/morphe/patches/tumblr/rootmute/AccountIdentityPatch.kt|Llw5;
-patches/src/main/kotlin/app/morphe/patches/tumblr/rootmute/AccountIdentityPatch.kt|Lmz5;
-patches/src/main/kotlin/app/morphe/patches/tumblr/rootmute/AccountIdentityPatch.kt|Lauj;
-patches/src/main/kotlin/app/morphe/patches/tumblr/rootmute/AccountIdentityPatch.kt|Lsw5;
-patches/src/main/kotlin/app/morphe/patches/tumblr/rootmute/AccountIdentityPatch.kt|Ll8c;
-patches/src/main/kotlin/app/morphe/patches/tumblr/rootmute/AccountIdentityPatch.kt|Lpo4;
+# Account identity. Lnw5's exact constructor/accept bodies bind Lgw5 and UserInfoResponse.
+# Lgw5.v -> D constructs UserInfo and calls M; M's immutable UUID field is bound to
+# getUserUuid(), y0(), and Remember's user_uuid key. Lgw5.f creates Lnw5 before Lbxj.t()
+# subscribes to the Lao4 request. Ljy0.r has AuthToken2/AuthTokenSecret2 writes inside its
+# checked monitor transaction; p(Lt0n;) clears credentials inside the same reset boundary.
+# Lu7c.m(Context,Z,Lhz5) is the verified logout coroutine that calls Remember.b() once.
+patches/src/main/kotlin/app/morphe/patches/tumblr/rootmute/AccountIdentityPatch.kt|Ljy0;
+patches/src/main/kotlin/app/morphe/patches/tumblr/rootmute/AccountIdentityPatch.kt|Lt0n;
+patches/src/main/kotlin/app/morphe/patches/tumblr/rootmute/AccountIdentityPatch.kt|Lgw5;
+patches/src/main/kotlin/app/morphe/patches/tumblr/rootmute/AccountIdentityPatch.kt|Lhz5;
+patches/src/main/kotlin/app/morphe/patches/tumblr/rootmute/AccountIdentityPatch.kt|Lbxj;
+patches/src/main/kotlin/app/morphe/patches/tumblr/rootmute/AccountIdentityPatch.kt|Lnw5;
+patches/src/main/kotlin/app/morphe/patches/tumblr/rootmute/AccountIdentityPatch.kt|Lu7c;
+patches/src/main/kotlin/app/morphe/patches/tumblr/rootmute/AccountIdentityPatch.kt|Lao4;
 
-# Root mutes. Lzdb's Post Moshi writer binds reblogged_root_id/reblogged_from_id/id/trail to
-# immutable direct getters. Laf1(Post) captures that canonical ID before its Post parameter
-# is reused. Lr4g extends La2k, whose l() returns Timelineable for the actual menu card.
-# Lflh.y's complete 28-register menu ABI includes fragment c, Ljlh, Lyzb and Li22; checked
+# Root mutes. Lkdb's Post Moshi writer binds reblogged_root_id/reblogged_from_id/id/trail to
+# immutable direct getters. Lze1(Post) captures that canonical ID before its Post parameter
+# is reused. Lf3g extends Lb5k, whose l() returns Timelineable for the actual menu card.
+# Lmmh.y's complete 28-register menu ABI includes fragment c, Lqmh, Lizb and Lc22; checked
 # liveness preserves its fragment/card/context/builder through the final bottomsheet b.
-# Lii9 is the public invoke()Object callback interface extending Lki9. Lctm.a is its native
-# public static final Unit singleton. Luxl's FROM_CACHE/PAGINATION construction and f() branch
+# Lyh9 is the public invoke()Object callback interface extending Lai9. Lovm.a is its native
+# public static final Unit singleton. Lk0m's FROM_CACHE/PAGINATION construction and f() branch
 # prove replacement for TimelineFragment.n6 and its local-only Z6 renderer.
-# PostCardHeader.H2's exact private 29-register, 210-instruction menu ABI binds Liym,
-# Lzsl, Lbne, Lhw2 and Lcyl to its native arguments. Checked control flow preserves the
-# builder, clicked card, context and Lbne callback before the bottomsheet finalizer.
-# TimelineFragment$a implements Lbne and retains its final timeline owner through its
+# PostCardHeader.H2's exact private 29-register, 210-instruction menu ABI binds Lt0n,
+# Lpvl, Lele, Lbw2 and Ls0m to its native arguments. Checked control flow preserves the
+# builder, clicked card, context and Lele callback before the bottomsheet finalizer.
+# TimelineFragment$a implements Lele and retains its final timeline owner through its
 # sole constructor write. Exact-target fixtures and compiled-code refusals cover both menus.
-patches/src/main/kotlin/app/morphe/patches/tumblr/rootmute/MuteRootPostsPatch.kt|Lctm;
+patches/src/main/kotlin/app/morphe/patches/tumblr/rootmute/MuteRootPostsPatch.kt|Lovm;
 patches/src/main/kotlin/app/morphe/patches/tumblr/rootmute/MuteRootPostsPatch.kt|Lcom/tumblr/components/bottomsheet/b;
 patches/src/main/kotlin/app/morphe/patches/tumblr/rootmute/MuteRootPostsPatch.kt|Lcom/tumblr/ui/fragment/c;
-patches/src/main/kotlin/app/morphe/patches/tumblr/rootmute/MuteRootPostsPatch.kt|Lzdb;
-patches/src/main/kotlin/app/morphe/patches/tumblr/rootmute/MuteRootPostsPatch.kt|Liym;
-patches/src/main/kotlin/app/morphe/patches/tumblr/rootmute/MuteRootPostsPatch.kt|Lhw2;
-patches/src/main/kotlin/app/morphe/patches/tumblr/rootmute/MuteRootPostsPatch.kt|Lbne;
-patches/src/main/kotlin/app/morphe/patches/tumblr/rootmute/MuteRootPostsPatch.kt|Li22;
-patches/src/main/kotlin/app/morphe/patches/tumblr/rootmute/MuteRootPostsPatch.kt|Lyzb;
-patches/src/main/kotlin/app/morphe/patches/tumblr/rootmute/MuteRootPostsPatch.kt|Luxl;
-patches/src/main/kotlin/app/morphe/patches/tumblr/rootmute/MuteRootPostsPatch.kt|Lii9;
-patches/src/main/kotlin/app/morphe/patches/tumblr/rootmute/MuteRootPostsPatch.kt|Lflh;
-patches/src/main/kotlin/app/morphe/patches/tumblr/rootmute/MuteRootPostsPatch.kt|Laf1;
-patches/src/main/kotlin/app/morphe/patches/tumblr/rootmute/MuteRootPostsPatch.kt|Lki9;
-patches/src/main/kotlin/app/morphe/patches/tumblr/rootmute/MuteRootPostsPatch.kt|Ljlh;
-patches/src/main/kotlin/app/morphe/patches/tumblr/rootmute/MuteRootPostsPatch.kt|Lzsl;
-patches/src/main/kotlin/app/morphe/patches/tumblr/rootmute/MuteRootPostsPatch.kt|Lcyl;
-patches/src/main/kotlin/app/morphe/patches/tumblr/rootmute/MuteRootPostsPatch.kt|Lr4g;
+patches/src/main/kotlin/app/morphe/patches/tumblr/rootmute/MuteRootPostsPatch.kt|Lkdb;
+patches/src/main/kotlin/app/morphe/patches/tumblr/rootmute/MuteRootPostsPatch.kt|Lt0n;
+patches/src/main/kotlin/app/morphe/patches/tumblr/rootmute/MuteRootPostsPatch.kt|Lbw2;
+patches/src/main/kotlin/app/morphe/patches/tumblr/rootmute/MuteRootPostsPatch.kt|Lele;
+patches/src/main/kotlin/app/morphe/patches/tumblr/rootmute/MuteRootPostsPatch.kt|Lc22;
+patches/src/main/kotlin/app/morphe/patches/tumblr/rootmute/MuteRootPostsPatch.kt|Lizb;
+patches/src/main/kotlin/app/morphe/patches/tumblr/rootmute/MuteRootPostsPatch.kt|Lk0m;
+patches/src/main/kotlin/app/morphe/patches/tumblr/rootmute/MuteRootPostsPatch.kt|Lyh9;
+patches/src/main/kotlin/app/morphe/patches/tumblr/rootmute/MuteRootPostsPatch.kt|Lmmh;
+patches/src/main/kotlin/app/morphe/patches/tumblr/rootmute/MuteRootPostsPatch.kt|Lze1;
+patches/src/main/kotlin/app/morphe/patches/tumblr/rootmute/MuteRootPostsPatch.kt|Lai9;
+patches/src/main/kotlin/app/morphe/patches/tumblr/rootmute/MuteRootPostsPatch.kt|Lqmh;
+patches/src/main/kotlin/app/morphe/patches/tumblr/rootmute/MuteRootPostsPatch.kt|Lpvl;
+patches/src/main/kotlin/app/morphe/patches/tumblr/rootmute/MuteRootPostsPatch.kt|Ls0m;
+patches/src/main/kotlin/app/morphe/patches/tumblr/rootmute/MuteRootPostsPatch.kt|Lf3g;
 
 # Dashboard page, shared by Mute posts locally, Hide liked posts, Hide your own reblogs and Hide
 # reblogs of your posts.
-# TimelineFragment.p4(Luxl;List;TimelinePaginationLink;Map;Z)V is found by its kept owner and
-# exact parameter list, Luxl being the page type enum whose <clinit> names PAGINATION. A page's
-# post cards are Lr4g, which extends La2k, whose l() returns the Timelineable the card wraps;
+# TimelineFragment.p4(Lk0m;List;TimelinePaginationLink;Map;Z)V is found by its kept owner and
+# exact parameter list, Lk0m being the page type enum whose <clinit> names PAGINATION. A page's
+# post cards are Lf3g, which extends Lb5k, whose l() returns the Timelineable the card wraps;
 # the cardPayload stub reads it through those two only after an instance-of check.
-patches/src/main/kotlin/app/morphe/patches/tumblr/rootmute/DashboardPagePatch.kt|Luxl;
-patches/src/main/kotlin/app/morphe/patches/tumblr/rootmute/DashboardPagePatch.kt|La2k;
-patches/src/main/kotlin/app/morphe/patches/tumblr/rootmute/DashboardPagePatch.kt|Lr4g;
+patches/src/main/kotlin/app/morphe/patches/tumblr/rootmute/DashboardPagePatch.kt|Lk0m;
+patches/src/main/kotlin/app/morphe/patches/tumblr/rootmute/DashboardPagePatch.kt|Lb5k;
+patches/src/main/kotlin/app/morphe/patches/tumblr/rootmute/DashboardPagePatch.kt|Lf3g;
 
-# Shared Post JSON presence. Ladb's 178-register reader has exactly one successful Post
-# allocation/constructor/return path and one null missing-fields return through Lbbb.a(String).
-# Lh47 terminates that verified synthetic constructor; first mask v154 and trail mask v158
+# Shared Post JSON presence. Lkcb's 178-register reader has exactly one successful Post
+# allocation/constructor/return path and one null missing-fields return through Llab.a(String).
+# Lc47 terminates that verified synthetic constructor; first mask v154 and trail mask v158
 # prove explicit followed/can_edit/trail presence before the single shared setter call.
-patches/src/main/kotlin/app/morphe/patches/tumblr/timeline/PostJsonPresencePatch.kt|Ladb;
-patches/src/main/kotlin/app/morphe/patches/tumblr/timeline/PostJsonPresencePatch.kt|Lbbb;
-patches/src/main/kotlin/app/morphe/patches/tumblr/timeline/PostJsonPresencePatch.kt|Lh47;
+patches/src/main/kotlin/app/morphe/patches/tumblr/timeline/PostJsonPresencePatch.kt|Lkcb;
+patches/src/main/kotlin/app/morphe/patches/tumblr/timeline/PostJsonPresencePatch.kt|Llab;
+patches/src/main/kotlin/app/morphe/patches/tumblr/timeline/PostJsonPresencePatch.kt|Lc47;
 
-# Collapse long posts. Lfmf lists a post card's rows: h(Lr4g;I)List appends Ljm2.g()'s list of the
+# Collapse long posts. Llkf lists a post card's rows: h(Lf3g;I)List appends Ldm2.g()'s list of the
 # post's own rows through e(List,List)Z and adds its Read more row d on the cut flag it tested for
-# Ljm2's own cut. Ltj2 is one row of blocks, its only list field a. Ljtl is the screen's timeline
+# Ldm2's own cut. Lnj2 is one row of blocks, its only list field a. Lzvl is the screen's timeline
 # field m, whose n()Z is Tumblr's own test for drawing a Read more cut (false on a post opened by
 # itself). Checked liveness keeps every register the hook writes dead past Tumblr's own use, and
 # exact-target fixtures cover the hook and the bridge.
-patches/src/main/kotlin/app/morphe/patches/tumblr/timeline/CollapseLongPostsPatch.kt|Lfmf;
-patches/src/main/kotlin/app/morphe/patches/tumblr/timeline/CollapseLongPostsPatch.kt|Ljm2;
-patches/src/main/kotlin/app/morphe/patches/tumblr/timeline/CollapseLongPostsPatch.kt|Ltj2;
-patches/src/main/kotlin/app/morphe/patches/tumblr/timeline/CollapseLongPostsPatch.kt|Ljtl;
-patches/src/main/kotlin/app/morphe/patches/tumblr/timeline/CollapseLongPostsPatch.kt|Lr4g;
-# Ln6h is the reblog trail entry: its constructor splits the entry's blocks into rows (field l), then
+patches/src/main/kotlin/app/morphe/patches/tumblr/timeline/CollapseLongPostsPatch.kt|Llkf;
+patches/src/main/kotlin/app/morphe/patches/tumblr/timeline/CollapseLongPostsPatch.kt|Ldm2;
+patches/src/main/kotlin/app/morphe/patches/tumblr/timeline/CollapseLongPostsPatch.kt|Lnj2;
+patches/src/main/kotlin/app/morphe/patches/tumblr/timeline/CollapseLongPostsPatch.kt|Lzvl;
+patches/src/main/kotlin/app/morphe/patches/tumblr/timeline/CollapseLongPostsPatch.kt|Lf3g;
+# Lx6h is the reblog trail entry: its constructor splits the entry's blocks into rows (field l), then
 # reads its author's cut (field j), an index into its blocks (field h). Field o is its ask layout.
-patches/src/main/kotlin/app/morphe/patches/tumblr/timeline/CollapseLongTrails.kt|Ln6h;
-# Read more in place. Lr0h is the post row composer's d row, the Read more under a post's own rows:
-# i(Lr4g;,ReadMoreViewHolder,List,I) takes the row's Button with f1() and sets its tap to a listener
-# calling the static h(Lr0h;,View), which calls m(View). m reads field b, the Lqfe screen, and hands
+patches/src/main/kotlin/app/morphe/patches/tumblr/timeline/CollapseLongTrails.kt|Lx6h;
+# Read more in place. Lb1h is the post row composer's d row, the Read more under a post's own rows:
+# i(Lf3g;,ReadMoreViewHolder,List,I) takes the row's Button with f1() and sets its tap to a listener
+# calling the static h(Lb1h;,View), which calls m(View). m reads field b, the Lyde screen, and hands
 # the button and field d, a trail entry's id, to its x3. A trail entry's copy of the binder sets d.
-# Lr4g is a timeline item and La2k its base class, whose l() is the item's post. The timeline screen
-# implements Lqfe. Its z5() is the list's adapter Lw4a, a Graywater adapter Lzx9 whose y0 and U take
+# Lf3g is a timeline item and Lb5k its base class, whose l() is the item's post. The timeline screen
+# implements Lyde. Its z5() is the list's adapter Lm4a, a Graywater adapter Lpx9 whose y0 and U take
 # an item out and back in, and RecyclerView$h.x() redraws.
-patches/src/main/kotlin/app/morphe/patches/tumblr/timeline/ExpandLongPosts.kt|Lr0h;
-patches/src/main/kotlin/app/morphe/patches/tumblr/timeline/ExpandLongPosts.kt|Lqfe;
-patches/src/main/kotlin/app/morphe/patches/tumblr/timeline/ExpandLongPosts.kt|Lr4g;
-patches/src/main/kotlin/app/morphe/patches/tumblr/timeline/ExpandLongPosts.kt|La2k;
-patches/src/main/kotlin/app/morphe/patches/tumblr/timeline/ExpandLongPosts.kt|Lw4a;
-patches/src/main/kotlin/app/morphe/patches/tumblr/timeline/ExpandLongPosts.kt|Lzx9;
-# Tumblr's own cut on tag pages. Laf1 is the post base class a timeline item's post extends: l2(Z)
+patches/src/main/kotlin/app/morphe/patches/tumblr/timeline/ExpandLongPosts.kt|Lb1h;
+patches/src/main/kotlin/app/morphe/patches/tumblr/timeline/ExpandLongPosts.kt|Lyde;
+patches/src/main/kotlin/app/morphe/patches/tumblr/timeline/ExpandLongPosts.kt|Lf3g;
+patches/src/main/kotlin/app/morphe/patches/tumblr/timeline/ExpandLongPosts.kt|Lb5k;
+patches/src/main/kotlin/app/morphe/patches/tumblr/timeline/ExpandLongPosts.kt|Lm4a;
+patches/src/main/kotlin/app/morphe/patches/tumblr/timeline/ExpandLongPosts.kt|Lpx9;
+# Tumblr's own cut on tag pages. Lze1 is the post base class a timeline item's post extends: l2(Z)
 # marks the post opened, g2() reads that back the way Tumblr's inline View post does, and C1() is
-# the server's force_truncate. Lkjh is the capped card item, a Lr4g subclass cut to its own height
-# either way. The preflight refuses a build where the post doesn't extend Laf1 or Lkjh doesn't
-# extend Lr4g.
-patches/src/main/kotlin/app/morphe/patches/tumblr/timeline/ExpandLongPosts.kt|Laf1;
-patches/src/main/kotlin/app/morphe/patches/tumblr/timeline/ExpandLongPosts.kt|Lkjh;
+# the server's force_truncate. Lrkh is the capped card item, a Lf3g subclass cut to its own height
+# either way. The preflight refuses a build where the post doesn't extend Lze1 or Lrkh doesn't
+# extend Lf3g.
+patches/src/main/kotlin/app/morphe/patches/tumblr/timeline/ExpandLongPosts.kt|Lze1;
+patches/src/main/kotlin/app/morphe/patches/tumblr/timeline/ExpandLongPosts.kt|Lrkh;

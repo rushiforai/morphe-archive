@@ -1,0 +1,111 @@
+{
+  "response_sha256": "2dfe36f7c402b9ae62d18ee775401b6ada20d492b2e59ded0d9d4b52172ca0e7",
+  "cards": [
+    {
+      "id": "eyJ0eXBlIjoiT25ib2FyZGluZ1NjcmVlbiIsImlkIjoiYnJlYWtpbmctbmV3cy1tb2RhbCJ9",
+      "blocks": 5,
+      "variables": null,
+      "actions": null,
+      "bff_show": [
+        {
+          "eventType": "wncCardShownEvent",
+          "data": "ImJyZWFraW5nTmV3cyI="
+        }
+      ],
+      "dismiss": [
+        {
+          "success": null,
+          "failure": null,
+          "activation_types": [
+            "FirebaseTrackingEvent"
+          ]
+        }
+      ],
+      "toggles": [
+        {
+          "id": "breaking_nu",
+          "enabled": false,
+          "target": "RemoteTarget",
+          "permissions": [
+            "NOTIFICATION"
+          ],
+          "operation": "followTagSubscriptionWithNotification",
+          "subscribe": true,
+          "inWncScreen": true,
+          "inSettingsScreen": false
+        },
+        {
+          "id": "breaking_smart",
+          "enabled": false,
+          "target": "RemoteTarget",
+          "permissions": [
+            "NOTIFICATION"
+          ],
+          "operation": "followTagSubscriptionWithNotification",
+          "subscribe": true,
+          "inWncScreen": true,
+          "inSettingsScreen": false
+        },
+        {
+          "id": "breaking_sport",
+          "enabled": false,
+          "target": "RemoteTarget",
+          "permissions": [
+            "NOTIFICATION"
+          ],
+          "operation": "followTagSubscriptionWithNotification",
+          "subscribe": true,
+          "inWncScreen": true,
+          "inSettingsScreen": false
+        }
+      ],
+      "login_targets": 0
+    },
+    {
+      "id": "eyJ0eXBlIjoiT25ib2FyZGluZ1NjcmVlbiIsImlkIjoicHJvbW90ZS1sb2dpbi1tb2RhbCJ9",
+      "blocks": 7,
+      "variables": null,
+      "actions": null,
+      "bff_show": [
+        {
+          "eventType": "wncCardShownEvent",
+          "data": "InByb21vdGVMb2dpbiI="
+        }
+      ],
+      "dismiss": [
+        {
+          "success": null,
+          "failure": null,
+          "activation_types": [
+            "FirebaseTrackingEvent"
+          ]
+        }
+      ],
+      "toggles": [],
+      "login_targets": 2
+    },
+    {
+      "id": "eyJ0eXBlIjoiT25ib2FyZGluZ1NjcmVlbiIsImlkIjoib25ib2FyZGluZy1mb2xsb3ctdG9waWNzIn0=",
+      "blocks": 4,
+      "variables": null,
+      "actions": null,
+      "bff_show": [
+        {
+          "eventType": "wncCardShownEvent",
+          "data": "ImZvbGxvd1RvcGljcyI="
+        }
+      ],
+      "dismiss": [
+        {
+          "success": null,
+          "failure": null,
+          "activation_types": [
+            "FirebaseTrackingEvent"
+          ]
+        }
+      ],
+      "toggles": [],
+      "login_targets": 0
+    }
+  ]
+}

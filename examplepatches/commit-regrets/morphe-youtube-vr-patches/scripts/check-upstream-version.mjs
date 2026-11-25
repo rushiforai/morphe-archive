@@ -2,30 +2,16 @@
 // Checks Meta Quest Store for new releases of YouTube VR (com.google.android.apps.youtube.vr.oculus).
 // Compares against pinned targets in patches/src/main/kotlin/app/ytvr/patches/shared/Constants.kt.
 //
-// Two sources, because one of them is not what it looks like (measured 2026-10-15):
-//
-//   * `graph.oculus.com` with this app's own access token answers
-//     `release_channels.nodes[].latest_supported_binary`, and for channel LIVE it returned
-//     **1.89.09 / binary 28727061943646433**, created 2026-09-29.
-//   * the public store page embeds *the same field name* for the same channel id
-//     (545256815955045) and returned **1.88.10 / binary 28655433784142583**.
-//
-// Same channel, different binary: the authenticated view is the newest binary *uploaded* to the
-// channel, the storefront's is the one actually *released* to users. The first run to trust the
-// token's answer filed an issue for a version nobody could download yet -- the store page still
-// offered 1.88.10, and the maintainer's checklist starts with "obtain the APK".
-//
-// So the verdict comes from the storefront, and the channel answer is reported next to it as the
-// early signal it actually is ("uploaded, not released yet"). If the storefront cannot be read the
-// decision falls back to the channel (the old behaviour) and says so, rather than going quiet and
-// missing a release.
+// Two sources: the graph.oculus.com channel answer (newest binary uploaded to LIVE) and the
+// public store page (readable only signed out, lags the channel by days). The issue files off
+// the newest release either source reports -- gating it on the page delayed every issue by days
+// and never surfaced 1.92.11 (2026-11-24 policy change, after #40 and the DownQuest measurement).
 
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-// The Constants.kt reader is shared with the release-notes plugin (scripts/supported-versions.mjs
-// -- one parser, mirrored by SupportedVersionsPolicyTest), so the upstream decision and the
-// release notes can never disagree about what "supported" means.
+// Shared with the release-notes plugin (scripts/supported-versions.mjs), so the upstream
+// decision and the release notes can never disagree about what "supported" means.
 import {
   parseSupportedVersions as parseSupportedVersionsFrom,
   readSupportedVersionsFile,
@@ -41,10 +27,8 @@ const GRAPHQL_ENDPOINT = 'https://graph.oculus.com/graphql';
 const DOC_ID_RELEASE_CHANNELS = '3828663700542720';
 
 const STORE_PAGE_URL = 'https://www.meta.com/en-gb/experiences/youtube/2002317119880945/';
-// A browser user-agent gets HTTP 400 from this page, and anything else gets the cookie-consent
-// shell (which carries no app data at all). Meta's own crawler UA gets the full server-rendered
-// payload, which is where the released binary lives. Both measured 2026-10-15; if Meta ever stops
-// honouring it the script falls back to the channel answer and says so.
+// Meta's crawler UA gets the full server-rendered payload, which is where the binary lives. If
+// Meta stops honouring it the script falls back to the channel answer and says so.
 const STORE_PAGE_UA = 'facebookexternalhit/1.1 (+http://www.facebook.com/externalhit_uatext.php)';
 
 const ISSUE_BODY_FILE = path.join(REPO_ROOT, 'scripts', 'upstream-update-issue.md');
@@ -72,7 +56,6 @@ async function fetchLatestStoreBinary() {
     throw new Error('No release channels found in Meta Quest Store response');
   }
 
-  // Look for LIVE channel, fallback to first channel
   const liveChannel = channels.find((c) => c.channel_name === 'LIVE') || channels[0];
   const binary = liveChannel.latest_supported_binary;
   if (!binary || !binary.version) {
@@ -90,7 +73,7 @@ async function fetchLatestStoreBinary() {
 }
 
 /**
- * The binary a viewer would actually download, read out of the public store page.
+ * The binary the public store page advertises to a signed-out visitor, read out of its payload.
  *
  * `viewer_release_channel` is preferred because that is literally "the channel this viewer gets";
  * the page's `app_store_item` node carries the same binary under a bare `latest_supported_binary`,
@@ -174,96 +157,76 @@ export function compareVersions(a, b) {
 
 /**
  * What to report, given both answers. Pure, so it can be checked without the network.
- *
- * `released` is null when the storefront could not be read; the decision then falls back to the
- * channel's newest binary -- which is the behaviour that produced the false positive -- and
- * `confirmed` says so, so the issue and the summary can label it as unverified.
+ * The newest build either source reports drives the decision -- the channel in practice.
+ * `confirmed` is false when the page could not be read to corroborate.
  */
-export function decide({ released, channel, supportedVersions }) {
+export function decide({ page, channel, supportedVersions }) {
   const newestSupported = supportedVersions.reduce(
     (newest, version) => (compareVersions(version, newest) > 0 ? version : newest),
     '0.0.0'
   );
+  const isNewer = (version) => compareVersions(version, newestSupported) > 0;
 
-  const effective = released || channel;
-  const supported = supportedVersions.includes(effective.version);
-  const newer = compareVersions(effective.version, newestSupported) > 0;
+  // Which of the two is behind decides what the summary may say.
+  const pageLagsChannel = Boolean(page) && compareVersions(channel.version, page.version) > 0;
+  const pageAheadOfChannel = Boolean(page) && compareVersions(page.version, channel.version) > 0;
+  const newest = pageAheadOfChannel ? page : channel;
 
   return {
-    hasUpdate: !supported && newer,
-    // Reported, never filed: an older build on the storefront is a rollback, not an update.
-    isRollback: !supported && !newer,
-    confirmed: Boolean(released),
-    released,
+    hasUpdate: !supportedVersions.includes(newest.version) && isNewer(newest.version),
+    confirmed: Boolean(page),
+    page,
     channel,
     supportedVersions,
     newestSupported,
-    // "Uploaded to the channel but not on the storefront yet" -- the early signal. Directional
-    // on purpose: the summary's "the storefront page has not caught up" claim is only true when
-    // the channel is actually AHEAD of the page. The reverse (the page serving a build the
-    // channel answer does not list yet) gets its own label in the summary -- printing "the page
-    // has not caught up" while the page is the one ahead would point the maintainer the
-    // exactly wrong way.
-    uploadedNotReleased:
-        Boolean(released) && compareVersions(channel.version, released.version) > 0,
-    pageAheadOfChannel:
-        Boolean(released) && compareVersions(released.version, channel.version) > 0,
+    pageLagsChannel,
+    pageAheadOfChannel,
+    // The newest release either source reports. Every consumer reads it from here, so the
+    // issue title, body and summary can never disagree about which version is newest.
+    newest,
+    // Judged on the page alone, a page that had merely not caught up read as a rollback.
+    isRollback: !supportedVersions.includes(newest.version) && !isNewer(newest.version),
   };
 }
 
 /**
- * The run summary's headline status. Pure, so the decision table can pin it.
- *
- * "Up to date" is only honest when the channel and the storefront agree. A channel ahead of the
- * storefront means a build exists that the repo has not re-anchored, and the page lagging does
- * NOT mean the binary is unobtainable -- measured 2026-11-22, 1.92.11 was downloadable with the
- * DownQuest extension while the storefront page still listed 1.91.10 (the state this summary
- * used to call "not downloadable yet"). It still files no issue: the channel answer alone once
- * filed an issue for a version nobody could download from the page (#40), so the issue waits
- * for `hasUpdate` -- a storefront flip, or an unreadable page falling back to the channel.
+ * The run summary's headline status. Pure, so the decision table can pin it. The page lagging
+ * the channel is not news, so "Up to date" holds whenever the newest known release is supported.
  */
 export function statusLine(result) {
   if (result.hasUpdate) {
-    return `⚠️ **New version detected!**${result.confirmed ? '' : ' (unconfirmed — storefront unreadable)'}`;
-  }
-  if (result.uploadedNotReleased) {
-    return '🟡 **New build uploaded; the storefront page has not caught up** — no issue filed yet, and "not on the page" is not "not downloadable" (DownQuest can serve the uploaded binary)';
+    return `⚠️ **New version detected!**${result.confirmed ? '' : ' (unconfirmed — store page unreadable)'}`;
   }
   return '✅ **Up to date**';
 }
 
 /**
- * The run summary, pure so the decision table can pin it -- most importantly the channel-ahead
- * line's wording, which used to claim the uploaded build was "not downloadable yet": a claim
- * nothing in this script can verify, and which the 2026-11-22 DownQuest fetch disproved. The
- * tests hold every variant to "not downloadable yet" never reappearing.
+ * The run summary, pure so the decision table can pin it. The page gets a line only when it is
+ * unreadable or an update it has not listed yet is being reported.
  */
-export function summaryLines(result, storefrontWarning) {
+export function summaryLines(result, pageWarning) {
+  const { channel } = result;
+  const newest = result.newest;
+  const origin = result.pageAheadOfChannel
+    ? 'store page'
+    : `LIVE channel${channel.createdDate ? `, uploaded ${channel.createdDate.slice(0, 10)}` : ''}`;
   const lines = [
     '### Meta Quest Store Version Check',
-    `- **Storefront (released)**: ${describeBinary(result.released)}${result.released ? ` — binary \`${result.released.binaryId}\`` : ''}`,
-    `- **Channel \`${result.channel.channel}\` (newest uploaded)**: ${describeBinary(result.channel)} — binary \`${result.channel.binaryId}\``,
+    `- **Newest release**: ${describeBinary(newest)} — binary \`${newest.binaryId}\` — ${origin}`,
     `- **Supported in Code**: ${result.supportedVersions.map((v) => `\`${v}\``).join(', ')}`,
   ];
-  if (result.uploadedNotReleased) {
+  if (result.hasUpdate && result.pageLagsChannel) {
     lines.push(
-      `- ℹ️ The channel has \`${result.channel.version}\` uploaded but the storefront page still serves \`${result.released.version}\` — the page lagging is not proof the binary is unobtainable (measured 2026-11-22: DownQuest fetched 1.92.11 while the page still served 1.91.10). No issue is filed off the channel answer alone; treat availability as unknown, not false`
-    );
-  }
-  if (result.pageAheadOfChannel) {
-    lines.push(
-      `- ℹ️ The storefront page serves \`${result.released.version}\` while the channel answer still says \`${result.channel.version}\` — the page is ahead of the channel data, so the verdict comes from the page`
+      `- ℹ️ The store page (signed out) still shows \`${result.page.version}\` — it has lagged the LIVE channel by days on every release; DownQuest can fetch the new build meanwhile`
     );
   }
   if (result.isRollback) {
     lines.push(
-      `- ⚠️ The storefront serves \`${result.released.version}\`, which is *older* than the newest supported \`${result.newestSupported}\` — a rollback, so no update is filed`
+      `- ℹ️ The newest known release (\`${newest.version}\`, ${origin}) is older than the newest supported \`${result.newestSupported}\` — a rollback, so nothing is filed`
     );
   }
-  if (storefrontWarning) {
-    lines.push(
-      `- ⚠️ Storefront unreadable (\`${storefrontWarning}\`), so the verdict falls back to the channel answer and is **unconfirmed**`
-    );
+  if (pageWarning) {
+    lines.push(`- ⚠️ Store page unreadable (\`${pageWarning}\`): checked against the LIVE channel only`);
   }
   lines.push(`- **Status**: ${statusLine(result)}`);
   return lines;
@@ -296,8 +259,8 @@ function describeBinary(binary) {
 }
 
 function generateIssueBody(result) {
-  const { released, channel, supportedVersions } = result;
-  const target = released || channel;
+  const { page, supportedVersions } = result;
+  const target = result.newest;
   return `### 🚀 Upstream Update Detected
 
 A new version of **YouTube VR** is on the Meta Quest Store:
@@ -307,12 +270,11 @@ ${target.versionCode ? `- **Version Code**: \`${target.versionCode}\`\n` : ''}- 
 - **Store Page**: ${STORE_PAGE_URL}
 - **Currently Supported in Repo**: ${supportedVersions.map((v) => `\`${v}\``).join(', ')}
 ${
-  result.uploadedNotReleased
+  result.pageLagsChannel
     ? `
-> **Heads-up**: Meta's \`${channel.channel}\` channel already lists \`${channel.version}\` as its
-> newest uploaded binary (id \`${channel.binaryId}\`${channel.createdDate ? `, created ${channel.createdDate}` : ''}).
-> That is *not* what this issue is about — the storefront still serves \`${released.version}\`, and
-> this issue tracks what a user can download.
+> **Heads-up**: the signed-out store page still lists \`${page.version}\` — it has lagged the
+> LIVE channel by days on every release, and DownQuest can fetch the new build before the page
+> catches up (see docs/GETTING-THE-APK.md).
 `
     : ''
 }
@@ -346,34 +308,36 @@ async function main() {
     `Channel ${channel.channel} newest uploaded binary: ${channel.version} (version code: ${channel.versionCode}, id: ${channel.binaryId}${channel.createdDate ? `, created: ${channel.createdDate}` : ''})`
   );
 
-  let released = null;
-  let storefrontWarning = null;
+  let page = null;
+  let pageWarning = null;
   try {
-    released = await fetchStorefrontBinary();
+    page = await fetchStorefrontBinary();
     console.log(
-      `Storefront released binary: ${released.version} (binary id: ${released.binaryId}, via ${released.source})`
+      `Store page (signed out): ${page.version} (binary id: ${page.binaryId}, via ${page.source})`
     );
   } catch (err) {
-    storefrontWarning = err instanceof Error ? err.message : String(err);
-    console.log(`Could not read the storefront (${storefrontWarning}); falling back to the channel answer`);
+    pageWarning = err instanceof Error ? err.message : String(err);
+    console.log(`Could not read the store page (${pageWarning}); falling back to the channel answer`);
   }
 
   const supportedVersions = parseSupportedVersions();
   console.log(`Locally supported versions in Constants.kt: ${supportedVersions.join(', ')}`);
 
-  const result = decide({ released, channel, supportedVersions });
-  const effective = released || channel;
+  const result = decide({ page, channel, supportedVersions });
+  const effective = result.newest;
 
   setGithubOutput('has_update', result.hasUpdate.toString());
   setGithubOutput('latest_version', effective.version);
   setGithubOutput('latest_version_code', String(effective.versionCode ?? ''));
   setGithubOutput('release_channel', channel.channel);
-  setGithubOutput('created_date', channel.createdDate || '');
+  // `newest` can be the page's build, which carries no upload date; keep the two outputs
+  // describing the same binary rather than pairing the page's version with the channel's date.
+  setGithubOutput('created_date', effective.createdDate || '');
   setGithubOutput('supported_versions', supportedVersions.join(', '));
   setGithubOutput('issue_body_path', ISSUE_BODY_FILE);
   setGithubOutput('verdict_confirmed', result.confirmed.toString());
 
-  const summary = summaryLines(result, storefrontWarning).join('\n');
+  const summary = summaryLines(result, pageWarning).join('\n');
   console.log('\n' + summary);
   appendGithubSummary(summary);
 

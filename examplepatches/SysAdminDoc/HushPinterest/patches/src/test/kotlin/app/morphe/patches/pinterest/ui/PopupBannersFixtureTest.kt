@@ -22,8 +22,10 @@ import com.android.tools.smali.dexlib2.iface.Method
 import com.android.tools.smali.dexlib2.iface.instruction.FiveRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.Instruction
 import com.android.tools.smali.dexlib2.iface.instruction.NarrowLiteralInstruction
+import com.android.tools.smali.dexlib2.iface.instruction.OffsetInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
+import com.android.tools.smali.dexlib2.iface.instruction.RegisterRangeInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.TwoRegisterInstruction
 import com.android.tools.smali.dexlib2.immutable.ImmutableClassDef
 import org.junit.Assert.assertEquals
@@ -50,6 +52,7 @@ class PopupBannersFixtureTest {
             val context = PatchContexts.of(ExtensionDex.classes() + classes)
             hidePopupBannersPatch.execute(context)
             for (flag in listOf("hidePopupBanners", "popupBanners")) assertEquals("${build.name}: $flag", 1, flag(context, flag))
+            assertEquals("${build.name}: no main activity, no offline row", 0, flag(context, "offlineBanner"))
 
             val clean = show.implementation!!.instructions.toList()
             val body = patched(context, show)
@@ -107,13 +110,14 @@ class PopupBannersFixtureTest {
             "missing show method" to (extension + replaced(noShow) to "the method that shows the banner"),
             "missing hidePopupBanners stub" to (without("hidePopupBanners") to "hidePopupBanners"),
             "missing popupBanners stub" to (without("popupBanners") to "popupBanners"),
+            "missing offlineBanner stub" to (without("offlineBanner") to "offlineBanner"),
         )
         for ((reason, case) in cases) {
             val (input, message) = case
             val context = PatchContexts.of(input)
             val thrown = assertThrows(reason, PatchException::class.java) { hidePopupBannersPatch.execute(context) }
             assertTrue("$reason: ${thrown.message}", thrown.message.orEmpty().contains(message))
-            for (name in listOf("hidePopupBanners", "popupBanners")) {
+            for (name in listOf("hidePopupBanners", "popupBanners", "offlineBanner")) {
                 if (context.mutableClassDefBy(SETTINGS_STATUS).methods.any { it.name == name }) {
                     assertEquals("$reason left $name set", 0, flag(context, name))
                 }
@@ -126,6 +130,51 @@ class PopupBannersFixtureTest {
                         now.implementation!!.instructions.map { it.opcode })
                 }
             }
+        }
+    }
+
+    /** #48: offline, with the switch on, the connection handler returns before it builds or shows the bar. */
+    @Test
+    fun `each declared APK asks before the main activity's connection handler does anything`() {
+        for (build in Fixtures.declaredBuilds()) {
+            val activity = FixtureDex.classes(build, setOf(MAIN_ACTIVITY))[MAIN_ACTIVITY] ?: error("${build.name}: no $MAIN_ACTIVITY")
+            val fieldTypes = activity.fields.map { it.type }.filter { it.startsWith("L") }.toSet()
+            val fieldClasses = FixtureDex.classes(build, fieldTypes).values.toList()
+            // The bar: a FrameLayout the activity builds from itself and a view, and only one.
+            val bars = fieldClasses.filter { bar -> bar.superclass == "Landroid/widget/FrameLayout;" && bar.methods.any {
+                it.name == "<init>" && it.parameterTypes.map(CharSequence::toString) == listOf(MAIN_ACTIVITY, "Landroid/view/View;") } }
+            assertEquals("${build.name}: offline bars", 1, bars.size)
+
+            val context = PatchContexts.of(ExtensionDex.classes() + (read(build) + activity + fieldClasses).distinctBy { it.type })
+            hidePopupBannersPatch.execute(context)
+            for (flag in listOf("hidePopupBanners", "popupBanners", "offlineBanner")) assertEquals("${build.name}: $flag", 1, flag(context, flag))
+
+            val hooked = context.mutableClassDefBy(MAIN_ACTIVITY).methods.filter { method ->
+                method.implementation?.instructions?.any { (it as? ReferenceInstruction)?.reference?.toString() == OFFLINE_BANNER_HOOK } == true
+            }
+            assertEquals("${build.name}: hooked handlers", 1, hooked.size)
+            val handler = hooked.single()
+            assertEquals("${build.name}: the handler takes whether you're online", listOf("Z"), handler.parameterTypes.map(CharSequence::toString))
+            assertEquals(build.name, "V", handler.returnType)
+            val clean = activity.methods.single { it.name == handler.name && it.parameterTypes == handler.parameterTypes }
+                .implementation!!.instructions.toList()
+            val bar = bars.single().type
+            assertTrue("${build.name}: the handler shows offline and back online on the bar", clean.count {
+                ((it as? ReferenceInstruction)?.reference?.toString())?.startsWith("$bar->") == true } >= 2)
+
+            val body = handler.implementation!!.instructions.toList()
+            val ask = body[0] as RegisterRangeInstruction
+            assertEquals(build.name, OFFLINE_BANNER_HOOK, (ask as ReferenceInstruction).reference.toString())
+            assertEquals("${build.name}: the hook reads p1", listOf(handler.implementation!!.registerCount - 1, 1), listOf(ask.startRegister, ask.registerCount))
+            assertEquals(build.name, Opcode.MOVE_RESULT, body[1].opcode)
+            assertEquals("${build.name}: the answer goes to v0", 0, (body[1] as OneRegisterInstruction).registerA)
+            assertEquals(build.name, Opcode.IF_EQZ, body[2].opcode)
+            assertEquals(build.name, 0, (body[2] as OneRegisterInstruction).registerA)
+            assertEquals("${build.name}: no goes on to Pinterest's first instruction", body.take(4).sumOf { it.codeUnits },
+                body.take(2).sumOf { it.codeUnits } + (body[2] as OffsetInstruction).codeOffset)
+            assertEquals(build.name, Opcode.RETURN_VOID, body[3].opcode)
+            assertTrue("${build.name}: v0 is a local", handler.implementation!!.registerCount > 2)
+            assertEquals("${build.name}: Pinterest's handler is unchanged", clean.map { it.opcode }, body.drop(4).map { it.opcode })
         }
     }
 

@@ -23,8 +23,10 @@ import java.util.function.Consumer;
 import app.hushgram.extension.instagram.feed.MenuItems;
 import app.hushgram.extension.instagram.settings.FamilyNames;
 import app.hushgram.extension.instagram.settings.Settings;
+import app.hushgram.extension.instagram.settings.SettingsStatus;
 import app.hushgram.extension.instagram.stories.StoryCopyText;
 import app.hushgram.extension.instagram.stories.StoryListHold;
+import app.hushgram.extension.instagram.reels.StoryWhole;
 import app.hushgram.extension.instagram.stories.StoryLoop;
 import app.hushgram.extension.instagram.stories.StoryPriority;
 import app.hushgram.extension.instagram.stories.StorySpeed;
@@ -65,6 +67,10 @@ import app.hushgram.extension.shared.diagnostics.HookStatus;
  * <p>With Copy text in the story menu on, the menu of a story whose Media it can read gets Copy text
  * after that, whatever the Download switch says, and a tap on it copies the words Instagram read in
  * the story, or opens Google Lens on it, through {@link StoryCopyText} (#789).
+ *
+ * <p>With Details in a post's menu on, the menu of a story whose account it can read gets Copy
+ * username after that, whatever the Download switch says, and a tap puts the poster's username on
+ * the clipboard, as Details does for a post (#839).
  *
  * <p>With Stories priority in the build, the menu of a story whose account it can read gets Add to
  * Stories priority last, whatever the switches say, and a tap on it puts that account on the list
@@ -151,7 +157,8 @@ public final class StoryDownload {
             HookStatus.invoked(FamilyNames.STORY_DOWNLOAD);
             if (labels == null) return labels;
             Object menu = building.get();
-            return withPriority(withCopyText(withSpeed(withLoop(on() ? labels(labels, rows(menu)) : labels, menu), menu), menu), menu);
+            return withWhole(withPriority(withUsername(withCopyText(withSpeed(withLoop(on() ? labels(labels, rows(menu)) : labels,
+                    menu), menu), menu), menu), menu));
         } catch (Throwable t) {
             HookStatus.threw(FamilyNames.STORY_DOWNLOAD, "story menu", t);
             return labels;
@@ -179,11 +186,36 @@ public final class StoryDownload {
         return plus(labels, copy);
     }
 
+    /** [labels] with Copy username at the end when the story [menu] is open on gets it (#839). */
+    private static CharSequence[] withUsername(CharSequence[] labels, Object menu) {
+        String copy = usernameLabel(menu);
+        if (copy == null || hasUsername(Arrays.asList(labels))) return labels;
+        return plus(labels, copy);
+    }
+
     /** [labels] with Add to Stories priority at the end when the story [menu] is open on gets it. */
     private static CharSequence[] withPriority(CharSequence[] labels, Object menu) {
         String priority = priorityLabel(menu);
         if (priority == null || MenuItems.hidesOwn("PRIORITY") || hasPriority(Arrays.asList(labels))) return labels;
         return plus(labels, priority);
+    }
+
+    /**
+     * [labels] with Show the whole story at the end, or Fill the screen while the story shows whole,
+     * when the story on screen gets it (#845).
+     */
+    private static CharSequence[] withWhole(CharSequence[] labels) {
+        String whole = StoryWhole.menuLabel(Utils.getActivity());
+        if (whole == null || hasWhole(Arrays.asList(labels))) return labels;
+        return plus(labels, whole);
+    }
+
+    /** Whether [labels] has Show the whole story or Fill the screen already. */
+    private static boolean hasWhole(List<?> labels) {
+        for (Object label : labels) {
+            if (label instanceof CharSequence && StoryWhole.isMenuLabel((CharSequence) label)) return true;
+        }
+        return false;
     }
 
     private static CharSequence[] plus(CharSequence[] labels, String row) {
@@ -232,6 +264,8 @@ public final class StoryDownload {
             if (speed != null && !hasSpeed(labels)) labels.add(speed);
             String copy = copyTextLabel(menu);
             if (copy != null && !hasCopyText(labels)) labels.add(copy);
+            String whole = StoryWhole.menuLabel(Utils.getActivity());
+            if (whole != null && !hasWhole(labels)) labels.add(whole);
         } catch (Throwable t) {
             HookStatus.threw(FamilyNames.STORY_DOWNLOAD, "story menu", t);
         }
@@ -315,6 +349,53 @@ public final class StoryDownload {
     }
 
     /**
+     * Copy username for the story [menu] is open on, or null when its menu doesn't get the row: Details
+     * in a post's menu is off or isn't in the build, or the story's account can't be read (#839).
+     */
+    @Nullable
+    static String usernameLabel(Object menu) {
+        if (menu == null || !PostInfo.on() || !SettingsStatus.videoDownload()) return null;
+        if (storyUsername(menu) == null) return null;
+        return L10n.t(Utils.getContext(), "Copy username");
+    }
+
+    /** The username of whoever posted the story [menu] is open on, or null when it can't be read. */
+    @Nullable
+    private static String storyUsername(Object menu) {
+        Object media = InstagramMedia.storyMedia(menu);
+        Object user = media == null ? null : InstagramMedia.owner(media);
+        String name = user == null ? null : InstagramMedia.username(user);
+        return name == null || name.trim().isEmpty() ? null : name;
+    }
+
+    /** Whether [labels] has Copy username already. */
+    private static boolean hasUsername(List<?> labels) {
+        for (Object label : labels) {
+            if (label instanceof CharSequence && isUsername((CharSequence) label)) return true;
+        }
+        return false;
+    }
+
+    /** Whether [label] is Copy username, however the menu styled it. */
+    private static boolean isUsername(CharSequence label) {
+        return L10n.t(Utils.getContext(), "Copy username").contentEquals(label);
+    }
+
+    /** Puts the username of whoever posted the story [menu] is open on on the clipboard, and says so. */
+    private static void copyUsername(Object menu) {
+        Context context = Utils.getContext();
+        String name = storyUsername(menu);
+        try {
+            if (name == null) throw new IllegalStateException("the story's account can't be read");
+            Utils.setClipboard(context, L10n.t(context, "Username"), name);
+            Utils.showToastShort(L10n.t(context, "Username copied"));
+        } catch (Throwable failure) {
+            HookStatus.threw(FamilyNames.STORY_DOWNLOAD, "story copy username", failure);
+            Utils.showToastShort(L10n.t(context, "Couldn't copy the username"));
+        }
+    }
+
+    /**
      * Add to Stories priority, or Remove from Stories priority once the account is on the list, for
      * the story [menu] is open on, or null when its menu doesn't get the row: Stories priority isn't
      * in the build, or the story's account can't be read.
@@ -394,7 +475,8 @@ public final class StoryDownload {
      * Saves the story [menu] is open on when [label], the tapped one, is one of HushGram's rows and
      * the switch is on, and answers whether it did, in which case Instagram's handler is skipped. A
      * save that can't start says so. Loop this story loops the story instead, or takes its loop off,
-     * and Playback speed opens the speeds. Never throws.
+     * Playback speed opens the speeds, and Show the whole story fits the story inside the screen or
+     * fills it again. Never throws.
      */
     public static boolean save(CharSequence label, Object menu) {
         try {
@@ -413,6 +495,14 @@ public final class StoryDownload {
             }
             if (StoryCopyText.offersRow() && StoryCopyText.isMenuLabel(label)) {
                 StoryCopyText.copy(InstagramMedia.storyMedia(menu));
+                return true;
+            }
+            if (StoryWhole.offersRow() && StoryWhole.isMenuLabel(label)) {
+                StoryWhole.toggle(Utils.getActivity());
+                return true;
+            }
+            if (isUsername(label) && usernameLabel(menu) != null) {
+                copyUsername(menu);
                 return true;
             }
             if (!on()) return false;

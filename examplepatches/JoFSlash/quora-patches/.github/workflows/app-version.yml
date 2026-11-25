@@ -1,9 +1,9 @@
 name: App version
 
-# Looks for a version of one app that this bundle doesn't support yet. Each app's <app>-version.yml
-# runs this once a day, and by hand with a version to try. What differs between the apps (where new
-# versions come from, the file, what the emulator check expects, the texts) is in the "versions"
-# settings of .github/apps/<app>.json; see .github/scripts/app_versions.py.
+# Looks for a version of one app that this bundle doesn't support yet. versions.yml runs this for
+# every app once a day, and by hand with an app and a version to try. What differs between the
+# apps (where new versions come from, the file, what the emulator check expects, the texts) is in
+# the "versions" settings of .github/apps/<app>.json; see .github/scripts/app_versions.py.
 #
 # For a new version it:
 #   1. gets the file: from the private JoFSlash/morphe-apks if it is there, else from APKMirror or
@@ -21,7 +21,7 @@ name: App version
 #   2. patches it with every patch and starts it on an emulator,
 #   3. opens a pull request that lists the version as supported, or an issue that says what failed.
 # A scheduled run tries each version once: when an issue or pull request for the version exists
-# (open or closed), it leaves the version alone. Run the app's workflow by hand with the version to
+# (open or closed), it leaves the version alone. Run versions.yml by hand with the app and version to
 # try again, for example after uploading the file:
 #   gh release create <app>-<version> -R JoFSlash/morphe-apks --title "<App> <version>" <app>-<version>.<apkm|apk>
 # APKS_TOKEN needs read and write access to the contents of JoFSlash/morphe-apks.
@@ -70,9 +70,9 @@ jobs:
       emulator_api: ${{ steps.read.outputs.emulator_api }}
       pr_base: ${{ steps.read.outputs.pr_base }}
       bump_title: ${{ steps.read.outputs.bump_title }}
-      # Pull requests to dev start from dev (or from the branch a test run is on); the others from
-      # the branch the workflow runs on.
-      ref: ${{ steps.read.outputs.pr_base == 'dev' && (github.ref_name == 'main' && 'dev' || github.ref_name) || '' }}
+      # Pull requests to main start from the branch the workflow runs on (main, or a branch a test
+      # run is on); pull requests to another branch start from that branch.
+      ref: ${{ steps.read.outputs.pr_base != 'main' && steps.read.outputs.pr_base || '' }}
     steps:
       - name: Checkout
         uses: actions/checkout@v7
@@ -128,10 +128,10 @@ jobs:
           fi
           body=$(printf '%s\n\n%s\n\n%s\n```\n%s\n```\n' \
             "$NAME $PLAY is on [Google Play]($STORE), but not on [APKMirror]($SOURCE_LINK) yet. This bundle supports $SUPPORTED.${PLAY_NOTE:+ $PLAY_NOTE}" \
-            "Nothing to do if APKMirror gets it soon: the $NAME version workflow looks every day and opens a pull request that adds the version once every patch applies and the app starts." \
-            "To add it sooner, get the $FILE_NAME of $PLAY elsewhere, then upload it and run the workflow by hand with the version:" \
+            "Nothing to do if APKMirror gets it soon: the App versions workflow looks every day and opens a pull request that adds the version once every patch applies and the app starts." \
+            "To add it sooner, get the $FILE_NAME of $PLAY elsewhere, then upload it and run the App versions workflow by hand with the app and version:" \
             "gh release create $APP-$PLAY -R JoFSlash/morphe-apks --title \"$NAME $PLAY\" $APP-$PLAY.$FILE
-          gh workflow run $APP-version.yml -R $REPO -f version=$PLAY")
+          gh workflow run versions.yml -R $REPO -f app=$APP -f version=$PLAY")
           gh issue create --title "$title" --label enhancement --body "$body"
 
       - name: Pick the version to try
@@ -227,7 +227,7 @@ jobs:
               cp "$out" "$RUNNER_TEMP/$asset"
               if GH_TOKEN="$APKS_TOKEN" gh release create "$APP-$VERSION" -R JoFSlash/morphe-apks \
                   --title "$NAME $VERSION" \
-                  --notes "$NAME $VERSION $FILE_NAME from $SOURCE_NAME, checked to be signed by its maker. Added by the $NAME version workflow." \
+                  --notes "$NAME $VERSION $FILE_NAME from $SOURCE_NAME, checked to be signed by its maker. Added by the App versions workflow." \
                   "$RUNNER_TEMP/$asset"; then
                 echo "result=ok" >> "$GITHUB_OUTPUT"
               else
@@ -315,7 +315,7 @@ jobs:
                 "$NAME $VERSION is $where. Every patch applies, and the patched app starts on an emulator and $SHOWS ([run]($RUN_URL))." \
                 "Before merging, $PHONE_TEST" \
                 "$report" \
-                "Opened by the $NAME version workflow. Checks don't run on pull requests it opens; this run tested it, and the release tests it again.")
+                "Opened by the App versions workflow. Checks don't run on pull requests it opens; this run tested it, and the release tests it again.")
               play_issue=$(gh issue list --state open --search "\"$NAME $VERSION is on Google Play\" in:title" --json number,title \
                 --jq ".[] | select(.title == \"$NAME $VERSION is on Google Play\") | .number" | head -1)
               if [ -n "$play_issue" ]; then body="$body
@@ -329,12 +329,12 @@ jobs:
           if [ -z "$why" ]; then
             if [ "$FILE" = "apkm" ]; then nofile="no APK bundle (APKM)"; else nofile="no $FILE_NAME"; fi
             case "$RESULT" in
-              blocked) why="$SOURCE_NAME (or the network) turned the automatic download away. Download the $FILE_NAME by hand and upload it, then run the $NAME version workflow by hand with version $VERSION:
+              blocked) why="$SOURCE_NAME (or the network) turned the automatic download away. Download the $FILE_NAME by hand and upload it, then run the App versions workflow by hand with app $APP and version $VERSION:
           \`\`\`
           $upload
           \`\`\`" ;;
               missing) if [ "$SOURCE" = "hand" ]; then
-                         why="It isn't in JoFSlash/morphe-apks yet, and it can't be downloaded automatically (the app isn't on APKMirror). Update the app from Google Play on a phone, then add it and run the $NAME version workflow by hand with version $VERSION:
+                         why="It isn't in JoFSlash/morphe-apks yet, and it can't be downloaded automatically (the app isn't on APKMirror). Update the app from Google Play on a phone, then add it and run the App versions workflow by hand with app $APP and version $VERSION:
           \`\`\`
           adb shell pm path $PACKAGE
           adb pull <each path>
@@ -342,7 +342,7 @@ jobs:
           gh release create $APP-$VERSION -R JoFSlash/morphe-apks --title \"$NAME $VERSION\" $APP.apks
           \`\`\`"
                        else
-                         why="$SOURCE_NAME has $nofile of $VERSION yet. Wait until it has, or upload one you have, then run the $NAME version workflow by hand with version $VERSION:
+                         why="$SOURCE_NAME has $nofile of $VERSION yet. Wait until it has, or upload one you have, then run the App versions workflow by hand with app $APP and version $VERSION:
           \`\`\`
           $upload
           \`\`\`"
@@ -352,10 +352,10 @@ jobs:
                    else
                      why="**The $FILE_NAME from $SOURCE_NAME isn't $NAME's own** (wrong package, version or signature). It wasn't used or kept. Check $SOURCE_NAME by hand."
                    fi ;;
-              keepfail) why="The $FILE_NAME from $SOURCE_NAME is $NAME's own, but keeping it in morphe-apks failed. Check that APKS_TOKEN can write to the contents of JoFSlash/morphe-apks, then run the workflow by hand." ;;
+              keepfail) why="The $FILE_NAME from $SOURCE_NAME is $NAME's own, but keeping it in morphe-apks failed. Check that APKS_TOKEN can write to the contents of JoFSlash/morphe-apks, then run the App versions workflow by hand with app $APP and version $VERSION." ;;
               error) why="Getting or checking the $FILE_NAME failed for another reason (a tool or the script). See the run log." ;;
               notoken) why="The APKS_TOKEN secret isn't set, so the $FILE_NAME couldn't be fetched or kept." ;;
-              *) why="Patching or starting the app failed. Fix the patches that no longer apply, then run the workflow by hand with version $VERSION:
+              *) why="Patching or starting the app failed. Fix the patches that no longer apply, then run the App versions workflow by hand with app $APP and version $VERSION:
           \`\`\`
           $report
           \`\`\`" ;;

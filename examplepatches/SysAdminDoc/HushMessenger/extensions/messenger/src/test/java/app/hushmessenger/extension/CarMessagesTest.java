@@ -124,11 +124,11 @@ public class CarMessagesTest {
         }
     }
 
-    @Test public void theSwitchSitsUnderConversationsAndStartsOff() {
+    @Test public void theSwitchSitsUnderNotificationsAndStartsOff() {
         String[] spec = null;
         for (String[] control : SettingsActivity.CONTROLS) if (control[0].equals("car_messages")) spec = control;
         assertNotNull(spec);
-        assertEquals("conversations", spec[3]);
+        assertEquals("notifications", spec[3]);
         assertTrue(Settings.installed.contains("car_messages"));
         assertFalse(Settings.preferences.getBoolean("car_messages", false));
     }

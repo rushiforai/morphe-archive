@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Mode keys of the left column. Each one switches to a keyboard of the Japanese IME:
+     tri_state_digit is the 12-key number and symbol keyboard, alphabet the 12-key alphabet one.
+     The number key reads "123" rather than iOS's "☆123", so that all three labels are three characters. -->
+<framework>
+    <softkeys>
+        <softkey content_description="123" id="@id/ios_flick_key_digit" layout="{{0x7f0e0701}}" popup_timing="ON_TOUCH">
+            <action data="tri_state_digit" keycode="SWITCH_KEYBOARD" type="PRESS" />
+            <label location="{{0x7f0b05f5}}" value="123" />
+        </softkey>
+        <softkey content_description="ABC" id="@id/ios_flick_key_alphabet" layout="{{0x7f0e0701}}" popup_timing="ON_TOUCH">
+            <action data="alphabet" keycode="SWITCH_KEYBOARD" type="PRESS" />
+            <label location="{{0x7f0b05f5}}" value="ABC" />
+        </softkey>
+        <softkey content_description="あいう" id="@id/ios_flick_key_kana" layout="{{0x7f0e0701}}" popup_timing="ON_TOUCH">
+            <action data="prime" keycode="SWITCH_KEYBOARD" type="PRESS" />
+            <label location="{{0x7f0b05f5}}" value="あいう" />
+        </softkey>
+    </softkeys>
+</framework>

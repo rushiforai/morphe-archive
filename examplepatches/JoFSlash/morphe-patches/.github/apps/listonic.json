@@ -1,6 +1,5 @@
 {
   "name": "Listonic",
-  "workflow": "emulator-listonic.yml",
   "patches": "patches/src/main/kotlin/app/jofslash/patches/listonic",
   "extension": "extensions/listonic",
   "docs": "docs/listonic/README.md",

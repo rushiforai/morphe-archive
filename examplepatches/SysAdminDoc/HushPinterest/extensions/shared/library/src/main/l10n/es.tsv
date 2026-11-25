@@ -152,7 +152,7 @@ AI-labeled pins in lists	pines con etiqueta de IA en las listas
 Android sends pinterest.com and pin.it links to a patched Pinterest only after you select those addresses for it. Selecting them sends their links here. Your other link settings stay as they are.	Android envía los enlaces de pinterest.com y pin.it a un Pinterest parcheado solo después de que selecciones esas direcciones para él. Al seleccionarlas, sus enlaces llegan aquí. Tus otros ajustes de enlaces no cambian.
 Feed	Feed
 Hide AI-labeled pins	Ocultar pines con etiqueta de IA
-Removes pins that Pinterest labels as made or changed with AI from your home feed, search, related pins and boards. AI images without the label still show.	Quita de tu feed de inicio, la búsqueda, los pines relacionados y los tableros los pines que Pinterest marca como hechos o modificados con IA. Las imágenes de IA sin esa marca se siguen viendo.
+Removes pins that Pinterest labels as made or changed with AI from your home feed, search, related pins and other people's boards. AI images without the label still show.	Quita de tu feed de inicio, la búsqueda, los pines relacionados y los tableros de otras personas los pines que Pinterest marca como hechos o modificados con IA. Las imágenes de IA sin esa marca se siguen viendo.
 # context: a Feed switch right under Hide AI-labeled pins. It removes pins Pinterest doesn't label as AI when their own title or description says they're AI art, or when they come from a website that only hosts AI images. It has its own switch.
 Hide pins that say they're AI	Ocultar pines que dicen ser IA
 Removes pins without the label whose title or description calls them AI art, or that come from an AI image site. It goes by their words, so some still show.	Elimina pines sin la etiqueta cuyo título o descripción los llama arte con IA, o que vienen de un sitio de imágenes con IA. Se guía por sus palabras, así que algunos se siguen mostrando.
@@ -171,7 +171,7 @@ Hide shopping and product pins	Ocultar compras y pines de productos
 Hides product pins, shopping stories, featured boards and Shop the look under pins. Visit and Paid link stay.	Oculta pines de productos, historias de compras, tableros destacados y Shop the look bajo los pines. El enlace de visita y la etiqueta de enlace pagado se quedan.
 # context: a Feed switch under Hide shopping and product pins, from the Filter feed patch. It removes pins that play a video (video pins and idea pins with video) from the lists Pinterest shows. Photos and animated GIFs stay. The title is also the name of that part of the patch in the build report.
 Hide video pins	Ocultar pines de video
-Removes pins that play a video from your home feed, search, related pins and boards. Photos and GIFs stay.	Quita los pines que reproducen un video de tu feed de inicio, la búsqueda, los pines relacionados y los tableros. Las fotos y los GIF se quedan.
+Removes pins that play a video from your home feed, search, related pins and other people's boards. Photos and GIFs stay.	Quita los pines que reproducen un video de tu feed de inicio, la búsqueda, los pines relacionados y los tableros de otras personas. Las fotos y los GIF se quedan.
 Disable analytics	Desactivar estadísticas
 Stops usage reports and analytics tasks. Restart after turning off or pausing. Google's analytics stays off until you patch again without Disable analytics.	Detiene los informes de uso y las tareas de estadísticas. Reinicia tras desactivarlo o pausar. Las estadísticas de Google siguen desactivadas hasta que vuelvas a parchear sin el parche Desactivar estadísticas.
 Firebase and Google Analytics collection is turned off	La recopilación de Firebase y Google Analytics está desactivada
@@ -824,3 +824,68 @@ Show related pins	Mostrar pines relacionados
 # context: a Pin page switch on the Interface page, from the Let the screen sleep patch. Pinterest keeps the phone's screen on while one of its videos is on the screen. When this is on, the screen turns off after the phone's normal screen timeout instead. The title is also the patch's name in the build report and in the settings import preview
 Let the screen sleep	Dejar que la pantalla se apague
 Pinterest keeps the screen on while a video is on it, playing or not, so an open pin can keep the phone awake. With this on, the screen turns off after your phone's usual timeout, videos included. The change shows on the next pin you open.	Pinterest mantiene la pantalla encendida mientras haya un video en ella, se reproduzca o no, así que un pin abierto puede mantener el teléfono despierto. Con esto activado, la pantalla se apaga tras el tiempo de espera habitual de tu teléfono, también con videos. El cambio se ve en el siguiente pin que abras.
+Hide the refresh pill	Ocultar la píldora de actualizar
+Home no longer shows the pill that offers new pins after you've been away. Pull down on Home when you want them.	Inicio ya no muestra la píldora que ofrece pines nuevos cuando has estado fuera un rato. Desliza hacia abajo en Inicio cuando los quieras.
+Hide offline banner	Ocultar la barra sin conexión
+The bar at the top that says you're offline, then back online, no longer shows. The change shows the next time your connection drops.	La barra de arriba que dice que no tienes conexión y luego que vuelves a tenerla ya no se muestra. El cambio se ve la próxima vez que se corte tu conexión.
+Hide suggested searches	Ocultar búsquedas sugeridas
+The colored searches under the search bar on search results no longer show. The filter button stays. The change shows the next time you search.	Las búsquedas de colores bajo la barra de búsqueda en los resultados ya no se muestran. El botón de filtros se queda. El cambio se ve la próxima vez que busques.
+Swipe down to close pins	Desliza hacia abajo para cerrar pines
+Close a pin you opened by pulling it down. Pinterest built this gesture but only gives it to some accounts. Back and the back arrow work as before. The change shows on the next pin you open.	Cierra un pin que abriste deslizándolo hacia abajo. Pinterest creó este gesto, pero solo se lo da a algunas cuentas. Atrás y la flecha para volver funcionan como antes. El cambio se ve en el próximo pin que abras.
+Full-size profile photos	Fotos de perfil a tamaño completo
+Tap someone's profile photo on their profile to see it full size. Pinterest already does this for some accounts. The change shows on the next profile you open.	Toca la foto de perfil de alguien en su perfil para verla a tamaño completo. Pinterest ya lo hace para algunas cuentas. El cambio se ve en el próximo perfil que abras.
+Best video quality	Mejor calidad de video
+Plays videos at the largest size Pinterest has instead of capping them. Pinterest already does this for some accounts. It uses more data. The change shows on the next video you open.	Reproduce los videos al mayor tamaño que tiene Pinterest en vez de limitarlos. Pinterest ya lo hace para algunas cuentas. Usa más datos. El cambio se ve en el próximo video que abras.
+Board order when saving	Orden de tableros al guardar
+Lists your boards in the Save to sheet in the order your profile shows them, a custom order included, instead of A to Z. The change shows the next time you save a pin.	Muestra tus tableros en la hoja de Guardar en el orden de tu perfil, incluido un orden personalizado, en vez de la A a la Z. El cambio se ve la próxima vez que guardes un pin.
+Don't autoplay pin videos	No reproducir solos los videos de pines
+A video on a pin you open or swipe to waits for you to tap play instead of starting on its own. A pin you go back to stays paused too. The change shows on the next pin you open.	Un video en un pin que abres o al que deslizas espera a que toques reproducir en vez de empezar solo. Un pin al que vuelves también se queda en pausa. El cambio se ve en el próximo pin que abras.
+Start pin videos muted	Iniciar videos de pines sin sonido
+Every pin video you open or swipe to starts with the sound off, even if you turned it on for the last one. Tap the speaker to hear it. The change shows on the next pin you open.	Cada video de pin que abres o al que deslizas empieza sin sonido, aunque lo hayas activado en el anterior. Toca el altavoz para oírlo. El cambio se ve en el próximo pin que abras.
+Pinch to zoom only	Pellizcar solo para hacer zoom
+Pinching a pin's picture opens it full screen, where you can zoom in and drag it around, instead of loading pins that look like it. The change shows the next time you pinch a pin.	Al pellizcar la imagen de un pin, se abre en pantalla completa, donde puedes acercarla y moverla, en vez de cargar pines parecidos. El cambio se ve la próxima vez que pellizques un pin.
+Black buttons	Botones negros
+In dark mode, paints Pinterest's gray buttons, such as Message and Edit profile on a profile, pure black and keeps their labels. The chips over search results and the Refine your search rows go black too, and so does your account card in settings. Light mode stays as it is. The change shows the next time Pinterest draws a button.	En modo oscuro, pinta de negro puro los botones grises de Pinterest, como Mensaje y Editar perfil en un perfil, y deja sus textos. Los chips sobre los resultados de búsqueda y las filas de «Refina tu búsqueda» también se vuelven negros, igual que tu tarjeta de cuenta en los ajustes. El modo claro se queda como está. El cambio se ve la próxima vez que Pinterest dibuje un botón.
+Save color on other red buttons	Color de Guardar en otros botones rojos
+Paints Pinterest's other red buttons, such as Follow and Done, the color you picked for the Save button. Pick that color first. The change shows the next time Pinterest draws a button.	Pinta los demás botones rojos de Pinterest, como Seguir y Listo, del color que elegiste para el botón Guardar. Elige ese color primero. El cambio se ve la próxima vez que Pinterest dibuje un botón.
+Like and comment history	Historial de me gusta y comentarios
+Keeps a list of the pins you like and the comments you post. Open it from Your likes and comments below. The list stays on this phone.	Guarda una lista de los pines que te gustan y los comentarios que publicas. Ábrela abajo en Tus me gusta y comentarios. La lista se queda en este teléfono.
+Your likes and comments	Tus me gusta y comentarios
+See the pins you liked and commented on, newest first. The list keeps the newest 500.	Mira los pines que te gustaron y comentaste, primero los más recientes. La lista guarda los 500 más recientes.
+All	Todo
+Likes	Me gusta
+Comments	Comentarios
+Liked	Te gustó
+Commented	Comentaste
+Replied	Respondiste
+One entry. Tap it to open its pin.	Una entrada. Tócala para abrir su pin.
+%1$d entries, newest first. Tap one to open its pin.	%1$d entradas, primero las más recientes. Toca una para abrir su pin.
+Nothing here yet. Pins you like and comments you post show up here.	Todavía no hay nada. Aquí aparecen los pines que te gustan y los comentarios que publicas.
+Nothing here yet. Turn on Like and comment history to start a list.	Todavía no hay nada. Activa Historial de me gusta y comentarios para empezar una lista.
+No likes in the list.	No hay me gusta en la lista.
+No comments in the list.	No hay comentarios en la lista.
+Couldn't open the list. Try again.	No se pudo abrir la lista. Inténtalo de nuevo.
+Cleared your likes and comments.	Se borraron tus me gusta y comentarios.
+Couldn't clear the list. Try again.	No se pudo borrar la lista. Inténtalo de nuevo.
+likes	me gusta
+comments and replies	comentarios y respuestas
+# context: the name of a part of the AMOLED black patch in the build report and patch status, under the Black buttons switch. In dark mode it paints the gray chips over search results, such as Filter and the suggested searches, black.
+Black search filters	Filtros de búsqueda en negro
+# context: a Feed switch from the Filter feed patch, under Hide Home suggestions. It takes the lists Pinterest puts between search results under its own "Refine your search" heading (rows of suggested searches, each with a picture) out of the results. Use the words Pinterest shows for that heading in this language. The title is also the name of that part of the patch in the build report.
+Hide Refine your search	Ocultar «Refina tu búsqueda»
+# context: the summary under Hide Refine your search.
+Takes the "Refine your search" lists of suggested searches out of search results, and the pins close up where they were. The change shows the next time results load.	Quita de los resultados de búsqueda las listas «Refina tu búsqueda» con búsquedas sugeridas, y los Pins ocupan su lugar. El cambio se ve la próxima vez que se carguen los resultados.
+# context: the name of a part of the AMOLED black patch in the build report and patch status, under the Black buttons switch. In dark mode it paints the gray "Your account" card at the top of Pinterest's own settings (your photo, name, View profile and Share profile) black.
+Black account card in settings	Tarjeta de cuenta en negro en los ajustes
+# context: the name of a part of the AMOLED black patch in the build report and patch status, under the Black buttons switch. In dark mode it paints the gray rows of the "Refine your search" lists between search results black. Use the words Pinterest shows for that heading in this language.
+Black Refine your search rows	Filas de «Refina tu búsqueda» en negro
+Font file	Archivo de fuente
+Copying the font file	Copiando el archivo de fuente
+No font picked yet. Pick a .ttf or .otf file.	Aún no se eligió ninguna fuente. Elige un archivo .ttf u .otf.
+A font file is picked. Tap to pick another.	Hay un archivo de fuente elegido. Toca para elegir otro.
+%1$s is picked. Tap to pick another.	%1$s está elegido. Toca para elegir otro.
+Font file saved. Restart Pinterest to see it.	Archivo de fuente guardado. Reinicia Pinterest para verlo.
+That file is too large to be a font. Nothing was changed.	Ese archivo es demasiado grande para ser una fuente. No se cambió nada.
+That isn't a font file Android can use. Nothing was changed.	Ese no es un archivo de fuente que Android pueda usar. No se cambió nada.
+Custom font	Fuente personalizada
+Shows Pinterest's text in the font file you pick below. Icons keep their own font. Restart Pinterest to see the change.	Muestra el texto de Pinterest con el archivo de fuente que elijas abajo. Los iconos conservan su propia fuente. Reinicia Pinterest para ver el cambio.

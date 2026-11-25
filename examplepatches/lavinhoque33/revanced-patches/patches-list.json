@@ -1,5 +1,5 @@
 {
-  "version": "v1.49.0",
+  "version": "v1.51.0",
   "patches": [
     {
       "name": "Add to queue",
@@ -7,6 +7,10 @@
       "use": true,
       "dependencies": [
         "ResourcePatch",
+        "BytecodePatch",
+        "BytecodePatch",
+        "BytecodePatch",
+        "BytecodePatch",
         "BytecodePatch",
         "BytecodePatch",
         "BytecodePatch",
@@ -548,7 +552,7 @@
         {
           "key": "appIcon",
           "title": "App icon",
-          "description": "Icon used by Android and selected by default in the app. Choose Custom to use the Custom icon folder, or enter a resource folder path. Mounted (root) installs require patching again to change the launcher icon.",
+          "description": "Icon used by Android and selected by default in the app. Choose Custom to use the Custom icon folder, or enter a resource folder path. Mounted (root) installs require patching again to change the launcher icon. Turn off unused icon packs below; the selected startup icon is always kept.",
           "required": true,
           "type": "kotlin.String",
           "default": "original",
@@ -563,6 +567,8 @@
             "MMT Pink": "mmt_pink",
             "MMT Turquoise": "mmt_turquoise",
             "MMT Yellow": "mmt_yellow",
+            "Reseam": "reseam",
+            "ReVanced": "revanced",
             "Revancify Blue": "revancify_blue",
             "Revancify Red": "revancify_red",
             "Squid Game": "squid_game",
@@ -586,6 +592,231 @@
           "required": false,
           "type": "kotlin.String",
           "default": null,
+          "values": null
+        },
+        {
+          "key": "include_original",
+          "title": "Include icon: Stock",
+          "description": null,
+          "required": false,
+          "type": "kotlin.Boolean",
+          "default": true,
+          "values": null
+        },
+        {
+          "key": "include_afn_blue",
+          "title": "Include icon: AFN Blue",
+          "description": null,
+          "required": false,
+          "type": "kotlin.Boolean",
+          "default": true,
+          "values": null
+        },
+        {
+          "key": "include_afn_red",
+          "title": "Include icon: AFN Red",
+          "description": null,
+          "required": false,
+          "type": "kotlin.Boolean",
+          "default": true,
+          "values": null
+        },
+        {
+          "key": "include_mmt",
+          "title": "Include icon: MMT",
+          "description": null,
+          "required": false,
+          "type": "kotlin.Boolean",
+          "default": true,
+          "values": null
+        },
+        {
+          "key": "include_mmt_blue",
+          "title": "Include icon: MMT Blue",
+          "description": null,
+          "required": false,
+          "type": "kotlin.Boolean",
+          "default": true,
+          "values": null
+        },
+        {
+          "key": "include_mmt_green",
+          "title": "Include icon: MMT Green",
+          "description": null,
+          "required": false,
+          "type": "kotlin.Boolean",
+          "default": true,
+          "values": null
+        },
+        {
+          "key": "include_mmt_orange",
+          "title": "Include icon: MMT Orange",
+          "description": null,
+          "required": false,
+          "type": "kotlin.Boolean",
+          "default": true,
+          "values": null
+        },
+        {
+          "key": "include_mmt_pink",
+          "title": "Include icon: MMT Pink",
+          "description": null,
+          "required": false,
+          "type": "kotlin.Boolean",
+          "default": true,
+          "values": null
+        },
+        {
+          "key": "include_mmt_turquoise",
+          "title": "Include icon: MMT Turquoise",
+          "description": null,
+          "required": false,
+          "type": "kotlin.Boolean",
+          "default": true,
+          "values": null
+        },
+        {
+          "key": "include_mmt_yellow",
+          "title": "Include icon: MMT Yellow",
+          "description": null,
+          "required": false,
+          "type": "kotlin.Boolean",
+          "default": true,
+          "values": null
+        },
+        {
+          "key": "include_reseam",
+          "title": "Include icon: Reseam",
+          "description": null,
+          "required": false,
+          "type": "kotlin.Boolean",
+          "default": true,
+          "values": null
+        },
+        {
+          "key": "include_revanced",
+          "title": "Include icon: ReVanced",
+          "description": null,
+          "required": false,
+          "type": "kotlin.Boolean",
+          "default": true,
+          "values": null
+        },
+        {
+          "key": "include_revancify_blue",
+          "title": "Include icon: Revancify Blue",
+          "description": null,
+          "required": false,
+          "type": "kotlin.Boolean",
+          "default": true,
+          "values": null
+        },
+        {
+          "key": "include_revancify_red",
+          "title": "Include icon: Revancify Red",
+          "description": null,
+          "required": false,
+          "type": "kotlin.Boolean",
+          "default": true,
+          "values": null
+        },
+        {
+          "key": "include_squid_game",
+          "title": "Include icon: Squid Game",
+          "description": null,
+          "required": false,
+          "type": "kotlin.Boolean",
+          "default": true,
+          "values": null
+        },
+        {
+          "key": "include_vanced_black",
+          "title": "Include icon: Vanced Black",
+          "description": null,
+          "required": false,
+          "type": "kotlin.Boolean",
+          "default": true,
+          "values": null
+        },
+        {
+          "key": "include_vanced_light",
+          "title": "Include icon: Vanced Light",
+          "description": null,
+          "required": false,
+          "type": "kotlin.Boolean",
+          "default": true,
+          "values": null
+        },
+        {
+          "key": "include_xisr_aurora",
+          "title": "Include icon: Xisr Aurora",
+          "description": null,
+          "required": false,
+          "type": "kotlin.Boolean",
+          "default": true,
+          "values": null
+        },
+        {
+          "key": "include_xisr_evergreen",
+          "title": "Include icon: Xisr Evergreen",
+          "description": null,
+          "required": false,
+          "type": "kotlin.Boolean",
+          "default": true,
+          "values": null
+        },
+        {
+          "key": "include_xisr_special",
+          "title": "Include icon: Xisr Special",
+          "description": null,
+          "required": false,
+          "type": "kotlin.Boolean",
+          "default": true,
+          "values": null
+        },
+        {
+          "key": "include_xisr_white",
+          "title": "Include icon: Xisr White",
+          "description": null,
+          "required": false,
+          "type": "kotlin.Boolean",
+          "default": true,
+          "values": null
+        },
+        {
+          "key": "include_xisr_winter",
+          "title": "Include icon: Xisr Winter",
+          "description": null,
+          "required": false,
+          "type": "kotlin.Boolean",
+          "default": true,
+          "values": null
+        },
+        {
+          "key": "include_xisr_yellow",
+          "title": "Include icon: Xisr Yellow",
+          "description": null,
+          "required": false,
+          "type": "kotlin.Boolean",
+          "default": true,
+          "values": null
+        },
+        {
+          "key": "include_youtube",
+          "title": "Include icon: YouTube",
+          "description": null,
+          "required": false,
+          "type": "kotlin.Boolean",
+          "default": true,
+          "values": null
+        },
+        {
+          "key": "include_youtube_black",
+          "title": "Include icon: YouTube Black",
+          "description": null,
+          "required": false,
+          "type": "kotlin.Boolean",
+          "default": true,
           "values": null
         }
       ]
@@ -623,7 +854,7 @@
         {
           "key": "appIcon",
           "title": "App icon",
-          "description": "Icon used by Android and selected by default in the app. Choose Custom to use the Custom icon folder, or enter a resource folder path. Mounted (root) installs require patching again to change the launcher icon.",
+          "description": "Icon used by Android and selected by default in the app. Choose Custom to use the Custom icon folder, or enter a resource folder path. Mounted (root) installs require patching again to change the launcher icon. Turn off unused icon packs below; the selected startup icon is always kept.",
           "required": true,
           "type": "kotlin.String",
           "default": "original",
@@ -638,6 +869,8 @@
             "MMT Pink": "mmt_pink",
             "MMT Turquoise": "mmt_turquoise",
             "MMT Yellow": "mmt_yellow",
+            "Reseam": "reseam",
+            "ReVanced": "revanced",
             "Revancify Blue": "revancify_blue",
             "Revancify Red": "revancify_red",
             "Vanced Black": "vanced_black",
@@ -654,6 +887,168 @@
           "required": false,
           "type": "kotlin.String",
           "default": null,
+          "values": null
+        },
+        {
+          "key": "include_original",
+          "title": "Include icon: Stock",
+          "description": null,
+          "required": false,
+          "type": "kotlin.Boolean",
+          "default": true,
+          "values": null
+        },
+        {
+          "key": "include_afn_blue",
+          "title": "Include icon: AFN Blue",
+          "description": null,
+          "required": false,
+          "type": "kotlin.Boolean",
+          "default": true,
+          "values": null
+        },
+        {
+          "key": "include_afn_red",
+          "title": "Include icon: AFN Red",
+          "description": null,
+          "required": false,
+          "type": "kotlin.Boolean",
+          "default": true,
+          "values": null
+        },
+        {
+          "key": "include_mmt",
+          "title": "Include icon: MMT",
+          "description": null,
+          "required": false,
+          "type": "kotlin.Boolean",
+          "default": true,
+          "values": null
+        },
+        {
+          "key": "include_mmt_blue",
+          "title": "Include icon: MMT Blue",
+          "description": null,
+          "required": false,
+          "type": "kotlin.Boolean",
+          "default": true,
+          "values": null
+        },
+        {
+          "key": "include_mmt_green",
+          "title": "Include icon: MMT Green",
+          "description": null,
+          "required": false,
+          "type": "kotlin.Boolean",
+          "default": true,
+          "values": null
+        },
+        {
+          "key": "include_mmt_orange",
+          "title": "Include icon: MMT Orange",
+          "description": null,
+          "required": false,
+          "type": "kotlin.Boolean",
+          "default": true,
+          "values": null
+        },
+        {
+          "key": "include_mmt_pink",
+          "title": "Include icon: MMT Pink",
+          "description": null,
+          "required": false,
+          "type": "kotlin.Boolean",
+          "default": true,
+          "values": null
+        },
+        {
+          "key": "include_mmt_turquoise",
+          "title": "Include icon: MMT Turquoise",
+          "description": null,
+          "required": false,
+          "type": "kotlin.Boolean",
+          "default": true,
+          "values": null
+        },
+        {
+          "key": "include_mmt_yellow",
+          "title": "Include icon: MMT Yellow",
+          "description": null,
+          "required": false,
+          "type": "kotlin.Boolean",
+          "default": true,
+          "values": null
+        },
+        {
+          "key": "include_reseam",
+          "title": "Include icon: Reseam",
+          "description": null,
+          "required": false,
+          "type": "kotlin.Boolean",
+          "default": true,
+          "values": null
+        },
+        {
+          "key": "include_revanced",
+          "title": "Include icon: ReVanced",
+          "description": null,
+          "required": false,
+          "type": "kotlin.Boolean",
+          "default": true,
+          "values": null
+        },
+        {
+          "key": "include_revancify_blue",
+          "title": "Include icon: Revancify Blue",
+          "description": null,
+          "required": false,
+          "type": "kotlin.Boolean",
+          "default": true,
+          "values": null
+        },
+        {
+          "key": "include_revancify_red",
+          "title": "Include icon: Revancify Red",
+          "description": null,
+          "required": false,
+          "type": "kotlin.Boolean",
+          "default": true,
+          "values": null
+        },
+        {
+          "key": "include_vanced_black",
+          "title": "Include icon: Vanced Black",
+          "description": null,
+          "required": false,
+          "type": "kotlin.Boolean",
+          "default": true,
+          "values": null
+        },
+        {
+          "key": "include_vanced_light",
+          "title": "Include icon: Vanced Light",
+          "description": null,
+          "required": false,
+          "type": "kotlin.Boolean",
+          "default": true,
+          "values": null
+        },
+        {
+          "key": "include_youtube_music",
+          "title": "Include icon: YouTube Music",
+          "description": null,
+          "required": false,
+          "type": "kotlin.Boolean",
+          "default": true,
+          "values": null
+        },
+        {
+          "key": "include_xisr_yellow",
+          "title": "Include icon: Xisr Yellow",
+          "description": null,
+          "required": false,
+          "type": "kotlin.Boolean",
+          "default": true,
           "values": null
         }
       ]
@@ -1262,7 +1657,8 @@
         "BytecodePatch",
         "ResourcePatch",
         "BytecodePatch",
-        "BytecodePatch"
+        "BytecodePatch",
+        "ResourcePatch"
       ],
       "compatiblePackages": {
         "com.google.android.youtube": [
@@ -1498,6 +1894,48 @@
         "ResourcePatch",
         "ResourcePatch",
         "BytecodePatch"
+      ],
+      "compatiblePackages": {
+        "com.google.android.youtube": [
+          "21.39.525",
+          "21.45.90",
+          "21.13.164",
+          "20.05.46"
+        ]
+      },
+      "options": []
+    },
+    {
+      "name": "Glass menus",
+      "description": "Adds an optional frosted glass effect to menus on Android 12 and newer when the device supports window blur.",
+      "use": true,
+      "dependencies": [
+        "BytecodePatch",
+        "ResourcePatch",
+        "BytecodePatch",
+        "ResourcePatch"
+      ],
+      "compatiblePackages": {
+        "com.google.android.apps.youtube.music": [
+          "9.40.51",
+          "9.45.51",
+          "9.15.51",
+          "8.30.54",
+          "8.28.54",
+          "8.12.54"
+        ]
+      },
+      "options": []
+    },
+    {
+      "name": "Glass menus",
+      "description": "Adds an optional frosted glass effect to menus on Android 12 and newer when the device supports window blur.",
+      "use": true,
+      "dependencies": [
+        "BytecodePatch",
+        "ResourcePatch",
+        "BytecodePatch",
+        "ResourcePatch"
       ],
       "compatiblePackages": {
         "com.google.android.youtube": [
@@ -4109,6 +4547,26 @@
           "values": null
         }
       ]
+    },
+    {
+      "name": "Ungroup notifications",
+      "description": "Adds an option to show each video in grouped uploads as a separate entry in YouTube's Notifications tab.",
+      "use": true,
+      "dependencies": [
+        "BytecodePatch",
+        "ResourcePatch",
+        "BytecodePatch",
+        "BytecodePatch"
+      ],
+      "compatiblePackages": {
+        "com.google.android.youtube": [
+          "21.39.525",
+          "21.45.90",
+          "21.13.164",
+          "20.05.46"
+        ]
+      },
+      "options": []
     },
     {
       "name": "Unlock queue",

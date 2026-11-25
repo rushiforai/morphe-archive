@@ -21,3 +21,4 @@ plugins {
 }
 
 include(":stubs:earth")
+include(":stubs:moon")

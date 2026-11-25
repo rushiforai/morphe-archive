@@ -829,8 +829,10 @@ try {
     $sourceFlags = @([regex]::Matches([IO.File]::ReadAllText($statusSource), 'public static boolean ([A-Za-z0-9]+)\(\)') |
         ForEach-Object { $_.Groups[1].Value } | Sort-Object)
     Assert-True (($declaredFlags -join "`n") -ceq ($sourceFlags -join "`n")) 'Compiled contracts and production installed/capability flags differ.'
+    # A capability can have more than one mutation rule (Hide reblogs holds both post bridges), so the
+    # rules are read as a set; ownership is the families' column, where a repeat is a duplicate.
     $mutationCaps = @(Get-Content -LiteralPath $featureContracts | Where-Object { $_.StartsWith('mutation|') } |
-        ForEach-Object { ($_ -split '\|')[1] -split ',' } | Where-Object { $_ -ne 'settings' } | Sort-Object)
+        ForEach-Object { ($_ -split '\|')[1] -split ',' } | Where-Object { $_ -ne 'settings' } | Sort-Object -Unique)
     $familyCaps = @($families | ForEach-Object { $_.Caps } | Sort-Object)
     Assert-True (($mutationCaps -join "`n") -ceq ($familyCaps -join "`n")) 'A capability has no mutation rule or has duplicated ownership.'
     Invoke-Checked -Program $Java -Arguments @('-cp', $classPath, 'FeatureDexFixture', $dexDir, $featureContracts) `

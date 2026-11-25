@@ -158,11 +158,24 @@ internal fun MutableMethod.insertAtControlFlowLabel(
     vararg externalLabels: ExternalLabel
 ) {
     // Duplicate original instruction and add to +1 index.
-    addInstruction(insertIndex + 1, getInstruction(insertIndex))
+    val original = getInstruction(insertIndex)
+    addInstruction(insertIndex + 1, original)
+
+    // A label the code names on the original instruction itself, a jump past the code, goes with the
+    // copy. On the original it would slide onto the code's first line with the original's other
+    // labels when the original goes, and the jump would land on itself, a loop. The copy is the same
+    // instruction object, and the patcher finds a label's instruction at its first place, the
+    // original's, so the label is aimed at the copy's place instead, which the patcher moves past
+    // the code it adds. A label's name is internal to the patcher but equals is public, so the name
+    // comes from the code.
+    val names = Regex(""":(\w+)""").findAll(instructions).map { it.groupValues[1] }.toSet()
+    val labels = externalLabels.map { label ->
+        names.firstOrNull { label == ExternalLabel(it, original) }?.let { ExternalLabel(it, insertIndex + 1) } ?: label
+    }
 
     // Add patch code at same index as duplicated instruction,
     // so it uses the original instruction control flow label.
-    addInstructionsWithLabels(insertIndex + 1, instructions, *externalLabels)
+    addInstructionsWithLabels(insertIndex + 1, instructions, *labels.toTypedArray())
 
     // Remove original non duplicated instruction.
     removeInstruction(insertIndex)

@@ -7,53 +7,53 @@
 [![Static Badge](https://img.shields.io/badge/Telegram-Community-gray?logo=telegram&color=%2326A5E4)](https://t.me/AnddeaChat)   [![Static Badge](https://img.shields.io/badge/Reddit-YTAdvanced-gray?logo=reddit&color=red)](https://www.reddit.com/r/YTadvanced)
 </div>
 
-<!-- modified by lavinhoque33, 2026-11-10: Morphe Manager stable and dev source instructions. -->
-## Morphe Manager
+<!-- modified by lavinhoque33, 2026-11-25: shared Manager source instructions. -->
+## Patch Managers
 
-### Stable builds
-
-To add this fork as an updatable patch source:
-
-1. Open **Sources** on Morphe Manager's home screen, tap **+**, and choose **Remote**.
-2. Paste this patch source URL:
-
-   ```text
-   https://raw.githubusercontent.com/lavinhoque33/revanced-patches/rvx-latest/patches-bundle.json
-   ```
-
-3. Tap **Add**. The source appears as **RVX Patches**.
-4. When patching YouTube or YouTube Music, select this source. Do not combine its patches with Morphe's
-   patches for the same app.
-
-Use the source's **Update** button to fetch newer bundles, then patch and install the app again.
-Updating the source alone does not update an installed app.
-
-Use the full URL above. A bare repository link resolves to upstream metadata on `main`. If Manager 2.7.x
-shows v4.3.0 release notes for RVX, add the URL above as a separate source and select it instead. The older
-`refs/heads/rvx-latest` URL still downloads the right bundle, but Manager reads the wrong changelog.
-
-### Dev builds (prereleases)
-
-For dev builds, add this URL as a **second source** using **Sources > + > Remote**:
+Add this repository as one remote patch source:
 
 ```text
-https://raw.githubusercontent.com/lavinhoque33/revanced-patches/rvx-dev/patches-bundle.json
+https://github.com/lavinhoque33/revanced-patches
 ```
 
-Select the dev source instead of the stable source when patching if you want dev builds.
-Do not combine the two sources' patches for the same app.
+### Morphe Manager
 
-Manager's own **Pre-release patches** switch does not appear for this source. The dev feed is a separate
-source, not a switch on the stable source.
+1. Open **Sources**, tap **+**, paste the repository URL into **Source URL**, and tap **Add**.
+2. Leave **Pre-release patches** off on the RVX source for stable releases. Turn it on to
+   follow the newest bundle from either channel. You do not need a second source.
+3. Select **RVX Patches** when patching YouTube or YouTube Music. Do not combine it with
+   another patch source for the same app.
 
-These bundles declare **YouTube 21.45.90** and **YouTube Music 9.45.51** as experimental app targets.
-Manager's **Experimental app versions** switch is available for this source. Suggested versions remain
-**YouTube 21.39.525** and **YouTube Music 9.40.51**.
-If a download search offers `21.45.90-EXTENDED`, choose the plain `21.45.90` APK instead. The two
-manifest versions are different; do not override the compatibility warning.
+The existing [stable](https://raw.githubusercontent.com/lavinhoque33/revanced-patches/rvx-latest/patches-bundle.json)
+and [dev](https://raw.githubusercontent.com/lavinhoque33/revanced-patches/rvx-dev/patches-bundle.json)
+JSON links still work as separate, fixed-channel sources in Morphe Manager. To use the
+channel switch, add the repository URL above and select that source instead.
 
-You can also download a `.mpp` from a release and import it via **Sources > + > Local**.
-Local imports do not update automatically; import the new `.mpp` for each update.
+Both bundles declare **YouTube 21.45.90** and **YouTube Music 9.45.51** as experimental app
+targets. On the repository source, Morphe offers **Experimental app versions** when
+**Pre-release patches** is on. Suggested versions remain **YouTube 21.39.525** and
+**YouTube Music 9.40.51**. If a download search offers `21.45.90-EXTENDED`, choose plain
+`21.45.90`; the APK manifest versions differ.
+
+### UP Manager
+
+Open **Patch Bundles → Add**, then enter the same repository URL. In the bundle settings,
+leave **Use latest** and **Use pre-releases** off for stable. Enable **Use latest** to
+follow the most recently published stable or dev release. **Use pre-releases** by itself
+follows dev releases only.
+
+Published patch bundles reach the Manager feeds automatically. To use an update, refresh the
+source, then repatch and reinstall your app. Refreshing a source alone does not update installed apps.
+For a local import in Morphe Manager, open **Sources → + → Select patch source files** and choose the `.mpp`.
+Local sources must be updated manually.
+
+<!--
+Fork release maintenance: attach patches-<version>.mpp before publishing vX.Y.Z (stable) or vX.Y.Z-dev.N (prerelease).
+Sync Manager feeds runs on publication and checks again every 30 minutes. It mirrors GitHub Latest to main/rvx-latest
+and the newest higher-version prerelease, or stable if none is newer, to dev/rvx-dev.
+Use Actions > Sync Manager feeds > Run workflow on rvx-latest to sync on demand.
+main/dev are Manager metadata mirrors, not source or release build branches.
+-->
 
 ## 📋 List of patches in this repository
 

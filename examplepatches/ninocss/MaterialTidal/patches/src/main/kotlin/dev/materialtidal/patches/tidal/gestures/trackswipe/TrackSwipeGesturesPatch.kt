@@ -34,6 +34,8 @@ import com.android.tools.smali.dexlib2.iface.reference.TypeReference
 import com.android.tools.smali.dexlib2.immutable.ImmutableMethod
 import com.android.tools.smali.dexlib2.immutable.ImmutableMethodParameter
 import dev.materialtidal.patches.shared.COMPATIBILITY_TIDAL
+import dev.materialtidal.patches.shared.EXTENSION_PATH
+import dev.materialtidal.patches.shared.MATERIAL_YOU_CONFIG_CLASS
 
 private const val CONFIG_CLASS = "Ldev/materialtidal/extension/tidal/gestures/TrackSwipeConfig;"
 private const val BRIDGE_CLASS = "Ldev/materialtidal/extension/tidal/gestures/TidalActionBridge;"
@@ -58,19 +60,19 @@ private fun actionNameToCode(name: String?): Int = when (name) {
 @Suppress("unused")
 val trackSwipeGesturesPatch = patch(
     name = "Track swipe gestures",
-    description = "Adds Material 3 Expressive swipe gestures to track rows (queue, play next, favorite, add to playlist).",
+    description = "Adds spring-back left and right swipe actions to track rows across playlists, albums, search, and your library (Add to Queue, Play Next, Favorite, or Add to Playlist).",
     default = true,
 ) {
     compatibleWith(COMPATIBILITY_TIDAL)
 
-    extendWith("extensions/tidal.mpe")
+    extendWith(EXTENSION_PATH)
 
     val swipeRightOption by stringOption(
         key = "swipeRightAction",
         default = "Add to Queue",
         values = ACTION_CHOICES,
         title = "Swipe right action",
-        description = "Action triggered when swiping a track row to the right.",
+        description = "Action triggered when swiping a track row to the right (also adjustable live in Settings → MaterialTidal).",
         required = true,
     )
 
@@ -79,7 +81,7 @@ val trackSwipeGesturesPatch = patch(
         default = "Toggle Favorite",
         values = ACTION_CHOICES,
         title = "Swipe left action",
-        description = "Action triggered when swiping a track row to the left.",
+        description = "Action triggered when swiping a track row to the left (also adjustable live in Settings → MaterialTidal).",
         required = true,
     )
 
@@ -87,7 +89,7 @@ val trackSwipeGesturesPatch = patch(
         key = "hapticFeedback",
         default = true,
         title = "Haptic feedback",
-        description = "Vibrate subtly when crossing the swipe threshold and triggering an action.",
+        description = "Vibrate subtly when crossing the swipe threshold and triggering an action (also adjustable live in Settings → MaterialTidal).",
         required = true,
     )
 
@@ -95,23 +97,25 @@ val trackSwipeGesturesPatch = patch(
         key = "swipeThresholdDp",
         default = 72,
         title = "Swipe threshold (dp)",
-        description = "Horizontal drag distance in dp required to trigger a swipe action (36–160).",
+        description = "Horizontal drag distance in dp required to trigger a swipe action (36–160; also adjustable live via slider in Settings → MaterialTidal).",
         required = true,
         validator = { it != null && it in 36..160 },
     )
 
     execute {
         // 1. Configure TrackSwipeConfig options.
+        mutableClassDefBy(MATERIAL_YOU_CONFIG_CLASS)
+            .methods.single { it.name == "isTrackSwipePatchInstalled" }.returnEarly(true)
         val configClass = mutableClassDefBy(CONFIG_CLASS)
         val rightCode = actionNameToCode(swipeRightOption)
         val leftCode = actionNameToCode(swipeLeftOption)
         val hapticEnabled = hapticOption ?: true
         val thresholdDp = thresholdDpOption ?: 72
 
-        configClass.methods.single { it.name == "getSwipeRightAction" }.returnEarly(rightCode)
-        configClass.methods.single { it.name == "getSwipeLeftAction" }.returnEarly(leftCode)
-        configClass.methods.single { it.name == "isHapticEnabled" }.returnEarly(hapticEnabled)
-        configClass.methods.single { it.name == "getSwipeThresholdDp" }.returnEarly(thresholdDp)
+        configClass.methods.single { it.name == "defaultSwipeRightAction" }.returnEarly(rightCode)
+        configClass.methods.single { it.name == "defaultSwipeLeftAction" }.returnEarly(leftCode)
+        configClass.methods.single { it.name == "defaultHapticEnabled" }.returnEarly(hapticEnabled)
+        configClass.methods.single { it.name == "defaultSwipeThresholdDp" }.returnEarly(thresholdDp)
 
         // 2. Resolve resource IDs.
         val addedToQueueStrId = resourceId(ResourceType.STRING, "added_to_play_queue")

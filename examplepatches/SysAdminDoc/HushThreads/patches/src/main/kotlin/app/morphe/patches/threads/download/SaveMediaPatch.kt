@@ -18,13 +18,14 @@ import app.morphe.patches.threads.feed.Reaching
 import app.morphe.patches.threads.feed.reaching
 import app.morphe.patches.threads.feed.writes
 import app.morphe.patches.threads.misc.extension.EXTENSION_PACKAGE
+import app.morphe.patches.threads.misc.extension.classesNoted
 import app.morphe.patches.threads.misc.extension.enableStatus
+import app.morphe.patches.threads.misc.extension.holdsNote
 import app.morphe.patches.threads.misc.extension.requireStatusMethod
 import app.morphe.patches.threads.misc.extension.threadsExtensionPatch
 import app.morphe.patches.threads.misc.extension.writeStub
 import app.morphe.patches.threads.misc.settings.implementFunction0
 import app.morphe.patches.threads.misc.settings.settingsPatch
-import app.morphe.patches.threads.misc.theme.holdsNote
 import app.morphe.util.ControlFlow
 import app.morphe.util.findMutableMethodOf
 import app.morphe.util.getReference
@@ -212,7 +213,7 @@ internal fun BytecodePatchContext.saveRowSite(): SaveRowSite {
         }
         .map { it.type }.distinct()
         .singleOrPatchException("$PATCH: the post menu's Copy link item, the class whose toString says \"$COPY_LINK\"")
-    val menu = classDefByStrings(MENU_NOTE, StringComparisonType.STARTS_WITH).flatMap { it.methods }
+    val menu = classesNoted(MENU_NOTE).flatMap { it.methods }
         .filter { it.holdsNote(MENU_NOTE) && it.body().any { i -> i.isInstanceOf(copyLink) } }
         .distinctBy { "${it.definingClass}->${it.name}${it.parameterTypes.joinToString("")}${it.returnType}" }
         .singleOrPatchException("$PATCH: the post menu, the lambda holding \"$MENU_NOTE\" that checks for Copy link")

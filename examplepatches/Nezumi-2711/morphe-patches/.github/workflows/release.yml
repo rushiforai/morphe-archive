@@ -12,6 +12,8 @@ jobs:
       packages: write
       id-token: write
       attestations: write
+      issues: write
+      pull-requests: write
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -64,3 +66,23 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: ./gradlew :patches:buildAndroid clean --no-daemon
+
+      # semantic-release only understands Closes/Fixes keywords; handle `Refs #n` here.
+      - name: Comment on referenced tickets
+        if: steps.release.outputs.new_release_published == 'true'
+        continue-on-error: true
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: .github/scripts/comment_tickets.sh "${{ steps.release.outputs.new_release_git_tag }}"
+
+      # Stable release only: close tickets that semantic-release commented on and labeled
+      # `released`. Tickets stay open during pre-releases (label `in-prerelease`).
+      - name: Close released tickets
+        if: steps.release.outputs.new_release_published == 'true' && github.ref_name == 'main'
+        continue-on-error: true
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          for n in $(gh issue list --state open --label released --json number --jq '.[].number'); do
+            gh issue close "$n" --reason completed || echo "::warning::Could not close #$n"
+          done

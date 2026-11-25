@@ -44,19 +44,19 @@ internal object AppCompatibilities {
      * The telegram.org release every patch here was applied to and read against. telegram.org
      * moves on its own schedule, so it can trail [TELEGRAM_PLAY_TARGET_VERSION].
      */
-    const val TELEGRAM_TARGET_VERSION = "13.2.2"
+    const val TELEGRAM_TARGET_VERSION = "13.3.1"
 
     /** The Play release every patch here was applied to and read against. */
-    const val TELEGRAM_PLAY_TARGET_VERSION = "13.2.2"
+    const val TELEGRAM_PLAY_TARGET_VERSION = "13.3.1"
 
     /**
      * The version code of the Play build's universal [TELEGRAM_PLAY_TARGET_VERSION] APK on
      * APKMirror. It carries every ABI, so the one code stands for arm64-v8a too.
      */
-    const val TELEGRAM_PLAY_TARGET_VERSION_CODE = 73031
+    const val TELEGRAM_PLAY_TARGET_VERSION_CODE = 73461
 
     /** The version code of telegram.org's [TELEGRAM_TARGET_VERSION] APK, also universal. */
-    const val TELEGRAM_TARGET_VERSION_CODE = 73039
+    const val TELEGRAM_TARGET_VERSION_CODE = 73469
 
     /**
      * HushTelegram's floor, Android 9. Telegram itself runs from Android 5, but the extension's

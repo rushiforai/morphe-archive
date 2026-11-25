@@ -75,7 +75,7 @@ public class RowChevronTest {
     /** Every row on the screen whose tap opens a dialog, a file picker, the browser, Android's settings or another page. */
     private static final Set<String> OPENS_SOMETHING = new LinkedHashSet<>(Arrays.asList(
             "Jump to a section", "Supported links", "Android notification settings", "HushPinterest language",
-            "Export settings", "Import settings", "Pick a download folder", "Download history",
+            "Export settings", "Import settings", "Pick a download folder", "Download history", "Your likes and comments",
             "Export diagnostic report", "Source code and issues", "Licenses", "Release notes", "Update instructions",
             "Setup and backup guide", "Muted words", "Pinterest's own AI setting", "Save button color",
             "Pick a save sound", "Board name position", "Pick pin menu rows"));

@@ -4,20 +4,24 @@
  */
 package app.morphe.patches.instagram.feed.homereels
 
+import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
 import app.morphe.patcher.patch.BytecodePatchContext
 import app.morphe.patcher.patch.PatchException
 import app.morphe.patcher.patch.bytecodePatch
 import app.morphe.patches.instagram.misc.extension.EXTENSION_PACKAGE
+import app.morphe.patches.instagram.misc.extension.classesLoading
 import app.morphe.patches.instagram.misc.extension.classesLoadingString
 import app.morphe.patches.instagram.misc.extension.enableStatus
 import app.morphe.patches.instagram.misc.extension.freeLocalsAt
 import app.morphe.patches.instagram.misc.extension.instagramExtensionPatch
+import app.morphe.patches.instagram.misc.extension.jumpTargets
 import app.morphe.patches.instagram.misc.extension.loadsString
 import app.morphe.patches.instagram.misc.extension.localRegisterCount
 import app.morphe.patches.instagram.misc.extension.methodsCalling
 import app.morphe.patches.instagram.misc.extension.requireStatusMethod
 import app.morphe.patches.instagram.misc.extension.stringLoadedAt
 import app.morphe.patches.instagram.misc.settings.settingsPatch
+import app.morphe.patches.instagram.reels.cleanup.loadsLiteral
 import app.morphe.patches.shared.compat.AppCompatibilities
 import app.morphe.util.addInstructionsAtControlFlowLabel
 import com.android.tools.smali.dexlib2.AccessFlags
@@ -35,6 +39,13 @@ import com.android.tools.smali.dexlib2.iface.reference.MethodReference
 
 internal const val HOME_REELS_STATUS = "homeReelsBelowName"
 internal const val BELOW_NAME = "$EXTENSION_PACKAGE/feed/HomeReelHeader;->belowName(Ljava/lang/String;)Z"
+internal const val WHOLE_REEL = "$EXTENSION_PACKAGE/feed/HomeReelHeader;->wholeReel(FFLjava/lang/String;)F"
+
+/** The narrowest shape the feed gives a post's media, 4:5, as its media state builder loads it. */
+internal const val NARROWEST_POST = 0x3f4ccccdL
+
+/** The post the media state builder works on, Instagram's own class name. */
+internal const val MEDIA = "Lcom/instagram/feed/media/Media;"
 
 /** What the feed's full-height test compares a post's kind with before anything else: a live video Instagram recommends. */
 internal const val LIVE_IN_FEED = "recommended_live_in_feed"
@@ -225,6 +236,122 @@ internal fun BytecodePatchContext.keepHomeReelsBelowName(sites: HomeReelSites) {
     )
 }
 
+/**
+ * Home's media state builder (#788): [method] on [owner] works out the shape a post's media is shown
+ * at, a reel laid out like a post held to 4:5 at its narrowest, and hands that and the media's own
+ * shape to the state's constructor. At [at] the shape shown, just read into v[shown], moves on toward
+ * the constructor. The media's own shape is in v[own], written once before, and the feed's analytics
+ * host in the parameter v[host], whose module name [moduleName] reads. v[scratch] are free there.
+ */
+internal class PostShapeSite(
+    val owner: String,
+    val method: String,
+    val at: Int,
+    val shown: Int,
+    val own: Int,
+    val host: Int,
+    val moduleName: String,
+    val scratch: List<Int>,
+)
+
+/**
+ * The one instance method taking the [MEDIA] first and returning an object that loads [NARROWEST_POST]
+ * and calls a private (float, float, int, boolean) float method of its own class, the clamp. It builds
+ * the state once, with a constructor taking two floats: the media's own shape, then the shape shown.
+ * The shown one comes out of the float field of a (boolean, float) holder, read once and moved on to
+ * the register the constructor takes it from. It asks the analytics host one module name.
+ */
+internal fun BytecodePatchContext.findPostShape(): PostShapeSite {
+    val found = classesLoading(NARROWEST_POST).flatMap { it.methods }.filter { method ->
+        !method.isStatic() && method.returnType.startsWith("L") &&
+            method.parameterTypes.firstOrNull()?.toString() == MEDIA && method.loadsLiteral(NARROWEST_POST) &&
+            method.code().any { call -> call.opcode == Opcode.INVOKE_DIRECT && call.call()?.isClampOf(method.definingClass) == true }
+    }
+    val builder = found.singleOrNull()
+        ?: refuse("expected one media state builder calling a (float, float, int, boolean) clamp, found ${found.map { it.text() }}")
+    val code = builder.code()
+    val text = builder.text()
+
+    val makes = code.indices.filter { at ->
+        val called = code[at].call()
+        code[at].opcode == Opcode.INVOKE_DIRECT_RANGE && called?.definingClass == builder.returnType && called.name == "<init>"
+    }
+    val make = makes.singleOrNull() ?: refuse("expected $text to build ${builder.returnType} once, found ${makes.size}")
+    val types = code[make].call()!!.parameterTypes.map { it.toString() }
+    val floats = types.indices.filter { types[it] == "F" }
+    if (floats.size != 2) refuse("${builder.returnType}'s constructor takes ${floats.size} floats, not the media's own shape and the one shown")
+    val start = (code[make] as Instruction3rc).startRegister
+    val own = start + 1 + types.take(floats[0]).sumOf { it.width() }
+    val kept = start + 1 + types.take(floats[1]).sumOf { it.width() }
+
+    val holders = code.mapNotNull { call ->
+        call.call()?.takeIf { called ->
+            call.opcode == Opcode.INVOKE_DIRECT && called.name == "<init>" && called.parameterTypes.map { it.toString() } == listOf("Z", "F")
+        }?.definingClass
+    }.toSet()
+    val reads = code.indices.filter { at ->
+        val field = code[at].reference() as? FieldReference
+        code[at].opcode == Opcode.IGET && field != null && field.definingClass in holders && field.type == "F"
+    }
+    val read = reads.singleOrNull() ?: refuse("expected $text to read one (boolean, float) holder's float, found ${reads.size}")
+    val shown = (code[read] as TwoRegisterInstruction).registerA
+    val at = read + 1
+    val move = code.getOrNull(at) as? TwoRegisterInstruction
+    if (move == null || move.opcode !in FLOAT_MOVES || move.registerB != shown) refuse("$text doesn't move the shape shown on after reading it")
+    val handed = code.any { it.opcode in FLOAT_MOVES && (it as TwoRegisterInstruction).registerA == kept && it.registerB == move.registerA }
+    if (!handed) refuse("$text doesn't hand v${move.registerA} to the constructor's shape shown in v$kept")
+    if (shown > 15) refuse("$text reads the shape shown into v$shown, past v15")
+    if (at in builder.jumpTargets()) refuse("something in $text jumps onto $at")
+
+    val ownWrites = code.indices.filter { code[it].writesRegister(own) }
+    if (ownWrites.size != 1 || ownWrites.single() > read) refuse("$text writes the media's own shape in v$own at $ownWrites")
+    val asks = code.mapNotNull { it.call() }
+        .filter { it.name == MODULE_NAME && it.parameterTypes.isEmpty() && it.returnType == STRING }.map { it.toString() }.distinct()
+    val moduleName = asks.singleOrNull() ?: refuse("expected $text to ask one module name, found $asks")
+    val module = moduleName.substringBefore("->")
+    val position = builder.parameterTypes.indexOfFirst { type ->
+        type.toString() == module || classDefByOrNull(type.toString())?.interfaces?.contains(module) == true
+    }
+    if (position < 0) refuse("$text takes no $module")
+    val host = builder.localRegisterCount() + 1 + builder.parameterTypes.take(position).sumOf { it.width() }
+    if (code.any { it.writesRegister(host) }) refuse("$text writes over its analytics host in v$host")
+    val scratch = builder.freeLocalsAt("Reels on Home below the name", at, 2, except = listOf(shown))
+    return PostShapeSite(builder.definingClass, builder.signature(), at, shown, own, host, moduleName, scratch)
+}
+
+/** The moves a float takes from one register to another. */
+private val FLOAT_MOVES = setOf(Opcode.MOVE, Opcode.MOVE_FROM16, Opcode.MOVE_16)
+
+/** Whether [this] is a private (float, float, int, boolean) float method of [owner]. */
+private fun MethodReference.isClampOf(owner: String): Boolean =
+    definingClass == owner && returnType == "F" && parameterTypes.map { it.toString() } == listOf("F", "F", "I", "Z")
+
+/** Whether [this] instruction puts a value in v[register]. */
+private fun Instruction.writesRegister(register: Int): Boolean =
+    opcode.setsRegister() && (this as? OneRegisterInstruction)?.registerA == register ||
+        opcode.setsWideRegister() && (this as? OneRegisterInstruction)?.registerA == register - 1
+
+/**
+ * Right after the builder reads the shape shown, it goes through the extension with the media's own
+ * shape and the feed's module name, so a reel laid out below the name on Home keeps its own shape.
+ */
+internal fun BytecodePatchContext.keepHomeReelsWhole(site: PostShapeSite) {
+    val builder = mutableClassDefBy(site.owner).methods.singleOrNull { it.signature() == site.method }
+        ?: refuse("${site.owner}->${site.method} is gone")
+    val (module, own) = site.scratch.map { "v$it" }
+    builder.addInstructions(
+        site.at,
+        """
+            move-object/from16 $module, v${site.host}
+            invoke-interface { $module }, ${site.moduleName}
+            move-result-object $module
+            move/from16 $own, v${site.own}
+            invoke-static { v${site.shown}, $own, $module }, $WHOLE_REEL
+            move-result v${site.shown}
+        """,
+    )
+}
+
 private fun Method.code(): List<Instruction> = implementation?.instructions?.toList().orEmpty()
 private fun Method.isStatic() = AccessFlags.STATIC.isSet(accessFlags)
 private fun Method.signature() = "$name(${parameterTypes.joinToString("")})$returnType"
@@ -235,13 +362,14 @@ private fun CharSequence.width() = if (toString() == "J" || toString() == "D") 2
 
 /**
  * Lays reels on Home out like every other post, the name and the three-dot menu above the video
- * instead of on top of it (#788). See HomeReelHeader in the extension. Off to start.
+ * instead of on top of it, and the whole video, not cut to 4:5 (#788). See HomeReelHeader in the
+ * extension. Off to start.
  */
 @Suppress("unused")
 val homeReelsBelowNamePatch = bytecodePatch(
     name = "Reels on Home below the name",
     description = "Shows reels on Home like other posts, with the name and the three-dot menu above the " +
-        "video instead of on top of it. Starts off. Turn it on in HushGram settings > Feed and Reels.",
+        "whole video instead of on top of it. Starts off. Turn it on in HushGram settings > Feed and Reels.",
 ) {
     category("Interaction")
     dependsOn(settingsPatch, instagramExtensionPatch)
@@ -251,6 +379,7 @@ val homeReelsBelowNamePatch = bytecodePatch(
         requireStatusMethod(HOME_REELS_STATUS)
         val sites = findHomeReels()
         keepHomeReelsBelowName(sites)
+        keepHomeReelsWhole(findPostShape())
         enableStatus(HOME_REELS_STATUS)
     }
 }

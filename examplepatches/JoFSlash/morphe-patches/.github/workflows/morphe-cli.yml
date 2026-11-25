@@ -1,6 +1,6 @@
 name: Morphe CLI
 
-# The emulator, feed and Quora version workflows patch Quora with the Morphe CLI release named in
+# The emulator, feed and version workflows patch the apps with the Morphe CLI release named in
 # .github/morphe-cli-version. Dependabot can't see that file, so this workflow looks once a week for
 # a newer stable release (pre-releases are left out). For a newer one it runs the emulator test
 # with it and then opens a pull request that changes the file, or an issue when the test fails.
@@ -27,9 +27,6 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v7
-        with:
-          # Pull requests go to dev, so they start from dev (or from the branch a test run is on).
-          ref: ${{ github.ref_name == 'main' && 'dev' || github.ref_name }}
 
       - name: Check
         id: check
@@ -57,9 +54,10 @@ jobs:
     permissions:
       contents: write
       packages: read
-    uses: ./.github/workflows/emulator.yml
+    uses: ./.github/workflows/emulator-app.yml
     secrets: inherit
     with:
+      app: quora
       cli-version: ${{ needs.check.outputs.version }}
 
   report:
@@ -80,9 +78,6 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v7
-        with:
-          # Pull requests go to dev, so they start from dev (or from the branch a test run is on).
-          ref: ${{ github.ref_name == 'main' && 'dev' || github.ref_name }}
 
       - name: Open a pull request or an issue
         run: |
@@ -98,7 +93,7 @@ jobs:
               "Morphe CLI $VERSION is out ([release notes]($notes)); the workflows use $CURRENT. With $VERSION every patch applies and the patched app starts on the Android 15, 16 and 17 emulators ([run]($RUN_URL))." \
               "Opened by the Morphe CLI workflow. Checks don't run on pull requests it opens; this run tested it.")
             git push -f origin "$branch"
-            gh pr create --base dev --head "$branch" --title "ci: Morphe CLI $VERSION" --body "$body"
+            gh pr create --base main --head "$branch" --title "ci: Morphe CLI $VERSION" --body "$body"
             exit 0
           fi
           title="Morphe CLI $VERSION fails the emulator test"

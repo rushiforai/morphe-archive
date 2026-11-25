@@ -18,7 +18,7 @@ class GboardCompatibilitySourceTest {
         val constants = readSource(CONSTANTS_PATH)
 
         assertEquals(GBOARD_PACKAGE, COMPATIBILITY_GBOARD.packageName)
-        assertEquals(ApkFileType.APK, COMPATIBILITY_GBOARD.apkFileType)
+        assertEquals(ApkFileType.APKM, COMPATIBILITY_GBOARD.apkFileType)
         assertEquals(EXPECTED_SIGNATURES, COMPATIBILITY_GBOARD.signatures)
         assertEquals(listOf(TARGET_VERSION), COMPATIBILITY_GBOARD.targets.map { it.version })
         assertTrue(COMPATIBILITY_GBOARD.targets.none { it.isExperimental })

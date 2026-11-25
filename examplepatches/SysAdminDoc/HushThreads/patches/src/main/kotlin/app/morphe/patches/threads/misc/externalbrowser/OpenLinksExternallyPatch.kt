@@ -14,6 +14,7 @@ import app.morphe.patcher.patch.bytecodePatch
 import app.morphe.patcher.string
 import app.morphe.patcher.util.smali.ExternalLabel
 import app.morphe.patches.shared.compat.AppCompatibilities
+import app.morphe.patches.threads.feed.reaching
 import app.morphe.patches.threads.misc.extension.enableStatus
 import app.morphe.patches.threads.misc.extension.localRegisterCount
 import app.morphe.patches.threads.misc.extension.requireLocals
@@ -24,6 +25,7 @@ import com.android.tools.smali.dexlib2.AccessFlags
 import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.iface.Method
 import com.android.tools.smali.dexlib2.iface.instruction.FiveRegisterInstruction
+import com.android.tools.smali.dexlib2.iface.instruction.Instruction
 import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.TwoRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.reference.FieldReference
@@ -132,7 +134,11 @@ internal fun Method.parameterRegister(index: Int): Int {
     return localRegisterCount() + widths.take(index).sum()
 }
 
-/** The String field the instance launcher parses with `java.net.URI`, followed back from the parse. */
+/**
+ * The String field the instance launcher parses with `java.net.URI`, followed back along every path
+ * to the parse. 456 runs an offer of Meta's browser between the entry and the parse and jumps over
+ * it, so the instructions right in front of the parse aren't the ones that ran before it.
+ */
 internal fun Method.linkField(): FieldReference {
     val instructions = implementation!!.instructions.toList()
     val parse = instructions.indexOfFirst { instruction ->
@@ -144,26 +150,36 @@ internal fun Method.linkField(): FieldReference {
     }
     if (parse < 0) throw PatchException("$PATCH: $definingClass->$name never parses a link with java.net.URI")
 
-    var register = (instructions[parse] as FiveRegisterInstruction).registerD
-    for (at in parse - 1 downTo 0) {
-        val instruction = instructions[at]
+    val fields = linkFields(instructions, parse, (instructions[parse] as FiveRegisterInstruction).registerD, mutableSetOf())
+    return fields.singleOrNull()
+        ?: throw PatchException("$PATCH: $definingClass->$name parses ${fields.size} different fields as its link")
+}
+
+/** The fields [register] was read from when the instruction at [at] runs, through any moves. */
+private fun Method.linkFields(
+    instructions: List<Instruction>,
+    at: Int,
+    register: Int,
+    seen: MutableSet<Int>,
+): Set<FieldReference> {
+    val notAField = "$PATCH: $definingClass->$name parses a String that isn't one of its fields"
+    val reach = reaching(at, setOf(register))
+    if (reach.fromEntry) throw PatchException(notAField)
+    return reach.writes.filter(seen::add).flatMap { write ->
+        val instruction = instructions[write]
         when (instruction.opcode) {
-            Opcode.MOVE_OBJECT, Opcode.MOVE_OBJECT_FROM16, Opcode.MOVE_OBJECT_16 -> {
-                val move = instruction as TwoRegisterInstruction
-                if (move.registerA == register) register = move.registerB
-            }
+            Opcode.MOVE_OBJECT, Opcode.MOVE_OBJECT_FROM16, Opcode.MOVE_OBJECT_16 ->
+                linkFields(instructions, write, (instruction as TwoRegisterInstruction).registerB, seen)
             Opcode.IGET_OBJECT -> {
-                val read = instruction as TwoRegisterInstruction
-                val field = instruction.getReference<FieldReference>() ?: continue
-                if (read.registerA == register && field.type == "Ljava/lang/String;") return field
+                val field = instruction.getReference<FieldReference>()!!
+                if (field.type != "Ljava/lang/String;" || field.definingClass != definingClass) throw PatchException(notAField)
+                listOf(field)
             }
-            Opcode.NEW_INSTANCE -> Unit
             else -> throw PatchException(
-                "$PATCH: $definingClass->$name runs ${instruction.opcode.name} at $at before it parses the link",
+                "$PATCH: $definingClass->$name runs ${instruction.opcode.name} at $write before it parses the link",
             )
         }
-    }
-    throw PatchException("$PATCH: $definingClass->$name parses a String that isn't one of its fields")
+    }.toSet()
 }
 
 /** The one Context field of the instance launcher's class. */

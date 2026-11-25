@@ -43,7 +43,7 @@ import app.hushpinterest.extension.shared.settings.HushPinterestPause;
  * takes no room and TalkBack skips it. Off or paused, Pinterest's own visibility goes through, and
  * the next closeup's button shows as usual. The lens's label has a switch of its own, see
  * {@link #searchLabel}, and the red Save button can be made smaller and painted, see
- * {@link #saveButton}.
+ * {@link #saveButton}, which can paint Pinterest's other red buttons too.
  */
 public final class CloseupButtons {
     private CloseupButtons() {}
@@ -251,20 +251,30 @@ public final class CloseupButtons {
      * translation does when a pin's likes and comments take most of the row, is pulled back onto one
      * (#38), see {@link #fit}. Each call first takes back what an earlier one did, so the switch
      * going off, the color cleared, a pin with more room or a pause shows Pinterest's button again.
+     * With its own switch on, Pinterest's other red buttons, such as Follow on a profile and Done
+     * after you edit it, take the saved color the same way (#48), and a button Pinterest turns
+     * another color, the way Follow turns gray once you follow, keeps that one. AMOLED black hands
+     * every button over at the same spot for Black buttons, see {@link AmoledBlack#gestaltButton}.
      */
     public static void saveButton(View button) {
-        if (button == null || saveId == 0) return;
+        if (button == null) return;
+        boolean save = false;
         try {
             if (saveId < 0) saveId = id(button, "save_pinit_bt");
-            if (saveId == 0 || button.getId() != saveId) return;
-            shrink(button, UiHooks.enabled(FamilyNames.HIDE_CLOSEUP_BUTTONS, Settings.SMALLER_SAVE_BUTTON));
-            if (button instanceof TextView) {
-                paint((TextView) button, Utils.settingsReady()
-                        ? SaveButtonColorSetting.color(SaveButtonColorSetting.SAVE_BUTTON_COLOR.get()) : null);
-                oneLine((TextView) button, !HushPinterestPause.isPaused());
+            save = saveId != 0 && button.getId() == saveId;
+            if (save) {
+                shrink(button, UiHooks.enabled(FamilyNames.HIDE_CLOSEUP_BUTTONS, Settings.SMALLER_SAVE_BUTTON));
+                if (button instanceof TextView) {
+                    paint((TextView) button, Utils.settingsReady()
+                            ? SaveButtonColorSetting.color(SaveButtonColorSetting.SAVE_BUTTON_COLOR.get()) : null, "save button painted");
+                    oneLine((TextView) button, !HushPinterestPause.isPaused());
+                }
+            } else if (button instanceof TextView) {
+                paint((TextView) button, UiHooks.enabled(FamilyNames.HIDE_CLOSEUP_BUTTONS, Settings.SAVE_COLOR_ON_RED_BUTTONS)
+                        ? SaveButtonColorSetting.color(SaveButtonColorSetting.SAVE_BUTTON_COLOR.get()) : null, "red button painted");
             }
         } catch (RuntimeException failure) {
-            HookStatus.threw(FamilyNames.HIDE_CLOSEUP_BUTTONS, "save button", failure);
+            HookStatus.threw(FamilyNames.HIDE_CLOSEUP_BUTTONS, save ? "save button" : "red button", failure);
         }
     }
 
@@ -405,15 +415,18 @@ public final class CloseupButtons {
         }
     }
 
-    private static void paint(TextView button, @Nullable Integer color) {
+    private static void paint(TextView button, @Nullable Integer color, String what) {
         Painted was = PAINTED.remove(button);
         ColorStateList now = button.getBackgroundTintList();
         // Pinterest puts its colors on only when they change, so what's still ours goes back first.
-        if (was != null && now == was.paint) {
+        // A new look from Pinterest brings its own text color, which can be the very same object as
+        // ours, since ColorStateList.valueOf hands out one per color: its near-black is DARK_TEXT.
+        boolean ours = was != null && now == was.paint;
+        if (ours) {
             tint(button, was.red);
             now = was.red;
         }
-        if (was != null && was.dark != null && button.getTextColors() == was.dark) button.setTextColor(was.text);
+        if (ours && was.dark != null && button.getTextColors() == was.dark) button.setTextColor(was.text);
         if (color == null || !red(now)) return;
         ColorStateList paint = ColorStateList.valueOf(color);
         ColorStateList text = null, dark = null;
@@ -425,19 +438,27 @@ public final class CloseupButtons {
         }
         tint(button, paint);
         PAINTED.put(button, new Painted(now, paint, text, dark));
-        HookStatus.counted(FamilyNames.HIDE_CLOSEUP_BUTTONS, "save button painted");
+        HookStatus.counted(FamilyNames.HIDE_CLOSEUP_BUTTONS, what);
     }
 
-    /** Pinterest's red, in light or dark mode, and not the gray or black of Saved. */
+    /** Whether [button] wears a color saved for Save, which Black buttons leaves alone. */
+    static boolean painted(View button) {
+        return PAINTED.containsKey(button);
+    }
+
+    /**
+     * Pinterest's red, #E60023 in light mode and the lighter #F84F4F (saturation 0.68) its buttons
+     * take in dark mode, and not the gray or black of Saved or a pale pink like #FF8F8F.
+     */
     private static boolean red(@Nullable ColorStateList colors) {
         if (colors == null) return false;
         float[] hsv = new float[3];
         Color.colorToHSV(colors.getDefaultColor(), hsv);
-        return (hsv[0] >= 340f || hsv[0] <= 10f) && hsv[1] >= 0.75f && hsv[2] >= 0.6f;
+        return (hsv[0] >= 340f || hsv[0] <= 10f) && hsv[1] >= 0.6f && hsv[2] >= 0.6f;
     }
 
     /** The way Pinterest colors a Gestalt button: the background's tint and its shape's under a ripple. */
-    private static void tint(View button, ColorStateList colors) {
+    static void tint(View button, ColorStateList colors) {
         button.setBackgroundTintList(colors);
         Drawable background = button.getBackground();
         if (background instanceof RippleDrawable && ((RippleDrawable) background).getNumberOfLayers() > 0) {

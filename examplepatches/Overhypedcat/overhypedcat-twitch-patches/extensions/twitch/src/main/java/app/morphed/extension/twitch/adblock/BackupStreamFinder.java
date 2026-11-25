@@ -62,8 +62,13 @@ public final class BackupStreamFinder {
      * starves the player; the poll cuts the ad out instead and the next one uses what was found.
      */
     static final long PLAYER_WAIT_MS = 1_500;
-    /** How long a poll waits to refresh the backup already in use. */
-    static final long REFRESH_TIMEOUT_MS = 1_500;
+    /**
+     * How long a poll waits for the backup in use to be refreshed: a refresh slower than this is left to finish
+     * while the poll gets the backup's last playlist, and the next poll takes it (a poll never waits long on it).
+     */
+    static final long REFRESH_WAIT_MS = 300;
+    /** A refresh still not in after this long has failed. */
+    static final long REFRESH_TIMEOUT_MS = 4_000;
     /**
      * Refreshes in a row that may fail before the backup in use is given up. One slow answer is
      * bridged by serving its last playlist; after that it has no new segments left to give.
@@ -123,17 +128,32 @@ public final class BackupStreamFinder {
         Result committed = session.backupResults.get(key);
         if (committed != null) {
             // Own threads: a search's slow requests must not hold up the stream already being served.
-            Future<String> refresh = REFRESHES.submit(() -> fetchPlaylist(committed.url));
+            StreamSession.Refresh pending = session.refreshes.get(key);
+            if (pending == null || !pending.url.equals(committed.url)) {
+                String url = committed.url;
+                pending = new StreamSession.Refresh(url, REFRESHES.submit(() -> fetchPlaylist(url)), System.nanoTime());
+                session.refreshes.put(key, pending);
+            }
             String playlist;
             String failure = null;
             try {
-                playlist = refresh.get(REFRESH_TIMEOUT_MS, TimeUnit.MILLISECONDS);
+                playlist = pending.future.get(REFRESH_WAIT_MS, TimeUnit.MILLISECONDS);
+                session.refreshes.remove(key, pending);
                 if (playlist == null) failure = "refresh failed";
-            } catch (TimeoutException | InterruptedException e) {
-                refresh.cancel(true);
+            } catch (TimeoutException e) {
+                if ((System.nanoTime() - pending.startedAt) / 1_000_000 < REFRESH_TIMEOUT_MS) {
+                    // Still on its way: the backup's last playlist now, the refresh on the next poll.
+                    return committed;
+                }
+                pending.future.cancel(true);
+                session.refreshes.remove(key, pending);
                 playlist = null;
                 failure = "too slow to refresh";
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+                return committed;
             } catch (ExecutionException e) {
+                session.refreshes.remove(key, pending);
                 playlist = null;
                 failure = "refresh crashed (" + e.getCause() + ")";
                 problems.report(Problem.PROCESSING_FAILED, "backup refresh: " + e.getCause());
@@ -346,7 +366,12 @@ public final class BackupStreamFinder {
             // The media playlist could not be loaded: the cached master has expired.
             attempt.master = null;
             master = null;
-            if (fresh) break;
+            if (fresh) {
+                // Not loaded even from a fresh master playlist: a failure, not an ad (counted towards E2).
+                attempt.failed = true;
+                attempt.error = playerType + ": its media playlist couldn't be loaded";
+                break;
+            }
         }
         return attempt;
     }

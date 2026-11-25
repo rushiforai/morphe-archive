@@ -598,16 +598,21 @@ export function collectInventory(
     });
   }
   if (workflowInputs['tool:node']?.length) {
+    const declared = workflowInputs['tool:node'][0].val;
     items.push({
       id: 'tool:node',
       ecosystem: 'tool',
-      name: 'node-lts',
+      name: 'node',
       locations: workflowInputs['tool:node'].map((l) => `${l.file}:${l.line}`),
-      declared: 'lts/*',
-      resolved: 'lts/*',
+      declared,
+      resolved: declared,
       latest: null,
-      status: 'moving',
-      reason: 'Channel follows Node.js LTS releases in release CI',
+      ...(declared === 'lts/*'
+        ? {
+            status: 'moving' as const,
+            reason: 'Channel follows Node.js LTS releases in release CI',
+          }
+        : { status: 'current' as const }),
     });
   }
 
@@ -629,22 +634,6 @@ export function collectInventory(
       resolved: leafletVer,
       latest: null,
       status: 'current',
-    });
-  }
-
-  const releaseWorkflowRel = '.github/workflows/release.yml';
-  if (fs.existsSync(path.resolve(repoRoot, releaseWorkflowRel))) {
-    registerInput(releaseWorkflowRel);
-    items.push({
-      id: `npm:${releaseWorkflowRel}#extra_plugins/@semantic-release/github`,
-      ecosystem: 'npm',
-      name: '@semantic-release/github',
-      locations: [`${releaseWorkflowRel}:79`],
-      declared: 'latest',
-      resolved: 'latest',
-      latest: null,
-      status: 'moving',
-      reason: 'Moving @latest plugin in semantic-release workflow',
     });
   }
 

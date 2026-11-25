@@ -1,6 +1,5 @@
 {
   "name": "Google Health",
-  "workflow": "emulator-google-health.yml",
   "patches": "patches/src/main/kotlin/app/jofslash/patches/googlehealth",
   "extension": "extensions/googlehealth",
   "docs": "docs/google-health/README.md",

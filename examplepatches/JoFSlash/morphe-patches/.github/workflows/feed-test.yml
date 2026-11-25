@@ -6,7 +6,7 @@ name: Feed test
 # every Quora class name the patches use (dom_annotate_*, puppeteer_test_*) on both pages and lists
 # them in the job summary; the ones the app's page check relies on must be there.
 #
-# It runs when Quora's patches or this test change on dev, and a pass is recorded for that code and
+# It runs when Quora's patches or this test change on main, and a pass is recorded for that code and
 # day (.github/scripts/tested.py). The release runs it only when it hasn't passed for the current code
 # in the last few days, and releases only when it passes. It also runs by hand. Not on pull requests
 # or daily: frequent sign-ins from new emulators could get the test account locked.
@@ -14,7 +14,7 @@ name: Feed test
 # A run on main that doesn't pass (a failed check, or a skip because the session no longer works)
 # opens the issue "Feed test needs attention", or comments on it; the next run that passes closes it.
 # It needs these secrets:
-#   APKS_TOKEN     read access to JoFSlash/morphe-apks (see emulator.yml)
+#   APKS_TOKEN     read access to JoFSlash/morphe-apks (see emulator-app.yml)
 #   QUORA_TEST_EMAIL     a Quora account made only for this test
 #   QUORA_TEST_PASSWORD  its password
 #   QUORA_TEST_COOKIES   a signed-in session of that account (m-b=…; m-b_lax=…; …), used instead of
@@ -30,7 +30,7 @@ name: Feed test
 
 on:
   push:
-    branches: [dev]
+    branches: [main]
     paths:
       - 'patches/src/main/kotlin/app/jofslash/patches/quora/**'
       - 'extensions/quora/**'
@@ -182,7 +182,7 @@ jobs:
           python3 .github/scripts/tested.py feed-record
 
       - name: Open or close the issue
-        if: always() && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/dev') && steps.outcome.outputs.result != ''
+        if: always() && github.ref == 'refs/heads/main' && steps.outcome.outputs.result != ''
         env:
           GH_TOKEN: ${{ github.token }}
           RESULT: ${{ steps.outcome.outputs.result }}

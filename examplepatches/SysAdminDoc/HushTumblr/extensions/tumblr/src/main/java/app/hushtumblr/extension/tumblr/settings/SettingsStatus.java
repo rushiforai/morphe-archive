@@ -104,6 +104,16 @@ public final class SettingsStatus {
     public static boolean suggestedTagCards() { return false; }
     public static boolean hideWatchItRows() { return false; }
     public static boolean watchItRows() { return false; }
+    public static boolean hideMorePostsLikeThis() { return false; }
+    public static boolean textSize() { return false; }
+    public static boolean fontScale() { return false; }
+    public static boolean moreImagesPerPost() { return false; }
+    public static boolean imageLimit() { return false; }
+    public static boolean fixHardToReadText() { return false; }
+    public static boolean readableText() { return false; }
+    public static boolean darkSearchBarAndFollow() { return false; }
+    public static boolean darkControls() { return false; }
+    public static boolean morePostsLikeThis() { return false; }
     public static boolean hideFeaturedPosts() { return false; }
     public static boolean featuredPosts() { return false; }
     public static boolean hideHashtags() { return false; }
@@ -137,6 +147,8 @@ public final class SettingsStatus {
     public static boolean reblogsOfYours() { return false; }
     public static boolean hideLikedPosts() { return false; }
     public static boolean likedPosts() { return false; }
+    public static boolean hideFollowedInForYou() { return false; }
+    public static boolean followedInForYou() { return false; }
     public static boolean hideVideoPosts() { return false; }
     public static boolean videoPosts() { return false; }
     public static boolean hidePhotoPosts() { return false; }

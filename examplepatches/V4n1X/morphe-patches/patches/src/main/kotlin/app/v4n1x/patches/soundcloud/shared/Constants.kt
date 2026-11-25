@@ -24,6 +24,10 @@ object Constants {
                 minSdk = 29,
                 isExperimental = true,
                 description = "All five patches verified locally; on-device validation pending.",
+            ),
+            AppTarget(
+                version = "2026.11.20-release",
+                minSdk = 29,
             )
         )
     )

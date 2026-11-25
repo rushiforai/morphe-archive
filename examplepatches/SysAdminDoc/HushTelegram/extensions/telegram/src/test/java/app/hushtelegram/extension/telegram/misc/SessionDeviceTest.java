@@ -75,53 +75,53 @@ public class SessionDeviceTest {
     }
 
     @Test public void emptyBoxesKeepTelegramsBuildNumber() {
-        assertEquals(73039, SessionDevice.version(73039));
+        assertEquals(73469, SessionDevice.version(73469));
         Settings.SESSION_DEVICE_NAME.save("  \t ");
         Settings.SESSION_SYSTEM_VERSION.save("\n");
-        assertEquals("only spaces is empty", 73039, SessionDevice.version(73039));
+        assertEquals("only spaces is empty", 73469, SessionDevice.version(73469));
     }
 
     @Test public void eachSavedPairGetsItsOwnBuildNumberSoItGoesOutOnce() {
         Settings.SESSION_DEVICE_NAME.save("Office PC");
-        int office = SessionDevice.version(73039);
-        assertNotEquals("a saved name makes the connection send the device again", 73039, office);
-        assertEquals("the same name keeps its number, so it isn't sent every launch", office, SessionDevice.version(73039));
+        int office = SessionDevice.version(73469);
+        assertNotEquals("a saved name makes the connection send the device again", 73469, office);
+        assertEquals("the same name keeps its number, so it isn't sent every launch", office, SessionDevice.version(73469));
         assertEquals("the number follows what goes out, not how it was typed", office,
-                withName(" Office \n PC ", () -> SessionDevice.version(73039)));
+                withName(" Office \n PC ", () -> SessionDevice.version(73469)));
 
         Settings.SESSION_DEVICE_NAME.save("Home PC");
-        int home = SessionDevice.version(73039);
+        int home = SessionDevice.version(73469);
         assertNotEquals("a second name goes out too", office, home);
-        assertNotEquals(73039, home);
+        assertNotEquals(73469, home);
 
         Settings.SESSION_SYSTEM_VERSION.save("Windows 11");
-        int homeWindows = SessionDevice.version(73039);
+        int homeWindows = SessionDevice.version(73469);
         assertNotEquals("a system version alone changes it", home, homeWindows);
 
         Settings.SESSION_DEVICE_NAME.resetToDefault();
-        int windows = SessionDevice.version(73039);
-        assertNotEquals("the system version by itself still goes out", 73039, windows);
+        int windows = SessionDevice.version(73469);
+        assertNotEquals("the system version by itself still goes out", 73469, windows);
         assertNotEquals(homeWindows, windows);
 
         Settings.SESSION_SYSTEM_VERSION.resetToDefault();
-        assertEquals("clearing both sends Telegram's own again", 73039, SessionDevice.version(73039));
-        assertNotEquals("an app update still changes the number", SessionDevice.version(73039), SessionDevice.version(73040));
+        assertEquals("clearing both sends Telegram's own again", 73469, SessionDevice.version(73469));
+        assertNotEquals("an app update still changes the number", SessionDevice.version(73469), SessionDevice.version(73470));
     }
 
     @Test public void theBuildNumberFollowsWhatTheDeviceHooksSend() {
         Settings.SESSION_DEVICE_NAME.save("Office PC");
-        SettingsContextRule.withoutContext(() -> assertEquals(73039, SessionDevice.version(73039)));
+        SettingsContextRule.withoutContext(() -> assertEquals(73469, SessionDevice.version(73469)));
         SettingReadsForTests.breakReads(Settings.SESSION_DEVICE_NAME);
         try {
-            assertEquals("a read that comes back empty sends Telegram's own name, and its number", 73039,
-                    SessionDevice.version(73039));
+            assertEquals("a read that comes back empty sends Telegram's own name, and its number", 73469,
+                    SessionDevice.version(73469));
         } finally {
             SettingReadsForTests.mend(Settings.SESSION_DEVICE_NAME);
         }
     }
 
     @Test public void aFoldedNumberIsNeverTheStockOneOrZero() {
-        for (int stock : new int[] {73039, 73031, 1, -1, -2, Integer.MIN_VALUE, Integer.MAX_VALUE}) {
+        for (int stock : new int[] {73469, 73461, 1, -1, -2, Integer.MIN_VALUE, Integer.MAX_VALUE}) {
             for (int mix : new int[] {stock, 0, 1, -1, ~stock, stock ^ 1}) {
                 int folded = SessionDevice.fold(stock, mix);
                 assertNotEquals(stock + " with " + mix + " is the connection's not started mark", 0, folded);

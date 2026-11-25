@@ -47,7 +47,7 @@ class PaywallActivityFingerprintTest {
     )
 
     @Test
-    fun `all five activities match the public final signatures observed in Citizen 1318`() {
+    fun `all five activities match the public final signatures observed in Citizen 1320`() {
         activities.forEach { (fingerprint, type) ->
             val method = method(type)
             fingerprint.clearMatch()

@@ -588,6 +588,7 @@ class GboardPortProductCatalogContractTest {
             "custom_theme" to "version-sensitive",
             "custom_symbols" to "version-sensitive",
             "developer_options" to "version-sensitive",
+            "disable_play_store_updates" to "generic",
             "editing_access_points" to "version-sensitive",
             "emojis_stickers_gifs_tab_order" to "version-sensitive",
             "enable_inline_autofill_suggestions" to "version-sensitive",

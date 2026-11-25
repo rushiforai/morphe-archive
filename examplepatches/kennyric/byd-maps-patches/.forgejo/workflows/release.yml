@@ -1,0 +1,124 @@
+name: Release
+on:
+  workflow_dispatch:
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false
+jobs:
+  policy:
+    runs-on: codeberg-medium
+    timeout-minutes: 9
+    env:
+      GIT_AUTHOR_NAME: johninnl
+      GIT_AUTHOR_EMAIL: 349981574+johninnl@users.noreply.github.com
+      GIT_COMMITTER_NAME: johninnl
+      GIT_COMMITTER_EMAIL: 349981574+johninnl@users.noreply.github.com
+    steps:
+      - uses: https://code.forgejo.org/actions/checkout@v4
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: https://github.com/actions/setup-node@v4
+        with:
+          node-version: '24'
+      - uses: https://github.com/actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+      - uses: https://github.com/android-actions/setup-android@v3
+        with:
+          packages: platform-tools
+      - name: Install native assembly test compiler
+        run: |
+          apt-get update
+          apt-get install -y --no-install-recommends clang
+      - run: npm ci --ignore-scripts
+      - name: Prepare Python regression tools
+        run: |
+          python3 -m venv .venv
+          .venv/bin/pip install -r docs/site-requirements.txt
+      - name: Audit candidate history
+        run: node .forgejo/scripts/identity.cjs --history
+      - name: Run regression and release-policy tests
+        run: |
+          node --test tests/test_release_branding.cjs tests/test_preview_release.cjs tests/test_identity.cjs tests/test_release_discovery.cjs tests/test_codeberg.cjs tests/test_gitgud.cjs tests/test_gitlab.cjs
+          .venv/bin/python -m unittest discover -s tests
+  android:
+    runs-on: codeberg-medium
+    timeout-minutes: 9
+    env:
+      SHARED_MAPS_API_KEY: ${{ secrets.SHARED_MAPS_API_KEY }}
+      BRIGHT_ARTICLE_SIGNING_KEY: ${{ secrets.BRIGHT_ARTICLE_SIGNING_KEY }}
+    steps:
+      - uses: https://code.forgejo.org/actions/checkout@v4
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: https://github.com/actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+      - uses: https://github.com/android-actions/setup-android@v3
+        with:
+          packages: platform-tools
+      - name: Android preflight and extension tests
+        run: |
+          ./gradlew :patches:buildAndroid :patches:test :extensions:medium-reader:testDebugUnitTest :extensions:medium-privacy:testDebugUnitTest :extensions:waze:testDebugUnitTest :extensions:flitsmeister:testDebugUnitTest :extensions:vela:testDebugUnitTest :extensions:extension:testDebugUnitTest :extensions:gearslip:testDebugUnitTest :extensions:maps-gearslip:testDebugUnitTest :extensions:soundcloud:testDebugUnitTest --no-daemon -Dorg.gradle.jvmargs=-Xmx2g
+          python3 scripts/medium/check_bundle.py
+          python3 -m unittest discover -s scripts/medium/tests
+  release:
+    needs: [policy, android]
+    runs-on: codeberg-medium
+    timeout-minutes: 9
+    if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/dev'
+    env:
+      CODEBERG_TOKEN: ${{ secrets.JOHNINNL_CODEBERG_TOKEN }}
+      GIT_AUTHOR_NAME: johninnl
+      GIT_AUTHOR_EMAIL: 349981574+johninnl@users.noreply.github.com
+      GIT_COMMITTER_NAME: johninnl
+      GIT_COMMITTER_EMAIL: 349981574+johninnl@users.noreply.github.com
+      MORPHE_SIGNING_KEY: ${{ secrets.MORPHE_SIGNING_KEY }}
+      SHARED_MAPS_API_KEY: ${{ secrets.SHARED_MAPS_API_KEY }}
+      BRIGHT_ARTICLE_SIGNING_KEY: ${{ secrets.BRIGHT_ARTICLE_SIGNING_KEY }}
+    steps:
+      - uses: https://code.forgejo.org/actions/checkout@v4
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.JOHNINNL_CODEBERG_TOKEN }}
+      - uses: https://github.com/actions/setup-node@v4
+        with:
+          node-version: '24'
+      - uses: https://github.com/actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+      - uses: https://github.com/android-actions/setup-android@v3
+        with:
+          packages: platform-tools
+      - name: Verify publisher and history before building or publishing
+        run: node .forgejo/scripts/identity.cjs --release
+      - name: Verify required signing and build secrets
+        run: node .forgejo/scripts/check_secrets.cjs
+      - run: npm ci --ignore-scripts
+      - name: Prepare documentation tools
+        run: |
+          python3 -m venv .venv
+          .venv/bin/pip install -r docs/site-requirements.txt
+      - name: Publish signed bundle through semantic-release
+        run: node .forgejo/scripts/release.cjs
+      - name: Verify published discovery and bundle bytes
+        run: node .forgejo/scripts/discovery.cjs
+      - name: Build the published documentation
+        if: github.ref == 'refs/heads/main'
+        run: |
+          .venv/bin/python scripts/generate_docs_catalog.py
+          .venv/bin/python scripts/check_docs_app_pages.py
+          .venv/bin/python -m mkdocs build --strict
+          .venv/bin/python scripts/check_docs_site.py
+      - name: Deploy Codeberg Pages
+        if: github.ref == 'refs/heads/main'
+        uses: https://codeberg.org/git-pages/action@v2
+        with:
+          site: https://johninnl.codeberg.page/nl-morphe-patches/
+          token: ${{ github.token }}
+          source: build/docs-site/

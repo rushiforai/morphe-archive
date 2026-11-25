@@ -23,6 +23,7 @@ import app.morphe.util.ControlFlow
 import app.morphe.util.addInstructionsAtControlFlowLabel
 import app.morphe.util.call
 import app.morphe.util.namedRegisters
+import app.morphe.util.writesReaching
 import com.android.tools.smali.dexlib2.AccessFlags
 import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.iface.ClassDef
@@ -48,6 +49,7 @@ internal const val PROXY_DIALOG = "Lorg/telegram/tgnet/TLRPC\$Dialog;"
 internal const val PROXY_CHAT = "Lorg/telegram/tgnet/TLRPC\$Chat;"
 internal const val SHARED_PROMO_REQUEST = "Lorg/telegram/tgnet/TLRPC\$TL_help_getPromoData;"
 private const val ARRAY_LIST = "Ljava/util/ArrayList;"
+private val OBJECT_MOVES = setOf(Opcode.MOVE_OBJECT, Opcode.MOVE_OBJECT_FROM16, Opcode.MOVE_OBJECT_16)
 
 @Suppress("unused")
 val hideSponsoredProxyPatch = bytecodePatch(
@@ -152,20 +154,31 @@ internal fun BytecodePatchContext.resolveProxyHooks(): ProxyPlan {
                 (destination == owner || (instruction.opcode.setsWideRegister() && destination + 1 == owner))
         }, "presentation owner is not the intact sorting controller")
 
+    // 13.3.1 gave includesDialog a last boolean that the sort passes through untouched.
+    val inclusion = listOf("Lorg/telegram/messenger/AccountInstance;", "J", PROXY_DIALOG)
     val include = instructions.indices.filter { index -> instructions[index].call()?.let { call ->
         call.origDefiningClass == MESSAGES_CONTROLLER.dropLast(1) + "\$DialogFilter;" && call.origName == "includesDialog" &&
-            call.hasShape(listOf("Lorg/telegram/messenger/AccountInstance;", "J", PROXY_DIALOG), "Z")
+            (call.hasShape(inclusion, "Z") || call.hasShape(inclusion + "Z", "Z"))
     } == true }.unique("selected folder inclusion")
     shape(include >= 2 && include + 8 < instructions.size, "selected folder inclusion has incomplete surroundings")
     val filterAt = include + 2
     val visible = instructions[include + 1].namedRegisters().firstOrNull()
-    val candidate = instructions[include].namedRegisters().lastOrNull()
-    shape(instructions[include - 2].call()?.let { call -> call.origName == "getAccountInstance" &&
+    // The filter, the account, the id's two words, then the dialog checked.
+    val included = instructions[include].namedRegisters()
+    val checked = included.getOrNull(4)
+    // The dialog the sort goes on to add. 13.3.1 calls through a range and checks a copy of it.
+    val candidate = instructions[filterAt + 1].namedRegisters().getOrNull(1)
+    val copied = checked != null && candidate != null && (checked == candidate ||
+        flow.writesReaching(include, checked).singleOrNull()?.let { copy ->
+            instructions[copy].opcode in OBJECT_MOVES && instructions[copy].namedRegisters() == listOf(checked, candidate) &&
+                flow.writesReaching(copy, candidate) == flow.writesReaching(filterAt, candidate)
+        } == true)
+    val account = included.getOrNull(1)?.let { flow.writesReaching(include, it).singleOrNull() }
+    shape(account != null && account >= 1 && instructions[account - 1].call()?.let { call -> call.origName == "getAccountInstance" &&
         call.origDefiningClass == "Lorg/telegram/messenger/BaseController;" && call.hasShape(emptyList(),
             "Lorg/telegram/messenger/AccountInstance;") } == true &&
-        instructions[include - 2].namedRegisters() == listOf(owner) &&
-        instructions[include - 1].opcode == Opcode.MOVE_RESULT_OBJECT &&
-        instructions[include].namedRegisters().getOrNull(1) == instructions[include - 1].namedRegisters().firstOrNull() &&
+        instructions[account - 1].namedRegisters() == listOf(owner) &&
+        instructions[account].opcode == Opcode.MOVE_RESULT_OBJECT && copied &&
         instructions[include + 1].opcode == Opcode.MOVE_RESULT && instructions[filterAt].opcode == Opcode.IF_EQZ &&
         instructions[filterAt].namedRegisters() == listOf(visible) &&
         instructions[filterAt + 1].call()?.let { call -> call.origDefiningClass == MESSAGES_CONTROLLER &&

@@ -9,7 +9,10 @@ import java.util.Locale;
  * come from Twitch's own ad server, edge.ads.twitch.tv.
  */
 public final class HostBlocklist {
-    /** Blocked with every subdomain. */
+    /**
+     * Blocked with every subdomain. Not the video player's own servers (player.stats.live-video.net is its
+     * telemetry): its requests go through the player's network stack, and refusing them is no ad blocked.
+     */
     private static final List<String> BLOCKED_DOMAINS = Arrays.asList(
             "ads.twitch.tv",
             "spade.twitch.tv",
@@ -17,7 +20,6 @@ public final class HostBlocklist {
             "trowel.twitch.tv",
             "science.twitch.tv",
             "client-event-reporter.twitch.tv",
-            "player.stats.live-video.net",
             "scorecardresearch.com",
             "adsafeprotected.com",
             "amazon-adsystem.com",

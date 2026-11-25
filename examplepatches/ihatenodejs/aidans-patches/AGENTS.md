@@ -111,9 +111,23 @@ Use the documented `apk-lab` commands for all APK lifecycle work; do not invent 
 ### Release Dry-Run
 
 ```bash
-npm install
-npx semantic-release --dry-run
+npm ci --ignore-scripts
+./node_modules/.bin/semantic-release --dry-run
 ```
+
+A dry run skips prepare/publish/success but still loads `.releaserc` and runs
+the real plugin conditions. `scripts/release-dry-run.test.ts` instead copies
+`release.dryrun.config.mjs` into a disposable repository outside this checkout
+and runs:
+
+```bash
+./node_modules/.bin/semantic-release --dry-run --extends ./release.dryrun.config.mjs
+```
+
+That config contains only commit analysis and release-note generation, so it
+resolves config/version/notes without any publishing plugin, with
+`GITHUB_TOKEN` unset and a bare local origin. The extended config only wins in a
+repository that has no `.releaserc`; a local `.releaserc` takes precedence.
 
 `npm` is release-only. Normal repository, Worker, and site workflows use Bun.
 

@@ -6,6 +6,7 @@
 *.apkm
 *.xapk
 *.mpp
+!dist/*.mpp
 *.zip
 
 # Local notes; retain repository and project usage documentation.

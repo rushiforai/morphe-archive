@@ -9,6 +9,10 @@ import app.morphe.FixtureDex
 import app.morphe.Fixtures
 import app.morphe.PatchContexts
 import app.morphe.util.names.addInstruction
+import app.morphe.util.names.addInstructionsWithLabels
+import app.morphe.patcher.extensions.InstructionExtensions.getInstruction
+import app.morphe.patcher.util.smali.ExternalLabel
+import app.morphe.patches.telegram.misc.localcontrols.controlField
 import app.morphe.util.names.replaceInstruction
 import app.morphe.patcher.patch.BytecodePatchContext
 import app.morphe.patches.telegram.misc.extension.PatchLogCapture
@@ -27,6 +31,7 @@ import com.android.tools.smali.dexlib2.iface.ClassDef
 import com.android.tools.smali.dexlib2.iface.Method
 import com.android.tools.smali.dexlib2.iface.instruction.Instruction
 import com.android.tools.smali.dexlib2.iface.instruction.NarrowLiteralInstruction
+import com.android.tools.smali.dexlib2.iface.instruction.OffsetInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.WideLiteralInstruction
 import com.android.tools.smali.dexlib2.iface.reference.FieldReference
@@ -216,7 +221,7 @@ class HideContactsTabFixtureTest {
             assertEquals(name, compactWarnings(build), PatchLogCapture.warnings { hideContactsTabPatch.execute(context) })
 
             val after = outline.build.controlBody()
-            assertEquals("$name: one instruction besides the compact bar's", stock.size + 1 + 2 * compactInBuild, after.size)
+            assertEquals("$name: one instruction besides the compact bar's and the tab's hide", stock.size + 1 + 2 * compactInBuild + plan.setAgain.size, after.size)
             val hook = after.indices.single { after[it].controlRef() == BAR_GLASS }
             assertEquals(name, Opcode.INVOKE_STATIC_RANGE, after[hook].opcode)
             assertEquals(name, listOf(colors), after[hook].namedRegisters())
@@ -558,13 +563,221 @@ class HideContactsTabFixtureTest {
         }
     }
 
+    @Test fun `the Downloads button's one animated visibility call asks the runtime for its factor first`() {
+        val redrawn = mutableListOf<String>()
+        for (build in Fixtures.declaredBuilds()) {
+            val name = build.name
+            val context = PatchContexts.of(ExtensionDex.classes() + hosts(build))
+            val found = context.resolveDownloadsButton()
+            assertNull("$name: ${found.missing}", found.missing)
+            assertNull("$name: ${found.redrawMissing}", found.redrawMissing)
+            val method = found.method!!
+            val shown = context.resolveDownloadsShown(found)
+            assertNull("$name: ${shown.missing}", shown.missing)
+            val stock = ImmutableMethod.of(method).controlBody()
+            val label = context.tgMutableClassDefBy(method.definingClass).methods.single { m ->
+                m.controlBody().any { it.controlRef() == DOWNLOADS_TABS }
+            }
+            val labelStock = label.controlBody().map(::operands)
+            // Telegram reads the button off the chat list and hands it, with the factor, to the animator.
+            val read = stock[found.at - 1]
+            assertEquals(name, Opcode.IGET_OBJECT, read.opcode)
+            assertEquals("$name: the chat list's own button", method.localRegisterCount(), read.namedRegisters()[1])
+            assertEquals("$name: the button and its factor", listOf(read.namedRegisters()[0], found.factor), stock[found.at].namedRegisters())
+            assertEquals(name, listOf("Landroid/view/View;", "F"), stock[found.at].call()!!.parameterTypes.map { it.toString() })
+            assertEquals(name, compactWarnings(build), PatchLogCapture.warnings { hideContactsTabPatch.execute(context) })
+
+            // Always show's flag hook sits higher up the same method, so this call moves down by its two.
+            val at = found.at + 2
+            val after = method.controlBody()
+            assertEquals("$name: three calls and two answers", stock.count { it.opcode != Opcode.NOP } + 5, after.count { it.opcode != Opcode.NOP })
+            assertEquals(name, Opcode.INVOKE_STATIC_RANGE, after[at].opcode)
+            assertEquals(name, DOWNLOADS_BUTTON, after[at].controlRef())
+            assertEquals(name, listOf(found.factor), after[at].namedRegisters())
+            assertEquals(name, Opcode.MOVE_RESULT, after[at + 1].opcode)
+            assertEquals(name, listOf(found.factor), after[at + 1].namedRegisters())
+            // Then the chat list and its button go to the runtime, so the settings closing can have it draw again.
+            assertEquals(name, Opcode.INVOKE_STATIC, after[at + 2].opcode)
+            assertEquals(name, DOWNLOADS_DRAWN, after[at + 2].controlRef())
+            assertEquals("$name: this and the button", listOf(method.localRegisterCount(), read.namedRegisters()[0]), after[at + 2].namedRegisters())
+            assertStock(name, stock, after) { it + (if (it >= shown.wanted) 2 else 0) + (if (it >= found.at) 3 else 0) }
+            assertEquals("$name: the button's label stays Telegram's", labelStock, label.controlBody().map(::operands))
+            // The runtime's stub runs the same method on the chat list it was handed.
+            val stub = context.tgMutableClassDefBy(MAIN_TABS).methods.single { it.origName == "redrawDownloads" }.controlBody()
+            assertEquals(name, listOf(Opcode.CHECK_CAST, Opcode.INVOKE_VIRTUAL, Opcode.RETURN_VOID), stub.map { it.opcode })
+            assertEquals("$name: the chat list", method.definingClass, (stub[0] as ReferenceInstruction).reference.toString())
+            assertEquals("$name: its Downloads button method", "${method.definingClass}->${method.name}()V",
+                (stub[1] as ReferenceInstruction).reference.toString())
+            assertEquals(name, listOf(0), stub[1].namedRegisters())
+            redrawn += name
+            for ((flag, value) in listOf("hideContactsTab" to 1L, "hideNewMessage" to 1L, "barOutline" to 1L, "hideDownloadsButton" to 1L,
+                "alwaysShowDownloadsButton" to 1L)) {
+                val status = context.tgMutableClassDefBy(SETTINGS_STATUS).methods.single { it.origName == flag }.controlBody()
+                assertEquals("$name: $flag", value, (status.first() as WideLiteralInstruction).wideLiteral)
+            }
+        }
+        assertTrue("$redrawn", listOf("telegram-web-13.3.1-", "telegram-play-13.3.1-").all { build -> redrawn.any { it.startsWith(build) } })
+    }
+
+    @Test fun `a Downloads button that no longer animates leaves both Downloads switches out and the rest in`() {
+        for (build in Fixtures.declaredBuilds()) {
+            val name = build.name
+            val context = PatchContexts.of(ExtensionDex.classes() + hosts(build))
+            val found = context.resolveDownloadsButton()
+            assertNull("$name: ${found.missing}", found.missing)
+            val method = found.method!!
+            val writer = context.resolveDownloadsShown(found).writer!!
+            val writerBefore = writer.controlBody().map(::operands)
+            val view = method.controlBody()[found.at].namedRegisters().first()
+            method.replaceInstruction(found.at, "invoke-virtual {v$view}, Landroid/view/View;->getVisibility()I")
+            val before = method.controlBody().map(::operands)
+            assertEquals(name, compactWarnings(build) + listOf("Hide Contacts tab: the Downloads button no longer shows through one " +
+                "animated visibility call (0). The patch goes on without the Downloads switch.", "Hide Contacts tab: the Downloads " +
+                "button no longer shows through one animated visibility call (0). The patch goes on without Always show Downloads button."),
+                PatchLogCapture.warnings { hideContactsTabPatch.execute(context) })
+            assertEquals("$name: the chat list stays Telegram's", before, method.controlBody().map(::operands))
+            assertEquals("$name: so does the flag's writer", writerBefore, writer.controlBody().map(::operands))
+            assertEquals("$name: the settings closing has nothing to draw again", listOf(Opcode.RETURN_VOID),
+                context.tgMutableClassDefBy(MAIN_TABS).methods.single { it.origName == "redrawDownloads" }.controlBody().map { it.opcode })
+            for ((flag, value) in listOf("hideContactsTab" to 1L, "compactTabBar" to compactStatus(build), "sideMenu" to 1L,
+                "hideNewMessage" to 1L, "barOutline" to 1L, "hideDownloadsButton" to 0L, "alwaysShowDownloadsButton" to 0L)) {
+                val status = context.tgMutableClassDefBy(SETTINGS_STATUS).methods.single { it.origName == flag }.controlBody()
+                assertEquals("$name: $flag", value, (status.first() as WideLiteralInstruction).wideLiteral)
+            }
+        }
+    }
+
+    @Test fun `Always show answers the chat list's Downloads flag right after its one read, and the flag's keep check too`() {
+        for (build in Fixtures.declaredBuilds()) {
+            val name = build.name
+            val context = PatchContexts.of(ExtensionDex.classes() + hosts(build))
+            val found = context.resolveDownloadsButton()
+            assertNull("$name: ${found.missing}", found.missing)
+            val shown = context.resolveDownloadsShown(found)
+            assertNull("$name: ${shown.missing}", shown.missing)
+            val method = shown.method!!
+            val writer = shown.writer!!
+            val stockMethod = ImmutableMethod.of(method)
+            val stockWriter = ImmutableMethod.of(writer)
+            val stock = stockMethod.controlBody()
+            val written = stockWriter.controlBody()
+
+            // The button's method reads the chat list's own flag off this once and tests it straight away.
+            val read = stock[shown.wanted - 1]
+            assertEquals(name, Opcode.IGET_BOOLEAN, read.opcode)
+            assertEquals("$name: the flag and this", listOf(shown.flag, method.localRegisterCount()), read.namedRegisters())
+            assertEquals("$name: one flag read", 1, stock.count { it.opcode == Opcode.IGET_BOOLEAN })
+            val flagField = read.controlField().toString()
+            val test = stock.withIndex().first { (index, instruction) -> index >= shown.wanted && shown.flag in instruction.namedRegisters() }
+            assertTrue("$name: ${test.value.opcode}", test.value.opcode == Opcode.IF_EQZ || test.value.opcode == Opcode.IF_NEZ)
+            assertTrue("$name: only falling through reaches the instruction after the read", onlyFallsInto(stockMethod, shown.wanted))
+            // The flag's one writer, in the chat list too, reads the button's visibility once and tests it.
+            assertTrue(name, written.any { it.opcode == Opcode.IPUT_BOOLEAN && it.controlField().toString() == flagField })
+            assertEquals(name, Opcode.MOVE_RESULT, written[shown.kept - 1].opcode)
+            assertEquals(name, listOf(shown.visibility), written[shown.kept - 1].namedRegisters())
+            assertEquals(name, "getVisibility", written[shown.kept - 2].call()!!.name)
+            assertEquals("$name: the button", found.button, written[shown.kept - 3].controlField().toString())
+            assertEquals("$name: off this", writer.localRegisterCount(), written[shown.kept - 3].namedRegisters()[1])
+            assertTrue("$name: ${written[shown.kept].opcode}", written[shown.kept].opcode == Opcode.IF_EQZ || written[shown.kept].opcode == Opcode.IF_NEZ)
+            assertEquals(name, listOf(shown.visibility), written[shown.kept].namedRegisters())
+            assertTrue("$name: only falling through reaches the visibility test", onlyFallsInto(stockWriter, shown.kept))
+            assertEquals(name, compactWarnings(build), PatchLogCapture.warnings { hideContactsTabPatch.execute(context) })
+
+            val after = method.controlBody()
+            assertEquals(name, Opcode.INVOKE_STATIC_RANGE, after[shown.wanted].opcode)
+            assertEquals(name, DOWNLOADS_WANTED, after[shown.wanted].controlRef())
+            assertEquals(name, listOf(shown.flag), after[shown.wanted].namedRegisters())
+            assertEquals(name, Opcode.MOVE_RESULT, after[shown.wanted + 1].opcode)
+            assertEquals(name, listOf(shown.flag), after[shown.wanted + 1].namedRegisters())
+            val moved = { index: Int -> index + (if (index >= shown.wanted) 2 else 0) + (if (index >= found.at) 3 else 0) }
+            assertStock(name, stock, after, moved = moved)
+            assertBranchesKept(name, stockMethod, method, moved)
+            assertTrue("$name: only the read reaches the hook", onlyFallsInto(method, shown.wanted))
+
+            val keptAfter = writer.controlBody()
+            assertEquals("$name: one call and its answer", written.count { it.opcode != Opcode.NOP } + 2, keptAfter.count { it.opcode != Opcode.NOP })
+            assertEquals(name, Opcode.INVOKE_STATIC_RANGE, keptAfter[shown.kept].opcode)
+            assertEquals(name, DOWNLOADS_KEPT, keptAfter[shown.kept].controlRef())
+            assertEquals(name, listOf(shown.visibility), keptAfter[shown.kept].namedRegisters())
+            assertEquals(name, Opcode.MOVE_RESULT, keptAfter[shown.kept + 1].opcode)
+            assertEquals(name, listOf(shown.visibility), keptAfter[shown.kept + 1].namedRegisters())
+            val keptMoved = { index: Int -> index + if (index >= shown.kept) 2 else 0 }
+            assertStock(name, written, keptAfter, moved = keptMoved)
+            assertBranchesKept(name, stockWriter, writer, keptMoved)
+            assertTrue("$name: only the visibility's answer reaches the hook", onlyFallsInto(writer, shown.kept))
+            for ((flag, value) in listOf("hideDownloadsButton" to 1L, "alwaysShowDownloadsButton" to 1L)) {
+                val status = context.tgMutableClassDefBy(SETTINGS_STATUS).methods.single { it.origName == flag }.controlBody()
+                assertEquals("$name: $flag", value, (status.first() as WideLiteralInstruction).wideLiteral)
+            }
+        }
+    }
+
+    @Test fun `a Downloads flag with another reader leaves only Always show out`() {
+        for (build in Fixtures.declaredBuilds()) {
+            val name = build.name
+            val context = PatchContexts.of(ExtensionDex.classes() + hosts(build))
+            val found = context.resolveDownloadsButton()
+            val shown = context.resolveDownloadsShown(found)
+            assertNull("$name: ${shown.missing}", shown.missing)
+            val method = shown.method!!
+            val writer = shown.writer!!
+            val flagField = method.controlBody()[shown.wanted - 1].controlField().toString()
+            // Something else on the chat list now reads the flag as it stands, and would think the button hidden.
+            writer.addInstruction(0, "iget-boolean v0, p0, $flagField")
+            val writerBefore = writer.controlBody().map(::operands)
+            val stock = ImmutableMethod.of(method).controlBody()
+            assertEquals(name, compactWarnings(build) + listOf("Hide Contacts tab: the chat list's Downloads flag has other readers now (2). " +
+                "The patch goes on without Always show Downloads button."), PatchLogCapture.warnings { hideContactsTabPatch.execute(context) })
+            assertEquals("$name: the flag's writer stays as it was", writerBefore, writer.controlBody().map(::operands))
+            val after = method.controlBody()
+            assertEquals("$name: only the Downloads switch's calls", stock.count { it.opcode != Opcode.NOP } + 3, after.count { it.opcode != Opcode.NOP })
+            assertEquals(name, DOWNLOADS_BUTTON, after[found.at].controlRef())
+            for ((flag, value) in listOf("hideContactsTab" to 1L, "hideDownloadsButton" to 1L, "alwaysShowDownloadsButton" to 0L)) {
+                val status = context.tgMutableClassDefBy(SETTINGS_STATUS).methods.single { it.origName == flag }.controlBody()
+                assertEquals("$name: $flag", value, (status.first() as WideLiteralInstruction).wideLiteral)
+            }
+        }
+    }
+
+    @Test fun `a jump past the Downloads flag's read leaves only Always show out`() {
+        for (build in Fixtures.declaredBuilds()) {
+            val name = build.name
+            val context = PatchContexts.of(ExtensionDex.classes() + hosts(build))
+            val found = context.resolveDownloadsButton()
+            val shown = context.resolveDownloadsShown(found)
+            assertNull("$name: ${shown.missing}", shown.missing)
+            val method = shown.method!!
+            val free = (0 until method.localRegisterCount()).first { it != shown.flag }
+            // A way into the method's flag test that skips the read: a hook there would run on it too.
+            method.addInstructionsWithLabels(0, """
+                const/4 v$free, 0x0
+                if-eqz v$free, :past
+            """, ExternalLabel("past", method.getInstruction(shown.wanted)))
+            assertTrue(name, !onlyFallsInto(method, shown.wanted + 2))
+            val before = method.controlBody().map(::operands)
+            assertEquals(name, compactWarnings(build) + listOf("Hide Contacts tab: the chat list's code jumps past its read of the Downloads flag. " +
+                "The patch goes on without Always show Downloads button."), PatchLogCapture.warnings { hideContactsTabPatch.execute(context) })
+            val after = method.controlBody()
+            assertEquals("$name: only the Downloads switch's calls", before.size + 3, after.size)
+            assertEquals(name, before.subList(0, found.at + 2), after.subList(0, found.at + 2).map(::operands))
+            assertEquals(name, DOWNLOADS_BUTTON, after[found.at + 2].controlRef())
+            for ((flag, value) in listOf("hideDownloadsButton" to 1L, "alwaysShowDownloadsButton" to 0L)) {
+                val status = context.tgMutableClassDefBy(SETTINGS_STATUS).methods.single { it.origName == flag }.controlBody()
+                assertEquals("$name: $flag", value, (status.first() as WideLiteralInstruction).wideLiteral)
+            }
+        }
+    }
+
     @Test fun `a build with no chat list keeps the other three switches`() {
         for (build in Fixtures.declaredBuilds()) {
             val name = build.name
             val context = PatchContexts.of(ExtensionDex.classes() + hosts(build, withChatList = false))
             assertEquals(name, compactWarnings(build) + listOf("Hide Contacts tab: the chat list no longer sets its new message button in one place (0). " +
-                "The patch goes on without the new message switch."), PatchLogCapture.warnings { hideContactsTabPatch.execute(context) })
-            for ((flag, value) in listOf("hideContactsTab" to 1L, "compactTabBar" to compactStatus(build), "sideMenu" to 1L, "hideNewMessage" to 0L)) {
+                "The patch goes on without the new message switch.", "Hide Contacts tab: the chat list no longer labels one Downloads button (0). " +
+                "The patch goes on without the Downloads switch.", "Hide Contacts tab: the chat list no longer labels one Downloads button (0). " +
+                "The patch goes on without Always show Downloads button."), PatchLogCapture.warnings { hideContactsTabPatch.execute(context) })
+            for ((flag, value) in listOf("hideContactsTab" to 1L, "compactTabBar" to compactStatus(build), "sideMenu" to 1L, "hideNewMessage" to 0L,
+                "hideDownloadsButton" to 0L, "alwaysShowDownloadsButton" to 0L)) {
                 val status = context.tgMutableClassDefBy(SETTINGS_STATUS).methods.single { it.origName == flag }.controlBody()
                 assertEquals("$name: $flag", value, (status.first() as WideLiteralInstruction).wideLiteral)
             }
@@ -601,6 +814,8 @@ class HideContactsTabFixtureTest {
                 assertTrue(name, plan.pins.isEmpty())
                 PatchLogCapture.warnings { hideContactsTabPatch.execute(context) }
                 assertEquals("$name: Telegram has no switch of its own", listOf(Opcode.CONST_4, Opcode.RETURN), answer().map { it.opcode })
+                assertTrue("$name: nothing sets the Contacts tab again after the hook, so the build needs none",
+                    context.tgMutableClassDefBy(plan.screen).methods.single(::isBuild).controlBody().none { it.controlRef() == TABS_SHOWN })
                 continue
             }
             val flag = plan.hostFlag!!
@@ -633,6 +848,36 @@ class HideContactsTabFixtureTest {
             val own = answer()
             assertEquals(name, listOf(Opcode.SGET_BOOLEAN, Opcode.RETURN), own.map { it.opcode })
             assertEquals(name, flag, own[0].controlRef())
+
+            // Plus's build sets the Contacts tab by its own switch after the bar's method ran, so the
+            // hook has to come again right behind that, or the tab shows whichever switch is on.
+            val build = screen.methods.single(::isBuild)
+            val built = build.controlBody()
+            val lastSet = built.indices.last { built[it].controlRef() == plan.setTab }
+            val hook = built[lastSet + 1]
+            assertEquals("$name: the hook follows the build's last word on the tab", TABS_SHOWN, hook.controlRef())
+            assertEquals("$name: this, kept in the build's first move", listOf(built[0].namedRegisters()[0], built[lastSet].namedRegisters()[3]),
+                hook.namedRegisters())
+            assertEquals("$name: that first move copies this", build.localRegisterCount(), built[0].namedRegisters()[1])
+        }
+    }
+
+    /** Every way into [index] of [method] is falling through from the instruction before it. */
+    private fun onlyFallsInto(method: Method, index: Int): Boolean {
+        val flow = ControlFlow.of(method)
+        return flow.exceptional.none { index in it } && flow.normal.indices.all { from ->
+            val fallsThrough = from == index - 1 && flow.instructions[from].opcode.canContinue()
+            flow.normal[from].count { it == index } <= (if (fallsThrough) 1 else 0)
+        }
+    }
+
+    /** Each of [stock]'s branches still lands on the same instruction, now at [moved] of its old index. */
+    private fun assertBranchesKept(what: String, stock: Method, after: Method, moved: (Int) -> Int) {
+        val before = ControlFlow.of(stock)
+        val now = ControlFlow.of(after)
+        for (from in before.instructions.indices) {
+            if (before.instructions[from] !is OffsetInstruction) continue
+            for (to in before.normal[from]) assertTrue("$what: stock $from to $to", moved(to) in now.normal[moved(from)])
         }
     }
 

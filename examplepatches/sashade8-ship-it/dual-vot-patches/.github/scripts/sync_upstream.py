@@ -195,6 +195,12 @@ STREAMING_DATA_REQUEST_DEV237_CONFLICT_BLOBS = (
     "a79452a66c2994760246e680f40c94b18ee39527",
     "2a6305bce1d7ca487aa3b1bd6c2515a436873424",
 )
+# Morphe 2.4.0-dev.11 can skip the configured playback client.
+STREAMING_DATA_REQUEST_DEV2411_CONFLICT_BLOBS = (
+    "a564f44c019aa25953c2f57800879a9996aa1f76",
+    "266523cc55f6e512bed5996e03be00f17d2ada88",
+    "f5ed3227c4ae4b346337adda86b587c2cb628a27",
+)
 DEV210_ARRAYS_CONFLICT_BLOBS = (
     "9c228c35994fedf5a3d8b5b04f80e0a6b37b4355",
     "a3614bdfaf1b5e6acd2d9cac08dfe9403e9d635e",
@@ -224,6 +230,13 @@ STABLE220_ARRAYS_CONFLICT_BLOBS = (
     "4697a5d88ce4e85a44b1bda0b3c287086732c849",
 )
 
+# Morphe 2.4.0-dev.11 adds Ghost mode history limits next to the Yandex arrays.
+DEV2411_ARRAYS_CONFLICT_BLOBS = (
+    "1b8f9391a089bca21a88b4ddc97a3f2741af832b",
+    "c72ef535131f8ad7878d004a36f12324c67a970b",
+    "bc16ee37da3d4505a6c9d47d42d6c6ef42dcb7fb",
+)
+
 # One-time, fail-closed merge of Morphe 1.48.0-dev.8 Series Tracker with
 # Dual VoT's Yandex settings. Any different source versions require review.
 DEV148_SETTINGS_PATH = (
@@ -232,6 +245,12 @@ DEV148_SETTINGS_PATH = (
 DEV148_SETTINGS_CONFLICT_BLOBS = (
     "9814038e99517f8394e9d19c8e79bc032bd98320",  # current Dual VoT dev
     "71ce61c76347ac65a65a247ab00013359f86aaef",  # Morphe v1.48.0-dev.8
+)
+
+DEV2411_SETTINGS_CONFLICT_BLOBS = (
+    "af1214dcd6523f63b84543165ca853112f1da344",
+    "70f0f933e34bf91b1030a5fb958da4c574e32e06",
+    "5a3ca2ebb527dde06122b7662d1419675ebedf93",
 )
 
 DUAL_YANDEX_STRINGS_PATH = re.compile(
@@ -599,6 +618,7 @@ def resolve_dual_yandex_arrays_conflict() -> None:
         DEV210_ARRAYS_CONFLICT_BLOBS,
         STABLE210_ARRAYS_CONFLICT_BLOBS,
         DEV220_ARRAYS_CONFLICT_BLOBS,
+        DEV2411_ARRAYS_CONFLICT_BLOBS,
         STABLE220_ARRAYS_CONFLICT_BLOBS,
     ):
         return
@@ -1268,6 +1288,32 @@ def merge_streaming_data_request_dev237(source: str) -> str:
     return merged
 
 
+def merge_dev2411_source_conflict(source: str, sides_sha256: str, *, keep_ours: bool) -> str:
+    """Resolve a single reviewed hunk and retain the rest of the Git merge."""
+    pattern = r"(?ms)^<<<<<<< [^\n]+\n(.*?)^=======\n(.*?)^>>>>>>> [^\n]+\n"
+    conflicts = list(re.finditer(pattern, source))
+    if len(conflicts) != 1:
+        raise SyncError("Expected one Morphe 2.4.0-dev.11 source conflict")
+    conflict = conflicts[0]
+    ours, theirs = conflict.group(1, 2)
+    if hashlib.sha256((ours + "\0" + theirs).encode()).hexdigest() != sides_sha256:
+        raise SyncError("Unexpected Morphe 2.4.0-dev.11 source conflict sides")
+    replacement = ours + "\n" + theirs if keep_ours else theirs
+    merged = source[:conflict.start()] + replacement + source[conflict.end():]
+    if re.search(r"(?m)^(<<<<<<<|=======|>>>>>>>)(?: |$)", merged):
+        raise SyncError("Unresolved Morphe 2.4.0-dev.11 source conflict")
+    return merged
+
+
+def merge_streaming_data_request_dev2411(source: str) -> str:
+    # Only the playback failure path reaches this hunk. Direct audio and
+    # downloads already returned above, keeping their independent client order.
+    return merge_dev2411_source_conflict(
+        source, "59e7c271963c9d52becd76c316d2bc5a935eae90265c34203a466090cc46ba72",
+        keep_ours=False,
+    )
+
+
 def resolve_streaming_data_request_conflict() -> None:
     if STREAMING_DATA_REQUEST_PATH not in unresolved_paths():
         return
@@ -1284,7 +1330,8 @@ def resolve_streaming_data_request_conflict() -> None:
                        STREAMING_DATA_REQUEST_STABLE230_CONFLICT_BLOBS,
                        STREAMING_DATA_REQUEST_DEV234_CONFLICT_BLOBS,
                        STREAMING_DATA_REQUEST_DEV235_CONFLICT_BLOBS,
-                       STREAMING_DATA_REQUEST_DEV237_CONFLICT_BLOBS):
+                       STREAMING_DATA_REQUEST_DEV237_CONFLICT_BLOBS,
+                       STREAMING_DATA_REQUEST_DEV2411_CONFLICT_BLOBS):
         destination = ROOT / STREAMING_DATA_REQUEST_PATH
         merge_known = {
             STREAMING_DATA_REQUEST_DEV210_CONFLICT_BLOBS: merge_streaming_data_request_dev210,
@@ -1295,6 +1342,7 @@ def resolve_streaming_data_request_conflict() -> None:
             STREAMING_DATA_REQUEST_STABLE230_CONFLICT_BLOBS: merge_streaming_data_request_dev230,
             STREAMING_DATA_REQUEST_DEV234_CONFLICT_BLOBS: merge_streaming_data_request_dev234,
             STREAMING_DATA_REQUEST_DEV235_CONFLICT_BLOBS: merge_streaming_data_request_dev234,
+            STREAMING_DATA_REQUEST_DEV2411_CONFLICT_BLOBS: merge_streaming_data_request_dev2411,
             STREAMING_DATA_REQUEST_DEV237_CONFLICT_BLOBS: merge_streaming_data_request_dev237,
         }[stage_blobs]
         merged = merge_known(destination.read_text(encoding="utf-8"))
@@ -1449,6 +1497,23 @@ def resolve_dev148_settings_conflict() -> None:
     theirs = run("git", "show", f":3:{path}", capture=True).stdout
     merged = merge_dev148_series_tracker_settings(ours, theirs)
     (ROOT / path).write_text(merged, encoding="utf-8", newline="")
+    run("git", "add", "--", path)
+
+
+def resolve_dev2411_settings_conflict() -> None:
+    path = DEV148_SETTINGS_PATH
+    if path not in unresolved_paths():
+        return
+    blobs = tuple(output_of("git", "rev-parse", f":{stage}:{path}") for stage in (1, 2, 3))
+    if blobs != DEV2411_SETTINGS_CONFLICT_BLOBS:
+        return
+    destination = ROOT / path
+    merged = merge_dev2411_source_conflict(
+        destination.read_text(encoding="utf-8"),
+        "1ada165069d7ace3d2f0e8cd4664ad95e724bb0ba003204951bb29700fe91006",
+        keep_ours=True,
+    )
+    destination.write_text(merged, encoding="utf-8", newline="")
     run("git", "add", "--", path)
 
 
@@ -1671,6 +1736,7 @@ def merge_ref(
     resolve_streaming_data_request_conflict()
     resolve_dev148_settings_conflict()
     resolve_stable148_settings_conflict()
+    resolve_dev2411_settings_conflict()
     resolve_youtube_junit_conflict()
     resolve_stable200_test_dependencies()
     resolve_dev1498_vot_sheet_conflict()

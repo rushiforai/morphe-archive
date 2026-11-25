@@ -90,6 +90,9 @@ public final class QualitySelector {
         if (Boolean.TRUE.equals(Reflect.invoke(video, "hasDashBitrate"))) return null;
         Object raw = rawGears(video);
         Object gear = raw instanceof List<?> ? chooseForFile(video, (List<?>) raw, mode) : null;
+        // PineDrama saves one address as it is, so a rendition that needs the original sound put
+        // back would come out with its dub. PineDrama's own file is the better answer there.
+        if (!VideoDownloads.originalSoundUrls(video, gear).isEmpty()) return null;
         Object address = Reflect.property(gear, "getPlayAddr", "playAddr");
         return address instanceof UrlModel ? (UrlModel) address : null;
     }

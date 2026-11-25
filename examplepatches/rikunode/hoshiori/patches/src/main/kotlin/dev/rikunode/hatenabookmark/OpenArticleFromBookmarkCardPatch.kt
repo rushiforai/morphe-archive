@@ -40,6 +40,7 @@ val openArticleFromBookmarkCardPatch = bytecodePatch(
         description = "Tap an article card in bookmark details to open it in the in-app browser.",
     )
 
+    dependsOn(hoshioriSettingsEntryPatch)
     extendWith("extensions/cardclick.mpe")
 
     execute {

@@ -201,6 +201,55 @@ public class AvatarShapeTest {
         assertEquals(4 * (100 - 2 * corner) + 2 * Math.PI * corner, Integer.parseInt(last.substring(5)), 1);
     }
 
+    // #215: Thin story rings draws the ring at half its width, square or round, and gives the ring's paint its width back.
+    @Test @Config(sdk = 36) @GraphicsMode(GraphicsMode.Mode.NATIVE)
+    public void thinStoryRingsHalveTheRingAndLeaveEverythingElse() {
+        assertTrue(Settings.installed.contains(Settings.THIN_STORY_RINGS));
+        RectF box = new RectF(0, 0, 100, 100);
+        Object ring = new Object(), overscroll = new Object();
+        Settings.storyRingMade(ring);
+        List<Float> widths = new ArrayList<>();
+        Canvas canvas = new Canvas() {
+            @Override public void drawArc(RectF oval, float start, float sweep, boolean center, Paint paint) { widths.add(paint.getStrokeWidth()); }
+            @Override public void drawPath(Path path, Paint paint) { widths.add(-paint.getStrokeWidth()); }
+        };
+        Paint paint = new Paint();
+        paint.setStyle(Paint.Style.STROKE);
+        paint.setStrokeWidth(8);
+        Settings.storyRingArc(canvas, box, 270, 360, false, paint, ring);
+        assertEquals("Off keeps Messenger's width", List.of(8f), widths);
+        assertEquals(0, Settings.lastActive(Settings.THIN_STORY_RINGS));
+
+        Settings.preferences.edit().putBoolean(Settings.THIN_STORY_RINGS, true).commit();
+        widths.clear();
+        Settings.storyRingArc(canvas, box, 270, 360, false, paint, ring);
+        assertEquals(8f, paint.getStrokeWidth(), 0f);
+        Settings.storyRingArc(canvas, box, 270, 360, false, paint, overscroll);
+        Settings.storyRingArc(canvas, box, 270, 90, true, paint, ring);
+        Paint filled = new Paint();
+        filled.setStrokeWidth(8);
+        Settings.storyRingArc(canvas, box, 270, 360, false, filled, ring);
+        assertEquals("Only a ring's stroke gets thinner", List.of(4f, 8f, 8f, 8f), widths);
+        assertTrue(Settings.lastActive(Settings.THIN_STORY_RINGS) > 0);
+
+        // Square pictures' rings are thin too, and Hide stories still drops the ring.
+        Settings.avatarShape = -1;
+        Settings.preferences.edit().putBoolean(Settings.AVATAR_SHAPE, true).commit();
+        widths.clear();
+        Settings.storyRingArc(canvas, box, 270, 360, false, paint, ring);
+        assertEquals(List.of(-4f), widths);
+        assertEquals(8f, paint.getStrokeWidth(), 0f);
+        Settings.preferences.edit().putBoolean("stories", true).commit();
+        Settings.storyRingArc(canvas, box, 270, 360, false, paint, ring);
+        assertEquals(List.of(-4f), widths);
+
+        Settings.preferences.edit().putBoolean("stories", false).putBoolean("paused", true).commit();
+        Settings.avatarShape = -1;
+        widths.clear();
+        Settings.storyRingArc(canvas, box, 270, 360, false, paint, ring);
+        assertEquals("Pause brings Messenger's ring back", List.of(8f), widths);
+    }
+
     // #118: Hide stories and notes drops the ring around each picture too, with or without square pictures.
     @Test public void hideStoriesLeavesOutTheRingButNotTheOverscrollArc() {
         assertTrue(Settings.installed.contains("stories"));

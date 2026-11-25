@@ -52,7 +52,8 @@ import javax.crypto.spec.GCMParameterSpec;
  * picture Messenger put on that line when there is one ({@link MessageLogMedia}). A photo at the size it was sent, a
  * video and a voice message's clip are fetched as the message is logged, with {@link #KEEP_PHOTOS},
  * {@link #KEEP_VIDEOS} or {@link #KEEP_VOICE} on ({@link MessageLogAttachment}). Names picked for chats in the log's screen sit in a file of their own, sealed with the
- * same key, so a clear takes them along.
+ * same key, so a clear takes them along. So do the faces the notifications showed for each chat and sender
+ * ({@link MessageLogFaces}).
  */
 public final class MessageLog {
     private MessageLog() {}
@@ -130,6 +131,8 @@ public final class MessageLog {
     private static final LinkedHashMap<String, Long> RECENT = new LinkedHashMap<>();
     /** Sender and group name auto reply read before answering, by chat and message id. Guarded by itself. */
     static final LinkedHashMap<String, String[]> NOTED = new LinkedHashMap<>();
+    /** The faces on the notification auto reply read, by the same key as NOTED. Guarded by NOTED. */
+    private static final LinkedHashMap<String, MessageLogFaces.Found> NOTED_FACES = new LinkedHashMap<>();
 
     /**
      * One stored message. The thread is Messenger's key for the chat, used only to group and match entries. The sender
@@ -350,17 +353,20 @@ public final class MessageLog {
         }
         synchronized (NOTED) {
             NOTED.clear();
+            NOTED_FACES.clear();
         }
     }
 
     /**
      * Auto reply answers through the chat's notification, and Messenger takes that notification down once the reply goes,
      * often before the log reads the sender's name off it. Auto reply hands the names over just before it answers, keyed
-     * by the message's id so they can only land on that message. Without an id nothing is noted.
+     * by the message's id so they can only land on that message, with the faces the notification shows. Without an id
+     * nothing is noted.
      */
     static void noteNames(String thread, String id, String text, android.app.Notification notification) {
         if (thread == null || id == null || id.isEmpty() || text == null || notification == null || !Settings.wouldUse(KEY)) return;
-        note(thread, id, ChatNotifications.sender(notification, text, thread), ChatNotifications.conversation(notification));
+        String sender = ChatNotifications.sender(notification, text, thread);
+        note(thread, id, sender, ChatNotifications.conversation(notification), MessageLogFaces.find(notification, thread, sender));
     }
 
     /**
@@ -370,10 +376,10 @@ public final class MessageLog {
      */
     static void noteSender(String thread, String id, String sender) {
         if (thread == null || id == null || id.isEmpty() || sender == null || sender.isEmpty() || !Settings.wouldUse(KEY)) return;
-        note(thread, id, sender, null);
+        note(thread, id, sender, null, null);
     }
 
-    private static void note(String thread, String id, String sender, String chat) {
+    private static void note(String thread, String id, String sender, String chat, MessageLogFaces.Found faces) {
         if (sender == null && chat == null) return;
         String key = clip(thread, MAX_THREAD_CHARS) + '\u0000' + clip(id, MAX_ID_CHARS);
         synchronized (NOTED) {
@@ -383,6 +389,9 @@ public final class MessageLog {
                 oldest.next();
                 oldest.remove();
             }
+            NOTED_FACES.remove(key);
+            if (faces != null) NOTED_FACES.put(key, faces);
+            NOTED_FACES.keySet().retainAll(NOTED.keySet());
         }
     }
 
@@ -577,6 +586,12 @@ public final class MessageLog {
                 noted = NOTED.remove(entry.thread + '\u0000' + entry.id);
             }
         }
+        MessageLogFaces.Found faces = null;
+        if (!entry.id.isEmpty()) {
+            synchronized (NOTED) {
+                faces = NOTED_FACES.remove(entry.thread + (char) 0 + entry.id);
+            }
+        }
         try {
             String sender;
             String chat;
@@ -591,12 +606,16 @@ public final class MessageLog {
                 sender = line.sender != null ? line.sender : ChatNotifications.sender(line.shown.getNotification(), text, entry.thread);
                 chat = ChatNotifications.conversation(line.shown.getNotification());
                 if (media.isEmpty()) media = MessageLogMedia.keep(context, entry.thread, entry.id, line.data, line.type);
+                faces = MessageLogFaces.find(line.shown.getNotification(), entry.thread, sender);
             } else {
                 android.service.notification.StatusBarNotification shown = ChatNotifications.find(context, entry.thread);
                 if (shown == null) return entry;
                 sender = ChatNotifications.sender(shown.getNotification(), entry.text, entry.thread);
                 chat = ChatNotifications.conversation(shown.getNotification());
+                faces = MessageLogFaces.find(shown.getNotification(), entry.thread, sender);
             }
+            // Under the sender's name as the entry keeps it, so the log's screen finds the face by it.
+            MessageLogFaces.keep(context, entry.thread, clip(sender == null ? "" : sender, MAX_NAME_CHARS), faces);
             if (sender == null && chat == null && text.equals(entry.text) && media.equals(entry.media)) return entry;
             return new Entry(entry.time, entry.thread, text, clip(sender == null ? "" : sender, MAX_NAME_CHARS),
                 clip(chat == null || chat.equals(sender) ? "" : chat, MAX_NAME_CHARS), entry.id, entry.unsent, entry.attachment, media,
@@ -804,7 +823,7 @@ public final class MessageLog {
     }
 
     /** Everything the log writes into Messenger's files folder. */
-    private static final String[] FILES = {FILE, FILE + ".tmp", DAMAGED, NAMES, NAMES + ".tmp", MessageLogMedia.DIR};
+    private static final String[] FILES = {FILE, FILE + ".tmp", DAMAGED, NAMES, NAMES + ".tmp", MessageLogMedia.DIR, MessageLogFaces.DIR};
 
     /** Deletes the file, anything set aside and the key, and drops messages still waiting to be written. */
     static boolean clear() {
@@ -820,12 +839,14 @@ public final class MessageLog {
                 if (taken != null) taken.addAll(PENDING);
                 PENDING.clear();
             }
-            // Names Auto reply noted for messages not written yet go with them.
+            // Names Auto reply noted for messages not written yet go with them, and so do their faces.
             synchronized (NOTED) {
                 NOTED.clear();
+                NOTED_FACES.clear();
             }
             if (context != null) {
                 if (!MessageLogMedia.deleteAll(context)) cleared = false;
+                if (!MessageLogFaces.deleteAll(context)) cleared = false;
                 for (String name : FILES) {
                     File file = new File(context.getFilesDir(), name);
                     if (file.exists() && !file.delete()) {
@@ -845,33 +866,37 @@ public final class MessageLog {
         return cleared;
     }
 
-    /** A clear's outcome, with what it took: the messages oldest first, the chats' names and the pictures, opened. */
+    /** A clear's outcome, with what it took: the messages oldest first, the chats' names, the pictures and the faces, opened. */
     static final class Cleared {
         final boolean cleared;
         final List<Entry> removed;
         final Map<String, String> names;
         final Map<String, byte[]> pictures;
+        final Map<String, byte[]> faces;
         Cleared(boolean cleared, List<Entry> removed) {
-            this(cleared, removed, new LinkedHashMap<>(), new LinkedHashMap<>());
+            this(cleared, removed, new LinkedHashMap<>(), new LinkedHashMap<>(), new LinkedHashMap<>());
         }
-        Cleared(boolean cleared, List<Entry> removed, Map<String, String> names, Map<String, byte[]> pictures) {
+        Cleared(boolean cleared, List<Entry> removed, Map<String, String> names, Map<String, byte[]> pictures, Map<String, byte[]> faces) {
             this.cleared = cleared;
             this.removed = removed;
             this.names = names;
             this.pictures = pictures;
+            this.faces = faces;
         }
     }
 
     /**
      * {@link #clear} that hands back what it took, the file's messages then the ones waiting to be written, for the
-     * settings screen's Undo, with the chats' names and the pictures. The copy lives in memory only, and the pictures are
-     * held to MessageLogMedia.MAX_TOTAL_BYTES. A log that can't be read comes back with nothing to put back.
+     * settings screen's Undo, with the chats' names, the pictures and the faces. The copy lives in memory only, and the
+     * pictures are held to MessageLogMedia.MAX_TOTAL_BYTES and the faces to MessageLogFaces.MAX_TOTAL_BYTES. A log that
+     * can't be read comes back with nothing to put back.
      */
     static Cleared clearForUndo() {
         Context context = Settings.appContext;
         List<Entry> removed = new ArrayList<>();
         Map<String, String> names = new LinkedHashMap<>();
         Map<String, byte[]> pictures = new LinkedHashMap<>();
+        Map<String, byte[]> faces = new LinkedHashMap<>();
         synchronized (LOCK) {
             if (context != null) {
                 try {
@@ -884,9 +909,10 @@ public final class MessageLog {
                 }
                 names.putAll(loadNames(context));
                 pictures.putAll(MessageLogMedia.openAll(context, removed));
+                faces.putAll(MessageLogFaces.openAll(context));
             }
             // A message queued while the file was read is taken with the rest, never dropped unseen.
-            return new Cleared(clear(removed), removed, names, pictures);
+            return new Cleared(clear(removed), removed, names, pictures, faces);
         }
     }
 
@@ -905,6 +931,7 @@ public final class MessageLog {
         synchronized (LOCK) {
             try {
                 MessageLogMedia.restore(context, what.pictures);
+                MessageLogFaces.restore(context, what.faces);
                 Map<String, String> names = new LinkedHashMap<>(what.names);
                 names.putAll(loadNames(context));
                 if (!names.isEmpty()) saveNames(context, names);
@@ -1076,7 +1103,7 @@ public final class MessageLog {
         return MessageLogAttachment.AUDIO.equals(written) || MessageLogAttachment.VIDEO.equals(written) ? written : "";
     }
 
-    /** Writes the whole log, or deletes the file when nothing is left, then drops the pictures no entry keeps. */
+    /** Writes the whole log, or deletes the file when nothing is left, then drops the pictures and faces no entry keeps. */
     private static void save(Context context, List<Entry> entries) throws Exception {
         if (entries.isEmpty()) {
             File file = new File(context.getFilesDir(), FILE);
@@ -1085,6 +1112,7 @@ public final class MessageLog {
             write(context, entries);
         }
         MessageLogMedia.tidy(context, entries);
+        MessageLogFaces.tidy(context, entries);
     }
 
     /**

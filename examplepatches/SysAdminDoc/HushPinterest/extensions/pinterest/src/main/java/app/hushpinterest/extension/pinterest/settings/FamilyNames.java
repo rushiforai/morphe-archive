@@ -33,6 +33,7 @@ public final class FamilyNames {
     public static final String DISABLE_ANALYTICS = "Disable analytics";
     public static final String STRIP_LINK_TRACKING = "Strip link tracking";
     public static final String HIDE_ADVERTISING_ID = "Hide advertising ID";
+    public static final String LIKE_COMMENT_HISTORY = "Like and comment history";
     public static final String REMOVE_AD_TRACKING_PERMISSIONS = "Remove ad tracking permissions";
     public static final String SPOOF_SIGNATURE = "Spoof signature for Google sign-in";
     public static final String GMS_CORE_SUPPORT = "GmsCore support";
@@ -61,18 +62,25 @@ public final class FamilyNames {
     public static final String HIDE_PIN_AUTHOR = "Hide pin author";
     public static final String HIDE_PIN_DESCRIPTION = "Hide pin title and description";
     public static final String SHOW_IMAGE_SIZE = "Show image size";
+    public static final String SWIPE_TO_CLOSE_PINS = "Swipe down to close pins";
+    public static final String FULL_SIZE_PROFILE_PHOTOS = "Full-size profile photos";
+    public static final String BEST_VIDEO_QUALITY = "Best video quality";
     public static final String HIDE_HIGHLIGHT_RING = "Hide blue highlight ring";
     public static final String HIDE_VISUAL_SEARCH_THUMBNAILS = "Hide visual search thumbnails";
     public static final String FOLD_RELATED_PINS = "Fold related pins";
     public static final String LET_SCREEN_SLEEP = "Let the screen sleep";
     public static final String CUSTOM_SAVE_SOUND = "Custom save sound";
     public static final String CUSTOM_SPLASH_LOGO = "Custom splash logo";
+    public static final String CUSTOM_FONT = "Custom font";
     public static final String BOARD_TABS = "Customize board tabs";
     public static final String HIDE_SAVE_TOASTS = "Hide save toasts";
     public static final String ORIGINAL_IMAGES = "Original-quality images";
     public static final String SHOW_POSTED_DATE = "Show posted date";
     public static final String HIDE_SUGGESTED_BOARDS = "Hide suggested boards";
     public static final String EXPAND_BOARD_LIST = "Expand board list";
+    public static final String BOARD_ORDER_WHEN_SAVING = "Board order when saving";
+    public static final String PIN_VIDEO_PLAYBACK = "Pin video playback";
+    public static final String PINCH_TO_ZOOM_ONLY = "Pinch to zoom only";
     public static final String DISABLE_UPDATE_NAG = "Disable update nag";
     public static final String FIX_PUSH_NOTIFICATIONS = "Fix push notifications";
 

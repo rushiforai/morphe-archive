@@ -1,6 +1,7 @@
 /*
  * Copyright (C) 2026 lavinhoque33
  * Licensed under the GNU General Public License v3.0.
+ * Modified by lavinhoque33, 2026-11-24
  * Written by lavinhoque33, 2026-11-23
  */
 
@@ -13,7 +14,9 @@ import androidx.annotation.Nullable;
 import com.google.protobuf.ByteString;
 import com.google.protobuf.InvalidProtocolBufferException;
 
+import java.lang.ref.WeakReference;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.regex.Pattern;
 
 import app.morphe.extension.shared.utils.ByteTrieSearch;
@@ -53,40 +56,99 @@ public final class HomeFeedChannelNamesPatch {
             ByteTrieSearch.convertStringsToBytes("/@"));
 
     @Nullable
-    private static volatile String browseId;
+    private static volatile BrowsePane activeBrowsePane;
+
+    private static final class BrowsePane extends WeakReference<Object> {
+        private volatile boolean home;
+
+        private BrowsePane(Object fragment, @Nullable String id) {
+            super(fragment);
+            home = HOME.equals(id);
+        }
+    }
+
+    private enum Decision {
+        DISABLED,
+        NOT_HOME,
+        COVERED,
+        NO_MATCHING_NAME,
+        REWRITTEN
+    }
+
+    /** At most one line per outcome and parser path between native pane callbacks. */
+    private static final class DebugDecisions {
+        private static final AtomicInteger seen = new AtomicInteger();
+
+        private static void record(boolean converting, Decision decision) {
+            int bit = 1 << (decision.ordinal() + (converting ? 8 : 0));
+            int previous;
+            do {
+                previous = seen.get();
+                if ((previous & bit) != 0) {
+                    return;
+                }
+            } while (!seen.compareAndSet(previous, previous | bit));
+
+            Logger.printDebug(() -> "Home attribution " + (converting ? "Classic conversion" : "element")
+                    + ": " + decision);
+        }
+    }
 
     private HomeFeedChannelNamesPatch() {
     }
 
-    /** Injection point: the browse fragment received an endpoint, including return from cache. */
-    public static void setBrowseId(@Nullable String id) {
-        browseId = id;
+    /** Injection point: the main-pane transaction or its view creation, before the first render. */
+    public static void setActiveBrowsePane(@Nullable Object pane, @Nullable String id, boolean creatingView) {
+        activeBrowsePane = pane == null ? null : new BrowsePane(pane, id);
+        if (Settings.DEBUG.get()) {
+            DebugDecisions.seen.set(0);
+            Logger.printDebug(() -> "Home attribution pane " + (creatingView ? "create view: " : "replace: ")
+                    + (pane == null ? "non-browse" : pageKind(id)));
+        }
     }
 
-    /** Injection point: Search is not a Browse endpoint. */
-    public static void clearBrowseId() {
-        browseId = null;
+    /** Injection point: the browse fragment loaded or changed its endpoint. */
+    public static void updateBrowsePaneId(Object pane, @Nullable String id) {
+        BrowsePane selected = activeBrowsePane;
+        boolean active = selected != null && selected.get() == pane;
+        if (active) {
+            selected.home = HOME.equals(id);
+        }
+
+        if (Settings.DEBUG.get()) {
+            if (active) {
+                DebugDecisions.seen.set(0);
+            }
+            Logger.printDebug(() -> "Home attribution endpoint " + (active ? "active: " : "inactive: ")
+                    + pageKind(id));
+        }
+    }
+
+    private static String pageKind(@Nullable String id) {
+        return HOME.equals(id) ? "Home" : id == null || id.isEmpty() ? "unknown browse" : "other browse";
     }
 
     /** Injection point: before the native newElement protobuf parser. */
     public static byte[] onElementLoaded(byte[] bytes) {
-        String page = browseId;
-        if (!Settings.HOME_FEED_CHANNEL_NAMES.get() || !HOME.equals(page)) {
+        if (!shouldRewriteHomeAttribution(false)) {
             return bytes;
         }
 
-        return rewrite(bytes, page, isHomeCovered());
+        return rewrite(bytes);
     }
 
     static LockupMetadata metadataForClassicLayout(LockupViewModel video) {
         LockupMetadata original = video.getMetadata();
-        if (!Settings.HOME_FEED_CHANNEL_NAMES.get() || !HOME.equals(browseId) || isHomeCovered()) {
+        if (!shouldRewriteHomeAttribution(true)) {
             return original;
         }
 
         // Use the source content ID and author runs before Classic replaces the model and joins the rows.
         try {
             LockupMetadata replacement = rewriteModernMetadata(video);
+            if (video.getContentType() == 1) {
+                logRewriteDecision(true, replacement != null);
+            }
             return replacement == null ? original : replacement;
         } catch (InvalidProtocolBufferException ex) {
             Logger.printDebug(() -> "Could not parse Home video attribution");
@@ -94,14 +156,39 @@ public final class HomeFeedChannelNamesPatch {
         }
     }
 
-    private static boolean isHomeCovered() {
-        return RootView.isPlayerActive() || RootView.isShortsActive()
-                || RootView.isSearchBarActive() || NavigationBar.isSearchBarActive();
+    private static boolean shouldRewriteHomeAttribution(boolean converting) {
+        if (!Settings.HOME_FEED_CHANNEL_NAMES.get()) {
+            logDecision(converting, Decision.DISABLED);
+            return false;
+        }
+
+        BrowsePane selected = activeBrowsePane;
+        if (selected == null || !selected.home || selected.get() == null) {
+            logDecision(converting, Decision.NOT_HOME);
+            return false;
+        }
+
+        // The last constructed SearchEndpoint can outlive Search. Use the actual pane and visible covers.
+        if (RootView.isPlayerActive() || RootView.isShortsActive() || NavigationBar.isSearchBarActive()) {
+            logDecision(converting, Decision.COVERED);
+            return false;
+        }
+
+        return true;
     }
 
-    static byte[] rewrite(byte[] bytes, @Nullable String page, boolean covered) {
-        if (covered || !HOME.equals(page) || bytes == null
-                || !TEMPLATE_SEARCH.matches(bytes) || !HANDLE_SEARCH.matches(bytes)) {
+    private static void logRewriteDecision(boolean converting, boolean changed) {
+        logDecision(converting, changed ? Decision.REWRITTEN : Decision.NO_MATCHING_NAME);
+    }
+
+    private static void logDecision(boolean converting, Decision outcome) {
+        if (Settings.DEBUG.get()) {
+            DebugDecisions.record(converting, outcome);
+        }
+    }
+
+    static byte[] rewrite(byte[] bytes) {
+        if (bytes == null || !TEMPLATE_SEARCH.matches(bytes) || !HANDLE_SEARCH.matches(bytes)) {
             return bytes;
         }
 
@@ -114,6 +201,7 @@ public final class HomeFeedChannelNamesPatch {
             }
 
             ElementModel replacement = rewriteModel(template, component.getModel());
+            logRewriteDecision(false, replacement != null);
             return replacement == null ? bytes : element.toBuilder()
                     .setType(element.getType().toBuilder()
                             .setComponentType(component.toBuilder().setModel(replacement)))

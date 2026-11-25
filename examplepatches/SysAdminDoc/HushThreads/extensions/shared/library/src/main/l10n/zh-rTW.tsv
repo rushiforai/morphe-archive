@@ -393,3 +393,31 @@ One pattern a line, or separated by commas. A shop's domain such as shopee.vn ta
 One pattern a line, or separated by commas. Matched whatever the letter case.	每行一條規則，或以逗號分隔。比對時不分大小寫。
 Hide comments with links	隱藏含連結的留言
 Replies with a web link are left out, whatever the patterns say. Add a bare site name such as shopee.vn as a pattern.	含有網頁連結的回覆都會被移除，不論規則為何。像 shopee.vn 這樣單獨的網站名稱，請加為規則。
+Hide the like button	隱藏讚按鈕
+Takes the like button off posts and replies, with its count. Restart Threads to see the change.	移除貼文和回覆上的讚按鈕及其數字。重新啟動 Threads 以查看變更。
+Hide the reply button	隱藏回覆按鈕
+Takes the reply button off posts and replies, with its count. Restart Threads to see the change.	移除貼文和回覆上的回覆按鈕及其數字。重新啟動 Threads 以查看變更。
+Hide the repost button	隱藏轉發按鈕
+Takes the repost button off posts and replies, with its count. Restart Threads to see the change.	移除貼文和回覆上的轉發按鈕及其數字。重新啟動 Threads 以查看變更。
+Hide the share button	隱藏分享按鈕
+Takes the share button off posts and replies. Restart Threads to see the change.	移除貼文和回覆上的分享按鈕。重新啟動 Threads 以查看變更。
+Hide the save button	隱藏儲存按鈕
+Takes the save button off posts and replies, so you can't tap it by mistake. Restart Threads to see the change.	移除貼文和回覆上的儲存按鈕，以免誤觸。重新啟動 Threads 以查看變更。
+# The header logo switch under Appearance, then the row under Set when you patched for the launcher icon, and the launcher icon as one item of the list of what stays while HushThreads is paused
+Use the HushThreads logo	使用 HushThreads 標誌
+Shows the HushThreads logo at the top of your feed in place of the Threads logo. It doesn't spin while the feed refreshes. Restart Threads to see the change.	在動態頂端以 HushThreads 標誌取代 Threads 標誌。重新整理動態時不會旋轉。重新啟動 Threads 以查看變更。
+HushThreads icon	HushThreads 圖示
+The app's icon on your home screen is the HushThreads logo.	主畫面上的應用程式圖示是 HushThreads 標誌。
+the HushThreads icon	HushThreads 圖示
+# Custom font's switch and its Font file row under Appearance, and what picking a font file says
+Custom font	自訂字型
+Shows Threads' text in the font file you pick below. Icons keep their own font. Restart Threads to see the change.	以你在下方選擇的字型檔顯示 Threads 的文字。圖示會保留原本的字型。重新啟動 Threads 以查看變更。
+Font file	字型檔
+No font picked yet. Pick a .ttf or .otf file.	尚未選擇字型。請選擇 .ttf 或 .otf 檔案。
+A font file is picked. Tap to pick another.	已選擇字型檔。點一下即可選擇其他檔案。
+%1$s is picked. Tap to pick another.	已選擇 %1$s。點一下即可選擇其他檔案。
+Copying the font file	正在複製字型檔
+Font file saved. Restart Threads to see it.	字型檔已儲存。重新啟動 Threads 即可看到。
+Font file saved. Turn on Custom font to use it.	字型檔已儲存。開啟「自訂字型」即可使用。
+That file is too large to be a font. Nothing was changed.	該檔案太大，不可能是字型檔。未變更任何項目。
+That isn't a font file Android can use. Nothing was changed.	這不是 Android 可以使用的字型檔。未變更任何項目。

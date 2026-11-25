@@ -75,6 +75,7 @@ public class TimelineFilterTest {
         Settings.HIDE_SUGGESTED_COMMUNITIES.resetToDefault();
         Settings.HIDE_SUGGESTED_TAGS.resetToDefault();
         Settings.HIDE_WATCH_IT_ROWS.resetToDefault();
+        Settings.HIDE_MORE_POSTS_LIKE_THIS.resetToDefault();
         Settings.HIDE_FEATURED_POSTS.resetToDefault();
         TimelineFilter.carouselItemsForTests = null;
         TimelinePaging.resetForTests();
@@ -558,6 +559,43 @@ public class TimelineFilterTest {
         checkCards(Settings.HIDE_SUGGESTED_BLOGS, TimelineFilter.BLOG_TYPES);
         checkCards(Settings.HIDE_SUGGESTED_COMMUNITIES, TimelineFilter.COMMUNITY_TYPES);
         checkCards(Settings.HIDE_WATCH_IT_ROWS, TimelineFilter.WATCH_IT_TYPES);
+        checkCards(Settings.HIDE_MORE_POSTS_LIKE_THIS, TimelineFilter.MORE_POSTS_TYPES);
+    }
+
+    /**
+     * The page Tumblr loads under a post you open, in the shape a captured answer has: the "More
+     * posts like this" heading, then rows of post tiles. With the switch on the whole page goes,
+     * heading and all, and every other card switch leaves it alone.
+     */
+    @Test
+    public void morePostsLikeThisGoesWithItsHeading() {
+        List<Object> page = Arrays.asList(TimelineItems.of(TimelineObjectType.TITLE),
+                TimelineItems.of(TimelineObjectType.CHICLET_ROW), TimelineItems.of(TimelineObjectType.CHICLET_ROW),
+                TimelineItems.of(TimelineObjectType.CHICLET_ROW));
+        Settings.HIDE_SUGGESTED_BLOGS.save(true);
+        Settings.HIDE_SUGGESTED_COMMUNITIES.save(true);
+        Settings.HIDE_SUGGESTED_TAGS.save(true);
+        Settings.HIDE_WATCH_IT_ROWS.save(true);
+        assertSame("the other card switches", page, TimelineFilter.filter(page));
+        Settings.HIDE_SUGGESTED_BLOGS.resetToDefault();
+        Settings.HIDE_SUGGESTED_COMMUNITIES.resetToDefault();
+        Settings.HIDE_SUGGESTED_TAGS.resetToDefault();
+        Settings.HIDE_WATCH_IT_ROWS.resetToDefault();
+
+        Settings.HIDE_MORE_POSTS_LIKE_THIS.save(true);
+        assertEquals(Collections.emptyList(), TimelineFilter.filter(page));
+        String report = String.join("\n", HookStatus.report(""));
+        assertTrue(report, report.contains("heading removed 1"));
+        assertTrue(report, report.contains("card removed 3"));
+        List<Object> withPost = Arrays.asList(TimelineItems.post(), TimelineItems.of(TimelineObjectType.TITLE),
+                TimelineItems.of(TimelineObjectType.CHICLET_ROW));
+        assertEquals("the post it's under stays", Collections.singletonList(withPost.get(0)),
+                TimelineFilter.filter(withPost));
+        PauseForTests.pause(HushTumblrPause.Reason.SWITCH);
+        assertSame("paused", page, TimelineFilter.filter(page));
+        PauseForTests.resume();
+        PatchFamilyForTests.capabilities(EnumSet.of(PatchFamily.Capability.TIMELINE_ADS));
+        assertSame("without the patch", page, TimelineFilter.filter(page));
     }
 
     /** With every card switch off, as they start, a page of cards and headings comes back as it was. */
@@ -565,7 +603,8 @@ public class TimelineFilterTest {
     public void theCardSwitchesStartOffAndKeepEverything() {
         List<Object> page = Arrays.asList(TimelineItems.of(TimelineObjectType.TITLE),
                 TimelineItems.of(TimelineObjectType.BLOG_CARD), TimelineItems.of(TimelineObjectType.COMMUNITY_ROW),
-                TimelineItems.of(TimelineObjectType.VIDEO_HUBS_ROW), TimelineItems.post(),
+                TimelineItems.of(TimelineObjectType.VIDEO_HUBS_ROW), TimelineItems.of(TimelineObjectType.CHICLET_ROW),
+                TimelineItems.post(),
                 TimelineItems.carousel(TimelineObjectType.CAROUSEL,
                         TimelineItems.of(TimelineObjectType.TAG_CAROUSEL_CARD)),
                 TimelineItems.of(TimelineObjectType.SIGNPOST), TimelineItems.of(TimelineObjectType.TITLE));

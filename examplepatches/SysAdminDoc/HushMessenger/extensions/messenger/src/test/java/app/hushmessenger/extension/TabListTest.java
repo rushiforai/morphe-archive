@@ -287,4 +287,81 @@ public class TabListTest {
         assertNotNull(Settings.visibleTabs(broken()));
         assertTrue("With every switch off no row takes the blame", Settings.hookErrors.isEmpty());
     }
+
+    /** 587's tab enum has CREATION, the tab Instants lives in, though most accounts' layouts leave it out of the bar (#216). */
+    enum CreationBar { INBOX, PEOPLE, CREATION, JEWEL, MORE, ME_SETTING }
+
+    private static List<CreationBar> withoutInstants() {
+        return new ArrayList<>(List.of(CreationBar.INBOX, CreationBar.PEOPLE, CreationBar.JEWEL, CreationBar.MORE));
+    }
+
+    @Test public void showInstantsTabPutsTheCreationTabInTheMiddleOfTheBar() {
+        List<CreationBar> stock = withoutInstants();
+        assertSame("Off leaves Messenger's bar alone", stock, Settings.visibleTabs(stock));
+
+        restart();
+        Settings.preferences.edit().putBoolean(Settings.SHOW_INSTANTS_TAB, true).commit();
+        assertEquals(List.of(CreationBar.INBOX, CreationBar.PEOPLE, CreationBar.CREATION, CreationBar.JEWEL, CreationBar.MORE),
+            Settings.visibleTabs(withoutInstants()));
+        assertTrue(Settings.lastActive(Settings.SHOW_INSTANTS_TAB) > 0);
+        assertTrue(Settings.hookErrors.isEmpty());
+
+        Settings.activeAt.clear();
+        List<CreationBar> already = new ArrayList<>(List.of(CreationBar.INBOX, CreationBar.CREATION, CreationBar.JEWEL));
+        assertSame("A bar that already has it keeps Messenger's own list", already, Settings.visibleTabs(already));
+        assertNull("Nothing was added, so it isn't a use", Settings.activeAt.get(Settings.SHOW_INSTANTS_TAB));
+    }
+
+    /** Messenger's own layouts with the tab put it third: Chats, Meta AI, Instants, Notifications. */
+    @Test public void instantsLandsWhereMessengersOwnLayoutsPutIt() {
+        Settings.preferences.edit().putBoolean(Settings.SHOW_INSTANTS_TAB, true).commit();
+        assertEquals(List.of(CreationBar.INBOX, CreationBar.PEOPLE, CreationBar.CREATION, CreationBar.JEWEL),
+            Settings.visibleTabs(new ArrayList<>(List.of(CreationBar.INBOX, CreationBar.PEOPLE, CreationBar.JEWEL))));
+        assertEquals(List.of(CreationBar.INBOX, CreationBar.CREATION, CreationBar.JEWEL),
+            Settings.visibleTabs(new ArrayList<>(List.of(CreationBar.INBOX, CreationBar.JEWEL))));
+    }
+
+    @Test public void instantsGoesInOnceTheOtherSwitchesHaveHadTheirSay() {
+        Settings.preferences.edit().putBoolean(Settings.SHOW_INSTANTS_TAB, true).putBoolean(Settings.SHOW_SETTINGS_TAB, true)
+            .putBoolean("tab_notifications", true).commit();
+        assertEquals(List.of(CreationBar.INBOX, CreationBar.PEOPLE, CreationBar.CREATION, CreationBar.MORE, CreationBar.ME_SETTING),
+            Settings.visibleTabs(withoutInstants()));
+        assertTrue(Settings.lastActive(Settings.SHOW_INSTANTS_TAB) > 0);
+        assertTrue(Settings.lastActive(Settings.SHOW_SETTINGS_TAB) > 0);
+    }
+
+    @Test public void showInstantsTabHoldsItsAnswerUntilARestart() {
+        Settings.preferences.edit().putBoolean(Settings.SHOW_INSTANTS_TAB, true).commit();
+        assertTrue(Settings.visibleTabs(withoutInstants()).contains(CreationBar.CREATION));
+        Settings.preferences.edit().putBoolean(Settings.SHOW_INSTANTS_TAB, false).commit();
+        assertTrue("The bar keeps the tab it counted first", Settings.visibleTabs(withoutInstants()).contains(CreationBar.CREATION));
+        assertEquals(Boolean.TRUE, Settings.heldUntilRestart(Settings.SHOW_INSTANTS_TAB));
+
+        restart();
+        assertFalse(Settings.visibleTabs(withoutInstants()).contains(CreationBar.CREATION));
+        Settings.preferences.edit().putBoolean(Settings.SHOW_INSTANTS_TAB, true).putBoolean("paused", true).commit();
+        restart();
+        assertFalse("Pause takes it away after the restart", Settings.visibleTabs(withoutInstants()).contains(CreationBar.CREATION));
+    }
+
+    @Test public void withNoCreationTabToAddTheBarStaysAsBuiltAndTheRowSaysSo() {
+        Settings.preferences.edit().putBoolean(Settings.SHOW_INSTANTS_TAB, true).commit();
+        List<Tab> noConstant = bar();
+        assertSame(noConstant, Settings.visibleTabs(noConstant));
+        assertEquals(List.of(Tab.values()), noConstant);
+        assertNotNull(Settings.hookErrors.get(Settings.SHOW_INSTANTS_TAB));
+        assertNull(Settings.activeAt.get(Settings.SHOW_INSTANTS_TAB));
+    }
+
+    @Test public void theInstantsRowSitsUnderTheSettingsTabRowAndStartsOff() {
+        int settings = -1, instants = -1;
+        for (int i = 0; i < SettingsActivity.CONTROLS.length; i++) {
+            if (SettingsActivity.CONTROLS[i][0].equals(Settings.SHOW_SETTINGS_TAB)) settings = i;
+            if (SettingsActivity.CONTROLS[i][0].equals(Settings.SHOW_INSTANTS_TAB)) instants = i;
+        }
+        assertEquals(settings + 1, instants);
+        assertEquals("Show Instants tab", SettingsActivity.CONTROLS[instants][1]);
+        assertEquals("tab_bar", SettingsActivity.CONTROLS[instants][3]);
+        assertFalse(Settings.preferences.getBoolean(Settings.SHOW_INSTANTS_TAB, false));
+    }
 }

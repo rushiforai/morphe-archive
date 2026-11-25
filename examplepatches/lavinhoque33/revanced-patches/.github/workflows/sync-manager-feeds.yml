@@ -1,0 +1,36 @@
+# Copyright (C) 2026 lavinhoque33
+# Licensed under the GNU General Public License v3.0.
+# Written by lavinhoque33, 2026-11-25.
+name: Sync Manager feeds
+
+on:
+  release:
+    types: [published]
+  schedule:
+    # Reconcile on the default branch even if the release tag predates this workflow
+    # or the release was published using GITHUB_TOKEN (which does not trigger it).
+    - cron: '17,47 * * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: sync-manager-feeds
+  cancel-in-progress: false
+
+jobs:
+  sync:
+    if: github.repository == 'lavinhoque33/revanced-patches'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Checkout the feed sync code
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: rvx-latest
+
+      - name: Sync published patch bundles
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: python3 .github/scripts/sync-manager-feeds.py

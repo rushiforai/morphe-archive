@@ -1,0 +1,9 @@
+package com.miui.miwallpaper.moon.superwallpaper;
+
+/**
+ * Position 1 variant of the official Moon wallpaper service. The position is
+ * derived from the class name by the patched position lookup.
+ */
+@SuppressWarnings("unused")
+public class MoonSuperWallpaper1 extends MoonSuperWallpaper {
+}

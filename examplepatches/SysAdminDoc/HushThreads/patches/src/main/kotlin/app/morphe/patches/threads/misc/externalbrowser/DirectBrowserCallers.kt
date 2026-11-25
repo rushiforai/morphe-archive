@@ -47,8 +47,11 @@ internal const val FACTORY_OPEN = "BrowserLiteIntent.OPEN_WITH_URL"
 /** The name of the ad destination a web call to action has. */
 internal const val WEB_DESTINATION = "AD_DESTINATION_WEB"
 
-/** The start of the Compose trace the immersive browser screen carries, before its line number. */
-internal const val IMMERSIVE_SCREEN = "com.instagram.barcelona.inappbrowser.compose.ImmersiveBrowserScreen ("
+/** How the immersive browser screen names its browser's fragment. */
+internal const val IMMERSIVE_FRAGMENT = "immersive_browser_fragment_"
+
+/** The view mode of the browser an ad embeds in a card of its own, new in 456. */
+internal const val CARD_VIEW_MODE = "Lcom/facebook/browser/common/viewmode/IABViewModeLaunchConfig\$Card;"
 
 /**
  * One place that makes Threads' browser Intent without the launcher asking first. [at] is where the
@@ -115,11 +118,12 @@ internal class DirectBrowserSite(
  * the ad browser opened from a call to action, and the media viewer's swipe up on an ad. Everything
  * is read and proven before anything changes.
  *
- * Read from 454 (2026-11-02): the factory that builds the browser Intent has four callers. The
+ * Read from 456 (2026-11-18): the factory that builds the browser Intent has five callers. The
  * launcher calls it twice, once for each way it shows the browser. The immersive browser screen
- * calls it after the launcher already asked, so it's left alone, and so is the factory. 451 through
- * 453 had a fifth, the lead form's link helper; 454 opens those links through the launcher. A fifth
- * caller, or one of these gone, stops the patch.
+ * calls it after the launcher already asked, so it's left alone, and so is the factory. The fifth,
+ * new in 456, builds the browser an ad embeds in a card: the page stays inside that card and no
+ * Activity starts, so there is no link going out to send elsewhere. A sixth caller, or one of these
+ * gone, stops the patch.
  */
 internal fun BytecodePatchContext.directBrowserSites(launcher: Method): List<DirectBrowserSite> {
     val factory = browserFactory()
@@ -139,13 +143,17 @@ internal fun BytecodePatchContext.directBrowserSites(launcher: Method): List<Dir
         method !== launcherHelper && method.returnType == INTENT && !AccessFlags.STATIC.isSet(method.accessFlags)
     }
     val immersive = one("the immersive browser screen") { method ->
-        method !== launcherHelper && method !== adBuilder && method.strings().any { it.startsWith(IMMERSIVE_SCREEN) }
+        method !== launcherHelper && method !== adBuilder && method.strings().any { it == IMMERSIVE_FRAGMENT }
+    }
+    val card = one("the browser an ad embeds in a card") { method ->
+        method !== launcherHelper && method !== adBuilder && method !== immersive &&
+            method.body().any { it.opcode == Opcode.SGET_OBJECT && it.field()?.definingClass == CARD_VIEW_MODE }
     }
     val media = one("the media viewer's swipe up") { method ->
-        method !== launcherHelper && method !== adBuilder && method !== immersive &&
+        method !== launcherHelper && method !== adBuilder && method !== immersive && method !== card &&
             method.name == "invokeSuspend" && method.strings().any { it == WEB_DESTINATION }
     }
-    ensure(callers.size == 4, "Threads' browser Intent has ${callers.size} callers, not four")
+    ensure(callers.size == 5, "Threads' browser Intent has ${callers.size} callers, not five")
     ensure(launcherHelper.body().count { it.method()?.sameAs(factory) == true } == 1,
         "the launcher's Intent helper makes Threads' browser Intent more than once")
 
@@ -347,14 +355,15 @@ private fun BytecodePatchContext.isWebDestination(field: FieldReference): Boolea
 
 /**
  * The view modes that reach the call wrapping the factory's Intent right after it, which takes
- * the Intent, an IABViewModeLaunchConfig and a flag. Answers where each mode is made.
+ * the Intent and an IABViewModeLaunchConfig first (456 adds arguments after those). Answers where
+ * each mode is made.
  */
 private fun Method.viewModes(at: Int, what: String): Set<Int> {
     val code = body()
     ensure(code.getOrNull(at + 1)?.opcode == Opcode.MOVE_RESULT_OBJECT, "$what drops its browser Intent")
     val wrap = code.getOrNull(at + 2) ?: refuse("$what ends at its browser Intent")
     ensure(
-        wrap.method()?.parameterTypes?.map(CharSequence::toString) == listOf(INTENT, VIEW_MODE, "Z") &&
+        wrap.method()?.parameterTypes?.take(2)?.map(CharSequence::toString) == listOf(INTENT, VIEW_MODE) &&
             wrap.namedRegisters().first() == (code[at + 1] as OneRegisterInstruction).registerA,
         "$what no longer hands its browser Intent straight to the view mode",
     )

@@ -192,6 +192,7 @@ public final class ExpressiveSheetsBridge {
         }
         try {
             Window window = dialog.getWindow();
+            MaterialYouColorEngine.installTouchTracker(window);
             if (window != null
                     && dev.materialtidal.extension.tidal.navbar.ExpressiveScaffoldBridge.isPendingInstantSheetSnap()) {
                 window.setWindowAnimations(0);
@@ -212,6 +213,7 @@ public final class ExpressiveSheetsBridge {
         }
         try {
             Window window = dialog.getWindow();
+            MaterialYouColorEngine.installTouchTracker(window);
             float density = dialog.getContext().getResources().getDisplayMetrics().density;
             ExpressiveBlurKit.applyWindowBackdropBlur(window, 18, 0, 0.45f, 0.65f, density);
             MaterialYouColorEngine.applySystemBarAppearance(window, MaterialYouColorEngine.isLightMode(dialog.getContext()));

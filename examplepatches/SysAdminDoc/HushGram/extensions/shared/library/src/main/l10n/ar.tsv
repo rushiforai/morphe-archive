@@ -101,6 +101,7 @@ A double tap on a post or reel no longer likes it or shows a heart. A single tap
 A double tap on a reel doesn't like it. Turn this off to keep double tap to like on reels.	النقر المزدوج على reel لا يُعجبه. أوقف هذا للإبقاء على النقر المزدوج للإعجاب بـ Reels.
 A double tap on the left side of a reel goes back, and on the right side it goes ahead, as far as Skip length says. A double tap in the middle still likes it. Reels no longer than that don't skip.	النقر المزدوج على يسار reel يرجع، وعلى يمينه يتقدم، بقدر ما يحدده طول التخطي. والنقر المزدوج في الوسط لا يزال يُعجبه. لا يتم تخطي Reels التي لا تزيد مدتها على ذلك.
 A fainter bar and handle, so more of the video shows through.	شريط ومقبض أخفّ، ليظهر المزيد من الفيديو.
+A feed video that keeps playing at 2x shows a 2x label at the top until it goes back to normal speed.	يعرض فيديو المتابَعات الذي يستمر بسرعة 2x علامة 2x في الأعلى حتى يعود إلى السرعة العادية.
 A feed video you hold for 2x keeps playing at 2x after you let go. Hold it again to go back to normal speed.	فيديو في آخر الأخبار تضغط عليه مطوّلًا للسرعة 2x يواصل التشغيل بسرعة 2x بعد أن ترفع إصبعك. اضغط مطوّلًا مرة أخرى للعودة إلى السرعة العادية.
 A file named %1$s in %2$s paused HushGram.	ملف باسم %1$s في %2$s أوقف HushGram.
 A finished story stays on screen until you tap or swipe. Turn this off for Instagram's timing.	القصة المنتهية تبقى على الشاشة حتى تنقر أو تسحب. أوقف هذا لتوقيت Instagram.
@@ -141,6 +142,7 @@ A swipe left on Home no longer opens Messages. The Messages button still does.	�
 A swipe right on Home opens %1$s. The + button still opens the camera.	السحب يمينًا في الرئيسية يفتح %1$s. زر + ما زال يفتح الكاميرا.
 A swipe up on someone's story no longer opens the reply box and its reactions. Tap Send message to reply.	لم يعد السحب لأعلى في قصة شخص يفتح مربع الرد وتفاعلاته. اضغط إرسال رسالة للرد.
 A tap on a feed video, or on the screen it shows when it ends, no longer opens it full screen in Reels. Tap a feed video to pause it still pauses it, and the buttons on that screen still work.	لم تعد النقرة على فيديو في العرض، أو على الشاشة التي تظهر عند انتهائه، تفتحه بملء الشاشة في Reels. النقر على فيديو في العرض لإيقافه ما زال يوقفه، والأزرار في تلك الشاشة ما زالت تعمل.
+Hide posts when you block someone	إخفاء المنشورات عند حظر شخص
 # context: Feed settings: a switch under Tap a feed video to pause it that pauses only for a tap in the middle of the video (#706)
 Only the middle pauses it	المنتصف فقط يوقفه مؤقتًا
 # context: Summary of Only the middle pauses it; Taps on feed videos stay in the feed is another switch, use its translation (#706)
@@ -191,7 +193,7 @@ Adds Copy text to the menu a story's three dots open. It copies the words Instag
 Adds Copy to a selected comment's menu. Copies the original text, including line breaks.	يضيف نسخًا إلى قائمة التعليق المحدد. ينسخ النص الأصلي بما في ذلك فواصل الأسطر.
 Adds Copy username and Copy bio to the menu on someone's profile. Each copies the text exactly as the account has it.	يضيف نسخ اسم المستخدم ونسخ النبذة إلى القائمة في ملف شخص ما. كل واحد ينسخ النص كما هو في الحساب تمامًا.
 Adds Copy username to a selected comment's menu, for the account that wrote it.	يضيف نسخ اسم المستخدم إلى قائمة التعليق المحدد، للحساب الذي كتبه.
-Adds Details to a feed post's or reel's menu. It shows when it went up, who posted it, its media ID and the size Download saves, with buttons to copy the file link, username and caption.	يضيف التفاصيل إلى قائمة منشور في الخلاصة أو مقطع Reels. يعرض وقت النشر ومن نشره ومعرف الوسائط وحجم التنزيل، مع أزرار لنسخ رابط الملف واسم المستخدم والتعليق.
+Adds Details to a feed post's or reel's menu. It shows when it went up, who posted it, its media ID and the size Download saves, with buttons to copy the file link, username and caption, open the photo or video in another app, and read its text with Google Lens. A story's menu gets Copy username.	يضيف التفاصيل إلى قائمة منشور في الخلاصة أو مقطع Reels. يعرض وقت النشر ومن نشره ومعرف الوسائط وحجم التنزيل، مع أزرار لنسخ رابط الملف واسم المستخدم والتعليق، وفتح الصورة أو الفيديو في تطبيق آخر، وقراءة نصه باستخدام Google Lens. وتحصل قائمة القصة على نسخ اسم المستخدم.
 Adds Download audio under Download. It saves the sound of the reel as an audio file.	يضيف تنزيل الصوت ضمن التنزيل. يحفظ صوت مقطع Reels كملف صوتي.
 Adds Download cover to the menu of a feed post with a video, and of a carousel showing one. It saves the still picture shown before the video plays, at its largest size.	يضيف تنزيل الغلاف إلى قائمة منشور في الخلاصة يحتوي على فيديو، وإلى قائمة منشور دائري يعرض واحدًا. يحفظ الصورة الثابتة التي تظهر قبل تشغيل الفيديو بأكبر حجم لها.
 Adds Download cover under Download. It saves the still picture a reel shows before it plays, at its largest size.	يضيف تنزيل الغلاف ضمن التنزيل. يحفظ الصورة الثابتة التي يعرضها مقطع Reels قبل تشغيله بأكبر حجم لها.
@@ -218,6 +220,12 @@ Adds a gear at the top of Home that opens HushGram settings. Restart Instagram t
 Adds a ghost button at the top of Home, next to Messages when it's there and at the end of the buttons when it isn't. Tap it to turn Ghost mode on or off. Restart Instagram to see the change.	يضيف زر شبح في أعلى الرئيسية، بجوار الرسائل عند وجودها وفي نهاية الأزرار عند عدم وجودها. اضغط عليه لتشغيل وضع الشبح أو إيقافه. أعد تشغيل Instagram لرؤية التغيير.
 Adds a magnifier at the top of Home that opens Search, like the Search tab does. It works with the Search tab hidden too. Restart Instagram to see the change.	يضيف عدسة مكبّرة في أعلى الرئيسية تفتح البحث، كما يفعل تبويب البحث. يعمل أيضًا مع إخفاء تبويب البحث. أعد تشغيل Instagram لرؤية التغيير.
 Adds a menu button at the top of Home with your viewing history, Ghost mode and HushGram settings. Restart Instagram to see the change.	يضيف زر قائمة في أعلى الرئيسية يضم سجل المشاهدة ووضع الشبح وإعدادات HushGram. أعد تشغيل Instagram لرؤية التغيير.
+# context: entry of the menu that the menu button on Home's header opens; starts Instagram's own log out (#850)
+Log out	تسجيل الخروج
+# context: Tab bar settings: switch that adds Log out to the list of the menu button on Home's header (#850)
+Log out in Home's menu	تسجيل الخروج في قائمة الرئيسية
+# context: that switch summary (#850)
+Adds Log out after HushGram settings in the list the menu button on Home's header opens. It starts the same Log out as Instagram's own settings.	يضيف تسجيل الخروج بعد إعدادات HushGram في القائمة التي يفتحها زر القائمة في رأس الصفحة الرئيسية. يبدأ تسجيل الخروج نفسه الموجود في إعدادات Instagram.
 Adds a row next to Download on a reel and a feed video that plays it in an app you pick, such as VLC. The player streams it from Instagram's servers.	يضيف صفًا بجوار تنزيل على مقطع وعلى فيديو في الخلاصة يشغّله في تطبيق تختاره، مثل VLC. يبث المشغّل الفيديو من خوادم Instagram.
 Adds a search box above a post's comments. Type a word or a name and the comments scroll to the next one that has it. Replies you haven't opened aren't searched.	يضيف مربع بحث فوق تعليقات المنشور. اكتب كلمة أو اسمًا وتنتقل التعليقات إلى التالي الذي يتضمنه. الردود التي لم تفتحها لا تُبحث.
 Adds a search box above your blocked accounts in Instagram's settings. It finds them by username or name, and loads the rest of your list as you type.	يضيف مربع بحث فوق حساباتك المحظورة في إعدادات Instagram. يعثر عليها باسم المستخدم أو الاسم، ويحمّل بقية قائمتك أثناء الكتابة.
@@ -239,6 +247,30 @@ After 15 minutes	بعد 15 دقيقة
 After 5 minutes	بعد 5 دقائق
 After the reels you pick below, swiping in Reels stops until Instagram has been in the background for the time you pick. A reel you open from a message or a post still plays.	بعد المقاطع التي تختارها أدناه، يتوقف التمرير في Reels حتى يبقى Instagram في الخلفية للمدة التي تختارها. المقطع الذي تفتحه من رسالة أو منشور ما زال يُشغَّل.
 After you scroll your own Followers list to the end, posts a notification naming who has left since last time. Nothing extra is asked of Instagram.	بعد أن تصل إلى نهاية قائمة متابعيك، ينشر إشعارًا يذكر من غادر منذ المرة السابقة. لا يُطلب أي شيء إضافي من Instagram.
+# context: settings switch title on the Profiles page (#847); holding a tab (Followers, Following) at the top of a follow list filters it
+Hold a follow list's tabs to filter it	اضغط مطولًا على تبويبات قائمة المتابعة لتصفيتها
+# context: that switch's summary (#847); Followers and Following are Instagram's own list names
+In any Followers or Following list, hold a tab at the top to show everyone, only public accounts or only private ones. Accounts Instagram hasn't said either way about stay.	في أي قائمة متابِعين أو متابَعين، اضغط مطولًا على تبويب في الأعلى لعرض الجميع أو الحسابات العامة فقط أو الخاصة فقط. تبقى الحسابات التي لم يحدد Instagram نوعها.
+# context: settings switch title on the Profiles page (#847): dates on your own Followers and Following lists
+Follow dates in your lists	تواريخ المتابعة في قوائمك
+# context: that switch's summary (#847)
+Show 2x after you let go	إظهار 2x بعد الإفلات
+When you block someone, their posts in Home go away right away instead of after you refresh it.	عندما تحظر شخصاً، تختفي منشوراته في الصفحة الرئيسية فوراً بدلاً من بعد التحديث.
+Your own Followers and Following lists show since when each account follows you, or you them. Dates start the first time you scroll a list to the end with this on, so accounts already there get none.	تعرض قائمتا المتابِعين والمتابَعين الخاصتان بك منذ متى يتابعك كل حساب، أو تتابعه أنت. تبدأ التواريخ من أول مرة تمرر فيها قائمة حتى نهايتها مع تشغيل هذا الخيار، لذا لا تحصل الحسابات الموجودة مسبقًا على تاريخ.
+# context: a choice in the follow list filter dialog (#847): only public accounts
+Public accounts	الحسابات العامة
+# context: a choice in the follow list filter dialog (#847): only private accounts
+Private accounts	الحسابات الخاصة
+# context: title of the follow list filter dialog, whose choices are Everyone, Public accounts and Private accounts (#847)
+Show in follow lists	العرض في قوائم المتابعة
+# context: toast after picking Everyone in the follow list filter (#847)
+Showing everyone	يتم عرض الجميع
+# context: toast after picking Public accounts in the follow list filter (#847)
+Showing public accounts	يتم عرض الحسابات العامة
+# context: toast after picking Private accounts in the follow list filter (#847)
+Showing private accounts	يتم عرض الحسابات الخاصة
+# context: before a follow list row's name: since when that follow started, %s is a short date like Mar 3 (#847)
+Since %s	منذ %s
 All	الكل
 All kept	الكل محفوظ
 All of Instagram stays covered until your fingerprint, face or screen lock says it's you, your messages too.	يظل Instagram كله محجوبًا حتى يؤكد بصمتك أو وجهك أو قفل الشاشة أنك أنت، ورسائلك أيضًا.
@@ -557,6 +589,10 @@ Drop quality to keep playing	خفض الجودة لمتابعة التشغيل
 Dusk blue	أزرق الغسق
 Each save goes into a folder named for the account that posted it, inside the save folder. A save that doesn't know who posted stays in the save folder.	يذهب كل حفظ إلى مجلد مسمى باسم الحساب الذي نشره، داخل مجلد الحفظ. والحفظ الذي لا يعرف من نشره يبقى في مجلد الحفظ.
 Each time you open who viewed one of your stories, the list is kept on this phone and set beside your followers. Nothing extra is asked of Instagram. Turn it off and it stops at once.	في كل مرة تفتح قائمة من شاهدوا إحدى قصصك، تُحفظ القائمة على هذا الهاتف وتُعرض بجانب متابعيك. لا يُطلب شيء إضافي من Instagram. أطفئه فيتوقف فورًا.
+# context: Stories > Keep story viewers, the switch for a search bar HushGram adds to Instagram's list of who viewed your story, and the bar's own words.
+Search bar in the viewer list	شريط بحث في قائمة المشاهدين
+Puts a Search viewers bar at the top of the list of who viewed your story. It searches the viewers kept on this phone, the ones Instagram has listed so far.	يضع شريط «ابحث في المشاهدين» أعلى قائمة من شاهد قصتك. يبحث في المشاهدين المحفوظين على هذا الهاتف، أي الذين أدرجهم Instagram حتى الآن.
+Search viewers	ابحث في المشاهدين
 Each time you scroll your own Followers list to the end, compares it with the last time and lists who's gone. Nothing extra is asked of Instagram, and the list stays on your phone.	في كل مرة تصل بنهاية قائمة متابعيك، تُقارن بآخر مرة وتُسرد من غادر. لا يُطلب شيء إضافي من Instagram، وتبقى القائمة على هاتفك.
 Each video saves at %1$s or the closest quality below it. A video with nothing that low saves at the closest quality above.	يُحفظ كل فيديو بدقة %1$s أو بأقرب جودة أقل منها. وإذا لم تتوفر جودة بهذا الانخفاض، يُحفظ بأقرب جودة أعلى.
 Each video saves at its lowest quality, for the smallest file.	يُحفظ كل فيديو بأدنى جودة له، لأصغر ملف.
@@ -856,6 +892,8 @@ Hide the Reels tab	إخفاء تبويب Reels
 Hide the Repost button	إخفاء زر إعادة النشر
 Hide the Save button	إخفاء زر الحفظ
 Hide the Save button on reels	إخفاء زر الحفظ في Reels
+Hide the More button on reels	إخفاء زر المزيد في Reels
+Takes the three dots, and the menu they open, off the bottom of the column of buttons beside a reel. Repost and Share have their own switches under Sharing.	يزيل النقاط الثلاث، والقائمة التي تفتحها، من أسفل عمود الأزرار بجانب المقطع. لزر إعادة النشر وزر المشاركة مفتاحان خاصان بهما ضمن المشاركة.
 Hide the Search tab	إخفاء تبويب البحث
 Hide the Share button	إخفاء زر المشاركة
 Hide the Share button on stories	إخفاء زر المشاركة في القصص
@@ -957,6 +995,11 @@ HushGram turns back on when Instagram restarts.	يعود HushGram للعمل ع�
 Icons in the accent color	أيقونات بلون التمييز
 Reel buttons in the accent color	أزرار Reels بلون التمييز
 The buttons beside a reel and their counts take the color you picked instead of white. Restart Instagram to see the change.	تأخذ الأزرار بجانب Reel وأعدادها اللون الذي اخترته بدلاً من الأبيض. أعد تشغيل Instagram لرؤية التغيير.
+Text in the accent color	النص بلون التمييز
+Names, captions and other main text take the same color as the icons. Gray text stays gray. Restart Instagram to see the change.	تأخذ الأسماء والتعليقات والنصوص الرئيسية الأخرى لون الأيقونات نفسه. يبقى النص الرمادي رماديًا. أعد تشغيل Instagram لرؤية التغيير.
+# context: Layout > Accent color switch. Saved is Instagram's own Saved page, in its label for this language.
+Filters in the accent color	عوامل التصفية بلون التمييز
+The filters along the top of Saved take the color you picked, and the one you're on is filled with it. Restart Instagram to see the change.	تأخذ عوامل التصفية أعلى المحفوظات اللون الذي اخترته، ويُملأ به العامل الذي تستخدمه. أعد تشغيل Instagram لرؤية التغيير.
 Import HushGram settings	استيراد إعدادات HushGram
 Imported %1$d settings.	تم استيراد %1$d إعدادات.
 Imported %1$d settings. Skipped %2$d that this version doesn't know.	تم استيراد %1$d إعدادات. تم تخطي %2$d لا تعرفها هذه النسخة.
@@ -1156,6 +1199,10 @@ Long press a photo to zoom	اضغط مطولًا على صورة للتكبير
 Long press a post for full screen	اضغط مطولًا على منشور لملء الشاشة
 Long press a profile picture to view it	اضغط مطولًا على صورة الملف الشخصي لعرضها
 Long press the picture at the top of a profile to open the whole square picture at full size, with Save under it, instead of Instagram's own preview. A tap works as before.	اضغط مطولًا على الصورة أعلى الملف الشخصي لفتح الصورة المربعة كاملة بالحجم الكامل مع خيار حفظ أسفلها، بدلًا من المعاينة الخاصة بـ Instagram. وتعمل النقرة كما كانت.
+# context: Profiles settings: switch that makes a tap on a profile's picture open the account's story when the picture has a story ring, where Instagram sometimes opened the picture (#823)
+A story ring opens the story	حلقة القصة تفتح القصة
+# context: that switch summary (#823)
+Tapping the picture at the top of a profile with a story ring opens the story whenever Instagram has it, where Instagram sometimes opens the picture instead.	النقر على الصورة أعلى ملف شخصي حولها حلقة قصة يفتح القصة متى كانت لدى Instagram، بينما يفتح Instagram الصورة أحيانًا بدلًا منها.
 Longer than %1$s second	أطول من %1$s ثانية
 Longer than %1$s seconds	أطول من %1$s ثانية
 Longest video	أطول فيديو
@@ -1205,6 +1252,30 @@ Messages button on Home's header	زر الرسائل في رأس الصفحة ا
 Messenger	Messenger
 Meta AI	Meta AI
 Minimum likes	أدنى عدد إعجابات
+Maximum likes	أقصى عدد إعجابات
+Minimum comments	أدنى عدد تعليقات
+Maximum comments	أقصى عدد تعليقات
+Minimum shares	أدنى عدد مشاركات
+Maximum shares	أقصى عدد مشاركات
+Minimum saves	أدنى عدد مرات الحفظ
+Maximum saves	أقصى عدد مرات الحفظ
+Reels with more likes than this are left out. Type a whole number, or 0 for no maximum.	تُستبعد Reels التي تتجاوز إعجاباتها هذا الرقم. اكتب عددًا صحيحًا، أو 0 بلا حد أقصى.
+Reels with fewer comments than this are left out. Type a whole number, or 0 to not look at comments.	تُستبعد Reels التي لديها تعليقات أقل من هذا العدد. اكتب رقماً صحيحاً، أو 0 لعدم النظر إلى التعليقات.
+Reels with more comments than this are left out. Type a whole number, or 0 for no maximum.	تُستبعد Reels التي تتجاوز تعليقاتها هذا الرقم. اكتب عددًا صحيحًا، أو 0 بلا حد أقصى.
+Reels with fewer shares than this are left out. Type a whole number, or 0 to not look at shares.	تُستبعد Reels التي لديها مشاركات أقل من هذا العدد. اكتب رقماً صحيحاً، أو 0 لعدم النظر إلى المشاركات.
+Reels with more shares than this are left out. Type a whole number, or 0 for no maximum.	تُستبعد Reels التي تتجاوز مشاركاتها هذا الرقم. اكتب عددًا صحيحًا، أو 0 بلا حد أقصى.
+Reels with fewer saves than this are left out. Type a whole number, or 0 to not look at saves.	تُستبعد Reels التي حُفظت مرات أقل من هذا العدد. اكتب رقماً صحيحاً، أو 0 لعدم النظر إلى مرات الحفظ.
+Reels with more saves than this are left out. Type a whole number, or 0 for no maximum.	تُستبعد Reels التي حُفظت مرات أكثر من هذا الرقم. اكتب عددًا صحيحًا، أو 0 بلا حد أقصى.
+More than %1$s likes	أكثر من %1$s إعجاب
+Comments aren't looked at	لا يُنظر إلى التعليقات
+Fewer than %1$s comments	أقل من %1$s تعليق
+More than %1$s comments	أكثر من %1$s تعليق
+Shares aren't looked at	لا يُنظر إلى المشاركات
+Fewer than %1$s shares	أقل من %1$s مشاركة
+More than %1$s shares	أكثر من %1$s مشاركة
+Saves aren't looked at	لا يُنظر إلى مرات الحفظ
+Fewer than %1$s saves	حُفظ أقل من %1$s مرة
+More than %1$s saves	حُفظ أكثر من %1$s مرة
 Minimum views	أدنى عدد مشاهدات
 Mix in Following	دمج في Following
 Monospace	أحادي المسافة
@@ -1319,6 +1390,9 @@ On a carousel, the download icon saves all of its pages at once instead of askin
 On a foldable or tablet, Instagram keeps its phone layout across the whole screen, with the tab bar at the bottom instead of down the side. Restart Instagram to see the change.	على جهاز قابل للطي أو جهاز لوحي، يُبقي Instagram تخطيط الهاتف على كامل الشاشة، مع شريط التبويبات في الأسفل بدلًا من جانبه. أعد تشغيل Instagram لرؤية التغيير.
 On a phone under 1440 pixels wide, asks Instagram for photos sized for a wider screen. This uses more data. Restart Instagram to see the change.	على هاتف عرضه أقل من 1440 بكسل، يطلب من Instagram صورًا بحجم شاشة أوسع. يستهلك هذا بيانات أكثر. أعد تشغيل Instagram لرؤية التغيير.
 On a tall screen a story covers the whole screen, with the reply bar on top of it like on shorter phones, instead of a rounded card above the bar.	على شاشة طويلة، تغطي القصة كامل الشاشة، مع شريط الرد فوقها كما في الهواتف الأقصر، بدلًا من بطاقة مستديرة فوق الشريط.
+Show the whole story	إظهار القصة كاملة
+Whole story in the story menu	القصة الكاملة في قائمة القصة
+Adds Show the whole story to the menu a story's three dots open while Stories fill the screen is on. A tap fits that story inside the screen until the next one. Fill the screen there fills it again.	يضيف «إظهار القصة كاملة» إلى القائمة التي تفتحها النقاط الثلاث في القصة عندما يكون «تملأ القصص الشاشة» مفعّلاً. النقر عليه يُظهر تلك القصة كاملة داخل الشاشة حتى القصة التالية. و«ملء الشاشة» في القائمة نفسها يجعلها تملأ الشاشة من جديد.
 On comments	على التعليقات
 On messages	على الرسائل
 On posts	على المنشورات
@@ -1354,6 +1428,12 @@ Open a chat in Instagram, then come back here to hide it.	افتح محادثة 
 Open a chat in Instagram, then come back here to lock it.	افتح محادثة في Instagram، ثم عُد إلى هنا لقفلها.
 Open a chat in Instagram, then come back here to pin it.	افتح محادثة في Instagram، ثم عُد إلى هنا لتثبيتها.
 Open a chat, tap the clock button next to the call buttons at the top, or long press the chat's name, and pick Export chat. The whole chat is saved as a text file in Downloads, HushGram folder, one line per message. Select messages in the same menu lets you tick messages to copy, share or save.	افتح محادثة، وانقر زر الساعة بجوار أزرار الاتصال في الأعلى، أو اضغط مطولًا على اسم المحادثة، واختر تصدير المحادثة. تُحفظ المحادثة كاملة كملف نصي في التنزيلات، مجلد HushGram، سطر لكل رسالة. يتيح لك تحديد الرسائل من القائمة نفسها وضع علامة على الرسائل لنسخها أو مشاركتها أو حفظها.
+# context: settings switch title on the Messages page (#852): link buttons under a chat message, like the ones automated accounts send
+Copy links from chat buttons	نسخ الروابط من أزرار الدردشة
+# context: that switch's summary (#852); Copy link is the row it adds to the menu you get when you hold a message, same words as the Copy link key
+Hold a message with link buttons, like the ones automated accounts send, and tap Copy link to copy where a button goes without opening it. With several buttons you pick one.	اضغط مطولًا على رسالة فيها أزرار روابط، مثل التي ترسلها الحسابات الآلية، ثم اضغط على نسخ الرابط لنسخ وجهة الزر دون فتحه. إذا كانت هناك عدة أزرار فاختر واحدًا.
+# context: toast after Copy link put a chat button's link on the clipboard (#852)
+Link copied	تم نسخ الرابط
 Open a chat, tap the clock button next to the call buttons at the top, or long press the chat's name, and pick Jump to the first message or Jump to a date. The chat loads its older messages on its own, with a count and a Cancel button.	افتح محادثة، وانقر زر الساعة بجوار أزرار الاتصال في الأعلى، أو اضغط مطولًا على اسم المحادثة، واختر الانتقال إلى أول رسالة أو الانتقال إلى تاريخ. تحمّل المحادثة رسائلها الأقدم تلقائيًا، مع عدّاد وزر إلغاء.
 Open a creator's profile from a reel, then their Reels tab, and it scrolls to that reel and labels it You just watched for a few seconds. A photo reel is found in their posts. Stop looking ends the search where it is.	افتح ملف تعريف منشئ من Reel، ثم تبويب Reels الخاص به، فينتقل التمرير إلى ذلك الـReel ويضع عليه علامة شاهدته للتو لبضع ثوانٍ. يُعثر على Reel صورة في منشوراته. إيقاف البحث ينهي البحث في موضعه.
 Open a photo or video from a chat and swipe up for the next photo, video or shared post in that chat, in chat order. Swipe down to go back one. Back takes you to the chat.	افتح صورة أو فيديو من محادثة واسحب لأعلى للصورة أو الفيديو أو المنشور المشترك التالي في تلك المحادثة، بترتيب المحادثة. اسحب لأسفل للرجوع واحدًا. الرجوع يعيدك إلى المحادثة.
@@ -1811,6 +1891,8 @@ Speed button on stories	زر السرعة على القصص
 Speed didn't change	لم تتغيّر السرعة
 Speed in a post's menu	السرعة في قائمة المنشور
 Speed in the reel menu	السرعة في قائمة Reel
+Whole reel in the reel menu	المقطع الكامل في قائمة Reel
+Adds Show the whole reel to the menu a reel's three dots open. A tap fits that reel inside the screen until you swipe to the next one. Fill the screen there crops it again.	يضيف «إظهار مقطع Reel كاملاً» إلى القائمة التي تفتحها النقاط الثلاث في المقطع. النقر عليه يُظهر ذلك المقطع كاملاً داخل الشاشة حتى تنتقل إلى التالي. و«ملء الشاشة» في القائمة نفسها يقصّه من جديد.
 Speed in the story menu	السرعة في قائمة القصة
 Split the notes row	قسّم صف الملاحظات
 Splits the row of notes into three stacks, Instants, Notes and Stories, the layout Instagram is trying out. Restart Instagram to see the change.	يقسم صف الملاحظات إلى ثلاث مجموعات، Instants وNotes وStories، التخطيط الذي يجرّبه Instagram. أعد تشغيل Instagram لرؤية التغيير.
@@ -2108,6 +2190,10 @@ The time on the seek bar counts down what's left of the video, like -0:33 / 0:45
 Time under the tags button	الوقت تحت زر الإشارات
 # context: Summary of Time under the tags button (#711)
 Puts the time in the corner under the tags button instead of the middle of the bar.	يضع الوقت في الزاوية تحت زر الإشارات بدلًا من منتصف الشريط.
+# context: Feed settings: a switch under Time on the seek bar that moves the time to the video's top corner, below Instagram's countdown (#788)
+Time in the top corner	الوقت في الزاوية العلوية
+# context: Summary of Time in the top corner (#788)
+Puts the time in the top corner of the video instead of over the bar, just below anything Instagram shows there, like its countdown.	يضع الوقت في الزاوية العلوية من الفيديو بدلًا من فوق الشريط، أسفل أي شيء يعرضه Instagram هناك مباشرةً، مثل العدّ التنازلي.
 The top of Home goes back to your header text, or to Instagram's logo.	أعلى الصفحة الرئيسية يعيد نص الترويسة الخاص بك، أو شعار Instagram.
 The top of Home says %1$s.	أعلى الصفحة الرئيسية يعرض %1$s.
 The top of Home shows %1$s. Tap to pick another.	أعلى الصفحة الرئيسية يعرض %1$s. انقر لاختيار غيره.
@@ -2165,6 +2251,8 @@ Turn it off to leave a chat's top bar as Instagram draws it, with no frosted ban
 Turn off HDR brightness boosts	أوقف تعزيزات سطوع HDR
 Turn off Hide the Search tab and restart.	أوقف إخفاء علامة تبويب البحث وأعد التشغيل.
 Turn off Show the whole reel to use this choice.	أوقف إظهار الريل بالكامل لاستخدام هذا الخيار.
+# context: Settings page, Feed: the line under the greyed-out Time in the top corner switch while Time under the tags button is on (#788)
+Turn off Time under the tags button to use this choice.	أوقف الوقت تحت زر الإشارات لاستخدام هذا الخيار.
 Turn off auto scroll	أوقف التمرير التلقائي
 Turn off double tap to like	أوقف اللمس المزدوج للإعجاب
 Turn on %1$s to use this slider.	شغّل %1$s لاستخدام شريط التمرير.
@@ -2251,7 +2339,7 @@ Videos and reels over two minutes pick up where you left off. Seek to start else
 Videos are named %1$s. Photos are named %2$s followed by the date and time.	تُسمى الفيديوهات %1$s. تُسمى الصور %2$s يليها التاريخ والوقت.
 Videos go to %1$s and photos to %2$s.	تُرسل الفيديوهات إلى %1$s والصور إلى %2$s.
 Videos in Explore wait for your tap. Feed videos, reels and stories play as Instagram plays them.	فيديوهات Explore تنتظر نقراتك. فيديوهات Feed وReels والقصص تُعرض كما يعرضها Instagram.
-Videos on Home play with their sound on, the same as tapping a video's speaker. Mute one and the ones after it stay muted. Your phone's ringer and volume still count, so on silent or with the volume down, they stay quiet.	فيديوهات Home تُشغَّل بصوتها، مثل النقر على مكبر صوت الفيديو. كتم أحدها يكتم ما بعده. نغمة الرنين ومستوى الصوت لا يزالان مُحتسبَين، لذلك في وضع الصامت أو مع خفض الصوت، تظل هادئة.
+Videos on Home play with their sound on, the same as tapping a video's speaker, and so do songs on photo posts. Mute one and the ones after it stay muted. Your phone's ringer and volume still count, so on silent or with the volume down, they stay quiet.	فيديوهات Home تُشغَّل بصوتها، مثل النقر على مكبر صوت الفيديو، وكذلك أغاني منشورات الصور. كتم أحدها يكتم ما بعده. نغمة الرنين ومستوى الصوت لا يزالان مُحتسبَين، لذلك في وضع الصامت أو مع خفض الصوت، تظل هادئة.
 Videos on Home start silent, even after you turn the sound on in Reels, so reels keep their sound. Tap a video's speaker to hear that one. Wins over Start feed videos with sound.	فيديوهات Home تبدأ صامتة، حتى بعد تشغيل الصوت في Reels، لذا تحتفظ Reels بصوتها. انقر على مكبر صوت الفيديو لسماعه. تغلب على تشغيل فيديوهات Feed بصوت.
 Videos play at the best quality up to %1$s that Instagram offers for each, or the closest above.	تُشغَّل الفيديوهات بأفضل جودة حتى %1$s يقدمها Instagram لكل منها، أو أقرب جودة أعلى.
 Videos play at the highest quality Instagram offers for each.	تُشغَّل الفيديوهات بأعلى جودة يقدمها Instagram لكل منها.
@@ -2407,3 +2495,11 @@ Long press a chat to group it	اضغط مطولًا على دردشة لتجمي
 # context: Stories switch Story rings on saved posts and its summary, for posts on the Saved page (#790)
 Story rings on saved posts	حلقات القصص في المنشورات المحفوظة
 Posts you saved show the story ring around the author's picture, like Home does, and a tap on it opens their story. It only uses stories Instagram has already loaded.	تُظهر المنشورات التي حفظتها حلقة القصة حول صورة صاحبها، كما في الرئيسية، والضغط عليها يفتح قصته. يستخدم فقط القصص التي حمّلها Instagram بالفعل.
+# context: Details in a post's menu (#839): a row under the facts that sends the photo, or a video's cover, to Google Lens to read its words
+Read text with Lens	قراءة النص باستخدام Lens
+# context: Details in a post's menu (#839): a toast while Open with or Read text with Lens fetches the post's file
+Getting the file ready	جارٍ تجهيز الملف
+# context: Details in a post's menu (#839): a toast when Open with or Read text with Lens couldn't fetch the post's file
+Couldn't get the file	تعذّر جلب الملف
+# context: Details in a post's menu (#839): a toast when no app on the phone takes the photo or video Open with offers
+No app here can open it	لا يوجد تطبيق هنا يفتحه

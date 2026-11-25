@@ -1,17 +1,18 @@
 /*
  * Copyright (C) 2026 lavinhoque33
  * Licensed under the GNU General Public License v3.0.
+ * Modified by lavinhoque33, 2026-11-24
  * Written by lavinhoque33, 2026-11-23
  */
 
 package app.morphe.patches.youtube.feed.channelnames
 
 import app.morphe.patcher.patch.bytecodePatch
+import app.morphe.patches.shared.mapping.resourceMappingPatch
 import app.morphe.patches.youtube.utils.compatibility.Constants.COMPATIBILITY_YOUTUBE
 import app.morphe.patches.youtube.utils.extension.Constants.FEED_PATH
 import app.morphe.patches.youtube.utils.extension.sharedExtensionPatch
-import app.morphe.patches.youtube.utils.navigation.addBrowseIdHook
-import app.morphe.patches.youtube.utils.navigation.addSearchResultsHook
+import app.morphe.patches.youtube.utils.navigation.addBrowsePaneHooks
 import app.morphe.patches.youtube.utils.navigation.browseIdHookPatch
 import app.morphe.patches.youtube.utils.navigation.navigationBarHookPatch
 import app.morphe.patches.youtube.utils.patch.PatchList.HOME_FEED_CHANNEL_NAMES
@@ -34,6 +35,7 @@ val homeFeedChannelNamesPatch = bytecodePatch(
         sharedExtensionPatch,
         versionCheckPatch,
         settingsPatch,
+        resourceMappingPatch,
         browseIdHookPatch,
         navigationBarHookPatch,
         elementProtoParserHookPatch,
@@ -47,8 +49,14 @@ val homeFeedChannelNamesPatch = bytecodePatch(
             return@execute
         }
 
-        addBrowseIdHook("$EXTENSION_CLASS->setBrowseId(Ljava/lang/String;)V")
-        addSearchResultsHook("$EXTENSION_CLASS->clearBrowseId()V")
+        if (!addBrowsePaneHooks(
+                "$EXTENSION_CLASS->setActiveBrowsePane(Ljava/lang/Object;Ljava/lang/String;Z)V",
+                "$EXTENSION_CLASS->updateBrowsePaneId(Ljava/lang/Object;Ljava/lang/String;)V",
+            )
+        ) {
+            printWarn("Home feed channel names: main pane hook is unavailable; keeping the original attribution.")
+            return@execute
+        }
         hookElement("$EXTENSION_CLASS->onElementLoaded([B)[B")
 
         addPreference(

@@ -1,0 +1,95 @@
+{
+  "schema": 1,
+  "date": "2026-11-25",
+  "project": "rikunode/futatabi",
+  "headAtTestStart": "852733d9791cefa8c983e43da7c4c341fb2cb403",
+  "priorDiagnosticEvidence": "docs/gate-evidence/v04-mebuki-x-diagnostic-result-20261125.json",
+  "scope": "One X entry attempt on the restored normal APK only. No credentials, real login, posting, UA change, version bump, or release.",
+  "timeWindowJST": {
+    "activityFirstOpened": "2026-11-25T07:34:56.814+09:00",
+    "screenshotAfterXTap": "2026-11-25T07:41:56.090+09:00",
+    "finalStateVerified": "2026-11-25T07:45:54.221+09:00"
+  },
+  "normalApk": {
+    "package": "com.Nanasaki.ftutter.morphe",
+    "versionName": "3.1.1",
+    "versionCode": 65,
+    "sourceArtifact": "apk-inspection/v04-x-diagnostic/pre-diagnostic-installed-clone.apk",
+    "sourceSha256": "b3580fedca0cdd291fa9575516d9552a873778dd1b8d4a5baef775d858e2dbb6",
+    "installedBaseApkSha256": "b3580fedca0cdd291fa9575516d9552a873778dd1b8d4a5baef775d858e2dbb6",
+    "exactMatch": true,
+    "diagnosticsBuildInstalled": false
+  },
+  "normalBuildXEntry": {
+    "status": "NO_NAVIGATION_OBSERVED",
+    "appStartup": {
+      "firstMebukiLoginActivityLaunch": "Android ANR dialog displayed: ふたったー isn't responding.",
+      "waitTapped": 1,
+      "recoveredAfterWait": false,
+      "recovery": "Closed the unresponsive app and relaunched FutatabiHomeActivity once. Home loaded; MebukiLoginActivity was opened once more and the official Mebuki homepage rendered."
+    },
+    "pageBeforeTap": {
+      "statusLabel": "めぶき公式サイト：ログイン後は保存ボタンで検証してください。",
+      "visibleControls": [
+        "X",
+        "Google",
+        "Discord"
+      ],
+      "screenshotShowsOfficialHomepage": true
+    },
+    "xButtonTap": {
+      "count": 1,
+      "screenCoordinatesPx": {
+        "x": 92,
+        "y": 962
+      },
+      "waitAfterTapSeconds": 8
+    },
+    "result": "The screen remained on the Mebuki official homepage with the X/Google/Discord controls visible. No x.com authorization page or credential-entry form was reached.",
+    "retries": 0,
+    "credentialsEntered": false,
+    "realLogin": false,
+    "googleTouched": false,
+    "discordTouched": false,
+    "postAttempt": "Returned to FutatabiHomeActivity with Back, then force-stopped the app."
+  },
+  "comparison": {
+    "diagnosticBuild": "PASS_TO_CREDENTIAL_ENTRY",
+    "normalBuild": "NO_NAVIGATION_OBSERVED",
+    "conclusion": "The difference between the diagnostic and normal-build observations is recorded; the cause remains unknown. No application fix or provider-side cause is inferred."
+  },
+  "httpErrorUi": {
+    "status": "NOT_TESTED_TOOL_REFUSED",
+    "previousEvidence": "docs/gate-evidence/v04-mebuki-x-diagnostic-result-20261125.json",
+    "additionalObservation": "The fixture stdout contains one generic 'fixture request received' line, but there is no corresponding WebView-side http_error event or UI screenshot, so its origin cannot be attributed to the WebView.",
+    "repeated": false,
+    "conclusion": "HTTP 503 display remains unverified; no further attempt was made."
+  },
+  "emulatorFinalState": {
+    "serial": "emulator-5554",
+    "installedApk": "normal APK exact hash match",
+    "appForceStopped": true,
+    "topActivity": "com.google.android.apps.nexuslauncher/.NexusLauncherActivity",
+    "adbReverse": [
+      "host-20 tcp:18766 tcp:18766"
+    ],
+    "testPorts18769And18770Listening": false,
+    "claimBoardStatus": "FREE",
+    "claimBoardSource": "MUSE confirmation recorded in the prior diagnostic evidence and procedure; the authoritative board is on the MUSE VM, not the Windows/default-WSL host."
+  },
+  "evidence": [
+    {
+      "path": "docs/gate-evidence/v04-mebuki-x-normal-entry-20261125.jpg",
+      "bytes": 63904,
+      "sha256": "7760d1f3589fb2ad83c4cd31bb60d46608cfe7c7fcf76a1065a54abdf8e54758",
+      "description": "Normal APK screen captured after the single X-button tap; the Mebuki homepage and provider controls remain visible."
+    }
+  ],
+  "release": {
+    "patchVersion": "0.3.0",
+    "versionChanged": false,
+    "patchesListChanged": false,
+    "releaseCreated": false,
+    "pushed": false
+  }
+}

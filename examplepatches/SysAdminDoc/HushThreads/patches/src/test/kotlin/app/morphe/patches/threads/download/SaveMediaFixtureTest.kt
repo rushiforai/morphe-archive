@@ -18,8 +18,8 @@ import app.morphe.patcher.patch.PatchException
 import app.morphe.patcher.util.proxy.mutableTypes.MutableField
 import app.morphe.patcher.util.smali.ExternalLabel
 import app.morphe.patches.threads.misc.extension.SETTINGS_STATUS
+import app.morphe.patches.threads.misc.extension.holdsNote
 import app.morphe.patches.threads.misc.settings.FUNCTION0
-import app.morphe.patches.threads.misc.theme.holdsNote
 import app.morphe.util.getReference
 import com.android.tools.smali.dexlib2.AccessFlags
 import com.android.tools.smali.dexlib2.Opcode
@@ -148,20 +148,31 @@ class SaveMediaFixtureTest {
             val unwritten = context.mutableClassDefBy(INSTAGRAM_MEDIA).methods
                 .filter { it.name in BRIDGES && it.body().first().opcode != Opcode.CHECK_CAST }.map { it.name }
             assertEquals("$where: every bridge is written", emptyList<String>(), unwritten)
+
+            // 457 dropped Media's getId(), so the id's bridge makes the two reads its hashCode() makes.
+            val id = context.mutableClassDefBy(INSTAGRAM_MEDIA).methods.single { it.name == "mediaId" }.body().take(4)
+            assertEquals("$where: the id's reads", listOf(Opcode.CHECK_CAST, Opcode.IGET_OBJECT, Opcode.IGET_OBJECT, Opcode.RETURN_OBJECT),
+                id.map { it.opcode })
+            val reads = id.filter { it.opcode == Opcode.IGET_OBJECT }.map { it.getReference<FieldReference>()!! }
+            assertEquals("$where: read off the post", MEDIA, reads[0].definingClass)
+            assertEquals("$where: then off what that holds", reads[0].type, reads[1].definingClass)
+            assertEquals("$where: the id is a String", "Ljava/lang/String;", reads[1].type)
+            if ("512708508" in build.name) {
+                assertEquals("$where: read by hand", listOf("$MEDIA->A09:LX/5bP;", "LX/5bP;->AAF:Ljava/lang/String;"), reads.map { it.toString() })
+            }
         }
     }
 
     /**
-     * A post with no media of its own saves the post it shows, and these read it. Read off 512508348
-     * by hand: the serializer's fields and the getters answering them (`LX/8pu;->A02` for the post's
-     * info, `LX/9nj;->A02` for its share info). On every build the three shared posts are three
-     * different getters of one interface, answering a post.
+     * A post with no media of its own saves the post it shows, and these read it. Read off 512708508
+     * by hand: the getters the serializer `LX/8qe;->A01` calls. On
+     * every build the three shared posts are three different getters of one interface, answering a post.
      */
     @Test
     fun `each declared build reads a post's linked and shared posts through their own getters`() {
         val readByHand = mapOf(
-            "linkedInlineMedia" to "CB0", "shareInfo" to "Cpr",
-            "quotedAttachmentPost" to "CdZ", "quotedPost" to "Cdd", "repostedPost" to "Chc",
+            "linkedInlineMedia" to "ByW", "shareInfo" to "Chf",
+            "quotedAttachmentPost" to "CU5", "quotedPost" to "CU9", "repostedPost" to "CYq",
         )
         for (build in Fixtures.declaredBuilds()) {
             val where = build.name
@@ -184,7 +195,7 @@ class SaveMediaFixtureTest {
                 assertEquals("$where: ${post.name} comes from the share info", share.returnType, post.definingClass)
                 assertEquals("$where: ${post.name} is a post", MEDIA, post.returnType)
             }
-            if ("512508348" in build.name) {
+            if ("512708508" in build.name) {
                 for ((name, getter) in readByHand) assertEquals("$where: $name", getter, call(name).name)
             }
         }
@@ -334,8 +345,9 @@ class SaveMediaFixtureTest {
             method.holdsNote(MENU_NOTE) && method.body().any { it.opcode == Opcode.INSTANCE_OF && it.getReference<TypeReference>()?.type == copyLink }
         }
         val writer = found.flatMap { it.methods }.single { it.writesLinkedPosts() }
-        val linkedPosts = writer.linkedPostFields().map { it.definingClass }.toSet()
+        val linkedPosts = (writer.linkedPostFields().map { it.definingClass } + writer.linkedPostGetters().map { it.definingClass }).toSet()
         val read = FixtureDex.classes(build, menu.body().flatMap { it.types() }.toSet() + FUNCTION0 + MODEL + linkedPosts)
+        val mediaHash = read.getValue(MEDIA).methods.single { it.name == "hashCode" && it.parameterTypes.isEmpty() }.body().flatMap { it.types() }
         // Copy link's click is the first object its case makes, there or through the click's own
         // static factory, as some 455 builds do.
         val check = menu.body().indexOfFirst { it.isCopyLinkCheck(copyLink) }
@@ -343,7 +355,7 @@ class SaveMediaFixtureTest {
             .let { it.getReference<TypeReference>()?.type ?: it.method()!!.returnType }
         val clickTypes = read.getValue(click).methods.flatMap { m -> m.body().flatMap { it.types() } }.toSet() - read.keys
         val interfaces = linkedPosts.flatMap { read.getValue(it).interfaces }.toSet() - read.keys
-        val more = FixtureDex.classes(build, clickTypes + interfaces)
+        val more = FixtureDex.classes(build, clickTypes + interfaces + mediaHash - read.keys)
         Fixture((found + read.values + more.values).distinctBy { it.type }, menu, copyLink, click)
     }
 
@@ -405,15 +417,16 @@ class SaveMediaFixtureTest {
 
         /** Read off each build by hand: the menu lambda, its post and controller, and how Copy link's click closes the menu. */
         val EXPECTED = mapOf(
-            "455.0.0.55.72-512508344" to Expected("LX/Qrm;", "LX/Qrm;->A0C:$MEDIA", "LX/Qrm;->A09:LX/9Q2;", "LX/9Q2;->A1S()V"),
-            "455.0.0.55.72-512508348" to Expected("LX/Qrm;", "LX/Qrm;->A0C:$MEDIA", "LX/Qrm;->A09:LX/9Q2;", "LX/9Q2;->A1S()V"),
-            "455.0.0.55.72-512508358" to Expected("LX/Pvu;", "LX/Pvu;->A0C:$MEDIA", "LX/Pvu;->A09:LX/9H0;", "LX/9H0;->A1U()V"),
-            "455.0.0.55.72-512508359" to Expected("LX/Vvl;", "LX/Vvl;->A0C:$MEDIA", "LX/Vvl;->A09:LX/AUe;", "LX/AUe;->A1R()V"),
-            "455.0.0.55.72-512508360" to Expected("LX/LzG;", "LX/LzG;->A0C:$MEDIA", "LX/LzG;->A09:LX/69w;", "LX/69w;->A1R()V"),
-            "455.0.0.55.72-512508368" to Expected("LX/Rjn;", "LX/Rjn;->A0C:$MEDIA", "LX/Rjn;->A09:LX/9K0;", "LX/9K0;->A1S()V"),
-            "455.0.0.55.72-512508369" to Expected("LX/Qrm;", "LX/Qrm;->A0C:$MEDIA", "LX/Qrm;->A09:LX/9Q2;", "LX/9Q2;->A1S()V"),
-            "455.0.0.55.72-512508370" to Expected("LX/blo;", "LX/blo;->A0C:$MEDIA", "LX/blo;->A09:LX/97s;", "LX/97s;->A1S()V"),
-            "455.0.0.55.72-512508371" to Expected("LX/Qrm;", "LX/Qrm;->A0C:$MEDIA", "LX/Qrm;->A09:LX/9Q2;", "LX/9Q2;->A1S()V"),
+            "457.0.0.57.74-512708483" to Expected("LX/Pwf;", "LX/Pwf;->A0C:$MEDIA", "LX/Pwf;->A09:LX/9YX;", "LX/9YX;->A1u()V"),
+            "457.0.0.57.74-512708484" to Expected("LX/Qaj;", "LX/Qaj;->A0C:$MEDIA", "LX/Qaj;->A09:LX/9SW;", "LX/9SW;->A1s()V"),
+            "457.0.0.57.74-512708486" to Expected("LX/Pdu;", "LX/Pdu;->A0C:$MEDIA", "LX/Pdu;->A09:LX/93R;", "LX/93R;->A1u()V"),
+            "457.0.0.57.74-512708487" to Expected("LX/Pvy;", "LX/Pvy;->A0C:$MEDIA", "LX/Pvy;->A09:LX/9Y5;", "LX/9Y5;->A1u()V"),
+            "457.0.0.57.74-512708497" to Expected("LX/Oun;", "LX/Oun;->A0C:$MEDIA", "LX/Oun;->A09:LX/93u;", "LX/93u;->A1u()V"),
+            "457.0.0.57.74-512708498" to Expected("LX/Pux;", "LX/Pux;->A0C:$MEDIA", "LX/Pux;->A09:LX/9X2;", "LX/9X2;->A1u()V"),
+            "457.0.0.57.74-512708507" to Expected("LX/Pdu;", "LX/Pdu;->A0C:$MEDIA", "LX/Pdu;->A09:LX/93R;", "LX/93R;->A1u()V"),
+            "457.0.0.57.74-512708508" to Expected("LX/Pvy;", "LX/Pvy;->A0C:$MEDIA", "LX/Pvy;->A09:LX/9Y5;", "LX/9Y5;->A1u()V"),
+            "457.0.0.57.74-512708509" to Expected("LX/Qac;", "LX/Qac;->A0C:$MEDIA", "LX/Qac;->A09:LX/9V4;", "LX/9V4;->A1s()V"),
+            "457.0.0.57.74-512708510" to Expected("LX/Pvy;", "LX/Pvy;->A0C:$MEDIA", "LX/Pvy;->A09:LX/9Y5;", "LX/9Y5;->A1u()V"),
         )
     }
 }

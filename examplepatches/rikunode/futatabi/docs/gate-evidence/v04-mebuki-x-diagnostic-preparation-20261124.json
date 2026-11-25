@@ -1,0 +1,59 @@
+{
+  "date": "2026-11-24",
+  "baseCommit": "48e0b718c680d47d4498cb86891b199e0b42dee3",
+  "supervisorDecision": {
+    "discordSyntheticE2E": "Equivalent coverage accepted by MUSE; no current-APK Discord replay. Prior X current-APK full cycle and both host fixture variants PASS.",
+    "httpErrorUI": "Pending one isolated attempt only after emulator handoff; if blocked, leave unverified.",
+    "x": "One instrumented reproduction after handoff; no blind tap retry."
+  },
+  "diagnostic": {
+    "productionDefault": false,
+    "localDiagnosticBuild": true,
+    "tag": "FutatabiMebukiDiag",
+    "eventsLimit": 160,
+    "consoleLimit": 32,
+    "records": [
+      "sequence and elapsed time",
+      "recognized provider/host and fixed route categories",
+      "main-frame navigation request redirect and gesture flags",
+      "page starts and finish snapshots",
+      "onCreateWindow callback dialog/gesture flags",
+      "console level/category/line",
+      "before touch and 1s/4s after touch DOM boolean indicators",
+      "network/HTTP/TLS error categories"
+    ],
+    "privacy": "No raw URL, query, fragment, arbitrary path, console text, credentials, input values, Cookie values or DOM text logged. DOM indicators are heuristic.",
+    "behavior": "No UA, multi-window settings, popup acceptance, TLS handling, provider protections, authentication or posting changes. Default WebChromeClient result retained. Callback absence is not proof that no popup was requested; current WebView settings may suppress callback.",
+    "deviceOperation": false,
+    "realSiteContact": false,
+    "runtimeObservation": "NOT RUN"
+  },
+  "tests": {
+    "androidJava": "PASS",
+    "diagnosticRedactionAndDefaultOff": 13,
+    "existingNavigationCases": 13,
+    "initialTestIssue": "Invalid synthetic hostname with underscore corrected; targeted rerun PASS"
+  },
+  "artifacts": {
+    "diagnosticMpp": {
+      "path": "apk-inspection/v04-x-diagnostic/x-diagnostic.mpp",
+      "bytes": 754712,
+      "sha256": "be307d79d88a80e6de0c45aa0553dc9bb087bfc09510b97cba7cd82a347fedf8"
+    },
+    "normalMpp": {
+      "bytes": 753416,
+      "sha256": "990399fb2a476d3bd745e8675e9d22ad80077e0ba55222c0a759c2f4f0d6c9de"
+    },
+    "diagnosticApk": {
+      "path": "apk-inspection/v04-x-diagnostic/x-diagnostic-signed.apk",
+      "bytes": 69610206,
+      "sha256": "9f6f36bdf40bfb4a2f7149ea2c37c155a0af669b4c1f9487df1a26284cd4832a",
+      "signatureVerification": "PASS; META-INF unprotected-entry warnings",
+      "installed": false
+    },
+    "normalBuildRestored": true,
+    "sourceDefaultOff": true
+  },
+  "version": "0.3.0 unchanged",
+  "release": false
+}

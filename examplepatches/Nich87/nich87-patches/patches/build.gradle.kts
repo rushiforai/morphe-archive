@@ -19,12 +19,17 @@ val singRuntimeAar = configurations.create("singRuntimeAar") {
     isCanBeConsumed = false
     isTransitive = false
 }
+val kuromojiNotices = configurations.create("kuromojiNotices") {
+    isCanBeConsumed = false
+    isTransitive = false
+}
 
 dependencies {
     compileOnly(libs.gson)
     patchListGeneratorClasspath(libs.gson)
     testImplementation(libs.junit)
     testImplementation(libs.json)
+    add(kuromojiNotices.name, libs.kuromoji.ipadic)
 
     val onnxRuntime = libs.onnxruntime.android.get()
     add(singRuntimeAar.name, "${onnxRuntime.group}:${onnxRuntime.name}:${onnxRuntime.versionConstraint.requiredVersion}@aar")
@@ -39,6 +44,15 @@ val singRuntimeLibraries by tasks.registering(Sync::class) {
 }
 sourceSets["main"].resources.srcDir(singRuntimeLibraries)
 
+val kuromojiNoticeResources = tasks.register<Sync>("kuromojiNoticeResources") {
+    from(kuromojiNotices.elements.map { zipTree(it.single().asFile) }) {
+        include("META-INF/CONTRIBUTORS.md", "META-INF/LICENSE.md", "META-INF/NOTICE.md")
+        into("applemusic/lyrics/kuromoji")
+    }
+    into(layout.buildDirectory.dir("generated/kuromojiNoticeResources"))
+}
+sourceSets["main"].resources.srcDir(kuromojiNoticeResources)
+
 sourceSets["test"].java.srcDir(project(":extensions:extension").file("src/test/java"))
 tasks.named<JavaCompile>("compileTestJava") {
     options.release.set(11)
@@ -50,13 +64,19 @@ tasks.named<JavaCompile>("compileTestJava") {
             "LibraryDaap.java", "MusicReflection.java", "MusicLibrary.java", "MetadataField.java", "MetadataCatalog.java", "LibraryMetadata.java")
     })
     source(project(":extensions:extension").fileTree("src/main/java/app/voidhack/extension/applemusic/lyrics") {
-        include("LrclibModels.java", "LrclibMatcher.java", "LrclibParser.java", "LrclibApiClient.java")
+        include("LrclibModels.java", "LrclibMatcher.java", "LrclibParser.java", "LrclibApiClient.java",
+            "LocalLrcParser.java", "LocalLrcMatcher.java", "LyricsLrcExporter.java",
+            "OfficialLyricsTtml.java", "LyricsEditTtml.java", "TimedPronunciation.java",
+            "LyricsScrollHost.java", "LyricsScrollSyncPolicy.java")
     })
     source(project(":extensions:extension").fileTree("src/main/java/app/voidhack/extension/applemusic/font") {
         include("FontInspector.java")
     })
     source(project(":extensions:extension").fileTree("src/main/java/app/voidhack/extension/twitter/spaces/mute") {
         include("SpaceLocalMuteLogic.java")
+    })
+    source(project(":extensions:sing-runtime").fileTree("src/main/java/app/voidhack/extension/applemusic/sing") {
+        include("SingBackendPolicy.java", "StereoResampler.java", "MdxSpectrum.java", "MultichannelMixer.java")
     })
 }
 

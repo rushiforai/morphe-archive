@@ -1331,6 +1331,7 @@ Popular,热门
 Popups,弹出窗口
 Post age,后期年龄
 Post dates in the feed,在信息流中发布日期
+Posts,帖子
 Post every video as if you'd turned on TikTok's own HD upload on the post page. A clip TikTok doesn't count as high quality posts as before.,发布每个视频就好像你在帖子页面上打开了 TikTok 自己的高清上传一样。剪辑 TikTok 不像以前那样算作高质量帖子.
 Hide the AI Cast button,隐藏 AI Cast 按钮
 Takes TikTok's AI Cast button off the camera's side toolbar. Open the camera again to see the change.,从相机侧边工具栏移除 TikTok 的 AI Cast 按钮。重新打开相机即可看到变化.
@@ -2849,7 +2850,8 @@ Find and reopen the videos you liked only on this phone,查找并重新打开你
 Videos you like on this phone show up here,你在这部手机上点赞的视频会显示在这里
 Likes cleared,点赞已清除
 Export followers and following,导出粉丝和关注列表
-"Saves the accounts that follow you, or the ones you follow, as a CSV file in Download/Hushfeed. They're read at about the pace of scrolling the list, up to %1$s at a time.",将关注你的帐户或你关注的帐户保存为 CSV 文件，存放在 Download/Hushfeed 中。读取速度大约与滑动浏览列表相当，每次最多 %1$s 个.
+"Saves the accounts that follow you, or the ones you follow, as a CSV, JSON or plain text file in Download/Hushfeed. They're read at about the pace of scrolling the list, up to %1$s at a time.",将关注你的帐户或你关注的帐户保存为 CSV、JSON 或纯文本文件，存放在 Download/Hushfeed 中。读取速度大约与滑动浏览列表相当，每次最多 %1$s 个.
+Plain text,纯文本
 A list is already being read,已经在读取一个列表
 Reading your followers (%1$s),正在读取你的粉丝 (%1$s)
 Reading who you follow (%1$s),正在读取你关注的人 (%1$s)
@@ -2979,7 +2981,7 @@ Round the corners on profile grids,个人资料网格显示圆角
 Gifter level,送礼等级
 SecUID,SecUID
 Unknown (TikTok didn't send it),未知 (TikTok 未发送)
-"A profile's share sheet gets an Account facts button. It shows what TikTok already sent about the account: when it joined, its region and language, its gifter level and SecUID, when its username and display name last changed, whether it's private and whether its liked videos are public. Nothing extra is fetched.",个人资料的共享表有一个账号事实按钮。它显示 TikTok 已发送的有关该账号的内容：加入时间、地区和语言、送礼等级和 SecUID、用户名和显示名称上次更改时间、是否是私人的以及其喜欢的视频是否是公开的。没有获取任何额外的内容.
+"A profile's share sheet gets an Account facts button. It shows what TikTok already sent about the account: when it joined, its region and language, its gifter level and SecUID, how many posts, liked videos, favorites and reposts it has, when its username and display name last changed, whether it's private and whether its liked videos are public. Nothing extra is fetched.",个人资料的共享表有一个账号事实按钮。它显示 TikTok 已发送的有关该账号的内容：加入时间、地区和语言、送礼等级和 SecUID、帖子、喜欢的视频、收藏和转发的数量、用户名和显示名称上次更改时间、是否是私人的以及其喜欢的视频是否是公开的。没有获取任何额外的内容.
 Show the room ID and your connection,显示直播间 ID 和你的连接
 "Adds a small line to LIVE rooms with the room's ID and how your own connection to the stream is doing, as TikTok's player measures it: ping, latency and download speed. Tap the line to copy the room ID.",在直播间加一行小字，显示直播间 ID 以及你自己到直播流的连接状况，数据来自 TikTok 播放器自己的测量：Ping 值、延迟和下载速度。点按这一行可复制直播间 ID.
 Room ID %1$s,直播间 ID %1$s
@@ -3048,3 +3050,26 @@ Random time each day,每天随机时间
 "Sends at a different time each day, somewhere between When to send and Latest time.",每天在不同时间发送，介于何时发送和最晚时间之间.
 Latest time,最晚时间
 "The end of the random window, on the same day as When to send. If it isn't later, the message goes at When to send.",随机时间段的结束时间，与何时发送在同一天。如果不晚于它，消息会在何时发送的时间发出.
+Jump to a date on Favorites grids,在“收藏”网格中跳到某个日期
+"Adds a button to the Favorites grid's top corner that starts your saved videos at a year or month you pick, so older saves load without scrolling past newer ones. Pick Newest saves there to go back.",在“收藏”网格的顶角添加一个按钮，让你收藏的视频从你选择的年份或月份开始，这样无需滑过较新的收藏就能加载较早的收藏。在那里选择“最新的收藏”即可返回.
+Newest saves,最新的收藏
+Pick a built-in font,选择内置字体
+Pick one of %1$s fonts that come with Hushfeed. Each is shown in its own style.,从 Hushfeed 自带的 %1$s 种字体中选择一种。每种字体都以其自身样式显示.
+Built-in fonts,内置字体
+Delete,删除
+Delete your picked posts,删除你选中的帖子
+"Adds a trash button to the picking bar while every picked post is your own. It counts down from 5 so you can stop it, then deletes them from your account one at a time. A deleted post can't be brought back.",当选中的帖子全都是你自己的时，在选择栏中添加垃圾桶按钮。它会从 5 开始倒计时，让你可以停止，然后从你的账号中逐个删除。删除的帖子无法恢复.
+Posts to delete: %1$d. Starting in %2$d,要删除的帖子：%1$d。%2$d 秒后开始
+Posts deleted: %1$d of %2$d,已删除帖子：%1$d / %2$d
+Swipe LIVEs in your Following row's order,按“正在关注”行的顺序滑动 LIVE
+"After a LIVE you open from the row at the top of Following, swiping takes you through the row's other LIVEs in the order they sit there, starting with the next one. TikTok's own picks come after them.",从“正在关注”顶部的行打开 LIVE 后，滑动会按该行中的顺序依次进入其他 LIVE，从下一个开始。TikTok 自己推荐的内容排在它们之后.
+Remember saved videos,记住收藏的视频
+"Keeps the cover, creator, caption and post date of each video in your Favorites on this phone as the grid loads it. If one is later deleted or made private, its tile shows the kept cover and creator instead of a grey box, and a tap shows the rest. Videos that were already gone can't be recovered.",网格加载“收藏”中的视频时，把每个视频的封面、创作者、文案和发布日期保存在这部手机上。如果某个视频之后被删除或设为私密，它的格子会显示保存的封面和创作者，而不是灰色方块，轻点可查看其余内容。之前已经消失的视频无法恢复.
+Unavailable saved videos,不可用的收藏视频
+See the saved videos that went away after Hushfeed remembered them,查看在 Hushfeed 记住之后消失的收藏视频
+Saved videos that go away show up here,消失的收藏视频会显示在这里
+Unavailable saved videos cleared,不可用的收藏视频已清除
+Unavailable saved video,不可用的收藏视频
+Posted %1$s,发布于 %1$s
+Remembered %1$s,记住于 %1$s
+Unavailable since %1$s,自 %1$s 起不可用

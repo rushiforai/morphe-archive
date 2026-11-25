@@ -17,11 +17,13 @@ import app.morphe.patches.pinterest.misc.extension.localRegisterCount
 import app.morphe.patches.pinterest.misc.extension.pinterestExtensionPatch
 import app.morphe.patches.pinterest.misc.extension.requireFreeAt
 import app.morphe.patches.pinterest.misc.extension.requireStatusMethod
+import app.morphe.util.addInstructionsAtControlFlowLabel
 import app.morphe.patches.pinterest.misc.extension.requireThisIntact
 import app.morphe.patches.pinterest.misc.settings.EXTENSION_ROOT
 import app.morphe.patches.pinterest.misc.settings.settingsPatch
 import app.morphe.patches.shared.compat.AppCompatibilities
 import app.morphe.util.addInstructionsAtControlFlowLabel
+import app.morphe.util.ControlFlow
 import com.android.tools.smali.dexlib2.AccessFlags
 import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.iface.Method
@@ -31,7 +33,9 @@ import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.RegisterRangeInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.TwoRegisterInstruction
+import com.android.tools.smali.dexlib2.iface.reference.FieldReference
 import com.android.tools.smali.dexlib2.iface.reference.MethodReference
+import com.android.tools.smali.dexlib2.iface.reference.TypeReference
 
 private const val PATCH = "AMOLED black"
 
@@ -55,6 +59,20 @@ internal const val PROFILE_FILTERS_HOOK = "$AMOLED_BLACK->profileFilters(Landroi
 internal const val BOARD_HEADER_HOOK = "$AMOLED_BLACK->boardHeader(Landroid/view/View;)V"
 internal const val PIN_DETAILS_HOOK = "$AMOLED_BLACK->pinDetails(Landroid/view/View;)V"
 internal const val TOAST_HOOK = "$AMOLED_BLACK->toast(Landroid/view/View;)V"
+internal const val BLACK_BUTTONS_HOOK = "$AMOLED_BLACK->gestaltButton(Landroid/view/View;)V"
+internal const val SEARCH_GUIDE_HOOK = "$AMOLED_BLACK->searchGuide(Landroid/view/View;)V"
+internal const val SEARCH_BUBBLE_HOOK = "$AMOLED_BLACK->searchBubble(Landroid/view/View;)V"
+internal const val SETTINGS_CARD_HOOK = "$AMOLED_BLACK->settingsCard(Landroid/view/View;)V"
+
+/** The chips over search results, such as Filter and the suggested searches. */
+internal const val SEARCH_GUIDE = "Lcom/pinterest/gestalt/searchGuide/GestaltSearchGuide;"
+
+/** The shape each row of a "Refine your search" list is drawn on, a resource only that row loads (14.45.0). */
+internal const val SEARCH_BUBBLE_FILL = "rounded_rect_medium_radius_opaque_background"
+
+/** The view at the top of Pinterest's own settings that holds the account card (14.45.0). */
+internal const val SETTINGS_PROFILE_PREVIEW = "Lcom/pinterest/feature/settings/menu/view/SettingsProfilePreview;"
+internal const val CARD_VIEW = "Landroidx/cardview/widget/CardView;"
 
 /** The sheet of the drawer a pin's chevron slides up, looked up only where the drawer is built (14.45.0). */
 internal const val PIN_DETAILS_SHEET = "metadata_drawer_bottom_sheet"
@@ -94,13 +112,17 @@ internal data class GlassWash(val draw: Method, val index: Int, val view: Int, v
  * them as soon as its layout is inflated. The bar over a board, a profile's filter
  * buttons and a board's header image are each handed over from their constructors right after the
  * constructor of the class they're built on, under one more switch. Each of these is found apart too.
+ * Black buttons takes each Gestalt button right after Pinterest styles it, and each chip over search
+ * results each time Pinterest puts a look on it, found apart from the buttons. It also takes the
+ * account card at the top of Pinterest's settings the moment Pinterest keeps it, and each row of a
+ * "Refine your search" list right after the row gets its shape, each found apart too.
  */
 @Suppress("unused")
 val amoledBlackPatch = bytecodePatch(
     name = PATCH,
     description = "Paints the bottom bar pure black in dark mode, so it matches Pinterest's black pages on OLED " +
         "screens. The comments sheet, a pin's menu, the Save to sheet that lists your boards, the other menus " +
-        "and sheets, the buttons over boards and profiles, and Pinterest's pop-up messages can go black too, " +
+        "and sheets, the buttons over boards and profiles, Pinterest's pop-up messages and its gray buttons can go black too, " +
         "each with its own switch. " +
         "Light mode stays as it is. Starts off. Turn them on in HushPinterest settings > Interface.",
 ) {
@@ -116,10 +138,15 @@ val amoledBlackPatch = bytecodePatch(
         requireStatusMethod("blackSheets")
         requireStatusMethod("blackBoards")
         requireStatusMethod("blackToasts")
+        requireStatusMethod("blackButtons")
+        requireStatusMethod("blackSearchGuides")
+        requireStatusMethod("blackSettingsCard")
+        requireStatusMethod("blackSearchBubbles")
         var sheets = false
         var boards = false
         val surfaces = listOf("bottom bar", "comments screen", "pin menu", "Save to sheet", "sheets", "menus",
-            "pin details", "board tool bar", "profile filters", "board header", "toasts")
+            "pin details", "board tool bar", "profile filters", "board header", "toasts", "button styling", "search guides",
+            "settings card", "search bubbles")
         handleTargets(PATCH, "surfaces", surfaces) { surface ->
             try {
                 when (surface) {
@@ -157,6 +184,43 @@ val amoledBlackPatch = bytecodePatch(
                         paintToasts()
                         enableCapability("blackToasts")
                     }
+                    "button styling" -> {
+                        // Every GestaltButton right after Pinterest styles it, the spot Hide closeup
+                        // buttons hands the Save button over at. Whichever patch goes in second takes
+                        // the label there, ahead of the other's call, so both run on every path.
+                        val style = styleSite()
+                        mutable(style.method).addInstructionsAtControlFlowLabel(style.index,
+                            "invoke-static/range { v${style.register} .. v${style.register} }, $BLACK_BUTTONS_HOOK")
+                        enableCapability("blackButtons")
+                    }
+                    "search guides" -> {
+                        // Every look Pinterest puts on a search guide, its first included, goes through
+                        // the method taking the old look and the new, and the guide is its this.
+                        val look = searchGuideLook()
+                        val body = look.instructions()
+                        val ends = body.indices.filter { body[it].opcode == Opcode.RETURN_VOID }
+                        if (ends.isEmpty()) throw PatchException("$PATCH: the search guide's look never returns")
+                        look.requireThisIntact(PATCH, ends)
+                        val method = mutable(look)
+                        for (end in ends.sortedDescending()) {
+                            method.addInstructionsAtControlFlowLabel(end, "invoke-static/range { p0 .. p0 }, $SEARCH_GUIDE_HOOK")
+                        }
+                        enableCapability("blackSearchGuides")
+                    }
+                    "settings card" -> {
+                        // Right after the account card is kept in its field, the card in hand.
+                        val store = settingsCardStore()
+                        mutable(store.method).addInstructions(store.index + 1,
+                            "invoke-static/range { v${store.register} .. v${store.register} }, $SETTINGS_CARD_HOOK")
+                        enableCapability("blackSettingsCard")
+                    }
+                    "search bubbles" -> {
+                        // Right after each row gets its rounded background, the row in hand.
+                        val fill = searchBubbleFill()
+                        mutable(fill.method).addInstructions(fill.index + 1,
+                            "invoke-static/range { v${fill.register} .. v${fill.register} }, $SEARCH_BUBBLE_HOOK")
+                        enableCapability("blackSearchBubbles")
+                    }
                     "bottom bar" -> {
                         paintBottomBar()
                         enableCapability("blackBottomBar")
@@ -188,6 +252,97 @@ val amoledBlackPatch = bytecodePatch(
         if (sheets) enableCapability("blackSheets")
         if (boards) enableCapability("blackBoards")
         enableStatus("amoledBlack")
+    }
+}
+
+/**
+ * The method that puts a look on one of Pinterest's search guides: the guide's one instance method
+ * that takes two of the same look and returns nothing. Its constructors run it with the first look
+ * and every change runs it again. Nothing is changed here.
+ */
+internal fun BytecodePatchContext.searchGuideLook(): Method {
+    val guide = classDefByOrNull(SEARCH_GUIDE) ?: throw PatchException("$PATCH: $SEARCH_GUIDE wasn't found")
+    val looks = guide.methods.filter { method ->
+        val params = method.parameterTypes.map { it.toString() }
+        !AccessFlags.STATIC.isSet(method.accessFlags) && method.implementation != null && method.returnType == "V" &&
+            params.size == 2 && params[0] == params[1] && params[0].startsWith("L")
+    }
+    return looks.singleOrNull()
+        ?: throw PatchException("$PATCH: the search guide has ${looks.size} methods taking an old look and a new, not one")
+}
+
+/** A view in [register] at [index] of [method], for a hook right after that instruction. */
+internal data class ViewSite(val method: Method, val index: Int, val register: Int)
+
+/**
+ * Where Pinterest keeps the account card at the top of its own settings: the one store of a
+ * CardView into the settings profile preview's field, right after the card is cast from its
+ * lookup, the card in the stored register. Only the store leads on to the instruction after it.
+ * Nothing is changed here.
+ */
+internal fun BytecodePatchContext.settingsCardStore(): ViewSite {
+    val sites = mutableListOf<ViewSite>()
+    classDefForEach { owner ->
+        if (owner.type.startsWith(EXTENSION_ROOT)) return@classDefForEach
+        for (method in owner.methods) {
+            if (method.implementation == null ||
+                method.fields().none { it.definingClass == SETTINGS_PROFILE_PREVIEW && it.type == CARD_VIEW }) continue
+            val body = method.instructions()
+            for (index in 1 until body.size) {
+                val store = body[index]
+                val field = (store as? ReferenceInstruction)?.reference as? FieldReference ?: continue
+                if (store.opcode != Opcode.IPUT_OBJECT || field.definingClass != SETTINGS_PROFILE_PREVIEW || field.type != CARD_VIEW) continue
+                val card = (store as TwoRegisterInstruction).registerA
+                val cast = body[index - 1]
+                if (cast.opcode != Opcode.CHECK_CAST || (cast as OneRegisterInstruction).registerA != card ||
+                    ((cast as ReferenceInstruction).reference as? TypeReference)?.type != CARD_VIEW) continue
+                sites += ViewSite(method, index, card)
+            }
+        }
+    }
+    val site = sites.one("$PATCH: account card store")
+    site.method.requireOnlyAfter(site.index, "the account card store")
+    return site
+}
+
+/**
+ * Where each row of a "Refine your search" list gets its rounded background: the one method that
+ * loads the row's shape, at the view call that puts that shape on the row, the row in the call's
+ * first register. Only the call leads on to the instruction after it. Nothing is changed here.
+ */
+internal fun BytecodePatchContext.searchBubbleFill(): ViewSite {
+    val builders = mutableListOf<Method>()
+    classDefForEach { owner ->
+        if (owner.type.startsWith(EXTENSION_ROOT)) return@classDefForEach
+        owner.methods.filterTo(builders) { method ->
+            method.implementation != null && method.fields().any { it.name == SEARCH_BUBBLE_FILL && it.type == "I" }
+        }
+    }
+    val builder = builders.one("$PATCH: Refine your search row builder")
+    val body = builder.instructions()
+    val loaded = body.indexOfFirst { ((it as? ReferenceInstruction)?.reference as? FieldReference)?.name == SEARCH_BUBBLE_FILL }
+    val index = (loaded until body.size).firstOrNull { at ->
+        val call = (body[at] as? ReferenceInstruction)?.reference as? MethodReference
+        body[at].opcode == Opcode.INVOKE_VIRTUAL && call?.name == "setBackground" && call.returnType == "V" &&
+            call.parameters() == listOf("Landroid/graphics/drawable/Drawable;")
+    } ?: throw PatchException("$PATCH: the Refine your search row never gets the shape it loads")
+    val row = (body[index] as FiveRegisterInstruction).registerC
+    builder.requireOnlyAfter(index, "the Refine your search row's background")
+    return ViewSite(builder, index, row)
+}
+
+/**
+ * Refuses a hook right after [index] unless [index] alone leads on to the instruction after it:
+ * no branch, switch or handler lands there, so the hook runs on every way there and never on one
+ * where its register holds something else.
+ */
+private fun Method.requireOnlyAfter(index: Int, what: String) {
+    val flow = ControlFlow.of(this)
+    val next = index + 1
+    val others = flow.normal.indices.filter { it != index && next in flow.normal[it] } +
+        flow.exceptional.indices.filter { next in flow.exceptional[it] }
+    if (next >= flow.instructions.size || next !in flow.normal[index] || others.isNotEmpty()) {
+        throw PatchException("$PATCH: $what isn't the only way on to the instruction after it in $definingClass->$name")
     }
 }
 

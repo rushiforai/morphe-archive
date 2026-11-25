@@ -376,9 +376,9 @@ final class ExpressiveArtistHeaderController {
                 continue;
             }
             btn.setMinimumWidth(0);
-            btn.setPadding(dp(4f), dp(4f), dp(4f), dp(4f));
+            btn.setPadding(dp(4f), dp(9f), dp(4f), dp(8f));
             ExpressiveMediaStyleKit.attachSpringPressEffect(btn);
-            secondaryActionRow.addView(btn, new LinearLayout.LayoutParams(0, dp(62f), 1f));
+            secondaryActionRow.addView(btn, new LinearLayout.LayoutParams(0, dp(56f), 1f));
         }
 
         LinearLayout.LayoutParams secLp = new LinearLayout.LayoutParams(

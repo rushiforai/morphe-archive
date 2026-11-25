@@ -228,13 +228,20 @@ val binocularsModsSettingsPatch =
             }
 
             val encoded = registeredSettings.joinToString("\n") { setting ->
-                val type = if (setting.choices.isNotEmpty()) "C" else "S"
-                val defaultValue = if (type == "S") {
-                    if (setting.default) "1" else "0"
-                } else {
-                    setting.defaultChoice ?: ""
+                val type = when {
+                    setting.slider != null -> "N"
+                    setting.choices.isNotEmpty() -> "C"
+                    else -> "S"
                 }
-                val choices = setting.choices.joinToString(",") { it.value }
+                val defaultValue = when {
+                    setting.slider != null -> setting.slider.default.toString()
+                    type == "S" -> if (setting.default) "1" else "0"
+                    else -> setting.defaultChoice ?: ""
+                }
+                val choices = when {
+                    setting.slider != null -> "${setting.slider.min},${setting.slider.max},${setting.slider.step},${setting.slider.unit}"
+                    else -> setting.choices.joinToString(",") { it.value }
+                }
                 "${setting.key}|${setting.section.id}|${setting.parentKey ?: ""}|$type|$defaultValue|$choices"
             }
 

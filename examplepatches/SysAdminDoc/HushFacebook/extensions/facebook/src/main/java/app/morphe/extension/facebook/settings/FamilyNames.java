@@ -94,7 +94,6 @@ public final class FamilyNames {
     public static final String HAPTICS = "Turn off haptics";
     public static final String CARRIER_BANNERS = "Hide carrier data banners";
     public static final String SCREEN_TRANSITIONS = "Turn off screen transitions";
-    public static final String APP_ICONS = "Unlock app icons";
     public static final String HEADER_TEXT = "Home header text";
     public static final String EXTERNAL_BROWSER = "Open links in external browser";
     public static final String SANITIZE_SHARING_LINKS = "Sanitize sharing links";
@@ -136,6 +135,8 @@ public final class FamilyNames {
     public static final String TYPING_INDICATOR = "Hide typing indicator";
     public static final String READ_RECEIPTS = "Hide read receipts";
     public static final String ORIGINAL_CHAT_MEDIA = "Send chat photos and videos at original quality";
+    public static final String SHARE_TO_CHATS = "Share to Facebook chats";
+    public static final String CHAT_BACKGROUND = "Chat background";
     public static final String AUDIENCE_NETWORK = "Disable Audience Network";
     public static final String GAME_ADS = "Block Instant Games ads";
     public static final String AMOLED_THEME = "AMOLED black theme";

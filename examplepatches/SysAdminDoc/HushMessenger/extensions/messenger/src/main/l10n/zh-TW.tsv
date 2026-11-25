@@ -69,6 +69,7 @@ way_logo	長按「聊天室」頂端的 Messenger 標誌即可開啟此設定畫
 way_drawer	從應用程式抽屜開啟 HushMessenger 設定。
 way_shortcuts_hidden	已隱藏主畫面上 Messenger 圖示的「Patch controls（修補功能控制）」與「Restart Messenger（重新啟動 Messenger）」捷徑。
 drawer_search	應用程式抽屜圖示設定
+reset_search	重設設定
 drawer_root	以 Root Mount 安裝時，不需要使用「隱藏應用程式抽屜圖示」，因為沒有獨立的設定圖示可隱藏。
 drawer_missing	無法使用「隱藏應用程式抽屜圖示」。此修補套件未提供可隱藏的設定圖示。
 drawer_requires_menu	若要隱藏應用程式抽屜圖示，請先套用「從選單開啟設定」修補功能，確保仍能找到此設定畫面。否則圖示會保留。
@@ -215,6 +216,7 @@ message_actions_got	你收到的訊息
 message_actions_empty_sent	按住一則你傳送的訊息，它的動作就會顯示在這裡。
 message_actions_empty_got	按住一則你收到的訊息，它的動作就會顯示在這裡。
 chat_menu_items_empty	按住聊天清單中的一個聊天室，它的選單項目就會顯示在這裡。
+profile_menu_items_empty	點按聊天室中訊息旁的大頭貼，它的選單項目就會顯示在這裡。
 invisible_buttons_empty	使用 Messenger 一陣子，它顯示給你的每個按鈕就會出現在這裡。
 invisible_buttons_level_choice	%2$s 設為 %1$s
 invisible_buttons_invisible	現在看不見了
@@ -252,6 +254,10 @@ facebook_keep_profile	保留個人檔案按鈕
 facebook_keep_profile_help	保留聊天室詳細資料頁面中的個人檔案按鈕，以及新聊天室頂端的「查看個人檔案」按鈕，讓你仍可開啟對方的 Facebook 個人檔案。其他 Facebook 捷徑仍會隱藏。
 avatar_shape_rounded	圓角
 avatar_shape_rounded_help	讓方形大頭貼照的邊角變圓，而不是直角。
+refresh_rate_hz	%1$s Hz
+refresh_rate_single	你的螢幕只有一種更新頻率，所以這裡沒有可選的項目。
+refresh_rate_picked	Messenger 會要求 %1$s Hz
+refresh_rate_help	頻率越高，捲動越流暢，也越耗電。回到 Messenger 後就會套用新的頻率。
 hidden_words_words	要隱藏的字詞
 hidden_words_hint	最多 %1$d 個字元，以逗號分隔
 hidden_words_help	必須整個字詞相符，所以「ok」不會隱藏「okay」。大小寫不影響。
@@ -356,6 +362,13 @@ theme_accent_red	紅色
 theme_accent_orange	橘色
 theme_accent_green	綠色
 theme_accent_teal	藍綠色
+theme_codes	色碼
+theme_code_accent	強調色
+theme_code_neutral	背景
+theme_codes_use	使用這些顏色
+theme_codes_help	輸入六位數色碼，例如 #E1306C。強調色會調整 Messenger 的藍色，背景會調整它的灰色。留空其中一個即可保留 Messenger 原本的顏色。
+theme_codes_invalid	這不是色碼。請試試像 #E1306C 這樣的色碼。
+theme_codes_empty	請先輸入色碼。
 theme_paste	使用已複製的主題
 theme_copy	複製主題
 theme_clear	改回桌布顏色
@@ -364,9 +377,17 @@ theme_paste_empty	沒有可貼上的內容。請先複製主題。
 theme_paste_invalid	這不是主題。你的顏色沒有變更。
 theme_copied	已複製主題
 theme_copy_failed	無法複製主題。請再試一次。
+theme_file_save	將主題儲存為檔案
+theme_file_open	開啟主題檔案
+theme_file_saved	已儲存主題檔案
+theme_file_save_failed	無法儲存主題檔案。請試試其他資料夾。
+theme_file_no_picker	這支手機沒有可以處理的檔案選擇器。
+theme_file_unreadable	無法開啟該檔案。請再試一次。
+theme_file_invalid	該檔案不是主題。你的顏色沒有變更。
+ai_chat_blocked	Meta AI 聊天已在 HushMessenger 設定中封鎖。
 theme_cleared	已改回桌布顏色
 theme_change	主題變更
-theme_file_help	主題是一段文字，例如 {"name": "Sunset", "accent": "#E1306C", "neutral": "#1A1418", "pure_black": true}。accent 會改變 Messenger 的藍色，neutral 會改變灰色。兩者都保留 Messenger 原本的亮度，文字依然清楚易讀。「複製主題」會提供目前使用的顏色，方便編輯或分享。
+theme_file_help	主題是一段文字，例如 {"name": "Sunset", "accent": "#E1306C", "neutral": "#1A1418", "pure_black": true}。accent 會改變 Messenger 的藍色，neutral 會改變灰色。兩者都保留 Messenger 原本的亮度，文字依然清楚易讀。「複製主題」會提供目前使用的顏色，方便編輯或分享。「將主題儲存為檔案」會把它存成 .json 檔案，「開啟主題檔案」則會使用這種檔案。
 about	關於 HushMessenger
 version	版本
 installed	已安裝的控制項
@@ -491,6 +512,8 @@ tab_people_show_pending_on	重新啟動 Messenger 後顯示「聯絡人」分頁
 tab_people_show_pending_off	重新啟動 Messenger 後移除「聯絡人」分頁
 tab_settings_show_pending_on	重新啟動 Messenger 後顯示設定分頁
 tab_settings_show_pending_off	重新啟動 Messenger 後移除設定分頁
+tab_instants_show_pending_on	重新啟動 Messenger 後顯示 Instants 分頁
+tab_instants_show_pending_off	重新啟動 Messenger 後移除 Instants 分頁
 tab_notifications_pending_on	重新啟動 Messenger 後隱藏「通知」分頁
 tab_notifications_pending_off	重新啟動 Messenger 後恢復顯示「通知」分頁
 tab_stories_pending_on	重新啟動 Messenger 後隱藏「限時動態」分頁
@@ -515,8 +538,8 @@ none_installed	尚未安裝任何控制項。請在 Morphe Manager 中選取修�
 no_matches	沒有符合的控制項。
 results_one	顯示 %d 個，共安裝 %d 個控制項
 results_many	顯示 %d 個，共安裝 %d 個控制項
-group_count_one	%d 個控制項
-group_count_many	%d 個控制項
+group_on	%1$d/%2$d
+group_on_help	已開啟 %1$d 個，共 %2$d 個
 open_help	從應用程式抽屜開啟 Messenger
 message_log_view	查看紀錄
 search_clear	清除
@@ -719,6 +742,10 @@ chat_jump_next	那一天沒有訊息，這是下一則
 chat_jump_none	那一天以後沒有訊息
 chat_jump_no_dates	讀不到這個聊天室的日期
 chat_jump_no_list	找不到這個聊天室的訊息
+chat_page_buttons	上一頁和下一頁按鈕
+chat_page_buttons_help	在箭頭上方放兩個按鈕，每次把聊天室往上或往下移動一整個畫面，讓你不用一直滑動就能往回閱讀很長的聊天。
+chat_page_up	上一頁
+chat_page_down	下一頁
 link_player_play	播放
 link_player_pause	暫停
 link_player_replay	重新播放
@@ -736,6 +763,8 @@ inbox_promotions.title	隱藏收件匣宣傳內容
 inbox_promotions.description	隱藏聊天清單中的宣傳橫幅。
 stories.title	隱藏限時動態與便利貼
 stories.description	隱藏聊天清單上方的限時動態與便利貼列，以及大頭貼周圍的限時動態圓圈。
+story_create_tile.title	隱藏建立限時動態
+story_create_tile.description	移除聊天清單上方限時動態與便利貼列開頭的「建立限時動態」方塊。你自己的限時動態和便利貼也在那個方塊上，所以會一起隱藏。
 instants_button.title	隱藏 Instants 按鈕
 instants_button.description	隱藏從聊天清單右側邊緣滑入的 + 按鈕，以及聊天大頭貼下方的按鈕。兩者都會開啟 Instants。
 subtabs.title	隱藏收件匣分頁
@@ -744,6 +773,12 @@ inbox_typing.title	聊天清單顯示正在輸入
 inbox_typing.description	對方正在輸入時，在你清單中該聊天的最後一則訊息上寫出正在輸入，而不是只有進入聊天後才看得到。Messenger 本來就帶著這個功能，是 Meta 的伺服器把它關著。重新啟動 Messenger 就會開始。
 inbox_search_bar.title	保留搜尋列
 inbox_search_bar.description	當 Messenger 把聊天清單頂端的搜尋列換成搜尋圖示時，把搜尋列找回來。重新啟動 Messenger 後生效。若你尚未取得搜尋圖示，則不會有任何變更。
+search_suggested.title	在搜尋中隱藏建議
+search_suggested.description	在你輸入任何內容前，隱藏搜尋頂端的建議人選。你搜尋他們時，他們仍會出現。
+search_reels.title	在搜尋中隱藏最近的 Reels
+search_reels.description	在你輸入任何內容前，從搜尋中隱藏你最近看過的 Reels。
+longer_notes.title	撰寫較長的便利貼
+longer_notes.description	讓便利貼最多可輸入 500 個字元，而不是 60 個。較長的便利貼能否發布由 Facebook 決定。
 chat_preview.title	長按預覽聊天室
 chat_preview.description	長按聊天室，就能在 Messenger 內建的預覽中快速看一眼，下方附上聊天室選單，不必開啟聊天室。
 chat_preview_size.title	放大聊天室預覽
@@ -758,10 +793,14 @@ special_contacts.title	特別聯絡人
 special_contacts.description	在長按與單一對象的聊天室所顯示的選單中加入「追蹤這個人」。HushMessenger 會根據 Messenger 原本就顯示給你的資訊，記錄對方何時上線、離線、正在對你輸入及更改名稱。紀錄只保存在這支手機上，你可以在 HushMessenger 設定中查看。
 chat_menu_items.title	隱藏聊天室選單項目
 chat_menu_items.description	從長按聊天清單中的聊天室所顯示的選單裡，隱藏你選擇的項目。先按住任一聊天室一次，該選單的項目就會顯示在這個開關下方供你選擇。
+profile_menu_items.title	隱藏個人檔案選單項目
+profile_menu_items.description	從點按聊天室中訊息旁的大頭貼所顯示的選單裡，隱藏你選擇的項目。先點按任一大頭貼一次，該選單的項目就會顯示在這個開關下方供你選擇。
 facebook.title	隱藏 Facebook 捷徑
 facebook.description	隱藏 Facebook 按鈕、個人檔案與分享捷徑，以及「選單」分頁中的「Meta 旗下其他產品」與「訂閱」區塊。適合只使用 Messenger 的使用者。
 meta_ai.title	隱藏 Meta AI
 meta_ai.description	隱藏 Meta AI 浮動按鈕、工具列按鈕、分頁與選單項目、搜尋與 @ 建議中的 AI 內容，以及摘要聊天室未讀訊息的提示。重新啟動 Messenger 後才會隱藏分頁。
+ai_chat_block.title	封鎖 Meta AI 聊天
+ai_chat_block.description	不讓與 Meta AI 和其他 AI 機器人的聊天從搜尋、連結或聊天清單中開啟。有 AI 在內的群組仍可開啟。
 moments.title	隱藏 Chat Moments
 moments.description	隱藏選單中的 Chat Moments。
 reels_badge.title	隱藏 Reels 標記
@@ -772,6 +811,8 @@ tab_people_show.title	顯示聯絡人分頁
 tab_people_show.description	在 Messenger 已移除「聯絡人」分頁的帳號上，把它放回底部導覽列，緊接在「聊天室」之後。兩個開關都開啟時，以「隱藏聯絡人分頁」為準。重新啟動 Messenger 後即可看到分頁。
 tab_settings_show.title	顯示設定分頁
 tab_settings_show.description	把 Messenger 內建的設定分頁放在底部導覽列最後，上面是你的大頭貼，帳號設定一點就到。重新啟動 Messenger 後即可看到分頁。
+tab_instants_show.title	顯示 Instants 分頁
+tab_instants_show.description	把 Instants 放在底部導覽列中間，也就是 Messenger 在部分帳號上放的位置。同時開啟「隱藏 Instants 按鈕」，就能拿掉「聊天室」裡的 + 按鈕。重新啟動 Messenger 後即可看到分頁。
 tab_badges.title	隱藏分頁標記
 tab_badges.description	隱藏底部分頁與頂端 Facebook 按鈕上的紅點及數字。啟用對應的「保留」選項，即可保留需要的標記。重新啟動 Messenger 後生效。
 hide_tab_labels.title	隱藏分頁文字
@@ -832,8 +873,12 @@ local_chat_search.title	搜尋已儲存的訊息
 local_chat_search.description	在聊天室的搜尋結果中加入一個按鈕，用來搜尋儲存在這支手機上的訊息。對於 Messenger 內建搜尋找不到任何內容的舊聊天室很有幫助。此功能適用於未採用端對端加密的聊天室，而且只能找到手機已載入的內容，所以請先在聊天室中向上捲動。
 chat_jump.title	跳到第一則訊息或指定日期
 chat_jump.description	長按聊天室頂端的名稱，即可跳到第一則訊息或你選的日期。聊天室左下角的箭頭可直接跳到第一則訊息，長按箭頭則可選擇日期。Messenger 一次只載入一頁聊天內容，所以會一路往回捲動並在畫面上顯示數量，直到抵達為止，按「取消」即可停止。最多只能回到 Messenger 能載入的範圍。
+pinned_bar.title	顯示置頂訊息
+pinned_bar.description	在聊天名稱下方的橫列中顯示該聊天置頂的訊息。Messenger 本來就有這個橫列，但只在部分聊天中開啟。
 landscape.title	允許橫向顯示
 landscape.description	讓 Messenger 隨手機轉成橫向，鍵盤更寬，照片和影片也更大。會依照手機的自動旋轉設定。通話、相機、付款和其他少數畫面仍保持直向。變更後請重新啟動 Messenger。
+chat_bar_plus.title	將聊天列按鈕移到 + 選單
+chat_bar_plus.description	訊息框旁只留下 +。相機、相簿和麥克風按鈕會變成 + 選單裡的項目，用法不變。需要 Android 10 或更新版本。
 call_recording.title	通話錄音
 call_recording.description	在通話期間於 Messenger 上方加入錄音按鈕。通話會存成一個音訊檔，放在手機的 Recordings/Messenger Calls（Android 10 和 11 為 Music/Messenger Calls）。開啟時，通話會改用 Android 的一般音訊路徑，而不是 Messenger 自己的路徑，變更後需要重新啟動 Messenger。Messenger 不會通知其他人，而各地的錄音法規不同，所以請先取得所有人的同意。
 call_captions.title	通話即時字幕
@@ -841,7 +886,7 @@ call_captions.description	在通話期間，將對方說的話以字幕顯示在
 hide_call_buttons.title	隱藏通話按鈕
 hide_call_buttons.description	移除聊天室頂端列、商家聊天室和「新訊息」畫面的語音與視訊通話按鈕，避免誤觸。來電仍會響鈴，也仍可加入進行中的通話。
 call_confirm.title	通話前先詢問
-call_confirm.description	點按語音或視訊通話按鈕時會先詢問，避免誤觸打給別人。適用於聊天室頂端列、商家聊天室和「新訊息」畫面。點「通話」才會開始，點「取消」則不會。來電不受影響。
+call_confirm.description	點按語音或視訊通話按鈕時會先詢問，避免誤觸打給別人。適用於聊天室頂端列、對方大頭貼的選單、商家聊天室和「新訊息」畫面。點「通話」才會開始，點「取消」則不會。來電不受影響。
 original_photo.title	以原始畫質傳送相片
 original_photo.description	啟用 HD 時，以完整尺寸傳送 JPEG 相片，不再縮小。仍會移除位置資訊。超過 20 MB 的相片仍會縮小。
 original_video.title	傳送影片時不重新編碼
@@ -899,7 +944,7 @@ secure_chat.description	阻止在這支手機上對已開啟的聊天室截圖�
 appear_offline.title	顯示為離線
 appear_offline.description	阻止 Messenger 告訴別人你正在使用中，而你仍然看得到誰在線上。Messenger 自己的使用中狀態設定會保持開啟，所以聊天室列表和「好友」分頁上的綠點照舊運作，只有 Messenger 對外回報關於你的狀態會改變。這項設定會在 Messenger 下次進入背景或回到前景時生效，因此重新啟動應用程式就會立刻套用。
 hide_read_receipts.title	隱藏已讀標記
-hide_read_receipts.description	開啟聊天室時，不再通知對方你已讀訊息，且該聊天室在本機仍維持未讀。手動標示為已讀或回覆時，會依 Messenger 原本的行為將聊天室標示為已讀，並向對方顯示已讀。尚未測試群組聊天室。Messenger 本身在「隱私和安全」中的「已讀標記」設定，可將聊天室標示為已讀而不向對方顯示已讀。其下的「隱藏已送達」也會在一般聊天室擋下已送達標記。
+hide_read_receipts.description	開啟聊天室時，不再通知對方你已讀訊息，且該聊天室在本機仍維持未讀。手動標示為已讀、回覆或對訊息傳送心情時，會依 Messenger 原本的行為將聊天室標示為已讀，並向對方顯示已讀。尚未測試群組聊天室。Messenger 本身在「隱私和安全」中的「已讀標記」設定，可將聊天室標示為已讀而不向對方顯示已讀。其下的「隱藏已送達」也會在一般聊天室擋下已送達標記。
 mark_read_button.title	標示為已讀按鈕
 mark_read_button.description	啟用「隱藏已讀標記」時，在聊天室頂端列加入 Messenger 的「標示為已讀」圖示。開啟聊天室仍不會傳送已讀標記；當你想讓對方看到已讀時，再點選圖示，本機也會將聊天室標示為已讀。頂端列已滿時，此圖示會取代聊天室詳細資料按鈕（點選聊天室名稱仍可開啟同一頁面）；聊天室沒有該按鈕時，則取代另一個非通話按鈕，通話按鈕都會保留原位。
 read_chats_locally.title	在這支手機上將聊天室標示為已讀
@@ -916,16 +961,18 @@ blocked_list_pictures.title	隱藏封鎖名單上的大頭貼照
 blocked_list_pictures.description	隱藏「隱私和安全」中封鎖名單上你封鎖的人的大頭貼照。他們的名字和「解除封鎖」仍會顯示。
 restricted_notify.title	接收受限制聊天的通知
 restricted_notify.description	與你限制的人的聊天會像其他聊天一樣通知你，但端對端加密的聊天除外。你設為靜音的聊天仍保持安靜。受限制的人仍無法看到你何時在線上，或何時已讀他們的訊息。
+open_chat_sound.title	開啟中的聊天室也有音效
+open_chat_sound.description	在你開啟的聊天室收到訊息時，播放 Messenger 的應用程式內訊息音效。Messenger 原本只會對讚和貼圖這麼做。手機設為靜音，或關閉 Messenger 自己的應用程式內音效時，仍然不會有聲音。
 passkey_login.title	跳過密碼金鑰登入
 passkey_login.description	登入時不再提供這支手機上的密碼金鑰，Facebook 會改成請你用另一台已登入的裝置核准這次登入，就像帳號沒有密碼金鑰時那樣。修補過的 Messenger 無法通過 Facebook 的密碼金鑰檢查，這就是有些登入一直卡在瀏覽器檢查的原因。開啟時，Messenger 也無法用密碼金鑰做加密備份，所以除非登入卡住，請保持關閉。長按主畫面上的 Messenger 圖示，不必登入也能開啟這些設定。
+recovery_code_row.title	顯示 40 字元代碼選項
+recovery_code_row.description	當你的帳號沒有顯示時，在加密聊天設定中顯示 Messenger 的產生 40 字元代碼選項。頁面其他內容不變。
 material_you.title	Material You 主題
 material_you.description	在 Android 12 以上版本中，依桌布配色為 Messenger 深色模式上色；在 Android 11 中則使用固定藍色。請先在 Messenger 中啟用深色模式。除非開啟「淺色模式強調色」，否則淺色模式保持原本的顏色。
-app_icons.title	解鎖應用程式圖示
-app_icons.description	不需訂閱，即可在 Messenger 的「應用程式圖示」設定中選擇任何圖示。該設定是否顯示仍由 Messenger 決定。停用此選項後，可能會恢復預設圖示。
-app_themes.title	解鎖應用程式主題
-app_themes.description	不需訂閱，即可在 Messenger 的「主題」設定中選擇任何主題，讓淺色模式也能有顏色。提供哪些主題仍由 Messenger 決定。
 avatar_shape.title	方形大頭貼照
 avatar_shape.description	以方形取代圓形顯示用戶的大頭貼照。開啟下方的「圓角」可改為圓角方形。重新啟動 Messenger 後生效。
+thin_story_rings.title	細限時動態外框
+thin_story_rings.description	將有限時動態的大頭貼周圍的彩色外框以平常一半的粗細繪製，讓它占用更少空間。
 home_header.title	自訂首頁標題
 home_header.description	以你自己的文字或圖片取代聊天清單頂端的 Messenger 字標。在下方輸入文字或選擇圖片。兩者都沒有時，會保留原本的字標。重新啟動 Messenger 後即可看到變更。
 custom_font.title	使用自訂字型
@@ -936,3 +983,5 @@ invisible_buttons.title	隱形按鈕
 invisible_buttons.description	把你在下面挑選的按鈕變成看不見或半透明，但位置、大小和功能都不變，所以點下去照樣有用。聊天列表、聊天室裡和選單都適用，HushMessenger 自己的按鈕也包括在內。Messenger 顯示給你的每個按鈕都會用螢幕閱讀器唸出的名稱列在這裡，所以先使用 Messenger 一陣子來填滿清單。
 ios_bars.title	半透明聊天列
 ios_bars.description	聊天室的頂端列和訊息框變成半透明，訊息會從下面滑過並透出模糊的樣子，就像 iPhone 的列一樣。需要 Android 12 或更新版本。
+refresh_rate.title	螢幕更新頻率
+refresh_rate.description	每次開啟 Messenger 的畫面時，都會向螢幕要求你在下方選擇的更新頻率，例如用 60 Hz 省電，或用螢幕最高的頻率讓捲動更流暢。手機仍可能不採用，例如在省電模式下，或手機本身的動態流暢度設定限制了頻率時。

@@ -218,7 +218,7 @@ internal val filteredPostBridgePatch = bytecodePatch {
 /**
  * Makes Tumblr's `Post` implement the extension's `HushLikedPost`, so Hide liked posts can tell
  * which posts the signed-in account had liked when the page came. Found by reading Tumblr
- * 47.0.0.108 (2026-11-06): Post's liked is `y1()`.
+ * 47.0.0.108 (2026-11-06). In 47.3.0.110 Post's liked is `A1()`.
  */
 internal val likedPostBridgePatch = bytecodePatch {
     dependsOn(tumblrExtensionPatch)
@@ -231,7 +231,7 @@ internal val likedPostBridgePatch = bytecodePatch {
 /**
  * Makes Tumblr's `Post` implement the extension's `HushCommunityPost`, so Keep reblogs in
  * communities can tell a reblog shared to a community from one on somebody's blog. Found by reading
- * Tumblr 47.0.0.108 (2026-11-18): Post's community is `U0()`.
+ * Tumblr 47.0.0.108 (2026-11-18). In 47.3.0.110 Post's community is `W0()`.
  */
 internal val communityPostBridgePatch = bytecodePatch {
     dependsOn(tumblrExtensionPatch)
@@ -246,9 +246,9 @@ internal val communityPostBridgePatch = bytecodePatch {
  * `HushAccountBlog` and `UserInfo` `HushAccountBlogs`, so Hide reblogs of your posts can tell a
  * reblog of one of the signed-in account's posts. The account's blogs are UserInfo's private final
  * list, which its constructor from a fresh user/info response fills from `getBlogs()` and nothing
- * else writes, read as stored. Found by reading Tumblr 47.0.0.108 (2026-11-13): Post's
- * reblogged_from_name is `H0()` and reblogged_root_name `L0()`, ShortBlogInfo's name `k()`, and
- * UserInfo's blogs `k`.
+ * else writes, read as stored. Found by reading Tumblr 47.0.0.108 (2026-11-13). In 47.3.0.110
+ * Post's reblogged_from_name is `I0()` and reblogged_root_name `M0()`, ShortBlogInfo's name `j()`,
+ * and UserInfo's blogs `k`.
  */
 internal val reblogSourceBridgePatch = bytecodePatch {
     dependsOn(tumblrExtensionPatch)

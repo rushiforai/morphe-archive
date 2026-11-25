@@ -18,7 +18,9 @@ import app.morphe.patches.telegram.misc.localcontrols.controlSingle
 import app.morphe.patches.telegram.misc.messagemenu.CopySend
 import app.morphe.patches.telegram.misc.messagemenu.FORWARD_SEND
 import app.morphe.patches.telegram.misc.messagemenu.copyCall
+import app.morphe.patches.telegram.misc.messagemenu.requireShownDocumentFile
 import app.morphe.patches.telegram.misc.messagemenu.resolveCopySends
+import app.morphe.patches.telegram.misc.messagemenu.shownDocumentFile
 import app.morphe.patches.telegram.misc.savedownloads.CONTROLLER_INSTANCE
 import app.morphe.patches.telegram.misc.savedownloads.IS_ENCRYPTED
 import app.morphe.patches.telegram.misc.savedownloads.NO_FORWARDS
@@ -49,8 +51,42 @@ private const val DIALOG_OBJECT = "Lorg/telegram/messenger/DialogObject;"
 private const val ACCOUNT = "Lorg/telegram/messenger/AccountInstance;"
 private const val STRING = "Ljava/lang/String;"
 private const val FILE = "Ljava/io/File;"
+private const val PHOTO = "Lorg/telegram/tgnet/TLRPC\$Photo;"
+private const val PHOTO_SIZE = "Lorg/telegram/tgnet/TLRPC\$PhotoSize;"
+private const val TL_OBJECT = "Lorg/telegram/tgnet/TLObject;"
+private const val IMAGE_LOCATION = "Lorg/telegram/messenger/ImageLocation;"
+private const val ANDROID_UTILITIES = "Lorg/telegram/messenger/AndroidUtilities;"
+private const val LIST = "Ljava/util/ArrayList;"
 private const val LOAD_DOCUMENT = "loadFile(${DOCUMENT}Ljava/lang/Object;II)V"
+private const val LOAD_PHOTO = "loadFile(${IMAGE_LOCATION}Ljava/lang/Object;${STRING}II)V"
 private const val PATH_TO_MESSAGE = "getPathToMessage($TL_MESSAGE)$FILE"
+private const val MESSAGE_PHOTO = "getPhoto($TL_MESSAGE)$PHOTO"
+private const val PHOTO_SIDE = "getPhotoSize(Z)I"
+private const val CLOSEST_SIZE = "getClosestPhotoSizeWithSize(${LIST}IZ${PHOTO_SIZE}Z)$PHOTO_SIZE"
+private const val FOR_PHOTO = "getForPhoto($PHOTO_SIZE$PHOTO)$IMAGE_LOCATION"
+private const val ATTACH_NAME = "getAttachFileName($TL_OBJECT)$STRING"
+private const val IS_LOADING = "isLoadingFile($STRING)Z"
+
+/**
+ * The size of the message's photo that getPathToMessage looks for, by the same call, so what's
+ * downloaded is what's then found: the size in v1 and the photo in v2, using v1 to v5, and on to
+ * :hush_none when there isn't one. getFileName picks by other arguments, so it can name another size.
+ */
+private const val PHOTO_FILE_SIZE = """
+    iget-object v1, p0, $MESSAGE->messageOwner:$TL_MESSAGE
+    if-eqz v1, :hush_none
+    invoke-static {v1}, $MESSAGE->$MESSAGE_PHOTO
+    move-result-object v2
+    if-eqz v2, :hush_none
+    iget-object v1, v2, $PHOTO->sizes:$LIST
+    const/4 v3, 0x1
+    invoke-static {v3}, $ANDROID_UTILITIES->$PHOTO_SIDE
+    move-result v4
+    const/4 v5, 0x0
+    invoke-static {v1, v4, v5, v5, v3}, $FILE_LOADER->$CLOSEST_SIZE
+    move-result-object v1
+    if-eqz v1, :hush_none
+"""
 
 /**
  * prepareSendingVideo, which R8 left unnamed in 13.2, by the types at the positions the stub fills
@@ -90,9 +126,14 @@ internal fun BytecodePatchContext.resolveProtectedForward(): ProtectedForwardSit
         "${it.origName}${it.origDescriptor}" == PATH_TO_MESSAGE && AccessFlags.STATIC.isSet(it.accessFlags)
     } == true
     controlMembers(MESSAGE, "messageOwner:$TL_MESSAGE", "type:I", "currentAccount:I", "getDialogId()J",
-        "getDocument()$DOCUMENT", "getDocumentName()$STRING")
+        "getDocument()$DOCUMENT", "getDocumentName()$STRING", "static $MESSAGE_PHOTO")
     controlMembers(TL_MESSAGE, "message:$STRING", "noforwards:Z", "attachPath:$STRING")
-    controlMembers(FILE_LOADER, "static getInstance(I)$FILE_LOADER", "${if (pathIsStatic) "static " else ""}$PATH_TO_MESSAGE", LOAD_DOCUMENT)
+    controlMembers(FILE_LOADER, "static getInstance(I)$FILE_LOADER", "${if (pathIsStatic) "static " else ""}$PATH_TO_MESSAGE", LOAD_DOCUMENT,
+        LOAD_PHOTO, "static $CLOSEST_SIZE", "static $ATTACH_NAME", IS_LOADING)
+    controlMembers(PHOTO, "sizes:$LIST")
+    controlMembers(ANDROID_UTILITIES, "static $PHOTO_SIDE")
+    controlMembers(IMAGE_LOCATION, "static $FOR_PHOTO")
+    requireShownDocumentFile()
     controlMembers(CONTROLLER, "isPeerNoForwards(J)Z", "static getInstance(I)$CONTROLLER")
     controlMembers(DIALOG_OBJECT, "static isEncryptedDialog(J)Z")
     controlMembers(ACCOUNT, "static getInstance(I)$ACCOUNT")
@@ -170,8 +211,9 @@ internal fun BytecodePatchContext.applyProtectedForward(site: ProtectedForwardSi
         move-result-object v0
         invoke-virtual {v0, v1}
     """.trimIndent()
-    writeStub(PROTECTED_FORWARD, "messageFile", 3, """
+    writeStub(PROTECTED_FORWARD, "messageFile", 4, """
         check-cast p0, $MESSAGE
+        ${shownDocumentFile()}
         iget-object v1, p0, $MESSAGE->messageOwner:$TL_MESSAGE
         if-eqz v1, :hush_none
         $path, $FILE_LOADER->$PATH_TO_MESSAGE
@@ -181,19 +223,52 @@ internal fun BytecodePatchContext.applyProtectedForward(site: ProtectedForwardSi
         const/4 v0, 0x0
         return-object v0
     """)
-    // The download a tap on the file starts: normal priority, kept where Telegram looks for it.
-    writeStub(PROTECTED_FORWARD, "load", 5, """
+    // The download a tap on the file starts, at the same priority, kept where Telegram looks for it.
+    writeStub(PROTECTED_FORWARD, "load", 7, """
+        check-cast p0, $MESSAGE
+        iget v0, p0, $MESSAGE->currentAccount:I
+        invoke-static {v0}, $FILE_LOADER->getInstance(I)$FILE_LOADER
+        move-result-object v0
+        invoke-virtual {p0}, $MESSAGE->getDocument()$DOCUMENT
+        move-result-object v1
+        if-eqz v1, :hush_photo
+        const/4 v2, 0x2
+        const/4 v3, 0x0
+        invoke-virtual {v0, v1, p0, v2, v3}, $FILE_LOADER->$LOAD_DOCUMENT
+        const/4 v0, 0x1
+        return v0
+        :hush_photo
+        $PHOTO_FILE_SIZE
+        invoke-static {v1, v2}, $IMAGE_LOCATION->$FOR_PHOTO
+        move-result-object v1
+        if-eqz v1, :hush_none
+        move-object v2, p0
+        const/4 v3, 0x0
+        const/4 v4, 0x2
+        const/4 v5, 0x0
+        invoke-virtual/range {v0 .. v5}, $FILE_LOADER->$LOAD_PHOTO
+        const/4 v0, 0x1
+        return v0
+        :hush_none
+        const/4 v0, 0x0
+        return v0
+    """)
+    // By the name of what load fetches. Telegram's own name for a photo can be another size's.
+    writeStub(PROTECTED_FORWARD, "loading", 7, """
         check-cast p0, $MESSAGE
         invoke-virtual {p0}, $MESSAGE->getDocument()$DOCUMENT
-        move-result-object v0
-        if-eqz v0, :hush_none
-        iget v1, p0, $MESSAGE->currentAccount:I
-        invoke-static {v1}, $FILE_LOADER->getInstance(I)$FILE_LOADER
         move-result-object v1
-        const/4 v2, 0x1
-        const/4 v3, 0x0
-        invoke-virtual {v1, v0, p0, v2, v3}, $FILE_LOADER->$LOAD_DOCUMENT
-        const/4 v0, 0x1
+        if-nez v1, :hush_name
+        $PHOTO_FILE_SIZE
+        :hush_name
+        check-cast v1, $TL_OBJECT
+        invoke-static {v1}, $FILE_LOADER->$ATTACH_NAME
+        move-result-object v1
+        iget v0, p0, $MESSAGE->currentAccount:I
+        invoke-static {v0}, $FILE_LOADER->getInstance(I)$FILE_LOADER
+        move-result-object v0
+        invoke-virtual {v0, v1}, $FILE_LOADER->$IS_LOADING
+        move-result v0
         return v0
         :hush_none
         const/4 v0, 0x0

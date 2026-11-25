@@ -42,6 +42,9 @@ import com.android.tools.smali.dexlib2.iface.value.StringEncodedValue
 import com.android.tools.smali.dexlib2.immutable.ImmutableClassDef
 import com.android.tools.smali.dexlib2.immutable.ImmutableMethod
 import com.android.tools.smali.dexlib2.immutable.ImmutableField
+import app.morphe.patcher.patch.ApkArchitecture
+import app.morphe.patcher.patch.InstallerType
+import app.morphe.patcher.patch.PatchAvailability
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertThrows
 import org.junit.Assert.assertTrue
@@ -75,6 +78,18 @@ private fun Method.isDelegateRun() = name == "run" && parameterTypes.map(CharSeq
 
 /** Independent signer and request census, with complete pre-mutation refusal snapshots. */
 class RepairFirebasePushFixtureTest {
+    @Test
+    fun `a root mount starts the patch off and every other install starts it on`() {
+        assertTrue(repairFirebasePushPatch.default)
+        val resolver = checkNotNull(repairFirebasePushPatch.availability) { "the patch sets no starting state per install type" }
+        for (architecture in ApkArchitecture.entries) {
+            fun start(installer: InstallerType) = resolver.resolve(installer, architecture)
+            assertEquals("$architecture mount", PatchAvailability.DISABLED, start(InstallerType.MOUNT))
+            assertEquals("$architecture install", PatchAvailability.ENABLED, start(InstallerType.STANDARD))
+            assertEquals("$architecture Shizuku", PatchAvailability.ENABLED, start(InstallerType.SHIZUKU))
+        }
+    }
+
     @Test
     fun `header seed is the actual official fixture signer rather than a guessed fingerprint`() {
         val fields = ExtensionDex.classes().single { it.origType == FIREBASE_PUSH }.fields

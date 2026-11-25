@@ -2,9 +2,8 @@ package app.tiktoklitepatches
 
 import app.morphe.patcher.Fingerprint
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
-import app.morphe.patcher.patch.AppTarget
-import app.morphe.patcher.patch.Compatibility
 import app.morphe.patcher.patch.bytecodePatch
+import com.android.tools.smali.dexlib2.AccessFlags
 
 private object SaveVideo : Fingerprint(
     definingClass = "LX/J4T;",
@@ -13,19 +12,29 @@ private object SaveVideo : Fingerprint(
     strings = listOf("video-download"),
 )
 
+private object SaveVideo4782 : Fingerprint(
+    definingClass = "LX/Gxa;",
+    name = "LBL",
+    returnType = "V",
+    parameters = listOf(
+        "Lcom/ss/android/ugc/aweme/feed/model/Aweme;",
+        "Ljava/lang/String;", "Ljava/lang/String;", "Ljava/util/List;",
+        "Ljava/lang/String;", "Ljava/lang/String;", "Z", "LX/POC;", "LX/HOM;",
+    ),
+)
+
 @Suppress("unused")
 val preferPlaybackDownload = bytecodePatch(
     name = "Prefer clean source for video downloads",
     description = "Prefers the playback source for permitted saves when a playback URL is available.",
     default = false,
 ) {
-    compatibleWith(Compatibility(
-        name = "TikTok Lite",
-        packageName = "com.zhiliaoapp.musically.go",
-        targets = listOf(AppTarget(version = "47.8.15", minSdk = 21)),
-    ))
+    compatibleWith(tikTokLiteCompatibility)
+    dependsOn(modSettingsSupport)
     execute {
-        val method = SaveVideo.method
+        enableModSetting("cleanDownloadsAvailable")
+        val method = if (packageMetadata.versionName == "47.8.2") SaveVideo4782.method else SaveVideo.method
+        check(AccessFlags.STATIC.isSet(method.accessFlags))
         check(method.parameterTypes.map { it.toString() }.take(4) == listOf(
             "Lcom/ss/android/ugc/aweme/feed/model/Aweme;",
             "Ljava/lang/String;", "Ljava/lang/String;", "Ljava/util/List;",

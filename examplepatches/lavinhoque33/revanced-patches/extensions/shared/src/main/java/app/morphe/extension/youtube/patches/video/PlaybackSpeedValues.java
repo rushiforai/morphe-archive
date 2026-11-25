@@ -1,6 +1,7 @@
 /*
  * Copyright (C) 2026 lavinhoque33
  * Licensed under the GNU General Public License v3.0.
+ * Modified by lavinhoque33, 2026-11-24.
  * Written by lavinhoque33, 2026-11-24.
  */
 package app.morphe.extension.youtube.patches.video;
@@ -17,6 +18,13 @@ public final class PlaybackSpeedValues {
 
     public static boolean isPlayable(float rate) {
         return rate > 0f && rate <= PLAYBACK_SPEED_MAXIMUM;
+    }
+
+    /** Keeps the host's limiter when custom speeds are off, without touching the pitch bound. */
+    static float limitSoftwareSpeed(float speed, float stockMinimum, float stockMaximum, boolean customSpeeds) {
+        if (customSpeeds && isPlayable(speed)) return Math.min(speed, stockMaximum);
+
+        return Math.max(stockMinimum, Math.min(speed, stockMaximum));
     }
 
     /** Returns sorted, exact preset speeds or throws for an invalid list. */

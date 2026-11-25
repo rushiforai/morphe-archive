@@ -1,3 +1,9 @@
+## [1.18.3](https://github.com/0x11DFE/morphe-patches/compare/v1.18.2...v1.18.3) (2026-11-24)
+
+### Bug Fixes
+
+* **galaxymaxhz:** anchor the launcher via the request executor class ([234ee65](https://github.com/0x11DFE/morphe-patches/commit/234ee6579278b85173611965ad934ff239aed054))
+
 ## [1.18.2](https://github.com/0x11DFE/morphe-patches/compare/v1.18.1...v1.18.2) (2026-11-23)
 
 ### Bug Fixes

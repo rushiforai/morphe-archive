@@ -3,7 +3,7 @@
 // detekt runs with defaults plus a baseline of pre-existing findings, so new code is checked and
 // old code is not churned. Both fail buildAndroid, the task the CI gate runs.
 plugins {
-    id("com.diffplug.spotless") version "8.10.4"
+    id("com.diffplug.spotless") version "8.12.0"
     id("io.gitlab.arturbosch.detekt") version "1.23.8"
 }
 
@@ -16,7 +16,7 @@ spotless {
     java {
         target(fileTree("extensions/src") { include("**/*.java") })
         // AOSP style is the 4-space variant, the style the extension already uses.
-        googleJavaFormat("1.25.2").aosp()
+        googleJavaFormat("2.0.0").aosp()
     }
     format("misc") {
         target(".editorconfig")

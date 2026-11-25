@@ -6,7 +6,7 @@ import app.morphe.patcher.methodCall
 import com.android.tools.smali.dexlib2.AccessFlags
 import com.android.tools.smali.dexlib2.Opcode
 
-// ── Layer 2 ───────────────────────────────────────────────────────────────────────
+// Required targets for Citizen 0.1320.0 (1153). Missing targets fail visibly.
 
 val CitizenPlusInfoGetActiveFingerprint = Fingerprint(
     definingClass = "Lsp0n/citizen/data/user/dto/CitizenPlusInfoDTO;",
@@ -21,27 +21,6 @@ val CitizenProtectInfoGetActiveFingerprint = Fingerprint(
     returnType = "Z",
     accessFlags = listOf(AccessFlags.PUBLIC, AccessFlags.FINAL)
 )
-
-// ── Layer 3 ───────────────────────────────────────────────────────────────────────
-
-val SuperwallSetSubscriptionStatusFingerprint = Fingerprint(
-    definingClass = "Lcom/superwall/sdk/Superwall;",
-    name = "internallySetSubscriptionStatus\$superwall_release",
-    parameters = listOf("Lcom/superwall/sdk/models/entitlements/SubscriptionStatus;"),
-    returnType = "V",
-    accessFlags = listOf(AccessFlags.PUBLIC, AccessFlags.FINAL)
-)
-
-// AndroidSuperwall.getEnabled() — gate in LaunchSuperwallWrapper.b().
-// If true → Superwall.register() called → paywall shown.
-val AndroidSuperwallGetEnabledFingerprint = Fingerprint(
-    definingClass = "Lsp0n/citizen/data/variablesettings/AndroidSuperwall;",
-    name = "getEnabled",
-    returnType = "Z",
-    accessFlags = listOf(AccessFlags.PUBLIC, AccessFlags.FINAL)
-)
-
-// ── Layer 4 ───────────────────────────────────────────────────────────────────────
 
 val CitizenProtectInfoDomainGetActiveFingerprint = Fingerprint(
     definingClass = "Lsp0n/citizen/domain/models/user/CitizenProtectInfo;",
@@ -70,8 +49,6 @@ val PrivateUserIsProtectActiveOrInSetupFingerprint = Fingerprint(
     returnType = "Z",
     accessFlags = listOf(AccessFlags.PUBLIC, AccessFlags.FINAL)
 )
-
-// ── Layer 5 ───────────────────────────────────────────────────────────────────────
 
 val ShowPaywallUseCaseAFingerprint = Fingerprint(
     definingClass = "Lsp0n/citizen/incidentdetail/ShowPaywallUseCase;",
@@ -117,19 +94,6 @@ val PrivateUserIsPaidFingerprint = Fingerprint(
     accessFlags = listOf(AccessFlags.PUBLIC, AccessFlags.FINAL)
 )
 
-// ── Layer 6 ───────────────────────────────────────────────────────────────────────
-// SafetyCenterPaywallVMGate — was Lsp0n/citizen/safetycenter/paywall/b; in older builds.
-// safetycenter/paywall package absent in v0.1303.2; wrapped in runCatching for compat.
-
-val SafetyCenterPaywallVMGateFingerprint = Fingerprint(
-    definingClass = "Lsp0n/citizen/safetycenter/paywall/b;",
-    name = "n",
-    returnType = "Z",
-    accessFlags = listOf(AccessFlags.PUBLIC, AccessFlags.FINAL)
-)
-
-// ── Layer 7 ───────────────────────────────────────────────────────────────────────
-
 val SafetyNetworkRemoveExpiredFingerprint = Fingerprint(
     definingClass = "Lsp0n/citizen/data/social/SafetyNetworkRepository\$removeNetworkIfExpired\$1;",
     name = "invokeSuspend",
@@ -138,23 +102,11 @@ val SafetyNetworkRemoveExpiredFingerprint = Fingerprint(
     accessFlags = listOf(AccessFlags.PUBLIC, AccessFlags.FINAL)
 )
 
-// ── Layer 10 ──────────────────────────────────────────────────────────────────────
-
 val ClarityEntrypointVisibleFingerprint = Fingerprint(
     definingClass = "Lsp0n/citizen/data/clarity/ClarityEntrypointRepository\$profileEntrypointVisible\$1;",
     name = "invokeSuspend",
     parameters = listOf("Ljava/lang/Object;"),
     returnType = "Ljava/lang/Object;",
-    accessFlags = listOf(AccessFlags.PUBLIC, AccessFlags.FINAL)
-)
-
-// ── Layers 11/13/14/15 ────────────────────────────────────────────────────────────
-// MonoSubscription.getEnabled() removed in v0.1303.2 — runCatching protects.
-
-val MonoSubscriptionGetEnabledFingerprint = Fingerprint(
-    definingClass = "Lsp0n/citizen/data/variablesettings/FeatureConfigValue\$MonoSubscription;",
-    name = "getEnabled",
-    returnType = "Z",
     accessFlags = listOf(AccessFlags.PUBLIC, AccessFlags.FINAL)
 )
 
@@ -186,8 +138,6 @@ val MonoSubscriptionGetShowPlusToPremiumProfileBannerFingerprint = Fingerprint(
     accessFlags = listOf(AccessFlags.PUBLIC, AccessFlags.FINAL)
 )
 
-// ── Layer 12 ──────────────────────────────────────────────────────────────────────
-
 val OnboardingOverridePaywallOnCreateFingerprint = Fingerprint(
     definingClass = "Lsp0n/citizen/campaign/OnboardingOverridePaywallActivity;",
     name = "onCreate",
@@ -195,17 +145,6 @@ val OnboardingOverridePaywallOnCreateFingerprint = Fingerprint(
     returnType = "V",
     accessFlags = listOf(AccessFlags.PUBLIC, AccessFlags.FINAL)
 )
-
-// InAppOverridePaywallActivity — may not exist in all builds
-val InAppOverridePaywallOnCreateFingerprint = Fingerprint(
-    definingClass = "Lsp0n/citizen/campaign/InAppOverridePaywallActivity;",
-    name = "onCreate",
-    parameters = listOf("Landroid/os/Bundle;"),
-    returnType = "V",
-    accessFlags = listOf(AccessFlags.PUBLIC)
-)
-
-// ── Layer 17 ──────────────────────────────────────────────────────────────────────
 
 val ClarityMapTooltipUpsellEnabledFingerprint = Fingerprint(
     definingClass = "Lsp0n/citizen/data/variablesettings/FeatureConfigValue\$ClarityMasterSwitch;",
@@ -228,8 +167,6 @@ val ClaritySettingsUpsellEnabledFingerprint = Fingerprint(
     accessFlags = listOf(AccessFlags.PUBLIC, AccessFlags.FINAL)
 )
 
-// ── Layer 18 ──────────────────────────────────────────────────────────────────────
-
 val PlusV1NeighborhoodTrendsEnabledFingerprint = Fingerprint(
     definingClass = "Lsp0n/citizen/data/variablesettings/FeatureConfigValue\$CitizenPlusV1MasterSwitch;",
     name = "getNeighborhoodTrendsEnabled",
@@ -244,48 +181,6 @@ val PlusV1RadioClipsEnabledFingerprint = Fingerprint(
     accessFlags = listOf(AccessFlags.PUBLIC, AccessFlags.FINAL)
 )
 
-// ── Layer 19 ──────────────────────────────────────────────────────────────────────
-
-val SuperwallPaywallActivityOnCreateFingerprint = Fingerprint(
-    definingClass = "Lcom/superwall/sdk/paywall/view/SuperwallPaywallActivity;",
-    name = "onCreate",
-    parameters = listOf("Landroid/os/Bundle;"),
-    returnType = "V",
-    accessFlags = listOf(AccessFlags.PUBLIC)
-)
-
-// ── Layer 20 ──────────────────────────────────────────────────────────────────────
-
-val PrivateUserIsProtectEligibleFingerprint = Fingerprint(
-    definingClass = "Lsp0n/citizen/domain/models/user/PrivateUser;",
-    name = "isProtectEligible",
-    returnType = "Z",
-    accessFlags = listOf(AccessFlags.PUBLIC, AccessFlags.FINAL)
-)
-
-val PrivateUserIsProtectSubscriberFingerprint = Fingerprint(
-    definingClass = "Lsp0n/citizen/domain/models/user/PrivateUser;",
-    name = "isProtectSubscriber",
-    returnType = "Z",
-    accessFlags = listOf(AccessFlags.PUBLIC, AccessFlags.FINAL)
-)
-
-val MonoSubscriptionIsSafetyNetworkAvailableFingerprint = Fingerprint(
-    definingClass = "Lsp0n/citizen/data/variablesettings/FeatureConfigValue\$MonoSubscription;",
-    name = "isSafetyNetworkAvailable",
-    returnType = "Z",
-    accessFlags = listOf(AccessFlags.PUBLIC, AccessFlags.FINAL)
-)
-
-val SafetyNetworkPaywallVMGateFingerprint = Fingerprint(
-    definingClass = "Lsp0n/citizen/social/safetynetwork/h;",
-    name = "n",
-    returnType = "Z",
-    accessFlags = listOf(AccessFlags.PUBLIC, AccessFlags.FINAL)
-)
-
-// ── Layer 21 ──────────────────────────────────────────────────────────────────────
-
 val ClarityProfileEntrypointEnabledFingerprint = Fingerprint(
     definingClass = "Lsp0n/citizen/data/clarity/ClarityEntrypointRepository;",
     name = "getProfileEntrypointEnabled",
@@ -293,66 +188,10 @@ val ClarityProfileEntrypointEnabledFingerprint = Fingerprint(
     accessFlags = listOf(AccessFlags.PRIVATE, AccessFlags.FINAL)
 )
 
-// ── Layer 22 ──────────────────────────────────────────────────────────────────────
-
-val ClarityPaywallActivityOnCreateFingerprint = Fingerprint(
-    definingClass = "Lsp0n/citizen/paywall/clarity/ClarityPaywallActivity;",
-    name = "onCreate", parameters = listOf("Landroid/os/Bundle;"), returnType = "V",
-    accessFlags = listOf(AccessFlags.PUBLIC)
-)
-
-val ComparePlansActivityOnCreateFingerprint = Fingerprint(
-    definingClass = "Lsp0n/citizen/paywall/compare/ComparePlansActivity;",
-    name = "onCreate", parameters = listOf("Landroid/os/Bundle;"), returnType = "V",
-    accessFlags = listOf(AccessFlags.PUBLIC)
-)
-
-val CarouselPaywallActivityOnCreateFingerprint = Fingerprint(
-    definingClass = "Lsp0n/citizen/paywall/inapp/CarouselPaywallActivity;",
-    name = "onCreate", parameters = listOf("Landroid/os/Bundle;"), returnType = "V",
-    accessFlags = listOf(AccessFlags.PUBLIC)
-)
-
 val PromoOfferPaywallActivityOnCreateFingerprint = Fingerprint(
     definingClass = "Lsp0n/citizen/paywall/promooffer/PromoOfferPaywallActivity;",
     name = "onCreate", parameters = listOf("Landroid/os/Bundle;"), returnType = "V",
     accessFlags = listOf(AccessFlags.PUBLIC, AccessFlags.FINAL)
-)
-
-val PremiumEducationalPaywallActivityOnCreateFingerprint = Fingerprint(
-    definingClass = "Lsp0n/citizen/paywall/superwall/PremiumEducationalPaywallActivity;",
-    name = "onCreate", parameters = listOf("Landroid/os/Bundle;"), returnType = "V",
-    accessFlags = listOf(AccessFlags.PUBLIC)
-)
-
-val SuperwallOnboardingWrapperActivityOnCreateFingerprint = Fingerprint(
-    definingClass = "Lsp0n/citizen/paywall/superwall/SuperwallOnboardingWrapperActivity;",
-    name = "onCreate", parameters = listOf("Landroid/os/Bundle;"), returnType = "V",
-    accessFlags = listOf(AccessFlags.PUBLIC)
-)
-
-val SubscriptionCenterActivityOnCreateFingerprint = Fingerprint(
-    definingClass = "Lsp0n/citizen/paywall/center/SubscriptionCenterActivity;",
-    name = "onCreate", parameters = listOf("Landroid/os/Bundle;"), returnType = "V",
-    accessFlags = listOf(AccessFlags.PUBLIC)
-)
-
-val SafetyCenterPaywallActivityOnCreateFingerprint = Fingerprint(
-    definingClass = "Lsp0n/citizen/safetycenter/paywall/SafetyCenterPaywallActivity;",
-    name = "onCreate", parameters = listOf("Landroid/os/Bundle;"), returnType = "V",
-    accessFlags = listOf(AccessFlags.PUBLIC)
-)
-
-val SafetyNetworkEducationActivityOnCreateFingerprint = Fingerprint(
-    definingClass = "Lsp0n/citizen/social/safetynetwork/SafetyNetworkEducationActivity;",
-    name = "onCreate", parameters = listOf("Landroid/os/Bundle;"), returnType = "V",
-    accessFlags = listOf(AccessFlags.PUBLIC)
-)
-
-val FamilyPlanBenefitActivityOnCreateFingerprint = Fingerprint(
-    definingClass = "Lsp0n/citizen/social/safetynetwork/FamilyPlanBenefitActivity;",
-    name = "onCreate", parameters = listOf("Landroid/os/Bundle;"), returnType = "V",
-    accessFlags = listOf(AccessFlags.PUBLIC)
 )
 
 val TrustedContactsConfigGetEnabledFingerprint = Fingerprint(
@@ -368,288 +207,6 @@ val PaywallHomescreenTriggerConfigGetEnabledFingerprint = Fingerprint(
     returnType = "Z",
     accessFlags = listOf(AccessFlags.PUBLIC, AccessFlags.FINAL)
 )
-
-// ── Layer 23: Safety Network flow collectors ──────────────────────────────────────
-// Continuation type: zp3 (older) → nq3 (v0.1303.2)
-
-val SafetyNetworkEducationFlowCollectorFingerprint = Fingerprint(
-    definingClass = "Lsp0n/citizen/social/safetynetwork/SafetyNetworkEducationActivity\$a\$a\$a;",
-    name = "emit",
-    parameters = listOf("Ljava/lang/Object;", "Lnq3;"),
-    returnType = "Ljava/lang/Object;",
-    accessFlags = listOf(AccessFlags.PUBLIC, AccessFlags.FINAL)
-)
-
-val SafetyNetworkSingleInviteFlowCollectorFingerprint = Fingerprint(
-    definingClass = "Lsp0n/citizen/social/safetynetwork/SafetyNetworkSingleInviteActivity\$a\$a\$a;",
-    name = "emit",
-    parameters = listOf("Ljava/lang/Object;", "Lnq3;"),
-    returnType = "Ljava/lang/Object;",
-    accessFlags = listOf(AccessFlags.PUBLIC, AccessFlags.FINAL)
-)
-
-val SafetyNetworkPendingInvitesFlowCollectorFingerprint = Fingerprint(
-    definingClass = "Lsp0n/citizen/social/safetynetwork/SafetyNetworkPendingInvitesActivity\$a\$a\$a;",
-    name = "emit",
-    parameters = listOf("Ljava/lang/Object;", "Lnq3;"),
-    returnType = "Ljava/lang/Object;",
-    accessFlags = listOf(AccessFlags.PUBLIC, AccessFlags.FINAL)
-)
-
-val FamilyPlanBenefitFlowCollectorFingerprint = Fingerprint(
-    definingClass = "Lsp0n/citizen/social/safetynetwork/FamilyPlanBenefitActivity\$a\$a\$a;",
-    name = "emit",
-    parameters = listOf("Ljava/lang/Object;", "Lnq3;"),
-    returnType = "Ljava/lang/Object;",
-    accessFlags = listOf(AccessFlags.PUBLIC, AccessFlags.FINAL)
-)
-
-// ── Layer 24: MainActivity paywall flow collectors ────────────────────────────────
-// R8 merged into NavigationType in v0.1298.0. Kept with runCatching. Updated to nq3.
-
-val MainActivityPaywallFlowCollectorAFingerprint = Fingerprint(
-    definingClass = "Lsp0n/citizen/main/MainActivity\$a\$a\$a;",
-    name = "emit", parameters = listOf("Ljava/lang/Object;", "Lnq3;"),
-    returnType = "Ljava/lang/Object;", accessFlags = listOf(AccessFlags.PUBLIC, AccessFlags.FINAL)
-)
-val MainActivityPaywallFlowCollectorBFingerprint = Fingerprint(
-    definingClass = "Lsp0n/citizen/main/MainActivity\$b\$a\$a;",
-    name = "emit", parameters = listOf("Ljava/lang/Object;", "Lnq3;"),
-    returnType = "Ljava/lang/Object;", accessFlags = listOf(AccessFlags.PUBLIC, AccessFlags.FINAL)
-)
-val MainActivityPaywallFlowCollectorCFingerprint = Fingerprint(
-    definingClass = "Lsp0n/citizen/main/MainActivity\$c\$a\$a;",
-    name = "emit", parameters = listOf("Ljava/lang/Object;", "Lnq3;"),
-    returnType = "Ljava/lang/Object;", accessFlags = listOf(AccessFlags.PUBLIC, AccessFlags.FINAL)
-)
-val MainActivityPaywallFlowCollectorDFingerprint = Fingerprint(
-    definingClass = "Lsp0n/citizen/main/MainActivity\$d\$a\$a;",
-    name = "emit", parameters = listOf("Ljava/lang/Object;", "Lnq3;"),
-    returnType = "Ljava/lang/Object;", accessFlags = listOf(AccessFlags.PUBLIC, AccessFlags.FINAL)
-)
-val MainActivityPaywallFlowCollectorEFingerprint = Fingerprint(
-    definingClass = "Lsp0n/citizen/main/MainActivity\$e\$a\$a;",
-    name = "emit", parameters = listOf("Ljava/lang/Object;", "Lnq3;"),
-    returnType = "Ljava/lang/Object;", accessFlags = listOf(AccessFlags.PUBLIC, AccessFlags.FINAL)
-)
-val MainActivityPaywallFlowCollectorFFingerprint = Fingerprint(
-    definingClass = "Lsp0n/citizen/main/MainActivity\$f\$a\$a;",
-    name = "emit", parameters = listOf("Ljava/lang/Object;", "Lnq3;"),
-    returnType = "Ljava/lang/Object;", accessFlags = listOf(AccessFlags.PUBLIC, AccessFlags.FINAL)
-)
-val MainActivityPaywallFlowCollectorGFingerprint = Fingerprint(
-    definingClass = "Lsp0n/citizen/main/MainActivity\$g\$a\$a;",
-    name = "emit", parameters = listOf("Ljava/lang/Object;", "Lnq3;"),
-    returnType = "Ljava/lang/Object;", accessFlags = listOf(AccessFlags.PUBLIC, AccessFlags.FINAL)
-)
-val MainActivityPaywallFlowCollectorHFingerprint = Fingerprint(
-    definingClass = "Lsp0n/citizen/main/MainActivity\$h\$a\$a;",
-    name = "emit", parameters = listOf("Ljava/lang/Object;", "Lnq3;"),
-    returnType = "Ljava/lang/Object;", accessFlags = listOf(AccessFlags.PUBLIC, AccessFlags.FINAL)
-)
-val MainActivityPaywallFlowCollectorAbaFingerprint = Fingerprint(
-    definingClass = "Lsp0n/citizen/main/MainActivity\$a\$b\$a;",
-    name = "emit", parameters = listOf("Ljava/lang/Object;", "Lnq3;"),
-    returnType = "Ljava/lang/Object;", accessFlags = listOf(AccessFlags.PUBLIC, AccessFlags.FINAL)
-)
-val MainActivityPaywallFlowCollectorBbaFingerprint = Fingerprint(
-    definingClass = "Lsp0n/citizen/main/MainActivity\$b\$b\$a;",
-    name = "emit", parameters = listOf("Ljava/lang/Object;", "Lnq3;"),
-    returnType = "Ljava/lang/Object;", accessFlags = listOf(AccessFlags.PUBLIC, AccessFlags.FINAL)
-)
-val MainActivityPaywallFlowCollectorCbaFingerprint = Fingerprint(
-    definingClass = "Lsp0n/citizen/main/MainActivity\$c\$b\$a;",
-    name = "emit", parameters = listOf("Ljava/lang/Object;", "Lnq3;"),
-    returnType = "Ljava/lang/Object;", accessFlags = listOf(AccessFlags.PUBLIC, AccessFlags.FINAL)
-)
-val MainActivityPaywallFlowCollectorDbaFingerprint = Fingerprint(
-    definingClass = "Lsp0n/citizen/main/MainActivity\$d\$b\$a;",
-    name = "emit", parameters = listOf("Ljava/lang/Object;", "Lnq3;"),
-    returnType = "Ljava/lang/Object;", accessFlags = listOf(AccessFlags.PUBLIC, AccessFlags.FINAL)
-)
-
-// ── Layer 25: PremiumEducational internal collector ───────────────────────────────
-
-val PremiumEducationalPaywallInternalCollectorFingerprint = Fingerprint(
-    definingClass = "Lsp0n/citizen/paywall/superwall/PremiumEducationalPaywallActivity\$b\$a\$a;",
-    name = "emit", parameters = listOf("Ljava/lang/Object;", "Lnq3;"),
-    returnType = "Ljava/lang/Object;", accessFlags = listOf(AccessFlags.PUBLIC, AccessFlags.FINAL)
-)
-
-// ── Layer 26+27: Cross-package collectors ─────────────────────────────────────────
-
-val MenuPaywallFlowCollectorFingerprint = Fingerprint(
-    definingClass = "Lsp0n/citizen/menu/h\$a\$a;",
-    name = "emit", parameters = listOf("Ljava/lang/Object;", "Lnq3;"),
-    returnType = "Ljava/lang/Object;", accessFlags = listOf(AccessFlags.PUBLIC, AccessFlags.FINAL)
-)
-val OnboardingPaywallFlowCollectorFingerprint = Fingerprint(
-    definingClass = "Lsp0n/citizen/onboarding/h\$a\$a;",
-    name = "emit", parameters = listOf("Ljava/lang/Object;", "Lnq3;"),
-    returnType = "Ljava/lang/Object;", accessFlags = listOf(AccessFlags.PUBLIC, AccessFlags.FINAL)
-)
-val ProfilePaywallFlowCollectorFingerprint = Fingerprint(
-    definingClass = "Lsp0n/citizen/profile/h\$a\$a;",
-    name = "emit", parameters = listOf("Ljava/lang/Object;", "Lnq3;"),
-    returnType = "Ljava/lang/Object;", accessFlags = listOf(AccessFlags.PUBLIC, AccessFlags.FINAL)
-)
-val SafetyHomePaywallFlowCollectorFingerprint = Fingerprint(
-    definingClass = "Lsp0n/citizen/safetyhome/l\$a\$a;",
-    name = "emit", parameters = listOf("Ljava/lang/Object;", "Lnq3;"),
-    returnType = "Ljava/lang/Object;", accessFlags = listOf(AccessFlags.PUBLIC, AccessFlags.FINAL)
-)
-val MyProfileFragmentPaywallCollectorFingerprint = Fingerprint(
-    definingClass = "Lsp0n/citizen/profile/myprofile/ui/h\$a\$a;",
-    name = "emit", parameters = listOf("Ljava/lang/Object;", "Lnq3;"),
-    returnType = "Ljava/lang/Object;", accessFlags = listOf(AccessFlags.PUBLIC, AccessFlags.FINAL)
-)
-val SafetyCenterPaywallActivityCollectorFingerprint = Fingerprint(
-    definingClass = "Lsp0n/citizen/safetycenter/paywall/SafetyCenterPaywallActivity\$b\$a\$a;",
-    name = "emit", parameters = listOf("Ljava/lang/Object;", "Lnq3;"),
-    returnType = "Ljava/lang/Object;", accessFlags = listOf(AccessFlags.PUBLIC, AccessFlags.FINAL)
-)
-
-val ObfuscatedW50F1PaywallCollectorFingerprint = Fingerprint(
-    definingClass = "Lw50/f1\$a\$a;",
-    name = "emit", parameters = listOf("Ljava/lang/Object;", "Lnq3;"),
-    returnType = "Ljava/lang/Object;", accessFlags = listOf(AccessFlags.PUBLIC, AccessFlags.FINAL)
-)
-val ObfuscatedW70LPaywallCollectorFingerprint = Fingerprint(
-    definingClass = "Lw70/l\$a\$a;",
-    name = "emit", parameters = listOf("Ljava/lang/Object;", "Lnq3;"),
-    returnType = "Ljava/lang/Object;", accessFlags = listOf(AccessFlags.PUBLIC, AccessFlags.FINAL)
-)
-
-// ── PurchasePremiumHelper ─────────────────────────────────────────────────────────
-
-// v8d (older) → nyc (v0.1303.2): extra Z param added; c3d is now an interface, skip.
-val PurchasePremiumHelperCreateIntentFingerprint = Fingerprint(
-    definingClass = "Lnyc;",
-    name = "a",
-    parameters = listOf(
-        "Landroid/content/Context;",
-        "Z",
-        "Lsp0n/citizen/data/variablesettings/VariableSettingsRepository;",
-        "Lsp0n/citizen/analytics/premium/purchase/PurchaseAnalyticsApi\$ProtectPaywallOrigin;"
-    ),
-    returnType = "Landroid/content/Intent;",
-    accessFlags = listOf(AccessFlags.PUBLIC, AccessFlags.STATIC)
-)
-
-// c3d is now an abstract interface in v0.1303.2 — fingerprint retained for older builds.
-val PurchasePremiumHelperC3DFingerprint = Fingerprint(
-    definingClass = "Lc3d;",
-    name = "a",
-    parameters = listOf(
-        "Landroid/content/Context;",
-        "Lsp0n/citizen/data/variablesettings/VariableSettingsRepository;",
-        "Lsp0n/citizen/analytics/premium/purchase/PurchaseAnalyticsApi\$ProtectPaywallOrigin;"
-    ),
-    returnType = "Landroid/content/Intent;",
-    accessFlags = listOf(AccessFlags.PUBLIC, AccessFlags.STATIC)
-)
-
-val PremiumEducationalPaywallActivityCreateIntentFingerprint = Fingerprint(
-    definingClass = "Lsp0n/citizen/paywall/superwall/PremiumEducationalPaywallActivity\$a;",
-    name = "a",
-    parameters = listOf("Landroid/content/Context;", "Z", "Ljava/lang/String;"),
-    returnType = "Landroid/content/Intent;",
-    accessFlags = listOf(AccessFlags.PUBLIC, AccessFlags.STATIC)
-)
-
-// ── NavigationType paywall launchers (v0.1298.0) — gone in v0.1303.2 ─────────────
-// b1b$h0/i0/u0 subclasses absent in v0.1303.2. runCatching protects.
-
-val NavigationTypeH0PaywallFingerprint = Fingerprint(
-    definingClass = "Lb1b\$h0;",
-    name = "b",
-    parameters = listOf("Landroid/content/Context;", "Ljqd;", "Lzp3;"),
-    returnType = "Ljava/lang/Object;",
-    accessFlags = listOf(AccessFlags.PUBLIC, AccessFlags.FINAL)
-)
-
-val NavigationTypeI0PaywallFingerprint = Fingerprint(
-    definingClass = "Lb1b\$i0;",
-    name = "b",
-    parameters = listOf("Landroid/content/Context;", "Ljqd;", "Lzp3;"),
-    returnType = "Ljava/lang/Object;",
-    accessFlags = listOf(AccessFlags.PUBLIC, AccessFlags.FINAL)
-)
-
-val NavigationTypeU0PaywallFingerprint = Fingerprint(
-    definingClass = "Lb1b\$u0;",
-    name = "b",
-    parameters = listOf("Landroid/content/Context;", "Ljqd;", "Lzp3;"),
-    returnType = "Ljava/lang/Object;",
-    accessFlags = listOf(AccessFlags.PUBLIC, AccessFlags.FINAL)
-)
-
-// ── ProtectFabHelper ──────────────────────────────────────────────────────────────
-
-// zvc (older) → myc (v0.1303.2): ao→Lun;, tr6→Lzs6;
-val ProtectFabHelperPaywallFingerprint = Fingerprint(
-    definingClass = "Lmyc;",
-    name = "a",
-    parameters = listOf(
-        "Lsp0n/citizen/data/variablesettings/VariableSettingsRepository;",
-        "Lsp0n/citizen/data/store/PreferenceStorage;",
-        "Lun;",
-        "Z",
-        "Lzs6;",
-        "Lsp0n/citizen/premium/purchase/ui/ProtectFabOrigin;"
-    ),
-    returnType = "V",
-    accessFlags = listOf(AccessFlags.PUBLIC, AccessFlags.STATIC)
-)
-
-// ── _currentSubscription iput locator ────────────────────────────────────────────
-
-val SubscriptionRepositoryCurrentSubIputFingerprint = Fingerprint(
-    definingClass = "Lsp0n/citizen/data/user/SubscriptionRepository;",
-    name = "<init>",
-    returnType = "V",
-    accessFlags = listOf(AccessFlags.PUBLIC, AccessFlags.CONSTRUCTOR),
-    filters = listOf(
-        fieldAccess(
-            opcode = Opcode.IPUT_OBJECT,
-            definingClass = "Lsp0n/citizen/data/user/SubscriptionRepository;",
-            name = "_currentSubscription",
-        ),
-    ),
-)
-
-val SubscriptionRepositoryConstructorFingerprint = Fingerprint(
-    definingClass = "Lsp0n/citizen/data/user/SubscriptionRepository;",
-    name = "<init>",
-    parameters = listOf(
-        "Landroid/content/Context;",
-        "Lsp0n/citizen/data/user/UserRetrofitApi;",
-        "Lsp0n/citizen/data/user/PrivateUserRepository;",
-        "L",
-        "Lsp0n/citizen/data/variablesettings/VariableSettingsRepository;",
-        "L",
-    ),
-    returnType = "V",
-    accessFlags = listOf(AccessFlags.PUBLIC, AccessFlags.CONSTRUCTOR),
-)
-
-// ── SuperwallInitializer killswitch ──────────────────────────────────────────────
-// SuperwallInitializer.create() is the androidx.startup entry point called on
-// SplashActivity.onCreate(). It calls configure$default then getInstance().
-// Patching create() → return null skips both — Superwall never initializes,
-// no pre-caching, no paywall. Returning null is valid for androidx.startup.Initializer.
-// DEX: classes5 — smali verified against versionCode 1138.
-
-val SuperwallInitializerCreateFingerprint = Fingerprint(
-    definingClass = "Lsp0n/citizen/init/SuperwallInitializer;",
-    name = "create",
-    parameters = listOf("Landroid/content/Context;"),
-    returnType = "Ljava/lang/Object;",
-    accessFlags = listOf(AccessFlags.PUBLIC, AccessFlags.FINAL)
-)
-
-// ── Additional manifest-verified paywall Activities ───────────────────────────────
-// Confirmed in AndroidManifest.xml but missing from Layer 22.
 
 val MultimonthPaywallActivityOnCreateFingerprint = Fingerprint(
     definingClass = "Lsp0n/citizen/paywall/superwall/MultimonthPaywallActivity;",
@@ -669,10 +226,8 @@ val PostDemoRealCallUpsellActivityOnCreateFingerprint = Fingerprint(
     accessFlags = listOf(AccessFlags.PUBLIC, AccessFlags.FINAL)
 )
 
-// Version-specific hooks for 0.1318.0 (1151). Keep the legacy signatures above:
-// obfuscated class names can be reused for unrelated code in a later release.
-val PurchasePremiumHelper1318Fingerprint = Fingerprint(
-    definingClass = "Lbfd;",
+val PurchasePremiumHelperFingerprint = Fingerprint(
+    definingClass = "Ljfd;",
     name = "a",
     parameters = listOf(
         "Landroid/content/Context;",
@@ -691,15 +246,15 @@ val PurchasePremiumHelper1318Fingerprint = Fingerprint(
     )
 )
 
-val ProtectFabHelper1318Fingerprint = Fingerprint(
-    definingClass = "Lafd;",
+val ProtectFabHelperFingerprint = Fingerprint(
+    definingClass = "Lifd;",
     name = "a",
     parameters = listOf(
         "Lsp0n/citizen/data/variablesettings/VariableSettingsRepository;",
         "Lsp0n/citizen/data/store/PreferenceStorage;",
-        "Lzn;",
+        "Lao;",
         "Z",
-        "Lk27;",
+        "Ld17;",
         "Lsp0n/citizen/premium/purchase/ui/ProtectFabOrigin;"
     ),
     returnType = "V",
@@ -713,70 +268,10 @@ val ProtectFabHelper1318Fingerprint = Fingerprint(
     )
 )
 
-val FamilyPlanBenefitFlowCollector1318Fingerprint = Fingerprint(
+val FamilyPlanBenefitFlowCollectorFingerprint = Fingerprint(
     definingClass = "Lsp0n/citizen/social/safetynetwork/FamilyPlanBenefitActivity\$a\$a\$a;",
     name = "emit",
-    parameters = listOf("Ljava/lang/Object;", "Lyx3;"),
-    returnType = "Ljava/lang/Object;",
-    accessFlags = listOf(AccessFlags.PUBLIC, AccessFlags.FINAL),
-    filters = listOf(
-        fieldAccess(
-            opcode = Opcode.IGET_BOOLEAN,
-            definingClass = "Lsp0n/citizen/social/safetynetwork/e\$b\$a;",
-            name = "b",
-            type = "Z"
-        )
-    )
-)
-
-// Version-specific hooks for 0.1319.0 (1152). The three obfuscated signatures
-// changed; shared, named targets still match the verified 0.1318.0 layout.
-val PurchasePremiumHelper1319Fingerprint = Fingerprint(
-    definingClass = "Lhcd;",
-    name = "a",
-    parameters = listOf(
-        "Landroid/content/Context;",
-        "Z",
-        "Lsp0n/citizen/data/variablesettings/VariableSettingsRepository;",
-        "Lsp0n/citizen/analytics/premium/purchase/PurchaseAnalyticsApi\$ProtectPaywallOrigin;"
-    ),
-    returnType = "Landroid/content/Intent;",
-    accessFlags = listOf(AccessFlags.PUBLIC, AccessFlags.STATIC),
-    filters = listOf(
-        methodCall(
-            definingClass = "Lsp0n/citizen/paywall/superwall/MultimonthPaywallActivity\$a;",
-            name = "a",
-            returnType = "Landroid/content/Intent;"
-        )
-    )
-)
-
-val ProtectFabHelper1319Fingerprint = Fingerprint(
-    definingClass = "Lgcd;",
-    name = "a",
-    parameters = listOf(
-        "Lsp0n/citizen/data/variablesettings/VariableSettingsRepository;",
-        "Lsp0n/citizen/data/store/PreferenceStorage;",
-        "Lbo;",
-        "Z",
-        "Lf17;",
-        "Lsp0n/citizen/premium/purchase/ui/ProtectFabOrigin;"
-    ),
-    returnType = "V",
-    accessFlags = listOf(AccessFlags.PUBLIC, AccessFlags.STATIC),
-    filters = listOf(
-        methodCall(
-            definingClass = "Lsp0n/citizen/paywall/superwall/MultimonthPaywallActivity\$a;",
-            name = "a",
-            returnType = "Landroid/content/Intent;"
-        )
-    )
-)
-
-val FamilyPlanBenefitFlowCollector1319Fingerprint = Fingerprint(
-    definingClass = "Lsp0n/citizen/social/safetynetwork/FamilyPlanBenefitActivity\$a\$a\$a;",
-    name = "emit",
-    parameters = listOf("Ljava/lang/Object;", "Lxx3;"),
+    parameters = listOf("Ljava/lang/Object;", "Lhx3;"),
     returnType = "Ljava/lang/Object;",
     accessFlags = listOf(AccessFlags.PUBLIC, AccessFlags.FINAL),
     filters = listOf(

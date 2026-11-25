@@ -25,7 +25,7 @@ val hideWatchItRowsPatch = bytecodePatch(
         " with their headings. Starts off. Turn it on in Tumblr settings > HushTumblr > Feed.",
     default = true,
 ) {
-    category("Feed")
+    category("Navigation")
     dependsOn(settingsPatch, tumblrExtensionPatch, timelineListHookPatch, timelineCarouselPatch)
     compatibleWith(*AppCompatibilities.tumblr())
 

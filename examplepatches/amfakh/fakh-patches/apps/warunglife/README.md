@@ -17,6 +17,7 @@ Every patch is on by default except Clone. Morphe Manager lists them under **Mod
 | Mods | Legendary fish chance | Makes the legendary fish (Ikan dewa) bite more often than the game's 0.6% of fish that bite. Option: **Chance (%)** (default 75%; 5%, 10%, 25%, 50%, 75% or 100%). |
 | Mods | Unlock tester outfit | Unlocks the Kaos & sarung outfit that is a reward for the game's testers, normally also given on day 30 of the daily gift calendar. |
 | Mods | GmsCore support | Makes "Tautkan akun" with Google work by signing in through microG RE (GmsCore) instead of Google Play services, so the warung saved to your Google account comes back. Needs microG RE installed and signed in to a Google account. |
+| Theme | Themed icon | Adds the themed (monochrome) app icon of Android 13 and later, which follows the wallpaper colors. |
 
 ## How it works
 

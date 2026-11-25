@@ -681,8 +681,8 @@ private fun BytecodePatchContext.resolveBlogColor(key: String, hook: String): Pa
  *
  * Every read of [HUB_HEADER]'s color is kept in a register and parsed later, so the hook goes right
  * after the `move-result-object` and writes its answer back there. The JSON adapter's read stays
- * real, so a header Tumblr writes out keeps its color. In 47.0.0.108 those are
- * `HubContainerFragment.L5`, which paints the page's bars, and `HubTimelineFragment`'s `p9` and
+ * real, so a header Tumblr writes out keeps its color. In 47.3.0.110 those are
+ * `HubContainerFragment.L5`, which paints the page's bars, and `HubTimelineFragment`'s `q9` and
  * `getBackgroundColor` (2026-11-05).
  */
 internal fun BytecodePatchContext.resolveTagPageColors(): List<Pair<Method, DesignColorRead>> {

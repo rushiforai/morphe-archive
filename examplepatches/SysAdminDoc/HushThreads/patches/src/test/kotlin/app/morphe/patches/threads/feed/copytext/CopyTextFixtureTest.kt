@@ -16,6 +16,8 @@ import app.morphe.patcher.patch.BytecodePatchContext
 import app.morphe.patcher.patch.PatchException
 import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod
 import app.morphe.patcher.util.smali.ExternalLabel
+import app.morphe.patches.threads.misc.extension.holdsNote
+import app.morphe.patches.threads.misc.extension.indexOfNote
 import app.morphe.patches.threads.misc.extension.parameterRegisterNumber
 import app.morphe.util.ControlFlow
 import app.morphe.util.findMutableMethodOf
@@ -31,7 +33,6 @@ import com.android.tools.smali.dexlib2.iface.instruction.RegisterRangeInstructio
 import com.android.tools.smali.dexlib2.iface.instruction.TwoRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.reference.FieldReference
 import com.android.tools.smali.dexlib2.iface.reference.MethodReference
-import com.android.tools.smali.dexlib2.iface.reference.StringReference
 import com.android.tools.smali.dexlib2.iface.reference.TypeReference
 import com.android.tools.smali.dexlib2.immutable.ImmutableMethod
 import com.android.tools.smali.dexlib2.immutable.ImmutableMethodImplementation
@@ -104,7 +105,7 @@ class CopyTextFixtureTest {
             assertEquals(where, booleans[13], flag.parameter)
             assertEquals(where, "Z", flag.method.parameterTypes[flag.parameter].toString())
             assertEquals(where, Opcode.IF_EQZ, textStock[flag.check].opcode)
-            val noteAt = textStock.indexOfFirst { it.getReference<StringReference>()?.string?.startsWith(SELECTION_NOTE) == true }
+            val noteAt = textStock.indexOfNote(SELECTION_NOTE)
             assertTrue(where, noteAt in 0 until flag.check)
             assertEquals(where, flag.method.parameterRegisterNumber(flag.parameter),
                 (textStock[flag.copy] as TwoRegisterInstruction).registerB)
@@ -238,11 +239,7 @@ class CopyTextFixtureTest {
     private fun context(build: File) = PatchContexts.of(ExtensionDex.classes() + classes(build))
 
     private fun classes(build: File): List<ClassDef> = fixtures.getOrPut(build) {
-        FixtureDex.classesWhere(build, { dex -> dex.stringSection.any { it.startsWith(POST_ROW_NOTE) || it.startsWith(SELECTION_NOTE) } }) { method ->
-            method.implementation?.instructions?.any { instruction ->
-                instruction.getReference<StringReference>()?.string?.let { it.startsWith(POST_ROW_NOTE) || it.startsWith(SELECTION_NOTE) } == true
-            } == true
-        }
+        FixtureDex.classesWhere(build, { true }) { it.holdsNote(POST_ROW_NOTE) || it.holdsNote(SELECTION_NOTE) }
     }
 
     private companion object {

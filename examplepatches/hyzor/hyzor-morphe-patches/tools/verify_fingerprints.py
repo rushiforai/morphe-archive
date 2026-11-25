@@ -80,24 +80,26 @@ TARGETS = {
         ("Lcom/nytimes/games/designsystem/theme/ExtendedColorsKt;", "<clinit>"):
             ("V", True, "AMOLED Black", "static light/dark palette; dark greys rewritten to #000000"),
     },
-    # Nova Launcher 8.9.7 (versionName "89700 (8.9.7)"):
-    #   ix.i1.b()                    the static "is Prime or Prime APK" gate (17 callers);
-    #                                the patch replaces its body with return true
-    #   b10.k2.a(SharedPreferences)  derives Prime (b10.k2.h) from the persisted "1" value;
+    # Nova Launcher 9.0.1 (versionName "90100 (9.0.1)"):
+    #   rw.e1.b()                    the static "is Prime or Prime APK" gate; the patch
+    #                                replaces its body with return true
+    #   p00.i2.a(SharedPreferences)  derives Prime (p00.i2.h) from the persisted "1" value;
     #                                the patch overwrites the getInt() result with 0x200
-    #   xx.b0.w(Context)             active-subscription check, which also gates the Play
-    #                                licence revocation path; the patch returns true
+    #   lx.v0.v(Context)             subscription-on-record check, which also gates the
+    #                                licence revocation path; the patch returns true. 9.0.1
+    #                                split 8.9.7's xx.b0.w() in two: v() is the subscription
+    #                                check, w() additionally requires the Plus tier.
     # The class and method names are obfuscated and change with every release. They are pinned
     # here only as a fast exact-name pre-check; the fingerprints themselves match instruction
     # shapes (field access, literal sequence, string + opcode). Re-resolve all three when
     # bumping the supported version.
     "Nova Launcher": {
-        ("Lix/i1;", "b"):
+        ("Lrw/e1;", "b"):
             ("Z", True, "Enable Prime", "static isPrime gate"),
-        ("Lb10/k2;", "a"):
+        ("Lp00/i2;", "a"):
             ("V", True, "Enable Prime", "prime state initialiser"),
-        ("Lxx/b0;", "w"):
-            ("Z", True, "Enable Prime", "active-subscription check"),
+        ("Llx/v0;", "v"):
+            ("Z", True, "Enable Prime", "subscription-on-record check"),
     },
     # Duolingo 6.104.5:
     #   Most Duolingo fingerprints are structural (toString literals, field-usage shapes,
@@ -144,7 +146,7 @@ TARGETS = {
         ("Lcom/spocky/projengmenu/PTApplication;", "d"):
             ("V", True, "Unlock Premium", "licence re-check writer"),
     },
-    # Solid Explorer 3.6.4:
+    # Solid Explorer 3.6.5:
     #   LicenseDetails.<init>(LicenseState, String, Long, Long, String)V
     #                          the immutable licence record and the one place the state is
     #                          written; the patch rewrites it to PREMIUM_PRO while
@@ -242,9 +244,9 @@ TARGETS = {
 # Fingerprint `parameters` are matched with startswith(), so "L" pins any reference type.
 REQUIRED_PARAMS = {
     "Nova Launcher": {
-        ("Lqx/b1;", "b"): [[]],
-        ("Lj10/h2;", "a"): [["Landroid/content/SharedPreferences;"]],
-        ("Lgy/d0;", "w"): [["Landroid/content/Context;"]],
+        ("Lrw/e1;", "b"): [[]],
+        ("Lp00/i2;", "a"): [["Landroid/content/SharedPreferences;"]],
+        ("Llx/v0;", "v"): [["Landroid/content/Context;"]],
     },
     "Duolingo": {
         ("Lcom/duolingo/data/signuplogin/LoginRequest$EmailLoginRequest;", "<init>"): [

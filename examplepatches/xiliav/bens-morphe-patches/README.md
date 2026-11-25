@@ -23,7 +23,7 @@ If the repository address fails to load, try adding the [direct metadata URL](ht
 The list below is generated from each release and includes the supported versions for every app in the collection. Compatibility and available features vary by app; check its entry before choosing an original package. New app versions may need updated patches.
 
 <!-- PATCHES_START EXPANDED -->
-> **[v1.1.3](https://github.com/xiliav/bens-morphe-patches/releases/tag/v1.1.3)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;2 patches total
+> **[v1.1.5](https://github.com/xiliav/bens-morphe-patches/releases/tag/v1.1.5)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;2 patches total
 <details open>
 <summary>📦 Citizen&nbsp;&nbsp;•&nbsp;&nbsp;1 patch</summary>
 <br>
@@ -32,8 +32,8 @@ The list below is generated from each release and includes the supported version
 
 **🎯 Supported versions:**
 
-| 0.1319.0 | 0.1318.0 | 0.1307.0 |
-| :---: | :---: | :---: |
+| 0.1320.0 |
+| :---: |
 
 | 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
 |----------|----------------|-----------|

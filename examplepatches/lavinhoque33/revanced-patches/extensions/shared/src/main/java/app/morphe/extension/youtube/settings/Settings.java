@@ -300,6 +300,7 @@ public class Settings extends SharedYouTubeSettings {
     public static final BooleanSetting HIDE_TICKET_SHELF = new BooleanSetting("revanced_hide_ticket_shelf", TRUE);
     public static final BooleanSetting HIDE_VIDEO_RECOMMENDATION_LABELS = new BooleanSetting("revanced_hide_video_recommendation_labels", TRUE);
     public static final BooleanSetting HIDE_SECTION_HEADER_IN_FEED = new BooleanSetting("revanced_hide_section_header_in_feed", FALSE, true);
+    public static final BooleanSetting UNGROUP_NOTIFICATIONS = new BooleanSetting("morphe_ungroup_notifications", FALSE);
     public static final BooleanSetting DISABLE_AUTO_FEED_REFRESH = new BooleanSetting("morphe_disable_auto_feed_refresh", FALSE);
     public static final IntegerSetting PLAYBACK_IN_FEEDS = new IntegerSetting("morphe_playback_in_feeds", PlaybackInFeedsPatch.MODE_ALWAYS_ON, true);
     public static final BooleanSetting PLAYBACK_IN_FEEDS_IMPORTED =
@@ -1231,6 +1232,8 @@ public class Settings extends SharedYouTubeSettings {
             new HorizontalSwipeZonesAvailability());
     public static final StringSetting SWIPE_OVERLAY_BACKGROUND_COLOR = new StringSetting(
             "revanced_swipe_overlay_background_color", "#000000", true, new AnySwipeZoneAvailability());
+    public static final StringSetting SWIPE_OVERLAY_FOREGROUND_COLOR = new StringSetting(
+            "revanced_swipe_overlay_foreground_color", "#FFFFFF", true, new AnySwipeZoneAvailability());
     public static final StringSetting SWIPE_OVERLAY_BRIGHTNESS_COLOR = new StringSetting(
             "revanced_swipe_overlay_progress_brightness_color", "#BFFFFFFF", true,
             new SwipeOverlayProgressColorAvailability(SwipeZoneAction.BRIGHTNESS));

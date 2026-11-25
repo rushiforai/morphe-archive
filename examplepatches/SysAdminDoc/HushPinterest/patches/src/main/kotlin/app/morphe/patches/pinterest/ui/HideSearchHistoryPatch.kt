@@ -7,13 +7,18 @@
 package app.morphe.patches.pinterest.ui
 
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
+import app.morphe.patcher.extensions.InstructionExtensions.addInstructionsWithLabels
+import app.morphe.patcher.extensions.InstructionExtensions.getInstruction
 import app.morphe.patcher.patch.BytecodePatchContext
 import app.morphe.patcher.patch.PatchException
 import app.morphe.patcher.patch.bytecodePatch
 import app.morphe.patcher.util.proxy.mutableTypes.MutableClass
 import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod
+import app.morphe.patcher.util.smali.ExternalLabel
+import app.morphe.patches.pinterest.misc.extension.EXTENSION_PACKAGE
 import app.morphe.patches.pinterest.misc.extension.enableCapability
 import app.morphe.patches.pinterest.misc.extension.enableStatus
+import app.morphe.patches.pinterest.misc.extension.freeLocalsAt
 import app.morphe.patches.pinterest.misc.extension.pinterestExtensionPatch
 import app.morphe.patches.pinterest.misc.extension.requireStatusMethod
 import app.morphe.patches.pinterest.misc.settings.EXTENSION_ROOT
@@ -22,7 +27,11 @@ import app.morphe.patches.shared.compat.AppCompatibilities
 import com.android.tools.smali.dexlib2.AccessFlags
 import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.iface.Method
+import com.android.tools.smali.dexlib2.iface.instruction.Instruction
+import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
+import com.android.tools.smali.dexlib2.iface.reference.MethodReference
+import com.android.tools.smali.dexlib2.iface.reference.StringReference
 import com.android.tools.smali.dexlib2.iface.reference.TypeReference
 
 private const val PATCH = "Hide search history"
@@ -139,13 +148,84 @@ private fun BytecodePatchContext.blankSearchPage() {
     enableCapability("searchLanding")
 }
 
+/** The JSON key Pinterest reads the row under the search bar from. */
+internal const val ONE_BAR_MODULES = "one_bar_modules"
+
+internal const val SEARCH_SUGGESTION_HOOK = "$EXTENSION_PACKAGE/ui/SearchSuggestions;->drop(Ljava/lang/Object;)Z"
+
+/** Where the row's parser takes each module: the hook goes in at [index] on [module], and a yes goes back to [next]. */
+internal class SuggestionSite(val method: Method, val index: Int, val module: Int, val next: Int)
+
+/**
+ * The parser of the row under the search bar (#48): the one static `(X)ArrayList` every reader of
+ * [ONE_BAR_MODULES] calls next. It walks the modules with an iterator and casts each to Pinterest's
+ * JSON object before reading it into its model, so the hook goes right after that cast and a yes
+ * goes back to the iterator's hasNext, the way the loop's own goto does.
+ */
+internal fun BytecodePatchContext.searchSuggestionSite(): SuggestionSite {
+    val parsers = mutableSetOf<String>()
+    classDefForEach { owner ->
+        for (method in owner.methods) {
+            val body = method.instructions()
+            body.indices.filter { body[it].loadsString(ONE_BAR_MODULES) }.forEach { at ->
+                val parse = body.drop(at + 1).firstOrNull { instruction ->
+                    val called = (instruction as? ReferenceInstruction)?.reference as? MethodReference
+                    (instruction.opcode == Opcode.INVOKE_STATIC || instruction.opcode == Opcode.INVOKE_STATIC_RANGE) &&
+                        called?.returnType == "Ljava/util/ArrayList;" && called.parameterTypes.size == 1
+                }
+                if (parse != null) parsers += ((parse as ReferenceInstruction).reference as MethodReference).toString()
+            }
+        }
+    }
+    val parser = parsers.toList().one("$PATCH: the parser of the row under the search bar")
+    val owner = parser.substringBefore("->")
+    val method = (classDefByOrNull(owner) ?: throw PatchException("$PATCH: $owner is missing")).methods
+        .filter { it.toString() == parser }.one("$PATCH: $parser")
+    val body = method.instructions()
+    val next = body.indices.filter { at ->
+        body[at].opcode == Opcode.INVOKE_INTERFACE &&
+            (body[at] as ReferenceInstruction).reference.toString() == "Ljava/util/Iterator;->next()Ljava/lang/Object;"
+    }.one("$PATCH: the row parser's next module")
+    val taken = body.getOrNull(next + 1)
+    val cast = body.getOrNull(next + 2)
+    if (taken?.opcode != Opcode.MOVE_RESULT_OBJECT || cast?.opcode != Opcode.CHECK_CAST ||
+        (cast as OneRegisterInstruction).registerA != (taken as OneRegisterInstruction).registerA
+    ) {
+        throw PatchException("$PATCH: the row parser no longer casts each module right after taking it")
+    }
+    val hasNext = body.indices.filter { at ->
+        body[at].opcode == Opcode.INVOKE_INTERFACE &&
+            (body[at] as ReferenceInstruction).reference.toString() == "Ljava/util/Iterator;->hasNext()Z"
+    }.one("$PATCH: the row parser's loop")
+    if (hasNext > next) throw PatchException("$PATCH: the row parser's loop doesn't start at hasNext")
+    return SuggestionSite(method, next + 3, (taken as OneRegisterInstruction).registerA, hasNext)
+}
+
+internal fun BytecodePatchContext.hideSearchSuggestions() {
+    val site = searchSuggestionSite()
+    val answer = site.method.freeLocalsAt("$PATCH: the row parser", site.index, 1, highest = 255).single()
+    val method = mutable(site.method)
+    val m = site.module
+    method.addInstructionsWithLabels(site.index, """
+        invoke-static/range { v$m .. v$m }, $SEARCH_SUGGESTION_HOOK
+        move-result v$answer
+        if-nez v$answer, :hush_next_module
+    """, ExternalLabel("hush_next_module", method.getInstruction(site.next)))
+    enableCapability("searchSuggestions")
+}
+
+private fun Instruction.loadsString(text: String) =
+    (opcode == Opcode.CONST_STRING || opcode == Opcode.CONST_STRING_JUMBO) &&
+        ((this as ReferenceInstruction).reference as? StringReference)?.string == text
+
 /** Display-only: vendor search requests and account history are unchanged. */
 @Suppress("unused")
 val hideSearchHistoryPatch = bytecodePatch(
     name = PATCH,
     description = "Hides your recent searches on the search screen of this phone. It doesn't delete your account's " +
-        "search history. A second switch leaves only the search bar on the Search page. Starts off. Turn them on " +
-        "in HushPinterest settings > Interface.",
+        "search history. A second switch leaves only the search bar on the Search page, and a third hides the " +
+        "colored suggested searches under the search bar on search results. All start off. Turn them on in " +
+        "HushPinterest settings > Interface.",
 ) {
     category("Interface")
     dependsOn(settingsPatch, pinterestExtensionPatch)
@@ -156,6 +236,7 @@ val hideSearchHistoryPatch = bytecodePatch(
         requireStatusMethod("recentSearchRows")
         requireStatusMethod("recentSearchHeading")
         requireStatusMethod("searchLanding")
+        requireStatusMethod("searchSuggestions")
         val views = SEARCH_HISTORY_VIEWS.map { mutableClassDefBy(it) }
         views.forEach { view ->
             requireOverride(view, "setVisibility", listOf("I"))
@@ -172,6 +253,7 @@ val hideSearchHistoryPatch = bytecodePatch(
             move-result p2
         """)
         optionalTarget(PATCH, "Blank Search page") { blankSearchPage() }
+        optionalTarget(PATCH, "Hide suggested searches") { hideSearchSuggestions() }
         enableCapability("searchHistory")
         enableCapability("recentSearchRows")
         enableCapability("recentSearchHeading")

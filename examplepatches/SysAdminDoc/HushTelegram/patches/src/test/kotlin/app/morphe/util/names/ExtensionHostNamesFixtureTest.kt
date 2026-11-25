@@ -23,15 +23,15 @@ private const val USER_CONFIG = "Lorg/telegram/messenger/UserConfig;"
 class ExtensionHostNamesFixtureTest {
     /** Per build: the row lines the extension needs for MessagesController, UserConfig and one inlined string. */
     private val expected = mapOf(
-        "73039" to listOf(
-            "m org.telegram.messenger.sp getInstance (I) s1",
-            "f org.telegram.messenger.d20 selectedAccount t0",
-            "r string PushReactText 7f0fded6",
+        "73469" to listOf(
+            "m org.telegram.messenger.pp getInstance (I) u1",
+            "f org.telegram.messenger.a20 selectedAccount t0",
+            "r string PushReactText 7f0fde12",
         ),
-        "73031" to listOf(
-            "m org.telegram.messenger.wp getInstance (I) s1",
-            "f org.telegram.messenger.d20 selectedAccount t0",
-            "r string PushReactText 7f0fded6",
+        "73461" to listOf(
+            "m org.telegram.messenger.tp getInstance (I) u1",
+            "f org.telegram.messenger.y10 selectedAccount t0",
+            "r string PushReactText 7f0fde12",
         ),
         "22710" to listOf(
             "m org.telegram.messenger.br getInstance (I) I1",

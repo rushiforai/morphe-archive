@@ -34,6 +34,8 @@ import com.android.tools.smali.dexlib2.AccessFlags
 import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.builder.BuilderOffsetInstruction
 import com.android.tools.smali.dexlib2.iface.Method
+import com.android.tools.smali.dexlib2.iface.instruction.Instruction
+import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.TwoRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.reference.FieldReference
 import com.android.tools.smali.dexlib2.iface.reference.MethodReference
@@ -226,50 +228,57 @@ private fun hookOpenThread() {
             !AccessFlags.STATIC.isSet(it.accessFlags) && it.type == "Ljava/lang/String;"
         } ?: throw PatchException("Could not identify the thread id field of DirectThreadKey")
 
+    // The static converters of a thread descriptor, an app class, to its key, by the descriptor's
+    // type. Those taking a thread id String would match any type holding a String.
+    val converters = mutableMapOf<String, MutableList<Method>>()
+    patchContext.classDefForEach { classDef ->
+        classDef.methods.forEach { method ->
+            if (AccessFlags.STATIC.isSet(method.accessFlags) && method.returnType == DIRECT_THREAD_KEY &&
+                method.parameterTypes.size == 1 && !method.parameterTypes[0].startsWith("Ljava/")
+            ) {
+                converters.getOrPut(method.parameterTypes[0].toString()) { mutableListOf() } += method
+            }
+        }
+    }
+
     ChatActionBarBuilderFingerprint.method.apply {
-        val keyConverter =
-            instructions.firstNotNullOfOrNull { instruction ->
-                instruction.takeIf { it.opcode == Opcode.INVOKE_STATIC }
-                    ?.getReference<MethodReference>()
-                    ?.takeIf { it.returnType == DIRECT_THREAD_KEY }
-            } ?: throw PatchException("The chat header never converts a descriptor to a thread key")
-        val descriptorType = keyConverter.parameterTypes[0].toString()
-        val descriptorField =
-            instructions.firstNotNullOfOrNull { instruction ->
-                instruction.takeIf { it.opcode == Opcode.IGET_OBJECT }
-                    ?.getReference<FieldReference>()
-                    ?.takeIf { it.type == descriptorType }
-            } ?: throw PatchException("The chat header never reads the thread descriptor")
-        val viewModelType = descriptorField.definingClass
+        // The header loads the chat's view model: the type it loads holding the thread descriptor,
+        // a field a converter turns into the thread key. Up to 456 the header converted it itself;
+        // from 457 a helper does.
+        fun Instruction.loadedType() = when (opcode) {
+            Opcode.CHECK_CAST -> getReference<TypeReference>()?.type
+            Opcode.IGET_OBJECT -> getReference<FieldReference>()?.type
+            else -> null
+        }
+        val (viewModelType, descriptorField) =
+            instructions.mapNotNull { it.loadedType() }.distinct().firstNotNullOfOrNull { type ->
+                patchContext.classDefByOrNull(type)?.fields?.firstOrNull { field ->
+                    !AccessFlags.STATIC.isSet(field.accessFlags) && converters[field.type]?.size == 1
+                }?.let { type to it }
+            } ?: throw PatchException("The chat header loads no view model holding a thread descriptor")
+        val keyConverter = converters.getValue(descriptorField.type).single()
 
         OpenThreadDescriptorFieldExtension.changeFirstString(descriptorField.name)
         OpenThreadConverterClassExtension.changeFirstString(classNameToExtension(keyConverter.definingClass))
         OpenThreadConverterMethodExtension.changeFirstString(keyConverter.name)
         OpenThreadIdFieldExtension.changeFirstString(threadIdField.name)
 
-        // Inject after the view model's first consumer, where its two producers rejoin. A branch
-        // label sits on that call, so anything inserted before it is jumped over.
-        val join =
-            instructions.firstOrNull { instruction ->
-                instruction.opcode == Opcode.INVOKE_STATIC &&
-                    instruction.getReference<MethodReference>()?.parameterTypes?.firstOrNull()?.toString() == viewModelType
-            } ?: throw PatchException("The chat header never passes its view model on")
-        val viewModelRegister = join.registersUsed[0]
-        // A move-result must stay with its call, so step past it when present.
-        val afterJoin = join.location.index + 1
-        val injectIndex =
-            if (getInstruction(afterJoin).opcode in MOVE_RESULTS) afterJoin + 1 else afterJoin
-        val register = getFreeRegisterProvider(injectIndex, 1).getFreeRegister()
-
-        addInstructionsWithLabels(
-            injectIndex,
-            """
-            move-object/from16 v$register, v$viewModelRegister
-            if-eqz v$register, :no_thread
-            invoke-static/range { v$register .. v$register }, $HOOK_CLASS->noteOpenThread(Ljava/lang/Object;)V
-            """,
-            ExternalLabel("no_thread", getInstruction(injectIndex)),
-        )
+        // The view model comes from one of two producers that rejoin on a branch label, where
+        // anything inserted is jumped over, so the hook goes in after each producer. Last first,
+        // so the indices still to be patched do not move.
+        val producers = instructions.filter { it.loadedType() == viewModelType }
+        if (producers.isEmpty()) throw PatchException("The chat header never loads its view model")
+        producers.map { it.location.index }.sortedDescending().forEach { index ->
+            val register = getInstruction<OneRegisterInstruction>(index).registerA
+            addInstructionsWithLabels(
+                index + 1,
+                """
+                if-eqz v$register, :no_thread
+                invoke-static/range { v$register .. v$register }, $HOOK_CLASS->noteOpenThread(Ljava/lang/Object;)V
+                """,
+                ExternalLabel("no_thread", getInstruction(index + 1)),
+            )
+        }
     }
 }
 

@@ -735,4 +735,22 @@ final class Looks {
         if (placeholder == null) return List.of();
         return List.of(constructor, legacy, setter, setup, placeholder);
     }
+
+    /** FbFragmentActivity.onResume: an instance method with code that takes nothing and returns nothing. */
+    static boolean isScreenResume(Method method) {
+        return FB_FRAGMENT_ACTIVITY.equals(method.getDefiningClass()) && method.getName().equals("onResume")
+            && method.getParameterTypes().isEmpty() && method.getReturnType().equals("V")
+            && !AccessFlags.STATIC.isSet(method.getAccessFlags()) && !AccessFlags.ABSTRACT.isSet(method.getAccessFlags())
+            && method.getImplementation() != null;
+    }
+
+    /** refresh_rate: FbFragmentActivity.onResume, only while it's the one such method. Mirrors findRefreshRate in RefreshRate.kt. */
+    static List<Method> refreshRate(List<ClassDef> classes) {
+        var found = new ArrayList<Method>();
+        for (var cls : classes) {
+            if (!FB_FRAGMENT_ACTIVITY.equals(cls.getType())) continue;
+            for (var method : cls.getMethods()) if (isScreenResume(method)) found.add(method);
+        }
+        return found.size() == 1 ? found : List.of();
+    }
 }

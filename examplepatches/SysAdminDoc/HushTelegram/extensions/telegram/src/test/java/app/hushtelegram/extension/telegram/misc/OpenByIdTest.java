@@ -191,7 +191,7 @@ public class OpenByIdTest {
     @Test public void theToastsFitTwoLinesInEveryLanguage() {
         for (String text : new String[]{NOT_A_NUMBER, NOT_SEEN, TRY_AGAIN}) {
             assertFitsATwoLineToast("en", text);
-            for (String language : new String[]{"bg", "de", "es", "in", "pt-rbr", "tr"}) {
+            for (String language : new String[]{"bg", "de", "es", "in", "it", "pt-rbr", "tr"}) {
                 String row = L10nTablesForTests.of(language).get(text);
                 assertNotNull(language + ": " + text, row);
                 assertFitsATwoLineToast(language, row);

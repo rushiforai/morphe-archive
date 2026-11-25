@@ -13,6 +13,7 @@ Every patch is on by default except GmsCore support. Morphe Manager groups them 
 | Privacy | Disable analytics | Stops AppsFlyer, Mixpanel and Insider from tracking installs, reads and other in-app events, and turns off Firebase Analytics, Crashlytics, Performance and Sessions. |
 | Feature | Stop autoplay | Stops the videos in the "Video Pilihan" block under an article from playing on their own. They play when tapped. |
 | Feature | GmsCore support | Makes "Login dengan Google" work by signing in through microG RE (GmsCore) instead of Google Play services. Needs microG RE installed and signed in to a Google account. Off by default. |
+| Theme | Themed icon | Adds the themed (monochrome) app icon of Android 13 and later, which follows the wallpaper colors. |
 
 ## How the patches work
 

@@ -203,15 +203,26 @@ public final class GboardHelpFeedbackFeature implements GboardPatchesSettingsCon
         messageCardParams.bottomMargin = GboardM3Helper.dp(activity, 20);
         root.addView(messageCard, messageCardParams);
 
-        // 3D Liquid Glass Pill Submit Button
+        // Submit Button (3D Liquid Glass Pill or Solid Material 3 Filled Pill)
+        boolean liquidGlassSubmit = GboardM3Helper.isLiquidGlassUiEnabled(activity);
         TextView submitButton = new TextView(activity);
         submitButton.setText("Submit");
         submitButton.setGravity(Gravity.CENTER);
         submitButton.setTextSize(TypedValue.COMPLEX_UNIT_SP, 16f);
         submitButton.setTypeface(Typeface.create("sans-serif-medium", Typeface.BOLD));
-        submitButton.setTextColor(palette.isAmoled || palette.isNight ? 0xFFF5F7FF : 0xFF1A2236);
-        submitButton.setBackground(GboardM3Helper.createLiquidGlassPillButtonDrawable(activity, palette));
-        submitButton.setElevation(GboardM3Helper.dpF(activity, 4f));
+        if (liquidGlassSubmit) {
+            submitButton.setTextColor(palette.isAmoled || palette.isNight ? 0xFFF5F7FF : 0xFF1A2236);
+            submitButton.setBackground(GboardM3Helper.createLiquidGlassPillButtonDrawable(activity, palette));
+            submitButton.setElevation(GboardM3Helper.dpF(activity, 4f));
+        } else {
+            float lum = (0.299f * Color.red(palette.accent)
+                    + 0.587f * Color.green(palette.accent)
+                    + 0.114f * Color.blue(palette.accent)) / 255f;
+            submitButton.setTextColor(lum > 0.58f ? 0xFF121318 : Color.WHITE);
+            submitButton.setBackground(GboardM3Helper.createClickableCardDrawable(
+                    palette.accent, Color.TRANSPARENT, palette.ripple, GboardM3Helper.dp(activity, 999)));
+            submitButton.setElevation(0f);
+        }
         submitButton.setClickable(true);
         submitButton.setFocusable(true);
         submitButton.setPadding(
@@ -309,23 +320,26 @@ public final class GboardHelpFeedbackFeature implements GboardPatchesSettingsCon
             View[] radioDots,
             TextView[] chipLabels,
             int selectedIdx) {
-        int radius = GboardM3Helper.dp(context, 16);
+        boolean liquidGlass = GboardM3Helper.isLiquidGlassUiEnabled(context);
+        int radius = GboardM3Helper.dp(context, liquidGlass ? 16 : 12);
         for (int i = 0; i < chipRows.length; i++) {
             boolean selected = (i == selectedIdx);
 
             GradientDrawable rowBg = new GradientDrawable();
             rowBg.setCornerRadius(radius);
             if (selected) {
-                int fill = palette.isAmoled
-                        ? 0x26A8C7FA
-                        : (palette.isNight ? 0x2E8AB4F8 : 0x1A283CF5);
+                int fill = liquidGlass
+                        ? (palette.isAmoled ? 0x26A8C7FA : (palette.isNight ? 0x2E8AB4F8 : 0x1A283CF5))
+                        : GboardM3Helper.blendAlpha(palette.accent, 0.14f);
                 rowBg.setColor(fill);
                 rowBg.setStroke(GboardM3Helper.dp(context, 1), palette.accent);
             } else {
-                int fill = palette.isAmoled
-                        ? 0xFF10131C
-                        : (palette.isNight ? 0x1FFFFFFF : 0x66FFFFFF);
-                int stroke = palette.isAmoled ? 0x28FFFFFF : (palette.isNight ? 0x22FFFFFF : 0x99DCE2F4);
+                int fill = liquidGlass
+                        ? (palette.isAmoled ? 0xFF10131C : (palette.isNight ? 0x1FFFFFFF : 0x66FFFFFF))
+                        : palette.surfaceAlt;
+                int stroke = liquidGlass
+                        ? (palette.isAmoled ? 0x28FFFFFF : (palette.isNight ? 0x22FFFFFF : 0x99DCE2F4))
+                        : palette.surfaceStroke;
                 rowBg.setColor(fill);
                 rowBg.setStroke(GboardM3Helper.dp(context, 1), stroke);
             }
@@ -336,7 +350,9 @@ public final class GboardHelpFeedbackFeature implements GboardPatchesSettingsCon
             if (selected) {
                 dot.setColor(palette.accent);
                 dot.setStroke(GboardM3Helper.dp(context, 3),
-                        palette.isAmoled || palette.isNight ? 0xFF0A0C12 : 0xFFFFFFFF);
+                        liquidGlass
+                                ? (palette.isAmoled || palette.isNight ? 0xFF0A0C12 : 0xFFFFFFFF)
+                                : palette.surface);
             } else {
                 dot.setColor(Color.TRANSPARENT);
                 dot.setStroke(GboardM3Helper.dp(context, 2), palette.textSecondary);
@@ -357,8 +373,14 @@ public final class GboardHelpFeedbackFeature implements GboardPatchesSettingsCon
                 GboardM3Helper.dp(context, 16),
                 GboardM3Helper.dp(context, 18),
                 GboardM3Helper.dp(context, 18));
-        card.setBackground(GboardM3Helper.createLiquidGlassCardDrawable(context, palette, 24, false));
-        card.setElevation(GboardM3Helper.dpF(context, 2f));
+        if (GboardM3Helper.isLiquidGlassUiEnabled(context)) {
+            card.setBackground(GboardM3Helper.createLiquidGlassCardDrawable(context, palette, 24, false));
+            card.setElevation(GboardM3Helper.dpF(context, 2f));
+        } else {
+            card.setBackground(GboardM3Helper.createCardDrawable(
+                    palette.surface, palette.surfaceStroke, GboardM3Helper.dp(context, 16)));
+            card.setElevation(0f);
+        }
         return card;
     }
 
@@ -417,14 +439,15 @@ public final class GboardHelpFeedbackFeature implements GboardPatchesSettingsCon
             edit.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_FLAG_CAP_WORDS);
         }
 
+        boolean liquidGlass = GboardM3Helper.isLiquidGlassUiEnabled(context);
         GradientDrawable bg = new GradientDrawable();
-        bg.setCornerRadius(GboardM3Helper.dp(context, 16));
-        int fill = palette.isAmoled
-                ? 0xFF10131C
-                : (palette.isNight ? 0xFF232736 : 0xB8FFFFFF);
-        int stroke = palette.isAmoled
-                ? 0x33A8C7FA
-                : (palette.isNight ? 0x30FFFFFF : 0xFFCFD6EC);
+        bg.setCornerRadius(GboardM3Helper.dp(context, liquidGlass ? 16 : 12));
+        int fill = liquidGlass
+                ? (palette.isAmoled ? 0xFF10131C : (palette.isNight ? 0xFF232736 : 0xB8FFFFFF))
+                : palette.surfaceAlt;
+        int stroke = liquidGlass
+                ? (palette.isAmoled ? 0x33A8C7FA : (palette.isNight ? 0x30FFFFFF : 0xFFCFD6EC))
+                : palette.surfaceStroke;
         bg.setColor(fill);
         bg.setStroke(GboardM3Helper.dp(context, 1), stroke);
         edit.setBackground(bg);

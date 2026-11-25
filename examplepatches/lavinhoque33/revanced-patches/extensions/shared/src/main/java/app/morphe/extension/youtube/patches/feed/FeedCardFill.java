@@ -5,6 +5,7 @@
  * https://github.com/anddea/revanced-patches
  *
  * Licensed under the GNU General Public License v3.0.
+ * Modified by lavinhoque33, 2026-11-24.
  * Written by lavinhoque33, 2026-11-04.
  */
 
@@ -46,6 +47,20 @@ final class FeedCardFill {
         final int cardWidth = Math.max(0, itemWidth - 2 * horizontalPadding);
         final int videoHeight = (cardWidth * VIDEO_ASPECT_HEIGHT + VIDEO_ASPECT_WIDTH - 1) / VIDEO_ASPECT_WIDTH;
         return verticalPadding + videoHeight;
+    }
+
+    /**
+     * A native painter can cover the card behind both the thumbnail and the title. Its original
+     * alpha is kept when tinting; unlike the patch's fill, it need not start at the thumbnail seam.
+     */
+    static boolean isMetadataSurface(int width, int top, int bottom, int contentWidth, int itemHeight,
+                                     int thumbnailBottom) {
+        if (contentWidth <= 0 || itemHeight <= 0 || width * 20 < contentWidth * 17) {
+            return false;
+        }
+
+        int visibleHeight = Math.min(bottom, itemHeight) - Math.max(top, thumbnailBottom);
+        return visibleHeight * 20 >= itemHeight;
     }
 
     /**

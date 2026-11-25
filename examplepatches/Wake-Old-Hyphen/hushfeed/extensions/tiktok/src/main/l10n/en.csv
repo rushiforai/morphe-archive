@@ -178,7 +178,7 @@ A name of your own under this tab's icon. Leave it empty to keep TikTok's.,A nam
 A port is a whole number from 1 to 65535,A port is a whole number from 1 to 65535
 A press on Share under a video copies its link instead of opening the share sheet. Press Share again right after to open the sheet.,A press on Share under a video copies its link instead of opening the share sheet. Press Share again right after to open the sheet.
 "A profile's share sheet gets an Account country button. It asks TikTok where that account is based, or where its latest videos were posted from.","A profile's share sheet gets an Account country button. It asks TikTok where that account is based, or where its latest videos were posted from."
-"A profile's share sheet gets an Account facts button. It shows what TikTok already sent about the account: when it joined, its region and language, its gifter level and SecUID, when its username and display name last changed, whether it's private and whether its liked videos are public. Nothing extra is fetched.","A profile's share sheet gets an Account facts button. It shows what TikTok already sent about the account: when it joined, its region and language, its gifter level and SecUID, when its username and display name last changed, whether it's private and whether its liked videos are public. Nothing extra is fetched."
+"A profile's share sheet gets an Account facts button. It shows what TikTok already sent about the account: when it joined, its region and language, its gifter level and SecUID, how many posts, liked videos, favorites and reposts it has, when its username and display name last changed, whether it's private and whether its liked videos are public. Nothing extra is fetched.","A profile's share sheet gets an Account facts button. It shows what TikTok already sent about the account: when it joined, its region and language, its gifter level and SecUID, how many posts, liked videos, favorites and reposts it has, when its username and display name last changed, whether it's private and whether its liked videos are public. Nothing extra is fetched."
 A removal is already running,A removal is already running
 "A screen's layout is recorded. Export the diagnostic report to send it, or tap to record another.","A screen's layout is recorded. Export the diagnostic report to send it, or tap to record another."
 "A small eye button at the top left of the main feed. Tap it and the buttons, caption and tabs go invisible but still take taps, which helps against burn-in on OLED screens. Tap it again to bring them back. They stay the way you left them across videos and restarts. Videos you open from a profile or search keep their controls.","A small eye button at the top left of the main feed. Tap it and the buttons, caption and tabs go invisible but still take taps, which helps against burn-in on OLED screens. Tap it again to bring them back. They stay the way you left them across videos and restarts. Videos you open from a profile or search keep their controls."
@@ -248,10 +248,12 @@ Adds Save episodes when you share an episode of a mini drama. It lists the drama
 "Adds TikTok's translate button next to the comment count. One tap translates every comment, and another shows the originals again.","Adds TikTok's translate button next to the comment count. One tap translates every comment, and another shows the originals again."
 Adds a Record button to LIVE rooms. Tap it to start or stop recording. Leaving the room also stops a recording.,Adds a Record button to LIVE rooms. Tap it to start or stop recording. Leaving the room also stops a recording.
 "Adds a Search button to the top of the Liked and Favorites grids. Type a word from a caption, a creator or a sound to see only the loaded videos that have it.","Adds a Search button to the top of the Liked and Favorites grids. Type a word from a caption, a creator or a sound to see only the loaded videos that have it."
+"Adds a button to the Favorites grid's top corner that starts your saved videos at a year or month you pick, so older saves load without scrolling past newer ones. Pick Newest saves there to go back.","Adds a button to the Favorites grid's top corner that starts your saved videos at a year or month you pick, so older saves load without scrolling past newer ones. Pick Newest saves there to go back."
 "Adds a button to the Liked grid's top corner that starts your likes at a year or month you pick, so older ones load without scrolling past newer ones. Pick Newest likes there to go back.","Adds a button to the Liked grid's top corner that starts your likes at a year or month you pick, so older ones load without scrolling past newer ones. Pick Newest likes there to go back."
 "Adds a search box that finds comments already loaded on this video, by words or username. It doesn't search all of TikTok.","Adds a search box that finds comments already loaded on this video, by words or username. It doesn't search all of TikTok."
 "Adds a small line to LIVE rooms with how long the host has been live, counted from when the room started. With the room ID on too, it goes under that.","Adds a small line to LIVE rooms with how long the host has been live, counted from when the room started. With the room ID on too, it goes under that."
 "Adds a small line to LIVE rooms with the room's ID and how your own connection to the stream is doing, as TikTok's player measures it: ping, latency and download speed. Tap the line to copy the room ID.","Adds a small line to LIVE rooms with the room's ID and how your own connection to the stream is doing, as TikTok's player measures it: ping, latency and download speed. Tap the line to copy the room ID."
+"Adds a trash button to the picking bar while every picked post is your own. It counts down from 5 so you can stop it, then deletes them from your account one at a time. A deleted post can't be brought back.","Adds a trash button to the picking bar while every picked post is your own. It counts down from 5 so you can stop it, then deletes them from your account one at a time. A deleted post can't be brought back."
 "Adds an Auto tap button to LIVE rooms. Tap it to send taps to the stream at a steady pace, and tap it again to stop. It also stops when you leave or swipe to another room, leave TikTok or lock the screen.","Adds an Auto tap button to LIVE rooms. Tap it to send taps to the stream at a steady pace, and tap it again to stop. It also stops when you leave or swipe to another room, leave TikTok or lock the screen."
 "Adds the Main, Requests, Unread and Starred tabs above your chats, the ones TikTok gives creator accounts.","Adds the Main, Requests, Unread and Starred tabs above your chats, the ones TikTok gives creator accounts."
 "Adds three stops below the smallest size on TikTok's own Text size slider, in Settings and privacy > Accessibility. Pick one there, then restart TikTok.","Adds three stops below the smallest size on TikTok's own Text size slider, in Settings and privacy > Accessibility. Pick one there, then restart TikTok."
@@ -262,6 +264,7 @@ Advanced. Find and force the hidden switches TikTok uses to test features.,Advan
 After 1 minute,After 1 minute
 After 15 minutes,After 15 minutes
 After 5 minutes,After 5 minutes
+"After a LIVE you open from the row at the top of Following, swiping takes you through the row's other LIVEs in the order they sit there, starting with the next one. TikTok's own picks come after them.","After a LIVE you open from the row at the top of Following, swiping takes you through the row's other LIVEs in the order they sit there, starting with the next one. TikTok's own picks come after them."
 "After you tap Not interested, offer to skip the video's creator, sound or hashtags from now on.","After you tap Not interested, offer to skip the video's creator, sound or hashtags from now on."
 All,All
 All available languages,All available languages
@@ -412,6 +415,7 @@ Browse,Browse
 Budgets and reminders,Budgets and reminders
 Build details,Build details
 Build details copied to the clipboard,Build details copied to the clipboard
+Built-in fonts,Built-in fonts
 Bulletin board,Bulletin board
 Burn-in guard,Burn-in guard
 Burn-in guard dim level,Burn-in guard dim level
@@ -657,9 +661,11 @@ Days to remember a video. Zero removes the age limit. History keeps at most %1$s
 Deactivate or delete account,Deactivate or delete account
 Default,Default
 Default playback speed,Default playback speed
+Delete,Delete
 Delete recording files,Delete recording files
 Delete search,Delete search
 Delete watched offline videos,Delete watched offline videos
+Delete your picked posts,Delete your picked posts
 Deletes %1$s from TikTok's storage.,Deletes %1$s from TikTok's storage.
 Deletes every comment you've posted one after another.,Deletes every comment you've posted one after another.
 Delivery unconfirmed: %1$d/%2$d chats. Remaining chats still need a message.,Delivery unconfirmed: %1$d/%2$d chats. Remaining chats still need a message.
@@ -1226,6 +1232,7 @@ Join Amplify,Join Amplify
 Joined,Joined
 Joined %s,Joined %s
 Jump to a date,Jump to a date
+Jump to a date on Favorites grids,Jump to a date on Favorites grids
 Jump to a date on Liked grids,Jump to a date on Liked grids
 Keep Clear display across videos,Keep Clear display across videos
 Keep For You on a Home tap,Keep For You on a Home tap
@@ -1273,6 +1280,7 @@ Keep watching in a small window,Keep watching in a small window
 "Keep what you search for out of the search history TikTok saves on this phone. Searches already there stay until you delete them, and TikTok's servers may still keep their own record.","Keep what you search for out of the search history TikTok saves on this phone. Searches already there stay until you delete them, and TikTok's servers may still keep their own record."
 Keep your place in chats,Keep your place in chats
 "Keeps logging until you turn it off, even after a restart. TikTok can feel slower while it's on.","Keeps logging until you turn it off, even after a restart. TikTok can feel slower while it's on."
+"Keeps the cover, creator, caption and post date of each video in your Favorites on this phone as the grid loads it. If one is later deleted or made private, its tile shows the kept cover and creator instead of a grey box, and a tap shows the rest. Videos that were already gone can't be recovered.","Keeps the cover, creator, caption and post date of each video in your Favorites on this phone as the grid loads it. If one is later deleted or made private, its tile shows the kept cover and creator instead of a grey box, and a tap shows the rest. Videos that were already gone can't be recovered."
 Kept an interrupted change. Restart TikTok to apply.,Kept an interrupted change. Restart TikTok to apply.
 Kept so far: %1$d,Kept so far: %1$d
 "Kept to %1$s, the nearest value this row allows","Kept to %1$s, the nearest value this row allows"
@@ -1498,6 +1506,7 @@ New style 2,New style 2
 New value,New value
 Newest first,Newest first
 Newest likes,Newest likes
+Newest saves,Newest saves
 Next LIVE,Next LIVE
 Next lock starts %1$s,Next lock starts %1$s
 Next message: today at %1$s.,Next message: today at %1$s.
@@ -1721,6 +1730,7 @@ Photos,Photos
 Photos and stickers,Photos and stickers
 "Photos can't be saved to the folder in that file, so your photo folder was kept","Photos can't be saved to the folder in that file, so your photo folder was kept"
 Pick a .ttf or .otf file of up to %1$s MB.,Pick a .ttf or .otf file of up to %1$s MB.
+Pick a built-in font,Pick a built-in font
 "Pick a folder on internal storage, not an SD card","Pick a folder on internal storage, not an SD card"
 Pick a video quality to record the screen,Pick a video quality to record the screen
 Pick all,Pick all
@@ -1730,6 +1740,7 @@ Pick at least one story,Pick at least one story
 Pick comments from your comment history to delete.,Pick comments from your comment history to delete.
 Pick episodes to save,Pick episodes to save
 Pick for saving,Pick for saving
+Pick one of %1$s fonts that come with Hushfeed. Each is shown in its own style.,Pick one of %1$s fonts that come with Hushfeed. Each is shown in its own style.
 Pick stories to save,Pick stories to save
 Pick the actions to remove from the share sheet. Names you typed by hand that TikTok hasn't shown yet stay in the list above.,Pick the actions to remove from the share sheet. Names you typed by hand that TikTok hasn't shown yet stay in the list above.
 Pick the buttons to take off the column. The rest stay where they are.,Pick the buttons to take off the column. The rest stay where they are.
@@ -1754,6 +1765,7 @@ Pin more chats,Pin more chats
 Ping %1$s ms,Ping %1$s ms
 "Pinned videos take their place in the order instead of staying at the top, so Newest first puts them at the date they were posted.","Pinned videos take their place in the order instead of staying at the top, so Newest first puts them at the date they were posted."
 Places,Places
+Plain text,Plain text
 Play,Play
 Play SDR instead of HDR,Play SDR instead of HDR
 Play Store,Play Store
@@ -1777,7 +1789,11 @@ Post age,Post age
 Post date's size,Post date's size
 Post dates in the feed,Post dates in the feed
 Post every video as if you'd turned on TikTok's own HD upload on the post page. A clip TikTok doesn't count as high quality posts as before.,Post every video as if you'd turned on TikTok's own HD upload on the post page. A clip TikTok doesn't count as high quality posts as before.
+Posted %1$s,Posted %1$s
 Posting,Posting
+Posts,Posts
+Posts deleted: %1$d of %2$d,Posts deleted: %1$d of %2$d
+Posts to delete: %1$d. Starting in %2$d,Posts to delete: %1$d. Starting in %2$d
 Prefer H.264 video,Prefer H.264 video
 Preset applied,Preset applied
 Preset doesn't match the gates. Nothing changed.,Preset doesn't match the gates. Nothing changed.
@@ -1886,7 +1902,9 @@ Recovered recording saved to %1$s,Recovered recording saved to %1$s
 Refresh values,Refresh values
 Refreshing TikTok's current values…,Refreshing TikTok's current values…
 Region,Region
+Remember saved videos,Remember saved videos
 Remember the last speed,Remember the last speed
+Remembered %1$s,Remembered %1$s
 "Remembers up to %1$s videos and sounds you saved here. If the file is still there, you get Open or Save again instead of a second copy.","Remembers up to %1$s videos and sounds you saved here. If the file is still there, you get Open or Save again instead of a second copy."
 Remind me every,Remind me every
 Remove,Remove
@@ -2055,6 +2073,7 @@ Saved the photos as a video in %1$s,Saved the photos as a video in %1$s
 Saved videos forgotten. The files are still there.,Saved videos forgotten. The files are still there.
 Saved videos put back,Saved videos put back
 "Saved videos show the @username and the first line of the caption in the bottom left corner. The phone encodes the whole video again to do it, so saving takes longer. Applies to saves made by Hushfeed.","Saved videos show the @username and the first line of the caption in the bottom left corner. The phone encodes the whole video again to do it, so saving takes longer. Applies to saves made by Hushfeed."
+Saved videos that go away show up here,Saved videos that go away show up here
 "Saved, but a later save may make a second copy","Saved, but a later save may make a second copy"
 "Saved, override off","Saved, override off"
 Saved. Restart TikTok to apply this.,Saved. Restart TikTok to apply this.
@@ -2062,7 +2081,7 @@ Saves TikTok's latest crash report on this phone so it can go in the diagnostic 
 Saves at once,Saves at once
 Saves right now,Saves right now
 "Saves subtitle (SRT) files with the video. They go to Movies on Android 11 and newer, Download on Android 10, and your video folder on older versions. On Android 11 and newer with Save details on, the video moves to Download or Documents and the subtitles stay in Movies.","Saves subtitle (SRT) files with the video. They go to Movies on Android 11 and newer, Download on Android 10, and your video folder on older versions. On Android 11 and newer with Save details on, the video moves to Download or Documents and the subtitles stay in Movies."
-"Saves the accounts that follow you, or the ones you follow, as a CSV file in Download/Hushfeed. They're read at about the pace of scrolling the list, up to %1$s at a time.","Saves the accounts that follow you, or the ones you follow, as a CSV file in Download/Hushfeed. They're read at about the pace of scrolling the list, up to %1$s at a time."
+"Saves the accounts that follow you, or the ones you follow, as a CSV, JSON or plain text file in Download/Hushfeed. They're read at about the pace of scrolling the list, up to %1$s at a time.","Saves the accounts that follow you, or the ones you follow, as a CSV, JSON or plain text file in Download/Hushfeed. They're read at about the pace of scrolling the list, up to %1$s at a time."
 "Saves the caption, creator, link and post date in a text file next to the video, or one file for a photo post's original photos. On Android 10 and later, they go in Download or Documents under the same folder name. Applies to saves made by Hushfeed.","Saves the caption, creator, link and post date in a text file next to the video, or one file for a photo post's original photos. On Android 10 and later, they go in Download or Documents under the same folder name. Applies to saves made by Hushfeed."
 Saves the details file in JSON format instead of plain text. Useful if another tool will read it.,Saves the details file in JSON format instead of plain text. Useful if another tool will read it.
 "Saves wait for Wi-Fi or another network that isn't metered, for up to 30 minutes, and stop if you leave it. Saving a frame still works anywhere.","Saves wait for Wi-Fi or another network that isn't metered, for up to 30 minutes, and stop if you leave it. Saving a frame still works anywhere."
@@ -2116,6 +2135,7 @@ Seconds per photo,Seconds per photo
 "Seconds. Zero keeps every length. If everything the feed just sent would be filtered out, the video closest to your limit is kept so the feed isn't empty.","Seconds. Zero keeps every length. If everything the feed just sent would be filtered out, the video closest to your limit is kept so the feed isn't empty."
 "Seconds. Zero keeps every length. Photo posts and videos without a known length stay. If everything the feed just sent would be filtered out, the video closest to your limit is kept.","Seconds. Zero keeps every length. Photo posts and videos without a known length stay. If everything the feed just sent would be filtered out, the video closest to your limit is kept."
 Security & permissions,Security & permissions
+See the saved videos that went away after Hushfeed remembered them,See the saved videos that went away after Hushfeed remembered them
 See-through bottom bar,See-through bottom bar
 See-through status bar,See-through status bar
 Seek bar on sound previews,Seek bar on sound previews
@@ -2464,6 +2484,7 @@ Support,Support
 Support Hushfeed,Support Hushfeed
 Swap lists,Swap lists
 Swap the website in shared links,Swap the website in shared links
+Swipe LIVEs in your Following row's order,Swipe LIVEs in your Following row's order
 Swipe for brightness and volume,Swipe for brightness and volume
 Swipe left,Swipe left
 Swiping a message sideways no longer starts a reply to it. Taps and long presses work as before.,Swiping a message sideways no longer starts a reply to it. Taps and long presses work as before.
@@ -2825,6 +2846,10 @@ Type some sample text to see whether these rules match it.,Type some sample text
 Türkçe,Türkçe
 UI size,UI size
 Unavailable,Unavailable
+Unavailable saved video,Unavailable saved video
+Unavailable saved videos,Unavailable saved videos
+Unavailable saved videos cleared,Unavailable saved videos cleared
+Unavailable since %1$s,Unavailable since %1$s
 Unblock,Unblock
 Unblock this commenter,Unblock this commenter
 Unblocked %1$s,Unblocked %1$s

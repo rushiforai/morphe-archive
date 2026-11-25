@@ -75,7 +75,7 @@ private const val TAG_STRING = "Ljava/lang/String;"
  * blog.tumblr.com/tagged/tag shows, while the switch is on.
  *
  * [WRAPPED_TAGS] gives each tag it draws a click listener built with the screen it's on and the
- * blog that posted the post (Tumblr's `af1.D()` for a post card, an empty blog for anything
+ * blog that posted the post (Tumblr's `ze1.D()` for a post card, an empty blog for anything
  * else). The listener's `onClick` asks a static question of the screen type: whether it belongs to
  * a blog. Yes opens [BLOG_TAG_SEARCH] for the listener's blog; no opens Tumblr's search of every
  * blog, or a community's tag filter for a community's post. `BlogTags.blogScreen` goes right after
@@ -85,8 +85,8 @@ private const val TAG_STRING = "Ljava/lang/String;"
  * The listener gets [HUSH_TAG_BLOG], answering its blog's name, or null exactly when Tumblr's own
  * blog path would find no blog (its `BlogInfo` emptiness test), so a post with no blog name keeps
  * Tumblr's search. The listener is the one class [WRAPPED_TAGS] creates that is a click listener
- * built from a navigation state and a blog. Found by reading Tumblr 47.0.0.108 (2026-11-13), where
- * it is `t$b`, the question `pv2.j` and the emptiness test `BlogInfo.F0`.
+ * built from a navigation state and a blog. Found by reading Tumblr 47.3.0.110 (2026-11-13), where
+ * it is `t$b`, the question `jv2.j` and the emptiness test `BlogInfo.F0`.
  */
 @Suppress("unused")
 val tagBlogSearchPatch = bytecodePatch(

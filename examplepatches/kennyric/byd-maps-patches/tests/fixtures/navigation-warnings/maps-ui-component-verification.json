@@ -1,0 +1,88 @@
+{
+  "format": 1,
+  "scope": "Actual target CompactSpeedView with synthetic bound values; component rendering only, not integrated phone placement or car rendering",
+  "target_package": "com.google.android.apps.maps",
+  "process_uid": 10194,
+  "target_uid": 10194,
+  "candidate_sha256": "a222b3a920052646a71b9b89407acddaa99e992154bba11c1022df91d03a69ad",
+  "target_apk_sha256": "0e2974f75945cb5c61bf42cd127d7c80ddb1cb012325e8c7b8d26f2170566290",
+  "helper_apk_sha256": "ad06a2189106bc4136500f381094ed8176ffbc1e34e9280605a24f78f9811064",
+  "signer_sha256": "2ce9d34e9493f2bb91c9c7863ba2a4e839f5ef27864e404e8a5624ebc0be0597",
+  "helper_target_class_definitions": [],
+  "cases": [
+    {
+      "name": "en-light-1.0",
+      "width": 630,
+      "height": 329,
+      "png_sha256": "c730559db475f83f3b0e08f6efc3b0955c272ce2dc7b14fae81691c93004987e"
+    },
+    {
+      "name": "en-light-1.5",
+      "width": 945,
+      "height": 452,
+      "png_sha256": "a0168a51f2f4a916164c07fda977f675a8a916f46a13eeda6a81b467cf043288"
+    },
+    {
+      "name": "en-dark-1.0",
+      "width": 630,
+      "height": 329,
+      "png_sha256": "9b9f07b9c7e81f926d9ee1e022c93eff52af6e1b369aa2fcfe90e99a7f1abcc6"
+    },
+    {
+      "name": "en-dark-1.5",
+      "width": 945,
+      "height": 452,
+      "png_sha256": "ed51be714827c1c6832e6ea60e29e3ca7a81d024d9ca7237a52e0673b33ce14b"
+    },
+    {
+      "name": "nl-light-1.0",
+      "width": 630,
+      "height": 329,
+      "png_sha256": "254deacf389a405c7e76ad72d6f17785cdf5fd9b33778535a808732b22ed6207"
+    },
+    {
+      "name": "nl-light-1.5",
+      "width": 945,
+      "height": 452,
+      "png_sha256": "153294bf16c60fa9a00723d6171f2f723d40b2341f7066fbe141f255021cca18"
+    },
+    {
+      "name": "nl-dark-1.0",
+      "width": 630,
+      "height": 329,
+      "png_sha256": "821c82264a6ab5ed4efad5c71a654c0db7fa664ffbe6882a1a8932c7815e1fd0"
+    },
+    {
+      "name": "nl-dark-1.5",
+      "width": 945,
+      "height": 452,
+      "png_sha256": "defd4c12e9064a6054e7f1c5f60d1ffb0360c3d1db4dc84be2ae498cabbafc9e"
+    }
+  ],
+  "original_png_pixel_verification": {
+    "original_png_sha256": "153294bf16c60fa9a00723d6171f2f723d40b2341f7066fbe141f255021cca18",
+    "center_rgba": [
+      255,
+      255,
+      255,
+      255
+    ],
+    "red_ring_pixels": 5214,
+    "opaque_pixels": 100056,
+    "all_diagnostic_variants_identical_to_original": true
+  },
+  "correction": "The original nl-light-1.5 PNG contains its white speed-limit badge and red ring. The earlier missing-badge visual interpretation was incorrect; no product change was made.",
+  "diagnostics": [
+    "CountingCanvas recorded two finite full-clip circles at alpha255 with whiteFILL and redSTROKE, plus text100.",
+    "Forward/reverse order, single-case, attached/detached Canvas, second plain Canvas and fresh anonymous Canvas produced the same original PNG bytes."
+  ],
+  "raw_result": ".analysis/native-warning-bindings/maps-ui-component-runtime/result.json",
+  "raw_diagnostic_folder": ".analysis/native-warning-bindings/maps-ui-canvas-lifetime",
+  "instrumentation_sha256": "72d7f0be637bc2e73f67ea0ffa0e5f847729363e295f0b16be43c9448e218a0d",
+  "acceptance": {
+    "component_cases_passed": 8,
+    "integrated_placement": false,
+    "car_rendering": false,
+    "physical_device": false
+  }
+}

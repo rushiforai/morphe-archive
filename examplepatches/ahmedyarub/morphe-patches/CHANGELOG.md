@@ -1,3 +1,29 @@
+## [1.29.0](https://github.com/ahmedyarub/morphe-patches/compare/v1.28.0...v1.29.0) (2026-11-24)
+
+### ✨ New Features
+
+* **X:** Support 12.46.1 ([91ffc17](https://github.com/ahmedyarub/morphe-patches/commit/91ffc17d3c2a07104e719b8c707d505f3ccfe78e))
+
+## [1.29.0-dev.1](https://github.com/ahmedyarub/morphe-patches/compare/v1.28.0...v1.29.0-dev.1) (2026-11-24)
+
+### ✨ New Features
+
+* **X:** Support 12.46.1 ([91ffc17](https://github.com/ahmedyarub/morphe-patches/commit/91ffc17d3c2a07104e719b8c707d505f3ccfe78e))
+
+## [1.28.0](https://github.com/ahmedyarub/morphe-patches/compare/v1.27.0...v1.28.0) (2026-11-24)
+
+### ✨ New Features
+
+* **Instagram:** Open downloaded media from its notification ([c4853e3](https://github.com/ahmedyarub/morphe-patches/commit/c4853e338e73c0bd81ab5e30e39a24f9cf7e7cfd))
+* **Instagram:** Support 457.0.0.55.73 ([38df6ee](https://github.com/ahmedyarub/morphe-patches/commit/38df6eeb6364154cb52f9ccfbde97b0735380578))
+
+## [1.28.0-dev.1](https://github.com/ahmedyarub/morphe-patches/compare/v1.27.0...v1.28.0-dev.1) (2026-11-24)
+
+### ✨ New Features
+
+* **Instagram:** Open downloaded media from its notification ([c4853e3](https://github.com/ahmedyarub/morphe-patches/commit/c4853e338e73c0bd81ab5e30e39a24f9cf7e7cfd))
+* **Instagram:** Support 457.0.0.55.73 ([38df6ee](https://github.com/ahmedyarub/morphe-patches/commit/38df6eeb6364154cb52f9ccfbde97b0735380578))
+
 ## [1.27.0](https://github.com/ahmedyarub/morphe-patches/compare/v1.26.0...v1.27.0) (2026-11-22)
 
 ### 🐛 Bug Fixes

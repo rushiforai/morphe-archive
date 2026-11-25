@@ -1,7 +1,7 @@
 package app.hushmessenger.extension;
 
 import android.graphics.Typeface;
-import android.text.Layout;
+import android.graphics.text.LineBreaker;
 import android.text.SpannableStringBuilder;
 import android.text.Spanned;
 import android.text.style.ForegroundColorSpan;
@@ -36,7 +36,8 @@ final class LicenseSheet {
         notice.setLayoutDirection(TextView.LAYOUT_DIRECTION_LTR);
         notice.setTextIsSelectable(true);
         notice.setTextSize(TypedValue.COMPLEX_UNIT_SP, 14);
-        notice.setBreakStrategy(Layout.BREAK_STRATEGY_HIGH_QUALITY);
+        // LineBreaker's constant is the one setBreakStrategy declares; javac inlines it, so Android 9 never loads the class.
+        notice.setBreakStrategy(LineBreaker.BREAK_STRATEGY_HIGH_QUALITY);
         notice.setLineSpacing(ui.dp(2), 1.04f);
         notice.setTextColor(ui.text);
         notice.setLinkTextColor(ui.accent);

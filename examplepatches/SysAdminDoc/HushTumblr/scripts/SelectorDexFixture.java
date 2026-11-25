@@ -487,13 +487,13 @@ public final class SelectorDexFixture {
 
     private static void storeButtons(Map<String, ClassDef> classes, boolean patched, String fault) {
         String hooks = UI + "StoreButtons;", diamond = FIXTURE + "PremiumDiamond;", mart = FIXTURE + "Mart;", header = FIXTURE + "ExploreHeader;";
-        String drawee = "Lcom/facebook/drawee/view/SimpleDraweeView;", image = "Landroid/widget/ImageView;";
+        String image = "Landroid/widget/ImageView;";
         List<Instruction> draw = body(literal(0, "arg_has_clicked_on_premium_diamond"), constant(1, 0),
                 invoke(Opcode.INVOKE_VIRTUAL, ref(VIEW, "setVisibility", "V", "I"), 3, 1),
                 invoke(Opcode.INVOKE_VIRTUAL, ref(VIEW, "setVisibility", "V", "I"), 4, 1), end());
         if (patched) draw.addAll(0, guard(hooks, "hideDiamond", new String[]{VIEW, VIEW}, 0, body(end()),
                 fault.equals("store-swapped-diamond") ? 4 : 3, fault.equals("store-swapped-diamond") ? 3 : 4));
-        put(classes, diamond, List.of(method(diamond, "draw", "V", false, 5, draw, drawee, image)));
+        put(classes, diamond, List.of(method(diamond, "draw", "V", false, 5, draw, image, image)));
         List<Instruction> buttons = new ArrayList<>();
         int n = 0;
         for (String id : List.of("tumblrmart_button_top_bar", "tumblr_mart_icon")) {

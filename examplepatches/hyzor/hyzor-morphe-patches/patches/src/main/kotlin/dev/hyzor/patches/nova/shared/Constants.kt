@@ -16,13 +16,13 @@ object Constants {
         appIconColor = 0xE53935,
 
         targets = listOf(
-            // Nova's versionName is "89700 (8.9.7)", not "8.9.7"; Morphe compares the
+            // Nova's versionName is "90100 (9.0.1)", not "9.0.1"; Morphe compares the
             // versionName as-is, so the build number is part of the target string.
             //
             // 8.9.5 is deliberately not a target: its settings switches change the persisted
             // preference but do not repaint until the screen is recreated. 8.9.6 fixed that,
-            // and 8.9.7 keeps the fix.
-            AppTarget(version = "89700 (8.9.7)", versionCode = 89700),
+            // and every later release keeps the fix.
+            AppTarget(version = "90100 (9.0.1)", versionCode = 90100),
         ),
     )
 }

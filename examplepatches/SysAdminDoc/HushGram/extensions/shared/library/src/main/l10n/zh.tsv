@@ -522,6 +522,8 @@ Turn on %1$s to use this slider.	请启用“%1$s”以使用此滑杆。
 Turn on Story ring size to use this choice.	请启用“快拍光圈尺寸”以使用此选项。
 # context: Settings page, Reels: the line under the greyed-out Fill the screen switch while Show the whole reel is on
 Turn off Show the whole reel to use this choice.	请关闭“显示完整的 Reels”以使用此选项。
+# context: Settings page, Feed: the line under the greyed-out Time in the top corner switch while Time under the tags button is on (#788)
+Turn off Time under the tags button to use this choice.	请关闭“时间显示在标记按钮下方”以使用此选项。
 Turn on Default playback quality to use this choice.	请启用“默认播放画质”以使用此选项。
 Updating remembered positions...	正在更新记住的播放位置…
 Undo cleared positions	复原清除播放位置
@@ -896,7 +898,7 @@ Media link copied. It stops working after a few days.	已复制媒体链接。�
 No direct link for this one	此项目没有直接链接
 Posted %1$s	发布于 %1$s
 Size %1$d × %2$d	尺寸 %1$d × %2$d
-Adds Details to a feed post's or reel's menu. It shows when it went up, who posted it, its media ID and the size Download saves, with buttons to copy the file link, username and caption.	在动态首页帖子或 Reel 的菜单中添加“详细数据”，显示发布时间、发布者、媒体 ID 与下载保存的尺寸，并提供复制文件链接、用户名与说明文字的按钮。
+Adds Details to a feed post's or reel's menu. It shows when it went up, who posted it, its media ID and the size Download saves, with buttons to copy the file link, username and caption, open the photo or video in another app, and read its text with Google Lens. A story's menu gets Copy username.	在动态首页帖子或 Reel 的菜单中添加“详细数据”，显示发布时间、发布者、媒体 ID 与下载保存的尺寸，并提供复制文件链接、用户名与说明文字、在其他应用中打开照片或视频，以及用 Google Lens 读取文字的按钮。快拍的菜单会加入“复制用户名”。
 Caption	说明文字
 Caption copied	已复制说明文字
 Copy caption	复制说明文字
@@ -1223,7 +1225,7 @@ Never. Pick a time and the tab bar slides away once a reel has played that long 
 # context: summary of the Hide the tab bar on Reels row; %1$d is the seconds picked, 2, 3, 5 or 8
 On Reels, the tab bar slides away after %1$d seconds without a touch. Tap the bottom edge of the screen, change tab or press Back to bring it back. Restart Instagram after changing it.	在 Reels 中，未触碰画面 %1$d 秒后标签栏会滑出画面。点击屏幕底部边缘、切换标签页或按返回即可重新显示。变更后请重新启动 Instagram。
 Start feed videos with sound	动态首页视频默认打开声音
-Videos on Home play with their sound on, the same as tapping a video's speaker. Mute one and the ones after it stay muted. Your phone's ringer and volume still count, so on silent or with the volume down, they stay quiet.	首页视频会打开声音播放，等同点击视频的喇叭按钮。将其中一部静音后，之后的视频也会保持静音。仍受手机铃声与音量设置影响，因此静音或音量调低时仍不会出声。
+Videos on Home play with their sound on, the same as tapping a video's speaker, and so do songs on photo posts. Mute one and the ones after it stay muted. Your phone's ringer and volume still count, so on silent or with the volume down, they stay quiet.	首页视频会打开声音播放，等同点击视频的喇叭按钮，照片帖子的歌曲也一样。将其中一部静音后，之后的视频也会保持静音。仍受手机铃声与音量设置影响，因此静音或音量调低时仍不会出声。
 Start feed videos muted	动态首页视频默认静音
 Videos on Home start silent, even after you turn the sound on in Reels, so reels keep their sound. Tap a video's speaker to hear that one. Wins over Start feed videos with sound.	首页视频会以静音开始播放，即使你在 Reels 中打开了声音也一样，因此 Reels 仍会保留声音。点击视频的喇叭按钮即可听该视频。优先于“动态首页视频默认打开声音”。
 Tap a feed video to pause it	点击动态首页视频以暂停
@@ -1298,6 +1300,8 @@ Takes the heart out of the column of buttons beside a reel, and the like count u
 Hide the Comment button on reels	隐藏 Reels 上的评论按钮
 Takes the Comment button out of the column of buttons beside a reel, and the count under it. The comment bar under a reel has its own switch.	移除 Reel 旁按钮栏中的评论按钮与下方数量。Reel 下方的评论栏有自己的开关。
 Hide the Save button on reels	隐藏 Reels 上的保存按钮
+Hide the More button on reels	隐藏 Reels 上的更多按钮
+Takes the three dots, and the menu they open, off the bottom of the column of buttons beside a reel. Repost and Share have their own switches under Sharing.	移除 Reel 旁按钮栏底部的三个点，以及它打开的菜单。转发与分享在“分享”中有各自的开关。
 Burn-in guard	防烙印保护
 Dim when idle	闲置时淡化
 Dim when idle and shift	闲置时淡化并位移
@@ -1662,6 +1666,11 @@ The red dots and counts for new messages and notifications take the color you pi
 Icons in the accent color	图标使用强调色
 Reel buttons in the accent color	Reels 按钮使用强调色
 The buttons beside a reel and their counts take the color you picked instead of white. Restart Instagram to see the change.	Reels 旁边的按钮和数字会改用你选择的颜色，不再是白色。请重新启动 Instagram 以查看变更.
+Text in the accent color	文字使用强调色
+Names, captions and other main text take the same color as the icons. Gray text stays gray. Restart Instagram to see the change.	名称、说明文字和其他主要文字会改用与图标相同的颜色。灰色文字保持灰色。请重新启动 Instagram 以查看变更.
+# context: Layout > Accent color switch. Saved is Instagram's own Saved page, in its label for this language.
+Filters in the accent color	筛选器使用强调色
+The filters along the top of Saved take the color you picked, and the one you're on is filled with it. Restart Instagram to see the change.	收藏夹顶部的筛选器会改用你选择的颜色，当前所在的筛选器会以该颜色填满。请重新启动 Instagram 以查看变更.
 Instagram's icons on the top bar, the tab bar and under posts take the color you picked. Text stays as it is. Restart Instagram to see the change.	顶部栏、标签栏和帖子下方的 Instagram 图标会改用你选择的颜色。文字保持不变。请重新启动 Instagram 以应用变更。
 Story rings in the accent color	快拍圆环使用强调色
 Story rings take the color you picked instead of Instagram's gradient. A few other gradients share those colors and change with them. Restart Instagram to see the change.	快拍圆环会改用你选择的颜色,取代 Instagram 的渐变。少数使用相同颜色的其他渐变也会一起改变。请重新启动 Instagram 以查看变更。
@@ -1887,6 +1896,12 @@ Instagram gradient on dark	深色底的 Instagram 渐变
 Retro Instagram	复古 Instagram
 Menu button on Home's header	首页顶端的菜单按钮
 Adds a menu button at the top of Home with your viewing history, Ghost mode and HushGram settings. Restart Instagram to see the change.	在首页顶端加入菜单按钮，内含浏览纪录、鬼魂模式与 HushGram 设置。请重新启动 Instagram 以应用变更。
+# context: entry of the menu that the menu button on Home's header opens; starts Instagram's own log out (#850)
+Log out	退出登录
+# context: Tab bar settings: switch that adds Log out to the list of the menu button on Home's header (#850)
+Log out in Home's menu	首页菜单中的退出登录
+# context: that switch summary (#850)
+Adds Log out after HushGram settings in the list the menu button on Home's header opens. It starts the same Log out as Instagram's own settings.	在首页顶端菜单按钮打开的列表中，于 HushGram 设置之后加入退出登录。它会启动与 Instagram 设置相同的退出登录流程。
 History button on Home's header	首页顶端的纪录按钮
 Adds a clock at the top of Home that opens your viewing history in one tap. Restart Instagram to see the change.	在首页顶端加入时钟，轻触一下即可打开浏览纪录。请重新启动 Instagram 以应用变更。
 HushGram menu	HushGram 菜单
@@ -1940,6 +1955,30 @@ Minimum views	最低观看次数
 Reels with fewer views than this are left out. Type a whole number, or 0 to not look at views.	观看次数低于此数字的 Reels 会被略过。请输入整数，或输入 0 不看观看次数。
 Fewer than %1$s views	观看次数低于 %1$s
 Minimum likes	最低点赞数
+Maximum likes	最高点赞数
+Minimum comments	最低评论数
+Maximum comments	最高评论数
+Minimum shares	最低分享次数
+Maximum shares	最高分享次数
+Minimum saves	最低保存次数
+Maximum saves	最高保存次数
+Reels with more likes than this are left out. Type a whole number, or 0 for no maximum.	点赞数高于此数字的 Reels 会被略过。请输入整数，或输入 0 不设上限。
+Reels with fewer comments than this are left out. Type a whole number, or 0 to not look at comments.	评论数低于此数字的 Reels 会被略过。请输入整数，或输入 0 不看评论数。
+Reels with more comments than this are left out. Type a whole number, or 0 for no maximum.	评论数高于此数字的 Reels 会被略过。请输入整数，或输入 0 不设上限。
+Reels with fewer shares than this are left out. Type a whole number, or 0 to not look at shares.	分享次数低于此数字的 Reels 会被略过。请输入整数，或输入 0 不看分享次数。
+Reels with more shares than this are left out. Type a whole number, or 0 for no maximum.	分享次数高于此数字的 Reels 会被略过。请输入整数，或输入 0 不设上限。
+Reels with fewer saves than this are left out. Type a whole number, or 0 to not look at saves.	保存次数低于此数字的 Reels 会被略过。请输入整数，或输入 0 不看保存次数。
+Reels with more saves than this are left out. Type a whole number, or 0 for no maximum.	保存次数高于此数字的 Reels 会被略过。请输入整数，或输入 0 不设上限。
+More than %1$s likes	点赞数高于 %1$s
+Comments aren't looked at	不看评论数
+Fewer than %1$s comments	评论数低于 %1$s
+More than %1$s comments	评论数高于 %1$s
+Shares aren't looked at	不看分享次数
+Fewer than %1$s shares	分享次数低于 %1$s
+More than %1$s shares	分享次数高于 %1$s
+Saves aren't looked at	不看保存次数
+Fewer than %1$s saves	保存次数低于 %1$s
+More than %1$s saves	保存次数高于 %1$s
 Reels with fewer likes than this are left out. Type a whole number, or 0 to not look at likes.	点赞数低于此数字的 Reels 会被略过。请输入整数，或输入 0 不看点赞数。
 Fewer than %1$s likes	点赞数低于 %1$s
 Likes aren't looked at	不看点赞数
@@ -1993,6 +2032,12 @@ That picture is over %1$d MB.	这张图片超过 %1$d MB。
 Couldn't save the picture.	无法保存图片。
 Open a chat, tap the clock button next to the call buttons at the top, or long press the chat's name, and pick Jump to the first message or Jump to a date. The chat loads its older messages on its own, with a count and a Cancel button.	打开聊天，点一下上方通话按钮旁的时钟按钮，或长按聊天名称，选择“跳到第一则消息”或“跳到某个日期”。聊天会自动加载较旧的消息，并显示数量和取消按钮。
 Open a chat, tap the clock button next to the call buttons at the top, or long press the chat's name, and pick Export chat. The whole chat is saved as a text file in Downloads, HushGram folder, one line per message. Select messages in the same menu lets you tick messages to copy, share or save.	打开聊天，点一下上方通话按钮旁的时钟按钮，或长按聊天名称，选择“导出聊天”。整个聊天会存成文字档，放在“下载”的 HushGram 文件夹，每则消息一行。 同一菜单中的“选择消息”可让你勾选消息来复制、分享或保存。
+# context: settings switch title on the Messages page (#852): link buttons under a chat message, like the ones automated accounts send
+Copy links from chat buttons	复制聊天按钮中的链接
+# context: that switch's summary (#852); Copy link is the row it adds to the menu you get when you hold a message, same words as the Copy link key
+Hold a message with link buttons, like the ones automated accounts send, and tap Copy link to copy where a button goes without opening it. With several buttons you pick one.	长按带有链接按钮的消息（例如自动账号发送的消息），然后点按复制链接，即可在不打开的情况下复制按钮指向的网址。有多个按钮时可从中选择一个。
+# context: toast after Copy link put a chat button's link on the clipboard (#852)
+Link copied	已复制链接
 Instagram stopped loading older messages.	Instagram 已停止加载较旧的消息。
 Black settings page	黑色设置页面
 Black rows and dialogs, with HushGram's name at the top.	黑色的列和对话框，顶端显示 HushGram 名称。
@@ -2108,6 +2153,8 @@ Speed button on reels	Reels 速度按钮
 Puts a speed icon beside a reel. Tap it to pick a speed from 0.5x to 3x. With Keep the reel speed on, the next reels play at it too.	在 Reel 旁加入速度图标。点一下即可选择 0.5x 到 3x 的速度。打开“保留 Reels 播放速度”时，之后的 Reels 也会以这个速度播放。
 Speed in the reel menu	Reel 菜单中的速度
 Adds Playback speed to the menu a reel's three dots open. Pick a speed there from 0.5x to 3x. With Keep the reel speed on, the next reels play at it too.	在 Reel 三个点打开的菜单中加入“播放速度”。可在那里选择 0.5x 到 3x 的速度。打开“保留 Reels 播放速度”时，之后的 Reels 也会以这个速度播放。
+Whole reel in the reel menu	Reel 菜单中的完整 Reels
+Adds Show the whole reel to the menu a reel's three dots open. A tap fits that reel inside the screen until you swipe to the next one. Fill the screen there crops it again.	在 Reel 三个点打开的菜单中加入“显示完整的 Reels”。点一下，那条 Reel 会完整显示在屏幕内，直到你滑到下一条。在同一菜单点“填满屏幕”即可再次裁剪。
 # context: Reels settings: a switch for an icon beside each reel that does what Instagram's own Full screen row in the reel's menu does (#480). Full screen is Instagram's term for it (bundled 453 string packs: Vollbild, pantalla completa, layar penuh, schermo intero, 전체 화면, tela cheia, tam ekran, toàn màn hình, 全螢幕); Start every reel in clear mode is HushGram's switch of that name
 Full screen button on reels	Reels 全屏幕按钮
 Puts a Full screen icon beside a reel, so one tap does what Full screen in its menu does. Start every reel in clear mode opens every reel that way.	在 Reel 旁加入全屏幕图标，点一下就和菜单中的“全屏幕”一样。打开“每个 Reel 都以清爽模式开始”后，每个 Reel 都会这样打开。
@@ -2123,6 +2170,9 @@ Full screen didn't open	无法打开全屏幕
 Stories fill the screen	快拍填满屏幕
 # context: that switch's summary (#436)
 On a tall screen a story covers the whole screen, with the reply bar on top of it like on shorter phones, instead of a rounded card above the bar.	在较长的屏幕上，快拍会像在较短的手机上一样覆盖整个屏幕，回复栏叠在上方，而不是以圆角卡片显示在回复栏上方。
+Show the whole story	显示完整的快拍
+Whole story in the story menu	快拍菜单中的完整快拍
+Adds Show the whole story to the menu a story's three dots open while Stories fill the screen is on. A tap fits that story inside the screen until the next one. Fill the screen there fills it again.	在“快拍填满屏幕”开启时，于快拍三个点打开的菜单中加入“显示完整的快拍”。点一下，那条快拍会完整显示在屏幕内，直到下一条。在同一菜单点“填满屏幕”即可再次填满。
 # context: a button in the select-text window that copies the whole text (#492)
 Copy all	全部复制
 # context: toast after Copy all in the select-text window (#492)
@@ -2151,6 +2201,28 @@ Who stopped following you, after you open your Followers list	你打开粉丝清
 Notify me of unfollowers	通知我有人取消关注
 # context: that switch summary (#492)
 After you scroll your own Followers list to the end, posts a notification naming who has left since last time. Nothing extra is asked of Instagram.	你把自己的粉丝清单卷到底后，会用通知告诉你自上次以来谁离开了。不会向 Instagram 多要求任何东西。
+# context: settings switch title on the Profiles page (#847); holding a tab (Followers, Following) at the top of a follow list filters it
+Hold a follow list's tabs to filter it	长按关注名单的标签页进行筛选
+# context: that switch's summary (#847); Followers and Following are Instagram's own list names
+In any Followers or Following list, hold a tab at the top to show everyone, only public accounts or only private ones. Accounts Instagram hasn't said either way about stay.	在任何粉丝或关注名单中，长按顶部的标签页即可显示所有人、仅公开账户或仅私密账户。Instagram 未说明的账户会保留。
+# context: settings switch title on the Profiles page (#847): dates on your own Followers and Following lists
+Follow dates in your lists	名单中的关注日期
+# context: that switch's summary (#847)
+Your own Followers and Following lists show since when each account follows you, or you them. Dates start the first time you scroll a list to the end with this on, so accounts already there get none.	你自己的粉丝和关注名单会显示每个账户从何时开始关注你，或你从何时开始关注对方。开启此项后，从你第一次将名单滚动到底开始记录日期，因此已在名单中的账户没有日期。
+# context: a choice in the follow list filter dialog (#847): only public accounts
+Public accounts	公开账户
+# context: a choice in the follow list filter dialog (#847): only private accounts
+Private accounts	私密账户
+# context: title of the follow list filter dialog, whose choices are Everyone, Public accounts and Private accounts (#847)
+Show in follow lists	在关注名单中显示
+# context: toast after picking Everyone in the follow list filter (#847)
+Showing everyone	正在显示所有人
+# context: toast after picking Public accounts in the follow list filter (#847)
+Showing public accounts	正在显示公开账户
+# context: toast after picking Private accounts in the follow list filter (#847)
+Showing private accounts	正在显示私密账户
+# context: before a follow list row's name: since when that follow started, %s is a short date like Mar 3 (#847)
+Since %s	自 %s 起
 # context: settings switch title and button label, the row Instagram calls About this account (#492)
 About this account	关于这个账户
 About this account button	“关于这个账户”按钮
@@ -2519,6 +2591,10 @@ Tap sound volume	触摸音效音量
 Auto scroll in Home	首页自动卷动
 Moves Home on to the next post by itself. A video moves on when it ends, a photo or carousel after Time on each post. Touch the screen to hold it.	首页会自动移到下一条帖子。视频播完就移动，照片或轮播帖子则在“每条帖子的时间”后移动。触摸屏幕即可暂停。
 Time on each post	每条帖子的时间
+# context: Feed settings: switch that takes a blocked account's posts out of Home as soon as the block goes through (#861)
+Hide posts when you block someone	屏蔽某人时隐藏其帖子
+# context: Summary of Hide posts when you block someone, a Feed switch (#861)
+When you block someone, their posts in Home go away right away instead of after you refresh it.	屏蔽某人后，首页里此人的帖子会立即消失，不必先刷新.
 # context: Reels settings: switch that lets a tap on the reel shown above an open comments sheet pause or play it, and a hold play it at 2x, without closing the comments (#665)
 Control the reel above comments	控制评论上方的 Reel
 # context: Summary of Control the reel above comments (#665)
@@ -2562,6 +2638,10 @@ The time on the seek bar counts down what's left of the video, like -0:33 / 0:45
 Time under the tags button	时间显示在标记按钮下方
 # context: Summary of Time under the tags button (#711)
 Puts the time in the corner under the tags button instead of the middle of the bar.	把时间放在标记按钮下方的角落，而不是拖动条中间.
+# context: Feed settings: a switch under Time on the seek bar that moves the time to the video's top corner, below Instagram's countdown (#788)
+Time in the top corner	时间显示在上方角落
+# context: Summary of Time in the top corner (#788)
+Puts the time in the top corner of the video instead of over the bar, just below anything Instagram shows there, like its countdown.	把时间放在视频上方角落，而不是拖动条上方，就在 Instagram 显示的倒计时等内容正下方。
 # context: Feed settings: a switch under Tap a feed video to pause it that keeps any tap on a feed video from opening Reels (#706)
 Taps on feed videos stay in the feed	点击动态视频时留在动态
 # context: Summary of Taps on feed videos stay in the feed; Tap a feed video to pause it is the switch above it, use its translation (#706)
@@ -2600,6 +2680,10 @@ A feed video you hold for 2x keeps playing at 2x after you let go. Hold it again
 Only after a long hold	仅在长按较久后
 # context: Summary of Only after a long hold, a switch under Keep 2x after you let go (#552)
 Keeps 2x only when you hold the video for about 3 seconds. Let go sooner and it goes back to normal speed.	只有长按视频约 3 秒时才保持 2 倍速。提早放开就会恢复正常速度.
+# context: Feed settings: a switch under Keep 2x after you let go that leaves Instagram's 2x label on a feed video kept at 2x (#860)
+Show 2x after you let go	放开后显示 2 倍速
+# context: Summary of Show 2x after you let go, a switch under Keep 2x after you let go (#860)
+A feed video that keeps playing at 2x shows a 2x label at the top until it goes back to normal speed.	持续以 2 倍速播放的动态视频会在顶部显示 2x 标签，直到恢复正常速度。
 # context: Feed settings: a switch under Hold for 2x on feed videos that keeps the poster's name over the video while it's held at 2x (#552)
 Keep the name while you hold	按住时保留名称
 # context: Summary of Keep the name while you hold, a switch under Hold for 2x on feed videos (#552)
@@ -2667,6 +2751,10 @@ Hold a finger on the liquid pill's bubble, or slide it across the tabs, and the 
 # context: Keep story viewers, its Stories settings rows and the Story viewers page.
 Keep story viewers	保留快拍观看者
 Each time you open who viewed one of your stories, the list is kept on this phone and set beside your followers. Nothing extra is asked of Instagram. Turn it off and it stops at once.	每次你打开谁看过你的某条快拍，名单就会保留在这支手机上，并和你的粉丝放在一起对照。不会向 Instagram 多要任何东西。关闭后会立刻停止。
+# context: Stories > Keep story viewers, the switch for a search bar HushGram adds to Instagram's list of who viewed your story, and the bar's own words.
+Search bar in the viewer list	观看者名单中的搜索栏
+Puts a Search viewers bar at the top of the list of who viewed your story. It searches the viewers kept on this phone, the ones Instagram has listed so far.	在看过你快拍的名单顶部加上“搜索观看者”栏。它会搜索这支手机上保留的观看者，也就是 Instagram 目前已列出的人。
+Search viewers	搜索观看者
 Story viewers	快拍观看者
 Nothing here yet. With Keep story viewers on, open who viewed one of your stories in Instagram and the list is kept here.	这里还没有内容。开启“保留快拍观看者”后，在 Instagram 打开谁看过你的某条快拍，名单就会保留在这里。
 %1$d story kept since %2$s. Tap to see who viewed it and who has no view recorded.	自 %2$s 起保留了 %1$d 条快拍。点一下即可查看谁看过，以及谁没有记录到观看。
@@ -2717,6 +2805,10 @@ Matches: %1$d of %2$d blocked accounts	匹配 %1$d 个，共 %2$d 个已屏蔽�
 Long press a profile picture to view it	长按头像即可查看
 # context: that switch summary (#737)
 Long press the picture at the top of a profile to open the whole square picture at full size, with Save under it, instead of Instagram's own preview. A tap works as before.	长按主页顶部的头像，即可打开完整的正方形原尺寸图片，下方附有“保存”，取代 Instagram 自带的预览。轻点的操作不变.
+# context: Profiles settings: switch that makes a tap on a profile's picture open the account's story when the picture has a story ring, where Instagram sometimes opened the picture (#823)
+A story ring opens the story	点快拍圆环打开快拍
+# context: that switch summary (#823)
+Tapping the picture at the top of a profile with a story ring opens the story whenever Instagram has it, where Instagram sometimes opens the picture instead.	点按主页顶部带快拍圆环的头像时，只要 Instagram 已有该快拍就会打开它，而 Instagram 有时会改为打开头像。
 # context: Notifications settings: row that opens a list of the kinds of notification rows this phone has seen, to tick the ones to hide (#756)
 Hide notifications by type	按类型隐藏通知
 # context: that row's summary while nothing is ticked (#756)
@@ -2870,3 +2962,11 @@ Long press a chat to group it	长按聊天即可分组
 # context: Stories switch Story rings on saved posts and its summary, for posts on the Saved page (#790)
 Story rings on saved posts	已保存帖子的快拍光圈
 Posts you saved show the story ring around the author's picture, like Home does, and a tap on it opens their story. It only uses stories Instagram has already loaded.	你保存的帖子会像首页一样在作者头像周围显示快拍光圈，点一下即可打开快拍。只使用 Instagram 已加载的快拍。
+# context: Details in a post's menu (#839): a row under the facts that sends the photo, or a video's cover, to Google Lens to read its words
+Read text with Lens	用 Lens 读取文字
+# context: Details in a post's menu (#839): a toast while Open with or Read text with Lens fetches the post's file
+Getting the file ready	正在准备文件
+# context: Details in a post's menu (#839): a toast when Open with or Read text with Lens couldn't fetch the post's file
+Couldn't get the file	无法获取文件
+# context: Details in a post's menu (#839): a toast when no app on the phone takes the photo or video Open with offers
+No app here can open it	没有可打开的应用

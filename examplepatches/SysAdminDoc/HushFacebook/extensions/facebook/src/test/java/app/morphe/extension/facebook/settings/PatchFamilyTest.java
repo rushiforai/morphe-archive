@@ -440,7 +440,7 @@ public class PatchFamilyTest {
                         + "Default comment order, Hide Meta AI comment summaries, Comment sheet options, Open comments "
                         + "at full height, Tag suggestions only after @, Tap to play, Resume long videos, Frame step, Default playback quality, "
                         + "Picture-in-picture, Keep playing in the background, Turn off HDR brightness, Skip silent parts, Video buffer, Keep feed videos muted, Keep the progress bar, Use the system font, "
-                        + "Use the phone's emoji, Turn off haptics, Hide carrier data banners, Turn off screen transitions, Unlock app icons, Home header text, Open links in "
+                        + "Use the phone's emoji, Turn off haptics, Hide carrier data banners, Turn off screen transitions, Home header text, Open links in "
                         + "external browser, Sanitize sharing links, Stop update prompts, Download any story, "
                         + "Download any reel, Download any video, Download any photo, Open on a chosen tab, Following "
                         + "feed on Home, Marketplace only, Show View profile on Marketplace sellers, Remove the gap above Marketplace listings, Hide the Reels "
@@ -448,7 +448,7 @@ public class PatchFamilyTest {
                         + "mode, Hide the Get Messenger card, Clean up Facebook's chat list, Open Messenger from the "
                         + "top bar, Hide Menu promotions, Hide Meta upsells, Share sheet items, Post menu items, Hide Meta AI in search, "
                         + "Don't save search history, Search date range, Search posts tab, Saved button in search, Hold back analytics uploads, Allow screenshots, Block screenshot detection, Skip location prompts, Hide typing indicator, "
-                        + "Hide read receipts, Send chat photos and videos at original quality, Block promotional "
+                        + "Hide read receipts, Send chat photos and videos at original quality, Share to Facebook chats, Chat background, Block promotional "
                         + "notifications, Block ad telemetry, Disable Audience Network, AMOLED black theme, Material "
                         + "You theme, Accent color, Badge and logo colors, Restore screens on re-signed builds, Start on x86 devices, "
                         + "Install beside Meta's apps, Disable Play Store updates, GmsCore support, Clone install under "
@@ -464,7 +464,7 @@ public class PatchFamilyTest {
                         + "Hold a reel for 2x, Default comment order, Hide Meta AI comment summaries, Comment sheet "
                         + "options, Open comments at full height, Tag suggestions only after @, Tap to play, Resume long videos, Frame step, Default playback "
                         + "quality, Picture-in-picture, Keep playing in the background, Turn off HDR brightness, Skip silent parts, Video buffer, Keep feed videos muted, Keep the progress bar, Use the "
-                        + "system font, Use the phone's emoji, Turn off haptics, Hide carrier data banners, Turn off screen transitions, Unlock app icons, Home header text, Open "
+                        + "system font, Use the phone's emoji, Turn off haptics, Hide carrier data banners, Turn off screen transitions, Home header text, Open "
                         + "links in external browser, Sanitize sharing links, Stop update prompts, Download any "
                         + "story, Download any reel, Download any video, Download any photo, Open on a chosen tab, "
                         + "Following feed on Home, Marketplace only, Show View profile on Marketplace sellers, Remove the gap above Marketplace listings, Hide "
@@ -472,7 +472,7 @@ public class PatchFamilyTest {
                         + "Force dark mode, Hide the Get Messenger card, Clean up Facebook's chat list, Open "
                         + "Messenger from the top bar, Hide Menu promotions, Hide Meta upsells, Share sheet items, Post menu items, Hide "
                         + "Meta AI in search, Don't save search history, Search date range, Search posts tab, Saved button in search, Hold back analytics uploads, Allow screenshots, Block screenshot detection, Skip location prompts, Hide "
-                        + "typing indicator, Hide read receipts, Send chat photos and videos at original quality, "
+                        + "typing indicator, Hide read receipts, Send chat photos and videos at original quality, Share to Facebook chats, Chat background, "
                         + "Block promotional notifications, Block ad telemetry, Disable Audience Network, Accent "
                         + "color, Badge and logo colors, Restore screens on re-signed builds, Start on x86 devices, Install beside Meta's "
                         + "apps, Open in Facebook from the share menu, Hushfacebook in the Menu"),
@@ -494,7 +494,7 @@ public class PatchFamilyTest {
                         + "hushfacebook_hide_reel_share_button=off, "
                         + "hushfacebook_show_reel_comment_button=off, hushfacebook_long_video_buttons=off, "
                         + "hushfacebook_show_reel_post_date=off, "
-                        + "hushfacebook_reel_post_date_style=AGO, hushfacebook_hide_reel_new_for_you=off, "
+                        + "hushfacebook_reel_post_date_style=AGO, hushfacebook_reel_post_date_after_caption=off, hushfacebook_hide_reel_new_for_you=off, "
                         + "hushfacebook_hide_reel_sound_button=off, hushfacebook_reel_speaker_above_menu=off, "
                         + "hushfacebook_hide_reel_audio_line=off, "
                         + "hushfacebook_hide_slow_connection_message=off, hushfacebook_hide_up_next=off, "
@@ -503,7 +503,7 @@ public class PatchFamilyTest {
                         + "hushfacebook_saved_videos_in_player=off, hushfacebook_saved_videos_in_order=off, "
                         + "hushfacebook_saved_videos_stay_on_end=off, hushfacebook_saved_posts_in_row=off, "
                         + "hushfacebook_skip_still_watching=off, hushfacebook_fill_reels=off, "
-                        + "hushfacebook_play_feed_reels_whole=off)",
+                        + "hushfacebook_fill_every_reel=off, hushfacebook_play_feed_reels_whole=off)",
                 PatchFamily.reportLines(EnumSet.of(PatchFamily.REEL_DECLUTTER), false).get(0));
         // Share sheet items is set by its list, and its group switch is saved beside it.
         Settings.HIDE_SHARE_GROUP_BUTTONS.save(true);

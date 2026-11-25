@@ -63,7 +63,7 @@ class ChangePackageNameFixtureTest {
 
     /**
      * The check hands the name it was given to the extension. Yes answers yes; anything else carries
-     * on into Threads' own comparison, kept whole. On the x86 builds the check asks Redex's table of
+     * on into Threads' own comparison, kept whole. On every 457 build the check asks Redex's table of
      * outlined strings for the debug name, and a check whose index finds another string is refused.
      */
     @Test
@@ -152,14 +152,20 @@ class ChangePackageNameFixtureTest {
 
         /**
          * Threads' check for its own package on each build, read off by hand, and the index it hands
-         * Redex's table of outlined strings for the debug name where it does.
+         * Redex's table of outlined strings for the debug name where it does, null where the check loads
+         * that name itself, as 456's x86 builds did.
          */
-        val CHECKS = mapOf(
-            "512508344" to ("LX/122;->A0P" to null), "512508348" to ("LX/122;->A0P" to null),
-            "512508358" to ("LX/128;->A0Q" to null), "512508359" to ("LX/167;->A0Q" to null),
-            "512508360" to ("LX/11X;->A0Q" to 13), "512508368" to ("LX/11V;->A0Q" to null),
-            "512508369" to ("LX/122;->A0P" to null), "512508370" to ("LX/122;->A0Q" to 10),
-            "512508371" to ("LX/122;->A0P" to null),
+        val CHECKS = mapOf<String, Pair<String, Int?>>(
+            "512708483" to ("LX/BtG;->A0O" to 32),
+            "512708484" to ("LX/BY5;->A0O" to 30),
+            "512708486" to ("LX/28S;->A0P" to 29),
+            "512708487" to ("LX/BtG;->A0O" to 32),
+            "512708497" to ("LX/315;->A0P" to 29),
+            "512708498" to ("LX/C09;->A0O" to 33),
+            "512708507" to ("LX/28S;->A0P" to 29),
+            "512708508" to ("LX/BtG;->A0O" to 32),
+            "512708509" to ("LX/BVB;->A0O" to 33),
+            "512708510" to ("LX/BtG;->A0O" to 32),
         )
 
         val cache = HashMap<File, List<ClassDef>>()

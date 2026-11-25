@@ -19,8 +19,8 @@ import android.widget.Toast;
 
 /**
  * The Appearance section's theme colors: the saved theme's name, accent colors one tap away, the palette styles, and
- * the buttons that paste a theme from the clipboard, copy the one in use and go back to wallpaper colors. Shown only
- * where Material You applied. One per settings page.
+ * the buttons that paste a theme from the clipboard, copy the one in use, save it to a file or open one, and go back to
+ * wallpaper colors. Shown only where Material You applied. One per settings page.
  */
 final class ThemeColors {
     /** The accents a tap saves (#132), each with its name for screen readers. Messenger's own blue first. */
@@ -37,9 +37,22 @@ final class ThemeColors {
     private HorizontalScrollView accents;
     /** The palette style choices (#155), one per TonePalette.STYLES, or null until addTo. */
     private RadioButton[] styles;
+    /** The color code fields (#211), or null until addTo. */
+    private android.widget.EditText accentCode, neutralCode;
+    /** Saving the theme to a file and opening one (#115). */
+    private final ThemeDocument document;
 
     ThemeColors(SettingsActivity page) {
         this.page = page;
+        document = new ThemeDocument(page, this::useTheme);
+    }
+
+    void documentResult(int request, int result, android.content.Intent data) {
+        document.result(request, result, data);
+    }
+
+    void destroy() {
+        document.destroy();
     }
 
     /** The status line, the accent swatches, the three buttons and the file help, at the end of [appearance]. */
@@ -66,6 +79,7 @@ final class ThemeColors {
         accents.addView(row);
         ui.add(appearance, accents, 2);
         ((LinearLayout.LayoutParams) accents.getLayoutParams()).setMarginStart(-ui.dp(DOT_INSET));
+        addCodes(appearance);
         ui.add(appearance, ui.text(text.get(MaterialYouTheme.STYLE_KEY), 14, ui.text, true), 12);
         ui.add(appearance, ui.text(text.get("material_you_style_help"), 13, ui.muted, false), 4);
         RadioGroup group = new RadioGroup(page);
@@ -88,12 +102,89 @@ final class ThemeColors {
         copy.setTag("theme_copy");
         copy.setOnClickListener(view -> copyTheme());
         ui.add(appearance, copy, 8);
+        Button saveFile = ui.button(text.get("theme_file_save"));
+        saveFile.setTag("theme_file_save");
+        saveFile.setOnClickListener(view -> document.save(themeInUse()));
+        ui.add(appearance, saveFile, 8);
+        Button openFile = ui.button(text.get("theme_file_open"));
+        openFile.setTag("theme_file_open");
+        openFile.setOnClickListener(view -> document.open());
+        ui.add(appearance, openFile, 8);
         themeClear = ui.button(text.get("theme_clear"));
         themeClear.setTag("theme_clear");
         themeClear.setOnClickListener(view -> clearTheme());
         ui.add(appearance, themeClear, 8);
         ui.add(appearance, ui.text(text.get("theme_file_help"), 13, ui.muted, false), 8);
         showTheme();
+    }
+
+    /** Two fields for color codes (#211), the accent and the background, and the button that saves them as the theme. */
+    private void addCodes(LinearLayout appearance) {
+        SettingsUi ui = page.ui;
+        SettingsText text = page.text;
+        ui.add(appearance, ui.text(text.get("theme_codes"), 14, ui.text, true), 12);
+        LinearLayout fields = ui.row();
+        accentCode = codeField(fields, "theme_code_accent", ThemeFile.hex(0xFFE1306C), 0);
+        neutralCode = codeField(fields, "theme_code_neutral", ThemeFile.hex(0xFF1A1418), 12);
+        ui.add(appearance, fields, 4);
+        Button use = ui.button(text.get("theme_codes_use"));
+        use.setTag("theme_codes_use");
+        use.setOnClickListener(view -> useCodes());
+        ui.add(appearance, use, 8);
+        ui.add(appearance, ui.text(text.get("theme_codes_help"), 13, ui.muted, false), 8);
+        fillCodes();
+    }
+
+    /** One labeled code field, half the row wide. */
+    private android.widget.EditText codeField(LinearLayout fields, String id, String hint, int gap) {
+        SettingsUi ui = page.ui;
+        LinearLayout column = ui.column();
+        android.widget.EditText field = ui.field(hint, 7, true);
+        field.setTag(id);
+        // The saved theme fills it whenever the page is drawn, so the page's own saved copy never stands in for it.
+        field.setSaveEnabled(false);
+        field.setInputType(android.text.InputType.TYPE_CLASS_TEXT | android.text.InputType.TYPE_TEXT_FLAG_NO_SUGGESTIONS
+            | android.text.InputType.TYPE_TEXT_FLAG_CAP_CHARACTERS);
+        field.setTextDirection(View.TEXT_DIRECTION_LTR);
+        TextView label = ui.text(page.text.get(id), 13, ui.muted, false);
+        label.setLabelFor(field.getId());
+        column.addView(label);
+        ui.add(column, field, 4);
+        LinearLayout.LayoutParams half = new LinearLayout.LayoutParams(0, -2, 1);
+        half.setMarginStart(ui.dp(gap));
+        fields.addView(column, half);
+        return field;
+    }
+
+    /** The saved theme's colors as codes, or empty fields for wallpaper colors. */
+    private void fillCodes() {
+        if (accentCode == null) return;
+        ThemeFile theme = ThemeFile.saved();
+        accentCode.setText(theme == null || theme.accent == null ? "" : ThemeFile.hex(theme.accent));
+        neutralCode.setText(theme == null || theme.neutral == null ? "" : ThemeFile.hex(theme.neutral));
+    }
+
+    /** Saves the typed codes as the theme. An empty field leaves that color to Messenger; a wrong one saves nothing. */
+    void useCodes() {
+        SettingsText text = page.text;
+        Integer accent, neutral;
+        try {
+            accent = ThemeFile.code(accentCode.getText().toString());
+            neutral = ThemeFile.code(neutralCode.getText().toString());
+        } catch (IllegalArgumentException wrong) {
+            page.feedback(text.get("theme_codes_invalid"), Toast.LENGTH_LONG);
+            return;
+        }
+        if (accent == null && neutral == null) {
+            page.feedback(text.get("theme_codes_empty"), Toast.LENGTH_LONG);
+            return;
+        }
+        Runnable undo = keep();
+        Settings.preferences.edit().putString(ThemeFile.KEY, new ThemeFile("", accent, neutral, null).encode()).apply();
+        page.refreshChoices();
+        showTheme();
+        page.feedback(text.get("theme_pasted"), Toast.LENGTH_SHORT);
+        page.offerUndo(text.format("theme_change"), undo);
     }
 
     /** Names the saved theme, rings its accent, and shows Back to wallpaper colors only while there is one. */
@@ -106,6 +197,7 @@ final class ThemeColors {
         themeStatus.setText(theme == null ? text.get("theme_status_wallpaper")
             : theme.name.isEmpty() ? text.get("theme_status_unnamed") : text.get("theme_status_saved", theme.name));
         themeClear.setVisibility(theme == null ? View.GONE : View.VISIBLE);
+        fillCodes();
         for (int i = 0; i < ACCENTS.length; i++) {
             boolean picked = theme != null && theme.accent != null && theme.accent == ACCENTS[i];
             GradientDrawable dot = ui.shape(ACCENTS[i], 0, 10);
@@ -187,6 +279,12 @@ final class ThemeColors {
             page.feedback(text.get("theme_paste_invalid"), Toast.LENGTH_LONG);
             return;
         }
+        useTheme(theme);
+    }
+
+    /** Saves [theme] with Undo, from the clipboard or a file. */
+    private void useTheme(ThemeFile theme) {
+        SettingsText text = page.text;
         Runnable undo = keep();
         SharedPreferences.Editor edit = Settings.preferences.edit().putString(ThemeFile.KEY, theme.withPureBlack(null).encode());
         if (theme.pureBlack != null) edit.putBoolean(MaterialYouTheme.BLACK_KEY, theme.pureBlack);
@@ -197,16 +295,21 @@ final class ThemeColors {
         page.offerUndo(text.format("theme_change"), undo);
     }
 
-    /** Copies the saved theme, or the colors in use as one, with the pure black switch as it is now. */
+    /** The saved theme, or the colors in use as one, with the pure black switch as it is now. */
+    private static ThemeFile themeInUse() {
+        ThemeFile theme = ThemeFile.saved();
+        if (theme == null) {
+            TonePalette palette = MaterialYouTheme.palette();
+            theme = new ThemeFile("", palette.tone(TonePalette.ACCENT, 40), palette.tone(TonePalette.NEUTRAL, 50), null);
+        }
+        return theme.withPureBlack(Settings.preferences.getBoolean(MaterialYouTheme.BLACK_KEY, false));
+    }
+
+    /** Copies the theme in use. */
     private void copyTheme() {
         SettingsText text = page.text;
         try {
-            ThemeFile theme = ThemeFile.saved();
-            if (theme == null) {
-                TonePalette palette = MaterialYouTheme.palette();
-                theme = new ThemeFile("", palette.tone(TonePalette.ACCENT, 40), palette.tone(TonePalette.NEUTRAL, 50), null);
-            }
-            String json = theme.withPureBlack(Settings.preferences.getBoolean(MaterialYouTheme.BLACK_KEY, false)).encode();
+            String json = themeInUse().encode();
             ClipboardManager clipboard = page.getSystemService(ClipboardManager.class);
             if (clipboard == null) throw new IllegalStateException("Clipboard unavailable");
             clipboard.setPrimaryClip(ClipData.newPlainText(text.get("theme_copy"), json));

@@ -90,6 +90,7 @@ public class PatchFamilyTest {
         Settings.MEMBER_JOIN_DATES.resetToDefault();
         Settings.FORWARD_DATES.resetToDefault();
         Settings.SPECIAL_CONTACTS.resetToDefault();
+        Settings.LOCAL_NAMES.resetToDefault();
         Settings.DISABLE_DOUBLE_TAP_REACTIONS.resetToDefault();
         Settings.HIDE_REACTION_ROWS.resetToDefault();
         Settings.HIDE_REACTION_PICKER.resetToDefault();
@@ -102,16 +103,19 @@ public class PatchFamilyTest {
         Settings.LIST_BACKGROUND_DIM.resetToDefault();
         Settings.HIDE_TRANSLATE_BAR.resetToDefault();
         Settings.HIDE_PINNED_BAR.resetToDefault();
+        Settings.ALWAYS_SHOW_TRANSLATE_BAR.resetToDefault();
         Settings.EXACT_NUMBERS.resetToDefault();
         Settings.REVEAL_SPOILERS.resetToDefault();
         Settings.REVEAL_MENU.resetToDefault();
         Settings.SEARCH_OPENS_QUOTES.resetToDefault();
+        Settings.REVEAL_TIMED_MEDIA.resetToDefault();
         Settings.HIDE_KEYBOARD_ON_SCROLL.resetToDefault();
         Settings.KEEP_VIDEOS_MUTED.resetToDefault();
         Settings.VIDEO_EITHER_LANDSCAPE.resetToDefault();
         Settings.VIDEO_ONLY_FROM_BUTTON.resetToDefault();
         Settings.VIDEO_STARTS_SILENT.resetToDefault();
         Settings.VIDEO_TRACKS.resetToDefault();
+        Settings.EXTERNAL_PLAYER.resetToDefault();
         Settings.SWIPE_BACK_ON_PROFILES.resetToDefault();
         Settings.HIDE_PHONE_NUMBER.resetToDefault();
         Settings.MESSAGE_SECONDS.resetToDefault();
@@ -124,8 +128,6 @@ public class PatchFamilyTest {
         Settings.HIDDEN_CHATS.resetToDefault();
         Settings.SORT_BY_DATE.resetToDefault();
         Settings.SORT_OLDEST_FIRST.resetToDefault();
-        Settings.LOCAL_PINS.resetToDefault();
-        Settings.LOCAL_PINNED_CHATS.resetToDefault();
         Settings.HIDDEN_CHATS_PASSCODE.resetToDefault();
         Settings.ADMIN_CHATS.resetToDefault();
         Settings.FORWARD_HIDE_SENDER.resetToDefault();
@@ -138,7 +140,9 @@ public class PatchFamilyTest {
         Settings.HIDE_GALLERY_CAMERA_TILE.resetToDefault();
         Settings.HIDE_STICKER_TIME.resetToDefault();
         Settings.CHANGE_STICKER_SIZE.resetToDefault();
+        Settings.KEEP_STICKER_CACHE.resetToDefault();
         Settings.STICKER_SIZE.resetToDefault();
+        Settings.STICKER_PANEL_SIZE.resetToDefault();
         Settings.IGNORE_MUTED_MENTIONS.resetToDefault();
         Settings.HIDE_BLOCKED_IN_GROUPS.resetToDefault();
         Settings.HIDE_BY_KEYWORD.resetToDefault();
@@ -155,8 +159,7 @@ public class PatchFamilyTest {
         Settings.HIDE_CHANNEL_MUTE.resetToDefault();
         Settings.HIDE_CHANNEL_SHARE.resetToDefault();
         Settings.HIDE_EMOJI_STATUS.resetToDefault();
-        Settings.UNLOCK_PREMIUM_ICONS.resetToDefault();
-        Settings.LOCAL_EMOJI_STATUS.resetToDefault();
+        Settings.MOVING_EMOJI_STATUS.resetToDefault();
         Settings.HIDE_KEYBOARD_FEATURED.resetToDefault();
         Settings.HIDE_SEND_AS.resetToDefault();
         Settings.HIDE_CONTACTS_TAB.resetToDefault();
@@ -196,9 +199,9 @@ public class PatchFamilyTest {
         Settings.MESSAGE_MENU_COPY_PROTECTED.resetToDefault();
         Settings.MESSAGE_MENU_SAVE_PROTECTED.resetToDefault();
         Settings.MESSAGE_MENU_FORWARD_COPY.resetToDefault();
-        Settings.STORY_SAVE_BUTTON.resetToDefault();
         Settings.ALLOW_SCREENSHOTS.resetToDefault();
         Settings.SECRET_CHAT_SCREENSHOTS.resetToDefault();
+        Settings.TIMED_MEDIA_SCREENSHOTS.resetToDefault();
         Settings.MESSAGE_MENU_FAST_FORWARD.resetToDefault();
         Settings.MESSAGE_MENU_FORWARD_SAVED.resetToDefault();
         Settings.MESSAGE_MENU_SAVE_COVER.resetToDefault();
@@ -209,6 +212,7 @@ public class PatchFamilyTest {
         Settings.MESSAGE_MENU_DELETE_FOR_THEM.resetToDefault();
         Settings.MESSAGE_MENU_BOOKMARKS.resetToDefault();
         Settings.MESSAGE_MENU_EDIT_COPY.resetToDefault();
+        Settings.LINK_PREVIEW_PHOTO.resetToDefault();
         Settings.SELECT_BETWEEN.resetToDefault();
         Settings.SELECTION_SCREENSHOT.resetToDefault();
         Settings.SELECT_ALL.resetToDefault();
@@ -266,8 +270,8 @@ public class PatchFamilyTest {
     public void hidePremiumHasAnOffByDefaultEmojiStatusSwitchThatAChatAppliesWhenOpened() {
         PatchFamily family = PatchFamily.HIDE_COMMERCE;
         assertEquals("hideCommerce", family.statusMethod);
-        assertEquals(Arrays.asList(Settings.HIDE_COMMERCE, Settings.HIDE_EMOJI_STATUS, Settings.UNLOCK_PREMIUM_ICONS,
-                Settings.LOCAL_EMOJI_STATUS), family.switches);
+        assertEquals(Arrays.asList(Settings.HIDE_COMMERCE, Settings.HIDE_EMOJI_STATUS,
+                Settings.MOVING_EMOJI_STATUS), family.switches);
         assertTrue(family.expectedCapabilities().contains(PatchFamily.Capability.COMMERCE_EMOJI_STATUS));
         assertEquals("commerceEmojiStatus", PatchFamily.Capability.COMMERCE_EMOJI_STATUS.statusMethod);
         // Off by default, so the patch's own description stays true, and no restart: names redraw.
@@ -277,25 +281,15 @@ public class PatchFamilyTest {
     }
 
     @Test
-    public void hidePremiumHasAnOffByDefaultPremiumIconSwitchTheIconListReadsWhenOpened() {
+    public void hidePremiumHasAnOffByDefaultMovingEmojiStatusSwitchThatWaitsForARestart() {
         PatchFamily family = PatchFamily.HIDE_COMMERCE;
-        assertTrue(family.switches.contains(Settings.UNLOCK_PREMIUM_ICONS));
-        assertTrue(family.expectedCapabilities().contains(PatchFamily.Capability.COMMERCE_PREMIUM_ICONS));
-        assertEquals("commercePremiumIcons", PatchFamily.Capability.COMMERCE_PREMIUM_ICONS.statusMethod);
-        // An unlock is never on by default, and the icon list asks again each time it's drawn.
-        assertFalse(Settings.UNLOCK_PREMIUM_ICONS.defaultValue);
-        assertFalse(Settings.UNLOCK_PREMIUM_ICONS.rebootApp);
-    }
-
-    @Test
-    public void hidePremiumHasAnOffByDefaultLocalEmojiStatusSwitchTheTitleReadsWhenDrawn() {
-        PatchFamily family = PatchFamily.HIDE_COMMERCE;
-        assertTrue(family.switches.contains(Settings.LOCAL_EMOJI_STATUS));
-        assertTrue(family.expectedCapabilities().contains(PatchFamily.Capability.COMMERCE_LOCAL_EMOJI_STATUS));
-        assertEquals("commerceLocalEmojiStatus", PatchFamily.Capability.COMMERCE_LOCAL_EMOJI_STATUS.statusMethod);
-        // Off by default, and no restart: the chat list title asks each time it draws.
-        assertFalse(Settings.LOCAL_EMOJI_STATUS.defaultValue);
-        assertFalse(Settings.LOCAL_EMOJI_STATUS.rebootApp);
+        assertEquals(family.switches.indexOf(Settings.HIDE_EMOJI_STATUS) + 1, family.switches.indexOf(Settings.MOVING_EMOJI_STATUS));
+        assertTrue(family.expectedCapabilities().contains(PatchFamily.Capability.COMMERCE_MOVING_EMOJI_STATUS));
+        assertEquals("commerceMovingEmojiStatus", PatchFamily.Capability.COMMERCE_MOVING_EMOJI_STATUS.statusMethod);
+        // Off by default, since it costs battery. Telegram keeps each status's drawable for the
+        // whole run and sets its play count once, so a change shows after a restart.
+        assertFalse(Settings.MOVING_EMOJI_STATUS.defaultValue);
+        assertTrue(Settings.MOVING_EMOJI_STATUS.rebootApp);
     }
 
     @Test
@@ -372,7 +366,8 @@ public class PatchFamilyTest {
         assertEquals("hideContactsTab", family.statusMethod);
         // The compact bar and the side menu start off too and work with or without the first.
         assertEquals(Arrays.asList(Settings.HIDE_CONTACTS_TAB, Settings.COMPACT_TAB_BAR, Settings.SIDE_MENU,
-                Settings.HIDE_NEW_MESSAGE, Settings.BAR_OUTLINE), family.switches);
+                Settings.HIDE_NEW_MESSAGE, Settings.BAR_OUTLINE, Settings.HIDE_DOWNLOADS_BUTTON,
+                Settings.ALWAYS_SHOW_DOWNLOADS_BUTTON), family.switches);
         for (BooleanSetting setting : family.switches) assertFalse(setting.key, setting.defaultValue);
         // Telegram builds the bar with the main screen, so a change to it shows after a restart.
         assertTrue(Settings.HIDE_CONTACTS_TAB.rebootApp);
@@ -383,8 +378,13 @@ public class PatchFamilyTest {
         assertTrue(Settings.HIDE_NEW_MESSAGE.rebootApp);
         // The bar's glass reads its outline when the main screen is built, so it needs one as well.
         assertTrue(Settings.BAR_OUTLINE.rebootApp);
+        // The chat list works out the Downloads button again each time it comes back, so no restart.
+        assertFalse(Settings.HIDE_DOWNLOADS_BUTTON.rebootApp);
+        assertFalse(Settings.ALWAYS_SHOW_DOWNLOADS_BUTTON.rebootApp);
         assertEquals(EnumSet.of(PatchFamily.Capability.COMPACT_TAB_BAR, PatchFamily.Capability.SIDE_MENU,
-                PatchFamily.Capability.HIDE_NEW_MESSAGE, PatchFamily.Capability.BAR_OUTLINE), family.expectedCapabilities());
+                PatchFamily.Capability.HIDE_NEW_MESSAGE, PatchFamily.Capability.BAR_OUTLINE,
+                PatchFamily.Capability.HIDE_DOWNLOADS_BUTTON, PatchFamily.Capability.ALWAYS_SHOW_DOWNLOADS_BUTTON),
+                family.expectedCapabilities());
         assertOnItsPage(family);
         // The bar sits under the chat list, beside its folder switches.
         assertEquals(PatchFamily.Page.CHAT_LIST, PatchFamily.Page.of(family));
@@ -496,20 +496,22 @@ public class PatchFamilyTest {
         PatchFamily family = PatchFamily.MESSAGE_MENU_REPEAT;
         assertEquals("Add Repeat to the message menu", family.patchName);
         assertEquals(Arrays.asList(Settings.MESSAGE_MENU_REPEAT, Settings.MESSAGE_MENU_COPY_PHOTO, Settings.MESSAGE_MENU_DETAILS,
-                Settings.MESSAGE_MENU_QUICK_FORWARD, Settings.MESSAGE_MENU_COPY_PROTECTED, Settings.MESSAGE_MENU_SAVE_PROTECTED, Settings.MESSAGE_MENU_FORWARD_COPY, Settings.MESSAGE_MENU_FAST_FORWARD, Settings.MESSAGE_MENU_FORWARD_SAVED, Settings.MESSAGE_MENU_SAVE_COVER, Settings.MESSAGE_MENU_SAVE_ART, Settings.MESSAGE_MENU_CLEAR_CACHE, Settings.MESSAGE_MENU_HIDE, Settings.MESSAGE_MENU_PLAIN_FORWARD, Settings.MESSAGE_MENU_DELETE_FOR_THEM, Settings.MESSAGE_MENU_BOOKMARKS, Settings.MESSAGE_MENU_EDIT_COPY, Settings.STORY_SAVE_BUTTON, Settings.ALLOW_SCREENSHOTS, Settings.SECRET_CHAT_SCREENSHOTS, Settings.SELECT_BETWEEN, Settings.SELECTION_SCREENSHOT, Settings.SELECT_ALL, Settings.ALSO_DELETE_CHECKED), family.switches);
+                Settings.MESSAGE_MENU_QUICK_FORWARD, Settings.MESSAGE_MENU_COPY_PROTECTED, Settings.MESSAGE_MENU_SAVE_PROTECTED, Settings.MESSAGE_MENU_FORWARD_COPY, Settings.MESSAGE_MENU_FAST_FORWARD, Settings.MESSAGE_MENU_FORWARD_SAVED, Settings.MESSAGE_MENU_SAVE_COVER, Settings.MESSAGE_MENU_SAVE_ART, Settings.MESSAGE_MENU_CLEAR_CACHE, Settings.MESSAGE_MENU_HIDE, Settings.MESSAGE_MENU_PLAIN_FORWARD, Settings.MESSAGE_MENU_DELETE_FOR_THEM, Settings.MESSAGE_MENU_BOOKMARKS, Settings.MESSAGE_MENU_EDIT_COPY, Settings.ALLOW_SCREENSHOTS, Settings.SECRET_CHAT_SCREENSHOTS, Settings.TIMED_MEDIA_SCREENSHOTS, Settings.SELECT_BETWEEN, Settings.SELECTION_SCREENSHOT, Settings.SELECT_ALL, Settings.ALSO_DELETE_CHECKED, Settings.LINK_PREVIEW_PHOTO), family.switches);
         for (BooleanSetting setting : family.switches) {
             assertFalse(setting.key, setting.defaultValue);
             assertFalse(setting.key, setting.rebootApp);
         }
-        assertEquals(EnumSet.of(PatchFamily.Capability.COPY_SELECTION, PatchFamily.Capability.STORY_SAVE,
-                PatchFamily.Capability.SCREENSHOTS, PatchFamily.Capability.SELECT_BETWEEN, PatchFamily.Capability.SELECTION_SCREENSHOT, PatchFamily.Capability.SELECT_ALL,
+        assertEquals(EnumSet.of(PatchFamily.Capability.COPY_SELECTION,
+                PatchFamily.Capability.SCREENSHOTS, PatchFamily.Capability.TIMED_SCREENSHOTS, PatchFamily.Capability.SELECT_BETWEEN, PatchFamily.Capability.SELECTION_SCREENSHOT, PatchFamily.Capability.SELECT_ALL,
                 PatchFamily.Capability.SHARED_MEDIA_SELECT_ALL,
                 PatchFamily.Capability.HIDE_FOR_ME, PatchFamily.Capability.ALSO_DELETE_CHECKED, PatchFamily.Capability.BOOKMARKS,
-                PatchFamily.Capability.PHOTO_EDIT),
+                PatchFamily.Capability.PHOTO_EDIT, PatchFamily.Capability.LINK_PREVIEW_PHOTO),
                 family.expectedCapabilities());
+        assertEquals("timedScreenshots", PatchFamily.Capability.TIMED_SCREENSHOTS.statusMethod);
         assertEquals("hideForMe", PatchFamily.Capability.HIDE_FOR_ME.statusMethod);
         assertEquals("bookmarks", PatchFamily.Capability.BOOKMARKS.statusMethod);
         assertEquals("photoEdit", PatchFamily.Capability.PHOTO_EDIT.statusMethod);
+        assertEquals("linkPreviewPhoto", PatchFamily.Capability.LINK_PREVIEW_PHOTO.statusMethod);
         assertEquals("alsoDeleteChecked", PatchFamily.Capability.ALSO_DELETE_CHECKED.statusMethod);
         assertOnItsPage(family);
     }
@@ -578,13 +580,21 @@ public class PatchFamilyTest {
     public void changeStickerSizeHasItsOwnOffByDefaultSwitchAndASizeOfThreeQuarters() {
         PatchFamily family = PatchFamily.CHANGE_STICKER_SIZE;
         assertEquals("Change sticker size", family.patchName);
-        assertEquals(Collections.singletonList(Settings.CHANGE_STICKER_SIZE), family.switches);
+        assertEquals(Arrays.asList(Settings.CHANGE_STICKER_SIZE, Settings.KEEP_STICKER_CACHE), family.switches);
         assertFalse(Settings.CHANGE_STICKER_SIZE.defaultValue);
         assertFalse(Settings.CHANGE_STICKER_SIZE.rebootApp);
+        assertFalse(Settings.KEEP_STICKER_CACHE.defaultValue);
+        assertFalse(Settings.KEEP_STICKER_CACHE.rebootApp);
         assertEquals(75, (int) Settings.STICKER_SIZE.defaultValue);
         assertEquals(50, Settings.STICKER_SIZE.minimum());
         assertEquals(150, Settings.STICKER_SIZE.maximum());
-        assertTrue(family.expectedCapabilities().isEmpty());
+        assertEquals(72, (int) Settings.STICKER_PANEL_SIZE.defaultValue);
+        assertEquals(72, Settings.STICKER_PANEL_SIZE.minimum());
+        assertEquals(120, Settings.STICKER_PANEL_SIZE.maximum());
+        assertEquals(EnumSet.of(PatchFamily.Capability.KEEP_STICKER_CACHE, PatchFamily.Capability.STICKER_PANEL_SIZE),
+                family.expectedCapabilities());
+        assertEquals("stickerPanelSize", PatchFamily.Capability.STICKER_PANEL_SIZE.statusMethod);
+        assertTrue(PatchFamily.Capability.STICKER_PANEL_SIZE.rowOnly);
         assertOnItsPage(family);
     }
 
@@ -914,30 +924,27 @@ public class PatchFamilyTest {
         assertEquals("Hide folder tab counters", family.patchName);
         // The folder the chat list opens on and the hidden chats start off too, and each works with or without the others.
         assertEquals(Arrays.asList(Settings.HIDE_FOLDER_COUNTERS, Settings.LAUNCH_FOLDER, Settings.HIDE_ALL_CHATS,
-                Settings.MOVE_ALL_CHATS, Settings.HIDDEN_CHATS, Settings.SORT_BY_DATE, Settings.SORT_OLDEST_FIRST, Settings.LOCAL_PINS, Settings.HIDDEN_CHATS_PASSCODE, Settings.ADMIN_CHATS, Settings.HIDE_ACCOUNTS, Settings.HIDDEN_ACCOUNTS_LOCK, Settings.FIT_ALL_TABS, Settings.FOLDER_TAB_ICONS, Settings.CHAT_LIST_AVATAR), family.switches);
+                Settings.HIDDEN_CHATS, Settings.SORT_BY_DATE, Settings.SORT_OLDEST_FIRST, Settings.HIDDEN_CHATS_PASSCODE, Settings.ADMIN_CHATS, Settings.HIDE_ACCOUNTS, Settings.HIDDEN_ACCOUNTS_LOCK, Settings.FIT_ALL_TABS, Settings.FOLDER_TABS_BOTTOM, Settings.FOLDER_TAB_ICONS, Settings.CHAT_LIST_AVATAR, Settings.SAVED_MEDIA_FIRST), family.switches);
         for (BooleanSetting setting : family.switches) {
             assertFalse(setting.key, setting.defaultValue);
             // The counters change at once, the folder pick is for the next chat list, and the hidden
             // chats sort again when the switch flips, so none needs a restart. Hiding All Chats does,
-            // since each chat list reads it once, at its first tab build. Moving All Chats does too,
-            // since the folders are only put in place when they load. The tab icons do, since a tab
+            // since each chat list reads it once, at its first tab build. The tab icons do, since a tab
             // takes its title once, when the strip makes it.
-            assertEquals(setting.key, setting == Settings.HIDE_ALL_CHATS || setting == Settings.MOVE_ALL_CHATS
-                    || setting == Settings.FOLDER_TAB_ICONS, setting.rebootApp);
+            assertEquals(setting.key, setting == Settings.HIDE_ALL_CHATS || setting == Settings.FOLDER_TAB_ICONS, setting.rebootApp);
         }
-        assertEquals(EnumSet.of(PatchFamily.Capability.LAUNCH_FOLDER, PatchFamily.Capability.HIDE_ALL_CHATS, PatchFamily.Capability.ALL_CHATS_PLACE,
-                PatchFamily.Capability.HIDDEN_CHATS, PatchFamily.Capability.SORT_BY_DATE, PatchFamily.Capability.LOCAL_PINS, PatchFamily.Capability.ADMIN_CHATS, PatchFamily.Capability.FIT_TABS, PatchFamily.Capability.TAB_ICONS, PatchFamily.Capability.HIDDEN_ACCOUNTS, PatchFamily.Capability.HIDDEN_PASSCODE, PatchFamily.Capability.HIDDEN_UNREAD, PatchFamily.Capability.CHAT_LIST_AVATAR), family.expectedCapabilities());
+        assertEquals(EnumSet.of(PatchFamily.Capability.LAUNCH_FOLDER, PatchFamily.Capability.HIDE_ALL_CHATS,
+                PatchFamily.Capability.HIDDEN_CHATS, PatchFamily.Capability.SORT_BY_DATE, PatchFamily.Capability.ADMIN_CHATS, PatchFamily.Capability.FIT_TABS, PatchFamily.Capability.BOTTOM_TABS, PatchFamily.Capability.TAB_ICONS, PatchFamily.Capability.HIDDEN_ACCOUNTS, PatchFamily.Capability.HIDDEN_PASSCODE, PatchFamily.Capability.HIDDEN_UNREAD, PatchFamily.Capability.CHAT_LIST_AVATAR, PatchFamily.Capability.SAVED_MEDIA_FIRST), family.expectedCapabilities());
         assertEquals("launchFolder", PatchFamily.Capability.LAUNCH_FOLDER.statusMethod);
         assertEquals("hideAllChats", PatchFamily.Capability.HIDE_ALL_CHATS.statusMethod);
-        assertEquals("allChatsPlace", PatchFamily.Capability.ALL_CHATS_PLACE.statusMethod);
         assertEquals("hiddenChats", PatchFamily.Capability.HIDDEN_CHATS.statusMethod);
         assertEquals("sortByDate", PatchFamily.Capability.SORT_BY_DATE.statusMethod);
-        assertEquals("localPins", PatchFamily.Capability.LOCAL_PINS.statusMethod);
         assertEquals("adminChats", PatchFamily.Capability.ADMIN_CHATS.statusMethod);
         assertEquals("hiddenAccounts", PatchFamily.Capability.HIDDEN_ACCOUNTS.statusMethod);
         assertEquals("hiddenPasscode", PatchFamily.Capability.HIDDEN_PASSCODE.statusMethod);
         assertEquals("hiddenUnread", PatchFamily.Capability.HIDDEN_UNREAD.statusMethod);
         assertEquals("chatListAvatar", PatchFamily.Capability.CHAT_LIST_AVATAR.statusMethod);
+        assertEquals("savedMediaFirst", PatchFamily.Capability.SAVED_MEDIA_FIRST.statusMethod);
         assertOnItsPage(family);
     }
 
@@ -1089,16 +1096,17 @@ public class PatchFamilyTest {
     public void keepVideosMutedHasItsOwnOffByDefaultSwitchThatAppliesAtOnce() {
         PatchFamily family = PatchFamily.KEEP_VIDEOS_MUTED;
         assertEquals("Keep videos muted on volume keys", family.patchName);
-        assertEquals(Arrays.asList(Settings.KEEP_VIDEOS_MUTED, Settings.VIDEO_EITHER_LANDSCAPE, Settings.VIDEO_ONLY_FROM_BUTTON, Settings.VIDEO_STARTS_SILENT, Settings.VIDEO_TRACKS), family.switches);
-        for (BooleanSetting setting : Arrays.asList(Settings.KEEP_VIDEOS_MUTED, Settings.VIDEO_EITHER_LANDSCAPE, Settings.VIDEO_ONLY_FROM_BUTTON, Settings.VIDEO_STARTS_SILENT, Settings.VIDEO_TRACKS)) {
+        assertEquals(Arrays.asList(Settings.KEEP_VIDEOS_MUTED, Settings.VIDEO_EITHER_LANDSCAPE, Settings.VIDEO_ONLY_FROM_BUTTON, Settings.VIDEO_STARTS_SILENT, Settings.VIDEO_TRACKS, Settings.EXTERNAL_PLAYER), family.switches);
+        for (BooleanSetting setting : Arrays.asList(Settings.KEEP_VIDEOS_MUTED, Settings.VIDEO_EITHER_LANDSCAPE, Settings.VIDEO_ONLY_FROM_BUTTON, Settings.VIDEO_STARTS_SILENT, Settings.VIDEO_TRACKS, Settings.EXTERNAL_PLAYER)) {
             assertFalse(setting.key, setting.defaultValue);
             assertFalse(setting.key, setting.rebootApp);
         }
         assertEquals(EnumSet.of(PatchFamily.Capability.VIDEO_EITHER_LANDSCAPE, PatchFamily.Capability.VIDEO_ONLY_FROM_BUTTON,
-                PatchFamily.Capability.VIDEO_STARTS_SILENT, PatchFamily.Capability.VIDEO_TRACKS), family.expectedCapabilities());
+                PatchFamily.Capability.VIDEO_STARTS_SILENT, PatchFamily.Capability.VIDEO_TRACKS, PatchFamily.Capability.EXTERNAL_PLAYER), family.expectedCapabilities());
         assertEquals("videoOnlyFromButton", PatchFamily.Capability.VIDEO_ONLY_FROM_BUTTON.statusMethod);
         assertEquals("videoStartsSilent", PatchFamily.Capability.VIDEO_STARTS_SILENT.statusMethod);
         assertEquals("videoTracks", PatchFamily.Capability.VIDEO_TRACKS.statusMethod);
+        assertEquals("externalPlayer", PatchFamily.Capability.EXTERNAL_PLAYER.statusMethod);
         assertEquals("videoEitherLandscape", PatchFamily.Capability.VIDEO_EITHER_LANDSCAPE.statusMethod);
         assertOnItsPage(family);
     }
@@ -1118,15 +1126,16 @@ public class PatchFamilyTest {
     public void revealSpoilersHasItsOwnOffByDefaultSwitchThatAppliesAtOnce() {
         PatchFamily family = PatchFamily.REVEAL_SPOILERS;
         assertEquals("Reveal spoilers", family.patchName);
-        assertEquals(Arrays.asList(Settings.REVEAL_SPOILERS, Settings.REVEAL_MENU, Settings.SEARCH_OPENS_QUOTES), family.switches);
-        for (BooleanSetting setting : Arrays.asList(Settings.REVEAL_SPOILERS, Settings.REVEAL_MENU, Settings.SEARCH_OPENS_QUOTES)) {
+        assertEquals(Arrays.asList(Settings.REVEAL_SPOILERS, Settings.REVEAL_MENU, Settings.SEARCH_OPENS_QUOTES, Settings.REVEAL_TIMED_MEDIA), family.switches);
+        for (BooleanSetting setting : family.switches) {
             assertFalse(setting.key, setting.defaultValue);
             assertFalse(setting.key, setting.rebootApp);
         }
-        assertEquals(EnumSet.of(PatchFamily.Capability.CHAT_REVEAL_MENU, PatchFamily.Capability.SEARCH_HIT_QUOTES),
+        assertEquals(EnumSet.of(PatchFamily.Capability.CHAT_REVEAL_MENU, PatchFamily.Capability.SEARCH_HIT_QUOTES, PatchFamily.Capability.REVEAL_TIMED_MEDIA),
                 family.expectedCapabilities());
         assertEquals("chatRevealMenu", PatchFamily.Capability.CHAT_REVEAL_MENU.statusMethod);
         assertEquals("searchHitQuotes", PatchFamily.Capability.SEARCH_HIT_QUOTES.statusMethod);
+        assertEquals("revealTimedMedia", PatchFamily.Capability.REVEAL_TIMED_MEDIA.statusMethod);
         assertOnItsPage(family);
     }
 
@@ -1232,14 +1241,18 @@ public class PatchFamilyTest {
     public void translateBarHasItsOwnOffByDefaultSwitchThatAppliesAtOnce() {
         PatchFamily family = PatchFamily.HIDE_TRANSLATE_BAR;
         assertEquals("Hide translate bar", family.patchName);
-        // The pinned message bar sits in the same chat screen and has its own switch.
-        assertEquals(Arrays.asList(Settings.HIDE_TRANSLATE_BAR, Settings.HIDE_PINNED_BAR), family.switches);
+        // The pinned message bar and the always-on translate bar sit in the same chat screen and
+        // have their own switches.
+        assertEquals(Arrays.asList(Settings.HIDE_TRANSLATE_BAR, Settings.HIDE_PINNED_BAR, Settings.ALWAYS_SHOW_TRANSLATE_BAR),
+                family.switches);
         for (BooleanSetting setting : family.switches) {
             assertFalse(setting.key, setting.defaultValue);
             assertFalse(setting.key, setting.rebootApp);
         }
-        assertEquals(EnumSet.of(PatchFamily.Capability.HIDE_PINNED_BAR), family.expectedCapabilities());
+        assertEquals(EnumSet.of(PatchFamily.Capability.HIDE_PINNED_BAR, PatchFamily.Capability.ALWAYS_TRANSLATE_BAR),
+                family.expectedCapabilities());
         assertEquals("hidePinnedBar", PatchFamily.Capability.HIDE_PINNED_BAR.statusMethod);
+        assertEquals("alwaysTranslateBar", PatchFamily.Capability.ALWAYS_TRANSLATE_BAR.statusMethod);
         assertOnItsPage(family);
     }
 
@@ -1289,14 +1302,15 @@ public class PatchFamilyTest {
         Map<PatchFamily, Set<PatchFamily.Capability>> expected = new LinkedHashMap<>();
         expected.put(PatchFamily.NORMAL_PASTE, EnumSet.of(PatchFamily.Capability.COMPOSE_PLAIN_PASTE, PatchFamily.Capability.CAPTION_PLAIN_PASTE, PatchFamily.Capability.MENTION_BY_ID));
         expected.put(PatchFamily.SHOW_LOCAL_IDS, EnumSet.of(PatchFamily.Capability.PROFILE_LOCAL_IDS, PatchFamily.Capability.SPECIAL_CONTACTS,
-                PatchFamily.Capability.REGISTRATION_DATE, PatchFamily.Capability.MEMBER_JOIN_DATES, PatchFamily.Capability.FORWARD_DATES));
+                PatchFamily.Capability.REGISTRATION_DATE, PatchFamily.Capability.MEMBER_JOIN_DATES, PatchFamily.Capability.FORWARD_DATES,
+                PatchFamily.Capability.LOCAL_NAMES));
         expected.put(PatchFamily.DISABLE_DOUBLE_TAP_REACTIONS, EnumSet.of(PatchFamily.Capability.CHAT_DOUBLE_TAP_REACTION, PatchFamily.Capability.PREVIEW_DOUBLE_TAP_REACTION, PatchFamily.Capability.REACTION_ROWS, PatchFamily.Capability.REACTION_PICKER, PatchFamily.Capability.REACTION_SELECTION, PatchFamily.Capability.EMOJI_PACK_NOTE));
         PatchFamily.inBuildForTests = expected.keySet();
         for (Map.Entry<PatchFamily, Set<PatchFamily.Capability>> entry : expected.entrySet()) {
             PatchFamily family = entry.getKey();
             assertEquals(entry.getValue(), family.expectedCapabilities());
-            // Show user and chat IDs carries switches for the profile's data center, registration month, member join dates, forward dates and Special contacts, and Use normal paste one for mentions.
-            assertEquals(family == PatchFamily.SHOW_LOCAL_IDS ? 6 : family == PatchFamily.NORMAL_PASTE ? 2 : family == PatchFamily.DISABLE_DOUBLE_TAP_REACTIONS ? 4 : 1, family.switches.size());
+            // Show user and chat IDs carries switches for the profile's data center, registration month, member join dates, forward dates, Special contacts and Rename on this phone, and Use normal paste one for mentions.
+            assertEquals(family == PatchFamily.SHOW_LOCAL_IDS ? 7 : family == PatchFamily.NORMAL_PASTE ? 2 : family == PatchFamily.DISABLE_DOUBLE_TAP_REACTIONS ? 4 : 1, family.switches.size());
             // Double-tap reactions also carries the reaction row and picker switches.
             for (BooleanSetting setting : family.switches) assertFalse(setting.key, setting.defaultValue);
             for (PatchFamily.Capability only : entry.getValue()) {
@@ -1424,7 +1438,7 @@ public class PatchFamilyTest {
                 "Disable analytics: on (hushtelegram_disable_analytics=off, hushtelegram_ghost_mode=off, "
                         + "hushtelegram_ghost_read_receipts=on, hushtelegram_ghost_stories=on, hushtelegram_ghost_typing=off, hushtelegram_ghost_online=off, hushtelegram_ghost_button=off, hushtelegram_ghost_read_after_send=off, hushtelegram_ghost_reads_button=off, hushtelegram_ghost_chats=off, hushtelegram_fake_typing=off, hushtelegram_receive_only=off, hushtelegram_power_off_accounts=off, hushtelegram_instant_lock=off, hushtelegram_quiet_sign_up=off, hushtelegram_duress_wipe=off)",
                 "not in this build: Hide Stories, Hide recommendations, Hide Premium, gifts and Stars, Hide promotional banners, Hide sponsored proxy channel, Hide popular apps, Hide contacts on Telegram, Hide greeting stickers, Disable chat swipe actions, Disable pull to next channel, Use normal paste, Show user and chat IDs, Disable double-tap reactions, Quiet contacts nag, Holiday look all year, Use system font, AMOLED black, Hide translate bar, Exact numbers, Reveal spoilers, Hide keyboard on scroll, Keep videos muted on volume keys, Swipe back on profiles, Hide phone number, Message times with seconds, Allow chat blur on slower phones, Play voice messages one at a time, Turn off haptic feedback, Turn off reaction effects, Hide folder tab counters, Hide sender names when forwarding, Voice messages in the music player, Silence people outside your contacts, Disable pull to archive, Start the camera on the rear lens, Hide gallery camera tile, Hide time on stickers, Change sticker size, Ignore mentions in muted chats, Hide blocked users in groups, Hide messages by keyword, Hide Telegram Features and Invite Friends, Add Repeat to the message menu, Keep deleted messages, Ask before sending a sticker, Translate with an outside service, Hide channel bar buttons, Hide Send as button, Hide Contacts tab, Faster downloads, Save downloaded files, Folders by chat type, Disable call debug upload, Disable draft link previews, Gallery camera on tap, Open links externally, Strip link tracking, Disable update checks, Repair Firebase push registration, UnifiedPush notifications, Test server sign-in, Bot token sign-in, "
-                        + "Suppress screenshot notification, Unlock Premium features, Bypass channel restrictions, "
+                        + "Suppress screenshot notification, Bypass channel restrictions, "
                         + "Bypass integrity check, Auto-forwarding rules, Never send an uncropped photo, Keep captions with their photos, Proxy in the chat list menu, Free proxies, My messages, Text direction, Lyrics and song dates, Chat preview buttons",
                 "Hide ads coverage: channel ads, video ads, search ads",
                 "Disable analytics coverage: channel read metrics, Premium promo views, Premium promo taps, Premium promo accepts, Premium promo failures, dual camera reports, read receipts and story views, receive only mode, powering off accounts, instant lock, quiet sign-up, the device in Active sessions, account deletion, duress passcode"),

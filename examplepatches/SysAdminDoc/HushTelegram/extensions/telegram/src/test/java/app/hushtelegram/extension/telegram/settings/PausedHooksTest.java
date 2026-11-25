@@ -168,8 +168,7 @@ public class PausedHooksTest {
                 () -> !app.hushtelegram.extension.telegram.misc.Commerce.showAddressSendGram(true),
                 () -> !app.hushtelegram.extension.telegram.misc.Commerce.showTransferSendGram(true),
                 app.hushtelegram.extension.telegram.misc.EmojiStatus::hide,
-                () -> !app.hushtelegram.extension.telegram.misc.AppIcons.premium(1),
-                () -> app.hushtelegram.extension.telegram.misc.LocalEmojiStatus.premium(0)));
+                () -> app.hushtelegram.extension.telegram.misc.EmojiStatus.statusRepeatType(7) != 7));
         probes.put(PatchFamily.HIDE_PROMOTIONAL_BANNERS, Arrays.asList(
                 () -> !Suggestions.filterChatList(Collections.singleton("PREMIUM_UPGRADE")).contains("PREMIUM_UPGRADE"),
                 () -> Suggestions.birthdayGiftBannerDismissed(false)));
@@ -498,8 +497,6 @@ public class PausedHooksTest {
         // A screenshot in a secret chat sends no notice.
         probes.put(PatchFamily.SUPPRESS_SCREENSHOT_NOTIFICATION, Collections.singletonList(
                 () -> app.hushtelegram.extension.telegram.misc.ScreenshotNotification.suppress(1)));
-        probes.put(PatchFamily.UNLOCK_PREMIUM, Collections.singletonList(
-                () -> app.hushtelegram.extension.telegram.misc.PremiumUnlock.isPremium(1) == 1));
         // A chat and a message that forbid forwarding allow it, and a chat restricted for copyright or local law opens.
         probes.put(PatchFamily.BYPASS_CHANNEL_RESTRICTIONS, Arrays.asList(
                 () -> app.hushtelegram.extension.telegram.misc.ChannelRestrictions.isChatNoForwards(1) == 0,

@@ -6,7 +6,6 @@
  */
 package app.morphe.patches.threads.misc.theme
 
-import app.morphe.patcher.StringComparisonType
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
 import app.morphe.patcher.patch.BytecodePatchContext
 import app.morphe.patcher.patch.PatchException
@@ -16,7 +15,9 @@ import app.morphe.patches.shared.compat.AppCompatibilities
 import app.morphe.patches.threads.ads.wordOffset
 import app.morphe.patches.threads.feed.reaching
 import app.morphe.patches.threads.misc.extension.EXTENSION_PACKAGE
+import app.morphe.patches.threads.misc.extension.classesNoted
 import app.morphe.patches.threads.misc.extension.enableStatus
+import app.morphe.patches.threads.misc.extension.holdsNote
 import app.morphe.patches.threads.misc.extension.requireStatusMethod
 import app.morphe.patches.threads.misc.extension.threadsExtensionPatch
 import app.morphe.patches.threads.misc.settings.settingsPatch
@@ -36,7 +37,6 @@ import com.android.tools.smali.dexlib2.iface.instruction.TwoRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.WideLiteralInstruction
 import com.android.tools.smali.dexlib2.iface.reference.FieldReference
 import com.android.tools.smali.dexlib2.iface.reference.MethodReference
-import com.android.tools.smali.dexlib2.iface.reference.StringReference
 import com.android.tools.smali.dexlib2.iface.reference.TypeReference
 
 private const val PATCH = "Pure black dark mode"
@@ -135,10 +135,6 @@ internal data class SchemeBuild(val call: Int, val field: String, val colors: Li
         .average()
 }
 
-internal fun Method.holdsNote(note: String): Boolean = implementation?.instructions?.any {
-    it.getReference<StringReference>()?.string?.startsWith(note) == true
-} == true
-
 /** Every place [this] loads [THREADS_DARK]. */
 internal fun Method.darkLoads(): List<Int> =
     implementation!!.instructions.withIndex().filter { (_, it) -> it.loadsWide(THREADS_DARK) }.map { it.index }
@@ -214,6 +210,9 @@ private fun BytecodePatchContext.schemeOnlyTheme(theme: Method, helpers: List<Me
             method.name == "<init>" && method.parameterTypes.count { it.toString() == "J" } >= SCHEME_COLORS
         } == true }
         .toSet()
+    // 456 copies the scheme into a second one and builds the palette from the copy, so each
+    // background is read twice. Whatever takes one of them has to take them all, unchanged.
+    var reached = false
     for ((index, instruction) in body.withIndex()) {
         if (instruction.opcode != Opcode.INVOKE_DIRECT_RANGE) continue
         val method = instruction.getReference<MethodReference>()!!
@@ -225,9 +224,11 @@ private fun BytecodePatchContext.schemeOnlyTheme(theme: Method, helpers: List<Me
             if (method.parameterTypes[parameter].toString() != "J") return@mapNotNull null
             theme.wideFieldOrigin(index, call.startRegister + 1 + method.wordOffset(parameter))
         }.toSet()
-        if (forwarded.containsAll(backgrounds)) return true
+        val taken = backgrounds intersect forwarded
+        if (taken.isNotEmpty() && taken != backgrounds) return false
+        if (taken == backgrounds) reached = true
     }
-    return false
+    return reached
 }
 
 /** The field supplying an intact wide value on every path, following wide copies across joins. */
@@ -258,7 +259,7 @@ private fun <T> MutableMap<Int, T>.forgetWide(register: Int, wide: Boolean) {
 }
 
 private fun BytecodePatchContext.theme(): MutableMethod {
-    val method = classDefByStrings(BDS_THEME, StringComparisonType.STARTS_WITH).flatMap { it.methods }
+    val method = classesNoted(BDS_THEME).flatMap { it.methods }
         .filter { it.holdsNote(BDS_THEME) }
         .distinctBy { "${it.definingClass}->${it.name}${it.parameterTypes.joinToString("")}${it.returnType}" }
         .singleOrPatchException("$PATCH: Threads' theme, the method holding \"$BDS_THEME\"")

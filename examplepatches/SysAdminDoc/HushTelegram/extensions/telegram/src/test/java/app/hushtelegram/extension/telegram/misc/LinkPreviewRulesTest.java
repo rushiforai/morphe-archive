@@ -351,7 +351,7 @@ public class LinkPreviewRulesTest {
                 "Lines left out: %1$s. They aren't rules."};
         for (String toast : toasts) {
             assertFitsATwoLineToast("en", String.format(toast, 12));
-            for (String language : new String[]{"bg", "de", "es", "in", "pt-rbr", "tr", "zh-hans"}) {
+            for (String language : new String[]{"bg", "de", "es", "in", "it", "pt-rbr", "tr", "zh-hans"}) {
                 String row = L10nTablesForTests.of(language).get(toast);
                 assertNotNull(language + ": " + toast, row);
                 assertFitsATwoLineToast(language, String.format(row, 12));

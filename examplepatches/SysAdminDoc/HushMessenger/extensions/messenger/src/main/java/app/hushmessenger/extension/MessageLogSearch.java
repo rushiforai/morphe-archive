@@ -42,12 +42,15 @@ final class MessageLogSearch {
         final String thread;
         final String name;
         final long latest;
+        /** The chat's newest message, shown under its name like Messenger's chat list does. */
+        final MessageLog.Entry newest;
         int count;
 
-        Chat(String thread, String name, long latest) {
+        Chat(String thread, String name, MessageLog.Entry newest) {
             this.thread = thread;
             this.name = name;
-            this.latest = latest;
+            this.latest = newest.time;
+            this.newest = newest;
         }
     }
 
@@ -63,7 +66,7 @@ final class MessageLogSearch {
             Chat chat = chats.get(entry.thread);
             if (chat == null) {
                 String picked = names.get(entry.thread);
-                chat = new Chat(entry.thread, picked != null ? picked : name(newestFirst, entry.thread), entry.time);
+                chat = new Chat(entry.thread, picked != null ? picked : name(newestFirst, entry.thread), entry);
                 chats.put(entry.thread, chat);
             }
             chat.count++;

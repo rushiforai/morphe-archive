@@ -31,6 +31,7 @@ public class MarkReadButtonTest {
         CrashGuard.resetForTests();
         CrashGuard.onProcessStart(context);
         Settings.lastReply = null;
+        Settings.hookErrors.clear();
         synchronized (MarkReadButton.held) { MarkReadButton.held.clear(); }
         SeenHandler.sent.clear();
     }
@@ -66,13 +67,14 @@ public class MarkReadButtonTest {
         assertEquals(Arrays.asList("message-2"), SeenHandler.sent);
     }
 
-    @Test public void nothingIsHeldWhileTheButtonIsOffOrHideReadReceiptsIsPaused() {
+    @Test public void withTheButtonOffTheSeenIsOnlyKeptForAReactionAndPausedNothingIsHeld() {
         on(true, false);
         SeenHandler handler = new SeenHandler(thread);
         SeenHandler.open(session, handler, "message-1");
         assertTrue(SeenHandler.sent.isEmpty());
-        assertTrue(MarkReadButton.held.isEmpty());
+        assertEquals("kept for a reaction in the chat", 1, MarkReadButton.held.size());
         assertFalse(MarkReadButton.shown());
+        synchronized (MarkReadButton.held) { MarkReadButton.held.clear(); }
 
         on(true, true);
         Settings.preferences.edit().putBoolean("paused", true).commit();
@@ -80,6 +82,45 @@ public class MarkReadButtonTest {
         assertEquals("paused, Messenger sends Seen itself", Arrays.asList("message-2"), SeenHandler.sent);
         assertTrue(MarkReadButton.held.isEmpty());
         assertFalse(MarkReadButton.shown());
+    }
+
+    /**
+     * #223: a reaction shows you read the chat, as a reply does, so the Seen held back for that chat goes out. Other
+     * chats keep theirs, and the button isn't needed for it.
+     */
+    @Test public void aReactionSendsTheSeenHeldForItsOwnChatOnly() {
+        on(true, false);
+        SeenHandler.open(session, new SeenHandler(thread), "message-1");
+        SeenHandler.open(session, new SeenHandler(new ThreadKey("another-chat")), "message-9");
+
+        Settings.reactionSent(new ThreadKey("chat"));
+        ShadowLooper.idleMainLooper();
+        assertEquals(Arrays.asList("message-1"), SeenHandler.sent);
+        assertNull("not toasted", ShadowToast.getTextOfLatestToast());
+
+        Settings.reactionSent(new ThreadKey("chat"));
+        Settings.reactionSent(new ThreadKey("a-chat-with-nothing-held"));
+        Settings.reactionSent(null);
+        ShadowLooper.idleMainLooper();
+        assertEquals("a second reaction has nothing left to send", Arrays.asList("message-1"), SeenHandler.sent);
+
+        // The next Seen in that chat is held back again.
+        SeenHandler.open(session, new SeenHandler(thread), "message-2");
+        assertEquals(Arrays.asList("message-1"), SeenHandler.sent);
+        assertFalse(Settings.hookErrors.containsKey("hide_read_receipts"));
+    }
+
+    /** With Hide read receipts off or paused, Messenger sent its own Seen, and a reaction sends nothing more. */
+    @Test public void aReactionWithHideReadReceiptsOffOrPausedSendsNothing() {
+        on(true, false);
+        SeenHandler.open(session, new SeenHandler(thread), "message-1");
+        on(false, false);
+        Settings.reactionSent(thread);
+        on(true, false);
+        Settings.preferences.edit().putBoolean("paused", true).commit();
+        Settings.reactionSent(thread);
+        ShadowLooper.idleMainLooper();
+        assertTrue(SeenHandler.sent.isEmpty());
     }
 
     @Test public void anotherAccountsTagOrAnotherChatSendsNothing() {

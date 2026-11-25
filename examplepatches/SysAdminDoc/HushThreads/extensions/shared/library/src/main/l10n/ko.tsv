@@ -392,3 +392,31 @@ One pattern a line, or separated by commas. A shop's domain such as shopee.vn ta
 One pattern a line, or separated by commas. Matched whatever the letter case.	한 줄에 패턴 하나씩, 또는 쉼표로 구분해 입력합니다. 대소문자는 구분하지 않습니다.
 Hide comments with links	링크가 있는 댓글 숨기기
 Replies with a web link are left out, whatever the patterns say. Add a bare site name such as shopee.vn as a pattern.	웹 링크가 들어 있는 답글은 패턴과 관계없이 빠집니다. shopee.vn처럼 사이트 이름만 있는 주소는 패턴으로 추가하세요.
+Hide the like button	좋아요 버튼 숨기기
+Takes the like button off posts and replies, with its count. Restart Threads to see the change.	게시물과 답글에서 좋아요 버튼과 그 수를 제거합니다. 변경 사항을 보려면 Threads를 다시 시작하세요.
+Hide the reply button	답글 버튼 숨기기
+Takes the reply button off posts and replies, with its count. Restart Threads to see the change.	게시물과 답글에서 답글 버튼과 그 수를 제거합니다. 변경 사항을 보려면 Threads를 다시 시작하세요.
+Hide the repost button	리포스트 버튼 숨기기
+Takes the repost button off posts and replies, with its count. Restart Threads to see the change.	게시물과 답글에서 리포스트 버튼과 그 수를 제거합니다. 변경 사항을 보려면 Threads를 다시 시작하세요.
+Hide the share button	공유 버튼 숨기기
+Takes the share button off posts and replies. Restart Threads to see the change.	게시물과 답글에서 공유 버튼을 제거합니다. 변경 사항을 보려면 Threads를 다시 시작하세요.
+Hide the save button	저장 버튼 숨기기
+Takes the save button off posts and replies, so you can't tap it by mistake. Restart Threads to see the change.	실수로 누르지 않도록 게시물과 답글에서 저장 버튼을 제거합니다. 변경 사항을 보려면 Threads를 다시 시작하세요.
+# The header logo switch under Appearance, then the row under Set when you patched for the launcher icon, and the launcher icon as one item of the list of what stays while HushThreads is paused
+Use the HushThreads logo	HushThreads 로고 사용
+Shows the HushThreads logo at the top of your feed in place of the Threads logo. It doesn't spin while the feed refreshes. Restart Threads to see the change.	피드 상단에 Threads 로고 대신 HushThreads 로고를 표시합니다. 피드를 새로고침하는 동안 회전하지 않습니다. 변경 사항을 보려면 Threads를 다시 시작하세요.
+HushThreads icon	HushThreads 아이콘
+The app's icon on your home screen is the HushThreads logo.	홈 화면의 앱 아이콘이 HushThreads 로고입니다.
+the HushThreads icon	HushThreads 아이콘
+# Custom font's switch and its Font file row under Appearance, and what picking a font file says
+Custom font	사용자 지정 글꼴
+Shows Threads' text in the font file you pick below. Icons keep their own font. Restart Threads to see the change.	Threads의 텍스트를 아래에서 선택한 글꼴 파일로 표시합니다. 아이콘은 원래 글꼴을 유지합니다. 변경 사항을 보려면 Threads를 다시 시작하세요.
+Font file	글꼴 파일
+No font picked yet. Pick a .ttf or .otf file.	아직 선택한 글꼴이 없습니다. .ttf 또는 .otf 파일을 선택하세요.
+A font file is picked. Tap to pick another.	글꼴 파일이 선택되어 있습니다. 다른 파일을 선택하려면 탭하세요.
+%1$s is picked. Tap to pick another.	%1$s 파일이 선택되어 있습니다. 다른 파일을 선택하려면 탭하세요.
+Copying the font file	글꼴 파일을 복사하는 중
+Font file saved. Restart Threads to see it.	글꼴 파일을 저장했습니다. 적용하려면 Threads를 다시 시작하세요.
+Font file saved. Turn on Custom font to use it.	글꼴 파일을 저장했습니다. 사용하려면 사용자 지정 글꼴을 켜세요.
+That file is too large to be a font. Nothing was changed.	글꼴이라고 하기에는 파일이 너무 큽니다. 아무것도 변경되지 않았습니다.
+That isn't a font file Android can use. Nothing was changed.	Android에서 사용할 수 있는 글꼴 파일이 아닙니다. 아무것도 변경되지 않았습니다.

@@ -30,6 +30,8 @@ class DefaultSelectionPolicyTest {
             "of an update to the Threads you have, so it's only for people who want both.",
         "Change app name" to "It renames the app under its icon, which only helps tell a copy made with Change " +
             "package name apart from Threads.",
+        "Custom launcher icon" to "It swaps Threads' icon for HushThreads' logo in the APK's resources, with no " +
+            "switch, so getting Threads' own icon back means patching again.",
     )
 
     private fun shippedPatches() = run {

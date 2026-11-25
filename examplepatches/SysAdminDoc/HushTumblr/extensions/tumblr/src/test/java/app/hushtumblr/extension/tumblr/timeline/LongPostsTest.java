@@ -127,6 +127,22 @@ public class LongPostsTest {
         }
     }
 
+    /** The line lengths fold a few paragraphs, and need fewer hidden lines than a screen does before they cut (#24). */
+    @Test public void theLineLengthsFoldShortPosts() {
+        Settings.COLLAPSE_LONG_POSTS.save(true);
+        TextSettings.LONG_POST_SIZE.save("5");
+        List<Object> rows = paragraphs(4, 2);
+        assertEquals("two 2-line paragraphs fit 5 lines", rows.subList(0, 2), LongPosts.post(new Object(), true, rows));
+        assertNull("one 2-line paragraph over isn't worth a cut", LongPosts.post(new Object(), true, paragraphs(3, 2)));
+        TextSettings.LONG_POST_SIZE.save("10");
+        List<Object> longer = paragraphs(6, 3);
+        assertEquals("three 3-line paragraphs fit 10 lines", longer.subList(0, 3), LongPosts.post(new Object(), true, longer));
+        assertEquals(3, LongPosts.minHidden(5));
+        assertEquals(5, LongPosts.minHidden(10));
+        assertEquals(LongPosts.MIN_HIDDEN, LongPosts.minHidden(20));
+        assertEquals(LongPosts.MIN_HIDDEN, LongPosts.minHidden(80));
+    }
+
     @Test public void theFirstRowAlwaysStays() {
         Settings.COLLAPSE_LONG_POSTS.save(true);
         List<Object> rows = new ArrayList<>(paragraphs(1, 60));

@@ -92,10 +92,14 @@ val completeHonistaPatch = bytecodePatch(
             if (original == null) {
                 missing += "Required class missing: ${replacement.type}"
             } else replacement.methods.forEach { method ->
-                if (original.methods.none { it.signature() == method.signature() })
+                val previous = original.methods.find { it.signature() == method.signature() }
+                if (previous == null)
                     missing += "Required method missing: ${replacement.type}->${method.signature()}"
+                else if (previous.accessFlags and 0x100 != 0)
+                    missing += "Refusing to replace native method: ${replacement.type}->${method.signature()}"
             }
         }
+        missing += referenceProblems(replacements.classes) { classDefByOrNull(it) }
         if (missing.isNotEmpty()) throw PatchException(missing.joinToString("\n"))
         replacements.classes.forEach { replacement ->
             val original = mutableClassDefBy(replacement.type)

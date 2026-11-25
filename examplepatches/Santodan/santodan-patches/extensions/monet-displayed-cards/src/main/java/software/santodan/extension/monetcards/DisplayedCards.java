@@ -184,10 +184,10 @@ public final class DisplayedCards {
             Class<?> properties = Class.forName(NativeLayout.type(modern ? "a.qp1" : "a.wl1"));
             left = properties.getMethod("e", focusType); right = properties.getMethod("k", focusType);
             up = properties.getMethod("j", focusType);
-            footer = modern ? Class.forName(NativeLayout.type("a.ux2")).getMethod(NativeLayout.v111 ? "E0" : "B0", int.class, focusType, focusType, click, composerType)
+            footer = modern ? Class.forName(NativeLayout.type("a.ux2")).getMethod(NativeLayout.v111 || NativeLayout.v112 ? "E0" : "B0", int.class, focusType, focusType, click, composerType)
                 : Class.forName(NativeLayout.type("a.mq2")).getMethod("L0", String.class, click, focusType, focusType, composerType, int.class);
             focus = focusType.getConstructor();
-            button = Class.forName(NativeLayout.type(modern ? "a.ux2" : "a.mq2")).getMethod(modern ? (NativeLayout.v111 ? "F0" : "C0") : "M0", String.class, boolean.class, focusType,
+            button = Class.forName(NativeLayout.type(modern ? "a.ux2" : "a.mq2")).getMethod(modern ? (NativeLayout.v111 || NativeLayout.v112 ? "F0" : "C0") : "M0", String.class, boolean.class, focusType,
                 Class.forName(NativeLayout.type(modern ? "a.y95" : "a.zz4")), click, focusType, focusType, focusType, composerType, int.class, int.class);
             Class<?> state = Class.forName(NativeLayout.type(modern ? "a.xb5" : "a.q15"));
             get = state.getMethod("g"); set = state.getMethod("i", int.class);

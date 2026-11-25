@@ -11,10 +11,11 @@ public final class ForwardingRuleMatcher {
         if (rule == null || message == null || !rule.isEnabled()) return false;
         if (!rule.getSourceChatIds().contains(message.getSourceChatId())) return false;
         if (message.isOutgoing() || message.isSecretChat() || message.isServiceMessage()) return false;
-        // Protected text can be copied when the user's separate content-restriction
-        // patch permits it. Native FORWARD remains subject to Telegram's eligibility.
-        if (rule.getDeliveryMode() == ForwardingRule.DeliveryMode.FORWARD && !message.canForward()) return false;
-        if (rule.getDeliveryMode() == ForwardingRule.DeliveryMode.COPY && message.getText().trim().isEmpty()) return false;
+        // No sticker/emoji-only preference is applied here. That feature was removed;
+        // matching is intentionally identical for COPY and FORWARD modes.
+        // Media-only messages have no searchable text, but must still reach COPY when
+        // the rule has no keyword filters. Keyword rules naturally fail against an
+        // empty body below, while unfiltered rules can copy photos/videos/documents.
 
         String body = normalize(message.getText(), rule.isCaseSensitive());
         for (String excluded : rule.getExcludeKeywords()) {

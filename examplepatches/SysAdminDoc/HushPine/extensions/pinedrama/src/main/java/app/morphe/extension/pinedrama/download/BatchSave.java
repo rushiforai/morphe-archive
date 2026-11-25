@@ -193,7 +193,8 @@ final class BatchSave {
      * The rendition Download would take for {@code quality} (PineDrama's file on Automatic, unless a
      * taller one is listed), with its separate sound when the rendition is picture only and the
      * sound is wanted. A picture-only rendition whose sound can't be found has no complete file,
-     * so it comes back empty.
+     * so it comes back empty. A rendition that isn't PineDrama's file takes the sound from that file,
+     * since its own may be a dub.
      */
     static Source source(Object video, String quality, boolean muted) {
         Object gear = VideoDownloads.selectedGear(video, quality, false);
@@ -203,7 +204,10 @@ final class BatchSave {
         }
         List<String> urls = VideoDownloads.urls(Reflect.property(gear, "getPlayAddr", "playAddr"));
         boolean dash = Boolean.TRUE.equals(Reflect.invoke(video, "hasDashBitrate"));
-        if (!dash) return new Source(urls, Collections.<String>emptyList(), muted && !urls.isEmpty());
+        if (!dash) {
+            List<String> original = muted ? Collections.<String>emptyList() : VideoDownloads.originalSoundUrls(video, gear);
+            return new Source(urls, original, muted && !urls.isEmpty());
+        }
         if (muted) return new Source(urls, Collections.<String>emptyList(), false);
         List<String> audio = VideoDownloads.audioUrls(video, gear);
         if (audio.isEmpty()) return new Source(Collections.<String>emptyList(), audio, false);

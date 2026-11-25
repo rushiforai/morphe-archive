@@ -37,7 +37,7 @@ import org.junit.experimental.categories.Category
 @Category(FixtureTests::class)
 class RootPostMutesFixtureTest {
     private val owners = setOf(POST, POST.removeSuffix(";") + "JsonAdapter;", ROOT_POST_WRAPPER, ROOT_MENU_OWNER,
-        LOCAL_TIMELINE, ROOT_TIMELINE_OBJECT, "Luxl;", "La2k;", "Lii9;", "Lctm;",
+        LOCAL_TIMELINE, ROOT_TIMELINE_OBJECT, "Lk0m;", "Lb5k;", "Lyh9;", "Lovm;",
         "Lcom/tumblr/ui/widget/PostCardHeader;", "Lcom/tumblr/ui/fragment/TimelineFragment\$a;",
         "Lcom/tumblr/components/bottomsheet/b\$a;", "Lcom/tumblr/components/bottomsheet/b\$b;",
         "Lcom/tumblr/ui/fragment/GraywaterFragment;", DASHBOARD_HOST, FRAGMENT) + ROOT_DASHBOARDS
@@ -51,8 +51,8 @@ class RootPostMutesFixtureTest {
             val page = context.resolveDashboardPage()
             dashboardPagePatch.execute(context)
             val plan = context.resolveRootPostMutes()
-            assertEquals(listOf("$POST->K0()Ljava/lang/String;", "$POST->G0()Ljava/lang/String;", "$POST->z0()Ljava/lang/String;",
-                "$POST->B0()Ljava/util/List;"), plan.roots[0].getters)
+            assertEquals(listOf("$POST->L0()Ljava/lang/String;", "$POST->H0()Ljava/lang/String;", "$POST->A0()Ljava/lang/String;",
+                "$POST->C0()Ljava/util/List;"), plan.roots[0].getters)
             muteRootPostsPatch.execute(context)
             for (root in plan.roots) {
                 val owner = context.mutableClassDefBy(root.owner)
@@ -115,14 +115,14 @@ class RootPostMutesFixtureTest {
             assertEquals(listOf(self, items), (delivery[0] as FiveRegisterInstruction).let { listOf(it.registerC, it.registerD) })
             assertEquals(Opcode.MOVE_RESULT_OBJECT to items, delivery[1].opcode to (delivery[1] as OneRegisterInstruction).registerA)
             val payload = context.mutableClassDefBy(ROOT_MENU).methods.single { it.name == "cardPayload" }.instructionList()
-            assertEquals(listOf("La2k;->l()Lcom/tumblr/rumblr/model/Timelineable;", "$ROOT_TIMELINE_OBJECT->getData()Lcom/tumblr/rumblr/model/Timelineable;"),
+            assertEquals(listOf("Lb5k;->l()Lcom/tumblr/rumblr/model/Timelineable;", "$ROOT_TIMELINE_OBJECT->getData()Lcom/tumblr/rumblr/model/Timelineable;"),
                 payload.mapNotNull { it.methodRef()?.toString() })
             val reader = context.mutableClassDefBy(POST.removeSuffix(";") + "JsonAdapter;").methods.single {
                 it.name == "fromJson" && it.returnType == "Ljava/lang/Object;"
             }.instructionList()
-            assertEquals(ROOT_JSON_SET, reader[2170].methodRef().toString())
-            assertEquals(listOf(4, 154, 158), reader.subList(2167, 2170).map { (it as TwoRegisterInstruction).registerB })
-            assertEquals(listOf(Opcode.MOVE_OBJECT_FROM16, Opcode.MOVE_FROM16, Opcode.MOVE_FROM16), reader.subList(2167, 2170).map { it.opcode })
+            assertEquals(ROOT_JSON_SET, reader[2188].methodRef().toString())
+            assertEquals(listOf(4, 156, 160), reader.subList(2185, 2188).map { (it as TwoRegisterInstruction).registerB })
+            assertEquals(listOf(Opcode.MOVE_OBJECT_FROM16, Opcode.MOVE_FROM16, Opcode.MOVE_FROM16), reader.subList(2185, 2188).map { it.opcode })
             val presence = context.mutableClassDefBy(POST)
             assertEquals(setOf("hushRootTrailPresent", "hushPaidContextKnown"), presence.fields.filter {
                 it.name in setOf("hushRootTrailPresent", "hushPaidContextKnown") && it.type == "Z"
@@ -141,13 +141,13 @@ class RootPostMutesFixtureTest {
             assertEquals("$LOCAL_TIMELINE->z:Ljava/util/List;", snapshot[1].fieldRef().toString())
             assertEquals("Ljava/util/ArrayList;-><init>(Ljava/util/Collection;)V", snapshot[2].methodRef().toString())
             val local = timeline.methods.single { it.name == "hushApplyTimelineItems" }.instructionList()
-            assertEquals("Luxl;->FROM_CACHE:Luxl;", local[0].fieldRef().toString())
-            assertEquals("$LOCAL_TIMELINE->o6(Luxl;Ljava/util/List;)V", local[1].methodRef().toString())
-            assertTrue("Lii9;" in context.mutableClassDefBy(ROOT_ACTION).interfaces)
+            assertEquals("Lk0m;->FROM_CACHE:Lk0m;", local[0].fieldRef().toString())
+            assertEquals("$LOCAL_TIMELINE->r6(Lk0m;Ljava/util/List;)V", local[1].methodRef().toString())
+            assertTrue("Lyh9;" in context.mutableClassDefBy(ROOT_ACTION).interfaces)
             val add = context.mutableClassDefBy(ROOT_MENU).methods.single { it.name == "addNative" }.instructionList()
-            assertEquals("Lcom/tumblr/components/bottomsheet/b\$b;->c(Ljava/lang/String;Lii9;)Lcom/tumblr/components/bottomsheet/b\$b;", add[1].methodRef().toString())
+            assertEquals("Lcom/tumblr/components/bottomsheet/b\$b;->c(Ljava/lang/String;Lyh9;)Lcom/tumblr/components/bottomsheet/b\$b;", add[1].methodRef().toString())
             val unit = context.mutableClassDefBy(ROOT_MENU).methods.single { it.name == "unit" }.instructionList()
-            assertEquals("Lctm;->a:Lctm;", unit[0].fieldRef().toString())
+            assertEquals("Lovm;->a:Lovm;", unit[0].fieldRef().toString())
             for (name in listOf("muteRootPosts", "rootPostMutes")) assertEquals(1,
                 (context.mutableClassDefBy(SETTINGS_STATUS).methods.single { it.name == name }.instructionList().first() as NarrowLiteralInstruction).narrowLiteral)
         }
@@ -164,12 +164,12 @@ class RootPostMutesFixtureTest {
             val menu = plan.header.method
             val body = menu.instructionList()
             assertEquals(1, body.count { it.methodRef()?.toString() == ROOT_MENU_HOOK })
-            assertEquals(listOf(11, 3, 2, plan.header.scratch), (body[165] as FiveRegisterInstruction)
+            assertEquals(listOf(11, 3, 2, plan.header.scratch), (body[177] as FiveRegisterInstruction)
                 .let { listOf(it.registerC, it.registerD, it.registerE, it.registerF) })
-            assertEquals(24, (body[164] as TwoRegisterInstruction).registerB)
-            assertEquals("Lcom/tumblr/components/bottomsheet/b\$b;->h()Lcom/tumblr/components/bottomsheet/b;", body[166].methodRef().toString())
-            assertEquals(listOf(165), ControlFlow.of(menu).normal.indices.filter { 166 in ControlFlow.of(menu).normal[it] })
-            assertNativePreserved(before, ControlFlow.of(menu), 164, 2)
+            assertEquals(24, (body[176] as TwoRegisterInstruction).registerB)
+            assertEquals("Lcom/tumblr/components/bottomsheet/b\$b;->h()Lcom/tumblr/components/bottomsheet/b;", body[178].methodRef().toString())
+            assertEquals(listOf(177), ControlFlow.of(menu).normal.indices.filter { 178 in ControlFlow.of(menu).normal[it] })
+            assertNativePreserved(before, ControlFlow.of(menu), 176, 2)
             val callback = context.mutableClassDefBy(ROOT_MENU_CALLBACK)
             assertTrue(HUSH_ROOT_MENU_HOST in callback.interfaces)
             val bridge = callback.methods.single { it.name == "hushTimelineOwner" }
@@ -206,7 +206,7 @@ class RootPostMutesFixtureTest {
         for (build in Fixtures.declaredBuilds()) {
             val context = PatchContexts.of(ExtensionDex.classes() + FixtureDex.classes(build, owners).values)
             context.mutableClassDefBy(ROOT_HEADER).methods.single { it.name == "H2" }
-                .replaceInstruction(163, "move-object/from16 v24, v23")
+                .replaceInstruction(175, "move-object/from16 v24, v23")
             assertThrows(PatchException::class.java) { postJsonPresencePatch.execute(context); muteRootPostsPatch.execute(context) }
             assertUnchanged(context)
         }
@@ -299,7 +299,7 @@ class RootPostMutesFixtureTest {
     fun `an append cache mode refuses before installing a local action`() {
         for (build in Fixtures.declaredBuilds()) {
             val context = PatchContexts.of(ExtensionDex.classes() + FixtureDex.classes(build, owners).values)
-            val mode = context.mutableClassDefBy("Luxl;").methods.single { it.name == "g" }
+            val mode = context.mutableClassDefBy("Lk0m;").methods.single { it.name == "j" }
             mode.replaceInstruction(4, "const/4 p0, 0x1")
             assertThrows(PatchException::class.java) { postJsonPresencePatch.execute(context); muteRootPostsPatch.execute(context) }
             assertUnchanged(context)
@@ -313,7 +313,7 @@ class RootPostMutesFixtureTest {
             val reader = context.mutableClassDefBy(POST.removeSuffix(";") + "JsonAdapter;").methods.single {
                 it.name == "fromJson" && it.returnType == "Ljava/lang/Object;"
             }
-            reader.replaceInstruction(2070, "move/from16 v158, v6")
+            reader.replaceInstruction(2154, "move/from16 v160, v6")
             assertThrows(PatchException::class.java) { postJsonPresencePatch.execute(context); muteRootPostsPatch.execute(context) }
             assertUnchanged(context)
         }
@@ -326,7 +326,7 @@ class RootPostMutesFixtureTest {
             val reader = context.mutableClassDefBy(POST.removeSuffix(";") + "JsonAdapter;").methods.single {
                 it.name == "fromJson" && it.returnType == "Ljava/lang/Object;"
             }
-            reader.replaceInstruction(394, "and-int/lit8 v4, v7, -0x2")
+            reader.replaceInstruction(410, "and-int/lit8 v4, v7, -0x2")
             assertThrows(PatchException::class.java) { postJsonPresencePatch.execute(context); muteRootPostsPatch.execute(context) }
             assertUnchanged(context)
         }
@@ -339,7 +339,7 @@ class RootPostMutesFixtureTest {
             val reader = context.mutableClassDefBy(POST.removeSuffix(";") + "JsonAdapter;").methods.single {
                 it.name == "fromJson" && it.returnType == "Ljava/lang/Object;"
             }
-            reader.replaceInstruction(2126, "move/from16 v154, v9")
+            reader.replaceInstruction(2142, "move/from16 v156, v9")
             assertThrows(PatchException::class.java) { postJsonPresencePatch.execute(context); muteRootPostsPatch.execute(context) }
             assertUnchanged(context)
         }
@@ -352,7 +352,7 @@ class RootPostMutesFixtureTest {
             val reader = context.mutableClassDefBy(POST.removeSuffix(";") + "JsonAdapter;").methods.single {
                 it.name == "fromJson" && it.returnType == "Ljava/lang/Object;"
             }
-            reader.replaceInstruction(2093, "return-object v4")
+            reader.replaceInstruction(2110, "return-object v4")
             assertThrows(PatchException::class.java) { postJsonPresencePatch.execute(context); muteRootPostsPatch.execute(context) }
             assertUnchanged(context)
         }
@@ -363,7 +363,7 @@ class RootPostMutesFixtureTest {
         for (build in Fixtures.declaredBuilds()) {
             val context = PatchContexts.of(ExtensionDex.classes() + FixtureDex.classes(build, owners).values)
             val menu = context.mutableClassDefBy(ROOT_MENU_OWNER).methods.single { it.name == "y" }
-            menu.replaceInstruction(224, "move-object/from16 v24, v25")
+            menu.replaceInstruction(231, "move-object/from16 v24, v25")
             assertThrows(PatchException::class.java) { postJsonPresencePatch.execute(context); muteRootPostsPatch.execute(context) }
             assertUnchanged(context)
         }
@@ -387,7 +387,7 @@ class RootPostMutesFixtureTest {
         for (dashboard in ROOT_DASHBOARDS) assertFalse(HUSH_DASHBOARD_TIMELINE in context.mutableClassDefBy(dashboard).interfaces
             || context.mutableClassDefBy(dashboard).methods.any { it.name == "hushDashboard" })
         assertFalse(HUSH_LOCAL_TIMELINE in context.mutableClassDefBy(LOCAL_TIMELINE).interfaces)
-        assertFalse("Lii9;" in context.mutableClassDefBy(ROOT_ACTION).interfaces)
+        assertFalse("Lyh9;" in context.mutableClassDefBy(ROOT_ACTION).interfaces)
         assertFalse(HUSH_ROOT_MENU_HOST in context.mutableClassDefBy(ROOT_MENU_CALLBACK).interfaces)
         assertFalse(context.mutableClassDefBy(ROOT_HEADER).methods.single { it.name == "H2" }.instructionList()
             .any { it.methodRef()?.toString() == ROOT_MENU_HOOK })

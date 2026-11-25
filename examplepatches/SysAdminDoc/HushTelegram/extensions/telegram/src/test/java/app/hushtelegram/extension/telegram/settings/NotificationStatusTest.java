@@ -506,6 +506,7 @@ public class NotificationStatusTest {
                 {"de", "Keep-Alive-Dienst", "Hintergrundverbindung", "Einstellungen > Benachrichtungen", "Sonstiges"},
                 {"es", "Servicio keep-alive", "Conexión en segundo plano", "Ajustes de Telegram > Notificaciones", "Otros"},
                 {"in-rID", "Biarkan Layanan Tetap Menyala", "Koneksi Latar", "Pengaturan Telegram sendiri > Notifikasi", "Lainnya"},
+                {"it", "Servizio keep-alive", "Connessione in background", "Impostazioni > Notifiche", "Altro"},
                 {"pt-rBR", "Manter Serviço Ativo", "Conexão em Segundo Plano", "Configurações do Telegram > Notificações", "Outro"},
                 {"tr", "Canlı Tutma Hizmeti", "Arka Plan Bağlantısı", "Ayarlar > Bildirimler", "Diğer"}};
         try {
@@ -522,7 +523,7 @@ public class NotificationStatusTest {
     }
 
     @Test public void everyTranslationPreservesSeparateLabelsBooleansCountsAndUnknownState() throws Exception {
-        String[][] languages = {{"bg", "bg"}, {"de", "de"}, {"es", "es"}, {"in-rID", "in"}, {"pt-rBR", "pt-rbr"}, {"tr", "tr"}};
+        String[][] languages = {{"bg", "bg"}, {"de", "de"}, {"es", "es"}, {"in-rID", "in"}, {"it", "it"}, {"pt-rBR", "pt-rbr"}, {"tr", "tr"}};
         for (String[] language : languages) {
             RuntimeEnvironment.setQualifiers("+" + language[0]);
             Map<String, String> table = SettingsL10nTest.TranslationsForTests.of(language[1]);

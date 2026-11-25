@@ -86,6 +86,12 @@ public class Settings extends BaseSettings {
     public static final BooleanSetting HIDE_HOME_SUGGESTIONS =
             new BooleanSetting("hushpinterest_hide_home_suggestions", FALSE);
     /**
+     * The "Refine your search" lists of suggested searches leave search results, on Filter feed's
+     * switch, before they're drawn. Off to start.
+     */
+    public static final BooleanSetting HIDE_REFINE_SEARCH =
+            new BooleanSetting("hushpinterest_hide_refine_search", FALSE);
+    /**
      * Filter feed's second capability: pins whose title, grid title or description holds one of
      * these words or phrases leave the same lists. Empty to start, and empty while paused.
      */
@@ -100,6 +106,12 @@ public class Settings extends BaseSettings {
      */
     public static final BooleanSetting BACK_LEAVES_HOME =
             new BooleanSetting("hushpinterest_back_leaves_home", FALSE);
+    /**
+     * Home doesn't show the pill that offers to refresh it after you've been away (#48). Keep Home
+     * feed's patch, its own switch. Off to start.
+     */
+    public static final BooleanSetting HIDE_REFRESH_PILL =
+            new BooleanSetting("hushpinterest_hide_refresh_pill", FALSE);
     /** Its row asks for a restart after turning it off, so a change brings up the restart row. */
     public static final BooleanSetting DISABLE_ANALYTICS =
             new BooleanSetting("hushpinterest_disable_analytics", TRUE, true);
@@ -109,6 +121,9 @@ public class Settings extends BaseSettings {
             new BooleanSetting("hushpinterest_plain_pin_links", FALSE);
     public static final BooleanSetting HIDE_ADVERTISING_ID =
             new BooleanSetting("hushpinterest_hide_ad_id", TRUE);
+    /** #48: a list on the phone of the pins you like and the comments you post. */
+    public static final BooleanSetting LIKE_COMMENT_HISTORY =
+            new BooleanSetting("hushpinterest_like_comment_history", FALSE);
     public static final BooleanSetting DOWNLOAD_PINS =
             new BooleanSetting("hushpinterest_download_pins", FALSE);
     /**
@@ -166,6 +181,9 @@ public class Settings extends BaseSettings {
             new BooleanSetting("hushpinterest_hide_search_history", FALSE);
     public static final BooleanSetting BLANK_SEARCH_PAGE =
             new BooleanSetting("hushpinterest_blank_search_page", FALSE);
+    /** #48: skips the colored suggested searches in the row under the search bar on search results. */
+    public static final BooleanSetting HIDE_SEARCH_SUGGESTIONS =
+            new BooleanSetting("hushpinterest_hide_search_suggestions", FALSE);
     public static final BooleanSetting HIDE_NAV_CREATE =
             new BooleanSetting("hushpinterest_hide_nav_create", FALSE);
     public static final BooleanSetting HIDE_NAV_NOTIFICATIONS =
@@ -194,6 +212,8 @@ public class Settings extends BaseSettings {
             new BooleanSetting("hushpinterest_black_boards", FALSE);
     public static final BooleanSetting BLACK_TOASTS =
             new BooleanSetting("hushpinterest_black_toasts", FALSE);
+    public static final BooleanSetting BLACK_BUTTONS =
+            new BooleanSetting("hushpinterest_black_buttons", FALSE);
     public static final BooleanSetting HIDE_CLOSEUP_BACK =
             new BooleanSetting("hushpinterest_hide_closeup_back", FALSE);
     public static final BooleanSetting HIDE_CLOSEUP_LENS =
@@ -214,6 +234,8 @@ public class Settings extends BaseSettings {
             new BooleanSetting("hushpinterest_hide_closeup_visit_site", FALSE);
     public static final BooleanSetting SMALLER_SAVE_BUTTON =
             new BooleanSetting("hushpinterest_smaller_save_button", FALSE);
+    public static final BooleanSetting SAVE_COLOR_ON_RED_BUTTONS =
+            new BooleanSetting("hushpinterest_save_color_on_red_buttons", FALSE);
     public static final BooleanSetting HIDE_PIN_MENU_COLLAGE =
             new BooleanSetting("hushpinterest_hide_pin_menu_collage", FALSE);
     public static final BooleanSetting HIDE_PIN_MENU_VISUAL_SEARCH =
@@ -239,6 +261,12 @@ public class Settings extends BaseSettings {
             new BooleanSetting("hushpinterest_hide_survey_prompts", FALSE);
     public static final BooleanSetting HIDE_POPUP_BANNERS =
             new BooleanSetting("hushpinterest_hide_popup_banners", FALSE);
+    /**
+     * The banner at the top that says you're offline, then back online, never shows (#48). Hide
+     * pop-up banners' patch, its own switch. Off to start.
+     */
+    public static final BooleanSetting HIDE_OFFLINE_BANNER =
+            new BooleanSetting("hushpinterest_hide_offline_banner", FALSE);
     public static final BooleanSetting HIDE_RELATED_PINS =
             new BooleanSetting("hushpinterest_hide_related_pins", FALSE);
     public static final BooleanSetting HIDE_CREATOR_NAME =
@@ -249,6 +277,15 @@ public class Settings extends BaseSettings {
             new BooleanSetting("hushpinterest_hide_pin_description", FALSE);
     public static final BooleanSetting SHOW_IMAGE_SIZE =
             new BooleanSetting("hushpinterest_show_image_size", FALSE);
+    /** #48: Pinterest's own pull-down that closes a pin, kept behind an experiment. */
+    public static final BooleanSetting SWIPE_TO_CLOSE_PINS =
+            new BooleanSetting("hushpinterest_swipe_to_close_pins", FALSE);
+    /** #48: someone else's profile photo opens full size when tapped, kept behind an experiment. */
+    public static final BooleanSetting FULL_SIZE_PROFILE_PHOTOS =
+            new BooleanSetting("hushpinterest_full_size_profile_photos", FALSE);
+    /** #48: Pinterest's own lift of its cap on a video's size, kept behind an experiment. */
+    public static final BooleanSetting BEST_VIDEO_QUALITY =
+            new BooleanSetting("hushpinterest_best_video_quality", FALSE);
     public static final BooleanSetting HIDE_HIGHLIGHT_RING =
             new BooleanSetting("hushpinterest_hide_highlight_ring", FALSE);
     public static final BooleanSetting HIDE_VISUAL_SEARCH_THUMBNAILS =
@@ -266,6 +303,13 @@ public class Settings extends BaseSettings {
      */
     public static final BooleanSetting CUSTOM_SPLASH_LOGO =
             new BooleanSetting("hushpinterest_custom_splash_logo", FALSE, true);
+    /**
+     * Pinterest's text is shown in a font file the person picks
+     * ({@link app.hushpinterest.extension.pinterest.ui.CustomFont}). Pinterest keeps the fonts it
+     * loaded, so a change waits for a restart. Off to start.
+     */
+    public static final BooleanSetting CUSTOM_FONT =
+            new BooleanSetting("hushpinterest_custom_font", FALSE, true);
     public static final BooleanSetting HIDE_BOARD_TAB_BUTTON =
             new BooleanSetting("hushpinterest_hide_board_tab_button", FALSE);
     public static final BooleanSetting HIDE_BOARD_TAB_SUBTITLE =
@@ -284,6 +328,18 @@ public class Settings extends BaseSettings {
             new BooleanSetting("hushpinterest_hide_suggested_boards", FALSE);
     public static final BooleanSetting EXPAND_BOARD_LIST =
             new BooleanSetting("hushpinterest_expand_board_list", FALSE);
+    /** #48: the Save to sheet lists your boards in your profile's order instead of A to Z. */
+    public static final BooleanSetting BOARD_ORDER_WHEN_SAVING =
+            new BooleanSetting("hushpinterest_board_order_when_saving", FALSE);
+    /** #48: a pin page's video waits for a tap on play instead of starting on its own. */
+    public static final BooleanSetting NO_PIN_VIDEO_AUTOPLAY =
+            new BooleanSetting("hushpinterest_no_pin_video_autoplay", FALSE);
+    /** #48: a pin page's video starts with the sound off. */
+    public static final BooleanSetting START_PIN_VIDEOS_MUTED =
+            new BooleanSetting("hushpinterest_start_pin_videos_muted", FALSE);
+    /** #48: a pinch on a pin's picture opens it full screen instead of loading pins that look like it. */
+    public static final BooleanSetting PINCH_TO_ZOOM_ONLY =
+            new BooleanSetting("hushpinterest_pinch_to_zoom_only", FALSE);
     public static final BooleanSetting DISABLE_UPDATE_NAG =
             new BooleanSetting("hushpinterest_disable_update_nag", FALSE);
 

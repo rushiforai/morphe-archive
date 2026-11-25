@@ -113,7 +113,8 @@ public class ExpandedControlsTest {
             assertEquals(View.VISIBLE, ((View) root.findViewWithTag("people").getParent()).getVisibility());
             assertEquals(View.GONE, ((View) root.findViewWithTag("stories").getParent()).getVisibility());
             search.setText("Stickers");
-            assertEquals(ExpectedTotals.shown(4), status.getText().toString());
+            // The four in the stickers group, and Sound in the open chat, whose description names stickers.
+            assertEquals(ExpectedTotals.shown(5), status.getText().toString());
             search.setText("missing control xyz");
             assertEquals("No matching controls.", status.getText().toString());
             search.setText("");

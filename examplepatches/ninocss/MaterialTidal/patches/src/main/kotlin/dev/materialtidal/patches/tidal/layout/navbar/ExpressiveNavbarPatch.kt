@@ -30,15 +30,15 @@ import dev.materialtidal.patches.shared.EXTENSION_PATH
 import dev.materialtidal.patches.shared.MATERIAL_YOU_CONFIG_CLASS
 
 private val NAVBAR_STYLE_CHOICES = mapOf(
-    "Material You Dark Tonal" to 0,
-    "Material You Pastel (Screenshot)" to 1,
-    "Material You Vibrant Contrast" to 2,
+    "Dark Tonal (Recommended)" to 0,
+    "Pastel Monet" to 1,
+    "Vibrant Contrast" to 2,
 )
 
 @Suppress("unused")
 val expressiveNavbarPatch = patch(
-    name = "Material 3 Expressive navbar & mini-player",
-    description = "Replaces TIDAL's bottom bar and mini-player with a Material 3 Expressive split-pill floating navbar (with detached search button) and a separate floating mini-player card.",
+    name = "M3 navbar & mini-player",
+    description = "Replaces TIDAL's bottom bar and mini-player with a floating M3 split-pill navigation dock, detached Search button, and separate floating mini-player card with swipe gestures and progressive backdrop blur.",
     default = true,
 ) {
     compatibleWith(COMPATIBILITY_TIDAL)
@@ -49,45 +49,47 @@ val expressiveNavbarPatch = patch(
         key = "navbarColorStyle",
         default = 0,
         values = NAVBAR_STYLE_CHOICES,
-        title = "Navbar & mini-player color style",
-        description = "Material You surface palette style for the floating navbar and mini-player.",
+        title = "Navbar & mini-player style",
+        description = "Color palette style for the floating navigation dock and mini-player (also adjustable live in Settings → MaterialTidal).",
         required = true,
     )
 
     val hideUploadTabOption by booleanOption(
         key = "hideUploadTab",
         default = true,
-        title = "Keep 3 core tabs in pill",
-        description = "Shows Home, Explore, and Library in the left pill and Search in the right circle (hiding the Uploads tab).",
+        title = "Keep 3 core tabs in dock",
+        description = "Shows Home, Explore, and Library in the left pill and Search in the detached circle button, hiding the Uploads tab (also adjustable live in Settings → MaterialTidal).",
         required = true,
     )
 
     val miniPlayerSwipeOption by booleanOption(
         key = "miniPlayerSwipeToSkip",
         default = true,
-        title = "Swipe mini-player gestures",
-        description = "Swipe the floating mini-player left/right to skip or go back with morphing preview pills, and pull up to interactively expand the full-screen player.",
+        title = "Mini-player swipe gestures",
+        description = "Swipe the floating mini-player left or right to skip tracks and pull up to expand the full-screen player (also adjustable live in Settings → MaterialTidal).",
         required = true,
     )
 
     val navbarProgressiveBlurOption by booleanOption(
         key = "navbarProgressiveBlur",
         default = true,
-        title = "Progressive blur under navigation bar",
-        description = "Replaces the solid bottom color fade behind the floating navigation bar and mini-player with a live multi-tier GPU progressive blur and frosted glass pills.",
+        title = "Progressive dock blur",
+        description = "Replaces the solid bottom fade behind the floating navigation dock and mini-player with a frosted progressive blur (also adjustable live in Settings → MaterialTidal).",
         required = true,
     )
 
     execute {
         // 1. Configure MaterialYouConfig options.
         val configClass = mutableClassDefBy(MATERIAL_YOU_CONFIG_CLASS)
-        configClass.methods.single { it.name == "getNavbarColorStyle" }
+        configClass.methods.single { it.name == "isExpressiveNavbarPatchInstalled" }
+            .returnEarly(true)
+        configClass.methods.single { it.name == "defaultNavbarColorStyle" }
             .returnEarly(colorStyleOption ?: 0)
-        configClass.methods.single { it.name == "isHideUploadTab" }
+        configClass.methods.single { it.name == "defaultHideUploadTab" }
             .returnEarly(hideUploadTabOption ?: true)
-        configClass.methods.single { it.name == "isMiniPlayerSwipeEnabled" }
+        configClass.methods.single { it.name == "defaultMiniPlayerSwipeEnabled" }
             .returnEarly(miniPlayerSwipeOption ?: true)
-        configClass.methods.single { it.name == "isNavbarProgressiveBlurEnabled" }
+        configClass.methods.single { it.name == "defaultNavbarProgressiveBlurEnabled" }
             .returnEarly(navbarProgressiveBlurOption ?: true)
 
         // 2. Discover TIDAL obfuscated Scaffold / TabBar / MiniPlayer types.

@@ -69,6 +69,7 @@ public final class GboardBoardUiFeature implements GboardPatchesSettingsContract
                         }
                     } catch (Throwable ignored) {
                     }
+                    GboardM3Helper.invalidateCaches();
                     if (ctx instanceof GboardPatchesSettingsActivity act) {
                         act.runOnUiThread(act::animateThemeChangeTransition);
                     } else if (host != null) {

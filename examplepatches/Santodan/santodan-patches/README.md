@@ -14,7 +14,7 @@ https://github.com/Santodan/santodan-patches
 ## Patches
 
 <!-- PATCHES_START -->
-> **[v0.21.1](https://github.com/Santodan/santodan-patches/releases/tag/v0.21.1)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;41 patches total
+> **[v0.21.2](https://github.com/Santodan/santodan-patches/releases/tag/v0.21.2)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;41 patches total
 <details>
 <summary>📦 Car Scanner ELM OBD2&nbsp;&nbsp;•&nbsp;&nbsp;2 patches</summary>
 <br>
@@ -89,15 +89,15 @@ Startup app selection and **After standby** are cumulative: enabling both is int
 
 **🎯 Supported versions:**
 
-| 1.0.97 | 1.1.0 | 1.1.1 |
-| :---: | :---: | :---: |
+| 1.0.97 | 1.1.0 | 1.1.1 | 1.1.2 |
+| :---: | :---: | :---: | :---: |
 
 | 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
 |----------|----------------|-----------|
 | [Monet - Individual Nuvio catalog rows](docs/MonetCatalogChannels.md) | Select individual NuvioTV catalogs in the app's content picker, with Nuvio icons and refresh independent of Recommendations. |  |
 | [Monet - Unlimited displayed cards](docs/MonetDisplayedCards.md) | Remove the 20-card limit from Displayed Cards. Add -10, +10 and Max to the original themed picker, preserving its layout and single-card steps. |  |
-| [Monet - Unlock premium](docs/Monet.md) | Original premium unlock from Doom's Patches, updated here for Monet 1.1.1. Unlock local premium features. Select only one Monet premium patch. |  |
-| [Monet - Unlock premium (Experimental, any version)](docs/Monet.md) | Original premium unlock from Doom's Patches, verified on Monet 1.1.1. No version restriction; validates billing ownership and evaluator semantics, not obfuscated names or final flags. Future layouts may still be unsupported. Select only one Monet premium patch. |  |
+| [Monet - Unlock premium](docs/Monet.md) | Original premium unlock from Doom's Patches, updated here for Monet 1.1.2. Unlock local premium features. Select only one Monet premium patch. |  |
+| [Monet - Unlock premium (Experimental, any version)](docs/Monet.md) | Original premium unlock from Doom's Patches, verified on Monet 1.1.2. No version restriction; validates billing ownership and evaluator semantics, not obfuscated names, flags, field order or branch layout. Future layouts may still be unsupported. Select only one Monet premium patch. |  |
 
 </details>
 

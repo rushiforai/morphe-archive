@@ -78,21 +78,24 @@ public class UiHooksTest {
     // SettingsContextRule must install the context before the registry is first read.
     private static BooleanSetting[] switches() { return new BooleanSetting[] {
             Settings.HIDE_SCREENSHOT_SHARE, Settings.HIDE_ASSISTANT, Settings.HIDE_SEARCH_HISTORY,
-            Settings.BLANK_SEARCH_PAGE,
+            Settings.BLANK_SEARCH_PAGE, Settings.HIDE_SEARCH_SUGGESTIONS,
             Settings.HIDE_NAV_CREATE, Settings.HIDE_NAV_NOTIFICATIONS, Settings.HIDE_NAV_SEARCH, Settings.HIDE_HEADER_BUTTONS,
             Settings.HIDE_HOME_TABS, Settings.SEARCH_TAB_KEYBOARD,
             Settings.BLACK_BOTTOM_BAR, Settings.BLACK_COMMENTS, Settings.BLACK_PIN_MENU, Settings.BLACK_SAVE_SHEET,
-            Settings.BLACK_SHEETS, Settings.BLACK_BOARDS, Settings.BLACK_TOASTS,
+            Settings.BLACK_SHEETS, Settings.BLACK_BOARDS, Settings.BLACK_TOASTS, Settings.BLACK_BUTTONS,
             Settings.HIDE_CLOSEUP_BACK, Settings.HIDE_CLOSEUP_LENS, Settings.HIDE_CLOSEUP_SEARCH_LABEL,
             Settings.HIDE_CLOSEUP_LIKE, Settings.HIDE_CLOSEUP_COMMENTS, Settings.HIDE_CLOSEUP_SHARE,
             Settings.HIDE_CLOSEUP_MORE, Settings.HIDE_CLOSEUP_REMIX, Settings.HIDE_CLOSEUP_VISIT_SITE,
-            Settings.SMALLER_SAVE_BUTTON,
+            Settings.SMALLER_SAVE_BUTTON, Settings.SAVE_COLOR_ON_RED_BUTTONS,
             Settings.HIDE_PIN_MENU_COLLAGE, Settings.HIDE_PIN_MENU_VISUAL_SEARCH, Settings.HIDE_PIN_MENU_PIN_BOOST,
             Settings.HIDE_PIN_MENU_ROWS,
             Settings.HIDE_COMMENTS, Settings.HIDE_SUGGESTED_REPLIES, Settings.HIDE_COMMENT_PREVIEWS,
             Settings.HIDE_TOPIC_SUGGESTIONS, Settings.HIDE_INBOX_UPDATES, Settings.QUIET_EMAIL_REMINDER,
-            Settings.HIDE_SURVEY_PROMPTS, Settings.HIDE_POPUP_BANNERS, Settings.HIDE_RELATED_PINS, Settings.HIDE_CREATOR_NAME, Settings.HIDE_HIGHLIGHT_RING, Settings.LET_SCREEN_SLEEP, Settings.HIDE_VISUAL_SEARCH_THUMBNAILS, Settings.CUSTOM_SAVE_SOUND, Settings.HIDE_BOARD_TAB_BUTTON, Settings.HIDE_BOARD_TAB_SUBTITLE, Settings.BOARD_TAB_COVERS, Settings.HIDE_SAVE_TOASTS, Settings.HIDE_DOWNLOAD_TOASTS, Settings.ORIGINAL_IMAGES, Settings.SHOW_POSTED_DATE,
+            Settings.HIDE_SURVEY_PROMPTS, Settings.HIDE_POPUP_BANNERS, Settings.HIDE_OFFLINE_BANNER, Settings.HIDE_RELATED_PINS, Settings.HIDE_CREATOR_NAME, Settings.HIDE_HIGHLIGHT_RING, Settings.LET_SCREEN_SLEEP, Settings.HIDE_VISUAL_SEARCH_THUMBNAILS, Settings.CUSTOM_SAVE_SOUND, Settings.HIDE_BOARD_TAB_BUTTON, Settings.HIDE_BOARD_TAB_SUBTITLE, Settings.BOARD_TAB_COVERS, Settings.HIDE_SAVE_TOASTS, Settings.HIDE_DOWNLOAD_TOASTS, Settings.ORIGINAL_IMAGES, Settings.SHOW_POSTED_DATE,
             Settings.HIDE_SUGGESTED_BOARDS, Settings.EXPAND_BOARD_LIST,
+            Settings.SWIPE_TO_CLOSE_PINS, Settings.FULL_SIZE_PROFILE_PHOTOS,
+            Settings.BEST_VIDEO_QUALITY, Settings.BOARD_ORDER_WHEN_SAVING,
+            Settings.NO_PIN_VIDEO_AUTOPLAY, Settings.START_PIN_VIDEOS_MUTED,
             Settings.DISABLE_UPDATE_NAG, Settings.HIDE_SHOPPING
     }; }
 
@@ -190,6 +193,64 @@ public class UiHooksTest {
         assertEquals("paused, Pinterest's height", 73, UiHooks.saveSheetHeight(73));
     }
 
+    @Test public void theSaveSheetListsBoardsInTheProfilesOrderOnlyWhileItsSwitchIsOn() {
+        try {
+            UiHooks.profileBoardSort("custom");
+            assertEquals("off by default, Pinterest's A to Z", "alphabetical", UiHooks.boardPickerSort("alphabetical"));
+            Settings.BOARD_ORDER_WHEN_SAVING.save(true);
+            assertEquals("a read while the switch was off isn't noted", "alphabetical", UiHooks.boardPickerSort("alphabetical"));
+            UiHooks.profileBoardSort("custom");
+            assertEquals("custom", UiHooks.boardPickerSort("alphabetical"));
+            String report = String.join("\n", HookStatus.report());
+            assertTrue(report, report.contains("boards listed in the profile's order"));
+            UiHooks.profileBoardSort("newest");
+            assertEquals("the profile's order changed since", "newest", UiHooks.boardPickerSort("alphabetical"));
+            UiHooks.profileBoardSort(null);
+            assertEquals("never picked, the profile's own default", "last_pinned_to", UiHooks.boardPickerSort("alphabetical"));
+            UiHooks.profileBoardSort("a_sort_pinterest_added_later");
+            assertEquals("a key this build doesn't know, the profile's default", "last_pinned_to", UiHooks.boardPickerSort("alphabetical"));
+            UiHooks.profileBoardSort("alphabetical");
+            assertEquals("A to Z on the profile too", "alphabetical", UiHooks.boardPickerSort("alphabetical"));
+            UiHooks.profileBoardSort("custom");
+            PauseForTests.pause(HushPinterestPause.Reason.SWITCH);
+            UiHooks.profileBoardSort("newest");
+            assertEquals("paused, Pinterest's A to Z", "alphabetical", UiHooks.boardPickerSort("alphabetical"));
+            PauseForTests.resume();
+            assertEquals("a read while paused isn't noted", "custom", UiHooks.boardPickerSort("alphabetical"));
+        } finally {
+            UiHooks.forgetProfileSort();
+        }
+    }
+
+    @Test public void beforePinterestReadsWhoYouAreTheSaveSheetKeepsItsOwnSort() {
+        UiHooks.forgetProfileSort();
+        Settings.BOARD_ORDER_WHEN_SAVING.save(true);
+        assertEquals("alphabetical", UiHooks.boardPickerSort("alphabetical"));
+        assertNull(UiHooks.boardPickerSort(null));
+    }
+
+    @Test public void pinVideosWaitForPlayOnlyWhileTheirSwitchIsOn() {
+        assertEquals("off by default, Pinterest starts them", 0, UiHooks.pinVideoWaits());
+        Settings.NO_PIN_VIDEO_AUTOPLAY.save(true);
+        assertEquals(1, UiHooks.pinVideoWaits());
+        assertEquals("the sound has its own switch", 0, UiHooks.pinVideoStartsMuted());
+        String report = String.join("\n", HookStatus.report());
+        assertTrue(report, report.contains("video waits for play"));
+        PauseForTests.pause(HushPinterestPause.Reason.SWITCH);
+        assertEquals("paused, Pinterest starts them", 0, UiHooks.pinVideoWaits());
+    }
+
+    @Test public void pinVideosStartMutedOnlyWhileTheirSwitchIsOn() {
+        assertEquals("off by default, Pinterest's own sound", 0, UiHooks.pinVideoStartsMuted());
+        Settings.START_PIN_VIDEOS_MUTED.save(true);
+        assertEquals(1, UiHooks.pinVideoStartsMuted());
+        assertEquals("autoplay has its own switch", 0, UiHooks.pinVideoWaits());
+        String report = String.join("\n", HookStatus.report());
+        assertTrue(report, report.contains("video started muted"));
+        PauseForTests.pause(HushPinterestPause.Reason.SWITCH);
+        assertEquals("paused, Pinterest's own sound", 0, UiHooks.pinVideoStartsMuted());
+    }
+
     @Test public void surveyInvitesAndSponsoredPollsAreSkippedOnlyWhileTheSwitchIsOnAndCounted() {
         assertFalse("off by default, Pinterest shows its invite", UiHooks.hideSurveyPrompts());
         assertFalse("off by default, Pinterest opens its poll", UiHooks.hideSponsoredPolls());
@@ -231,6 +292,20 @@ public class UiHooksTest {
         assertTrue(Settings.HIDE_POPUP_BANNERS.savedValue());
         PauseForTests.resume();
         UiHooks.popupBanner(null);
+    }
+
+    /** #48: the offline bar is skipped only while its switch is on, and back online always goes through. */
+    @Test public void theOfflineBarIsSkippedOnlyWhileItsSwitchIsOnAndOnlineAlwaysGoesThrough() {
+        assertFalse("off by default, the offline bar shows", UiHooks.hideOfflineBanner(0));
+        Settings.HIDE_POPUP_BANNERS.save(true);
+        assertFalse("the banner switch alone leaves it", UiHooks.hideOfflineBanner(0));
+        Settings.HIDE_OFFLINE_BANNER.save(true);
+        assertTrue(UiHooks.hideOfflineBanner(0));
+        assertFalse("back online clears a bar that was already up", UiHooks.hideOfflineBanner(1));
+        String report = String.join("\n", HookStatus.report());
+        assertTrue(report, report.contains("offline banner skipped"));
+        PauseForTests.pause(HushPinterestPause.Reason.SWITCH);
+        assertFalse("paused, the bar shows", UiHooks.hideOfflineBanner(0));
     }
 
     @Test public void relatedPinsAreLeftOutOnlyWhileTheSwitchIsOnAndCounted() {

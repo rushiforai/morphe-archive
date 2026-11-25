@@ -152,7 +152,7 @@ AI-labeled pins in lists	pin berlabel AI di daftar
 Android sends pinterest.com and pin.it links to a patched Pinterest only after you select those addresses for it. Selecting them sends their links here. Your other link settings stay as they are.	Android mengirim tautan pinterest.com dan pin.it ke Pinterest yang ditambal hanya setelah Anda memilih alamat itu untuknya. Memilihnya mengarahkan tautannya ke sini. Pengaturan tautan Anda yang lain tidak berubah.
 Feed	Feed
 Hide AI-labeled pins	Sembunyikan pin berlabel AI
-Removes pins that Pinterest labels as made or changed with AI from your home feed, search, related pins and boards. AI images without the label still show.	Menghapus pin yang diberi label Pinterest sebagai buatan atau hasil ubahan AI dari feed beranda, pencarian, pin terkait, dan papan Anda. Gambar AI tanpa label tetap muncul.
+Removes pins that Pinterest labels as made or changed with AI from your home feed, search, related pins and other people's boards. AI images without the label still show.	Menghapus pin yang diberi label Pinterest sebagai buatan atau hasil ubahan AI dari feed beranda, pencarian, pin terkait, dan papan milik orang lain. Gambar AI tanpa label tetap muncul.
 # context: a Feed switch right under Hide AI-labeled pins. It removes pins Pinterest doesn't label as AI when their own title or description says they're AI art, or when they come from a website that only hosts AI images. It has its own switch.
 Hide pins that say they're AI	Sembunyikan pin yang menyebut dirinya AI
 Removes pins without the label whose title or description calls them AI art, or that come from an AI image site. It goes by their words, so some still show.	Menghapus pin tanpa label yang judul atau deskripsinya menyebutnya seni AI, atau yang berasal dari situs gambar AI. Ini berpatokan pada kata-katanya, jadi sebagian masih muncul.
@@ -171,7 +171,7 @@ Hide shopping and product pins	Sembunyikan belanja dan Pin produk
 Hides product pins, shopping stories, featured boards and Shop the look under pins. Visit and Paid link stay.	Menyembunyikan pin produk, cerita belanja, papan unggulan, dan Shop the look di bawah pin. Tautan kunjungan dan label tautan berbayar tetap ada.
 # context: a Feed switch under Hide shopping and product pins, from the Filter feed patch. It removes pins that play a video (video pins and idea pins with video) from the lists Pinterest shows. Photos and animated GIFs stay. The title is also the name of that part of the patch in the build report.
 Hide video pins	Sembunyikan pin video
-Removes pins that play a video from your home feed, search, related pins and boards. Photos and GIFs stay.	Menghapus pin yang memutar video dari beranda, pencarian, pin terkait, dan papan Anda. Foto dan GIF tetap ada.
+Removes pins that play a video from your home feed, search, related pins and other people's boards. Photos and GIFs stay.	Menghapus pin yang memutar video dari beranda, pencarian, pin terkait, dan papan milik orang lain. Foto dan GIF tetap ada.
 Disable analytics	Nonaktifkan analitik
 Stops usage reports and analytics tasks. Restart after turning off or pausing. Google's analytics stays off until you patch again without Disable analytics.	Menghentikan laporan penggunaan dan tugas analitik. Mulai ulang setelah dimatikan atau dijeda. Analitik Google tetap mati sampai Anda menambal ulang tanpa patch Nonaktifkan analitik.
 Firebase and Google Analytics collection is turned off	Pengumpulan data Firebase dan Google Analytics dinonaktifkan
@@ -824,3 +824,68 @@ Show related pins	Tampilkan pin terkait
 # context: a Pin page switch on the Interface page, from the Let the screen sleep patch. Pinterest keeps the phone's screen on while one of its videos is on the screen. When this is on, the screen turns off after the phone's normal screen timeout instead. The title is also the patch's name in the build report and in the settings import preview
 Let the screen sleep	Biarkan layar mati
 Pinterest keeps the screen on while a video is on it, playing or not, so an open pin can keep the phone awake. With this on, the screen turns off after your phone's usual timeout, videos included. The change shows on the next pin you open.	Pinterest membuat layar tetap menyala selama ada video di layar, diputar atau tidak, jadi pin yang terbuka bisa membuat ponsel tidak pernah tidur. Jika ini aktif, layar mati setelah batas waktu layar ponsel Anda yang biasa, termasuk saat ada video. Perubahan terlihat pada pin berikutnya yang Anda buka.
+Hide the refresh pill	Sembunyikan pil muat ulang
+Home no longer shows the pill that offers new pins after you've been away. Pull down on Home when you want them.	Beranda tidak lagi menampilkan pil yang menawarkan pin baru setelah Anda pergi sebentar. Tarik ke bawah di Beranda saat Anda menginginkannya.
+Hide offline banner	Sembunyikan bilah offline
+The bar at the top that says you're offline, then back online, no longer shows. The change shows the next time your connection drops.	Bilah di atas yang bilang kamu sedang offline, lalu kembali online, tidak muncul lagi. Perubahannya terlihat saat koneksimu terputus lagi.
+Hide suggested searches	Sembunyikan pencarian yang disarankan
+The colored searches under the search bar on search results no longer show. The filter button stays. The change shows the next time you search.	Pencarian berwarna di bawah bilah pencarian pada hasil pencarian tidak muncul lagi. Tombol filter tetap ada. Perubahannya terlihat saat kamu mencari lagi.
+Swipe down to close pins	Geser ke bawah untuk menutup pin
+Close a pin you opened by pulling it down. Pinterest built this gesture but only gives it to some accounts. Back and the back arrow work as before. The change shows on the next pin you open.	Tutup pin yang kamu buka dengan menariknya ke bawah. Pinterest sudah membuat gerakan ini, tapi hanya memberikannya ke sebagian akun. Kembali dan panah kembali tetap berfungsi seperti biasa. Perubahannya terlihat di pin berikutnya yang kamu buka.
+Full-size profile photos	Foto profil ukuran penuh
+Tap someone's profile photo on their profile to see it full size. Pinterest already does this for some accounts. The change shows on the next profile you open.	Ketuk foto profil seseorang di profilnya untuk melihatnya dalam ukuran penuh. Pinterest sudah melakukan ini untuk sebagian akun. Perubahannya terlihat di profil berikutnya yang kamu buka.
+Best video quality	Kualitas video terbaik
+Plays videos at the largest size Pinterest has instead of capping them. Pinterest already does this for some accounts. It uses more data. The change shows on the next video you open.	Memutar video dalam ukuran terbesar yang dimiliki Pinterest, bukan membatasinya. Pinterest sudah melakukan ini untuk sebagian akun. Ini memakai lebih banyak data. Perubahannya terlihat di video berikutnya yang kamu buka.
+Board order when saving	Urutan papan saat menyimpan
+Lists your boards in the Save to sheet in the order your profile shows them, a custom order included, instead of A to Z. The change shows the next time you save a pin.	Menampilkan papanmu di lembar Simpan sesuai urutan di profilmu, termasuk urutan khusus, bukan dari A sampai Z. Perubahannya terlihat saat kamu menyimpan pin berikutnya.
+Don't autoplay pin videos	Jangan putar otomatis video pin
+A video on a pin you open or swipe to waits for you to tap play instead of starting on its own. A pin you go back to stays paused too. The change shows on the next pin you open.	Video di pin yang kamu buka atau geser menunggu sampai kamu mengetuk putar, bukan mulai sendiri. Pin yang kamu buka lagi juga tetap dijeda. Perubahannya terlihat di pin berikutnya yang kamu buka.
+Start pin videos muted	Mulai video pin tanpa suara
+Every pin video you open or swipe to starts with the sound off, even if you turned it on for the last one. Tap the speaker to hear it. The change shows on the next pin you open.	Setiap video pin yang kamu buka atau geser dimulai tanpa suara, meskipun kamu menyalakannya di video sebelumnya. Ketuk speaker untuk mendengarnya. Perubahannya terlihat di pin berikutnya yang kamu buka.
+Pinch to zoom only	Cubit hanya untuk zoom
+Pinching a pin's picture opens it full screen, where you can zoom in and drag it around, instead of loading pins that look like it. The change shows the next time you pinch a pin.	Mencubit gambar pin akan membukanya dalam layar penuh, tempat kamu bisa memperbesar dan menggesernya, bukan memuat pin yang mirip. Perubahannya terlihat saat kamu mencubit pin berikutnya.
+Black buttons	Tombol hitam
+In dark mode, paints Pinterest's gray buttons, such as Message and Edit profile on a profile, pure black and keeps their labels. The chips over search results and the Refine your search rows go black too, and so does your account card in settings. Light mode stays as it is. The change shows the next time Pinterest draws a button.	Dalam mode gelap, mewarnai tombol abu-abu Pinterest, seperti Pesan dan Edit profil di sebuah profil, menjadi hitam pekat dan tetap mempertahankan labelnya. Chip di atas hasil pencarian dan baris "Perbaiki pencarian Anda" juga menjadi hitam, begitu pula kartu akun Anda di pengaturan. Mode terang tetap seperti biasa. Perubahan terlihat saat Pinterest menggambar tombol berikutnya.
+Save color on other red buttons	Warna Simpan di tombol merah lainnya
+Paints Pinterest's other red buttons, such as Follow and Done, the color you picked for the Save button. Pick that color first. The change shows the next time Pinterest draws a button.	Mewarnai tombol merah Pinterest lainnya, seperti Ikuti dan Selesai, dengan warna yang Anda pilih untuk tombol Simpan. Pilih warna itu terlebih dahulu. Perubahan terlihat saat Pinterest menggambar tombol berikutnya.
+Like and comment history	Riwayat suka dan komentar
+Keeps a list of the pins you like and the comments you post. Open it from Your likes and comments below. The list stays on this phone.	Menyimpan daftar pin yang kamu sukai dan komentar yang kamu kirim. Buka dari Suka dan komentarmu di bawah. Daftarnya tetap di ponsel ini.
+Your likes and comments	Suka dan komentarmu
+See the pins you liked and commented on, newest first. The list keeps the newest 500.	Lihat pin yang kamu sukai dan komentari, yang terbaru dulu. Daftarnya menyimpan 500 yang terbaru.
+All	Semua
+Likes	Suka
+Comments	Komentar
+Liked	Menyukai
+Commented	Berkomentar
+Replied	Membalas
+One entry. Tap it to open its pin.	Satu entri. Ketuk untuk membuka pinnya.
+%1$d entries, newest first. Tap one to open its pin.	%1$d entri, yang terbaru dulu. Ketuk salah satu untuk membuka pinnya.
+Nothing here yet. Pins you like and comments you post show up here.	Belum ada apa pun. Pin yang kamu sukai dan komentar yang kamu kirim muncul di sini.
+Nothing here yet. Turn on Like and comment history to start a list.	Belum ada apa pun. Aktifkan Riwayat suka dan komentar untuk memulai daftar.
+No likes in the list.	Tidak ada suka dalam daftar.
+No comments in the list.	Tidak ada komentar dalam daftar.
+Couldn't open the list. Try again.	Tidak dapat membuka daftar. Coba lagi.
+Cleared your likes and comments.	Suka dan komentarmu sudah dihapus.
+Couldn't clear the list. Try again.	Tidak dapat menghapus daftar. Coba lagi.
+likes	suka
+comments and replies	komentar dan balasan
+# context: the name of a part of the AMOLED black patch in the build report and patch status, under the Black buttons switch. In dark mode it paints the gray chips over search results, such as Filter and the suggested searches, black.
+Black search filters	Filter pencarian hitam
+# context: a Feed switch from the Filter feed patch, under Hide Home suggestions. It takes the lists Pinterest puts between search results under its own "Refine your search" heading (rows of suggested searches, each with a picture) out of the results. Use the words Pinterest shows for that heading in this language. The title is also the name of that part of the patch in the build report.
+Hide Refine your search	Sembunyikan "Perbaiki pencarian Anda"
+# context: the summary under Hide Refine your search.
+Takes the "Refine your search" lists of suggested searches out of search results, and the pins close up where they were. The change shows the next time results load.	Menghapus daftar "Perbaiki pencarian Anda" berisi saran pencarian dari hasil pencarian, dan Pin langsung mengisi tempatnya. Perubahan terlihat saat hasil dimuat berikutnya.
+# context: the name of a part of the AMOLED black patch in the build report and patch status, under the Black buttons switch. In dark mode it paints the gray "Your account" card at the top of Pinterest's own settings (your photo, name, View profile and Share profile) black.
+Black account card in settings	Kartu akun hitam di pengaturan
+# context: the name of a part of the AMOLED black patch in the build report and patch status, under the Black buttons switch. In dark mode it paints the gray rows of the "Refine your search" lists between search results black. Use the words Pinterest shows for that heading in this language.
+Black Refine your search rows	Baris "Perbaiki pencarian Anda" hitam
+Font file	File font
+Copying the font file	Menyalin file font
+No font picked yet. Pick a .ttf or .otf file.	Belum ada font yang dipilih. Pilih file .ttf atau .otf.
+A font file is picked. Tap to pick another.	File font sudah dipilih. Ketuk untuk memilih yang lain.
+%1$s is picked. Tap to pick another.	%1$s dipilih. Ketuk untuk memilih yang lain.
+Font file saved. Restart Pinterest to see it.	File font disimpan. Mulai ulang Pinterest untuk melihatnya.
+That file is too large to be a font. Nothing was changed.	File itu terlalu besar untuk sebuah font. Tidak ada yang diubah.
+That isn't a font file Android can use. Nothing was changed.	Itu bukan file font yang dapat digunakan Android. Tidak ada yang diubah.
+Custom font	Font kustom
+Shows Pinterest's text in the font file you pick below. Icons keep their own font. Restart Pinterest to see the change.	Menampilkan teks Pinterest dengan file font yang Anda pilih di bawah. Ikon tetap memakai font-nya sendiri. Mulai ulang Pinterest untuk melihat perubahannya.

@@ -16,6 +16,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 public final class GboardLongPressQuickActionsRuntime {
     private static final String TAG = "GboardPatches";
     private static final String LOG_PREFIX = "[gboard-long-press-quick-actions-18.5.4] ";
+    public static final int KEYCODE_SWITCH_TO_ONE_HANDED_MODE = -10057;
 
     private static final Map<ClassLoader,
             WeakReference<GboardLongPressQuickActionsReflectionHandles>>
@@ -121,6 +122,13 @@ public final class GboardLongPressQuickActionsRuntime {
             int keyId = handles.extractKeyId(metadata);
             String pressText = handles.extractPressText(metadata);
             int selectedCode = handles.extractSelectedEventCode(event);
+            if (shouldSuppressEnterOneHandedMode(
+                    actionTypeName,
+                    selectedCode,
+                    GboardLongPressQuickActionsRuntimeSettings.isDisableEnterOneHandedEnabled())) {
+                logInfo(ACTION_LOG_COUNT, 30, "suppressed long-press Enter one-handed mode");
+                return true;
+            }
             boolean enabled = GboardLongPressQuickActionsRuntimeSettings.isEnabled();
             boolean quickActionEvent = GboardLongPressQuickActionsPolicy
                     .isQuickActionEvent(keyId, pressText, actionTypeName, selectedCode);
@@ -235,6 +243,15 @@ public final class GboardLongPressQuickActionsRuntime {
         WeakReference<Object> originalReference = ORIGINAL_METADATA_BY_PATCHED.get(metadata);
         Object original = originalReference == null ? null : originalReference.get();
         return original == null ? metadata : original;
+    }
+
+    public static boolean shouldSuppressEnterOneHandedMode(
+            String actionTypeName,
+            int selectedCode,
+            boolean disableEnterOneHanded) {
+        return disableEnterOneHanded
+                && selectedCode == KEYCODE_SWITCH_TO_ONE_HANDED_MODE
+                && "LONG_PRESS".equals(actionTypeName);
     }
 
     static boolean shouldConsumeDisabledInjectedEvent(boolean enabled, Object metadata,

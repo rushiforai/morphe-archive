@@ -1,6 +1,8 @@
 package dev.jason.gboardpatches.extension.spacebargesture;
 
+import android.text.InputType;
 import android.view.KeyEvent;
+import android.view.inputmethod.EditorInfo;
 
 import org.junit.Assert;
 import org.junit.Test;
@@ -277,5 +279,68 @@ public final class GboardSpacebarCursorSenderTest {
             }
             return true;
         }
+    }
+
+    @Test
+    public void verticalDpadMovesInMultilineEditorAndClampsAtTextBoundaries() {
+        FakeCursorEditorAdapter editor = new FakeCursorEditorAdapter("line1\nline2\nline3", 7, 7);
+        EditorInfo multiline = new EditorInfo();
+        multiline.inputType = InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_FLAG_MULTI_LINE;
+
+        Assert.assertTrue(GboardSpacebarCursorSender.moveVerticalWithAdapter(editor, multiline, -1));
+        Assert.assertEquals(2, editor.dpadEvents.size());
+        Assert.assertEquals(
+                KeyEvent.ACTION_DOWN + ":" + KeyEvent.KEYCODE_DPAD_UP + ":"
+                        + GboardSpacebarCursorSender.CURSOR_KEY_EVENT_FLAGS,
+                editor.dpadEvents.get(0));
+        Assert.assertEquals(
+                KeyEvent.ACTION_UP + ":" + KeyEvent.KEYCODE_DPAD_UP + ":"
+                        + GboardSpacebarCursorSender.CURSOR_KEY_EVENT_FLAGS,
+                editor.dpadEvents.get(1));
+
+        // At offset 0: DPAD_UP must be suppressed to prevent focusSearch/keyboard collapse.
+        editor.selectionStart = 0;
+        editor.selectionEnd = 0;
+        editor.dpadEvents.clear();
+        Assert.assertTrue(GboardSpacebarCursorSender.moveVerticalWithAdapter(editor, multiline, -2));
+        Assert.assertTrue(editor.dpadEvents.isEmpty());
+
+        // At end of text: DPAD_DOWN must be suppressed.
+        editor.selectionStart = editor.text.length();
+        editor.selectionEnd = editor.text.length();
+        editor.dpadEvents.clear();
+        Assert.assertTrue(GboardSpacebarCursorSender.moveVerticalWithAdapter(editor, multiline, +2));
+        Assert.assertTrue(editor.dpadEvents.isEmpty());
+    }
+
+    @Test
+    public void verticalDpadIsSuppressedInSingleLineAndPasswordEditors() {
+        FakeCursorEditorAdapter editor = new FakeCursorEditorAdapter("search query", 5, 5);
+        EditorInfo singleLine = new EditorInfo();
+        singleLine.inputType = InputType.TYPE_CLASS_TEXT;
+
+        Assert.assertTrue(GboardSpacebarCursorSender.moveVerticalWithAdapter(editor, singleLine, -1));
+        Assert.assertTrue("Single-line field must never emit vertical DPAD",
+                editor.dpadEvents.isEmpty());
+
+        EditorInfo password = new EditorInfo();
+        password.inputType = InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_VARIATION_PASSWORD;
+        FakeCursorEditorAdapter multilineTextInPwd =
+                new FakeCursorEditorAdapter("secret\nline", 4, 4);
+        Assert.assertTrue(GboardSpacebarCursorSender.moveVerticalWithAdapter(
+                multilineTextInPwd, password, +1));
+        Assert.assertTrue("Password field must never emit vertical DPAD",
+                multilineTextInPwd.dpadEvents.isEmpty());
+    }
+
+    @Test
+    public void verticalDpadFallbackAllowsCustomMultilineEditorContainingNewline() {
+        FakeCursorEditorAdapter webview = new FakeCursorEditorAdapter("first\nsecond", 7, 7);
+        EditorInfo webviewEditor = new EditorInfo();
+        webviewEditor.inputType = InputType.TYPE_CLASS_TEXT;
+
+        Assert.assertTrue(GboardSpacebarCursorSender.moveVerticalWithAdapter(webview, webviewEditor, +1));
+        Assert.assertEquals(2, webview.dpadEvents.size());
+        Assert.assertTrue(webview.dpadEvents.get(0).contains(":" + KeyEvent.KEYCODE_DPAD_DOWN + ":"));
     }
 }

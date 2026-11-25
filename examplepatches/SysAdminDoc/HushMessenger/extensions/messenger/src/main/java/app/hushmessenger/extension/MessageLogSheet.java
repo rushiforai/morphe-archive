@@ -4,19 +4,26 @@ import android.app.Activity;
 import android.app.Dialog;
 import android.content.Context;
 import android.content.Intent;
+import android.graphics.Bitmap;
+import android.graphics.Outline;
+import android.graphics.drawable.Drawable;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.text.Editable;
+import android.text.TextUtils;
 import android.text.TextWatcher;
+import android.view.Gravity;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
 import android.view.View;
+import android.view.ViewOutlineProvider;
 import android.view.WindowManager;
 import android.view.inputmethod.EditorInfo;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.HorizontalScrollView;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.RadioButton;
@@ -25,7 +32,13 @@ import android.widget.ScrollView;
 import android.widget.TextView;
 import android.widget.Toast;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.function.Function;
 
 /**
@@ -86,6 +99,19 @@ final class MessageLogSheet {
     private Button messageLogSaveText, messageLogSaveCsv;
     /** The format of the file picker that's open, 0 when none is. */
     private int messageLogSaving;
+    /** The open log's colors, taken from Messenger's chats when it opens, and the layout drawn in them. */
+    private MessageLogLook messageLogLook;
+    private SettingsUi messageLogUi;
+    /** Faces opened for the open log, by file name, a page or so of them; a face that scrolled further back opens again. */
+    private final Map<String, Bitmap> messageLogFaces = new LinkedHashMap<String, Bitmap>(16, 0.75f, true) {
+        @Override protected boolean removeEldestEntry(Map.Entry<String, Bitmap> eldest) { return size() > MESSAGE_LOG_FACES; }
+    };
+    /** The faces on screen waiting for a picture being opened, and the names with no picture, until the log reloads. */
+    private final Map<String, List<MessageLogFace>> messageLogFacesWaiting = new HashMap<>();
+    private final Set<String> messageLogNoFace = new HashSet<>();
+    private long messageLogFaceGeneration;
+    /** Faces held open at a time, about three pages of rows. Each is 64 KB. */
+    private static final int MESSAGE_LOG_FACES = 64;
 
     MessageLogSheet(SettingsActivity page) {
         this.page = page;
@@ -210,7 +236,10 @@ final class MessageLogSheet {
 
     void showMessageLog() {
         if (page.isFinishing() || page.isDestroyed() || messageLogDialog != null) return;
-        SettingsDialog sheet = new SettingsDialog(page, page.ui, page.text, page.text.get("message_log_title"),
+        // The log reads like Messenger's chats, so it takes their light or dark look and Material You's colors, not the page's.
+        messageLogLook = MessageLogLook.current();
+        messageLogUi = new SettingsUi(page, messageLogLook);
+        SettingsDialog sheet = new SettingsDialog(page, messageLogUi, page.text, page.text.get("message_log_title"),
             page.text.get(messageLogHint()));
         Dialog dialog = sheet.dialog;
         messageLogDialog = dialog;
@@ -220,6 +249,7 @@ final class MessageLogSheet {
             if (messageLogVideoDialog != null) messageLogVideoDialog.dismiss();
             MessageLogClip.stop();
             if (messageLogDialog == dismissed) {
+                forgetMessageLogFaces();
                 messageLogDialog = null;
                 messageLogList = null;
                 messageLogScroll = null;
@@ -243,11 +273,11 @@ final class MessageLogSheet {
         // Scrolling near the end builds the next page, and so does a layout that leaves the end in view.
         sheet.scroll.setOnScrollChangeListener((view, x, y, oldX, oldY) -> moreMessageLogIfNear());
         sheet.scroll.getViewTreeObserver().addOnGlobalLayoutListener(this::moreMessageLogIfNear);
-        messageLogClear = page.ui.destructiveButton(page.text.get("message_log_clear"));
+        messageLogClear = messageLogUi.destructiveButton(page.text.get("message_log_clear"));
         messageLogClear.setTag("message_log_dialog_clear");
         messageLogClear.setOnClickListener(clicked -> clearMessageLog());
         sheet.action(messageLogClear);
-        Button close = page.ui.primaryButton(page.text.get("message_log_close"));
+        Button close = messageLogUi.primaryButton(page.text.get("message_log_close"));
         close.setTag("message_log_dialog_close");
         close.setOnClickListener(clicked -> dialog.dismiss());
         sheet.action(close);
@@ -281,6 +311,17 @@ final class MessageLogSheet {
         page.getWindow().clearFlags(WindowManager.LayoutParams.FLAG_SECURE);
     }
 
+    /** The open log's layout, else the page's for a callback that lands after the log closed. */
+    private SettingsUi ui() {
+        SettingsUi ui = messageLogUi;
+        return ui != null ? ui : page.ui;
+    }
+
+    private MessageLogLook look() {
+        MessageLogLook look = messageLogLook;
+        return look != null ? look : MessageLogLook.current();
+    }
+
     private void loadMessageLog() {
         final LinearLayout list = messageLogList;
         if (list == null) return;
@@ -288,8 +329,10 @@ final class MessageLogSheet {
         messageLogMore = null;
         messageLogResults = null;
         messageLogIndex = null;
+        // A Clear or its Undo can take or bring back faces, so they open again.
+        forgetMessageLogFaces();
         list.removeAllViews();
-        SettingsUi ui = page.ui;
+        SettingsUi ui = ui();
         SettingsText text = page.text;
         TextView loading = ui.text(text.get("message_log_loading"), 14, ui.muted, false);
         loading.setAccessibilityLiveRegion(View.ACCESSIBILITY_LIVE_REGION_POLITE);
@@ -304,7 +347,7 @@ final class MessageLogSheet {
                 list.removeAllViews();
                 if (messageLogClear != null) messageLogClear.setEnabled(result.failed || result.setAside || messageLogClearFailed || !result.entries.isEmpty());
                 if (result.failed || messageLogClearFailed) {
-                    LinearLayout failure = ui.panel();
+                    LinearLayout failure = messageLogPanel(ui);
                     failure.setAccessibilityLiveRegion(View.ACCESSIBILITY_LIVE_REGION_POLITE);
                     failure.addView(ui.text(text.get(messageLogClearFailed ? "message_log_clear_failed" : "message_log_load_failed"), 18, ui.error, true));
                     ui.add(failure, ui.text(text.get(messageLogClearFailed ? "message_log_clear_help" : "message_log_load_help"), 14, ui.muted, false), 8);
@@ -316,7 +359,7 @@ final class MessageLogSheet {
                 } else {
                     // The log works; only an older file it couldn't read was moved aside. Say so without calling it a failure.
                     if (result.setAside) {
-                        LinearLayout notice = ui.panel();
+                        LinearLayout notice = messageLogPanel(ui);
                         notice.setAccessibilityLiveRegion(View.ACCESSIBILITY_LIVE_REGION_POLITE);
                         notice.addView(ui.title(text.get("message_log_set_aside"), 18));
                         ui.add(notice, ui.text(text.get("message_log_set_aside_help"), 14, ui.muted, false), 8);
@@ -327,7 +370,7 @@ final class MessageLogSheet {
                         ui.add(list, notice, 0);
                     }
                     if (result.entries.isEmpty()) {
-                        LinearLayout empty = ui.panel();
+                        LinearLayout empty = messageLogPanel(ui);
                         empty.setPadding(ui.dp(20), ui.dp(20), ui.dp(20), ui.dp(20));
                         empty.setAccessibilityLiveRegion(View.ACCESSIBILITY_LIVE_REGION_POLITE);
                         View accent = new View(page);
@@ -356,14 +399,32 @@ final class MessageLogSheet {
         }, "HushMessageLogView").start();
     }
 
+    /**
+     * A note's box in the log: the sheet's own color ringed in the bubbles' grey, so the grey buttons inside it still
+     * read as buttons.
+     */
+    private static LinearLayout messageLogPanel(SettingsUi ui) {
+        LinearLayout panel = ui.panel();
+        panel.setBackground(ui.shape(ui.dialog, ui.card, SettingsUi.CARD_RADIUS, 1));
+        return panel;
+    }
+
     /** The search box, the two ways to narrow the log and the two ways to save it, with the results column under them. */
     private void addMessageLogTools(LinearLayout list, MessageLogSearch.Index index) {
-        SettingsUi ui = page.ui;
+        SettingsUi ui = ui();
+        MessageLogLook look = look();
         SettingsText text = page.text;
         messageLogIndex = index;
+        // Messenger's search field: a grey pill with the magnifier at its start.
         EditText search = ui.field(text.get("message_log_search"), 200, true);
         search.setTag("message_log_search");
         search.setImeOptions(EditorInfo.IME_ACTION_DONE | EditorInfo.IME_FLAG_NO_PERSONALIZED_LEARNING);
+        search.setBackground(look.pill(ui, look.raised, 2));
+        Drawable glass = SettingsIcons.icon(page, SettingsIcons.SEARCH, look.muted);
+        glass.setBounds(0, 0, ui.dp(20), ui.dp(20));
+        search.setCompoundDrawablesRelative(glass, null, null, null);
+        search.setCompoundDrawablePadding(ui.dp(8));
+        search.setPaddingRelative(ui.dp(14), ui.dp(12), ui.dp(16), ui.dp(12));
         search.setText(messageLogQuery);
         // Results sit in their own column, so the box keeps its focus and its keyboard while they change.
         search.addTextChangedListener(new TextWatcher() {
@@ -376,13 +437,14 @@ final class MessageLogSheet {
         });
         ui.add(list, search, 12);
 
+        // Messenger's filter chips in one row that scrolls sideways when the words don't fit: the kinds, then the two views.
+        LinearLayout chips = ui.row();
+        chips.setGravity(Gravity.CENTER_VERTICAL);
         messageLogKinds = ui.row();
         messageLogKinds.setTag("message_log_kinds");
-        ui.add(list, messageLogKinds, 8);
+        chips.addView(messageLogKinds, new LinearLayout.LayoutParams(-2, -2));
         showMessageLogKinds();
-
-        LinearLayout views = ui.row();
-        Button byChat = ui.button(text.get(messageLogByChat ? "message_log_by_date" : "message_log_by_chat"));
+        Button byChat = messageLogChip(text.get(messageLogByChat ? "message_log_by_date" : "message_log_by_chat"), false);
         byChat.setTag("message_log_by_chat");
         byChat.setOnClickListener(view -> {
             messageLogByChat = !messageLogByChat;
@@ -390,53 +452,82 @@ final class MessageLogSheet {
             byChat.setText(text.get(messageLogByChat ? "message_log_by_date" : "message_log_by_chat"));
             showMessageLogResults();
         });
-        views.addView(byChat, new LinearLayout.LayoutParams(0, -2, 1));
+        chips.addView(byChat, chipParams(ui, true));
         // Only a log with unsent messages in it gets the filter.
         if (index.hasUnsent) {
-            Button filter = ui.button(text.get(messageLogUnsentOnly ? "message_log_show_all" : "message_log_unsent_only"));
+            Button filter = messageLogChip(text.get(messageLogUnsentOnly ? "message_log_show_all" : "message_log_unsent_only"), false);
             filter.setTag("message_log_unsent_only");
             filter.setOnClickListener(view -> {
                 messageLogUnsentOnly = !messageLogUnsentOnly;
                 filter.setText(text.get(messageLogUnsentOnly ? "message_log_show_all" : "message_log_unsent_only"));
                 showMessageLogResults();
             });
-            LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(0, -2, 1);
-            params.setMarginStart(ui.dp(8));
-            views.addView(filter, params);
+            chips.addView(filter, chipParams(ui, true));
         }
-        ui.add(list, views, 8);
+        HorizontalScrollView chipScroll = new HorizontalScrollView(page);
+        chipScroll.setHorizontalScrollBarEnabled(false);
+        chipScroll.setFillViewport(true);
+        chipScroll.addView(chips, new HorizontalScrollView.LayoutParams(-2, -2));
+        ui.add(list, chipScroll, 4);
 
         LinearLayout saves = ui.row();
-        messageLogSaveText = ui.button(text.get("message_log_save_text"));
+        messageLogSaveText = messageLogChip(text.get("message_log_save_text"), false);
         messageLogSaveText.setTag("message_log_save_text");
         messageLogSaveText.setOnClickListener(view -> pickSaveFile(MessageLogExport.TEXT));
         saves.addView(messageLogSaveText, new LinearLayout.LayoutParams(0, -2, 1));
-        messageLogSaveCsv = ui.button(text.get("message_log_save_csv"));
+        messageLogSaveCsv = messageLogChip(text.get("message_log_save_csv"), false);
         messageLogSaveCsv.setTag("message_log_save_csv");
         messageLogSaveCsv.setOnClickListener(view -> pickSaveFile(MessageLogExport.CSV));
         LinearLayout.LayoutParams csvParams = new LinearLayout.LayoutParams(0, -2, 1);
         csvParams.setMarginStart(ui.dp(8));
         saves.addView(messageLogSaveCsv, csvParams);
-        ui.add(list, saves, 8);
-        ui.add(list, ui.text(text.get("message_log_save_help"), 13, ui.muted, false), 4);
+        ui.add(list, saves, 0);
+        ui.add(list, ui.text(text.get("message_log_save_help"), 13, ui.muted, false), 2);
 
         messageLogResults = ui.column();
         messageLogResults.setTag("message_log_results");
-        list.addView(messageLogResults, new LinearLayout.LayoutParams(-1, -2));
+        LinearLayout.LayoutParams resultsParams = new LinearLayout.LayoutParams(-1, -2);
+        resultsParams.topMargin = ui.dp(8);
+        list.addView(messageLogResults, resultsParams);
+    }
+
+    /**
+     * A chip like Messenger's filters: a round-ended grey button, or the blue-washed one with blue words when [picked].
+     * Its touch target stays 48 dp tall while the chip shows 36.
+     */
+    private Button messageLogChip(String title, boolean picked) {
+        SettingsUi ui = ui();
+        MessageLogLook look = look();
+        Button chip = ui.button(title);
+        chip.setTextSize(14);
+        chip.setSingleLine(true);
+        chip.setTextColor(new android.content.res.ColorStateList(new int[][] {{-android.R.attr.state_enabled}, {}},
+            new int[] {(look.muted & 0x00ffffff) | 0x99000000, picked ? look.pickedText : look.text}));
+        chip.setBackground(look.pill(ui, picked ? look.picked : look.raised, 6));
+        chip.setPadding(ui.dp(16), 0, ui.dp(16), 0);
+        chip.setMinWidth(ui.dp(48));
+        chip.setMinimumWidth(ui.dp(48));
+        chip.setSelected(picked);
+        return chip;
+    }
+
+    private static LinearLayout.LayoutParams chipParams(SettingsUi ui, boolean gap) {
+        LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(-2, -2);
+        if (gap) params.setMarginStart(ui.dp(8));
+        return params;
     }
 
     /** All, Direct and Groups, the picked one filled in. Picking one goes back to every chat of that kind. */
     private void showMessageLogKinds() {
         LinearLayout row = messageLogKinds;
         if (row == null) return;
-        SettingsUi ui = page.ui;
+        SettingsUi ui = ui();
         row.removeAllViews();
         for (int kind = 0; kind < KINDS.length; kind++) {
             int choice = kind;
             boolean picked = kind == messageLogKind;
-            Button button = picked ? ui.primaryButton(page.text.get(KINDS[kind])) : ui.button(page.text.get(KINDS[kind]));
+            Button button = messageLogChip(page.text.get(KINDS[kind]), picked);
             button.setTag(KINDS[kind]);
-            button.setSelected(picked);
             button.setOnClickListener(view -> {
                 if (messageLogKind == choice) return;
                 messageLogKind = choice;
@@ -444,9 +535,7 @@ final class MessageLogSheet {
                 showMessageLogKinds();
                 showMessageLogResults();
             });
-            LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(0, -2, 1);
-            if (kind > 0) params.setMarginStart(ui.dp(8));
-            row.addView(button, params);
+            row.addView(button, chipParams(ui, kind > 0));
         }
     }
 
@@ -455,7 +544,7 @@ final class MessageLogSheet {
         LinearLayout results = messageLogResults;
         MessageLogSearch.Index index = messageLogIndex;
         if (results == null || index == null) return;
-        SettingsUi ui = page.ui;
+        SettingsUi ui = ui();
         SettingsText text = page.text;
         long generation = ++messageLogGeneration;
         messageLogMore = null;
@@ -467,11 +556,21 @@ final class MessageLogSheet {
         messageLogSaveText.setEnabled(!found.isEmpty());
         messageLogSaveCsv.setEnabled(!found.isEmpty());
         if (messageLogThread != null) {
-            Button all = ui.button(text.get("message_log_all_chats"));
+            Button all = messageLogChip(text.get("message_log_all_chats"), false);
             all.setTag("message_log_all_chats");
+            all.setTextColor(look().link);
+            Drawable back = SettingsIcons.icon(page, SettingsIcons.BACK, look().link);
+            back.setBounds(0, 0, ui.dp(18), ui.dp(18));
+            back.setAutoMirrored(true);
+            all.setCompoundDrawablesRelative(back, null, null, null);
+            all.setCompoundDrawablePadding(ui.dp(4));
+            all.setPaddingRelative(ui.dp(10), 0, ui.dp(16), 0);
             all.setOnClickListener(view -> openMessageLogChat(null));
-            ui.add(results, all, 12);
-            if (!messageLogThread.isEmpty()) addMessageLogRename(results, index, messageLogThread);
+            results.addView(all, new LinearLayout.LayoutParams(-2, -2));
+            if (!messageLogThread.isEmpty()) {
+                addMessageLogChatTop(results, index, messageLogThread, found.size());
+                addMessageLogRename(results, index, messageLogThread);
+            }
         }
         if (found.isEmpty()) {
             TextView none = ui.text(text.get("message_log_no_match"), 14, ui.muted, false);
@@ -487,15 +586,21 @@ final class MessageLogSheet {
 
     /** The open chat's name field: what it's called in the log, typed by you, or empty for the name its messages carry. */
     private void addMessageLogRename(LinearLayout results, MessageLogSearch.Index index, String thread) {
-        SettingsUi ui = page.ui;
+        SettingsUi ui = ui();
+        MessageLogLook look = look();
         SettingsText text = page.text;
         LinearLayout row = ui.row();
+        row.setGravity(Gravity.CENTER_VERTICAL);
         EditText name = ui.field(text.get("message_log_rename_hint"), MessageLog.MAX_NAME_CHARS, true);
         name.setTag("message_log_rename");
         name.setImeOptions(EditorInfo.IME_ACTION_DONE | EditorInfo.IME_FLAG_NO_PERSONALIZED_LEARNING);
+        name.setBackground(look.pill(ui, look.raised, 2));
+        name.setPaddingRelative(ui.dp(16), ui.dp(12), ui.dp(16), ui.dp(12));
         name.setText(index.picked(thread));
         row.addView(name, new LinearLayout.LayoutParams(0, -2, 1));
-        Button save = ui.button(text.get("message_log_rename_save"));
+        Button save = messageLogChip(text.get("message_log_rename_save"), false);
+        save.setTextColor(new android.content.res.ColorStateList(new int[][] {{-android.R.attr.state_enabled}, {}},
+            new int[] {(look.muted & 0x00ffffff) | 0x99000000, look.link}));
         save.setTag("message_log_rename_save");
         save.setOnClickListener(view -> renameMessageLogChat(thread, name, save));
         name.setOnEditorActionListener((field, action, event) -> {
@@ -507,6 +612,28 @@ final class MessageLogSheet {
         params.setMarginStart(ui.dp(8));
         row.addView(save, params);
         ui.add(results, row, 8);
+    }
+
+    /** The open chat's face and name over its messages, as at the top of a Messenger chat, with how many are listed. */
+    private void addMessageLogChatTop(LinearLayout results, MessageLogSearch.Index index, String thread, int count) {
+        SettingsUi ui = ui();
+        MessageLogLook look = look();
+        SettingsText text = page.text;
+        LinearLayout top = ui.column();
+        top.setGravity(Gravity.CENTER_HORIZONTAL);
+        top.setTag("message_log_chat_top");
+        boolean direct = ChatNotifications.oneToOne(thread);
+        top.addView(messageLogFaceView(MessageLogFaces.chatName(thread), !direct, 64));
+        String called = index.chatName(thread);
+        TextView name = ui.text(called.isEmpty() ? text.get("message_log_unknown_thread") : called, 18, look.text, true);
+        name.setGravity(Gravity.CENTER_HORIZONTAL);
+        name.setTextDirection(View.TEXT_DIRECTION_FIRST_STRONG);
+        name.setAccessibilityHeading(true);
+        ui.add(top, name, 8);
+        TextView many = ui.text(text.get("message_log_chat_count", String.valueOf(count)), 13, look.muted, false);
+        many.setGravity(Gravity.CENTER_HORIZONTAL);
+        ui.add(top, many, 4);
+        ui.add(results, top, 8);
     }
 
     /** Saves the typed name off the main thread, then shows the chat under it. An empty name takes the picked one away. */
@@ -577,43 +704,71 @@ final class MessageLogSheet {
         }, "HushMessageLogView").start();
     }
 
+    /** Room for the face and the gap after it, which the name and badge over a bubble are indented by. */
+    private static final int ENTRY_FACE = 32, ENTRY_GAP = 8;
+
+    /**
+     * One message as Messenger shows it: who sent it and when over a grey bubble, with their face beside it at its foot.
+     * A one-to-one chat's face is the other person's, a group's is its sender's.
+     */
     private View messageLogEntry(MessageLog.Entry entry) {
-        SettingsUi ui = page.ui;
+        SettingsUi ui = ui();
+        MessageLogLook look = look();
         SettingsText text = page.text;
         LinearLayout card = ui.column();
-        card.setBackground(ui.cardShape());
-        // A name that opens its chat is a full-height tap target, so the card's top padding makes room for it.
+        // A name that opens its chat is a full-height tap target, so it sits over the bubble's start, not on it.
         boolean opens = messageLogThread == null && !entry.thread.isEmpty();
-        card.setPadding(ui.dp(16), ui.dp(opens ? 4 : 16), ui.dp(16), ui.dp(16));
+        int indent = ui.dp(ENTRY_FACE + ENTRY_GAP);
         String who = messageLogWho(entry);
-        TextView metadata = ui.text(who + "  ·  " + page.formatSince(entry.time, "message_log_now", "message_log_ago"), 12, ui.muted, true);
+        TextView metadata = ui.text(who + "  ·  " + page.formatSince(entry.time, "message_log_now", "message_log_ago"), 12, look.muted, true);
         metadata.setContentDescription(who + ". " + android.text.format.DateFormat.getDateFormat(page).format(new java.util.Date(entry.time)) + ", " +
             android.text.format.DateFormat.getTimeFormat(page).format(new java.util.Date(entry.time)));
+        metadata.setPaddingRelative(ui.dp(12), 0, ui.dp(12), 0);
         if (opens) {
             metadata.setTag("message_log_open_chat");
             // In the link color, so the name reads as something to tap and the plain ones in a chat's own log don't.
-            metadata.setTextColor(ui.accent);
+            metadata.setTextColor(look.link);
             metadata.setMinHeight(ui.dp(48));
-            metadata.setGravity(android.view.Gravity.CENTER_VERTICAL);
+            metadata.setGravity(Gravity.CENTER_VERTICAL);
             metadata.setBackground(ui.interactive(0, 0, 8));
             metadata.setFocusable(true);
             metadata.setOnClickListener(view -> openMessageLogChat(entry.thread));
         }
-        card.addView(metadata);
+        LinearLayout.LayoutParams metadataParams = new LinearLayout.LayoutParams(-2, -2);
+        metadataParams.setMarginStart(indent);
+        card.addView(metadata, metadataParams);
         if (entry.unsent) {
-            TextView badge = ui.text(text.get("message_log_unsent"), 12, ui.accent, true);
+            TextView badge = ui.text(text.get("message_log_unsent"), 12, look.link, true);
             badge.setTag("message_log_unsent_badge");
-            ui.add(card, badge, 4);
+            badge.setPaddingRelative(ui.dp(12), 0, 0, 0);
+            LinearLayout.LayoutParams badgeParams = new LinearLayout.LayoutParams(-2, -2);
+            badgeParams.setMarginStart(indent);
+            badgeParams.topMargin = ui.dp(2);
+            card.addView(badge, badgeParams);
         }
+        LinearLayout row = ui.row();
+        row.setGravity(Gravity.BOTTOM);
+        boolean direct = MessageLogSearch.direct(entry);
+        String face = entry.thread.isEmpty() ? null : direct ? MessageLogFaces.chatName(entry.thread)
+            : entry.sender.isEmpty() ? null : MessageLogFaces.senderName(entry.thread, entry.sender);
+        row.addView(messageLogFaceView(face, false, ENTRY_FACE));
+        // Bubbles stop short of the far edge, as Messenger's do, so a long message still reads as one person's.
+        LinearLayout bubbles = ui.column();
+        LinearLayout.LayoutParams bubblesParams = new LinearLayout.LayoutParams(0, -2, 1);
+        bubblesParams.setMarginStart(ui.dp(ENTRY_GAP));
+        bubblesParams.setMarginEnd(ui.dp(24));
+        row.addView(bubbles, bubblesParams);
         String words = entry.text == null || entry.text.isEmpty() ? text.get(entry.attachment ? "message_log_attachment" : "message_log_no_text") : entry.text;
-        TextView body = ui.text(words, 15, ui.text, false);
+        TextView body = ui.text(words, 15, look.text, false);
         body.setTextDirection(View.TEXT_DIRECTION_FIRST_STRONG);
         body.setTextIsSelectable(true);
-        ui.add(card, body, 8);
+        body.setBackground(look.bubble(ui));
+        body.setPadding(ui.dp(12), ui.dp(8), ui.dp(12), ui.dp(9));
+        bubbles.addView(body, new LinearLayout.LayoutParams(-2, -2));
         if (MessageLogAttachment.AUDIO.equals(entry.mediaType)) {
-            if (!entry.media.isEmpty()) messageLogClipRow(card, entry.media);
+            if (!entry.media.isEmpty()) messageLogClipRow(bubbles, entry.media);
         } else if (MessageLogAttachment.VIDEO.equals(entry.mediaType)) {
-            if (!entry.media.isEmpty()) messageLogVideoRow(card, entry.media);
+            if (!entry.media.isEmpty()) messageLogVideoRow(bubbles, entry.media);
         } else if (!entry.media.isEmpty()) {
             ImageView picture = new ImageView(page);
             picture.setTag("message_log_photo");
@@ -622,17 +777,26 @@ final class MessageLogSheet {
             picture.setScaleType(ImageView.ScaleType.FIT_START);
             picture.setMaxHeight(ui.dp(280));
             picture.setVisibility(View.GONE);
+            // Rounded like the bubble above it.
+            int corner = ui.dp(18);
+            picture.setOutlineProvider(new ViewOutlineProvider() {
+                @Override public void getOutline(View view, Outline outline) {
+                    outline.setRoundRect(0, 0, view.getWidth(), view.getHeight(), corner);
+                }
+            });
+            picture.setClipToOutline(true);
             LinearLayout.LayoutParams pictureParams = new LinearLayout.LayoutParams(-2, -2);
-            pictureParams.topMargin = ui.dp(8);
-            card.addView(picture, pictureParams);
-            TextView missing = ui.text(text.get("message_log_photo_missing"), 13, ui.muted, false);
+            pictureParams.topMargin = ui.dp(4);
+            bubbles.addView(picture, pictureParams);
+            TextView missing = ui.text(text.get("message_log_photo_missing"), 13, look.muted, false);
             missing.setTag("message_log_photo_missing");
             missing.setVisibility(View.GONE);
-            ui.add(card, missing, 8);
+            ui.add(bubbles, missing, 4);
             showMessageLogPicture(picture, missing, entry.media);
         }
+        ui.add(card, row, 2);
         LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(-1, -2);
-        params.topMargin = ui.dp(8);
+        params.topMargin = ui.dp(12);
         card.setLayoutParams(params);
         return card;
     }
@@ -660,15 +824,15 @@ final class MessageLogSheet {
      * the clip runs, and says so in its place when the clip can't be played.
      */
     private void messageLogClipRow(LinearLayout card, String name) {
-        SettingsUi ui = page.ui;
+        SettingsUi ui = ui();
         SettingsText text = page.text;
-        Button play = ui.button(text.get(MessageLogClip.playing(name) ? "message_log_clip_stop" : "message_log_clip_play"));
+        Button play = messageLogPlay(text.get(MessageLogClip.playing(name) ? "message_log_clip_stop" : "message_log_clip_play"));
         play.setTag("message_log_clip");
-        ui.add(card, play, 8);
+        card.addView(play, messageLogPlayParams(ui));
         TextView missing = ui.text(text.get("message_log_clip_missing"), 13, ui.muted, false);
         missing.setTag("message_log_clip_missing");
         missing.setVisibility(View.GONE);
-        ui.add(card, missing, 8);
+        ui.add(card, missing, 4);
         Context context = page.getApplicationContext();
         LinearLayout results = messageLogResults;
         play.setOnClickListener(clicked -> {
@@ -694,11 +858,24 @@ final class MessageLogSheet {
 
     /** The Play button on a video message's card. The video plays over the log, in a window of its own. */
     private void messageLogVideoRow(LinearLayout card, String name) {
-        SettingsUi ui = page.ui;
-        Button play = ui.button(page.text.get("message_log_video_play"));
+        Button play = messageLogPlay(page.text.get("message_log_video_play"));
         play.setTag("message_log_video");
-        ui.add(card, play, 8);
+        card.addView(play, messageLogPlayParams(ui()));
         play.setOnClickListener(clicked -> showMessageLogVideo(name));
+    }
+
+    /** A voice message's or video's Play, a grey chip under its bubble with the words in the link color. */
+    private Button messageLogPlay(String title) {
+        Button play = messageLogChip(title, false);
+        play.setTextColor(new android.content.res.ColorStateList(new int[][] {{-android.R.attr.state_enabled}, {}},
+            new int[] {(look().muted & 0x00ffffff) | 0x99000000, look().link}));
+        return play;
+    }
+
+    private static LinearLayout.LayoutParams messageLogPlayParams(SettingsUi ui) {
+        LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(-2, -2);
+        params.topMargin = ui.dp(2);
+        return params;
     }
 
     /**
@@ -708,7 +885,7 @@ final class MessageLogSheet {
      */
     private void showMessageLogVideo(String name) {
         if (page.isFinishing() || page.isDestroyed() || messageLogVideoDialog != null) return;
-        SettingsUi ui = page.ui;
+        SettingsUi ui = ui();
         SettingsText text = page.text;
         SettingsDialog sheet = new SettingsDialog(page, ui, text, text.get("message_log_video_title"),
             text.get("message_log_video_hint"));
@@ -798,23 +975,138 @@ final class MessageLogSheet {
         });
     }
 
-    /** One chat in the by-chat view. Tapping it narrows the log to that chat. */
+    /**
+     * One chat in the by-chat view, as a row of Messenger's chat list: the chat's face, its name with when it last
+     * spoke, and its newest message under them. Tapping it narrows the log to that chat.
+     */
     private View messageLogChat(MessageLogSearch.Chat chat) {
-        SettingsUi ui = page.ui;
+        SettingsUi ui = ui();
+        MessageLogLook look = look();
         SettingsText text = page.text;
-        LinearLayout card = ui.column();
+        LinearLayout card = ui.row();
         card.setTag("message_log_chat");
-        card.setBackground(ui.interactive(ui.card, ui.line, SettingsUi.CARD_RADIUS));
-        card.setPadding(ui.dp(16), ui.dp(16), ui.dp(16), ui.dp(16));
-        card.addView(ui.title(chat.name.isEmpty() ? text.get("message_log_unknown_thread") : chat.name, 15));
-        ui.add(card, ui.text(text.get("message_log_chat_count", String.valueOf(chat.count)) + "  ·  " +
-            page.formatSince(chat.latest, "message_log_now", "message_log_ago"), 12, ui.muted, true), 4);
+        card.setGravity(Gravity.CENTER_VERTICAL);
+        card.setBackground(ui.interactive(0, 0, 12));
+        card.setPadding(ui.dp(8), ui.dp(8), ui.dp(8), ui.dp(8));
+        card.setMinimumHeight(ui.dp(72));
+        boolean group = !chat.thread.isEmpty() && !ChatNotifications.oneToOne(chat.thread);
+        card.addView(messageLogFaceView(chat.thread.isEmpty() ? null : MessageLogFaces.chatName(chat.thread), group, 56));
+
+        LinearLayout lines = ui.column();
+        LinearLayout.LayoutParams linesParams = new LinearLayout.LayoutParams(0, -2, 1);
+        linesParams.setMarginStart(ui.dp(12));
+        card.addView(lines, linesParams);
+        LinearLayout top = ui.row();
+        top.setGravity(Gravity.CENTER_VERTICAL);
+        String called = chat.name.isEmpty() ? text.get("message_log_unknown_thread") : chat.name;
+        TextView name = ui.text(called, 16, look.text, true);
+        name.setSingleLine(true);
+        name.setEllipsize(TextUtils.TruncateAt.END);
+        name.setTextDirection(View.TEXT_DIRECTION_FIRST_STRONG);
+        top.addView(name, new LinearLayout.LayoutParams(0, -2, 1));
+        String since = page.formatSince(chat.latest, "message_log_now", "message_log_ago");
+        TextView when = ui.text(since, 13, look.muted, false);
+        LinearLayout.LayoutParams whenParams = new LinearLayout.LayoutParams(-2, -2);
+        whenParams.setMarginStart(ui.dp(8));
+        top.addView(when, whenParams);
+        lines.addView(top, new LinearLayout.LayoutParams(-1, -2));
+
+        // A group's newest line says who wrote it, the way Messenger's list does, unless the chat is named after them.
+        MessageLog.Entry newest = chat.newest;
+        String words = newest.text == null || newest.text.isEmpty() ? text.get(newest.attachment ? "message_log_attachment" : "message_log_no_text") : newest.text;
+        boolean saysWho = group && !newest.sender.isEmpty() && !newest.sender.equals(chat.name);
+        LinearLayout preview = ui.row();
+        if (saysWho) {
+            TextView sender = ui.text(newest.sender + ": ", 14, look.muted, false);
+            sender.setSingleLine(true);
+            sender.setEllipsize(TextUtils.TruncateAt.END);
+            sender.setMaxWidth(ui.dp(120));
+            preview.addView(sender, new LinearLayout.LayoutParams(-2, -2));
+        }
+        TextView latest = ui.text(words, 14, look.muted, false);
+        latest.setSingleLine(true);
+        latest.setEllipsize(TextUtils.TruncateAt.END);
+        latest.setTextDirection(View.TEXT_DIRECTION_FIRST_STRONG);
+        preview.addView(latest, new LinearLayout.LayoutParams(0, -2, 1));
+        ui.add(lines, preview, 4);
+
+        // The row is read out as one: the chat, how many messages the log holds from it and when, then the newest.
+        card.setContentDescription(called + ". " + text.get("message_log_chat_count", String.valueOf(chat.count)) + ", " + since + ". " +
+            (saysWho ? newest.sender + ": " : "") + words);
         card.setFocusable(true);
         card.setOnClickListener(view -> openMessageLogChat(chat.thread));
         LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(-1, -2);
-        params.topMargin = ui.dp(8);
+        params.topMargin = ui.dp(2);
         card.setLayoutParams(params);
         return card;
+    }
+
+    /**
+     * A round face [size] dp across: the picture kept under [name] once it opens, else Messenger's blank one, two of
+     * them for a [group]. Null [name] is a chat or sender the log never had a picture for.
+     */
+    private View messageLogFaceView(String name, boolean group, int size) {
+        SettingsUi ui = ui();
+        MessageLogFace face = look().face(group);
+        View view = new View(page);
+        view.setTag("message_log_face");
+        view.setBackground(face);
+        view.setImportantForAccessibility(View.IMPORTANT_FOR_ACCESSIBILITY_NO);
+        view.setLayoutParams(new LinearLayout.LayoutParams(ui.dp(size), ui.dp(size)));
+        if (name != null) showMessageLogFace(face, name);
+        return view;
+    }
+
+    /**
+     * Opens the face kept under [name] off the main thread, one at a time with the log's photos, and puts it on [face]
+     * and every other row waiting on it. A name with no face stays blank until the log reloads.
+     */
+    private void showMessageLogFace(MessageLogFace face, String name) {
+        Bitmap known = messageLogFaces.get(name);
+        if (known != null) {
+            face.setPicture(known);
+            return;
+        }
+        if (messageLogNoFace.contains(name)) return;
+        List<MessageLogFace> waiting = messageLogFacesWaiting.get(name);
+        if (waiting != null) {
+            waiting.add(face);
+            return;
+        }
+        waiting = new ArrayList<>();
+        waiting.add(face);
+        messageLogFacesWaiting.put(name, waiting);
+        Context context = page.getApplicationContext();
+        long generation = messageLogFaceGeneration;
+        MESSAGE_LOG_PICTURES.execute(() -> {
+            Bitmap picture = null;
+            try {
+                picture = MessageLogFaces.picture(context, name);
+            } catch (MessageLog.Damaged sealedBefore) {
+                // Sealed under a key the log has since replaced: the drawn face stands in until it's kept again.
+            } catch (Exception | OutOfMemoryError unreadable) {
+                Settings.hookFailedPrivately(MessageLog.KEY, "Can't open a face in the message log", unreadable);
+            }
+            Bitmap shown = picture;
+            page.runOnUiThread(() -> {
+                if (generation != messageLogFaceGeneration || page.isFinishing() || page.isDestroyed()) return;
+                List<MessageLogFace> faces = messageLogFacesWaiting.remove(name);
+                if (shown == null) {
+                    messageLogNoFace.add(name);
+                    return;
+                }
+                messageLogFaces.put(name, shown);
+                if (faces != null) for (MessageLogFace each : faces) each.setPicture(shown);
+            });
+        });
+    }
+
+    /** Drops the opened faces, so a closed log holds none and a reloaded one opens them again. */
+    private void forgetMessageLogFaces() {
+        messageLogFaceGeneration++;
+        messageLogFaces.clear();
+        messageLogFacesWaiting.clear();
+        messageLogNoFace.clear();
     }
 
     private void pickSaveFile(int format) {

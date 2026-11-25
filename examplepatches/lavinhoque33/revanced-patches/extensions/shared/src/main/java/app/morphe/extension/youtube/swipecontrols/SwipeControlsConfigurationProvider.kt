@@ -323,10 +323,12 @@ class SwipeControlsConfigurationProvider {
     /**
      * The color used for text and icons in the overlay.
      */
-    val overlayTextColor = Color.WHITE
+    internal val overlayForegroundColor: Int by lazy {
+        validateColor(Settings.SWIPE_OVERLAY_FOREGROUND_COLOR) or Color.BLACK
+    }
 
     /**
-     * The text size in the overlay, in density-independent pixels (dp).
+     * The text size in the overlay, in scale-independent pixels (sp).
      */
     val overlayTextSize: Int
         get() = SeekBarPreference.clampToRange(Settings.SWIPE_OVERLAY_TEXT_SIZE)

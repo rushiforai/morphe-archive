@@ -15,7 +15,8 @@ app's newest `docs/<App><version>.md`. Check `git status --short`.
 Originals are in `OriginalApps/` (`Apps/` holds outputs only). Confirm package and
 version from the manifest, not the filename. Latest originals and repo targets:
 NuvioTV 1.1.1 (`NuvioTV-1.1.1.apk`; `OriginalApps/NuvioTV/` is the upstream source
-checkout, not proof of release DEX), Monet 1.1.1, Pillo 0.6.27 (`.apks`),
+checkout, not proof of release DEX), Monet 1.1.2 (port tools in
+`.inspect-monet-1.1.2`), Pillo 0.6.27 (`.apks`),
 Car Scanner 2.2.42 (arm64), TFD Companion 1.1.6 (`.apks`), Fylo 2.6, MEO 5.7.0.
 Reddit: the latest original is 2026.47.0. Content filters and home flairs target it
 (fixtures in `reddit-2026.47.0`); Start as guest still targets 2026.37.0. Ask before

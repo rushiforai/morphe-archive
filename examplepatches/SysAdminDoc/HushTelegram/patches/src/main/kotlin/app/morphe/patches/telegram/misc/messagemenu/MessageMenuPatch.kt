@@ -128,8 +128,8 @@ val messageMenuPatch = bytecodePatch(
     execute {
         val site = resolveMessageMenu()
         val selection = resolveSelectionCopy()
-        val story = resolveStorySave()
         val screenshots = resolveScreenshots()
+        val timedViewer = resolveTimedViewer()
         // Assembled on copies first, so a refusal leaves the app untouched.
         site.insertFill(MutableMethod(ImmutableMethod.of(site.fill)))
         site.insertChosen(MutableMethod(ImmutableMethod.of(site.choose)))
@@ -142,15 +142,15 @@ val messageMenuPatch = bytecodePatch(
         } else {
             patchLog.warning("Add Repeat to the message menu: ${selection.missing}. The patch goes on without selecting text in chats that don't allow saving.")
         }
-        if (story.missing == null) {
-            story.apply()
-            enableCapability("storySave")
-        } else {
-            patchLog.warning("Add Repeat to the message menu: ${story.missing}. The patch goes on without Save to Gallery in stories.")
-        }
         if (screenshots.missing == null) {
             screenshots.apply()
             enableCapability("allowScreenshots")
+            if (timedViewer.missing == null) {
+                timedViewer.apply()
+                enableCapability("timedScreenshots")
+            } else {
+                patchLog.warning("Add Repeat to the message menu: ${timedViewer.missing}. The patch goes on without screenshots of view-once and timed media.")
+            }
         } else {
             patchLog.warning("Add Repeat to the message menu: ${screenshots.missing}. The patch goes on without screenshots in chats that don't allow saving.")
         }
@@ -212,6 +212,13 @@ val messageMenuPatch = bytecodePatch(
         } else {
             patchLog.warning("Add Repeat to the message menu: ${photoEdit.missing}. The patch goes on without Edit a copy.")
         }
+        val linkPreviewPhoto = resolveLinkPreviewPhoto(site.chat)
+        if (linkPreviewPhoto.missing == null) {
+            linkPreviewPhoto.apply(this)
+            enableCapability("linkPreviewPhoto")
+        } else {
+            patchLog.warning("Add Repeat to the message menu: ${linkPreviewPhoto.missing}. The patch goes on without Send photo in the link preview menu.")
+        }
         enableStatus("messageMenuRepeat")
     }
 }
@@ -252,13 +259,12 @@ internal class MessageMenuSite(
 internal fun BytecodePatchContext.resolveMessageMenu(): MessageMenuSite {
     requireStatusMethod("messageMenuRepeat")
     requireStatusMethod("copySelection")
-    requireStatusMethod("storySave")
-    controlHook(STORY_SAVE, "shareable", listOf("I"), "Z")
-    controlHook(STORY_SAVE, "premium", listOf("I"), "Z")
     requireStatusMethod("allowScreenshots")
     controlHook(SCREENSHOTS, "protectedContent", listOf("I"), "Z")
     controlHook(SCREENSHOTS, "storyAllowed", listOf("I"), "Z")
     controlHook(SCREENSHOTS, "secretChat", listOf(OBJECT), OBJECT)
+    requireStatusMethod("timedScreenshots")
+    controlHook(SCREENSHOTS, "timedViewer", listOf("Landroid/view/WindowManager\$LayoutParams;", OBJECT), "V")
     controlHook(MESSAGE_MENU, "selectionCopy", listOf(), "Z")
     controlHook(MESSAGE_MENU, "fill", listOf(OBJECT, OBJECT, LIST, LIST, LIST), "V")
     controlHook(MESSAGE_MENU, "chosen", listOf(OBJECT, "I"), "V")
@@ -704,8 +710,9 @@ internal fun BytecodePatchContext.writeMessageMenuStubs(site: MessageMenuSite) {
         move-result-object v0
         invoke-virtual {v0, v1}
     """.trimIndent()
-    writeStub(MESSAGE_MENU, "photoFile", 3, """
+    writeStub(MESSAGE_MENU, "photoFile", 4, """
         check-cast p0, $MESSAGE
+        ${shownDocumentFile()}
         iget-object v1, p0, $MESSAGE->messageOwner:$TL_MESSAGE
         $path, $FILE_LOADER->getPathToMessage($TL_MESSAGE)$FILE
         move-result-object v0

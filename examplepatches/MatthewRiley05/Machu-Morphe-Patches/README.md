@@ -12,7 +12,7 @@ branch as Morphe pre-releases.
 
 The 2.0 line targets only the official Filament build
 (`ALPHA-2.6.575-09041449-ogl-64`). The old 2.6.561 Unity port and its legacy
-patch paths were removed.
+patch paths were removed. Both the Earth and Moon Super Wallpapers are supported.
 
 ### How to use these patches
 
@@ -27,7 +27,7 @@ Add this repository as a patch source in Morphe Manager:
 ## 🩹 Patches list
 
 <!-- PATCHES_START EXPANDED -->
-> **[v2.0.0](https://github.com/MatthewRiley05/Machu-Morphe-Patches/releases/tag/v2.0.0)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;2 patches total
+> **[v2.1.1](https://github.com/MatthewRiley05/Machu-Morphe-Patches/releases/tag/v2.1.1)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;4 patches total
 <details open>
 <summary>📦 Earth Super Wallpaper&nbsp;&nbsp;•&nbsp;&nbsp;2 patches</summary>
 <br>
@@ -43,6 +43,24 @@ Add this repository as a patch source in Morphe Manager:
 |----------|----------------|-----------|
 | [Delay screen-off zoom-out](#delay-screen-off-zoom-out) | Delays the AOD zoom-out on screen-off so the device's closing animation can finish first. The delay is configurable (default 500 ms). | • Zoom-out delay (ms) |
 | [Earth Super Wallpaper (AOSP)](#earth-super-wallpaper-aosp) | Makes the official Earth Super Wallpaper work on non-MIUI Android: removes MIUI framework crashes, fixes ambient-mode and weather settings, adds the five desk positions, restores the unlock animation, and keeps picker applies stable. |  |
+
+</details>
+
+<details open>
+<summary>📦 Moon Super Wallpaper&nbsp;&nbsp;•&nbsp;&nbsp;2 patches</summary>
+<br>
+
+**Package name:** `com.miui.miwallpaper.moon`
+
+**🎯 Supported versions:**
+
+| ALPHA-2.6.575-09041449-ogl-64 |
+| :---: |
+
+| 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
+|----------|----------------|-----------|
+| [Delay screen-off zoom-out (Moon)](#delay-screen-off-zoom-out-moon) | Delays the AOD zoom-out on screen-off so the device's closing animation can finish first. The delay is configurable (default 500 ms). | • Zoom-out delay (ms) |
+| [Moon Super Wallpaper (AOSP)](#moon-super-wallpaper-aosp) | Makes the official Moon Super Wallpaper work on non-MIUI Android: removes MIUI framework crashes, fixes ambient-mode and weather settings, adds the five desk positions, restores the unlock animation, and keeps picker applies stable. |  |
 
 </details>
 
@@ -194,6 +212,29 @@ is destroyed, so a delayed AOD frame cannot appear after the device is back on.
 - No version bump is included in the patch.
 - This patch was generated using AI as I don't specialize in this type of
   programming. It is tested on a Pixel 10 Pro XL running Android 17.
+
+## 🌕 Moon Super Wallpaper – AOSP compatibility
+
+The same AOSP compatibility work is available for
+`com.miui.miwallpaper.moon`, using the matching official Filament build
+`ALPHA-2.6.575-09041449-ogl-64` (`versionCode 206000575`).
+
+The **Moon Super Wallpaper (AOSP)** patch mirrors the Earth patch:
+
+- Replaces MIUI-only framework calls (`miui.os.Build`, `miui.os.UserHandle`,
+  `MiuiSettings`, MIUI AOD settings) with AOSP-safe defaults.
+- Disables ambient-mode metadata so AOSP does not require the signature-only
+  `AMBIENT_WALLPAPER` permission.
+- Removes the unguarded `Settings.Global` weather writes.
+- Exposes all five Moon desk positions through `MoonSuperWallpaper1..4`, each
+  in its own process, with position-specific wallpaper metadata.
+- Skips Filament for preview engines and keeps picker applies stable.
+- Restores the unlock animation by raising the Filament pause delays and not
+  discarding the `"Desk"` message while the display state changes.
+
+An optional **Delay screen-off zoom-out (Moon)** patch is also available. It
+uses the same configurable 100–1000 ms delay (default 500 ms) as the Earth
+version.
 
 ## 🛠️ Building locally
 

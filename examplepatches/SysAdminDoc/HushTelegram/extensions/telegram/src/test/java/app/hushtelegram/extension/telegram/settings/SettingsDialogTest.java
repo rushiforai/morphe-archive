@@ -28,6 +28,10 @@ import android.view.View;
 import android.view.ViewGroup;
 
 import app.hushtelegram.extension.shared.SettingsContextRule;
+import app.hushtelegram.extension.telegram.misc.MainTabs;
+import app.hushtelegram.extension.telegram.misc.MainTabsForTests;
+import app.hushtelegram.extension.telegram.misc.TranslateBar;
+import app.hushtelegram.extension.telegram.misc.TranslateBarForTests;
 
 import org.junit.After;
 import org.junit.Rule;
@@ -115,6 +119,43 @@ public class SettingsDialogTest {
 
         assertNull("the settings stayed open", activity.getFragmentManager().findFragmentByTag(TAG));
         assertFalse("Back finished the host activity", activity.isFinishing());
+    }
+
+    @Test
+    public void closingTheSettingsLetsTheChatUnderThemDecideOnItsPinnedBar() {
+        Object chat = new Object();
+        List<Object> decided = new ArrayList<>();
+        TranslateBarForTests.decideWith(decided::add);
+        try {
+            TranslateBar.pinnedBarChanged(chat);
+            SettingsDialog dialog = show(controller.get());
+            Settings.HIDE_PINNED_BAR.save(true);
+            dialog.getDialog().dismiss();
+            ShadowLooper.idleMainLooper();
+            assertEquals(List.of(chat), decided);
+        } finally {
+            TranslateBarForTests.restore();
+            Settings.HIDE_PINNED_BAR.resetToDefault();
+        }
+    }
+
+    @Test
+    public void closingTheSettingsHasTheChatListUnderThemDrawItsDownloadsButtonAgain() {
+        Object chats = new Object();
+        List<Object> redrawn = new ArrayList<>();
+        MainTabsForTests.redrawWith(redrawn::add);
+        try {
+            MainTabs.downloadsDrawn(chats, new Object());
+            SettingsDialog dialog = show(controller.get());
+            Settings.HIDE_DOWNLOADS_BUTTON.save(true);
+            assertEquals("nothing draws while the settings are open", List.of(), redrawn);
+            dialog.getDialog().dismiss();
+            ShadowLooper.idleMainLooper();
+            assertEquals(List.of(chats), redrawn);
+        } finally {
+            MainTabsForTests.restore();
+            Settings.HIDE_DOWNLOADS_BUTTON.resetToDefault();
+        }
     }
 
     @Test

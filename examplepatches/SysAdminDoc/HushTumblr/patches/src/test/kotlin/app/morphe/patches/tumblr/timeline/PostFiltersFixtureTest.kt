@@ -11,17 +11,21 @@ import app.morphe.FixtureTests
 import app.morphe.Fixtures
 import app.morphe.PatchContexts
 import app.morphe.patcher.patch.BytecodePatch
+import app.morphe.patcher.patch.PatchException
 import app.morphe.patches.tumblr.lookup.instructionList
 import app.morphe.patches.tumblr.lookup.methodRef
 import app.morphe.patches.tumblr.lookup.fieldRef
 import app.morphe.patches.tumblr.lookup.stringRef
 import app.morphe.patches.tumblr.ads.hideAdsPatch
 import app.morphe.patches.tumblr.misc.extension.SETTINGS_STATUS
+import app.morphe.patches.tumblr.rootmute.DASHBOARD_TAB
+import app.morphe.patches.tumblr.rootmute.FRAGMENT
 import com.android.tools.smali.dexlib2.AccessFlags
 import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.iface.instruction.NarrowLiteralInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.OffsetInstruction
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertThrows
 import org.junit.Assert.assertTrue
 import org.junit.Test
 import org.junit.experimental.categories.Category
@@ -57,7 +61,7 @@ class PostFiltersFixtureTest {
             assertEquals(body.take(6).sumOf { it.codeUnits }, body.take(2).sumOf { it.codeUnits } +
                 (body[2] as OffsetInstruction).codeOffset)
             assertEquals(0, (body[6] as NarrowLiteralInstruction).narrowLiteral)
-            for ((name, target) in mapOf("hushFollowed" to "x1", "hushCanEdit" to "P")) {
+            for ((name, target) in mapOf("hushFollowed" to "z1", "hushCanEdit" to "P")) {
                 val direct = post.methods.single { it.name == name }.instructionList()
                 assertEquals(listOf(Opcode.INVOKE_VIRTUAL, Opcode.MOVE_RESULT, Opcode.RETURN), direct.map { it.opcode })
                 assertEquals("$POST->$target()Z", direct[0].methodRef().toString())
@@ -91,7 +95,7 @@ class PostFiltersFixtureTest {
             val tagKey = postWriter.indexOfFirst { it.stringRef() == "tags" }
             assertTrue("${build.name}: current-post tags key", tagKey >= 0)
             val getter = postWriter.drop(tagKey + 1).first { it.methodRef()?.definingClass == POST }.methodRef()!!
-            assertEquals("$POST->j1()Ljava/util/List;", getter.toString())
+            assertEquals("$POST->l1()Ljava/util/List;", getter.toString())
             val tagField = classes.getValue(POST).methods.single { it.name == getter.name && it.parameterTypes.isEmpty() }
                 .instructionList().first().fieldRef()!!
             assertEquals(POST, tagField.definingClass)
@@ -246,7 +250,7 @@ class PostFiltersFixtureTest {
             assertTrue("${build.name}: hushCommunity is public", AccessFlags.PUBLIC.isSet(community.accessFlags))
             val body = community.instructionList()
             assertEquals(listOf(Opcode.INVOKE_VIRTUAL, Opcode.MOVE_RESULT_OBJECT, Opcode.RETURN_OBJECT), body.map { it.opcode })
-            assertEquals("${build.name}: the community getter", "$POST->U0()$SHORT_COMMUNITY_INFO", body[0].methodRef().toString())
+            assertEquals("${build.name}: the community getter", "$POST->W0()$SHORT_COMMUNITY_INFO", body[0].methodRef().toString())
         }
     }
 
@@ -269,11 +273,56 @@ class PostFiltersFixtureTest {
             assertTrue("${build.name}: hushLiked is public", AccessFlags.PUBLIC.isSet(liked.accessFlags))
             val body = liked.instructionList()
             assertEquals(listOf(Opcode.INVOKE_VIRTUAL, Opcode.MOVE_RESULT, Opcode.RETURN), body.map { it.opcode })
-            assertEquals("${build.name}: the liked getter", "$POST->y1()Z", body[0].methodRef().toString())
+            assertEquals("${build.name}: the liked getter", "$POST->A1()Z", body[0].methodRef().toString())
             for (flag in listOf("hideLikedPosts", "likedPosts")) {
                 val first = context.mutableClassDefBy(SETTINGS_STATUS).methods.single { it.name == flag }
                     .implementation!!.instructions.first()
                 assertEquals("${build.name}: $flag", 1, (first as NarrowLiteralInstruction).narrowLiteral)
+            }
+        }
+    }
+
+    /**
+     * Hide followed blogs in For you adds nothing of its own: the paid post bridge already reads
+     * "followed". It checks that a dashboard tab still takes its id and address as arguments and
+     * that a fragment still hands its arguments over by name, then turns its switch on.
+     */
+    @Test
+    fun `Hide followed blogs in For you checks the tab's arguments and turns its switch on`() {
+        for (build in Fixtures.declaredBuilds()) {
+            val types = setOf(DASHBOARD_TAB, FRAGMENT)
+            val classes = FixtureDex.classes(build, types)
+            assertEquals("${build.name}: the tab fragment and Fragment", types, classes.keys)
+            val created = classes.getValue(DASHBOARD_TAB).methods.single { it.name == "onCreate" }
+            assertTrue("${build.name}: the tab reads both arguments",
+                created.instructionList().mapNotNull { it.stringRef() }.containsAll(listOf(TAB_LOGGING_ID, TAB_TIMELINE_URI)))
+            val context = PatchContexts.of(ExtensionDex.classes() + classes.values)
+
+            hideFollowedInForYouPatch.execute(context)
+
+            for (flag in listOf("hideFollowedInForYou", "followedInForYou")) {
+                val first = context.mutableClassDefBy(SETTINGS_STATUS).methods.single { it.name == flag }
+                    .implementation!!.instructions.first()
+                assertEquals("${build.name}: $flag", 1, (first as NarrowLiteralInstruction).narrowLiteral)
+            }
+        }
+    }
+
+    /** Without a tab fragment to read, or a fragment that hands over arguments, the switch stays off. */
+    @Test
+    fun `Hide followed blogs in For you refuses when the tab can't be told apart`() {
+        for (build in Fixtures.declaredBuilds()) {
+            for (missing in listOf(DASHBOARD_TAB, FRAGMENT)) {
+                val classes = FixtureDex.classes(build, setOf(DASHBOARD_TAB, FRAGMENT) - missing)
+                val context = PatchContexts.of(ExtensionDex.classes() + classes.values)
+                assertThrows("${build.name}: without $missing", PatchException::class.java) {
+                    hideFollowedInForYouPatch.execute(context)
+                }
+                for (flag in listOf("hideFollowedInForYou", "followedInForYou")) {
+                    val first = context.mutableClassDefBy(SETTINGS_STATUS).methods.single { it.name == flag }
+                        .implementation!!.instructions.first()
+                    assertEquals("${build.name}: $flag without $missing", 0, (first as NarrowLiteralInstruction).narrowLiteral)
+                }
             }
         }
     }

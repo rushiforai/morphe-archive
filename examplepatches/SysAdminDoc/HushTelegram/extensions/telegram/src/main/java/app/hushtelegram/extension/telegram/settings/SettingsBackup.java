@@ -55,11 +55,12 @@ import app.hushtelegram.extension.telegram.misc.KeepRemoved;
 import app.hushtelegram.extension.telegram.misc.VoiceChanger;
 import app.hushtelegram.extension.telegram.misc.LinkPreviewRules;
 import app.hushtelegram.extension.telegram.misc.ListBackground;
-import app.hushtelegram.extension.telegram.misc.LocalPins;
+import app.hushtelegram.extension.telegram.misc.LocalNames;
 import app.hushtelegram.extension.telegram.misc.SaveDownloads;
 import app.hushtelegram.extension.telegram.misc.StorageFolder;
 import app.hushtelegram.extension.telegram.misc.MessageFilters;
 import app.hushtelegram.extension.telegram.misc.OutsideTranslate;
+import app.hushtelegram.extension.telegram.misc.StickerPanel;
 import app.hushtelegram.extension.telegram.misc.StickerSize;
 import app.hushtelegram.extension.telegram.misc.TitleEmoji;
 import app.hushtelegram.extension.telegram.misc.TranslateTarget;
@@ -114,8 +115,7 @@ public final class SettingsBackup {
             Settings.HIDE_KEYBOARD_FEATURED,
             Settings.HIDE_COMMERCE,
             Settings.HIDE_EMOJI_STATUS,
-            Settings.UNLOCK_PREMIUM_ICONS,
-            Settings.LOCAL_EMOJI_STATUS,
+            Settings.MOVING_EMOJI_STATUS,
             Settings.HIDE_PROMOTIONAL_BANNERS,
             Settings.HIDE_SPONSORED_PROXY,
             Settings.HIDE_POPULAR_APPS,
@@ -137,6 +137,7 @@ public final class SettingsBackup {
             Settings.MEMBER_JOIN_DATES,
             Settings.FORWARD_DATES,
             Settings.SPECIAL_CONTACTS,
+            Settings.LOCAL_NAMES,
             Settings.DISABLE_DOUBLE_TAP_REACTIONS,
             Settings.HIDE_REACTION_ROWS,
             Settings.HIDE_REACTION_PICKER,
@@ -149,16 +150,19 @@ public final class SettingsBackup {
             Settings.LIST_BACKGROUND,
             Settings.HIDE_TRANSLATE_BAR,
             Settings.HIDE_PINNED_BAR,
+            Settings.ALWAYS_SHOW_TRANSLATE_BAR,
             Settings.EXACT_NUMBERS,
             Settings.REVEAL_SPOILERS,
             Settings.REVEAL_MENU,
             Settings.SEARCH_OPENS_QUOTES,
+            Settings.REVEAL_TIMED_MEDIA,
             Settings.HIDE_KEYBOARD_ON_SCROLL,
             Settings.KEEP_VIDEOS_MUTED,
             Settings.VIDEO_EITHER_LANDSCAPE,
             Settings.VIDEO_ONLY_FROM_BUTTON,
             Settings.VIDEO_STARTS_SILENT,
             Settings.VIDEO_TRACKS,
+            Settings.EXTERNAL_PLAYER,
             Settings.SWIPE_BACK_ON_PROFILES,
             Settings.HIDE_PHONE_NUMBER,
             Settings.SHARE_NUMBER_UNTICKED,
@@ -171,18 +175,18 @@ public final class SettingsBackup {
             Settings.HIDE_FOLDER_COUNTERS,
             Settings.LAUNCH_FOLDER,
             Settings.HIDE_ALL_CHATS,
-            Settings.MOVE_ALL_CHATS,
             Settings.HIDDEN_CHATS,
             Settings.SORT_BY_DATE,
             Settings.SORT_OLDEST_FIRST,
-            Settings.LOCAL_PINS,
             Settings.HIDDEN_CHATS_PASSCODE,
             Settings.ADMIN_CHATS,
             Settings.HIDE_ACCOUNTS,
             Settings.HIDDEN_ACCOUNTS_LOCK,
             Settings.FIT_ALL_TABS,
+            Settings.FOLDER_TABS_BOTTOM,
             Settings.FOLDER_TAB_ICONS,
             Settings.CHAT_LIST_AVATAR,
+            Settings.SAVED_MEDIA_FIRST,
             Settings.FORWARD_HIDE_SENDER,
             Settings.VOICE_MUSIC_PLAYER,
             Settings.PLAYBACK_POSITION,
@@ -200,6 +204,7 @@ public final class SettingsBackup {
             Settings.HIDE_GALLERY_CAMERA_TILE,
             Settings.HIDE_STICKER_TIME,
             Settings.CHANGE_STICKER_SIZE,
+            Settings.KEEP_STICKER_CACHE,
             Settings.IGNORE_MUTED_MENTIONS,
             Settings.HIDE_BLOCKED_IN_GROUPS,
             Settings.HIDE_BY_KEYWORD,
@@ -223,6 +228,8 @@ public final class SettingsBackup {
             Settings.SIDE_MENU,
             Settings.HIDE_NEW_MESSAGE,
             Settings.BAR_OUTLINE,
+            Settings.HIDE_DOWNLOADS_BUTTON,
+            Settings.ALWAYS_SHOW_DOWNLOADS_BUTTON,
             Settings.TEST_SERVER_SIGN_IN,
             Settings.BOT_TOKEN_SIGN_IN,
             SettingsRoutes.SETTINGS_ROW,
@@ -253,9 +260,9 @@ public final class SettingsBackup {
             Settings.MESSAGE_MENU_COPY_PROTECTED,
             Settings.MESSAGE_MENU_SAVE_PROTECTED,
             Settings.MESSAGE_MENU_FORWARD_COPY,
-            Settings.STORY_SAVE_BUTTON,
             Settings.ALLOW_SCREENSHOTS,
             Settings.SECRET_CHAT_SCREENSHOTS,
+            Settings.TIMED_MEDIA_SCREENSHOTS,
             Settings.MESSAGE_MENU_FAST_FORWARD,
             Settings.MESSAGE_MENU_FORWARD_SAVED,
             Settings.MESSAGE_MENU_SAVE_COVER,
@@ -266,6 +273,7 @@ public final class SettingsBackup {
             Settings.MESSAGE_MENU_DELETE_FOR_THEM,
             Settings.MESSAGE_MENU_BOOKMARKS,
             Settings.MESSAGE_MENU_EDIT_COPY,
+            Settings.LINK_PREVIEW_PHOTO,
             Settings.ALSO_DELETE_CHECKED,
             Settings.DISABLE_ANALYTICS,
             Settings.GHOST_MODE,
@@ -301,7 +309,6 @@ public final class SettingsBackup {
             Settings.REPAIR_FIREBASE_PUSH,
             Settings.KEEP_ALIVE_RUNNING,
             Settings.SUPPRESS_SCREENSHOT_NOTIFICATION,
-            Settings.UNLOCK_PREMIUM,
             Settings.BYPASS_CHANNEL_RESTRICTIONS,
             Settings.OPEN_RESTRICTED_CHATS,
             Settings.BYPASS_INTEGRITY_CHECK,
@@ -326,24 +333,24 @@ public final class SettingsBackup {
     /**
      * The numbers a file carries, each one of a few choices: the sticker size, how many days call
      * recordings stay, the chat list's avatar size, how much the picture behind the lists is
-     * dimmed and how many days kept deleted messages stay. A build from before them counts the name
-     * as unknown and leaves it out.
+     * dimmed, how many days kept deleted messages stay and the sticker panel's size. A build from
+     * before them counts the name as unknown and leaves it out.
      */
     static final List<IntegerSetting> NUMBERS = Arrays.asList(Settings.STICKER_SIZE, Settings.RECORD_CALLS_KEEP_DAYS,
-            Settings.CHAT_LIST_AVATAR_SIZE, Settings.LIST_BACKGROUND_DIM, Settings.KEEP_DELETED_DAYS);
+            Settings.CHAT_LIST_AVATAR_SIZE, Settings.LIST_BACKGROUND_DIM, Settings.KEEP_DELETED_DAYS, Settings.STICKER_PANEL_SIZE);
 
     /**
      * The short texts a file carries as they're saved: the emoji beside the chat list's title, the
      * gallery folder choice, the translation language, the folder icon pack, the name of Telegram's
      * own folder, the kinds What to copy leaves out, which calls Record calls saves, the text shown
-     * in place of Telegram's name, the chats pinned on this phone, the link preview rules, the chats
-     * kept after you were removed from them and the chat list banner's choice (never its picture). A
-     * build from before them counts the name as unknown and leaves it out.
+     * in place of Telegram's name, the link preview rules, the chats kept after you were removed
+     * from them, the chat list banner's choice (never its picture) and the names given on this
+     * phone. A build from before them counts the name as unknown and leaves it out.
      */
     static final List<StringSetting> TEXTS = Arrays.asList(Settings.TITLE_EMOJI, Settings.GALLERY_FOLDER,
             Settings.TRANSLATE_TARGET, Settings.FOLDER_ICON_PACK, Settings.STORAGE_FOLDER_NAME, Settings.SAVE_KINDS_LEFT_OUT,
-            Settings.RECORD_CALLS_WHICH, Settings.CHAT_LIST_TITLE_TEXT, Settings.LOCAL_PINNED_CHATS, Settings.LINK_PREVIEW_RULE_LIST, Settings.KEPT_REMOVED_CHATS,
-            Settings.CHAT_LIST_BANNER, Settings.VOICE_CHANGER);
+            Settings.RECORD_CALLS_WHICH, Settings.CHAT_LIST_TITLE_TEXT, Settings.LINK_PREVIEW_RULE_LIST, Settings.KEPT_REMOVED_CHATS,
+            Settings.CHAT_LIST_BANNER, Settings.VOICE_CHANGER, Settings.LOCAL_NAME_LIST);
 
     /**
      * Bounds for the parser, well past anything this class writes, so a file built to be
@@ -621,7 +628,9 @@ public final class SettingsBackup {
             switches.put(setting.key, setting.savedValue().intValue());
         }
         for (StringSetting setting : TEXTS) {
-            if (allowed(setting, setting.savedValue())) switches.put(setting.key, setting.savedValue());
+            if (!allowed(setting, setting.savedValue())) continue;
+            if (setting == Settings.LOCAL_NAME_LIST) switches.put(setting.key, nameLines(setting.savedValue()));
+            else switches.put(setting.key, setting.savedValue());
         }
         for (StringSetting setting : FILTER_LISTS) {
             List<String> lines = MessageFilters.lines(setting.savedValue());
@@ -752,6 +761,10 @@ public final class SettingsBackup {
                 continue;
             }
             StringSetting shortText = knownTexts.get(name);
+            if (shortText == Settings.LOCAL_NAME_LIST) {
+                foundTexts.put(shortText, nameList(values.opt(name)));
+                continue;
+            }
             if (shortText != null) {
                 Object value = values.opt(name);
                 if (!(value instanceof String) || !allowed(shortText, (String) value)) {
@@ -813,12 +826,45 @@ public final class SettingsBackup {
         return saved;
     }
 
+    /**
+     * The names given on this phone as a file holds them: one string a line, since the whole list
+     * can run past the longest string {@link #LIMITS} lets a file hold (#104).
+     */
+    private static JSONArray nameLines(String text) {
+        JSONArray lines = new JSONArray();
+        if (!text.isEmpty()) {
+            for (String line : text.split("\n", -1)) lines.put(line);
+        }
+        return lines;
+    }
+
+    /** A file's names as Rename on this phone saves them, from its array of lines; anything else is refused. */
+    private static String nameList(Object value) throws Rejected {
+        if (!(value instanceof JSONArray) || ((JSONArray) value).length() > LocalNames.MAX_NAMES) {
+            throw new Rejected(Reason.VALUE, "Not a list of names");
+        }
+        JSONArray array = (JSONArray) value;
+        StringBuilder text = new StringBuilder();
+        for (int i = 0; i < array.length(); i++) {
+            Object line = array.opt(i);
+            if (!(line instanceof String) || ((String) line).indexOf('\n') >= 0) {
+                throw new Rejected(Reason.VALUE, "Not a list of names");
+            }
+            if (i > 0) text.append('\n');
+            text.append((String) line);
+        }
+        String saved = text.toString();
+        if (!LocalNames.allowed(saved)) throw new Rejected(Reason.VALUE, "Not a list of names");
+        return saved;
+    }
+
     /** Whether a number is one of its setting's choices. */
     static boolean allowed(IntegerSetting setting, int value) {
         if (setting == Settings.RECORD_CALLS_KEEP_DAYS) return HushTelegramPreferenceFragment.RECORD_KEEP_DAYS.contains(value);
         if (setting == Settings.KEEP_DELETED_DAYS) return KeepDeleted.DAYS.contains(value);
         if (setting == Settings.CHAT_LIST_AVATAR_SIZE) return ChatListAvatar.percent(value) == value;
         if (setting == Settings.LIST_BACKGROUND_DIM) return ListBackground.dimOffered(value);
+        if (setting == Settings.STICKER_PANEL_SIZE) return StickerPanel.choice(value) == value;
         return setting == Settings.STICKER_SIZE && StickerSize.percent(value) == value;
     }
 
@@ -831,11 +877,11 @@ public final class SettingsBackup {
         if (setting == Settings.SAVE_KINDS_LEFT_OUT) return SaveDownloads.allowedLeftOut(value);
         if (setting == Settings.RECORD_CALLS_WHICH) return HushTelegramPreferenceFragment.recordScopes().contains(value);
         if (setting == Settings.CHAT_LIST_TITLE_TEXT) return TitleEmoji.titleAllowed(value);
-        if (setting == Settings.LOCAL_PINNED_CHATS) return LocalPins.allowed(value);
         if (setting == Settings.LINK_PREVIEW_RULE_LIST) return LinkPreviewRules.allowed(value);
         if (setting == Settings.KEPT_REMOVED_CHATS) return KeepRemoved.allowed(value);
         if (setting == Settings.CHAT_LIST_BANNER) return ChatListBanner.allowed(value);
         if (setting == Settings.VOICE_CHANGER) return VoiceChanger.PRESETS.contains(value);
+        if (setting == Settings.LOCAL_NAME_LIST) return LocalNames.allowed(value);
         return setting == Settings.TITLE_EMOJI && TitleEmoji.allowed(value);
     }
 

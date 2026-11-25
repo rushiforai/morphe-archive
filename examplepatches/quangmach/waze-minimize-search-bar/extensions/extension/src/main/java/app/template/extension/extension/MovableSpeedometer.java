@@ -15,22 +15,29 @@ import android.view.Display;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewConfiguration;
-import android.view.ViewGroup;
 import android.view.ViewParent;
 import android.view.Window;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Proxy;
+import java.util.Collections;
+import java.util.Set;
+import java.util.WeakHashMap;
 
 /** Window gestures keep the speedometer draggable after it moves to the overlay. */
 public final class MovableSpeedometer {
     private static final String PREFS = "morphe_speedometer_position";
     private static final String LIMIT_PRIMARY = "limit_primary";
     private static final long REFRESH_MS = 100;
+    private static final Set<View> MAIN_MENUS = Collections.newSetFromMap(new WeakHashMap<>());
     private MovableSpeedometer() {}
 
     public static boolean showInMapMode(Enum<?> mode) {
         // Waze switches from tracking to Other when a map gesture breaks camera follow.
         return mode != null && ("TrackingUserLocation".equals(mode.name()) || "Other".equals(mode.name()));
+    }
+
+    public static void markMainMenu(View menu) {
+        if (menu != null) MAIN_MENUS.add(menu);
     }
 
     public static void install(Activity activity) {
@@ -51,10 +58,6 @@ public final class MovableSpeedometer {
             View decor = window.getDecorView();
             decor.getViewTreeObserver().addOnGlobalLayoutListener(controls::findTarget);
             decor.getViewTreeObserver().addOnPreDrawListener(controls::stabilizePosition);
-            decor.getViewTreeObserver().addOnWindowFocusChangeListener(focused -> {
-                if (focused) decor.invalidate();
-                else controls.suspendOverlay();
-            });
             controls.findTarget();
         } catch (RuntimeException error) {
             android.util.Log.w("QM-Speedometer", "Could not install speedometer controls", error);
@@ -69,7 +72,6 @@ public final class MovableSpeedometer {
         final int touchSlop, doubleTapSlop;
         View target;
         View overlayHost;
-        ViewGroup panelContainer;
         SpeedometerFaces faces;
         boolean armed, capturing, editing, moved, anchored;
         boolean limitPrimary;
@@ -110,10 +112,7 @@ public final class MovableSpeedometer {
             suspendOverlay();
             target = found;
             faces = target == null ? null : new SpeedometerFaces(target);
-            View mapContent = namedView("mainContentCompose");
-            overlayHost = contains(mapContent, target) ? mapContent : activity.getWindow().getDecorView();
-            View panel = namedView("mainContent");
-            panelContainer = panel instanceof ViewGroup && !contains(panel, target) ? (ViewGroup) panel : null;
+            overlayHost = mapLayer(found);
             placementKey = null;
             if (target == null) return;
             android.util.Log.i("QM-Speedometer", "Found speedometer view");
@@ -124,21 +123,21 @@ public final class MovableSpeedometer {
             return id == 0 ? null : activity.findViewById(id);
         }
 
-        private static boolean contains(View ancestor, View child) {
-            if (ancestor == null || child == null) return false;
-            for (ViewParent parent = child.getParent(); parent instanceof View; parent = parent.getParent()) {
-                if (parent == ancestor) return true;
+        private View mapLayer(View child) {
+            int mapId = activity.getResources().getIdentifier("mainContentCompose", "id", activity.getPackageName());
+            if (mapId != 0 && child != null) {
+                for (ViewParent parent = child.getParent(); parent instanceof View; parent = parent.getParent()) {
+                    View layer = (View) parent;
+                    if (layer.getId() == mapId) return layer;
+                }
             }
-            return false;
+            return activity.getWindow().getDecorView();
         }
 
         private boolean mapAcceptsInput() {
-            if (!activity.hasWindowFocus()) return false;
-            if (panelContainer != null && panelContainer.isShown()) {
-                for (int i = 0; i < panelContainer.getChildCount(); i++) {
-                    View panel = panelContainer.getChildAt(i);
-                    if (panel.isShown() && panel.getWidth() > 0 && panel.getHeight() > 0) return false;
-                }
+            View decor = activity.getWindow().getDecorView();
+            for (View menu : MAIN_MENUS) {
+                if (menu.isShown() && menu.getRootView() == decor) return false;
             }
             return true;
         }

@@ -1,0 +1,671 @@
+{
+  "format": 1,
+  "mpp_sha256": "0a07e5dc4d0581b26135cc883654fb242a07018a5d5360700a08bed294dacc58",
+  "scope": "Controlled actual native FM update/clear/repeat callbacks through real production Endpoint and real Vela app lifecycle/session/connection/scheduler/selected system engine/attached widget.",
+  "cases": [
+    {
+      "pattern": "update",
+      "raw_reports": {
+        ".analysis/native-warning-bindings/vela-final-update/result.json": "f4fb8c89cb21590b2fea9e524b9cd7e8f014887d9c7c62bf1b56f051d273ec6a",
+        ".analysis/native-warning-bindings/vela-final-update/receiver-result.json": "ced786389dfc7d633241746f077b4b60f40b54d0fff1ff59b450734ac96dceea",
+        ".analysis/native-warning-bindings/vela-final-update/source/f3f3f6c2-a9b7-41ca-9a7b-0b67069bfaf5/result.json": "16c6390bced8fad5d1a6f71bd7d3c80c4c0525c873d039059f37398d73c68986"
+      },
+      "installed_sha256": {
+        "nl.flitsmeister": "3e3c2e987bb6e9b28bc5692e52828ee03d317cf925f719ed4aece29f11614ac8",
+        "app.vela": "8254e43848c3244753ebc89b657143cb2e8ef26232a0cfd220b9158661e1043f",
+        "nl.johninnl.warningprobe.integration.vela": "d45c61c6d935dd754b88372a5540b3e4f965af9e7b9fc3d17ae3186dca27ab65"
+      },
+      "source_probe_sha256": "a9e5cfb255d72230b969f7f859faeae604a7e2dcb2b87f9c42457349f3c37ea1",
+      "measured_announcements": 1,
+      "warmup_excluded": true,
+      "authorities": [
+        {
+          "authority": {
+            "language_tag": "en-US",
+            "native_local_mute_bypass": false,
+            "issued_elapsed_ms": 8350215,
+            "latitude": 52.001,
+            "native_family": "SpeedCam",
+            "priority": 1,
+            "protocol_version": 1,
+            "native_announce_observed": true,
+            "position_observed_elapsed_ms": 8350215,
+            "relationship": "unknown",
+            "revision": 1,
+            "category": "speed_control",
+            "phase": "enter",
+            "relevance": "point_ahead",
+            "longitude": 5,
+            "position_estimated": false,
+            "capture_path": "regular",
+            "state_until_elapsed_ms": 8380215,
+            "native_subtype": "SPEED_50",
+            "message_origin": "native_text",
+            "native_text_key": "374708fff7719dd5979ec875d56cd2286f6d3cf7ec317a3b25632aab28ec37bb",
+            "message": "Speed cam 50",
+            "announcement_index": 1,
+            "native_point_target": true,
+            "provider_session": "42a9093a-23e2-40ce-880a-444cb56c1219",
+            "sequence": 4,
+            "observed_elapsed_ms": 8350215,
+            "operation": "ANNOUNCE",
+            "native_type": "SPEED_CAM",
+            "position_clock_origin": "native_decision",
+            "warning_id": "SpeedCam:probe-vela-final-update",
+            "announce_until_elapsed_ms": 8360215
+          },
+          "native_update": {
+            "language_tag": "en-US",
+            "native_local_mute_bypass": false,
+            "issued_elapsed_ms": 8350236,
+            "latitude": 52.001,
+            "native_family": "SpeedCam",
+            "priority": 1,
+            "protocol_version": 1,
+            "position_observed_elapsed_ms": 8350236,
+            "relationship": "unknown",
+            "revision": 2,
+            "category": "speed_control",
+            "phase": "enter",
+            "relevance": "point_ahead",
+            "longitude": 5,
+            "position_estimated": false,
+            "capture_path": "report_state",
+            "state_until_elapsed_ms": 8380236,
+            "native_subtype": "SPEED_50",
+            "message_origin": "native_text",
+            "native_text_key": "374708fff7719dd5979ec875d56cd2286f6d3cf7ec317a3b25632aab28ec37bb",
+            "message": "Speed cam 50",
+            "announcement_index": 1,
+            "native_point_target": true,
+            "provider_session": "42a9093a-23e2-40ce-880a-444cb56c1219",
+            "sequence": 5,
+            "observed_elapsed_ms": 8350236,
+            "operation": "UPSERT",
+            "native_type": "SPEED_CAM",
+            "position_clock_origin": "native_decision",
+            "warning_id": "SpeedCam:probe-vela-final-update"
+          },
+          "native_clear_after_started": false,
+          "source_terminal": "COMPLETED",
+          "source_dispositions": [
+            {
+              "receiver_uid": 10192,
+              "outcome": "GRANTED",
+              "started": false,
+              "mode": "VOICE"
+            },
+            {
+              "receiver_uid": 10192,
+              "outcome": "STARTED",
+              "started": true,
+              "mode": "VOICE"
+            },
+            {
+              "receiver_uid": 10192,
+              "outcome": "COMPLETED",
+              "started": true,
+              "mode": "VOICE"
+            }
+          ],
+          "receiver_authority_diagnostics": [
+            {
+              "preview": false,
+              "native_type": "SPEED_CAM",
+              "observed_ms": 8350215,
+              "priority": 1,
+              "issued_ms": 8350215,
+              "sequence": 4,
+              "provider_session": "42a9093a-23e2-40ce-880a-444cb56c1219",
+              "deadline_ms": 8360215,
+              "stage": "RECEIVER_ACCEPTED",
+              "elapsed_ms": 8350230,
+              "category": "speed_control",
+              "event_key": "64737ad3acbe04ea2021270c3ea9ae3357efb4d33f9534c6aebf787f98aff2cc"
+            },
+            {
+              "preview": false,
+              "native_type": "SPEED_CAM",
+              "observed_ms": 8350215,
+              "priority": 1,
+              "issued_ms": 8350215,
+              "sequence": 4,
+              "provider_session": "42a9093a-23e2-40ce-880a-444cb56c1219",
+              "deadline_ms": 8360215,
+              "stage": "SCHEDULER_RECEIVED",
+              "elapsed_ms": 8350301,
+              "category": "speed_control",
+              "event_key": "64737ad3acbe04ea2021270c3ea9ae3357efb4d33f9534c6aebf787f98aff2cc"
+            },
+            {
+              "preview": false,
+              "native_type": "SPEED_CAM",
+              "observed_ms": 8350215,
+              "priority": 1,
+              "issued_ms": 8350215,
+              "sequence": 4,
+              "provider_session": "42a9093a-23e2-40ce-880a-444cb56c1219",
+              "deadline_ms": 8360215,
+              "stage": "SCHEDULER_QUEUED",
+              "elapsed_ms": 8350301,
+              "category": "speed_control",
+              "event_key": "64737ad3acbe04ea2021270c3ea9ae3357efb4d33f9534c6aebf787f98aff2cc"
+            },
+            {
+              "preview": false,
+              "native_type": "SPEED_CAM",
+              "observed_ms": 8350215,
+              "priority": 1,
+              "issued_ms": 8350215,
+              "sequence": 4,
+              "provider_session": "42a9093a-23e2-40ce-880a-444cb56c1219",
+              "deadline_ms": 8360215,
+              "stage": "SCHEDULER_STARTED",
+              "elapsed_ms": 8351014,
+              "category": "speed_control",
+              "event_key": "64737ad3acbe04ea2021270c3ea9ae3357efb4d33f9534c6aebf787f98aff2cc"
+            },
+            {
+              "preview": false,
+              "native_type": "SPEED_CAM",
+              "observed_ms": 8350215,
+              "priority": 1,
+              "issued_ms": 8350215,
+              "sequence": 4,
+              "provider_session": "42a9093a-23e2-40ce-880a-444cb56c1219",
+              "deadline_ms": 8360215,
+              "stage": "SCHEDULER_COMPLETED",
+              "elapsed_ms": 8352515,
+              "category": "speed_control",
+              "event_key": "64737ad3acbe04ea2021270c3ea9ae3357efb4d33f9534c6aebf787f98aff2cc"
+            }
+          ],
+          "receiver_start_count": 1
+        }
+      ],
+      "probe_completed": true,
+      "process_exit_codes": {
+        "source": 0,
+        "receiver": 0
+      },
+      "source_network_and_lease_restored": true,
+      "receiver_output_quiescent": true,
+      "preferences_restored_exactly": true,
+      "permissions_restored_exactly": true
+    },
+    {
+      "pattern": "clear",
+      "raw_reports": {
+        ".analysis/native-warning-bindings/vela-final-clear/result.json": "1e88c8f14e0bafa57fc647ef2a376822f0d4d4d0fd01bea7945b9fba6bbbf40b",
+        ".analysis/native-warning-bindings/vela-final-clear/receiver-result.json": "4520fa83431885792cf2558fb78c23517fd160c156eccabbcb6ec0cd1d91c18e",
+        ".analysis/native-warning-bindings/vela-final-clear/source/9af73e90-8db7-4c9d-80da-997c8b1c0fdb/result.json": "f8c28604574df7c30f9f09e57e310a9c8de0243ad9b030d5f1f16bd330d17ae0"
+      },
+      "installed_sha256": {
+        "nl.flitsmeister": "3e3c2e987bb6e9b28bc5692e52828ee03d317cf925f719ed4aece29f11614ac8",
+        "app.vela": "8254e43848c3244753ebc89b657143cb2e8ef26232a0cfd220b9158661e1043f",
+        "nl.johninnl.warningprobe.integration.vela": "d45c61c6d935dd754b88372a5540b3e4f965af9e7b9fc3d17ae3186dca27ab65"
+      },
+      "source_probe_sha256": "a9e5cfb255d72230b969f7f859faeae604a7e2dcb2b87f9c42457349f3c37ea1",
+      "measured_announcements": 1,
+      "warmup_excluded": true,
+      "authorities": [
+        {
+          "authority": {
+            "language_tag": "en-US",
+            "native_local_mute_bypass": false,
+            "issued_elapsed_ms": 8368144,
+            "latitude": 52.001,
+            "native_family": "SpeedCam",
+            "priority": 1,
+            "protocol_version": 1,
+            "native_announce_observed": true,
+            "position_observed_elapsed_ms": 8368139,
+            "relationship": "unknown",
+            "revision": 1,
+            "category": "speed_control",
+            "phase": "enter",
+            "relevance": "point_ahead",
+            "longitude": 5,
+            "position_estimated": false,
+            "capture_path": "regular",
+            "state_until_elapsed_ms": 8398144,
+            "native_subtype": "SPEED_50",
+            "message_origin": "native_text",
+            "native_text_key": "374708fff7719dd5979ec875d56cd2286f6d3cf7ec317a3b25632aab28ec37bb",
+            "message": "Speed cam 50",
+            "announcement_index": 1,
+            "native_point_target": true,
+            "provider_session": "cb993673-6669-4ba5-a722-1514cdd535ab",
+            "sequence": 4,
+            "observed_elapsed_ms": 8368144,
+            "operation": "ANNOUNCE",
+            "native_type": "SPEED_CAM",
+            "position_clock_origin": "native_decision",
+            "warning_id": "SpeedCam:probe-vela-final-clear",
+            "announce_until_elapsed_ms": 8378144
+          },
+          "native_update": null,
+          "native_clear_after_started": true,
+          "source_terminal": "CANCELLED",
+          "source_dispositions": [
+            {
+              "receiver_uid": 10192,
+              "outcome": "GRANTED",
+              "started": false,
+              "mode": "VOICE"
+            },
+            {
+              "receiver_uid": 10192,
+              "outcome": "STARTED",
+              "started": true,
+              "mode": "VOICE"
+            },
+            {
+              "receiver_uid": 10192,
+              "outcome": "UNCERTAIN",
+              "started": true,
+              "mode": "VOICE"
+            },
+            {
+              "receiver_uid": 10192,
+              "outcome": "CANCELLED",
+              "started": true,
+              "mode": "VOICE"
+            }
+          ],
+          "receiver_authority_diagnostics": [
+            {
+              "preview": false,
+              "native_type": "SPEED_CAM",
+              "observed_ms": 8368144,
+              "priority": 1,
+              "issued_ms": 8368144,
+              "sequence": 4,
+              "provider_session": "cb993673-6669-4ba5-a722-1514cdd535ab",
+              "deadline_ms": 8378144,
+              "stage": "RECEIVER_ACCEPTED",
+              "elapsed_ms": 8368146,
+              "category": "speed_control",
+              "event_key": "530785b480bd4cec52dafc9ee37c07acf521ddcf3d4c848783c8abcde74e9867"
+            },
+            {
+              "preview": false,
+              "native_type": "SPEED_CAM",
+              "observed_ms": 8368144,
+              "priority": 1,
+              "issued_ms": 8368144,
+              "sequence": 4,
+              "provider_session": "cb993673-6669-4ba5-a722-1514cdd535ab",
+              "deadline_ms": 8378144,
+              "stage": "SCHEDULER_RECEIVED",
+              "elapsed_ms": 8368162,
+              "category": "speed_control",
+              "event_key": "530785b480bd4cec52dafc9ee37c07acf521ddcf3d4c848783c8abcde74e9867"
+            },
+            {
+              "preview": false,
+              "native_type": "SPEED_CAM",
+              "observed_ms": 8368144,
+              "priority": 1,
+              "issued_ms": 8368144,
+              "sequence": 4,
+              "provider_session": "cb993673-6669-4ba5-a722-1514cdd535ab",
+              "deadline_ms": 8378144,
+              "stage": "SCHEDULER_QUEUED",
+              "elapsed_ms": 8368162,
+              "category": "speed_control",
+              "event_key": "530785b480bd4cec52dafc9ee37c07acf521ddcf3d4c848783c8abcde74e9867"
+            },
+            {
+              "preview": false,
+              "native_type": "SPEED_CAM",
+              "observed_ms": 8368144,
+              "priority": 1,
+              "issued_ms": 8368144,
+              "sequence": 4,
+              "provider_session": "cb993673-6669-4ba5-a722-1514cdd535ab",
+              "deadline_ms": 8378144,
+              "stage": "SCHEDULER_STARTED",
+              "elapsed_ms": 8368635,
+              "category": "speed_control",
+              "event_key": "530785b480bd4cec52dafc9ee37c07acf521ddcf3d4c848783c8abcde74e9867"
+            },
+            {
+              "preview": false,
+              "native_type": "SPEED_CAM",
+              "observed_ms": 8368144,
+              "priority": 1,
+              "issued_ms": 8368144,
+              "sequence": 4,
+              "provider_session": "cb993673-6669-4ba5-a722-1514cdd535ab",
+              "deadline_ms": 8378144,
+              "stage": "SCHEDULER_UNCERTAIN",
+              "elapsed_ms": 8369211,
+              "category": "speed_control",
+              "event_key": "530785b480bd4cec52dafc9ee37c07acf521ddcf3d4c848783c8abcde74e9867"
+            },
+            {
+              "preview": false,
+              "native_type": "SPEED_CAM",
+              "observed_ms": 8368144,
+              "priority": 1,
+              "issued_ms": 8368144,
+              "sequence": 4,
+              "provider_session": "cb993673-6669-4ba5-a722-1514cdd535ab",
+              "deadline_ms": 8378144,
+              "stage": "SCHEDULER_CANCELLED",
+              "elapsed_ms": 8369212,
+              "category": "speed_control",
+              "event_key": "530785b480bd4cec52dafc9ee37c07acf521ddcf3d4c848783c8abcde74e9867"
+            }
+          ],
+          "receiver_start_count": 1
+        }
+      ],
+      "probe_completed": true,
+      "process_exit_codes": {
+        "source": 0,
+        "receiver": 0
+      },
+      "source_network_and_lease_restored": true,
+      "receiver_output_quiescent": true,
+      "preferences_restored_exactly": true,
+      "permissions_restored_exactly": true
+    },
+    {
+      "pattern": "repeat",
+      "raw_reports": {
+        ".analysis/native-warning-bindings/vela-final-repeat/result.json": "d4d541ce2861817ea129096a6372dc015263bb58b1eeffae29613de5dc83af96",
+        ".analysis/native-warning-bindings/vela-final-repeat/receiver-result.json": "ba56fae6420b08892c02b1c682bff454d3871dd8d509564133d6e1eb7b4a0aac",
+        ".analysis/native-warning-bindings/vela-final-repeat/source/0f41e745-6058-4eb2-bdcf-cb3dd6e17788/result.json": "81d019ff604b01e7a98cd194e9396678a1b8fc435b4f5a3d47369f605bcc06a4"
+      },
+      "installed_sha256": {
+        "nl.flitsmeister": "3e3c2e987bb6e9b28bc5692e52828ee03d317cf925f719ed4aece29f11614ac8",
+        "app.vela": "8254e43848c3244753ebc89b657143cb2e8ef26232a0cfd220b9158661e1043f",
+        "nl.johninnl.warningprobe.integration.vela": "d45c61c6d935dd754b88372a5540b3e4f965af9e7b9fc3d17ae3186dca27ab65"
+      },
+      "source_probe_sha256": "a9e5cfb255d72230b969f7f859faeae604a7e2dcb2b87f9c42457349f3c37ea1",
+      "measured_announcements": 2,
+      "warmup_excluded": true,
+      "authorities": [
+        {
+          "authority": {
+            "language_tag": "en-US",
+            "native_local_mute_bypass": false,
+            "issued_elapsed_ms": 8383834,
+            "latitude": 52.001,
+            "native_family": "SpeedCam",
+            "priority": 1,
+            "protocol_version": 1,
+            "native_announce_observed": true,
+            "position_observed_elapsed_ms": 8383833,
+            "relationship": "unknown",
+            "revision": 1,
+            "category": "speed_control",
+            "phase": "enter",
+            "relevance": "point_ahead",
+            "longitude": 5,
+            "position_estimated": false,
+            "capture_path": "regular",
+            "state_until_elapsed_ms": 8413834,
+            "native_subtype": "SPEED_50",
+            "message_origin": "native_text",
+            "native_text_key": "374708fff7719dd5979ec875d56cd2286f6d3cf7ec317a3b25632aab28ec37bb",
+            "message": "Speed cam 50",
+            "announcement_index": 1,
+            "native_point_target": true,
+            "provider_session": "323ea8c1-0cb4-4bac-916a-b2e230bdc543",
+            "sequence": 4,
+            "observed_elapsed_ms": 8383834,
+            "operation": "ANNOUNCE",
+            "native_type": "SPEED_CAM",
+            "position_clock_origin": "native_decision",
+            "warning_id": "SpeedCam:probe-vela-final-repeat",
+            "announce_until_elapsed_ms": 8393834
+          },
+          "native_update": null,
+          "native_clear_after_started": false,
+          "source_terminal": "COMPLETED",
+          "source_dispositions": [
+            {
+              "receiver_uid": 10192,
+              "outcome": "GRANTED",
+              "started": false,
+              "mode": "VOICE"
+            },
+            {
+              "receiver_uid": 10192,
+              "outcome": "STARTED",
+              "started": true,
+              "mode": "VOICE"
+            },
+            {
+              "receiver_uid": 10192,
+              "outcome": "COMPLETED",
+              "started": true,
+              "mode": "VOICE"
+            }
+          ],
+          "receiver_authority_diagnostics": [
+            {
+              "preview": false,
+              "native_type": "SPEED_CAM",
+              "observed_ms": 8383834,
+              "priority": 1,
+              "issued_ms": 8383834,
+              "sequence": 4,
+              "provider_session": "323ea8c1-0cb4-4bac-916a-b2e230bdc543",
+              "deadline_ms": 8393834,
+              "stage": "RECEIVER_ACCEPTED",
+              "elapsed_ms": 8383852,
+              "category": "speed_control",
+              "event_key": "79c275238251037ae8920c2f592726f3eae88775c1bbce666a04758794272c38"
+            },
+            {
+              "preview": false,
+              "native_type": "SPEED_CAM",
+              "observed_ms": 8383834,
+              "priority": 1,
+              "issued_ms": 8383834,
+              "sequence": 4,
+              "provider_session": "323ea8c1-0cb4-4bac-916a-b2e230bdc543",
+              "deadline_ms": 8393834,
+              "stage": "SCHEDULER_RECEIVED",
+              "elapsed_ms": 8383892,
+              "category": "speed_control",
+              "event_key": "79c275238251037ae8920c2f592726f3eae88775c1bbce666a04758794272c38"
+            },
+            {
+              "preview": false,
+              "native_type": "SPEED_CAM",
+              "observed_ms": 8383834,
+              "priority": 1,
+              "issued_ms": 8383834,
+              "sequence": 4,
+              "provider_session": "323ea8c1-0cb4-4bac-916a-b2e230bdc543",
+              "deadline_ms": 8393834,
+              "stage": "SCHEDULER_QUEUED",
+              "elapsed_ms": 8383892,
+              "category": "speed_control",
+              "event_key": "79c275238251037ae8920c2f592726f3eae88775c1bbce666a04758794272c38"
+            },
+            {
+              "preview": false,
+              "native_type": "SPEED_CAM",
+              "observed_ms": 8383834,
+              "priority": 1,
+              "issued_ms": 8383834,
+              "sequence": 4,
+              "provider_session": "323ea8c1-0cb4-4bac-916a-b2e230bdc543",
+              "deadline_ms": 8393834,
+              "stage": "SCHEDULER_STARTED",
+              "elapsed_ms": 8384622,
+              "category": "speed_control",
+              "event_key": "79c275238251037ae8920c2f592726f3eae88775c1bbce666a04758794272c38"
+            },
+            {
+              "preview": false,
+              "native_type": "SPEED_CAM",
+              "observed_ms": 8383834,
+              "priority": 1,
+              "issued_ms": 8383834,
+              "sequence": 4,
+              "provider_session": "323ea8c1-0cb4-4bac-916a-b2e230bdc543",
+              "deadline_ms": 8393834,
+              "stage": "SCHEDULER_COMPLETED",
+              "elapsed_ms": 8386124,
+              "category": "speed_control",
+              "event_key": "79c275238251037ae8920c2f592726f3eae88775c1bbce666a04758794272c38"
+            }
+          ],
+          "receiver_start_count": 1
+        },
+        {
+          "authority": {
+            "language_tag": "en-US",
+            "native_local_mute_bypass": false,
+            "issued_elapsed_ms": 8386131,
+            "latitude": 52.001,
+            "native_family": "SpeedCam",
+            "priority": 1,
+            "protocol_version": 1,
+            "native_announce_observed": true,
+            "position_observed_elapsed_ms": 8386131,
+            "relationship": "unknown",
+            "revision": 3,
+            "category": "speed_control",
+            "phase": "enter",
+            "relevance": "point_ahead",
+            "longitude": 5,
+            "position_estimated": false,
+            "capture_path": "regular",
+            "state_until_elapsed_ms": 8416131,
+            "native_subtype": "SPEED_50",
+            "message_origin": "native_text",
+            "native_text_key": "374708fff7719dd5979ec875d56cd2286f6d3cf7ec317a3b25632aab28ec37bb",
+            "message": "Speed cam 50",
+            "announcement_index": 2,
+            "native_point_target": true,
+            "provider_session": "323ea8c1-0cb4-4bac-916a-b2e230bdc543",
+            "sequence": 6,
+            "observed_elapsed_ms": 8386131,
+            "operation": "ANNOUNCE",
+            "native_type": "SPEED_CAM",
+            "position_clock_origin": "native_decision",
+            "warning_id": "SpeedCam:probe-vela-final-repeat",
+            "announce_until_elapsed_ms": 8396131
+          },
+          "native_update": null,
+          "native_clear_after_started": false,
+          "source_terminal": "COMPLETED",
+          "source_dispositions": [
+            {
+              "receiver_uid": 10192,
+              "outcome": "GRANTED",
+              "started": false,
+              "mode": "VOICE"
+            },
+            {
+              "receiver_uid": 10192,
+              "outcome": "STARTED",
+              "started": true,
+              "mode": "VOICE"
+            },
+            {
+              "receiver_uid": 10192,
+              "outcome": "COMPLETED",
+              "started": true,
+              "mode": "VOICE"
+            }
+          ],
+          "receiver_authority_diagnostics": [
+            {
+              "preview": false,
+              "native_type": "SPEED_CAM",
+              "observed_ms": 8386131,
+              "priority": 1,
+              "issued_ms": 8386131,
+              "sequence": 6,
+              "provider_session": "323ea8c1-0cb4-4bac-916a-b2e230bdc543",
+              "deadline_ms": 8396131,
+              "stage": "RECEIVER_ACCEPTED",
+              "elapsed_ms": 8386134,
+              "category": "speed_control",
+              "event_key": "5550a4b7698b42a0b23f5b7b72bf48a8edecfeccb7600b0c4e4cc3ffb282ae34"
+            },
+            {
+              "preview": false,
+              "native_type": "SPEED_CAM",
+              "observed_ms": 8386131,
+              "priority": 1,
+              "issued_ms": 8386131,
+              "sequence": 6,
+              "provider_session": "323ea8c1-0cb4-4bac-916a-b2e230bdc543",
+              "deadline_ms": 8396131,
+              "stage": "SCHEDULER_RECEIVED",
+              "elapsed_ms": 8386163,
+              "category": "speed_control",
+              "event_key": "5550a4b7698b42a0b23f5b7b72bf48a8edecfeccb7600b0c4e4cc3ffb282ae34"
+            },
+            {
+              "preview": false,
+              "native_type": "SPEED_CAM",
+              "observed_ms": 8386131,
+              "priority": 1,
+              "issued_ms": 8386131,
+              "sequence": 6,
+              "provider_session": "323ea8c1-0cb4-4bac-916a-b2e230bdc543",
+              "deadline_ms": 8396131,
+              "stage": "SCHEDULER_QUEUED",
+              "elapsed_ms": 8386163,
+              "category": "speed_control",
+              "event_key": "5550a4b7698b42a0b23f5b7b72bf48a8edecfeccb7600b0c4e4cc3ffb282ae34"
+            },
+            {
+              "preview": false,
+              "native_type": "SPEED_CAM",
+              "observed_ms": 8386131,
+              "priority": 1,
+              "issued_ms": 8386131,
+              "sequence": 6,
+              "provider_session": "323ea8c1-0cb4-4bac-916a-b2e230bdc543",
+              "deadline_ms": 8396131,
+              "stage": "SCHEDULER_STARTED",
+              "elapsed_ms": 8386580,
+              "category": "speed_control",
+              "event_key": "5550a4b7698b42a0b23f5b7b72bf48a8edecfeccb7600b0c4e4cc3ffb282ae34"
+            },
+            {
+              "preview": false,
+              "native_type": "SPEED_CAM",
+              "observed_ms": 8386131,
+              "priority": 1,
+              "issued_ms": 8386131,
+              "sequence": 6,
+              "provider_session": "323ea8c1-0cb4-4bac-916a-b2e230bdc543",
+              "deadline_ms": 8396131,
+              "stage": "SCHEDULER_COMPLETED",
+              "elapsed_ms": 8388182,
+              "category": "speed_control",
+              "event_key": "5550a4b7698b42a0b23f5b7b72bf48a8edecfeccb7600b0c4e4cc3ffb282ae34"
+            }
+          ],
+          "receiver_start_count": 1
+        }
+      ],
+      "probe_completed": true,
+      "process_exit_codes": {
+        "source": 0,
+        "receiver": 0
+      },
+      "source_network_and_lease_restored": true,
+      "receiver_output_quiescent": true,
+      "preferences_restored_exactly": true,
+      "permissions_restored_exactly": true
+    }
+  ],
+  "not_proven": [
+    "Timing percentiles; these are bounded behavior checks under concurrent host work",
+    "Natural detectors, acoustic hearing or physical car routing"
+  ]
+}

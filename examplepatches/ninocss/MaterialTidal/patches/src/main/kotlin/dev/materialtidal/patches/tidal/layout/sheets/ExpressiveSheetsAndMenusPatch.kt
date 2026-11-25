@@ -29,9 +29,9 @@ import dev.materialtidal.patches.shared.MATERIAL_YOU_CONFIG_CLASS
 import dev.materialtidal.patches.tidal.theme.materialyou.materialYouThemePatch
 
 private val SHEET_CORNER_CHOICES = mapOf(
-    "Expressive M3 (28dp Sheets / 22dp Menus)" to "expressive",
-    "Extra Expressive (32dp Sheets / 24dp Menus)" to "extra",
-    "Subtle Rounded (20dp Sheets / 16dp Menus)" to "rounded",
+    "Expressive (28dp Sheets / 22dp Menus, recommended)" to "expressive",
+    "Extra Rounded (32dp Sheets / 24dp Menus)" to "extra",
+    "Subtle (20dp Sheets / 16dp Menus)" to "rounded",
 )
 
 private fun sheetCornerChoiceToCode(value: String?): Int = when (value) {
@@ -91,8 +91,8 @@ private fun findSingleSurfaceCallIndex(method: MutableMethod): Int {
 
 @Suppress("unused")
 val expressiveSheetsAndMenusPatch = patch(
-    name = "Expressive Material 3 bottom sheets & menus",
-    description = "Redesigns all TIDAL bottom sheets, track/media context menus, toolbar overflow & dropdown menus, and dialogs across XML Views and Jetpack Compose Material 3 with expressive corners, grouped menu cards, tonal icon badges, pill drag handles, and Monet surfaces.",
+    name = "M3 bottom sheets & menus",
+    description = "Redesigns Song & Playlist action menus as clean tap-anchored M3 popups with crisp vector icons, alongside rounded bottom sheets, grouped menu cards, overflow menus, and M3 dialogs.",
     default = true,
 ) {
     dependsOn(materialYouThemePatch)
@@ -105,16 +105,16 @@ val expressiveSheetsAndMenusPatch = patch(
         key = "sheetCornerStyle",
         default = "expressive",
         values = SHEET_CORNER_CHOICES,
-        title = "Bottom sheet & menu corner style",
-        description = "Controls corner curvature for Material bottom sheets, popup/dropdown menus, and alert dialogs.",
+        title = "Sheet & menu corner style",
+        description = "Controls corner roundness for bottom sheets, popup menus, and dialogs across TIDAL (also adjustable live in Settings → MaterialTidal).",
         required = true,
     )
 
     val groupedContextMenuCardsOption by booleanOption(
         key = "groupedContextMenuCards",
         default = true,
-        title = "Segmented grouped context menu rows",
-        description = "Style track, album, playlist, and settings bottom-sheet menu items as M3 Expressive grouped tonal cards with circular icon badges.",
+        title = "Grouped context menu cards",
+        description = "Style track, album, playlist, and settings bottom-sheet rows as grouped tonal cards (also adjustable live in Settings → MaterialTidal).",
         required = true,
     )
 
@@ -122,29 +122,30 @@ val expressiveSheetsAndMenusPatch = patch(
         key = "expressivePopupMenus",
         default = true,
         title = "Expressive overflow & dropdown menus",
-        description = "Apply 22dp rounded floating Monet containers, clean spacing, and pill ripples to AppCompat popup menus and Compose DropdownMenus.",
+        description = "Apply rounded Monet containers, clean spacing, and pill ripples to overflow and dropdown menus (also adjustable live in Settings → MaterialTidal).",
         required = true,
     )
 
     val expressiveDialogsOption by booleanOption(
         key = "expressiveDialogs",
         default = true,
-        title = "Expressive Material 3 dialogs",
-        description = "Upgrade AlertDialogs and Compose AlertDialogs with 28dp Monet containers, crisp borders, and pill action buttons.",
+        title = "M3 dialogs",
+        description = "Upgrade pop-up confirmation and selection dialogs with rounded Monet surfaces and pill action buttons (also adjustable live in Settings → MaterialTidal).",
         required = true,
     )
 
     execute {
         // 1. Wire MaterialYouConfig options.
         val configClass = mutableClassDefBy(MATERIAL_YOU_CONFIG_CLASS)
+        configClass.methods.single { it.name == "isExpressiveSheetsPatchInstalled" }.returnEarly(true)
         configClass.methods.single { it.name == "isExpressiveSheetsEnabled" }.returnEarly(true)
-        configClass.methods.single { it.name == "getSheetCornerStyle" }
+        configClass.methods.single { it.name == "defaultSheetCornerStyle" }
             .returnEarly(sheetCornerChoiceToCode(sheetCornerStyleOption))
-        configClass.methods.single { it.name == "isGroupedContextMenuCardsEnabled" }
+        configClass.methods.single { it.name == "defaultGroupedContextMenuCardsEnabled" }
             .returnEarly(groupedContextMenuCardsOption ?: true)
-        configClass.methods.single { it.name == "isExpressivePopupMenusEnabled" }
+        configClass.methods.single { it.name == "defaultExpressivePopupMenusEnabled" }
             .returnEarly(expressivePopupMenusOption ?: true)
-        configClass.methods.single { it.name == "isExpressiveDialogsEnabled" }
+        configClass.methods.single { it.name == "defaultExpressiveDialogsEnabled" }
             .returnEarly(expressiveDialogsOption ?: true)
 
         // Hook 1: Universal Material BottomSheetDialog.onStart -> rounded Monet sheet surface,

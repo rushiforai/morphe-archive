@@ -36,6 +36,8 @@ public final class LocalIds {
         ProfileDc.addToProfile(menu, userId, chatId);
         // So does the track row, which only a user's profile gets.
         SpecialContacts.addToProfile(menu, userId, chatId);
+        // Rename on this phone goes last, on anyone's profile but your own.
+        LocalNames.addToProfile(menu, userId, chatId);
     }
 
     static boolean valid(long userId, long chatId) {

@@ -70,7 +70,7 @@ patches don't change what your subscription gives you.
 ## Patches
 
 <!-- PATCHES_START -->
-Version 1.11.0, 11 patches. Supported Kalorické Tabulky versions: 3.14.71.
+Version 1.13.0, 11 patches. Supported Kalorické Tabulky versions: 3.14.71.
 
 <details>
 <summary><b>Ads</b> (1)</summary>

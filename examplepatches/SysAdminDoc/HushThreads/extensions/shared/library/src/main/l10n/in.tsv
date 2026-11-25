@@ -391,3 +391,31 @@ One pattern a line, or separated by commas. A shop's domain such as shopee.vn ta
 One pattern a line, or separated by commas. Matched whatever the letter case.	Satu pola per baris, atau dipisahkan koma. Dicocokkan tanpa membedakan huruf besar-kecil.
 Hide comments with links	Sembunyikan komentar yang berisi tautan
 Replies with a web link are left out, whatever the patterns say. Add a bare site name such as shopee.vn as a pattern.	Balasan yang memuat tautan web tidak ditampilkan, apa pun polanya. Tambahkan nama situs saja seperti shopee.vn sebagai pola.
+Hide the like button	Sembunyikan tombol suka
+Takes the like button off posts and replies, with its count. Restart Threads to see the change.	Menghapus tombol suka beserta jumlahnya dari postingan dan balasan. Mulai ulang Threads untuk melihat perubahannya.
+Hide the reply button	Sembunyikan tombol balas
+Takes the reply button off posts and replies, with its count. Restart Threads to see the change.	Menghapus tombol balas beserta jumlahnya dari postingan dan balasan. Mulai ulang Threads untuk melihat perubahannya.
+Hide the repost button	Sembunyikan tombol posting ulang
+Takes the repost button off posts and replies, with its count. Restart Threads to see the change.	Menghapus tombol posting ulang beserta jumlahnya dari postingan dan balasan. Mulai ulang Threads untuk melihat perubahannya.
+Hide the share button	Sembunyikan tombol bagikan
+Takes the share button off posts and replies. Restart Threads to see the change.	Menghapus tombol bagikan dari postingan dan balasan. Mulai ulang Threads untuk melihat perubahannya.
+Hide the save button	Sembunyikan tombol simpan
+Takes the save button off posts and replies, so you can't tap it by mistake. Restart Threads to see the change.	Menghapus tombol simpan dari postingan dan balasan agar tidak tersentuh tanpa sengaja. Mulai ulang Threads untuk melihat perubahannya.
+# The header logo switch under Appearance, then the row under Set when you patched for the launcher icon, and the launcher icon as one item of the list of what stays while HushThreads is paused
+Use the HushThreads logo	Gunakan logo HushThreads
+Shows the HushThreads logo at the top of your feed in place of the Threads logo. It doesn't spin while the feed refreshes. Restart Threads to see the change.	Menampilkan logo HushThreads di bagian atas feed sebagai ganti logo Threads. Logo ini tidak berputar saat feed dimuat ulang. Mulai ulang Threads untuk melihat perubahannya.
+HushThreads icon	Ikon HushThreads
+The app's icon on your home screen is the HushThreads logo.	Ikon aplikasi di layar utama adalah logo HushThreads.
+the HushThreads icon	ikon HushThreads
+# Custom font's switch and its Font file row under Appearance, and what picking a font file says
+Custom font	Font kustom
+Shows Threads' text in the font file you pick below. Icons keep their own font. Restart Threads to see the change.	Menampilkan teks Threads dengan file font yang Anda pilih di bawah. Ikon tetap memakai font-nya sendiri. Mulai ulang Threads untuk melihat perubahannya.
+Font file	File font
+No font picked yet. Pick a .ttf or .otf file.	Belum ada font yang dipilih. Pilih file .ttf atau .otf.
+A font file is picked. Tap to pick another.	File font sudah dipilih. Ketuk untuk memilih yang lain.
+%1$s is picked. Tap to pick another.	%1$s dipilih. Ketuk untuk memilih yang lain.
+Copying the font file	Menyalin file font
+Font file saved. Restart Threads to see it.	File font disimpan. Mulai ulang Threads untuk melihatnya.
+Font file saved. Turn on Custom font to use it.	File font disimpan. Aktifkan Font kustom untuk memakainya.
+That file is too large to be a font. Nothing was changed.	File itu terlalu besar untuk sebuah font. Tidak ada yang diubah.
+That isn't a font file Android can use. Nothing was changed.	Itu bukan file font yang dapat digunakan Android. Tidak ada yang diubah.

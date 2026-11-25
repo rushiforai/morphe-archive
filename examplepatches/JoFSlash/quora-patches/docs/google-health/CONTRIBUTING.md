@@ -40,7 +40,7 @@ in the app itself, signed in through MicroG-RE.
 
 ### A new Google Health version
 
-The **Google Health version** workflow does this every day: it downloads the new APKM from APKMirror,
+The **App versions** workflow (`versions.yml`) does this every day: it downloads the new APKM from APKMirror,
 checks that it is signed by Google Health, keeps it in the private repository `JoFSlash/morphe-apks`,
 applies every patch and starts the app on an emulator. Then it opens a pull request
 `bump: Support Google Health <version>`, or an issue that says what failed. Sign in on a phone before
@@ -58,9 +58,9 @@ as a release named `google-health-<version>`, so the emulator test can use it.
   the patched code for the change each patch makes (`verify_google_health.py`). It needs the `APKS_TOKEN`
   secret (a fine-grained token with read and write access to the contents of `JoFSlash/morphe-apks`);
   without it, pull requests skip the test.
-- **Release** (Wednesday pre-release, Saturday stable release, 08:00 UTC, or by hand): runs the emulator test, then semantic-release publishes the
+- **Release** (Saturday 08:00 UTC, or by hand): runs the emulator test, then semantic-release publishes the
   bundle when there are `feat:`, `fix:` or `bump:` commits since the last release.
-- **Google Health version** (daily 05:30 UTC, or by hand with a version): tries a new Google Health
+- **App versions** (daily 06:15 UTC, or by hand with `app=google-health` and a version): tries a new Google Health
   version and opens a pull request or an issue, as described above.
 
 ## Pull requests

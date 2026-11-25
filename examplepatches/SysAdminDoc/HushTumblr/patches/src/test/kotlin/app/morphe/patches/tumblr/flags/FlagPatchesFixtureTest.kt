@@ -25,6 +25,7 @@ import app.morphe.patches.tumblr.ui.turnOffScreenshotSharingPatch
 import app.morphe.patches.tumblr.ui.disableUpdatePromptsPatch
 import app.morphe.patches.tumblr.lookup.methodRef
 import app.morphe.util.namedRegisters
+import app.morphe.util.writesRegister
 import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.iface.ClassDef
 import com.android.tools.smali.dexlib2.iface.instruction.Instruction
@@ -106,25 +107,31 @@ class FlagPatchesFixtureTest {
                 }
                 val log = body.indexOfFirst { it.stringRef() == skipped }
                 assertTrue("${build.name}: \"$skipped\" isn't logged after a read of $flag", read in 0 until log - 3)
-                // The flag goes into a check that answers a boolean, the answer is tested next, and
-                // its true side jumps past the log and the return that follows it.
+                // The flag goes into a check that answers a boolean, the answer stays in its register
+                // until the last branch before the log, and that test's true side jumps past the log and
+                // the return that follows it. 47.3.0.110 reads the Nimbus flag before the activity
+                // checks and tests it after them, so the test needn't follow the read at once, and the
+                // blog route loads the log tag between its test and the log.
                 val check = body[read + 1]
                 assertTrue("${build.name}: $flag isn't handed to a feature check",
                     check.methodRef()?.returnType == "Z" &&
                         (body[read] as OneRegisterInstruction).registerA in check.namedRegisters())
                 val answer = body[read + 2]
-                val branch = body[read + 3]
+                val tested = (log - 1 downTo read + 3).first { body[it] is OffsetInstruction }
+                val branch = body[tested]
                 assertEquals("${build.name}: the check's answer", Opcode.MOVE_RESULT, answer.opcode)
                 assertEquals("${build.name}: the test of $flag", Opcode.IF_NEZ, branch.opcode)
-                assertEquals("${build.name}: the tested register", (answer as OneRegisterInstruction).registerA,
-                    (branch as OneRegisterInstruction).registerA)
+                val register = (answer as OneRegisterInstruction).registerA
+                assertEquals("${build.name}: the tested register", register, (branch as OneRegisterInstruction).registerA)
+                assertTrue("${build.name}: the answer for $flag is overwritten before its test",
+                    body.subList(read + 3, tested).none { writesRegister(it, register) })
                 val end = (log until body.size).first { body[it].opcode in returnOpcodes }
                 assertEquals("${build.name}: the manager returns right after \"$skipped\"", Opcode.RETURN_VOID,
                     body[end].opcode)
                 assertTrue("${build.name}: the manager goes on after \"$skipped\"", end - log <= 3)
                 assertTrue("${build.name}: another branch sits between the test of $flag and its return",
-                    body.subList(read + 4, end).none { it is OffsetInstruction })
-                assertTrue("${build.name}: $flag on doesn't skip \"$skipped\"", target(body, read + 3) > end)
+                    body.subList(tested + 1, end).none { it is OffsetInstruction })
+                assertTrue("${build.name}: $flag on doesn't skip \"$skipped\"", target(body, tested) > end)
             }
         }
     }

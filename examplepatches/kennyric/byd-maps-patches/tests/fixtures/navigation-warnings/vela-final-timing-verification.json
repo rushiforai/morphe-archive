@@ -1,0 +1,234 @@
+{
+  "format": 1,
+  "percentile_method": "Nearest rank ceiling(p*n), all100 original ANNOUNCE identities retained; excludes only separately named warmup. UPSERTs do not increase denominator. All actual STARTs counted, including potential replays.",
+  "device": {
+    "serial": "emulator-5582",
+    "avd": "native_warnings_vela_api34",
+    "sdk": 34
+  },
+  "corpora": [
+    {
+      "label": "Current final phone-slot full P0/no-GPS/zero-speed corpus",
+      "candidate_sha256": "72012bd0dd02ee3b3eb31a35df55d24de5fea79ba830906568c0d029c101aeab",
+      "source_sha256": "3e3c2e987bb6e9b28bc5692e52828ee03d317cf925f719ed4aece29f11614ac8",
+      "source_probe_sha256": "a9e5cfb255d72230b969f7f859faeae604a7e2dcb2b87f9c42457349f3c37ea1",
+      "receiver_probe_sha256": "a6e4540ee6d456357bb177cadb7f312ad16e59b04d9c7e2dfe61752bad350bec",
+      "raw_reports": {
+        ".analysis/native-warning-bindings/vela-phone-slot-final-p0-100/result.json": "c70ee73015a7086ca2bc83a59f33252ea4998da96de1b1116ddd5226d0b6e770",
+        ".analysis/native-warning-bindings/vela-phone-slot-final-p0-100/receiver-result.json": "37092b1a8ee7faf7812b0169d761e4bb28992eb34e9b738b5132d78a017561e5",
+        ".analysis/native-warning-bindings/vela-phone-slot-final-p0-100/source/55ec94b0-6e74-4be9-9d57-26ea215af590/result.json": "53235531600c621de33c35686833794e338af8751f6bf265e2d5a072eacb5ec0",
+        ".analysis/native-warning-bindings/vela-phone-slot-final-p0-100/authority-timings.json": "ace1762973624017d558a84a249ec2ce5412905d14e8a616e5439d86879ac92b"
+      },
+      "denominator": 100,
+      "join": "provider_session + original ANNOUNCE sequence",
+      "warmup_excluded": true,
+      "measured_source_completed": 100,
+      "total_receiver_starts": 100,
+      "total_source_starts": 100,
+      "exactly_one_start_every_authority": true,
+      "missing_stage_rows": 0,
+      "all_owner_ready": true,
+      "all_coordinates_absent": true,
+      "all_priority_zero": true,
+      "all_started_before_original_deadline": true,
+      "native_to_accept_ms": {
+        "n": 100,
+        "min": 0,
+        "p50": 4.0,
+        "p95": 23,
+        "p99": 28,
+        "max": 37
+      },
+      "accept_to_start_ms": {
+        "n": 100,
+        "min": 98,
+        "p50": 124.5,
+        "p95": 143,
+        "p99": 196,
+        "max": 429
+      },
+      "native_to_start_ms": {
+        "n": 100,
+        "min": 109,
+        "p50": 133.0,
+        "p95": 153,
+        "p99": 198,
+        "max": 457
+      },
+      "probe_completed": true,
+      "process_exit_codes": {
+        "source": 0,
+        "receiver": 0
+      },
+      "cleanup": {
+        "source_network_and_lease_restored": true,
+        "source_off_and_quiescent": true,
+        "receiver_output_quiescent": true,
+        "preferences_restored_exactly": true,
+        "permissions_restored_exactly": true
+      },
+      "actual_attached_ui": {
+        "widget_attached": true,
+        "widget_shown": true,
+        "captured_message": "Caution, ambulance!",
+        "screenshot": "/storage/emulated/0/Android/data/app.vela/files/native-warning-integrated/integrated-warning.png"
+      },
+      "screenshot_sha256": "e6b0d4020707b391bb6fe1ce34f002a7562f7ea1e13b285a8ada50981f0d3182"
+    },
+    {
+      "label": "Current final phone-slot full ordinary corpus",
+      "candidate_sha256": "72012bd0dd02ee3b3eb31a35df55d24de5fea79ba830906568c0d029c101aeab",
+      "source_sha256": "3e3c2e987bb6e9b28bc5692e52828ee03d317cf925f719ed4aece29f11614ac8",
+      "source_probe_sha256": "a9e5cfb255d72230b969f7f859faeae604a7e2dcb2b87f9c42457349f3c37ea1",
+      "receiver_probe_sha256": "a6e4540ee6d456357bb177cadb7f312ad16e59b04d9c7e2dfe61752bad350bec",
+      "raw_reports": {
+        ".analysis/native-warning-bindings/vela-phone-slot-final-ordinary-100/result.json": "20cb0f0450c2c3a1c4a98d0927beee832c3598d19f1f034c5a9c7a1637333f35",
+        ".analysis/native-warning-bindings/vela-phone-slot-final-ordinary-100/receiver-result.json": "a5717b250056700c67c21fc13e303ab9b1ba8908a5d304b459a219a3e58a0607",
+        ".analysis/native-warning-bindings/vela-phone-slot-final-ordinary-100/source/34d0e6df-513f-4adc-82a8-00453f722ba4/result.json": "49c7582bfcbdaac5196aeebc0fb2c19334b7699ca8267a19c756c3eb046b2ae1",
+        ".analysis/native-warning-bindings/vela-phone-slot-final-ordinary-100/authority-timings.json": "1be65912352a47021273a29633d25b589122a2ff90c14a51d34ac2bee2b2cb4c"
+      },
+      "denominator": 100,
+      "join": "provider_session + original ANNOUNCE sequence",
+      "warmup_excluded": true,
+      "measured_source_completed": 100,
+      "total_receiver_starts": 100,
+      "total_source_starts": 100,
+      "exactly_one_start_every_authority": true,
+      "missing_stage_rows": 0,
+      "all_owner_ready": true,
+      "all_started_before_original_deadline": true,
+      "native_to_accept_ms": {
+        "n": 100,
+        "min": 0,
+        "p50": 3.5,
+        "p95": 22,
+        "p99": 28,
+        "max": 29
+      },
+      "accept_to_start_ms": {
+        "n": 100,
+        "min": 397,
+        "p50": 433.5,
+        "p95": 458,
+        "p99": 536,
+        "max": 774
+      },
+      "native_to_start_ms": {
+        "n": 100,
+        "min": 405,
+        "p50": 441.0,
+        "p95": 468,
+        "p99": 551,
+        "max": 775
+      },
+      "probe_completed": true,
+      "process_exit_codes": {
+        "source": 0,
+        "receiver": 0
+      },
+      "cleanup": {
+        "source_network_and_lease_restored": true,
+        "source_off_and_quiescent": true,
+        "receiver_output_quiescent": true,
+        "preferences_restored_exactly": true,
+        "permissions_restored_exactly": true
+      },
+      "actual_attached_ui": {
+        "widget_attached": true,
+        "widget_shown": true,
+        "captured_message": "Speed cam 50",
+        "screenshot": "/storage/emulated/0/Android/data/app.vela/files/native-warning-integrated/integrated-warning.png"
+      },
+      "screenshot_sha256": "d339edfd7f01b04ee93f85b996b588d17f56c6d15b1101ede04aca421dd516eb"
+    }
+  ],
+  "phone_correction_code_identity": "MPP85ce vs0a07 changes TelemetryRuntime and generated accessor consumer only; all17 speaker and all shared scheduler/client classes normalize identically. Both final100-event corpora are independently measured on exact72012b.",
+  "host_load_limitation": "Root-owned guest5584 remained paused and root builds/car work stopped for current720 P0 and original8254 P0. An external5580 host actor was uncontrolled; complete host CPU load was not independently recorded. No build/CLI from this agent overlapped either current timing corpus.",
+  "preserved_failures": [
+    {
+      "path": ".analysis/native-warning-bindings/vela-matrix-p0-100/authority-timings.json",
+      "boundary": "Prior p95 urgent accept-to-start602ms failed the500ms target."
+    },
+    {
+      "path": ".analysis/native-warning-bindings/vela-final-ordinary-100/result.json",
+      "boundary": "All100 audio completed; full acceptance FAILED absent actual phone widget and final source-off wait. Diagnostics/source terminal logs were retained; not a passing full run."
+    }
+  ],
+  "not_proven": [
+    "Physical phone/head-unit audio routing or acoustic hearing",
+    "Natural detector accuracy",
+    "Current720 selected neural/Tone native runtime, ownership takeover or car route; those scopes are separately artifact-bound or pending"
+  ],
+  "prior_passing_8254_p0_corpus": {
+    "label": "P0 full app-path corpus before phone-only visibility correction",
+    "candidate_sha256": "8254e43848c3244753ebc89b657143cb2e8ef26232a0cfd220b9158661e1043f",
+    "source_sha256": "3e3c2e987bb6e9b28bc5692e52828ee03d317cf925f719ed4aece29f11614ac8",
+    "source_probe_sha256": "a9e5cfb255d72230b969f7f859faeae604a7e2dcb2b87f9c42457349f3c37ea1",
+    "receiver_probe_sha256": "d45c61c6d935dd754b88372a5540b3e4f965af9e7b9fc3d17ae3186dca27ab65",
+    "raw_reports": {
+      ".analysis/native-warning-bindings/vela-final-p0-100/result.json": "a09b99382165632a07caa9ea98063ec3b6ac3253f39f0d1637dfd64489fd78c5",
+      ".analysis/native-warning-bindings/vela-final-p0-100/receiver-result.json": "5eb355b896397dc7a9663b632530d76119d75a57741a148348081f4e5374b082",
+      ".analysis/native-warning-bindings/vela-final-p0-100/source/dff9588f-b2a9-473c-b1f4-9757d26d376e/result.json": "17baa835ce2af2a42b6ddb5f855981a313da80183aad069dff144a960001e8ff",
+      ".analysis/native-warning-bindings/vela-final-p0-100/authority-timings.json": "65518e6e02de23737d2ac6aacd30685c7e90afa21b18696fb52cfefd39ab1c5f"
+    },
+    "denominator": 100,
+    "join": "provider_session + original ANNOUNCE sequence",
+    "warmup_excluded": true,
+    "measured_source_completed": 100,
+    "total_receiver_starts": 100,
+    "total_source_starts": 100,
+    "exactly_one_start_every_authority": true,
+    "missing_stage_rows": 0,
+    "all_owner_ready": true,
+    "all_started_before_original_deadline": true,
+    "native_to_accept_ms": {
+      "n": 100,
+      "min": 0,
+      "p50": 4.0,
+      "p95": 22,
+      "p99": 26,
+      "max": 30
+    },
+    "accept_to_start_ms": {
+      "n": 100,
+      "min": 91,
+      "p50": 128.0,
+      "p95": 142,
+      "p99": 185,
+      "max": 202
+    },
+    "native_to_start_ms": {
+      "n": 100,
+      "min": 111,
+      "p50": 133.0,
+      "p95": 149,
+      "p99": 193,
+      "max": 210
+    },
+    "probe_completed": true,
+    "process_exit_codes": {
+      "source": 0,
+      "receiver": 0
+    },
+    "cleanup": {
+      "source_network_and_lease_restored": true,
+      "source_off_and_quiescent": true,
+      "receiver_output_quiescent": true,
+      "preferences_restored_exactly": true,
+      "permissions_restored_exactly": true
+    },
+    "actual_attached_ui": {
+      "widget_attached": true,
+      "widget_shown": true,
+      "captured_message": "Caution, ambulance!",
+      "screenshot": "/storage/emulated/0/Android/data/app.vela/files/native-warning-integrated/integrated-warning.png"
+    },
+    "screenshot_sha256": "a45ecfd3d63543f9bad17f41f631b0ca1e9d4d82e121f660bc78d1fce0b7c13c"
+  },
+  "current_acceptance": {
+    "same_final_candidate_both_corpora": true,
+    "both_delivery_p95_below_100ms": true,
+    "p0_ready_idle_accept_to_start_p95_at_most_500ms": true,
+    "measured_announcements": 200
+  }
+}

@@ -63,5 +63,29 @@ val trackingControlPatch = bytecodePatch(
             nop
             """.trimIndent()
         )
+
+        // 3. Clean up notification and reset control state when JS stops tracking (e.g. clock-out / break).
+        BackgroundActionsModuleStopFingerprint.method.addInstructions(
+            0,
+            """
+            invoke-virtual {p0}, Lcom/facebook/react/bridge/ReactContextBaseJavaModule;->getReactApplicationContext()Lcom/facebook/react/bridge/ReactApplicationContext;
+            move-result-object v0
+            invoke-static {v0}, Lapp/plyrs1/extension/TrackingControlHelper;->onExplicitStop(Landroid/content/Context;)V
+            """.trimIndent()
+        )
+
+        // 4. Clean up notification if RNBackgroundActionsTask is destroyed.
+        val superClassName = RnBackgroundActionsOnStartCommandFingerprint.classDef.superclass
+            ?: error("RNBackgroundActionsTask has no superclass")
+        val headlessServiceClass = mutableClassDefBy(superClassName)
+        val onDestroyMethod = headlessServiceClass.methods.first {
+            it.name == "onDestroy" && it.parameterTypes.isEmpty() && it.returnType == "V"
+        }
+        onDestroyMethod.addInstructions(
+            0,
+            """
+            invoke-static {p0}, Lapp/plyrs1/extension/TrackingControlHelper;->onServiceDestroyed(Landroid/content/Context;)V
+            """.trimIndent()
+        )
     }
 }

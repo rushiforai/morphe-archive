@@ -65,7 +65,7 @@ body:
         the result:
 
         ```
-        java -jar morphe-desktop-all.jar patch --patches patches-<version>.mpp \
+        java -jar morphe-desktop-<version>-all.jar patch --patches patches-<version>.mpp \
           --force --continue-on-error --result-file out.json -o out.apk youtube-vr.apk
         ```
 

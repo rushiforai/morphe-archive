@@ -27,8 +27,6 @@ import android.media.AudioAttributes;
 import android.media.AudioFocusRequest;
 import android.media.AudioManager;
 import android.media.MediaMetadata;
-import android.media.MediaPlayer;
-import android.media.PlaybackParams;
 import android.media.session.MediaSession;
 import android.media.session.PlaybackState;
 import android.net.Uri;
@@ -80,7 +78,7 @@ public final class OfflinePlayer {
     private static final CopyOnWriteArrayList<Listener> listeners = new CopyOnWriteArrayList<>();
 
     @Nullable
-    private static MediaPlayer player;
+    private static OfflinePlaybackEngine player;
     @Nullable
     private static MediaSession session;
     @Nullable
@@ -92,6 +90,7 @@ public final class OfflinePlayer {
     private static final List<String> queue = new ArrayList<>();
 
     private static boolean prepared;
+    private static long playerGeneration;
     private static boolean playWhenPrepared;
     private static boolean resumeOnFocusGain;
     private static boolean noisyReceiverRegistered;
@@ -213,7 +212,7 @@ public final class OfflinePlayer {
 
     static long getPosition() {
         try {
-            return player != null && prepared ? player.getCurrentPosition() : 0;
+            return player != null && prepared ? player.getPosition() : 0;
         } catch (IllegalStateException ex) {
             return 0;
         }
@@ -221,7 +220,10 @@ public final class OfflinePlayer {
 
     static long getDuration() {
         try {
-            if (player != null && prepared) return player.getDuration();
+            if (player != null && prepared) {
+                long duration = player.getDuration();
+                if (duration >= 0) return duration;
+            }
         } catch (IllegalStateException ignored) {
         }
         return current != null ? current.lengthMs : 0;
@@ -264,7 +266,7 @@ public final class OfflinePlayer {
         if (!queue.contains(video.key())) queue.add(video.key());
 
         if (current != null && current.key().equals(video.key()) && player != null) {
-            if (!isPlaying()) resume();
+            if (!isPlayRequested()) resume();
             return;
         }
         open(video, true);
@@ -295,51 +297,55 @@ public final class OfflinePlayer {
         videoWidth = 0;
         videoHeight = 0;
 
-        MediaPlayer mediaPlayer = new MediaPlayer();
-        player = mediaPlayer;
-        mediaPlayer.setAudioAttributes(new AudioAttributes.Builder()
-                .setUsage(AudioAttributes.USAGE_MEDIA)
-                .setContentType(video.audioOnly
-                        ? AudioAttributes.CONTENT_TYPE_MUSIC
-                        : AudioAttributes.CONTENT_TYPE_MOVIE)
-                .build());
-        mediaPlayer.setWakeMode(context, android.os.PowerManager.PARTIAL_WAKE_LOCK);
-        mediaPlayer.setOnPreparedListener(mp -> {
-            if (mp != player) return;
-            prepared = true;
-            long resume = video.lastPositionMs;
-            if (resume > 0 && resume < mp.getDuration() - RESUME_END_MARGIN_MS) {
-                mp.seekTo((int) resume);
+        final long generation = playerGeneration;
+        OfflinePlaybackEngine.Listener listener = new OfflinePlaybackEngine.Listener() {
+            @Override
+            public void onReady() {
+                OfflinePlaybackEngine pcmPlayer = player;
+                if (generation != playerGeneration || pcmPlayer == null) return;
+
+                prepared = true;
+                long resumePosition = video.lastPositionMs;
+                if (resumePosition > 0 && resumePosition < getDuration() - RESUME_END_MARGIN_MS) {
+                    pcmPlayer.seekTo(resumePosition);
+                }
+                if (playWhenPrepared) resume();
+                else onStateChanged();
             }
-            Logger.printInfo(() -> "Prepared " + video.key() + " (" + mp.getDuration() + " ms), resume at " + resume);
-            if (defaultSpeed != 1f) applySpeed(mp, defaultSpeed);
-            if (playWhenPrepared) resume();
-            else onStateChanged();
-        });
-        mediaPlayer.setOnVideoSizeChangedListener((mp, width, height) -> {
-            videoWidth = width;
-            videoHeight = height;
-            notifyListeners();
-        });
-        mediaPlayer.setOnSeekCompleteListener(mp -> {
-            if (mp == player) notifyListeners();
-        });
-        mediaPlayer.setOnCompletionListener(mp -> {
-            if (mp != player) return;
-            Logger.printInfo(() -> "Completed " + video.key());
-            onCompletion(video);
-        });
-        mediaPlayer.setOnErrorListener((mp, what, extra) -> {
-            Logger.printException(() -> "Playback error " + what + "/" + extra + " for " + video.key());
-            Utils.showToastShort(app.morphe.extension.shared.utils.StringRef.str("revanced_offline_playback_error"));
-            close();
-            return true;
-        });
+
+            @Override
+            public void onPlayingChanged() {
+                if (generation == playerGeneration) onStateChanged();
+            }
+
+            @Override
+            public void onVideoSizeChanged(int width, int height) {
+                if (generation != playerGeneration) return;
+
+                videoWidth = width;
+                videoHeight = height;
+                notifyListeners();
+            }
+
+            @Override
+            public void onEnded() {
+                if (generation == playerGeneration) onCompletion(video);
+            }
+
+            @Override
+            public void onError(Exception error) {
+                if (generation != playerGeneration) return;
+
+                Logger.printException(() -> "Playback error for " + video.key(), error);
+                Utils.showToastShort(str("revanced_offline_playback_error"));
+                close();
+            }
+        };
 
         try {
-            mediaPlayer.setDataSource(context, Uri.parse(video.contentUri));
-            if (surface != null && surface.isValid()) mediaPlayer.setSurface(surface);
-            mediaPlayer.prepareAsync();
+            player = createPlaybackEngine(context, video.audioOnly, listener);
+            if (defaultSpeed != 1f) applySpeed(player, defaultSpeed);
+            player.prepare(Uri.parse(video.contentUri), surface != null && surface.isValid() ? surface : null);
         } catch (Exception ex) {
             Logger.printException(() -> "Could not open " + video.contentUri, ex);
             Utils.showToastShort(app.morphe.extension.shared.utils.StringRef.str("revanced_offline_playback_error"));
@@ -349,6 +355,12 @@ public final class OfflinePlayer {
         ensureSession().setActive(true);
         updateMetadata();
         onStateChanged();
+    }
+
+    /** The Downloads patch replaces this body with its concrete engine factory. */
+    private static OfflinePlaybackEngine createPlaybackEngine(
+            Context context, boolean audioOnly, OfflinePlaybackEngine.Listener listener) {
+        throw new IllegalStateException("Offline playback engine has not been installed");
     }
 
     private static void onCompletion(OfflineVideo video) {
@@ -364,12 +376,14 @@ public final class OfflinePlayer {
                 resume();
             }
             case PAUSE_AT_START -> {
+                if (player != null) player.pause();
                 unregisterNoisyReceiver();
                 abandonFocus();
                 seekTo(0, false);
             }
             case NEXT_OR_STOP -> {
                 if (moveToAdjacent(1)) return;
+                if (player != null) player.pause();
 
                 unregisterNoisyReceiver();
                 abandonFocus();
@@ -380,8 +394,8 @@ public final class OfflinePlayer {
     }
 
     static void resume() {
-        MediaPlayer mediaPlayer = player;
-        if (mediaPlayer == null) return;
+        OfflinePlaybackEngine pcmPlayer = player;
+        if (pcmPlayer == null) return;
         if (!prepared) {
             playWhenPrepared = true;
             return;
@@ -393,7 +407,8 @@ public final class OfflinePlayer {
         }
         pauseMainPlayer();
         try {
-            mediaPlayer.start();
+            if (hasPlaybackEnded()) pcmPlayer.seekTo(0);
+            pcmPlayer.play();
             completion = null;
         } catch (IllegalStateException ex) {
             Logger.printException(() -> "Could not start playback", ex);
@@ -417,7 +432,7 @@ public final class OfflinePlayer {
      */
     private static void pauseOnFocusLoss() {
         // A second transient loss must not forget the resume that the first one waits for.
-        boolean wasPlaying = isPlaying() || resumeOnFocusGain;
+        boolean wasPlaying = isPlayRequested() || resumeOnFocusGain;
 
         pausePlayback(false);
         resumeOnFocusGain = wasPlaying;
@@ -429,10 +444,10 @@ public final class OfflinePlayer {
      */
     private static void pausePlayback(boolean abandonFocus) {
         playWhenPrepared = false;
-        MediaPlayer mediaPlayer = player;
-        if (mediaPlayer != null && prepared) {
+        OfflinePlaybackEngine pcmPlayer = player;
+        if (pcmPlayer != null && prepared) {
             try {
-                if (mediaPlayer.isPlaying()) mediaPlayer.pause();
+                pcmPlayer.pause();
             } catch (IllegalStateException ignored) {
             }
         }
@@ -443,8 +458,12 @@ public final class OfflinePlayer {
     }
 
     static void togglePlayPause() {
-        if (isPlaying()) pause();
+        if (isPlayRequested()) pause();
         else resume();
+    }
+
+    private static boolean isPlayRequested() {
+        return player != null && (prepared ? player.isPlayRequested() : playWhenPrepared);
     }
 
     static void seekTo(long positionMs) {
@@ -452,15 +471,11 @@ public final class OfflinePlayer {
     }
 
     private static void seekTo(long positionMs, boolean clearCompletion) {
-        MediaPlayer mediaPlayer = player;
-        if (mediaPlayer == null || !prepared) return;
+        OfflinePlaybackEngine pcmPlayer = player;
+        if (pcmPlayer == null || !prepared) return;
+
         long target = Math.max(0, Math.min(positionMs, getDuration()));
-        // The default mode snaps to the previous sync frame, which can be seconds away.
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            mediaPlayer.seekTo(target, MediaPlayer.SEEK_CLOSEST);
-        } else {
-            mediaPlayer.seekTo((int) target);
-        }
+        pcmPlayer.seekTo(target);
         if (clearCompletion) completion = null;
         onStateChanged();
     }
@@ -479,9 +494,9 @@ public final class OfflinePlayer {
 
     /** Applies an explicit choice. The caller commits once per selection or completed gesture. */
     static boolean setSpeed(float newSpeed) {
-        MediaPlayer mediaPlayer = player;
-        if (mediaPlayer == null || !prepared || newSpeed == speed) return false;
-        if (!applySpeed(mediaPlayer, newSpeed)) return false;
+        OfflinePlaybackEngine pcmPlayer = player;
+        if (pcmPlayer == null || !prepared || newSpeed == speed) return false;
+        if (!applySpeed(pcmPlayer, newSpeed)) return false;
 
         onStateChanged();
         return true;
@@ -508,21 +523,17 @@ public final class OfflinePlayer {
         }
     }
 
-    private static boolean applySpeed(MediaPlayer mediaPlayer, float requested) {
+    private static boolean applySpeed(OfflinePlaybackEngine pcmPlayer, float requested) {
         try {
             if (!PlaybackSpeedValues.isPlayable(requested)) throw new IllegalArgumentException("Invalid speed");
 
-            final boolean wasPlaying = mediaPlayer.isPlaying();
-            try {
-                PlaybackParams params = mediaPlayer.getPlaybackParams()
-                        .setAudioFallbackMode(PlaybackParams.AUDIO_FALLBACK_MODE_FAIL)
-                        .setSpeed(requested);
-                mediaPlayer.setPlaybackParams(params);
-            } finally {
-                // Applying nonzero PlaybackParams also starts a paused MediaPlayer.
-                if (!wasPlaying && mediaPlayer.isPlaying()) mediaPlayer.pause();
+            pcmPlayer.setSpeed(requested);
+            float applied = pcmPlayer.getSpeed();
+            if (applied != requested) {
+                pcmPlayer.setSpeed(speed);
+                throw new IllegalStateException("Playback engine reported " + applied);
             }
-            speed = requested;
+            speed = applied;
             return true;
         } catch (RuntimeException ex) {
             Logger.printInfo(() -> "Offline playback could not set speed to " + requested, ex);
@@ -578,20 +589,15 @@ public final class OfflinePlayer {
     }
 
     private static void releasePlayer() {
-        MediaPlayer mediaPlayer = player;
+        OfflinePlaybackEngine pcmPlayer = player;
         player = null;
+        playerGeneration++;
         prepared = false;
         unregisterNoisyReceiver();
         handler.removeCallbacks(positionSaver);
         handler.removeCallbacks(sponsorTicker);
         manualSegment = null;
-        if (mediaPlayer != null) {
-            try {
-                mediaPlayer.reset();
-            } catch (Exception ignored) {
-            }
-            mediaPlayer.release();
-        }
+        if (pcmPlayer != null) pcmPlayer.release();
     }
 
     // endregion
@@ -617,7 +623,7 @@ public final class OfflinePlayer {
     }
 
     private static void pauseForMainPlayer(Object player) {
-        if (!VideoInformation.isCurrentPlayer(player) || !isPlaying() || isQuietPlayback()) return;
+        if (!VideoInformation.isCurrentPlayer(player) || !isPlayRequested() || isQuietPlayback()) return;
 
         Logger.printInfo(() -> "Main player started, pausing offline playback");
         pause();
@@ -645,10 +651,10 @@ public final class OfflinePlayer {
 
     static void attachSurface(@Nullable Surface newSurface) {
         surface = newSurface;
-        MediaPlayer mediaPlayer = player;
-        if (mediaPlayer == null) return;
+        OfflinePlaybackEngine pcmPlayer = player;
+        if (pcmPlayer == null) return;
         try {
-            mediaPlayer.setSurface(newSurface);
+            pcmPlayer.setSurface(newSurface);
         } catch (Exception ex) {
             Logger.printDebug(() -> "Could not attach the surface", ex);
         }
@@ -689,7 +695,7 @@ public final class OfflinePlayer {
     // region audio focus and noisy
 
     private static final AudioManager.OnAudioFocusChangeListener focusListener = change -> {
-        MediaPlayer mediaPlayer = player;
+        OfflinePlaybackEngine pcmPlayer = player;
         switch (change) {
             case AudioManager.AUDIOFOCUS_LOSS -> {
                 // Another player, for example YouTube's own, took over for good.
@@ -698,10 +704,10 @@ public final class OfflinePlayer {
             }
             case AudioManager.AUDIOFOCUS_LOSS_TRANSIENT -> pauseOnFocusLoss();
             case AudioManager.AUDIOFOCUS_LOSS_TRANSIENT_CAN_DUCK -> {
-                if (mediaPlayer != null) mediaPlayer.setVolume(DUCK_VOLUME, DUCK_VOLUME);
+                if (pcmPlayer != null) pcmPlayer.setVolume(DUCK_VOLUME);
             }
             case AudioManager.AUDIOFOCUS_GAIN -> {
-                if (mediaPlayer != null) mediaPlayer.setVolume(1f, 1f);
+                if (pcmPlayer != null) pcmPlayer.setVolume(1f);
                 if (resumeOnFocusGain) {
                     resumeOnFocusGain = false;
                     resume();
@@ -842,8 +848,10 @@ public final class OfflinePlayer {
                 | PlaybackState.ACTION_FAST_FORWARD | PlaybackState.ACTION_REWIND
                 | PlaybackState.ACTION_SKIP_TO_PREVIOUS;
         if (hasNext()) actions |= PlaybackState.ACTION_SKIP_TO_NEXT;
-        int state = !prepared ? PlaybackState.STATE_BUFFERING
-                : playing ? PlaybackState.STATE_PLAYING : PlaybackState.STATE_PAUSED;
+        int state;
+        if (playing) state = PlaybackState.STATE_PLAYING;
+        else if (!prepared || isPlayRequested()) state = PlaybackState.STATE_BUFFERING;
+        else state = PlaybackState.STATE_PAUSED;
         session.setPlaybackState(new PlaybackState.Builder()
                 .setActions(actions)
                 .setState(state, getPosition(), playing ? speed : 0f)

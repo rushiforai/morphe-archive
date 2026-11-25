@@ -9,7 +9,7 @@ This is a collection of [Morphe](https://github.com/MorpheApp) patches maintaine
 ## 🩹 Patches list
 
 <!-- PATCHES_START EXPANDED -->
-> **[v1.56.0](https://github.com/legendsciber/morphe-patches/releases/tag/v1.56.0)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;36 patches total
+> **[v1.57.0](https://github.com/legendsciber/morphe-patches/releases/tag/v1.57.0)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;36 patches total
 <details open>
 <summary>📦 Age Of War 2&nbsp;&nbsp;•&nbsp;&nbsp;2 patches</summary>
 <br>
@@ -268,7 +268,7 @@ This is a collection of [Morphe](https://github.com/MorpheApp) patches maintaine
 
 **🎯 Supported versions:**
 
-| 3.71.0 |
+| 3.72.0 |
 | :---: |
 
 | 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |

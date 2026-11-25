@@ -17,8 +17,10 @@ import app.morphe.patcher.util.proxy.mutableTypes.MutableClass
 import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod
 import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod.Companion.toMutable
 import app.morphe.patcher.util.returnEarly
+import com.android.tools.smali.dexlib2.AccessFlags
 import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.builder.MutableMethodImplementation
+import com.android.tools.smali.dexlib2.iface.instruction.FiveRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.NarrowLiteralInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
@@ -32,15 +34,15 @@ import dev.materialtidal.patches.shared.EXTENSION_PATH
 import dev.materialtidal.patches.shared.MATERIAL_YOU_CONFIG_CLASS
 
 private val PLAYER_STYLE_CHOICES = mapOf(
-    "Cover Pastel & Blurred Art (Screenshot)" to 0,
-    "Dark Tonal Blurred Cover" to 1,
-    "Pure Heavy Cover Blur" to 2,
+    "Cover Pastel & Blur (Recommended)" to 0,
+    "Dark Tonal Blur" to 1,
+    "Heavy Cover Blur" to 2,
 )
 
 @Suppress("unused")
 val expressivePlayerPatch = patch(
-    name = "Material 3 Expressive full player",
-    description = "Replaces TIDAL's Now Playing screen with a Material 3 Expressive player featuring a heavily blurred cover backdrop, connected split pills, squiggly animated seekbar, morphing transport shapes, full-screen animated lyrics, and an expressive Play Queue.",
+    name = "M3 full player",
+    description = "Redesigns the Now Playing screen with a blurred cover-art backdrop, adaptive Monet colors, animated squiggly seekbar, expressive transport controls, responsive tablet two-pane layout, full-screen lyrics, and a refreshed Play Queue.",
     default = true,
 ) {
     compatibleWith(COMPATIBILITY_TIDAL)
@@ -51,8 +53,8 @@ val expressivePlayerPatch = patch(
         key = "playerColorStyle",
         default = 0,
         values = PLAYER_STYLE_CHOICES,
-        title = "Player blurred background style",
-        description = "How the heavily blurred cover backdrop and tonal accents are rendered.",
+        title = "Player backdrop style",
+        description = "Controls how the blurred album-art background and tonal accents are rendered (also adjustable live in Settings → MaterialTidal).",
         required = true,
     )
 
@@ -60,37 +62,49 @@ val expressivePlayerPatch = patch(
         key = "playerCoverSwipeToSkip",
         default = true,
         title = "Swipe cover art to skip tracks",
-        description = "Swipe the album artwork horizontally with spring tilt physics to skip to next or previous track.",
+        description = "Swipe the album cover horizontally with spring tilt physics to skip to the next or previous track (also adjustable live in Settings → MaterialTidal).",
         required = true,
     )
 
     val squigglySeekbarOption by booleanOption(
         key = "playerSquigglySeekbar",
         default = true,
-        title = "Expressive wavy seekbar",
-        description = "Animate the active playback track with a Material 3 Expressive sine wave while playing.",
+        title = "Squiggly sine-wave seekbar",
+        description = "Animates the active progress line as a Material 3 wave while playing; automatically replaced when 'Song waveform seekbar' is active (also adjustable live in Settings → MaterialTidal).",
         required = true,
     )
 
     val expressivePlayQueueOption by booleanOption(
         key = "expressivePlayQueue",
         default = true,
-        title = "Expressive Material 3 Play Queue",
-        description = "Redesigns the Play Queue and Suggested Tracks modal with cover-adaptive tonal scrims, segmented pill tabs, spotlight active card, and expressive track cards.",
+        title = "Expressive Play Queue",
+        description = "Redesigns the Play Queue and Suggested Tracks view with cover-adaptive backdrops, pill tabs, a spotlight active track card, and rounded rows (also adjustable live in Settings → MaterialTidal).",
+        required = true,
+    )
+
+    val tabletDesktopLayoutOption by booleanOption(
+        key = "tabletDesktopLayout",
+        default = true,
+        title = "Desktop-style tablet layout",
+        description = "Uses a two-pane layout with side-by-side Play Queue & Lyrics, a three-zone bottom playback dock, and volume slider on tablets and wide screens (also adjustable live in Settings → MaterialTidal).",
         required = true,
     )
 
     execute {
         // 1. Configure MaterialYouConfig player options.
         val configClass = mutableClassDefBy(MATERIAL_YOU_CONFIG_CLASS)
-        configClass.methods.single { it.name == "getPlayerColorStyle" }
+        configClass.methods.single { it.name == "isExpressivePlayerPatchInstalled" }
+            .returnEarly(true)
+        configClass.methods.single { it.name == "defaultPlayerColorStyle" }
             .returnEarly(playerStyleOption ?: 0)
-        configClass.methods.single { it.name == "isPlayerCoverSwipeEnabled" }
+        configClass.methods.single { it.name == "defaultPlayerCoverSwipeEnabled" }
             .returnEarly(coverSwipeOption ?: true)
-        configClass.methods.single { it.name == "isPlayerSquigglySeekbarEnabled" }
+        configClass.methods.single { it.name == "defaultPlayerSquigglySeekbarEnabled" }
             .returnEarly(squigglySeekbarOption ?: true)
-        configClass.methods.single { it.name == "isExpressivePlayQueueEnabled" }
+        configClass.methods.single { it.name == "defaultExpressivePlayQueueEnabled" }
             .returnEarly(expressivePlayQueueOption ?: true)
+        configClass.methods.single { it.name == "defaultPlayerTabletDesktopLayoutEnabled" }
+            .returnEarly(tabletDesktopLayoutOption ?: true)
 
         // 2. Enable player-market-ui Compose pipeline in flag holder + MainActivity.FullPlayer.
         val flagMatch = PlayerMarketUiFlagClinitFingerprint.matchSingle()
@@ -544,6 +558,362 @@ val expressivePlayerPatch = patch(
             """,
         )
 
+        replaceBridgeMethod(
+            bridgeClass,
+            "nativeClearQueue",
+            """
+                invoke-static {}, Lcom/aspiro/wamp/player/a${'$'}c;->a()Lcom/aspiro/wamp/player/a;
+                move-result-object v0
+                if-eqz v0, :done
+                iget-object v0, v0, Lcom/aspiro/wamp/player/a;->l:Litd;
+                if-eqz v0, :done
+                sget-object v1, Lwd6;->j:Ljava/util/Set;
+                invoke-interface { v0 }, Litd;->getState()Lcom/aspiro/wamp/enums/MusicServiceState;
+                move-result-object v2
+                invoke-interface { v1, v2 }, Ljava/util/Set;->contains(Ljava/lang/Object;)Z
+                move-result v1
+                invoke-interface { v0 }, Litd;->getPlayQueue()Lhpd;
+                move-result-object v0
+                if-eqz v0, :done
+                if-eqz v1, :clear_all
+                invoke-interface { v0 }, Lhpd;->clearAllExceptCurrentItem()V
+                goto :done
+                :clear_all
+                const/4 v1, 0x1
+                invoke-interface { v0, v1 }, Lhpd;->clear(Z)V
+                :done
+                return-void
+            """,
+        )
+
+        replaceBridgeMethod(
+            bridgeClass,
+            "nativeSaveQueueAsPlaylist",
+            """
+                new-instance v0, Lzf;
+                invoke-direct { v0 }, Lzf;-><init>()V
+                const-string v1, "playQueue"
+                new-instance v2, Lcom/aspiro/wamp/eventtracking/model/ContextualMetadata;
+                invoke-direct { v2, v1 }, Lcom/aspiro/wamp/eventtracking/model/ContextualMetadata;-><init>(Ljava/lang/String;)V
+                new-instance v3, Lcom/aspiro/wamp/eventtracking/model/ContentMetadata;
+                const-string v4, ""
+                invoke-direct { v3, v1, v4 }, Lcom/aspiro/wamp/eventtracking/model/ContentMetadata;-><init>(Ljava/lang/String;Ljava/lang/String;)V
+                new-instance v4, Lci;
+                const/4 v5, 0x0
+                invoke-direct { v4, v0, v2, v3, v5 }, Lci;-><init>(Lwh;Lcom/aspiro/wamp/eventtracking/model/ContextualMetadata;Lcom/aspiro/wamp/eventtracking/model/ContentMetadata;Lcom/aspiro/wamp/playqueue/source/model/Source;)V
+                invoke-virtual { v4, v5 }, Lci;->b(Lcom/tidal/android/navigation/NavigationInfo;)V
+                return-void
+            """,
+        )
+
+        replaceBridgeMethod(
+            bridgeClass,
+            "nativeShowSleepTimer",
+            """
+                instance-of v0, p0, Lzlc;
+                if-eqz v0, :done
+                instance-of v0, p1, Landroidx/fragment/app/FragmentActivity;
+                if-eqz v0, :done
+                check-cast p0, Lzlc;
+                check-cast p1, Landroidx/fragment/app/FragmentActivity;
+                iget-object v0, p0, Lzlc;->c:Lms3;
+                if-eqz v0, :done
+                const-string v1, "playQueue"
+                const-string v2, ""
+                new-instance v3, Lcom/aspiro/wamp/eventtracking/model/ContentMetadata;
+                invoke-direct { v3, v1, v2 }, Lcom/aspiro/wamp/eventtracking/model/ContentMetadata;-><init>(Ljava/lang/String;Ljava/lang/String;)V
+                new-instance v2, Lcom/aspiro/wamp/eventtracking/model/ContextualMetadata;
+                invoke-direct { v2, v1 }, Lcom/aspiro/wamp/eventtracking/model/ContextualMetadata;-><init>(Ljava/lang/String;)V
+                invoke-interface { v0, p1, v3, v2 }, Lms3;->k(Landroidx/fragment/app/FragmentActivity;Lcom/aspiro/wamp/eventtracking/model/ContentMetadata;Lcom/aspiro/wamp/eventtracking/model/ContextualMetadata;)V
+                :done
+                return-void
+            """,
+        )
+
+        replaceBridgeMethod(
+            bridgeClass,
+            "nativeGetQueueShuffleState",
+            """
+                invoke-static {}, Lcom/aspiro/wamp/player/a${'$'}c;->a()Lcom/aspiro/wamp/player/a;
+                move-result-object v0
+                if-eqz v0, :unknown
+                iget-object v0, v0, Lcom/aspiro/wamp/player/a;->l:Litd;
+                if-eqz v0, :unknown
+                invoke-interface { v0 }, Litd;->getPlayQueue()Lhpd;
+                move-result-object v0
+                if-eqz v0, :unknown
+                invoke-interface { v0 }, Lhpd;->isShuffled()Z
+                move-result v0
+                return v0
+                :unknown
+                const/4 v0, -0x1
+                return v0
+            """,
+        )
+
+        replaceBridgeMethod(
+            bridgeClass,
+            "nativeGetQueueRepeatMode",
+            """
+                invoke-static {}, Lcom/aspiro/wamp/player/a${'$'}c;->a()Lcom/aspiro/wamp/player/a;
+                move-result-object v0
+                if-eqz v0, :none
+                iget-object v0, v0, Lcom/aspiro/wamp/player/a;->l:Litd;
+                if-eqz v0, :none
+                invoke-interface { v0 }, Litd;->getPlayQueue()Lhpd;
+                move-result-object v0
+                if-eqz v0, :none
+                invoke-interface { v0 }, Lhpd;->getRepeatMode()Lcom/aspiro/wamp/enums/RepeatMode;
+                move-result-object v0
+                if-eqz v0, :none
+                invoke-virtual { v0 }, Lcom/aspiro/wamp/enums/RepeatMode;->name()Ljava/lang/String;
+                move-result-object v0
+                return-object v0
+                :none
+                const/4 v0, 0x0
+                return-object v0
+            """,
+        )
+
+        replaceBridgeMethod(
+            bridgeClass,
+            "nativeToggleQueueShuffleDirect",
+            """
+                invoke-static {}, Lcom/aspiro/wamp/player/a${'$'}c;->a()Lcom/aspiro/wamp/player/a;
+                move-result-object v0
+                if-eqz v0, :done
+                iget-object v0, v0, Lcom/aspiro/wamp/player/a;->l:Litd;
+                if-eqz v0, :done
+                invoke-interface { v0 }, Litd;->getPlayQueue()Lhpd;
+                move-result-object v0
+                if-eqz v0, :done
+                invoke-interface { v0 }, Lhpd;->toggleShuffle()V
+                :done
+                return-void
+            """,
+        )
+
+        replaceBridgeMethod(
+            bridgeClass,
+            "nativeCycleQueueRepeatDirect",
+            """
+                invoke-static {}, Lcom/aspiro/wamp/player/a${'$'}c;->a()Lcom/aspiro/wamp/player/a;
+                move-result-object v0
+                if-eqz v0, :done
+                iget-object v0, v0, Lcom/aspiro/wamp/player/a;->l:Litd;
+                if-eqz v0, :done
+                invoke-interface { v0 }, Litd;->getPlayQueue()Lhpd;
+                move-result-object v0
+                if-eqz v0, :done
+                invoke-interface { v0 }, Lhpd;->cycleRepeat()Lcom/aspiro/wamp/enums/RepeatMode;
+                :done
+                return-void
+            """,
+        )
+
+        val itdIsInterface = AccessFlags.INTERFACE.isSet(mutableClassDefBy("Litd;").accessFlags)
+        val queueIsInterface = AccessFlags.INTERFACE.isSet(mutableClassDefBy("Lhpd;").accessFlags)
+        val itemIsInterface = AccessFlags.INTERFACE.isSet(mutableClassDefBy("Luqd;").accessFlags)
+        val invokeItdOp = if (itdIsInterface) "invoke-interface" else "invoke-virtual"
+        val invokeQueueOp = if (queueIsInterface) "invoke-interface" else "invoke-virtual"
+        val invokeItemOp = if (itemIsInterface) "invoke-interface" else "invoke-virtual"
+
+        replaceBridgeMethod(
+            bridgeClass,
+            "nativeGetPlayQueueSnapshot",
+            """
+                invoke-static {}, Lcom/aspiro/wamp/player/a${'$'}c;->a()Lcom/aspiro/wamp/player/a;
+                move-result-object v0
+                if-eqz v0, :none
+                iget-object v0, v0, Lcom/aspiro/wamp/player/a;->l:Litd;
+                if-eqz v0, :none
+                $invokeItdOp { v0 }, Litd;->getPlayQueue()Lhpd;
+                move-result-object v0
+                if-eqz v0, :none
+                $invokeQueueOp { v0 }, Lhpd;->getItems()Ljava/util/List;
+                move-result-object v1
+                if-eqz v1, :none
+                $invokeQueueOp { v0 }, Lhpd;->getCurrentItemPosition()I
+                move-result v2
+                invoke-static { v2 }, Ljava/lang/Integer;->valueOf(I)Ljava/lang/Integer;
+                move-result-object v2
+                const/4 v3, 0x2
+                new-array v3, v3, [Ljava/lang/Object;
+                const/4 v4, 0x0
+                aput-object v1, v3, v4
+                const/4 v4, 0x1
+                aput-object v2, v3, v4
+                return-object v3
+                :none
+                const/4 v0, 0x0
+                return-object v0
+            """,
+        )
+
+        replaceBridgeMethod(
+            bridgeClass,
+            "nativeExtractQueueItemStrings",
+            """
+                const/4 v0, 0x6
+                new-array v0, v0, [Ljava/lang/String;
+                instance-of v1, p0, Luqd;
+                if-eqz v1, :done
+                check-cast p0, Luqd;
+
+                $invokeItemOp { p0 }, Luqd;->getUid()Ljava/lang/String;
+                move-result-object v1
+                const/4 v2, 0x0
+                aput-object v1, v0, v2
+
+                const/4 v5, 0x0
+                $invokeItemOp { p0 }, Luqd;->isActive()Z
+                move-result v1
+                if-eqz v1, :not_active
+                or-int/lit8 v5, v5, 0x2
+                :not_active
+
+                $invokeItemOp { p0 }, Luqd;->getMediaItem()Lcom/aspiro/wamp/model/MediaItem;
+                move-result-object v1
+                if-eqz v1, :write_flags
+
+                invoke-virtual { v1 }, Lcom/aspiro/wamp/model/MediaItem;->getDisplayTitle()Ljava/lang/String;
+                move-result-object v2
+                if-eqz v2, :fallback_title
+                invoke-virtual { v2 }, Ljava/lang/String;->isEmpty()Z
+                move-result v3
+                if-eqz v3, :has_title
+                :fallback_title
+                invoke-virtual { v1 }, Lcom/aspiro/wamp/model/MediaItem;->getTitle()Ljava/lang/String;
+                move-result-object v2
+                :has_title
+                const/4 v3, 0x1
+                aput-object v2, v0, v3
+
+                invoke-virtual { v1 }, Lcom/aspiro/wamp/model/MediaItem;->getArtistNames()Ljava/lang/String;
+                move-result-object v2
+                const/4 v3, 0x2
+                aput-object v2, v0, v3
+
+                invoke-virtual { v1 }, Lcom/aspiro/wamp/model/MediaItem;->getAlbum()Lcom/aspiro/wamp/model/Album;
+                move-result-object v2
+                if-eqz v2, :check_video_img
+                invoke-virtual { v2 }, Lcom/aspiro/wamp/model/Album;->getCover()Ljava/lang/String;
+                move-result-object v2
+                goto :store_cover
+                :check_video_img
+                instance-of v3, v1, Lcom/aspiro/wamp/model/Video;
+                if-eqz v3, :no_cover
+                move-object v2, v1
+                check-cast v2, Lcom/aspiro/wamp/model/Video;
+                invoke-virtual { v2 }, Lcom/aspiro/wamp/model/Video;->getImageId()Ljava/lang/String;
+                move-result-object v2
+                goto :store_cover
+                :no_cover
+                const/4 v2, 0x0
+                :store_cover
+                const/4 v3, 0x3
+                aput-object v2, v0, v3
+
+                invoke-virtual { v1 }, Lcom/aspiro/wamp/model/MediaItem;->getDuration()I
+                move-result v2
+                invoke-static { v2 }, Ljava/lang/String;->valueOf(I)Ljava/lang/String;
+                move-result-object v2
+                const/4 v3, 0x4
+                aput-object v2, v0, v3
+
+                invoke-virtual { v1 }, Lcom/aspiro/wamp/model/MediaItem;->isExplicit()Z
+                move-result v2
+                if-eqz v2, :write_flags
+                or-int/lit8 v5, v5, 0x1
+
+                :write_flags
+                invoke-static { v5 }, Ljava/lang/String;->valueOf(I)Ljava/lang/String;
+                move-result-object v1
+                const/4 v2, 0x5
+                aput-object v1, v0, v2
+
+                :done
+                return-object v0
+            """,
+        )
+
+        replaceBridgeMethod(
+            bridgeClass,
+            "nativePlayQueuePosition",
+            """
+                invoke-static {}, Lcom/aspiro/wamp/player/a${'$'}c;->a()Lcom/aspiro/wamp/player/a;
+                move-result-object v0
+                if-eqz v0, :done
+                iget-object v0, v0, Lcom/aspiro/wamp/player/a;->l:Litd;
+                if-eqz v0, :done
+                const/4 v1, 0x1
+                const/4 v2, 0x1
+                $invokeItdOp { v0, p0, v1, v2 }, Litd;->onActionPlayPosition(IZZ)V
+                :done
+                return-void
+            """,
+        )
+
+        replaceBridgeMethod(
+            bridgeClass,
+            "nativeRemoveQueueItem",
+            """
+                invoke-static {}, Lcom/aspiro/wamp/player/a${'$'}c;->a()Lcom/aspiro/wamp/player/a;
+                move-result-object v0
+                if-eqz v0, :done
+                iget-object v0, v0, Lcom/aspiro/wamp/player/a;->l:Litd;
+                if-eqz v0, :done
+                $invokeItdOp { v0 }, Litd;->getPlayQueue()Lhpd;
+                move-result-object v0
+                if-eqz v0, :done
+                $invokeQueueOp { v0, p0 }, Lhpd;->removeIfNotCurrent(I)V
+                :done
+                return-void
+            """,
+        )
+
+        replaceBridgeMethod(
+            bridgeClass,
+            "nativeGetAudioStreamSpec",
+            """
+                invoke-static {}, Lcom/aspiro/wamp/player/a${'$'}c;->a()Lcom/aspiro/wamp/player/a;
+                move-result-object v0
+                if-eqz v0, :none
+                iget-object v0, v0, Lcom/aspiro/wamp/player/a;->l:Litd;
+                if-eqz v0, :none
+                new-instance v1, Ljava/lang/StringBuilder;
+                invoke-direct { v1 }, Ljava/lang/StringBuilder;-><init>()V
+
+                $invokeItdOp { v0 }, Litd;->getCurrentBitDepth()Ljava/lang/Integer;
+                move-result-object v2
+                if-eqz v2, :sep1
+                invoke-virtual { v1, v2 }, Ljava/lang/StringBuilder;->append(Ljava/lang/Object;)Ljava/lang/StringBuilder;
+                :sep1
+                const-string v2, "|"
+                invoke-virtual { v1, v2 }, Ljava/lang/StringBuilder;->append(Ljava/lang/String;)Ljava/lang/StringBuilder;
+
+                $invokeItdOp { v0 }, Litd;->getCurrentSampleRate()Ljava/lang/Integer;
+                move-result-object v2
+                if-eqz v2, :sep2
+                invoke-virtual { v1, v2 }, Ljava/lang/StringBuilder;->append(Ljava/lang/Object;)Ljava/lang/StringBuilder;
+                :sep2
+                const-string v2, "|"
+                invoke-virtual { v1, v2 }, Ljava/lang/StringBuilder;->append(Ljava/lang/String;)Ljava/lang/StringBuilder;
+
+                $invokeItdOp { v0 }, Litd;->getCurrentCodec()Ljava/lang/String;
+                move-result-object v2
+                if-eqz v2, :ret
+                invoke-virtual { v1, v2 }, Ljava/lang/StringBuilder;->append(Ljava/lang/String;)Ljava/lang/StringBuilder;
+                :ret
+                invoke-virtual { v1 }, Ljava/lang/StringBuilder;->toString()Ljava/lang/String;
+                move-result-object v0
+                return-object v0
+                :none
+                const/4 v0, 0x0
+                return-object v0
+            """,
+        )
+
         // 5. Redirect PlayerScreenKt.c (PlayerScreenContent) to ExpressivePlayerBridge.
         contentMatch.method.let { m ->
             val p0 = m.p0Register
@@ -585,7 +955,23 @@ val expressivePlayerPatch = patch(
         )
         hookAfterConstructorVoid(
             PlayQueueTouchCallbackInitFingerprint.matchSingle().method,
+            "Landroidx/recyclerview/widget/ItemTouchHelper\$Callback;",
             "$EXPRESSIVE_PLAYER_BRIDGE_CLASS->onPlayQueueSwipeCallbackInit(Ljava/lang/Object;)V",
+        )
+        hookPlayQueueTouchCallbackDrag(
+            PlayQueueTouchCallbackOnMoveFingerprint.matchSingle().method,
+            PlayQueueTouchCallbackClearViewFingerprint.matchSingle().method,
+            mutableClassDefBy(PlayQueueTouchCallbackInitFingerprint.matchSingle().classDef.type),
+        )
+        hookAfterConstructorVoid(
+            NavigatorInitFingerprint.matchSingle().method,
+            "Ljava/lang/Object;",
+            "$EXPRESSIVE_PLAYER_BRIDGE_CLASS->registerNavigator(Ljava/lang/Object;)V",
+        )
+        hookAfterConstructorVoid(
+            SleepTimerControllerInitFingerprint.matchSingle().method,
+            "Ljava/lang/Object;",
+            "$EXPRESSIVE_PLAYER_BRIDGE_CLASS->registerSleepTimerController(Ljava/lang/Object;)V",
         )
     }
 }
@@ -652,6 +1038,7 @@ private fun hookAfterDelegateBindLastReturn(
 
 private fun hookAfterConstructorVoid(
     method: MutableMethod,
+    superClass: String,
     bridgeMethodSig: String,
 ) {
     val (cloned, _) = method.addFreeRegisters(1)
@@ -661,8 +1048,7 @@ private fun hookAfterConstructorVoid(
     val superInitIdx = cloned.instructions.indexOfFirst { insn ->
         insn.opcode == Opcode.INVOKE_DIRECT &&
             ((insn as? ReferenceInstruction)?.reference as? MethodReference)?.let {
-                it.definingClass == cloned.definingClass.let { _ -> "Landroidx/recyclerview/widget/ItemTouchHelper\$Callback;" } &&
-                    it.name == "<init>"
+                it.definingClass == superClass && it.name == "<init>"
             } == true
     }
     if (superInitIdx < 0) {
@@ -694,6 +1080,7 @@ private fun replaceBridgeMethod(
     bridgeClass: MutableClass,
     methodName: String,
     smali: String,
+    registerCount: Int = 12,
 ) {
     val oldMethod = bridgeClass.methods.singleOrNull { it.name == methodName }
         ?: throw PatchException("Bridge method not found: $EXPRESSIVE_PLAYER_BRIDGE_CLASS->$methodName")
@@ -706,11 +1093,140 @@ private fun replaceBridgeMethod(
         oldMethod.accessFlags,
         oldMethod.annotations,
         oldMethod.hiddenApiRestrictions,
-        MutableMethodImplementation(10),
+        MutableMethodImplementation(registerCount),
     ).toMutable()
 
     newMethod.addInstructionsWithLabels(0, smali.trimIndent())
 
     bridgeClass.methods.remove(oldMethod)
     bridgeClass.methods.add(newMethod)
+}
+
+private fun hookPlayQueueTouchCallbackDrag(
+    onMoveMethod: MutableMethod,
+    clearViewMethod: MutableMethod,
+    mutableCb: MutableClass,
+) {
+    // 1. Replace async ListAdapter.submitList inside onMove with synchronous notifyItemMoved.
+    run {
+        val (cloned, added) = onMoveMethod.addFreeRegisters(4)
+        val regCount = cloned.implementation!!.registerCount
+        val r0 = regCount - 4
+        val r1 = regCount - 3
+        val saveSrc = regCount - 2
+        val saveTgt = regCount - 1
+        val srcAfterPrologue = cloned.p0Register - 2
+        val tgtAfterPrologue = cloned.p0Register - 1
+
+        cloned.addInstructions(
+            added,
+            """
+                move-object/from16 v$saveSrc, v$srcAfterPrologue
+                move-object/from16 v$saveTgt, v$tgtAfterPrologue
+            """.trimIndent(),
+        )
+
+        val submitIdx = cloned.instructions.indexOfFirst { insn ->
+            insn.opcode == Opcode.INVOKE_VIRTUAL &&
+                ((insn as? ReferenceInstruction)?.reference as? MethodReference)?.let {
+                    it.definingClass == "Landroidx/recyclerview/widget/ListAdapter;" && it.name == "submitList"
+                } == true
+        }
+        if (submitIdx < 0) {
+            throw PatchException("Could not find ListAdapter.submitList in ${cloned.definingClass}.${cloned.name}")
+        }
+        val five = cloned.getInstruction(submitIdx) as FiveRegisterInstruction
+        val adapterReg = five.registerC
+        val listReg = five.registerD
+
+        cloned.replaceInstruction(
+            submitIdx,
+            "move-object/from16 v$r0, v$adapterReg",
+        )
+        cloned.addInstructions(
+            submitIdx + 1,
+            """
+                move-object/from16 v$r1, v$listReg
+                invoke-static/range { v$r0 .. v$saveTgt }, $EXPRESSIVE_PLAYER_BRIDGE_CLASS->onPlayQueueSyncMove(Landroidx/recyclerview/widget/ListAdapter;Ljava/util/List;Landroidx/recyclerview/widget/RecyclerView${'$'}ViewHolder;Landroidx/recyclerview/widget/RecyclerView${'$'}ViewHolder;)V
+            """.trimIndent(),
+        )
+    }
+
+    // 2. Hook clearView so drag drop clears UIUtil state & settles card lift smoothly.
+    run {
+        val (cloned, added) = clearViewMethod.addFreeRegisters(2)
+        val regCount = cloned.implementation!!.registerCount
+        val saveRv = regCount - 2
+        val saveVh = regCount - 1
+        val rvAfterPrologue = cloned.p0Register - 1
+        val vhAfterPrologue = cloned.p0Register
+
+        cloned.addInstructions(
+            added,
+            """
+                move-object/from16 v$saveRv, v$rvAfterPrologue
+                move-object/from16 v$saveVh, v$vhAfterPrologue
+            """.trimIndent(),
+        )
+
+        val retIdx = cloned.instructions.indexOfLast { it.opcode == Opcode.RETURN_VOID }
+        if (retIdx <= added) {
+            throw PatchException("No return-void found after prologue in ${cloned.definingClass}.${cloned.name}")
+        }
+        cloned.replaceInstruction(
+            retIdx,
+            "invoke-static/range { v$saveRv .. v$saveVh }, $EXPRESSIVE_PLAYER_BRIDGE_CLASS->onPlayQueueDragClearView(Landroidx/recyclerview/widget/RecyclerView;Landroidx/recyclerview/widget/RecyclerView${'$'}ViewHolder;)V",
+        )
+        cloned.addInstructions(retIdx + 1, "return-void")
+    }
+
+    // 3. Add onSelectedChanged override to lift dragged row & suppress header churn during drag.
+    if (mutableCb.methods.none { it.name == "onSelectedChanged" }) {
+        val onSelMethod = ImmutableMethod(
+            mutableCb.type,
+            "onSelectedChanged",
+            listOf(
+                ImmutableMethodParameter("Landroidx/recyclerview/widget/RecyclerView\$ViewHolder;", null, null),
+                ImmutableMethodParameter("I", null, null),
+            ),
+            "V",
+            AccessFlags.PUBLIC.value or AccessFlags.FINAL.value,
+            null,
+            null,
+            MutableMethodImplementation(3),
+        ).toMutable()
+        onSelMethod.addInstructionsWithLabels(
+            0,
+            """
+                invoke-super { p0, p1, p2 }, Landroidx/recyclerview/widget/ItemTouchHelper${'$'}Callback;->onSelectedChanged(Landroidx/recyclerview/widget/RecyclerView${'$'}ViewHolder;I)V
+                invoke-static { p1, p2 }, $EXPRESSIVE_PLAYER_BRIDGE_CLASS->onPlayQueueSelectedChanged(Landroidx/recyclerview/widget/RecyclerView${'$'}ViewHolder;I)V
+                return-void
+            """.trimIndent(),
+        )
+        mutableCb.methods.add(onSelMethod)
+    }
+
+    // 4. Lower the swap threshold so rows trade places earlier while dragging (feels responsive).
+    if (mutableCb.methods.none { it.name == "getMoveThreshold" }) {
+        val thresholdMethod = ImmutableMethod(
+            mutableCb.type,
+            "getMoveThreshold",
+            listOf(
+                ImmutableMethodParameter("Landroidx/recyclerview/widget/RecyclerView\$ViewHolder;", null, null),
+            ),
+            "F",
+            AccessFlags.PUBLIC.value,
+            null,
+            null,
+            MutableMethodImplementation(2),
+        ).toMutable()
+        thresholdMethod.addInstructionsWithLabels(
+            0,
+            """
+                const v0, 0x3eb33333    # 0.35f
+                return v0
+            """.trimIndent(),
+        )
+        mutableCb.methods.add(thresholdMethod)
+    }
 }

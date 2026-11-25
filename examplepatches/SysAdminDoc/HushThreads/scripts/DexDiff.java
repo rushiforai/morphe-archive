@@ -186,7 +186,10 @@ public class DexDiff {
      *       call reads the registers, in their order, that the clean build's one call to the
      *       second method there read. For a hook that takes one call's place: left out or left
      *       beside the call it stands in for, the call it replaces still happens, and on other
-     *       registers the hook gets the wrong values.
+     *       registers the hook gets the wrong values. "tapping &lt;enum constant&gt;" after the shape
+     *       also lets a method of the shape answer that hands either call, as its Function0, a new
+     *       lambda whose invoke() reads the one enum constant built from that name, for a method
+     *       whose strings a build strips; by strings or tap, exactly one method may answer.
      *   <li>"once-call &lt;method reference&gt; [in [static|instance] &lt;shape&gt;] holding &lt;string&gt;
      *       [&lt;string&gt; ...]": exactly one method outside the bundle's own code loads every one of
      *       the strings and has the shape, as for start-call. That method calls the method reference
@@ -216,13 +219,18 @@ public class DexDiff {
         final Boolean isStatic;
         /** The same rules: its method's descriptor, "*" for any run of characters, or null. */
         final String shape;
+        /**
+         * A sole-call rule: the name of the enum constant the tap lambda its method builds reads, the
+         * other way the rule may pick its method, or null.
+         */
+        final String tapping;
 
         Contract(String kind, String callee, String target) {
-            this(kind, callee, target, null, null, List.of(), null, null);
+            this(kind, callee, target, null, null, List.of(), null, null, null);
         }
 
         Contract(String kind, String callee, String target, String after, String replaced, List<String> strings,
-                Boolean isStatic, String shape) {
+                Boolean isStatic, String shape, String tapping) {
             this.kind = kind;
             this.callee = callee;
             this.target = target;
@@ -231,6 +239,7 @@ public class DexDiff {
             this.strings = strings;
             this.isStatic = isStatic;
             this.shape = shape;
+            this.tapping = tapping;
         }
 
         /** Whether this rule picks its method by strings and a shape: start-call, next-call, sole-call and once-call. */
@@ -249,6 +258,7 @@ public class DexDiff {
                 if (isStatic != null) b.append(isStatic ? "static " : "instance ");
                 b.append(shape);
             }
+            if (tapping != null) b.append(" tapping ").append(tapping);
             return b.append(" holding ").append(String.join(" ", strings)).toString();
         }
 
@@ -305,6 +315,12 @@ public class DexDiff {
             if (at >= parts.length || !parts[at].startsWith("(") || parts[at].indexOf(')') < 1) return null;
             shape = parts[at++];
         }
+        String tapping = null;
+        if (kind.equals("sole-call") && at < parts.length && parts[at].equals("tapping")) {
+            if (shape == null || at + 1 >= parts.length || !parts[at + 1].matches("[A-Za-z_][A-Za-z0-9_]*")) return null;
+            tapping = parts[at + 1];
+            at += 2;
+        }
         if (at >= parts.length || !parts[at].equals("holding")) return null;
         // Quoted notes keep Compose's source-file suffix in one exact string.
         String remaining = String.join(" ", Arrays.asList(parts).subList(at + 1, parts.length));
@@ -320,7 +336,7 @@ public class DexDiff {
         }
         if (end != remaining.length()) return null;
         if (strings.isEmpty() || new TreeSet<>(strings).size() != strings.size()) return null;
-        return new Contract(kind, parts[1], String.join(" ", strings), after, replaced, strings, isStatic, shape);
+        return new Contract(kind, parts[1], String.join(" ", strings), after, replaced, strings, isStatic, shape, tapping);
     }
 
     private static List<Contract> readContracts(File file) throws Exception {
@@ -342,7 +358,8 @@ public class DexDiff {
                 Contract picked = readPicked(parts);
                 if (picked == null) {
                     throw new IllegalArgumentException("Invalid contract line " + lineNumber + ": expected " + form
-                            + " [in [static|instance] <(parameters)return>] holding <string> [<string> ...]");
+                            + " [in [static|instance] <(parameters)return>]" + (parts[0].equals("sole-call") ? " [tapping <enum constant>]" : "")
+                            + " holding <string> [<string> ...]");
                 }
                 contracts.add(picked);
                 continue;
@@ -1254,6 +1271,12 @@ public class DexDiff {
         // And every method outside the bundle's own code that calls such a rule's method, to say
         // where a hook went when it isn't in the method its rule picks, or went there as well.
         Map<String, List<String>> hookCallers = new HashMap<>();
+        // A sole-call rule that also picks by tap: every class by type, the enum constants named by
+        // such a rule, and every host method of a tapping rule's shape that calls its method or the
+        // one it replaces, all read once the pass has seen every class.
+        boolean tapRules = contracts.stream().anyMatch(c -> c.tapping != null);
+        Map<String, ClassDef> byType = tapRules ? new HashMap<>() : Map.of();
+        Map<String, Method> tapCandidates = new LinkedHashMap<>();
         // no-call: the package prefix whose classes may call the method, and the methods of every
         // other class that do.
         Map<String, String> noCallInside = new HashMap<>();
@@ -1281,8 +1304,15 @@ public class DexDiff {
                 DexFileFactory.loadDexContainer(apk, Opcodes.getDefault());
         for (String entry : container.getDexEntryNames()) {
             for (ClassDef cd : container.getEntry(entry).getDexFile().getClasses()) {
+                if (tapRules) byType.putIfAbsent(cd.getType(), cd);
                 for (Method m : cd.getMethods()) {
                     String s = sig(cd, m);
+                    if (tapRules && !cd.getType().startsWith(OWN)) {
+                        for (Contract rule : pickRules) if (rule.tapping != null && rule.hasShape(m) && !tapCalls(instructions(m), rule).isEmpty()) {
+                            tapCandidates.putIfAbsent(s, m);
+                            break;
+                        }
+                    }
                     List<String> left = wanted.contains(s) ? unchecked.get(s) : null;
                     if (left != null && left.remove(print(m, digest))) {
                         List<String> findings = structuralFindings(cd, m);
@@ -1311,6 +1341,21 @@ public class DexDiff {
                         if (callers != null && !cd.getType().startsWith(OWN) && !callers.contains(s)) callers.add(s);
                     }
                 }
+            }
+        }
+        for (Contract rule : pickRules) {
+            if (rule.tapping == null) continue;
+            List<String> constants = enumConstants(byType.values(), rule.tapping);
+            if (constants.size() != 1) {
+                System.out.println("[diff] contract " + rule.rule() + ": " + constants.size() + " enum constants are named "
+                        + rule.tapping + ", so it picks by its strings alone" + named(constants));
+                continue;
+            }
+            Set<String> picked = new HashSet<>();
+            for (Holder holder : holders.get(rule)) picked.add(holder.method);
+            for (Map.Entry<String, Method> e : tapCandidates.entrySet()) {
+                if (picked.contains(e.getKey()) || !rule.hasShape(e.getValue())) continue;
+                if (tapsWith(e.getValue(), rule, constants.get(0), byType)) holders.get(rule).add(new Holder(e.getKey(), true, e.getValue()));
             }
         }
         List<String> contractFindings = new ArrayList<>();
@@ -1585,6 +1630,94 @@ public class DexDiff {
         return sites;
     }
 
+    private static final Map<String, java.util.regex.Pattern> CALL_PATTERNS = new HashMap<>();
+
+    /**
+     * The static calls in [body] to a tapping sole-call rule's method or to the one it replaces: the
+     * calls that may be handed the tap lambda as their Function0, the argument before the last.
+     */
+    private static List<Integer> tapCalls(List<Instruction> body, Contract rule) {
+        java.util.regex.Pattern replaced = CALL_PATTERNS.computeIfAbsent(rule.replaced, pattern -> {
+            StringBuilder regex = new StringBuilder();
+            String[] literals = pattern.split("\\*", -1);
+            for (int n = 0; n < literals.length; n++) regex.append(n == 0 ? "" : ".*").append(java.util.regex.Pattern.quote(literals[n]));
+            return java.util.regex.Pattern.compile(regex.toString());
+        });
+        List<Integer> sites = new ArrayList<>();
+        for (int k = 0; k < body.size(); k++) {
+            Instruction i = body.get(k);
+            if (!isStaticInvoke(i.getOpcode()) || invokeRegisters(i).length < 2) continue;
+            String called = ((ReferenceInstruction) i).getReference().toString();
+            if (called.equals(rule.callee) || replaced.matcher(called).matches()) sites.add(k);
+        }
+        return sites;
+    }
+
+    /**
+     * The static fields the enum constants named [name] are kept in: an enum's static initializer
+     * loads the name, hands it to its own constructor as the first argument with nothing writing it
+     * in between, and stores the new constant straight after, in a field of its own type.
+     */
+    private static List<String> enumConstants(java.util.Collection<ClassDef> classes, String name) {
+        List<String> fields = new ArrayList<>();
+        for (ClassDef cd : classes) {
+            if (!"Ljava/lang/Enum;".equals(cd.getSuperclass()) || cd.getType().startsWith(OWN)) continue;
+            for (Method m : cd.getMethods()) {
+                if (!m.getName().equals("<clinit>")) continue;
+                List<Instruction> body = instructions(m);
+                int named = -1;
+                for (int k = 0; k < body.size() && named < 0; k++) {
+                    if (body.get(k) instanceof ReferenceInstruction r && r.getReference() instanceof StringReference s && s.getString().equals(name)) named = k;
+                }
+                if (named < 0) continue;
+                int register = registerA(body.get(named));
+                int build = -1;
+                for (int k = named + 1; k < body.size() && build < 0; k++) {
+                    if (body.get(k) instanceof ReferenceInstruction r && r.getReference() instanceof MethodReference called
+                            && called.getName().equals("<init>") && called.getDefiningClass().equals(cd.getType())) build = k;
+                }
+                if (build < 0 || build + 1 >= body.size()) continue;
+                int[] arguments = invokeRegisters(body.get(build));
+                if (arguments.length < 2 || arguments[1] != register) continue;
+                boolean overwritten = false;
+                for (int k = named + 1; k < build; k++) overwritten |= featureWrites(body.get(k), register);
+                Instruction store = body.get(build + 1);
+                if (overwritten || store.getOpcode() != Opcode.SPUT_OBJECT || registerA(store) != arguments[0]) continue;
+                FieldReference field = (FieldReference) ((ReferenceInstruction) store).getReference();
+                if (field.getDefiningClass().equals(cd.getType()) && field.getType().equals(cd.getType())) fields.add(reference(store));
+            }
+        }
+        return fields;
+    }
+
+    /**
+     * Whether one of [m]'s tap calls is handed, through copies and casts read back in order, a new
+     * lambda whose invoke() reads [constant]: the tap the patch finds Threads' logo by.
+     */
+    private static boolean tapsWith(Method m, Contract rule, String constant, Map<String, ClassDef> byType) {
+        List<Instruction> body = instructions(m);
+        for (int call : tapCalls(body, rule)) {
+            int[] arguments = invokeRegisters(body.get(call));
+            int holding = arguments[arguments.length - 2];
+            String made = null;
+            for (int at = call - 1; at >= 0; at--) {
+                Instruction writer = body.get(at);
+                if (!featureWrites(writer, holding)) continue;
+                if (writer.getOpcode() == Opcode.NEW_INSTANCE) made = reference(writer);
+                else if (writer.getOpcode() == Opcode.CHECK_CAST) continue;
+                else if (SAVE_OBJECT_MOVES.contains(writer.getOpcode())) { holding = ((TwoRegisterInstruction) writer).getRegisterB(); continue; }
+                break;
+            }
+            ClassDef tap = made == null ? null : byType.get(made);
+            if (tap == null) continue;
+            for (Method invoke : tap.getMethods()) {
+                if (invoke.getName().equals("invoke") && invoke.getParameterTypes().isEmpty() && invoke.getReturnType().equals("Ljava/lang/Object;")
+                        && instructions(invoke).stream().anyMatch(i -> i.getOpcode() == Opcode.SGET_OBJECT && reference(i).equals(constant))) return true;
+            }
+        }
+        return false;
+    }
+
     /** The registers an invoke passes, in order, as a list. */
     private static List<Integer> callRegisters(Instruction i) {
         List<Integer> registers = new ArrayList<>();
@@ -1659,6 +1792,7 @@ public class DexDiff {
         for (String s : rule.strings) quoted.add("\"" + s + "\"");
         String strings = quoted.size() == 1 ? quoted.get(0)
                 : String.join(", ", quoted.subList(0, quoted.size() - 1)) + " and " + quoted.get(quoted.size() - 1);
+        if (rule.tapping != null) strings += " or hand the call a new lambda that reads the enum constant " + rule.tapping;
         if (rule.shape == null) return strings;
         return strings + " with the shape " + (rule.isStatic == null ? "" : rule.isStatic ? "static " : "instance ") + rule.shape;
     }
@@ -1971,7 +2105,12 @@ public class DexDiff {
     private static final String ADS = "Lapp/morphe/extension/hushthreads/ads/FeedAds;->";
     /** Filter comments: its own class, the opened post's reply parser, and the schema interfaces it reads. */
     private static final String COMMENTS = "Lapp/morphe/extension/hushthreads/comments/CommentFilter;->";
-    private static final String REPLIES_PARSER_HOST = "Lcom/instagram/barcelona/permalink/data/BarcelonaPermalinkRepository;";
+    /**
+     * The kept classes that parse an opened post's replies: the screen coordinator from 457 on, the
+     * permalink repository up to 456. The parse takes the answer and its own class first.
+     */
+    private static final List<String> REPLIES_PARSER_HOSTS = List.of("Lcom/instagram/barcelona/permalink/data/PermalinkScreenCoordinator;",
+            "Lcom/instagram/barcelona/permalink/data/BarcelonaPermalinkRepository;");
     private static final String REPLIES_RESPONSE = "Lcom/instagram/api/schemas/TextAppRepliesResponseIntf;";
     private static final String THREAD = "Lcom/instagram/api/schemas/ThreadIntf;";
     private static final String THREAD_ITEM = "Lcom/instagram/api/schemas/ThreadItemIntf;";
@@ -1994,7 +2133,7 @@ public class DexDiff {
     private static final Map<String, List<String>> POST_FIELDS = new HashMap<>();
     private static final String ENDPOINT = "Lapp/morphe/extension/hushthreads/misc/Analytics;->endpoint(Ljava/lang/String;)Ljava/lang/String;";
     private static final String SIGNERS = "Lapp/morphe/extension/hushthreads/misc/ThreadsSignature;->originalSigners(Landroid/content/pm/PackageInfo;)Ljava/util/List;";
-    private static final String OPEN_REFUSED_TILE = "Lapp/morphe/extension/hushthreads/coexist/ShareTiles;->openRefused(ZLandroid/content/Context;Landroid/content/Intent;)V";
+    private static final String OPEN_REFUSED_TILE = "Lapp/morphe/extension/hushthreads/coexist/ShareTiles;->openRefused(ZLandroid/content/Context;Landroid/content/Intent;)Z";
     /** The share actions and the link the tiles for Instagram, Facebook and WhatsApp start their apps with. */
     private static final List<String> SHARE_TILE_ACTIONS = List.of("com.instagram.share.ADD_TO_FEED",
             "com.instagram.share.ADD_TO_REEL_THREAD", "com.facebook.reels.SHARE_TO_REEL", "https://wa.me/status");
@@ -2963,13 +3102,61 @@ public class DexDiff {
                 .filter(field -> field.getDefiningClass().equals(enumType) && field.getType().equals(enumType)).distinct().toList(), "enum field for " + wire);
     }
 
-    private static FieldReference featureSlot(FeatureFlow flow, ParsedFeatureValue value, String owner, String model, Set<FeatureUse> receivers, int allocation) {
-        FieldReference slot = featureOne(flow.uses(value.result(), -1).stream().filter(use -> {
+    /** Code that holds the parsed feed item: the parser itself, or a static helper it hands the item to, with the item's uses there. */
+    private record ItemScope(FeatureFlow flow, Set<FeatureUse> items) {}
+
+    /**
+     * The static method [call] makes, with the register each argument arrives in, or null when it
+     * isn't one in the app that takes exactly the words the call hands it.
+     */
+    private static Map.Entry<Method, int[]> featureStaticHelper(Map<String, List<Method>> clean, Instruction call) {
+        if (!isStaticInvoke(call.getOpcode()) || !(((ReferenceInstruction) call).getReference() instanceof MethodReference reference)) return null;
+        List<Method> found = clean.getOrDefault(featureSig(reference), List.of());
+        if (found.size() != 1 || !AccessFlags.STATIC.isSet(found.get(0).getAccessFlags()) || found.get(0).getImplementation() == null) return null;
+        Method helper = found.get(0);
+        int words = helper.getParameterTypes().stream().mapToInt(DexDiff::slots).sum();
+        int[] registers = invokeRegisters(call);
+        if (words != registers.length) return null;
+        int[] arrivals = new int[words];
+        for (int k = 0; k < words; k++) arrivals[k] = helper.getImplementation().getRegisterCount() - words + k;
+        return Map.entry(helper, arrivals);
+    }
+
+    /**
+     * The parser's scope and one for each static helper it hands the item to. 457's Redex moved the
+     * parser's last stores into such helpers, and one of them builds the wrapper from the slots it
+     * reads back off the item.
+     */
+    private static List<ItemScope> featureItemScopes(Map<String, List<Method>> clean, FeatureFlow root, Set<FeatureUse> receivers) {
+        List<ItemScope> scopes = new ArrayList<>(List.of(new ItemScope(root, receivers)));
+        Set<String> seen = new HashSet<>();
+        List<Instruction> body = root.layout.instructions;
+        for (int call = 0; call < body.size(); call++) {
+            if (!isStaticInvoke(body.get(call).getOpcode())) continue;
+            int[] registers = invokeRegisters(body.get(call));
+            List<Integer> itemAt = new ArrayList<>();
+            for (int k = 0; k < registers.length; k++) if (receivers.contains(new FeatureUse(call, registers[k]))) itemAt.add(k);
+            if (itemAt.isEmpty()) continue;
+            Map.Entry<Method, int[]> helper = featureStaticHelper(clean, body.get(call));
+            if (helper == null || !seen.add(featureSig(helper.getKey()))) continue;
+            FeatureFlow flow = new FeatureFlow(helper.getKey());
+            Set<FeatureUse> items = new HashSet<>();
+            for (int k : itemAt) items.addAll(flow.uses(-1, helper.getValue()[k]));
+            scopes.add(new ItemScope(flow, items));
+        }
+        return scopes;
+    }
+
+    private static FieldReference featureSlot(Map<String, List<Method>> clean, FeatureFlow flow, ParsedFeatureValue value, String owner,
+            String model, Set<FeatureUse> receivers, int allocation) {
+        Set<FeatureUse> uses = flow.uses(value.result(), -1);
+        List<FieldReference> direct = uses.stream().filter(use -> {
             Instruction i = flow.layout.instructions.get(use.index());
             return i.getOpcode() == Opcode.IPUT_OBJECT && ((TwoRegisterInstruction) i).getRegisterA() == use.register()
                     && receivers.contains(new FeatureUse(use.index(), ((TwoRegisterInstruction) i).getRegisterB()));
         }).map(use -> (FieldReference) ((ReferenceInstruction) flow.layout.instructions.get(use.index())).getReference())
-                .filter(f -> f.getDefiningClass().equals(owner) && f.getType().equals(model)).distinct().toList(), "item-owned JSON slot");
+                .filter(f -> f.getDefiningClass().equals(owner) && f.getType().equals(model)).distinct().toList();
+        FieldReference slot = direct.isEmpty() ? featureOutlinedSlot(clean, flow, value, owner, model, receivers, uses) : featureOne(direct, "item-owned JSON slot");
         for (int n = 0; n < flow.layout.instructions.size(); n++) {
             Instruction i = flow.layout.instructions.get(n);
             if (i.getOpcode() != Opcode.IPUT_OBJECT || !reference(i).equals(slot.toString())) continue;
@@ -2981,19 +3168,65 @@ public class DexDiff {
         return slot;
     }
 
-    private static MethodReference featureWrapper(FeatureFlow flow, FieldReference slot, String model) {
+    /**
+     * The item field a static helper stores the parsed value in, when the parser hands the helper
+     * the value and the item instead of storing it itself, as 457's does with the kickstart unit's.
+     * The parser hands over the parsed value itself, or null, on every path, and the helper stores
+     * only that parameter, into only the item it was handed.
+     */
+    private static FieldReference featureOutlinedSlot(Map<String, List<Method>> clean, FeatureFlow flow, ParsedFeatureValue value, String owner,
+            String model, Set<FeatureUse> receivers, Set<FeatureUse> uses) {
+        List<Instruction> body = flow.layout.instructions;
+        FeatureUse handOff = featureOne(uses.stream().filter(use -> isStaticInvoke(body.get(use.index()).getOpcode())
+                && Arrays.stream(invokeRegisters(body.get(use.index()))).anyMatch(r -> receivers.contains(new FeatureUse(use.index(), r)))).toList(),
+                "item-owned JSON slot");
+        int[] registers = invokeRegisters(body.get(handOff.index()));
+        int valueAt = featureOne(java.util.stream.IntStream.range(0, registers.length).boxed().filter(k -> registers[k] == handOff.register()).toList(),
+                "parsed value handed to its item helper");
+        int itemAt = featureOne(java.util.stream.IntStream.range(0, registers.length).boxed()
+                .filter(k -> receivers.contains(new FeatureUse(handOff.index(), registers[k]))).toList(), "item handed to the slot's helper");
+        Map.Entry<Method, int[]> helper = featureStaticHelper(clean, body.get(handOff.index()));
+        requireFeature(helper != null, reference(body.get(handOff.index())) + " isn't one static method taking what the parser hands it");
+        int valueIn = helper.getValue()[valueAt], itemIn = helper.getValue()[itemAt];
+        FeatureFlow helperFlow = new FeatureFlow(helper.getKey());
+        List<Instruction> code = helperFlow.layout.instructions;
+        Set<FeatureUse> items = helperFlow.uses(-1, itemIn);
+        FieldReference slot = featureOne(helperFlow.uses(-1, valueIn).stream().filter(use -> {
+            Instruction i = code.get(use.index());
+            return i.getOpcode() == Opcode.IPUT_OBJECT && ((TwoRegisterInstruction) i).getRegisterA() == use.register()
+                    && items.contains(new FeatureUse(use.index(), ((TwoRegisterInstruction) i).getRegisterB()));
+        }).map(use -> (FieldReference) ((ReferenceInstruction) code.get(use.index())).getReference())
+                .filter(f -> f.getDefiningClass().equals(owner) && f.getType().equals(model)).distinct().toList(),
+                "item-owned JSON slot in " + featureSig(helper.getKey()));
+        requireFeature(flow.parsedOnEveryPath(value.result(), handOff.index(), handOff.register()),
+                "the parser doesn't hand its item helper the exact parsed result or explicit null on every path: " + slot);
+        for (int n = 0; n < code.size(); n++) {
+            Instruction i = code.get(n);
+            if (i.getOpcode() != Opcode.IPUT_OBJECT || !reference(i).equals(slot.toString())) continue;
+            TwoRegisterInstruction store = (TwoRegisterInstruction) i;
+            requireFeature(helperFlow.sourceOnEveryPath(-1, valueIn, n, store.getRegisterA(), true)
+                    && helperFlow.parameterOnEveryPath(n, store.getRegisterB(), itemIn),
+                    "the item helper's JSON slot doesn't hold the value and item it was handed on every path: " + slot);
+        }
+        return slot;
+    }
+
+    private static MethodReference featureWrapper(List<ItemScope> scopes, FieldReference slot, String model) {
         List<MethodReference> wrappers = new ArrayList<>();
-        for (int n = 0; n < flow.layout.instructions.size(); n++) {
-            Instruction i = flow.layout.instructions.get(n);
-            if (i.getOpcode() != Opcode.IGET_OBJECT || !reference(i).equals(slot.toString())) continue;
-            for (FeatureUse use : flow.uses(n, -1)) {
-                Instruction call = flow.layout.instructions.get(use.index());
-                if (!isPlainInvoke(call.getOpcode()) || !(call instanceof ReferenceInstruction)
-                        || !(((ReferenceInstruction) call).getReference() instanceof MethodReference)) continue;
-                MethodReference target = (MethodReference) ((ReferenceInstruction) call).getReference();
-                int[] args = invokeRegisters(call);
-                if (target.getName().equals("<init>") && target.getParameterTypes().equals(List.of(model))
-                        && args.length == 2 && args[1] == use.register()) wrappers.add(target);
+        for (ItemScope scope : scopes) {
+            FeatureFlow flow = scope.flow();
+            for (int n = 0; n < flow.layout.instructions.size(); n++) {
+                Instruction i = flow.layout.instructions.get(n);
+                if (i.getOpcode() != Opcode.IGET_OBJECT || !reference(i).equals(slot.toString())) continue;
+                for (FeatureUse use : flow.uses(n, -1)) {
+                    Instruction call = flow.layout.instructions.get(use.index());
+                    if (!isPlainInvoke(call.getOpcode()) || !(call instanceof ReferenceInstruction)
+                            || !(((ReferenceInstruction) call).getReference() instanceof MethodReference)) continue;
+                    MethodReference target = (MethodReference) ((ReferenceInstruction) call).getReference();
+                    int[] args = invokeRegisters(call);
+                    if (target.getName().equals("<init>") && target.getParameterTypes().equals(List.of(model))
+                            && args.length == 2 && args[1] == use.register()) wrappers.add(target);
+                }
             }
         }
         return featureOne(wrappers.stream().distinct().toList(), "wrapper consuming " + slot);
@@ -3001,31 +3234,33 @@ public class DexDiff {
 
     /** Resolve the selected content from the allocation that consumes each target raw slot.
      * A populated raw slot alone does not prove the vendor selected it as the active card. */
-    private static FieldReference featureActiveContent(FeatureFlow flow, FieldReference slot, MethodReference wrapper,
-            String item, Set<FeatureUse> itemReceivers) {
-        Set<Integer> constructors = new HashSet<>();
-        List<Instruction> body = flow.layout.instructions;
-        for (int n = 0; n < body.size(); n++) {
-            if (body.get(n).getOpcode() != Opcode.IGET_OBJECT || !reference(body.get(n)).equals(slot.toString())) continue;
-            for (FeatureUse use : flow.uses(n, -1)) {
-                Instruction call = body.get(use.index());
-                if (isPlainInvoke(call.getOpcode()) && reference(call).equals(featureSig(wrapper))
-                        && invokeRegisters(call).length == 2 && invokeRegisters(call)[1] == use.register()) constructors.add(use.index());
-            }
-        }
+    private static FieldReference featureActiveContent(List<ItemScope> scopes, FieldReference slot, MethodReference wrapper, String item) {
         Set<FieldReference> stores = new HashSet<>();
-        for (int n = 0; n < body.size(); n++) {
-            if (body.get(n).getOpcode() != Opcode.NEW_INSTANCE || !reference(body.get(n)).equals(wrapper.getDefiningClass())) continue;
-            Set<FeatureUse> allocations = flow.uses(n, -1);
-            boolean constructs = allocations.stream().anyMatch(use -> constructors.contains(use.index())
-                    && invokeRegisters(body.get(use.index()))[0] == use.register());
-            if (!constructs) continue;
-            for (FeatureUse use : allocations) {
-                Instruction i = body.get(use.index());
-                if (i.getOpcode() != Opcode.IPUT_OBJECT || ((TwoRegisterInstruction) i).getRegisterA() != use.register()
-                        || !itemReceivers.contains(new FeatureUse(use.index(), ((TwoRegisterInstruction) i).getRegisterB()))) continue;
-                FieldReference field = (FieldReference) ((ReferenceInstruction) i).getReference();
-                if (field.getDefiningClass().equals(item) && field.getType().startsWith("L")) stores.add(field);
+        for (ItemScope scope : scopes) {
+            FeatureFlow flow = scope.flow();
+            Set<Integer> constructors = new HashSet<>();
+            List<Instruction> body = flow.layout.instructions;
+            for (int n = 0; n < body.size(); n++) {
+                if (body.get(n).getOpcode() != Opcode.IGET_OBJECT || !reference(body.get(n)).equals(slot.toString())) continue;
+                for (FeatureUse use : flow.uses(n, -1)) {
+                    Instruction call = body.get(use.index());
+                    if (isPlainInvoke(call.getOpcode()) && reference(call).equals(featureSig(wrapper))
+                            && invokeRegisters(call).length == 2 && invokeRegisters(call)[1] == use.register()) constructors.add(use.index());
+                }
+            }
+            for (int n = 0; n < body.size(); n++) {
+                if (body.get(n).getOpcode() != Opcode.NEW_INSTANCE || !reference(body.get(n)).equals(wrapper.getDefiningClass())) continue;
+                Set<FeatureUse> allocations = flow.uses(n, -1);
+                boolean constructs = allocations.stream().anyMatch(use -> constructors.contains(use.index())
+                        && invokeRegisters(body.get(use.index()))[0] == use.register());
+                if (!constructs) continue;
+                for (FeatureUse use : allocations) {
+                    Instruction i = body.get(use.index());
+                    if (i.getOpcode() != Opcode.IPUT_OBJECT || ((TwoRegisterInstruction) i).getRegisterA() != use.register()
+                            || !scope.items().contains(new FeatureUse(use.index(), ((TwoRegisterInstruction) i).getRegisterB()))) continue;
+                    FieldReference field = (FieldReference) ((ReferenceInstruction) i).getReference();
+                    if (field.getDefiningClass().equals(item) && field.getType().startsWith("L")) stores.add(field);
+                }
             }
         }
         return featureOne(new ArrayList<>(stores), "active content field consuming " + slot);
@@ -3151,8 +3386,9 @@ public class DexDiff {
                         && reference(root.layout.instructions.get(n)).equals(item)).toList(), "parsed feed-item allocation");
         Set<FeatureUse> receivers = root.uses(allocation, -1);
         ParsedFeatureValue suggested = root.parsed(SUGGESTED_WIRE, model), kickstart = root.parsed(KICKSTART_WIRE, model);
-        FieldReference suggestedSlot = featureSlot(root, suggested, item, model, receivers, allocation);
-        FieldReference kickstartSlot = featureSlot(root, kickstart, item, model, receivers, allocation);
+        FieldReference suggestedSlot = featureSlot(clean, root, suggested, item, model, receivers, allocation);
+        FieldReference kickstartSlot = featureSlot(clean, root, kickstart, item, model, receivers, allocation);
+        List<ItemScope> scopes = featureItemScopes(clean, root, receivers);
         requireFeature(!suggestedSlot.equals(kickstartSlot) && suggested.parser().equals(kickstart.parser()), "card slots are not distinct with one raw parser");
         Method rawParser = featureTarget(clean, m -> m.getDefiningClass().equals(suggested.parser()) && m.getName().equals("unsafeParseFromJson")
                 && m.getReturnType().equals("Ljava/lang/Object;") && m.getParameterTypes().equals(parser.getParameterTypes()) && holds(m, "netego_type"), "raw netego_type parser");
@@ -3205,11 +3441,11 @@ public class DexDiff {
             requireFeature(instructions(m).stream().noneMatch(i -> i.getOpcode() == Opcode.IPUT_OBJECT && reference(i).equals(rawType.toString())),
                     "netego_type has another model writer: " + featureSig(m));
         }
-        MethodReference wrapperCall = featureWrapper(root, suggestedSlot, model);
-        requireFeature(featureSig(wrapperCall).equals(featureSig(featureWrapper(root, kickstartSlot, model))), "card slots use different wrappers");
+        MethodReference wrapperCall = featureWrapper(scopes, suggestedSlot, model);
+        requireFeature(featureSig(wrapperCall).equals(featureSig(featureWrapper(scopes, kickstartSlot, model))), "card slots use different wrappers");
         Method wrapper = featureMethod(clean, featureSig(wrapperCall));
-        FieldReference activeContent = featureActiveContent(root, suggestedSlot, wrapperCall, item, receivers);
-        requireFeature(activeContent.equals(featureActiveContent(root, kickstartSlot, wrapperCall, item, receivers)), "card slots do not select one active content field");
+        FieldReference activeContent = featureActiveContent(scopes, suggestedSlot, wrapperCall, item);
+        requireFeature(activeContent.equals(featureActiveContent(scopes, kickstartSlot, wrapperCall, item)), "card slots do not select one active content field");
         featureRecordableWrapper(wrapper, model);
         FeatureFlow wrapperFlow = new FeatureFlow(wrapper);
         Set<Integer> mapReads = new HashSet<>();
@@ -3406,18 +3642,15 @@ public class DexDiff {
      * Hide suggested users on an opened post: the reply parser hands relatedThreads() the list it
      * just read off the answer, once, right after that read's move-result-object, and walks what
      * comes back in the same register. Since 455 the suggested threads also come from a query of
-     * their own, and the one collector holding the permalink repository whose emit builds the
-     * parser's row hands relatedThreads() the answer's List right after its iget-object, keeping
+     * their own, and the one collector whose emit builds the parser's row (on 455 the class holding
+     * the permalink repository) hands relatedThreads() the answer's List right after its iget-object, keeping
      * what comes back in the same register. Checked where this build's extension carries the call;
      * an older one has none, and a build without that collector has the parser's call alone.
      */
     private static void featureRelatedThreads(Map<String, List<Method>> clean, Map<String, List<Method>> patched,
             File cleanApk) throws Exception {
         if (!patched.containsKey(RELATED_THREADS)) return;
-        Method parser = featureTarget(clean, m -> m.getDefiningClass().equals(REPLIES_PARSER_HOST)
-                && m.getReturnType().startsWith("L") && m.getParameterTypes().size() == 6
-                && m.getParameterTypes().get(0).equals(REPLIES_RESPONSE)
-                && m.getParameterTypes().get(1).equals(REPLIES_PARSER_HOST), "opened post's reply parser");
+        Method parser = featureRepliesParser(clean);
         List<String> rows = new ArrayList<>();
         for (Instruction i : instructions(parser)) {
             if (!isStaticInvoke(i.getOpcode()) || !(((ReferenceInstruction) i).getReference() instanceof MethodReference call)) continue;
@@ -3428,9 +3661,8 @@ public class DexDiff {
         List<String> collectors = new ArrayList<>();
         MultiDexContainer<? extends DexFile> dex = DexFileFactory.loadDexContainer(cleanApk, Opcodes.getDefault());
         for (String entry : dex.getDexEntryNames()) for (ClassDef cd : dex.getEntry(entry).getDexFile().getClasses()) {
-            boolean holdsRepository = false;
-            for (Field f : cd.getInstanceFields()) holdsRepository |= f.getType().equals(REPLIES_PARSER_HOST);
-            if (!holdsRepository) continue;
+            // 455's collector held the permalink repository; 456 moved it to a class of its own.
+            if (cd.getType().startsWith(OWN)) continue;
             for (Method m : cd.getMethods()) {
                 if (!m.getName().equals("emit") || !m.getReturnType().equals("Ljava/lang/Object;") || m.getParameterTypes().size() != 2) continue;
                 if (instructions(m).stream().anyMatch(i -> i.getOpcode() == Opcode.NEW_INSTANCE && reference(i).equals(row))) {
@@ -3493,11 +3725,10 @@ public class DexDiff {
     /** One call to the suggested accounts row, at [at] of [method], and the Compose note governing it, if any. */
     private record ProfileRowCall(Method method, int at, MethodReference callee, String note) {}
 
-    /** The Compose note [i] loads, or null. */
-    private static String featureNote(Instruction i) {
-        if (i.getOpcode() != Opcode.CONST_STRING && i.getOpcode() != Opcode.CONST_STRING_JUMBO) return null;
-        String s = ((StringReference) ((ReferenceInstruction) i).getReference()).getString();
-        return COMPOSE_NOTE.matcher(s).matches() ? s : null;
+    /** The Compose note instruction [at] of [body] stands for (noteAt), or null. */
+    private static String featureNote(List<Instruction> body, int at) {
+        String s = noteAt(body, at);
+        return s != null && COMPOSE_NOTE.matcher(s).matches() ? s : null;
     }
 
     /** Whether [note] is a note of the profile's own screens from [file]. */
@@ -3528,7 +3759,7 @@ public class DexDiff {
      */
     private static String featureGoverningNote(FeatureFlow flow, int at) {
         for (int index = at - 1; index >= 0; index--) {
-            String note = featureNote(flow.layout.instructions.get(index));
+            String note = featureNote(flow.layout.instructions, index);
             if (note != null) return featureReaches(flow, index, at) ? note : null;
         }
         return null;
@@ -3614,7 +3845,10 @@ public class DexDiff {
         Map<String, List<Method>> byClass = new TreeMap<>();
         for (List<Method> definitions : clean.values()) byClass.computeIfAbsent(definitions.get(0).getDefiningClass(), k -> new ArrayList<>()).add(definitions.get(0));
         Method row = featureTarget(clean, m -> !m.getDefiningClass().startsWith(OWN)
-                && instructions(m).stream().anyMatch(i -> { String note = featureNote(i); return note != null && note.startsWith(SUGGESTED_ROW_NOTE); }),
+                && java.util.stream.IntStream.range(0, instructions(m).size()).anyMatch(n -> {
+                    String note = featureNote(instructions(m), n);
+                    return note != null && note.startsWith(SUGGESTED_ROW_NOTE);
+                }),
                 "Threads' suggested accounts row, the method holding \"" + SUGGESTED_ROW_NOTE + "\",");
         String rowSig = featureSig(row);
         requireFeature(AccessFlags.STATIC.isSet(row.getAccessFlags()), "the suggested accounts row " + rowSig + " isn't static");
@@ -3999,7 +4233,7 @@ public class DexDiff {
                 fetcher = true;
             } else if (m.getName().equals("invokeSuspend") && !AccessFlags.STATIC.isSet(m.getAccessFlags())
                     && m.getParameterTypes().size() == 1 && m.getParameterTypes().get(0).toString().equals("Ljava/lang/Object;")
-                    && m.getReturnType().equals("Ljava/lang/Object;")) {
+                    && m.getReturnType().equals("Ljava/lang/Object;") && !featureHandsLinkStraightBack(stock, stockReads, type)) {
                 Set<Integer> postCasts = new TreeSet<>();
                 for (int read : stockReads) {
                     List<Integer> casts = java.util.stream.IntStream.range(1, read).boxed()
@@ -4037,6 +4271,38 @@ public class DexDiff {
         featureHostCalls(patched, POST_LINK, calls);
         featureHostCalls(patched, REMEMBER_POST, remembers);
         featureHostCalls(patched, REMEMBERED_POST, recalls);
+    }
+
+    /**
+     * A body that never holds a post and answers each link it reads as its own result. 456's route
+     * for opening a post in an Instagram story is one: it has only the post's server tree, and its
+     * link already lost its tracking where the parser stored it, so there's no post to rebuild a link
+     * from. Quick send's body looks the same once its cast to a post is gone, so every Object field of
+     * its own [owner] that such a body reads in the run up to a read has to be cast on the spot.
+     */
+    private static boolean featureHandsLinkStraightBack(List<Instruction> body, List<Integer> reads, String owner) {
+        if (body.stream().anyMatch(i -> i.getOpcode() == Opcode.CHECK_CAST && reference(i).equals(MEDIA))) return false;
+        for (int read : reads) {
+            if (read + 2 >= body.size() || body.get(read + 2).getOpcode() != Opcode.RETURN_OBJECT
+                    || registerA(body.get(read + 2)) != registerA(body.get(read + 1))) return false;
+            int start = 0;
+            for (int at = read - 1; at >= 0; at--) {
+                Opcode opcode = body.get(at).getOpcode();
+                if (!opcode.canContinue() || opcode == Opcode.PACKED_SWITCH || opcode == Opcode.SPARSE_SWITCH) { start = at + 1; break; }
+            }
+            List<Integer> held = new ArrayList<>();
+            for (int at = start; at < read; at++) {
+                if (body.get(at).getOpcode() == Opcode.IGET_OBJECT
+                        && ((ReferenceInstruction) body.get(at)).getReference() instanceof FieldReference f
+                        && f.getDefiningClass().equals(owner) && f.getType().equals("Ljava/lang/Object;")) held.add(at);
+            }
+            if (held.isEmpty()) return false;
+            for (int at : held) {
+                Instruction cast = body.get(at + 1);
+                if (cast.getOpcode() != Opcode.CHECK_CAST || registerA(cast) != registerA(body.get(at))) return false;
+            }
+        }
+        return true;
     }
 
     /** A call to the repository's plain fetch: a post in, the answer out, and not [own], the fetch hooked inside. */
@@ -4343,6 +4609,32 @@ public class DexDiff {
         featureShareTiles(clean, patched);
     }
 
+    /** The strings a method holds, as {@link #holds} reads them. */
+    private static Set<String> featureStrings(Method m) {
+        Set<String> strings = new HashSet<>();
+        for (Instruction i : instructions(m)) if (i instanceof ReferenceInstruction r && r.getReference() instanceof StringReference s) {
+            strings.add(s.getString());
+        }
+        return strings;
+    }
+
+    /**
+     * The strings a share tile names: its own, and those of the static methods of its own class it
+     * calls. 456 on, WhatsApp's tile builds its status intent in one beside the lambda.
+     */
+    private static Set<String> featureTileStrings(Map<String, List<Method>> clean, Method m) {
+        Set<String> strings = featureStrings(m);
+        for (Instruction i : instructions(m)) {
+            if (i.getOpcode() != Opcode.INVOKE_STATIC && i.getOpcode() != Opcode.INVOKE_STATIC_RANGE) continue;
+            MethodReference called = (MethodReference) ((ReferenceInstruction) i).getReference();
+            if (!called.getDefiningClass().equals(m.getDefiningClass())) continue;
+            for (Method helper : clean.getOrDefault(featureSig(called), List.of())) {
+                if (AccessFlags.STATIC.isSet(helper.getAccessFlags())) strings.addAll(featureStrings(helper));
+            }
+        }
+        return strings;
+    }
+
     /** A Kotlin lambda's body: invoke or invokeSuspend, taking and answering an Object. */
     private static boolean featureIsLambdaBody(Method m) {
         return (m.getName().equals("invoke") || m.getName().equals("invokeSuspend")) && m.getReturnType().equals("Ljava/lang/Object;")
@@ -4394,15 +4686,21 @@ public class DexDiff {
      * and give the launcher, directly or through a static helper Redex outlined (455's ARMv7 builds and
      * its first x86 one). Messenger's is the one lambda naming Messenger, or Facebook's share entry
      * where Messenger's name is outlined, that hands that launcher an intent and drops the answer.
+     * On 456 WhatsApp's link sits in a static method of the tile's own class.
      */
     private static FeatureTiles featureShareTileLambdas(Map<String, List<Method>> clean) {
         List<Method> named = new ArrayList<>();
+        Map<Method, Set<String>> tileStrings = new HashMap<>();
         for (List<Method> definitions : clean.values()) for (Method m : definitions) {
-            if (featureIsLambdaBody(m) && (holds(m, MESSENGER) || holds(m, FACEBOOK_SHARE_ALIAS)
-                    || SHARE_TILE_ACTIONS.stream().anyMatch(a -> holds(m, a)))) named.add(m);
+            if (!featureIsLambdaBody(m)) continue;
+            Set<String> strings = featureTileStrings(clean, m);
+            if (holds(m, MESSENGER) || holds(m, FACEBOOK_SHARE_ALIAS) || SHARE_TILE_ACTIONS.stream().anyMatch(strings::contains)) {
+                named.add(m);
+                tileStrings.put(m, strings);
+            }
         }
-        List<Method> apps = named.stream().filter(m -> SHARE_TILE_ACTIONS.stream().anyMatch(a -> holds(m, a))).toList();
-        for (String action : SHARE_TILE_ACTIONS) requireFeature(apps.stream().anyMatch(m -> holds(m, action)), "no share tile starts " + action);
+        List<Method> apps = named.stream().filter(m -> SHARE_TILE_ACTIONS.stream().anyMatch(tileStrings.get(m)::contains)).toList();
+        for (String action : SHARE_TILE_ACTIONS) requireFeature(apps.stream().anyMatch(m -> tileStrings.get(m).contains(action)), "no share tile starts " + action);
         List<Instruction> calls = apps.stream().flatMap(m -> instructions(m).stream()).toList();
         Map<String, String> twins = new TreeMap<>();
         List<String> launchers = new ArrayList<>(calls.stream().filter(DexDiff::featureIsTileLaunch).map(DexDiff::reference).toList());
@@ -4433,9 +4731,10 @@ public class DexDiff {
     /**
      * Share tiles on a re-signed build: each launch in each tile hands the launcher's answer and the
      * same context and intent to the extension, the answer in a register nothing reads after it, and
-     * nothing else in the tile changes. A launch through an outlined helper calls the helper's twin
-     * instead, which is the helper with the launcher's answer handed back; the helper stays as it was.
-     * Nothing else in Threads calls the extension.
+     * nothing else in the tile changes. A launch whose answer Threads reads hands over that register
+     * and takes the extension's answer back in it. A launch through an outlined helper calls the
+     * helper's twin instead, which is the helper with the launcher's answer handed back; the helper
+     * stays as it was. Nothing else in Threads calls the extension.
      */
     private static void featureShareTiles(Map<String, List<Method>> clean, Map<String, List<Method>> patched) {
         FeatureTiles tiles = featureShareTileLambdas(clean);
@@ -4466,6 +4765,20 @@ public class DexDiff {
                 // The launcher takes the context and intent after itself, an outlined helper's twin takes them alone.
                 int context = direct ? launch[1] : launch[0], intent = direct ? launch[2] : launch[1];
                 int index = k, next = k + 1;
+                if (direct && next < code.size() && code.get(next).getOpcode() == Opcode.MOVE_RESULT) {
+                    int answer = registerA(code.get(next));
+                    // Put in front of what follows the answer, so a branch landing there, from a
+                    // path that made no launch (457 joins its two Instagram launches there), skips it.
+                    hooks.put(next + 1, (FeatureInsert) (body, at) -> {
+                        requireFeature(at + 1 < body.size() && isStaticInvoke(body.get(at).getOpcode()) && reference(body.get(at)).equals(OPEN_REFUSED_TILE)
+                                && Arrays.equals(invokeRegisters(body.get(at)), new int[]{answer, context, intent}),
+                                "the share tile launch before original instruction " + next + " doesn't hand its answer, context and intent to " + OPEN_REFUSED_TILE);
+                        requireFeature(body.get(at + 1).getOpcode() == Opcode.MOVE_RESULT && registerA(body.get(at + 1)) == answer,
+                                "the share tile launch before original instruction " + next + " drops what the extension answered");
+                        return 2;
+                    });
+                    continue;
+                }
                 FeatureBlock answered = (body, at) -> {
                     requireFeature(at + 1 < body.size() && body.get(at).getOpcode() == Opcode.MOVE_RESULT,
                             "the share tile launch before original instruction " + next + " drops its answer");
@@ -4498,9 +4811,10 @@ public class DexDiff {
      * launcher, unchanged.
      */
     private static void featureBrowser(Map<String, List<Method>> clean, Map<String, List<Method>> patched) {
+        // 456 on, the launcher takes a boolean, so this sits below the parameters' words.
         Method stock = featureTarget(clean, m -> !AccessFlags.STATIC.isSet(m.getAccessFlags()) && m.getReturnType().equals("V")
-                && m.getParameterTypes().isEmpty() && holds(m, LAUNCHER_MESSAGE), "browser launcher");
-        int locals = stock.getImplementation().getRegisterCount() - 1;
+                && holds(m, LAUNCHER_MESSAGE), "browser launcher");
+        int locals = featureThis(stock);
         String linkField = featureLauncherLink(stock);
         String contextField = featureOne(instructions(stock).stream().filter(i -> i instanceof ReferenceInstruction r
                 && r.getReference() instanceof FieldReference f && f.getType().equals("Landroid/content/Context;")).map(DexDiff::reference).distinct().toList(),
@@ -4546,6 +4860,10 @@ public class DexDiff {
     private static final String BROWSER_FACTORY_NOTE = "BrowserLiteIntent.OPEN_WITH_URL";
     private static final String BROWSER_AD_NOTE = "AdClickHandler.openWebLink missing webUri for AD_DESTINATION_WEB";
     private static final String BROWSER_IMMERSIVE_NOTE = "com.instagram.barcelona.inappbrowser.compose.ImmersiveBrowserScreen (";
+    /** How the immersive browser screen names its browser's fragment, which 456 on finds it by. */
+    private static final String BROWSER_IMMERSIVE_FRAGMENT = "immersive_browser_fragment_";
+    /** The card view mode the browser an ad embeds in a card reads. A kept name. */
+    private static final String BROWSER_CARD_MODE = "Lcom/facebook/browser/common/viewmode/IABViewModeLaunchConfig$Card;";
     private static final String BROWSER_STATE = "Landroidx/compose/runtime/MutableState;";
 
     /** Independently identify the current direct callers and their success exits from the clean APK. */
@@ -4562,17 +4880,26 @@ public class DexDiff {
         requireFeature(factoryFlow.parameterOnEveryPath(parser, invokeRegisters(made.get(parser))[0], browserParameter(factory, 5)), "browser factory parses the wrong URL parameter");
         List<Method> everything = clean.values().stream().flatMap(List::stream).toList();
         List<Method> callers = everything.stream().filter(m -> !callSites(instructions(m), target).isEmpty()).toList();
-        // 454 sends the lead form's link helper through the launcher, so four places call the factory.
-        requireFeature(callers.size() == 4 && callers.stream().mapToInt(m -> callSites(instructions(m), target).size()).sum() == 4,
-                "browser factory caller census changed");
         String launcherClass = launcher.getDefiningClass();
         Method helper = featureOne(callers.stream().filter(m -> m.getDefiningClass().equals(launcherClass)).toList(), "launcher's browser Intent helper");
         Method builder = featureOne(callers.stream().filter(m -> m != helper && !AccessFlags.STATIC.isSet(m.getAccessFlags())
                 && m.getReturnType().equals("Landroid/content/Intent;")).toList(), "ad browser Intent builder");
         Method media = featureOne(callers.stream().filter(m -> m.getName().equals("invokeSuspend") && m.getReturnType().equals("Ljava/lang/Object;")
                 && holds(m, "AD_DESTINATION_WEB")).toList(), "media ad browser");
-        Method immersive = featureOne(callers.stream().filter(m -> holdsNote(m, BROWSER_IMMERSIVE_NOTE)).toList(), "immersive browser");
-        requireFeature(new HashSet<>(callers).equals(new HashSet<>(List.of(helper, builder, media, immersive))), "unexpected direct browser caller");
+        // Up to 455 the immersive screen held its Compose note; from 456 it's the one naming its browser's fragment.
+        Method immersive = featureOne(callers.stream().filter(m -> holdsNote(m, BROWSER_IMMERSIVE_NOTE)
+                || holds(m, BROWSER_IMMERSIVE_FRAGMENT)).toList(), "immersive browser");
+        // 456 adds a fifth: the browser an ad embeds in a card, which reads the card view mode and starts no Activity.
+        List<Method> cards = callers.stream().filter(m -> m != helper && m != builder && m != media && m != immersive
+                && instructions(m).stream().anyMatch(i -> i.getOpcode() == Opcode.SGET_OBJECT
+                        && ((ReferenceInstruction) i).getReference() instanceof FieldReference f && f.getDefiningClass().equals(BROWSER_CARD_MODE))).toList();
+        requireFeature(cards.size() <= 1, "browser factory has " + cards.size() + " card browser callers");
+        Set<Method> known = new HashSet<>(List.of(helper, builder, media, immersive));
+        known.addAll(cards);
+        // 454 sends the lead form's link helper through the launcher, so four places call the factory, five from 456.
+        requireFeature(new HashSet<>(callers).equals(known), "unexpected direct browser caller");
+        requireFeature(callers.size() == known.size() && callers.stream().mapToInt(m -> callSites(instructions(m), target).size()).sum() == known.size(),
+                "browser factory caller census changed");
 
         // The web link an ad request gives the launcher, by the constructor argument the link field gets.
         Method request = featureTarget(clean, m -> holds(m, BROWSER_AD_NOTE), "ad web request");
@@ -4593,7 +4920,9 @@ public class DexDiff {
         List<BrowserSite> hooks = new ArrayList<>();
         hooks.add(featureBrowserAd(everything, builder, target));
         hooks.add(featureBrowserMedia(media, target, webField));
-        return new BrowserSites(hooks, List.of(factory, immersive, request, helper, builder));
+        List<Method> kept = new ArrayList<>(List.of(factory, immersive, request, helper, builder));
+        kept.addAll(cards);
+        return new BrowserSites(hooks, kept);
     }
 
     /**
@@ -4745,28 +5074,39 @@ public class DexDiff {
         return true;
     }
 
-    /** The String field of its own class the launcher parses with java.net.URI, through the moves in front of it. */
+    /**
+     * The String field of its own class the launcher parses with java.net.URI, followed back along
+     * every path to the parse through the moves on it. 456 runs an offer of Meta's browser between
+     * the entry and the parse and jumps over it, so the instructions right in front of the parse
+     * aren't the ones that ran before it.
+     */
     private static String featureLauncherLink(Method stock) {
         List<Instruction> body = instructions(stock);
         int parse = featureOne(java.util.stream.IntStream.range(0, body.size()).boxed()
                 .filter(k -> body.get(k).getOpcode() == Opcode.INVOKE_DIRECT
                         && reference(body.get(k)).equals("Ljava/net/URI;-><init>(Ljava/lang/String;)V")).toList(), "launcher URI parse");
-        int register = invokeRegisters(body.get(parse))[1];
-        for (int k = parse - 1; k >= 0; k--) {
-            Instruction i = body.get(k);
-            if (i.getOpcode() == Opcode.MOVE_OBJECT || i.getOpcode() == Opcode.MOVE_OBJECT_FROM16 || i.getOpcode() == Opcode.MOVE_OBJECT_16) {
-                if (((TwoRegisterInstruction) i).getRegisterA() == register) register = ((TwoRegisterInstruction) i).getRegisterB();
-            } else if (i.getOpcode() == Opcode.IGET_OBJECT && ((TwoRegisterInstruction) i).getRegisterA() == register) {
-                FieldReference field = (FieldReference) ((ReferenceInstruction) i).getReference();
-                requireFeature(field.getType().equals("Ljava/lang/String;") && field.getDefiningClass().equals(stock.getDefiningClass()),
-                        "browser launcher parses a field other than its own String");
-                return reference(i);
-            } else {
-                requireFeature(i.getOpcode() == Opcode.IGET_OBJECT || i.getOpcode() == Opcode.NEW_INSTANCE && ((OneRegisterInstruction) i).getRegisterA() != register,
-                        "browser launcher runs " + i.getOpcode().name + " before it parses the link");
+        FeatureFlow flow = new FeatureFlow(stock);
+        Set<String> fields = new TreeSet<>();
+        Set<Integer> seen = new HashSet<>();
+        Deque<int[]> work = new ArrayDeque<>(List.<int[]>of(new int[]{parse, invokeRegisters(body.get(parse))[1]}));
+        while (!work.isEmpty()) {
+            int[] read = work.removeFirst();
+            for (int write : flow.reaching(read[0], read[1])) {
+                requireFeature(write >= 0, "browser launcher parses a String that isn't one of its fields");
+                if (!seen.add(write)) continue;
+                Instruction i = body.get(write);
+                if (i.getOpcode() == Opcode.MOVE_OBJECT || i.getOpcode() == Opcode.MOVE_OBJECT_FROM16 || i.getOpcode() == Opcode.MOVE_OBJECT_16) {
+                    work.add(new int[]{write, ((TwoRegisterInstruction) i).getRegisterB()});
+                } else {
+                    requireFeature(i.getOpcode() == Opcode.IGET_OBJECT, "browser launcher runs " + i.getOpcode().name + " at " + write + " before it parses the link");
+                    FieldReference field = (FieldReference) ((ReferenceInstruction) i).getReference();
+                    requireFeature(field.getType().equals("Ljava/lang/String;") && field.getDefiningClass().equals(stock.getDefiningClass()),
+                            "browser launcher parses a field other than its own String");
+                    fields.add(reference(i));
+                }
             }
         }
-        throw new AssertionError("browser launcher parses no field of its own");
+        return featureOne(new ArrayList<>(fields), "field the browser launcher parses as its link");
     }
 
     /** Where one of Threads' return checks makes its boolean answer: the stock method, the instruction the hook goes in front of, and the answer's register. */
@@ -5325,8 +5665,8 @@ public class DexDiff {
     /**
      * The boolean parameter of [flow]'s method it hands on in [register] at [at], the same one on
      * every path, through moves and Compose's default merges, -1 otherwise. 455's player sets each
-     * boolean to merge(mask & bit, flag), and each merge followed goes into [defaults] as its mask
-     * parameter and bit. [following] holds the copies on the current path only, since the merge and
+     * boolean to merge(mask & bit, flag), and 457's writes the default in place behind a test of
+     * the bit; each default followed goes into [defaults] as its mask parameter and bit. [following] holds the copies on the current path only, since the merge and
      * the path skipping it start from one move.
      */
     private static int featureHandedBoolean(Map<String, List<Method>> clean, FeatureFlow flow, int at, int register,
@@ -5336,6 +5676,13 @@ public class DexDiff {
             List<Instruction> body = flow.layout.instructions;
             Set<Integer> sources = new HashSet<>();
             for (int write : flow.reaching(at, register)) {
+                // 457 writes the default in place, behind a test of its bit: the path skipping the
+                // write carries the flag, and that path is the other write reaching here.
+                int[] inline = write < 0 ? null : featureInlineDefault(flow, write);
+                if (inline != null) {
+                    defaults.add(inline);
+                    continue;
+                }
                 int source = -1;
                 Opcode opcode = write < 0 ? null : body.get(write).getOpcode();
                 if (write < 0) {
@@ -5361,6 +5708,47 @@ public class DexDiff {
         } finally {
             following.remove(List.of(at, register));
         }
+    }
+
+    /**
+     * Compose's default for a boolean written in place, as 457's player does it: [write] is a 0 or 1
+     * into the boolean's register, reached only by falling through an if-eqz right before it on one
+     * bit of an int parameter, the default mask, so it runs only while the caller leaves that boolean
+     * out. Answers {the mask parameter, the bit}, or null.
+     */
+    private static int[] featureInlineDefault(FeatureFlow flow, int write) {
+        List<Instruction> body = flow.layout.instructions;
+        if (write < 1 || !featureConstant(body.get(write))) return null;
+        long value = ((WideLiteralInstruction) body.get(write)).getWideLiteral();
+        Instruction test = body.get(write - 1);
+        if ((value != 0 && value != 1) || test.getOpcode() != Opcode.IF_EQZ) return null;
+        for (int n = 0; n < body.size(); n++) {
+            if (n != write - 1 && (flow.normal.get(n).contains(write) || flow.exceptional.get(n).contains(write))) return null;
+        }
+        int[] tested = flow.origin(write - 1, registerA(test));
+        if (tested == null || tested[0] < 0) return null;
+        int[] masked = featureMaskedBit(flow, tested[0]);
+        if (masked == null || Integer.bitCount(masked[0]) != 1) return null;
+        int[] from = flow.origin(tested[0], masked[1]);
+        int mask = from == null || from[0] >= 0 ? -1 : featureParameter(flow.method, from[1], "I");
+        return mask < 0 ? null : new int[]{mask, masked[0]};
+    }
+
+    /** The bit the and-int at [at] keeps and the register it keeps it from, as {bit, register}, or null. */
+    private static int[] featureMaskedBit(FeatureFlow flow, int at) {
+        Instruction and = flow.layout.instructions.get(at);
+        if (and.getOpcode() == Opcode.AND_INT_LIT8 || and.getOpcode() == Opcode.AND_INT_LIT16) {
+            return new int[]{((NarrowLiteralInstruction) and).getNarrowLiteral(), ((TwoRegisterInstruction) and).getRegisterB()};
+        }
+        if (and.getOpcode() != Opcode.AND_INT) return null;
+        ThreeRegisterInstruction three = (ThreeRegisterInstruction) and;
+        for (int[] pair : new int[][]{{three.getRegisterB(), three.getRegisterC()}, {three.getRegisterC(), three.getRegisterB()}}) {
+            int[] constant = flow.origin(at, pair[0]);
+            if (constant != null && constant[0] >= 0 && featureConstant(flow.layout.instructions.get(constant[0]))) {
+                return new int[]{((NarrowLiteralInstruction) flow.layout.instructions.get(constant[0])).getNarrowLiteral(), pair[1]};
+            }
+        }
+        return null;
     }
 
     /**
@@ -5531,11 +5919,72 @@ public class DexDiff {
         return held;
     }
 
-    /** Whether [m] loads a string starting with [note], as Compose's source notes, which end in a line number, are matched. */
+    /** Whether [m] carries a Compose note starting with [note], as Compose's source notes, which end in a line number, are matched. */
     private static boolean holdsNote(Method m, String note) {
-        for (Instruction i : instructions(m)) if (i instanceof ReferenceInstruction && ((ReferenceInstruction) i).getReference() instanceof StringReference
-                && ((StringReference) ((ReferenceInstruction) i).getReference()).getString().startsWith(note)) return true;
+        List<Instruction> body = instructions(m);
+        for (int at = 0; at < body.size(); at++) {
+            String held = noteAt(body, at);
+            if (held != null && held.startsWith(note)) return true;
+        }
         return false;
+    }
+
+    /**
+     * Where the patches keep the Compose notes Threads stopped shipping, relative to the repository:
+     * each line a group key in hex, a tab and the note the group carried.
+     */
+    private static final String NOTE_TABLE = "patches/src/main/resources/app/morphe/patches/threads/misc/extension/compose-notes.tsv";
+    /** Each Compose group key compose-notes.tsv knows, and its note. Empty until readNoteTable finds the table. */
+    private static Map<Integer, String> noteTable = Map.of();
+
+    /**
+     * Reads compose-notes.tsv from the repository this script is in, or the one whose scripts folder
+     * holds [contracts]. Up to 455 every composable loaded its source note as a string; from 456 on it
+     * hands the trace call its group key alone, and the table is how the patches, and this check,
+     * still know a group by its note. Without the table only the strings count.
+     */
+    private static void readNoteTable(File contracts) throws Exception {
+        List<File> roots = new ArrayList<>();
+        String source = System.getProperty("jdk.launcher.sourcefile");
+        if (source != null) roots.add(new File(source).getAbsoluteFile().getParentFile().getParentFile());
+        if (contracts != null) roots.add(contracts.getAbsoluteFile().getParentFile().getParentFile());
+        for (File root : roots) {
+            if (root == null) continue;
+            File table = new File(root, NOTE_TABLE);
+            if (!table.isFile()) continue;
+            Map<Integer, String> notes = new HashMap<>();
+            for (String line : Files.readAllLines(table.toPath(), StandardCharsets.UTF_8)) {
+                if (line.isEmpty()) continue;
+                int tab = line.indexOf('\t');
+                requireFeature(tab > 0, "Compose note table line without a key: " + line);
+                String old = notes.put((int) Long.parseLong(line.substring(0, tab), 16), line.substring(tab + 1));
+                requireFeature(old == null, "Compose note table names one key twice: " + line);
+            }
+            noteTable = notes;
+            System.out.println("[diff] Compose note table: " + notes.size() + " keys from " + table);
+            return;
+        }
+        System.out.println("[diff] no Compose note table found; Compose notes are read as strings only");
+    }
+
+    /**
+     * The Compose note instruction [at] of [body] stands for: the note string it loads (up to 455), or
+     * the note compose-notes.tsv has for the group key it loads into the one-int static void call
+     * right after it, Compose's trace call (456 on). Null for anything else.
+     */
+    private static String noteAt(List<Instruction> body, int at) {
+        Instruction i = body.get(at);
+        if (i.getOpcode() == Opcode.CONST_STRING || i.getOpcode() == Opcode.CONST_STRING_JUMBO) {
+            return ((StringReference) ((ReferenceInstruction) i).getReference()).getString();
+        }
+        if ((i.getOpcode() != Opcode.CONST && i.getOpcode() != Opcode.CONST_HIGH16) || at + 1 >= body.size()) return null;
+        Instruction call = body.get(at + 1);
+        if ((call.getOpcode() != Opcode.INVOKE_STATIC && call.getOpcode() != Opcode.INVOKE_STATIC_RANGE)
+                || !(((ReferenceInstruction) call).getReference() instanceof MethodReference trace)) return null;
+        int[] registers = invokeRegisters(call);
+        if (registers.length != 1 || registers[0] != registerA(i) || !trace.getReturnType().equals("V")
+                || trace.getParameterTypes().size() != 1 || !trace.getParameterTypes().get(0).toString().equals("I")) return null;
+        return noteTable.get(((NarrowLiteralInstruction) i).getNarrowLiteral());
     }
 
     /**
@@ -5982,7 +6431,7 @@ public class DexDiff {
      * The override's own long press when [guard] in [flow]'s lambda is the row's null check of an
      * override of its own: an if-nez or if-eqz on a register, and on its not-null side, within four
      * instructions, a read of that register's Function0 field, of a type the lambda keeps a field
-     * of, tested at most one other test later. Null for anything else.
+     * of, tested at most one other test later and read again past that test. Null for anything else.
      */
     private static FieldReference featureCopyTextAction(FeatureFlow flow, int guard) {
         List<Instruction> body = flow.layout.instructions;
@@ -6012,7 +6461,11 @@ public class DexDiff {
                 if (body.get(n).getOpcode() != Opcode.IF_NEZ && body.get(n).getOpcode() != Opcode.IF_EQZ) return null;
             }
             Opcode test = body.get(tested).getOpcode();
-            return test == Opcode.IF_NEZ || test == Opcode.IF_EQZ ? action : null;
+            if (test != Opcode.IF_NEZ && test != Opcode.IF_EQZ) return null;
+            // The long press is used past its test. 457's text lambda also null-tests the
+            // override's other action, to decide whether to show the post, and drops it right after.
+            int value = got;
+            return flow.normal.get(tested).stream().anyMatch(n -> !flow.readsFrom(n, value).isEmpty()) ? action : null;
         }
         return null;
     }
@@ -6050,7 +6503,7 @@ public class DexDiff {
         FeatureFlow flow = new FeatureFlow(stock);
         List<Instruction> body = flow.layout.instructions;
         int note = 0;
-        while (!(body.get(note) instanceof ReferenceInstruction r && r.getReference() instanceof StringReference s && s.getString().startsWith(SELECTION_NOTE))) note++;
+        while (noteAt(body, note) == null || !noteAt(body, note).startsWith(SELECTION_NOTE)) note++;
         int check = note + 1;
         while (check < body.size() && body.get(check).getOpcode() != Opcode.IF_EQZ) check++;
         requireFeature(check < body.size(), featureSig(stock) + " checks nothing after its selection note");
@@ -6218,10 +6671,16 @@ public class DexDiff {
         for (int k = caseAt; k < gotoAt; k++) path.add(k);
         for (int k = tailAt; k < callAt; k++) path.add(k);
         int[] arguments = invokeRegisters(body.get(callAt));
-        int copy = featureLastWrite(body, path, path.size(), arguments[0]);
-        requireFeature(copy >= 0 && body.get(path.get(copy)).getOpcode().name.startsWith("move-object")
-                && ((TwoRegisterInstruction) body.get(path.get(copy))).getRegisterB() == composer,
-                "Threads' settings row isn't passed the composer the " + MORE_ENTRY + " case starts its group on");
+        if (arguments[0] == composer) {
+            // Up to 455 the shared run copies the composer into the call's first register; 456 keeps it there the whole way.
+            requireFeature(featureLastWrite(body, path, path.size(), composer) < startAt - caseAt,
+                    "Threads' " + MORE_ENTRY + " case overwrites its composer, v" + composer + ", before the settings row");
+        } else {
+            int copy = featureLastWrite(body, path, path.size(), arguments[0]);
+            requireFeature(copy >= 0 && body.get(path.get(copy)).getOpcode().name.startsWith("move-object")
+                    && ((TwoRegisterInstruction) body.get(path.get(copy))).getRegisterB() == composer,
+                    "Threads' settings row isn't passed the composer the " + MORE_ENTRY + " case starts its group on");
+        }
         int at = path.size(), register = arguments[1];
         Instruction modifier;
         while (true) {
@@ -6330,8 +6789,9 @@ public class DexDiff {
         int allocation = featureOne(java.util.stream.IntStream.range(0, root.layout.instructions.size()).boxed()
                 .filter(n -> root.layout.instructions.get(n).getOpcode() == Opcode.NEW_INSTANCE && reference(root.layout.instructions.get(n)).equals(item)).toList(), "omitted feed-item allocation");
         ParsedFeatureValue value = root.parsed(SUGGESTED_WIRE, model);
-        FieldReference slot = featureSlot(root, value, item, model, root.uses(allocation, -1), allocation);
-        MethodReference wrapper = featureWrapper(root, slot, model);
+        Set<FeatureUse> receivers = root.uses(allocation, -1);
+        FieldReference slot = featureSlot(clean, root, value, item, model, receivers, allocation);
+        MethodReference wrapper = featureWrapper(featureItemScopes(clean, root, receivers), slot, model);
         Set<String> owners = Set.of(item, kind.getReturnType(), model, parser.getDefiningClass(), value.parser(), wrapper.getDefiningClass());
         featurePreserveCards(featureClasses(cleanApk, owners), featureClasses(patchedApk, owners), patched, null, null);
     }
@@ -6401,8 +6861,16 @@ public class DexDiff {
             MethodReference icon, List<Integer> iconArguments, FieldReference media, FieldReference activity,
             FieldReference controller, MethodReference dismiss) {}
 
-    /** One InstagramMedia bridge: its name, the type it casts its argument to, and the getter it calls, by invoke-virtual or invoke-interface. */
-    private record SaveBridge(String name, String receiver, Opcode call, String getter) {}
+    /**
+     * One InstagramMedia bridge: its name, the type it casts its argument to, and the getter it
+     * calls, by invoke-virtual or invoke-interface, or null; or [reads], the field reads that leave
+     * its answer in its argument's register, in order, when it may answer that way instead.
+     */
+    private record SaveBridge(String name, String receiver, Opcode call, String getter, List<String> reads) {
+        SaveBridge(String name, String receiver, Opcode call, String getter) {
+            this(name, receiver, call, getter, List.of());
+        }
+    }
 
     private static final Set<Opcode> SAVE_OBJECT_MOVES = Set.of(Opcode.MOVE_OBJECT, Opcode.MOVE_OBJECT_FROM16, Opcode.MOVE_OBJECT_16);
     private static final Set<Opcode> SAVE_EXITS = Set.of(Opcode.RETURN_VOID, Opcode.RETURN, Opcode.RETURN_WIDE, Opcode.RETURN_OBJECT, Opcode.THROW);
@@ -6925,10 +7393,13 @@ public class DexDiff {
     /** What each InstagramMedia bridge calls, found as the Save patch finds it: by Pando hash, or by kept name on Media and ImageUrl. */
     private static List<SaveBridge> featureSaveBridges(Map<String, List<ClassDef>> classes) {
         java.util.function.BiFunction<String, String, String> media = (field, returns) -> featureSig(featurePandoGetter(classes, MEDIA, field, returns));
+        // The Save patch reads a post's id with the two reads Media's hashCode() hashes; a bundle
+        // from before 457 called the getId() those builds kept, and either answers the same id.
         List<Method> ids = new ArrayList<>();
         for (Method m : featureSaveClass(classes, MEDIA).getMethods()) if (m.getName().equals("getId") && m.getParameterTypes().isEmpty()
                 && m.getReturnType().equals("Ljava/lang/String;")) ids.add(m);
-        requireFeature(ids.size() == 1, MEDIA + " has no getId()");
+        List<String> idReads = featureMediaIdReads(classes);
+        requireFeature(ids.size() == 1 || !idReads.isEmpty(), MEDIA + " has no getId(), and its hashCode() no longer hashes a String it reads off a field of its own");
         java.util.function.BiFunction<String, String, String> kept = (name, returns) -> {
             requireFeature(featureDeclares(featureSaveInterface(classes, IMAGE_URL), name, returns), IMAGE_URL + " has no " + name + "()" + returns);
             return IMAGE_URL + "->" + name + "()" + returns;
@@ -6937,7 +7408,7 @@ public class DexDiff {
         bridges.addAll(List.of(
                 new SaveBridge("videoVersions", MEDIA, Opcode.INVOKE_VIRTUAL, media.apply("video_versions", "Ljava/util/List;")),
                 new SaveBridge("dashManifest", MEDIA, Opcode.INVOKE_VIRTUAL, media.apply("video_dash_manifest", "Ljava/lang/String;")),
-                new SaveBridge("mediaId", MEDIA, Opcode.INVOKE_VIRTUAL, featureSig(ids.get(0))),
+                new SaveBridge("mediaId", MEDIA, Opcode.INVOKE_VIRTUAL, ids.size() == 1 ? featureSig(ids.get(0)) : null, idReads),
                 new SaveBridge("owner", MEDIA, Opcode.INVOKE_VIRTUAL, media.apply("user", USER)),
                 new SaveBridge("takenAt", MEDIA, Opcode.INVOKE_VIRTUAL, media.apply("taken_at", "Ljava/lang/Long;")),
                 new SaveBridge("carouselMedia", MEDIA, Opcode.INVOKE_VIRTUAL, media.apply("carousel_media", "Ljava/util/List;")),
@@ -6951,6 +7422,36 @@ public class DexDiff {
                 new SaveBridge("candidateWidth", IMAGE_URL, Opcode.INVOKE_INTERFACE, kept.apply("getWidth", "I")),
                 new SaveBridge("candidateHeight", IMAGE_URL, Opcode.INVOKE_INTERFACE, kept.apply("getHeight", "I"))));
         return bridges;
+    }
+
+    /**
+     * The reads that answer a Media's id, as the Save patch finds them: its own hashCode() reads a
+     * field of Media's own, then that field's String, and hashes the String. 456 kept a getId()
+     * making them; 457 copies them into every caller and drops it. Both fields and their classes
+     * have to be public, since the bridge reads them from another package. Empty when hashCode()
+     * doesn't read them that way.
+     */
+    private static List<String> featureMediaIdReads(Map<String, List<ClassDef>> classes) {
+        List<Method> hashes = new ArrayList<>();
+        for (Method m : featureSaveClass(classes, MEDIA).getMethods()) if (m.getName().equals("hashCode")
+                && m.getParameterTypes().isEmpty() && m.getReturnType().equals("I")) hashes.add(m);
+        if (hashes.size() != 1) return List.of();
+        List<Instruction> body = instructions(hashes.get(0));
+        if (body.size() < 3 || body.get(0).getOpcode() != Opcode.IGET_OBJECT || body.get(1).getOpcode() != Opcode.IGET_OBJECT
+                || body.get(2).getOpcode() != Opcode.INVOKE_VIRTUAL || !reference(body.get(2)).equals("Ljava/lang/String;->hashCode()I")) return List.of();
+        TwoRegisterInstruction first = (TwoRegisterInstruction) body.get(0), second = (TwoRegisterInstruction) body.get(1);
+        FieldReference data = (FieldReference) ((ReferenceInstruction) first).getReference();
+        FieldReference id = (FieldReference) ((ReferenceInstruction) second).getReference();
+        if (first.getRegisterA() != second.getRegisterB() || !Arrays.equals(invokeRegisters(body.get(2)), new int[]{second.getRegisterA()})
+                || !data.getDefiningClass().equals(MEDIA) || !id.getDefiningClass().equals(data.getType()) || !id.getType().equals("Ljava/lang/String;")) return List.of();
+        for (FieldReference field : List.of(data, id)) {
+            ClassDef holder = featureSaveClass(classes, field.getDefiningClass());
+            boolean open = AccessFlags.PUBLIC.isSet(holder.getAccessFlags()) && java.util.stream.StreamSupport.stream(holder.getFields().spliterator(), false)
+                    .anyMatch(f -> f.getName().equals(field.getName()) && f.getType().equals(field.getType())
+                            && AccessFlags.PUBLIC.isSet(f.getAccessFlags()) && !AccessFlags.STATIC.isSet(f.getAccessFlags()));
+            requireFeature(open, MEDIA + "'s id, " + reference(body.get(0)) + " then " + reference(body.get(1)) + ", isn't public");
+        }
+        return List.of(reference(body.get(0)), reference(body.get(1)));
     }
 
     private static final List<String> LINKED_POST_KEYS = List.of("linked_inline_media", "share_info", "quoted_attachment_post", "reposted_post", "quoted_post");
@@ -6989,11 +7490,26 @@ public class DexDiff {
         return (i.getOpcode() == Opcode.CONST_STRING || i.getOpcode() == Opcode.CONST_STRING_JUMBO) && reference(i).equals(value);
     }
 
-    /** The getter [owner] declares for [key]: the field [writer] loads and tests just before naming it, read back through that field's class. */
+    /**
+     * The getter [owner] declares for [key]: on 457 the interface getter [writer] calls and tests
+     * just before naming it, which has to be [owner]'s; before, the field it loads and tests there,
+     * read back through that field's class.
+     */
     private static Method featureLinkedGetter(Map<String, List<ClassDef>> classes, Method writer, String key, String owner) {
         List<Instruction> code = instructions(writer);
         int named = 0;
         while (named < code.size() && !featureIsString(code.get(named), key)) named++;
+        if (named >= 3 && named < code.size() && code.get(named - 3).getOpcode() == Opcode.INVOKE_INTERFACE
+                && code.get(named - 2).getOpcode() == Opcode.MOVE_RESULT_OBJECT && code.get(named - 1).getOpcode() == Opcode.IF_EQZ
+                && registerA(code.get(named - 2)) == registerA(code.get(named - 1))
+                && ((ReferenceInstruction) code.get(named - 3)).getReference() instanceof MethodReference called
+                && called.getParameterTypes().isEmpty() && called.getReturnType().startsWith("L")) {
+            requireFeature(called.getDefiningClass().equals(owner), "the getter for " + key + " is on " + called.getDefiningClass() + ", not " + owner);
+            List<Method> declared = new ArrayList<>();
+            for (Method m : featureSaveInterface(classes, owner).getMethods()) if (m.getName().equals(called.getName())
+                    && m.getParameterTypes().isEmpty() && m.getReturnType().equals(called.getReturnType())) declared.add(m);
+            return featureOne(declared, owner + "'s " + called.getName() + "(), the getter for " + key);
+        }
         requireFeature(named >= 2 && named < code.size() && code.get(named - 2).getOpcode() == Opcode.IGET_OBJECT && code.get(named - 1).getOpcode() == Opcode.IF_EQZ,
                 featureSig(writer) + " doesn't read a field and test it just before writing " + key);
         FieldReference field = (FieldReference) ((ReferenceInstruction) code.get(named - 2)).getReference();
@@ -7036,9 +7552,23 @@ public class DexDiff {
         requireFeature(AccessFlags.STATIC.isSet(stub.getAccessFlags()) && stub.getImplementation() != null
                 && stub.getImplementation().getTryBlocks().isEmpty() && body.size() >= 4, signature + " isn't a static bridge with an unprotected body");
         int p = stub.getImplementation().getRegisterCount() - 1;
-        boolean primitive = bridge.getter().endsWith(")I");
         requireFeature(body.get(0).getOpcode() == Opcode.CHECK_CAST && registerA(body.get(0)) == p && reference(body.get(0)).equals(bridge.receiver()),
                 signature + " casts its argument to " + reference(body.get(0)) + ", not " + bridge.receiver());
+        if (!bridge.reads().isEmpty() && (bridge.getter() == null || body.get(1).getOpcode() == Opcode.IGET_OBJECT)) {
+            int end = bridge.reads().size() + 1;
+            requireFeature(body.size() > end, signature + " is too short to read " + bridge.reads());
+            for (int k = 1; k < end; k++) {
+                Instruction read = body.get(k);
+                requireFeature(read.getOpcode() == Opcode.IGET_OBJECT && ((TwoRegisterInstruction) read).getRegisterA() == p
+                        && ((TwoRegisterInstruction) read).getRegisterB() == p && reference(read).equals(bridge.reads().get(k - 1)),
+                        signature + " reads " + read.getOpcode().name + " " + reference(read) + " at " + k + ", not " + bridge.reads().get(k - 1) + " into its argument");
+            }
+            requireFeature(body.get(end).getOpcode() == Opcode.RETURN_OBJECT && registerA(body.get(end)) == p,
+                    signature + " doesn't return what " + bridge.reads() + " read");
+            return signature;
+        }
+        requireFeature(bridge.getter() != null, signature + " doesn't read " + bridge.reads() + " into its argument");
+        boolean primitive = bridge.getter().endsWith(")I");
         Instruction call = body.get(1);
         requireFeature(call.getOpcode() == bridge.call() && Arrays.equals(invokeRegisters(call), new int[]{p}) && reference(call).equals(bridge.getter()),
                 signature + " calls " + call.getOpcode().name + " " + reference(call) + ", not " + bridge.call().name + " " + bridge.getter());
@@ -7255,24 +7785,50 @@ public class DexDiff {
     }
 
     /**
+     * The opened post's reply parser: the one method of a class that parses replies taking the
+     * answer and its own class first, six parameters in all, and answering an object.
+     */
+    private static Method featureRepliesParser(Map<String, List<Method>> clean) {
+        return featureTarget(clean, m -> REPLIES_PARSER_HOSTS.contains(m.getDefiningClass())
+                && m.getReturnType().startsWith("L") && m.getParameterTypes().size() == 6
+                && m.getParameterTypes().get(0).toString().equals(REPLIES_RESPONSE)
+                && m.getParameterTypes().get(1).toString().equals(m.getDefiningClass()), "opened post's reply parser");
+    }
+
+    /**
      * Filter comments hands the reply list the opened post's parser reads to its own filter, once,
      * and the four reads it writes into the extension answer Threads' own getters: the reply's
      * posts, a post's media, a media's text and its caption.
      */
     private static void featureComments(Map<String, List<Method>> clean, Map<String, List<Method>> patched) {
         requireFeature(featureConstant(patched, "filterComments", "Z") == 1, "filter comments switch isn't on");
-        Method parser = featureTarget(clean, m -> m.getDefiningClass().equals(REPLIES_PARSER_HOST)
-                && m.getReturnType().startsWith("L") && m.getParameterTypes().size() == 6
-                && m.getParameterTypes().get(0).equals(REPLIES_RESPONSE)
-                && m.getParameterTypes().get(1).equals(REPLIES_PARSER_HOST), "opened post's reply parser");
+        Method parser = featureRepliesParser(clean);
         featureHostCalls(patched, COMMENTS + "filter(Ljava/util/List;)Ljava/util/List;", Map.of(featureSig(parser), 1));
         // The reads are checked where this build's extension carries them; an older one has none.
         if (patched.containsKey(COMMENTS + "threadItems(Ljava/lang/Object;)Ljava/util/List;")) {
             featureStubCalls(patched, COMMENTS + "threadItems(Ljava/lang/Object;)Ljava/util/List;", THREAD);
             featureStubCalls(patched, COMMENTS + "itemMedia(Ljava/lang/Object;)Ljava/lang/Object;", THREAD_ITEM);
             featureStubCalls(patched, COMMENTS + "mediaText(Ljava/lang/Object;)Ljava/lang/String;", MEDIA);
-            featureStubCalls(patched, COMMENTS + "mediaCaption(Ljava/lang/Object;)Ljava/lang/String;", MEDIA_EXT);
+            featureCaptionStub(clean, patched);
         }
+    }
+
+    /**
+     * The caption read the patch writes in. 456 had a helper in MediaExtKt doing it; 457 copies that
+     * helper into every caller, so the stub reads the post's one no-argument getter naming Pando's
+     * "caption" field and then a String getter of the interface it answers.
+     */
+    private static void featureCaptionStub(Map<String, List<Method>> clean, Map<String, List<Method>> patched) {
+        String signature = COMMENTS + "mediaCaption(Ljava/lang/Object;)Ljava/lang/String;";
+        List<Instruction> stub = instructions(featureMethod(patched, signature));
+        if (stub.stream().map(DexDiff::reference).anyMatch(r -> r.startsWith(MEDIA_EXT + "->"))) return;
+        Method getter = featureTarget(clean, m -> m.getDefiningClass().equals(MEDIA) && m.getParameterTypes().isEmpty()
+                && !AccessFlags.STATIC.isSet(m.getAccessFlags()) && holds(m, "caption"), "post's caption getter");
+        String caption = getter.getReturnType();
+        requireFeature(stub.stream().anyMatch(i -> i.getOpcode() == Opcode.INVOKE_VIRTUAL && reference(i).equals(featureSig(getter)))
+                && stub.stream().anyMatch(i -> i.getOpcode() == Opcode.INVOKE_INTERFACE && reference(i).startsWith(caption + "->")
+                        && reference(i).endsWith("()Ljava/lang/String;")),
+                signature + " doesn't call " + MEDIA_EXT + " or read " + featureSig(getter) + " and its text");
     }
 
     /** Whether the extension's stub [signature] still calls something on [definingClass], as the patch wrote it. */
@@ -7384,6 +7940,7 @@ public class DexDiff {
         RemovalAllowlist allowlist = readRemovalAllowlist(allowlistFile);
         File contractFile = args.length > 4 ? new File(args[4]) : null;
         List<Contract> contracts = readContracts(contractFile);
+        readNoteTable(contractFile);
         // The base.apk whose signer was checked, when the clean side is the bundle's merge.
         File signedBase = args.length > 5 && !args[5].equals("-") ? new File(args[5]) : null;
         Set<String> selectedFeatures = null;

@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Assigns keys to the left column. The bottom slot shows the globe key when more than one
+     language is enabled, and the emoji key otherwise, as iOS does. -->
+<framework>
+    <key_mapping>
+        <mapping key_id="@id/ios_flick_key_digit" view_id="@id/ios_flick_key_pos_digit" />
+        <mapping key_id="@id/ios_flick_key_alphabet" view_id="@id/ios_flick_key_pos_alphabet" />
+        <mapping key_id="@id/ios_flick_key_kana" view_id="@id/ios_flick_key_pos_kana" />
+        <mapping key_id="{{0x7f0b2472}}" view_id="@id/ios_flick_key_pos_globe" />
+    </key_mapping>
+    <key_mapping state="EMOJI_AVAILABLE">
+        <mapping key_id="{{0x7f0b246f}}" view_id="@id/ios_flick_key_pos_globe" />
+    </key_mapping>
+    <key_mapping state="SHOW_LANGUAGE_SWITCH_KEY">
+        <mapping key_id="{{0x7f0b159e}}" view_id="@id/ios_flick_key_pos_globe" />
+    </key_mapping>
+</framework>

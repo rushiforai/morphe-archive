@@ -5,7 +5,7 @@
  * https://github.com/anddea/revanced-patches
  *
  * Licensed under the GNU General Public License v3.0.
- * Modified by lavinhoque33, 2026-11-10
+ * Modified by lavinhoque33, 2026-11-24
  * Written by lavinhoque33, 2026-10-26.
  */
 
@@ -146,7 +146,6 @@ final class FeedCardColorSampler {
      * written for every card that is seen, while scrolling.
      */
     private static final int MAXIMUM_LOGS = 40;
-    private static final int MAXIMUM_SURFACE_LOGS = 6;
     private static final int MAXIMUM_MISSING_THUMBNAIL_LOGS = 6;
     private static final int MAXIMUM_SHARED_IMAGE_LOGS = 4;
     private static final int MAXIMUM_FILL_LOGS = 12;
@@ -179,13 +178,10 @@ final class FeedCardColorSampler {
      */
     private static final Map<View, CardState> cardStates = new WeakHashMap<>();
     /**
-     * Backgrounds of the metadata of the cards, which the app paints in the color that the color hook
-     * resolves. The app moves the drawables between the cards while the list scrolls, and it does not look
-     * up the color of a drawable again when its bounds are the bounds of a card that the drawable already
-     * had, so the card that owns a drawable is resolved from the view that the drawable is attached to
-     * before it is written, and never from the card that the drawable was last seen in.
+     * Mounted native backgrounds, which do not necessarily appear in the View tree. Resolve their
+     * current card on each update; a recycled drawable can move between hosts without new bounds.
      */
-    private static final List<WeakReference<Drawable>> cardBackgrounds = new ArrayList<>(8);
+    private static final List<MountedBackground> cardBackgrounds = new ArrayList<>(8);
     /**
      * Filters of the tints, which are shared by the surfaces of the cards of the same color.
      */
@@ -232,7 +228,6 @@ final class FeedCardColorSampler {
     private static int hardwareSamplesThisFrame;
     private static int sampledThisFrame;
     private static int logs;
-    private static int surfaceLogs;
     private static int missingThumbnailLogs;
     private static int sharedImageLogs;
     private static int fillLogs;
@@ -240,67 +235,31 @@ final class FeedCardColorSampler {
     private static int staleRowLogs;
     private static long slowUpdateLogTime;
 
-    @Nullable
-    private static Class<?> cardBackgroundClass;
-
-    static void setCardBackgroundClass(Class<?> backgroundClass) {
-        cardBackgroundClass = backgroundClass;
-    }
-
     /**
      * The background's bounds can be set before it has a callback or belongs to a card. At draw time
      * its host and card are known, so mounted metadata backgrounds use the same state as View surfaces.
      */
     static void onCardDrawableDraw(Drawable drawable) {
+        Drawable background = getCardBackground(drawable);
+        if (background != null) {
+            onCardShapeDraw(background);
+        }
+    }
+
+    static void onCardShapeDraw(Drawable drawable) {
         try {
-            Drawable background = getCardBackground(drawable);
-            if (background == null) {
-                return;
-            }
-
-            View host = getDrawableView(drawable);
-            View item = host == null ? null : FeedCardLayoutPatch.findCardListItem(host);
-            if (item == null || !isCardItem(item)) {
-                return;
-            }
-
-            // The host can draw before this list has run its first pre-draw sampling pass.
-            CardState state = getCardState(item);
-
-            Rect bounds = drawable.getBounds();
-            if (bounds.width() * 20 < getCardContentWidth(item) * 17
-                    || bounds.height() * 20 < item.getHeight()) {
-                return;
-            }
-
-            int top = bounds.top;
-            View current = host;
-            while (current != item) {
-                top += current.getTop();
-                ViewParent parent = current.getParent();
-                if (!(parent instanceof View parentView)) {
-                    return;
+            CardState state = getMountedCardState(drawable, Settings.FEED_CARD_LAYOUT_DYNAMIC_COLORS.get());
+            if (state != null || drawable.getColorFilter() != null) {
+                MountedBackground background = findMountedBackground(drawable);
+                if (state != null && background == null) {
+                    background = trackMountedBackground(drawable);
                 }
-                current = parentView;
+                if (background != null) {
+                    background.apply(drawable, state);
+                }
             }
-            if (top < getThumbnailBottom(item, state)) {
-                return;
-            }
-
-            // The first draw can precede the thumbnail. Remember the surface now so pre-draw can
-            // tint and invalidate its cached Litho host as soon as the thumbnail's color is ready.
-            addCardBackground(background);
-
-            final boolean dynamicColors = Settings.FEED_CARD_LAYOUT_DYNAMIC_COLORS.get();
-            final int color = dynamicColors ? state.sampledColour : NO_TINT;
-            if (color != NO_TINT && background.getColorFilter() == getTintFilter(color)) {
-                return;
-            }
-
-            applyCardBackgroundColour(background, state, dynamicColors);
-            state.bandColour = color;
         } catch (Exception ex) {
-            Logger.printException(() -> "onCardDrawableDraw failure", ex);
+            Logger.printException(() -> "onCardShapeDraw failure", ex);
         }
     }
 
@@ -316,8 +275,7 @@ final class FeedCardColorSampler {
             current = drawable.getCurrent();
         }
 
-        return drawable instanceof ColorDrawable || drawable instanceof GradientDrawable
-                || drawable.getClass() == cardBackgroundClass ? drawable : null;
+        return drawable instanceof ColorDrawable || drawable instanceof GradientDrawable ? drawable : null;
     }
 
     private FeedCardColorSampler() {
@@ -375,56 +333,6 @@ final class FeedCardColorSampler {
             logShortsRow(item);
         }
         return FeedCardFill.isMarkedCardItem(marked, shortsRow);
-    }
-
-    /**
-     * Called with the background of a drawable of an item, when its bounds are set, which is when the app
-     * looks up the color that it paints the drawable with.
-     *
-     * @param item         The item of the feed of the card, or null if the drawable is not in a card.
-     * @param drawableView The view of the drawable, which is the item if the drawable is the background
-     *                     of the card.
-     * @return The tint of the card, or null if the card has no tint.
-     */
-    @Nullable
-    static Integer getCardColor(@Nullable View item, @Nullable View drawableView, Drawable drawable) {
-        try {
-            if (!Settings.FEED_CARD_LAYOUT_DYNAMIC_COLORS.get()) {
-                return null;
-            }
-            if (item == null || drawableView == null || !isCardItem(item)) {
-                logRejectedSurface(drawableView, drawable, "the item is not a card");
-                return null;
-            }
-
-            final Rect bounds = getCardBounds(item, drawableView, drawable);
-            if (bounds == null) {
-                logRejectedSurface(drawableView, drawable, "the drawable is not in the item");
-                return null;
-            }
-            // The band of the metadata is as wide as the card, or as wide as the card without the padding of
-            // the metadata, and the chips and the buttons are much narrower.
-            if (bounds.width() * 20 < getCardContentWidth(item) * 17) {
-                logRejectedSurface(drawableView, drawable, "the drawable is narrower than the card");
-                return null;
-            }
-            if (bounds.height() * 20 < item.getHeight()) {
-                logRejectedSurface(drawableView, drawable, "the drawable is thinner than the card");
-                return null;
-            }
-
-            // The color of the card that the view shows now, which is the card that owns the drawable.
-            // The drawable keeps this color until the app looks it up again, so the sampler looks it up
-            // again when the card changes, and the surfaces keep the color of their card with a filter.
-            final CardState state = getCardState(item);
-            addCardBackground(drawable);
-            state.bandColour = state.sampledColour;
-            state.dirty = true;
-            return state.sampledColour == NO_TINT ? null : state.sampledColour;
-        } catch (Exception ex) {
-            Logger.printException(() -> "getCardColor failure", ex);
-            return null;
-        }
     }
 
     /**
@@ -780,13 +688,20 @@ final class FeedCardColorSampler {
     private static void applyCardBackgroundColours(boolean dynamicColors) {
         int kept = 0;
         for (int i = 0, count = cardBackgrounds.size(); i < count; i++) {
-            WeakReference<Drawable> reference = cardBackgrounds.get(i);
+            MountedBackground reference = cardBackgrounds.get(i);
             Drawable drawable = reference.get();
             if (drawable == null) {
                 continue;
             }
 
-            applyCardBackgroundColour(drawable, dynamicColors);
+            CardState state = getMountedCardState(drawable, dynamicColors);
+            if (reference.apply(drawable, state)) {
+                // Native shapes do not invalidate their drawing host in setColorFilter().
+                drawable.invalidateSelf();
+            }
+            if (state == null) {
+                continue;
+            }
             if (kept != i) {
                 cardBackgrounds.set(kept, reference);
             }
@@ -798,49 +713,43 @@ final class FeedCardColorSampler {
         }
     }
 
-    private static void applyCardBackgroundColour(Drawable drawable, boolean dynamicColors) {
+    @Nullable
+    private static CardState getMountedCardState(Drawable drawable, boolean dynamicColors) {
+        if (!dynamicColors) {
+            return null;
+        }
         final View host = getDrawableView(drawable);
         final View item = host == null ? null : FeedCardLayoutPatch.findCardListItem(host);
-        final CardState state = item == null ? null : cardStates.get(item);
-        applyCardBackgroundColour(drawable, state, dynamicColors);
-    }
-
-    private static void applyCardBackgroundColour(Drawable drawable, @Nullable CardState state, boolean dynamicColors) {
-        final int color = dynamicColors && state != null ? state.sampledColour : NO_TINT;
-
-        if (color == NO_TINT) {
-            // The card has no tint now, so the app paints its surface in the color of the card, which it
-            // looks up again when the bounds of the drawable are set.
-            if (clearCardFilter(drawable) && state != null) {
-                restartBackground(drawable);
-                state.dirty = true;
-            }
-            return;
+        if (item == null || !isCardItem(item)) {
+            return null;
         }
 
-        final PorterDuffColorFilter filter = getTintFilter(color);
-        if (drawable.getColorFilter() == filter) {
-            return;
-        }
-
-        drawable.setColorFilter(filter);
-        // The app keeps the color of the drawable from the card that it was mounted in, and the drawable is
-        // moved between the cards with the same bounds, so the color is looked up again for this card.
-        restartBackground(drawable);
-        state.dirty = true;
+        CardState state = getCardState(item);
+        return isMetadataSurface(item, host, drawable, state) ? state : null;
     }
 
-    private static void addCardBackground(Drawable drawable) {
+    @Nullable
+    private static MountedBackground findMountedBackground(Drawable drawable) {
         for (int i = 0, count = cardBackgrounds.size(); i < count; i++) {
-            if (cardBackgrounds.get(i).get() == drawable) {
-                return;
+            MountedBackground background = cardBackgrounds.get(i);
+            if (background.get() == drawable) {
+                return background;
             }
         }
+        return null;
+    }
 
+    private static MountedBackground trackMountedBackground(Drawable drawable) {
         if (cardBackgrounds.size() >= MAXIMUM_CARD_BACKGROUNDS) {
-            cardBackgrounds.remove(0);
+            MountedBackground evicted = cardBackgrounds.remove(0);
+            Drawable previous = evicted.get();
+            if (previous != null && evicted.apply(previous, null)) {
+                previous.invalidateSelf();
+            }
         }
-        cardBackgrounds.add(new WeakReference<>(drawable));
+        MountedBackground tracked = new MountedBackground(drawable);
+        cardBackgrounds.add(tracked);
+        return tracked;
     }
 
     /**
@@ -887,28 +796,26 @@ final class FeedCardColorSampler {
     }
 
     /**
-     * @return The bounds of the drawable of the view, relative to the item, or null if the view is not
-     *         inside the item.
+     * Checks mounted bounds in the same item coordinates as the preview. A native shape that
+     * overlaps the metadata is safe to recolor without changing where it is opaque.
      */
-    @Nullable
-    private static Rect getCardBounds(View item, View drawableView, Drawable drawable) {
-        // Mounted wrappers translate their content from local bounds into the host's coordinates.
+    private static boolean isMetadataSurface(View item, View drawableView, Drawable drawable, CardState state) {
+        // Litho wrappers can translate equal-sized child bounds from local to host coordinates.
+        Rect bounds = drawable.getBounds();
+        int width = bounds.width();
+        int height = bounds.height();
         Drawable.Callback callback = drawable.getCallback();
         while (callback instanceof Drawable parent) {
-            drawable = parent;
-            callback = drawable.getCallback();
-        }
-        Rect bounds = drawable.copyBounds();
-        View view = drawableView;
-        while (view != item) {
-            ViewParent parent = view.getParent();
-            if (!(parent instanceof View parentView)) {
-                return null;
+            bounds = parent.getBounds();
+            if (bounds.width() != width || bounds.height() != height) {
+                // The paint is not the whole mounted surface (for example, an inset layer).
+                return false;
             }
-            bounds.offset(view.getLeft(), view.getTop());
-            view = parentView;
+            callback = parent.getCallback();
         }
-        return bounds;
+        int top = getTopInItem(drawableView, item);
+        return FeedCardFill.isMetadataSurface(bounds.width(), bounds.top + top, bounds.bottom + top,
+                getCardContentWidth(item), item.getHeight(), getVideoZoneBottom(item, state));
     }
 
     /**
@@ -1292,22 +1199,6 @@ final class FeedCardColorSampler {
     }
 
     /**
-     * The app resolves the color of a background only when its bounds are set, so the bounds are set
-     * again to make it look up the color of the card that it's attached to.
-     */
-    private static void restartBackground(Drawable drawable) {
-        Rect bounds = drawable.copyBounds();
-        if (bounds.isEmpty()) {
-            drawable.invalidateSelf();
-            return;
-        }
-
-        drawable.setBounds(0, 0, 0, 0);
-        drawable.setBounds(bounds);
-        drawable.invalidateSelf();
-    }
-
-    /**
      * The tint of a thumbnail depends on the theme, so every card samples its thumbnail again.
      */
     private static void resetSamples() {
@@ -1410,17 +1301,6 @@ final class FeedCardColorSampler {
                 + (imageView == null ? "its view is gone" : describeView(imageView)));
     }
 
-    private static void logRejectedSurface(@Nullable View drawableView, Drawable drawable, String reason) {
-        if (surfaceLogs >= MAXIMUM_SURFACE_LOGS) {
-            return;
-        }
-        surfaceLogs++;
-
-        Logger.printDebug(() -> "Card colors: " + drawable.getClass().getSimpleName() + " of "
-                + (drawableView == null ? "an unknown view" : describeView(drawableView))
-                + " is not the surface of a card: " + reason);
-    }
-
     private static void logSharedImage(ImageView imageView, Drawable image) {
         if (sharedImageLogs >= MAXIMUM_SHARED_IMAGE_LOGS) {
             return;
@@ -1504,6 +1384,47 @@ final class FeedCardColorSampler {
                 "Card colors: sampled %d thumbnails in %d ms", sampledThisFrame, duration / 1_000_000));
     }
 
+    private static final class MountedBackground extends WeakReference<Drawable> {
+        private ColorFilter originalFilter;
+        private PorterDuffColorFilter appliedFilter;
+
+        MountedBackground(Drawable drawable) {
+            super(drawable);
+        }
+
+        boolean apply(Drawable drawable, @Nullable CardState state) {
+            ColorFilter current = drawable.getColorFilter();
+            if (current != appliedFilter) {
+                // Respect a filter the app set since this drawable was tinted.
+                if (!isOurFilter(current)) {
+                    originalFilter = current;
+                }
+                appliedFilter = null;
+            }
+
+            int color = state == null ? NO_TINT : state.sampledColour;
+            if (color == NO_TINT) {
+                if (appliedFilter == null) {
+                    return false;
+                }
+                drawable.setColorFilter(originalFilter);
+                originalFilter = null;
+                appliedFilter = null;
+                return true;
+            }
+
+            state.bandColour = color;
+            PorterDuffColorFilter filter = getTintFilter(color);
+            appliedFilter = filter;
+            if (current == filter) {
+                return false;
+            }
+            drawable.setColorFilter(filter);
+            state.dirty = true;
+            return true;
+        }
+    }
+
     /**
      * The color of the card that a view of the feed shows, with the surfaces that it was applied to.
      */
@@ -1522,8 +1443,7 @@ final class FeedCardColorSampler {
          */
         private int sampledColour = NO_TINT;
         /**
-         * Color that the color hook returned for the last background of the card that was looked up,
-         * which is logged to compare it with the tint that was applied.
+         * Most recent color applied to a mounted background of the card, for diagnostics.
          */
         private int bandColour = NO_TINT;
         @Nullable

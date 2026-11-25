@@ -27,7 +27,6 @@ import com.android.tools.smali.dexlib2.iface.value.StringEncodedValue
 import com.feurstagram.patches.shared.Constants.COMPATIBILITY_INSTAGRAM
 import com.feurstagram.patches.shared.Constants.EXTENSION
 import com.feurstagram.patches.shared.freeLocals
-import com.feurstagram.patches.shared.hasStringEndingWith
 
 private const val DOWNLOAD_CLASS = "Lcom/feurstagram/extension/Download;"
 private const val MEDIA_OPTION = "Lcom/instagram/feed/media/mediaoption/MediaOption\$Option;"
@@ -58,7 +57,8 @@ private fun Method.addsNativeDownloadRow(): Boolean {
 // method that holds that call, which is why it is matched by it.
 internal object PostOptionsBuilderFingerprint : Fingerprint(
     returnType = "Ljava/lang/Object;",
-    custom = { method, _ -> AccessFlags.STATIC.isSet(method.accessFlags) && method.addsNativeDownloadRow() },
+    // Not required static: some 456 builds hold it in a lambda's instance invoke().
+    custom = { method, _ -> method.addsNativeDownloadRow() },
 )
 
 // Click handler of the feed post overflow menu: MediaOptionsOverflowHelper.onOptionClicked(Option).
@@ -101,17 +101,38 @@ internal object ProfileAvatarLongPressFingerprint : Fingerprint(
     },
 )
 
-// Reels viewer menu: the click handler every row of every variant calls with its option.
+// Reels viewer menu: the click handler every row of every variant calls with its option. It is
+// the dispatcher a small pre-handler delegates to (455 A0g→A0h, 456 A0i→A0j); 456 dropped the
+// purge-log marker that named it, so that delegation is the anchor.
 internal object ClipsOptionSelectedFingerprint : Fingerprint(
     returnType = "V",
     parameters = listOf(MEDIA_OPTION),
-    custom = { method, _ -> method.hasStringEndingWith("ClipsOrganicMoreOptionsHelper_handleOptionSelected") },
+    custom = { method, classDef ->
+        classDef.originalName() == "ClipsOrganicMoreOptionsHelper" && !AccessFlags.PRIVATE.isSet(method.accessFlags) &&
+            classDef.methods.any { caller ->
+                caller.name != method.name && caller.returnType == "V" &&
+                    !AccessFlags.STATIC.isSet(caller.accessFlags) &&
+                    caller.parameterTypes.map(CharSequence::toString) == listOf(MEDIA_OPTION) &&
+                    caller.implementation?.instructions?.any {
+                        (it as? ReferenceInstruction)?.reference.let { r ->
+                            r is MethodReference && r.definingClass == method.definingClass && r.name == method.name
+                        }
+                    } == true
+            }
+    },
 )
 
-// Reels viewer: opens any of its menu sheets with (anchor view, sheet builder, ...).
+// Reels viewer: opens any of its menu sheets with (anchor view, sheet builder, ...). The
+// helper's original name and that shape stand in for 456's missing purge-log marker.
 internal object ClipsSheetLaunchFingerprint : Fingerprint(
     returnType = "V",
-    custom = { method, _ -> method.hasStringEndingWith("ClipsOrganicMoreOptionsHelper_launchBottomSheet") },
+    custom = { method, classDef ->
+        classDef.originalName() == "ClipsOrganicMoreOptionsHelper" && !AccessFlags.STATIC.isSet(method.accessFlags) &&
+            method.parameterTypes.map(CharSequence::toString).let {
+                it.size == 7 && it[0] == "Landroid/view/View;" && it[3] == "Ljava/lang/Float;" &&
+                    it[4] == "Ljava/lang/Float;" && it[6] == "Z"
+            }
+    },
 )
 
 internal object LabelResFingerprint : Fingerprint(
@@ -153,26 +174,40 @@ val downloadPatch = bytecodePatch(
             val insns = instructions.toList()
             // Since 455 the builder is a coroutine dispatcher whose per-row cases only run
             // when Instagram itself adds that row (its Download row is own-posts-only), so
-            // the anchor is the menu list's single creation: right after its constructor
-            // the creator and the fresh list are both live and no rows exist yet.
+            // the anchor is the menu list's single creation, before the first row is added:
+            // right after it the creator and the fresh list are both live and no rows exist.
             val creatorType = insns.firstNotNullOfOrNull {
                 ((it as? ReferenceInstruction)?.reference as? MethodReference)
                     ?.takeIf { r -> r.isRowAdder() }?.parameterTypes?.get(2)
             } ?: throw PatchException("Post options builder has no row adder")
-            val newListAt = insns.indexOfFirst {
-                it.opcode == Opcode.NEW_INSTANCE &&
-                    ((it as? ReferenceInstruction)?.reference as? TypeReference)?.type == "Ljava/util/ArrayList;"
+            val firstRow = insns.indexOfFirst {
+                ((it as? ReferenceInstruction)?.reference as? MethodReference)?.isRowAdder() == true
             }
-            if (newListAt < 0) throw PatchException("Post options list creation not found")
-            val listReg = (insns[newListAt] as OneRegisterInstruction).registerA
-            val initAt = ((newListAt + 1)..<minOf(newListAt + 5, insns.size)).firstOrNull {
-                val r = (insns[it] as? ReferenceInstruction)?.reference as? MethodReference
-                insns[it].opcode == Opcode.INVOKE_DIRECT &&
-                    r?.definingClass == "Ljava/util/ArrayList;" && r.parameterTypes.isEmpty()
-            } ?: throw PatchException("Post options list constructor not found")
+            // 455 makes the list with `new ArrayList` + <init>; 456 gets it from a static
+            // factory. initAt is where its register is defined; the hook goes right behind it.
+            val (listReg, initAt) = insns.indices.firstNotNullOfOrNull { i ->
+                val insn = insns[i]
+                val ref = (insn as? ReferenceInstruction)?.reference
+                when {
+                    i >= firstRow -> null
+                    insn.opcode == Opcode.NEW_INSTANCE && (ref as? TypeReference)?.type == "Ljava/util/ArrayList;" -> {
+                        val init = ((i + 1)..<minOf(i + 5, insns.size)).firstOrNull {
+                            val r = (insns[it] as? ReferenceInstruction)?.reference as? MethodReference
+                            insns[it].opcode == Opcode.INVOKE_DIRECT &&
+                                r?.definingClass == "Ljava/util/ArrayList;" && r.parameterTypes.isEmpty()
+                        } ?: throw PatchException("Post options list constructor not found")
+                        (insn as OneRegisterInstruction).registerA to init
+                    }
+                    insn.opcode == Opcode.INVOKE_STATIC && (ref as? MethodReference)?.let {
+                        it.parameterTypes.isEmpty() && it.returnType == "Ljava/util/ArrayList;"
+                    } == true && insns.getOrNull(i + 1)?.opcode == Opcode.MOVE_RESULT_OBJECT ->
+                        (insns[i + 1] as OneRegisterInstruction).registerA to i + 1
+                    else -> null
+                }
+            } ?: throw PatchException("Post options list creation not found")
             // The creator's register: a creator-typed field read loads it into its
             // destination. Take the nearest read before the list is built whose register
-            // survives to the constructor (where the injection goes); else the first read
+            // survives to where the list is built (where the injection goes); else the first read
             // after it, with the injection right behind that read.
             val creatorReads = insns.withIndex().mapNotNull { (index, insn) ->
                 if (insn.opcode == Opcode.IGET_OBJECT &&

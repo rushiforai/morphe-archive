@@ -1,6 +1,6 @@
 # Solid Explorer
 
-Package `pl.solidexplorer2`, supported target `3.6.4` (versionCode `306041`, APKM).
+Package `pl.solidexplorer2`, supported target `3.6.5` (versionCode `306051`, APKM).
 Source: [`patches/src/main/kotlin/dev/hyzor/patches/solidexplorer/`](../../patches/src/main/kotlin/dev/hyzor/patches/solidexplorer/).
 
 | Patch | Default | What it does |
@@ -11,13 +11,18 @@ Source: [`patches/src/main/kotlin/dev/hyzor/patches/solidexplorer/`](../../patch
 
 This is a port of the Solid Explorer 3.6.1 "Enable Pro" patch in
 [hoo-dles/morphe-patches](https://github.com/hoo-dles/morphe-patches). The licensing code did
-not change between 3.6.1 and 3.6.4: `LicenseDetails`, `LicenseState` and `adsEnabled()` are
+not change between 3.6.1 and 3.6.5: `LicenseDetails`, `LicenseState` and `adsEnabled()` are
 the same classes with the same shapes, so the hook itself is unchanged. What is new here is
 the way the patch finds its target — see below.
 
 The tested artifact is the APKMirror APKM (`base.apk` plus `arm64-v8a`, `armeabi-v7a`, `x86`
-and `x86_64` splits, versionCode `306041`). All of the patched code is in `base.apk`; the
+and `x86_64` splits, versionCode `306051`). All of the patched code is in `base.apk`; the
 splits only carry native libraries and are merged through unchanged.
+
+3.6.5 is a minor bump and touches nothing the patch relies on: `LicenseDetails` is the same
+class with the same five-field record, the same five-argument constructor, the same single
+`iput-object` of the `LicenseState` field, and the same `adsEnabled()` body. Both fingerprints
+resolve unchanged, so only the target moved to `3.6.5` / `306051`.
 
 ## How the app decides you are Pro
 
@@ -66,7 +71,7 @@ The upstream patch hard-codes the field name (`a`) and matches the constructor b
 - the state field is single-letter and R8 is free to rename it, so the patch reads the name
   from the constructor's own `iput-object` of a `LicenseState` instead, and fails with an
   actionable `PatchException` if there is not exactly one;
-- 3.6.4 has two constructors in the class — the real five-argument one and the Kotlin
+- 3.6.5 has two constructors in the class — the real five-argument one and the Kotlin
   synthetic one for default arguments — so the fingerprint pins the five-argument parameter
   list and matches exactly once (confirmed by `--validate`).
 
@@ -81,7 +86,7 @@ Static checks:
   (`LicenseDetails.<init>` with the five-argument signature and `adsEnabled()Z`).
 - Morphe Desktop applies the bundle to the stock APKM with `--validate --exclusive`:
   the fingerprint matches exactly once, the patch is the only one applied,
-  and it changes 1 of the 40,086 classes.
+  and it changes 1 of the 40,224 classes.
 - The patched DEX was disassembled. The constructor now ends with:
 
   ```smali
@@ -95,20 +100,21 @@ Static checks:
 
   The patched class is stripped from its original DEX and written to a new one, so there is
   no duplicate definition.
-- The signed output still declares `pl.solidexplorer2` `3.6.4` (`306041`).
+- The signed output still declares `pl.solidexplorer2` `3.6.5` (`306051`).
 
-Device run on an Android 16 x86_64 emulator (`sdk_gphone64_x86_64`, API 36). Stock 3.6.4 was
+Device run on an Android 16 x86_64 emulator (`sdk_gphone64_x86_64`, API 36). Stock 3.6.5 was
 installed from `base.apk` + `split_config.x86_64.apk`, onboarded, and compared against the
 patched build after the same onboarding:
 
-| Check | Stock 3.6.4 | Patched 3.6.4 |
+| Check | Stock 3.6.5 | Patched 3.6.5 |
 |---|---|---|
 | Drawer header | no Pro badge | **Pro** badge next to the app name |
 | Settings → Icon set → tap **Paper** (a Pro set) | opens the Pro paywall ("Ad-Free Experience", "Strong File Encryption", …) | applies the set (green check), no paywall |
 
-The patched build cold-started and stayed up with no `FATAL EXCEPTION` in logcat. Play
-Billing and Firebase auth are unavailable on the emulator, so the licence resolves to the
-free/unresolved path there — which is exactly the path the hook rewrites.
+The patched build cold-started, the Pro badge was still there on the next launch, and there
+was no `FATAL EXCEPTION` in logcat. The file browser showed no ad banner. Play Billing and
+Firebase auth are unavailable on the emulator, so the licence resolves to the free/unresolved
+path there — which is exactly the path the hook rewrites.
 
 Not exercised: a real purchase or `SUBSCRIBER` account (the subscriber branch is deliberately
 left alone), the legacy `LEGACY_PREMIUM` path, folder encryption and backup sync (the

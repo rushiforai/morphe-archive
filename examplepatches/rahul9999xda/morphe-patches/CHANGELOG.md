@@ -1,12 +1,12 @@
-## [1.18.0](https://github.com/rahul9999xda/morphe-patches/compare/v1.17.0...v1.18.0) (2026-11-08)
+## [1.19.0](https://github.com/rahul9999xda/morphe-patches/compare/v1.18.0...v1.19.0) (2026-11-24)
 ### ✨ New Features
 
-* **telegram:** add unified Morphe settings and forwarding automation ([85187a4](https://github.com/rahul9999xda/morphe-patches/commit/85187a4ec48cf51fc15920b4a5ed00eb65367b80))
+* **telegram:** Update patches & compatibility as per new versions 13.3.1 ([d200009](https://github.com/rahul9999xda/morphe-patches/commit/d2000093c20e6fb0cd377380512fea314fd075aa))
 
-## [1.18.0-dev2](https://github.com/rahul9999xda/morphe-patches/compare/v1.18.0-dev1...v1.18.0-dev2) (2026-11-08)
+## [1.19.0-dev1](https://github.com/rahul9999xda/morphe-patches/compare/v1.18.0...v1.19.0-dev1) (2026-11-24)
 ### ✨ New Features
 
-* **telegram:** add unified Morphe settings and forwarding automation ([85187a4](https://github.com/rahul9999xda/morphe-patches/commit/85187a4ec48cf51fc15920b4a5ed00eb65367b80))
+* **telegram:** Update patches & compatibility as per new versions 13.3.1 ([d200009](https://github.com/rahul9999xda/morphe-patches/commit/d2000093c20e6fb0cd377380512fea314fd075aa))
 
 ## [1.17.0](https://github.com/rahul9999xda/morphe-patches/compare/v1.16.0...v1.17.0) (2026-10-28)
 ### 🐛 Bug Fixes

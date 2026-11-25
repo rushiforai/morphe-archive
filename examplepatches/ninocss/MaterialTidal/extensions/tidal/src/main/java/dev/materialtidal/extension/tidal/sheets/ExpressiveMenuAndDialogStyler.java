@@ -386,8 +386,8 @@ final class ExpressiveMenuAndDialogStyler {
                 mask
         );
         itemView.setBackground(ripple);
-        itemView.setMinimumHeight(dp(density, 46f));
-        itemView.setPaddingRelative(dp(density, 10f), dp(density, 6f), dp(density, 10f), dp(density, 6f));
+        itemView.setMinimumHeight(dp(density, 52f));
+        itemView.setPaddingRelative(dp(density, 12f), dp(density, 8f), dp(density, 14f), dp(density, 8f));
 
         View divider = idGroupDivider != 0 ? itemView.findViewById(idGroupDivider) : null;
         if (divider != null) {
@@ -432,6 +432,7 @@ final class ExpressiveMenuAndDialogStyler {
                     ? MaterialYouColorEngine.withAlpha(onSurfaceVar, 0x66)
                     : (checked ? primary : onSurface);
             tv.setTextColor(color);
+            tv.setTextSize(TypedValue.COMPLEX_UNIT_SP, 16f);
             tv.setTypeface(Typeface.create("sans-serif-medium", checked ? Typeface.BOLD : Typeface.NORMAL));
             return;
         }

@@ -242,6 +242,23 @@ internal object ProfileTabsRowLambdaFingerprint : Fingerprint(
     ),
 )
 
+internal object ProfilePageThemeLambdaFingerprint : Fingerprint(
+    name = "invoke",
+    parameters = listOf("Ljava/lang/Object;", "Ljava/lang/Object;"),
+    returnType = "Ljava/lang/Object;",
+    filters = listOf(
+        string("com.tidal.android.feature.profile.ui.v2.ProfilePageTheme.<anonymous> (ProfilePageTheme.kt:29)"),
+    ),
+)
+
+internal object ProfileSecondaryActionFingerprint : Fingerprint(
+    definingClass = PROFILE_HEADER_VIEW_KT_TYPE,
+    returnType = "V",
+    filters = listOf(
+        string("com.tidal.android.feature.profile.ui.v2.composables.SecondaryAction (ProfileHeaderView.kt:644)"),
+    ),
+)
+
 // ---- Compose Collection Screen (MyCollectionScreenKt) ----
 
 private const val MY_COLLECTION_SCREEN_KT_TYPE =

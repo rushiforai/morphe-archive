@@ -13,6 +13,7 @@ import dev.jason.gboardpatches.extension.clipboardcontentlimit.GboardClipboardCo
 import dev.jason.gboardpatches.extension.settings.GboardPatchesFeatureAvailability;
 import dev.jason.gboardpatches.extension.settings.GboardPatchesIcons;
 import dev.jason.gboardpatches.extension.settings.GboardPatchesSettingsContract;
+import dev.jason.gboardpatches.extension.settings.GboardNewSettingsHighlight;
 import dev.jason.gboardpatches.extension.settings.GboardSettingsText;
 
 public final class GboardClipboardSettingsFeature
@@ -138,6 +139,32 @@ public final class GboardClipboardSettingsFeature
                                         GboardClipboardSettings.PREF_KEY_CLIPBOARD_SAMSUNG_MODE,
                                         value)
                                 .apply()));
+                GboardPatchesSettingsContract.ToggleRow clearAllRow =
+                        new GboardPatchesSettingsContract.ToggleRow(
+                                GboardSettingsText.get(
+                                        context,
+                                        R.string.gboard_patches_clipboard_clear_all_button_title),
+                                GboardSettingsText.get(
+                                        context,
+                                        R.string.gboard_patches_clipboard_clear_all_button_summary),
+                                clipboardEnabled,
+                                GboardClipboardSettings.readClipboardClearAllButton(preferences),
+                                value -> {
+                                    GboardNewSettingsHighlight.markItemViewed(
+                                            context,
+                                            GboardNewSettingsHighlight.ITEM_CLIPBOARD_CLEAR_ALL);
+                                    preferences.edit()
+                                            .putBoolean(
+                                                    GboardClipboardSettings
+                                                            .PREF_KEY_CLIPBOARD_CLEAR_ALL_BUTTON,
+                                                    value)
+                                            .apply();
+                                });
+                if (GboardNewSettingsHighlight.isItemHighlighted(
+                        context, GboardNewSettingsHighlight.ITEM_CLIPBOARD_CLEAR_ALL)) {
+                    clearAllRow.setDecoration(new GboardPatchesSettingsContract.RowDecoration().highlightDot(true));
+                }
+                generalRows.add(clearAllRow);
                 generalRows.add(new GboardPatchesSettingsContract.ToggleRow(
                         GboardSettingsText.get(
                                 context,

@@ -2928,7 +2928,7 @@ public class BadDexFixture {
             new SaveBridgeShape("quotedPost", OBJECT, SHARE_INFO, Opcode.INVOKE_INTERFACE, method(SHARE_INFO, "quoted", FEATURE_MEDIA)));
 
     private static final ImmutableMethodReference TILE_LAUNCH = method("LX/Launcher;", "A04", "Z", "Landroid/content/Context;", "Landroid/content/Intent;");
-    private static final ImmutableMethodReference OPEN_REFUSED_TILE = method("Lapp/morphe/extension/hushthreads/coexist/ShareTiles;", "openRefused", "V",
+    private static final ImmutableMethodReference OPEN_REFUSED_TILE = method("Lapp/morphe/extension/hushthreads/coexist/ShareTiles;", "openRefused", "Z",
             "Z", "Landroid/content/Context;", "Landroid/content/Intent;");
     private static final String TILE_COMPOSER_EXTRA = "DirectPrivateStoryRecipientFragment.DIRECT_SHOULD_SHOW_MESSAGE_COMPOSER";
 

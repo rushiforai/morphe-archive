@@ -51,9 +51,9 @@ internal class VideoFitPlan(val constructor: MutableMethod, val at: Int, val tal
 private class TallBranch(val ratioAt: Int, val at: Int, val tall: Int, val flag: Int)
 
 /**
- * Tumblr's full-screen player page (`com.tumblr.videohub.b$c` in 47.0.0.108) compares each video's
+ * Tumblr's full-screen player page (`com.tumblr.videohub.b$c` in 47.3.0.110) compares each video's
  * width over height with 0.8. Below it the page skips the blurred poster and tells the player to
- * use ExoPlayer's fixed-height mode (`ch8.i` calls `PlayerView.D(2)`), which cuts the sides off any
+ * use ExoPlayer's fixed-height mode (`ng8.i` calls `PlayerView.D(2)`), which cuts the sides off any
  * video wider than the screen's own shape. The answer for a tall video goes through the extension
  * on its way into the flag, so with the switch on the page takes the path every other video gets:
  * ExoPlayer's default fit, over the poster.

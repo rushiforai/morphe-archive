@@ -15,6 +15,19 @@ tasks.named<Sync>("syncExtension") {
     }
 }
 
+// The optional Downloads extension compiles against the same two ABI classes we ship here.
+val offlinePlaybackAbi by configurations.creating {
+    isCanBeConsumed = true
+    isCanBeResolved = false
+}
+val offlinePlaybackAbiJar by tasks.registering(Jar::class) {
+    archiveClassifier.set("offline-playback-abi")
+    from(tasks.named<JavaCompile>("compileReleaseJavaWithJavac").flatMap { it.destinationDirectory }) {
+        include("**/OfflinePlaybackEngine.class", "**/OfflinePlaybackEngine\$Listener.class")
+    }
+}
+artifacts.add(offlinePlaybackAbi.name, offlinePlaybackAbiJar)
+
 android {
     namespace = "app.morphe.extension"
     compileSdk = 35

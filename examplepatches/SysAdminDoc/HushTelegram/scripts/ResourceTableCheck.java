@@ -2,13 +2,13 @@ import com.reandroid.arsc.chunk.PackageBlock;
 import com.reandroid.arsc.chunk.TableBlock;
 import com.reandroid.arsc.container.SpecTypePair;
 import com.reandroid.arsc.model.ResourceEntry;
+import com.reandroid.arsc.value.DataType;
 import com.reandroid.arsc.value.Entry;
 import com.reandroid.arsc.value.ResConfig;
 import com.reandroid.arsc.value.ResTableMapEntry;
 import com.reandroid.arsc.value.ResValueMap;
 import com.reandroid.arsc.value.TableEntry;
 import com.reandroid.arsc.value.ValueItem;
-import com.reandroid.arsc.value.ValueType;
 
 import java.io.BufferedInputStream;
 import java.io.File;
@@ -109,11 +109,11 @@ public final class ResourceTableCheck {
 
     private void run(TableBlock stock, ZipFile stockZip, TableBlock patched, ZipFile patchedZip) {
         Map<Integer, PackageBlock> patchedPackages = new LinkedHashMap<>();
-        for (PackageBlock block : patched.listPackages()) {
+        for (PackageBlock block : patched) {
             patchedPackages.put(block.getId(), block);
             for (ResourceEntry resource : resources(block)) patchedById.put(resource.getResourceId(), resource);
         }
-        for (PackageBlock block : stock.listPackages()) {
+        for (PackageBlock block : stock) {
             for (ResourceEntry resource : resources(block)) {
                 stockNames.put(resource.getResourceId(), label(resource));
                 stockById.put(resource.getResourceId(), resource);
@@ -121,7 +121,7 @@ public final class ResourceTableCheck {
         }
 
         Set<Integer> seen = new HashSet<>();
-        for (PackageBlock stockPackage : stock.listPackages()) {
+        for (PackageBlock stockPackage : stock) {
             PackageBlock patchedPackage = patchedPackages.get(stockPackage.getId());
             if (patchedPackage == null) {
                 failures.add(String.format(Locale.ROOT, "package 0x%02x %s: not in the patched table",
@@ -151,7 +151,7 @@ public final class ResourceTableCheck {
                 compareValues(resource, match, patched, patchedPackages.keySet());
             }
         }
-        for (PackageBlock block : patched.listPackages()) {
+        for (PackageBlock block : patched) {
             for (ResourceEntry resource : resources(block)) {
                 patchedResources++;
                 if (seen.contains(resource.getResourceId())) continue;
@@ -253,7 +253,7 @@ public final class ResourceTableCheck {
 
     /** Every file a patched value names is in the patched archive, unless the stock one lacked it too. */
     private void checkFiles(TableBlock stock, ZipFile stockZip, TableBlock patched, ZipFile patchedZip) {
-        for (PackageBlock block : patched.listPackages()) {
+        for (PackageBlock block : patched) {
             for (ResourceEntry resource : resources(block)) {
                 ResourceEntry original = stockById.get(resource.getResourceId());
                 for (Entry entry : values(resource)) {
@@ -305,9 +305,9 @@ public final class ResourceTableCheck {
 
     private void checkReference(String where, ValueItem value, TableBlock patched, Set<Integer> packages) {
         if (value == null) return;
-        ValueType type = value.getValueType();
-        if (type == ValueType.REFERENCE || type == ValueType.DYNAMIC_REFERENCE
-                || type == ValueType.ATTRIBUTE || type == ValueType.DYNAMIC_ATTRIBUTE) {
+        DataType type = value.getDataType();
+        if (DataType.REFERENCE.equals(type) || DataType.DYNAMIC_REFERENCE.equals(type)
+                || DataType.ATTRIBUTE.equals(type) || DataType.DYNAMIC_ATTRIBUTE.equals(type)) {
             checkId(where, value.getData(), patched, packages);
         }
     }
@@ -349,29 +349,25 @@ public final class ResourceTableCheck {
     /** A value as text that does not depend on where the rebuild put it in a string pool. */
     private static String value(ValueItem value, String resourceType) {
         if (value == null) return "(none)";
-        ValueType type = value.getValueType();
+        // ARSCLib's DataType is a class of constants rather than an enum, so this can't switch on it.
+        DataType type = value.getDataType();
         int data = value.getData();
-        if (type == null) return String.format(Locale.ROOT, "type 0x%02x 0x%08x", value.getType() & 0xff, data);
-        switch (type) {
-            case STRING:
-                String text = value.getValueAsString();
-                if (text == null) return "string (unreadable)";
-                if (resourceType != null && !"string".equals(resourceType) && text.startsWith("res/")) return "file " + text;
-                return "\"" + text.replace("\n", "\\n") + "\"";
-            case REFERENCE:
-            case DYNAMIC_REFERENCE:
-                return reference(data);
-            case ATTRIBUTE:
-            case DYNAMIC_ATTRIBUTE:
-                return String.format(Locale.ROOT, "?0x%08x", data);
-            case COLOR_ARGB8:
-            case COLOR_RGB8:
-            case COLOR_ARGB4:
-            case COLOR_RGB4:
-                return String.format(Locale.ROOT, "#%08x", data);
-            default:
-                return type.name().toLowerCase(Locale.ROOT) + String.format(Locale.ROOT, " 0x%08x", data);
+        if (type == null) return String.format(Locale.ROOT, "type 0x%02x 0x%08x", value.dataType() & 0xff, data);
+        if (DataType.STRING.equals(type)) {
+            String text = value.getDataAsString();
+            if (text == null) return "string (unreadable)";
+            if (resourceType != null && !"string".equals(resourceType) && text.startsWith("res/")) return "file " + text;
+            return "\"" + text.replace("\n", "\\n") + "\"";
         }
+        if (DataType.REFERENCE.equals(type) || DataType.DYNAMIC_REFERENCE.equals(type)) return reference(data);
+        if (DataType.ATTRIBUTE.equals(type) || DataType.DYNAMIC_ATTRIBUTE.equals(type)) {
+            return String.format(Locale.ROOT, "?0x%08x", data);
+        }
+        if (DataType.COLOR_ARGB8.equals(type) || DataType.COLOR_RGB8.equals(type)
+                || DataType.COLOR_ARGB4.equals(type) || DataType.COLOR_RGB4.equals(type)) {
+            return String.format(Locale.ROOT, "#%08x", data);
+        }
+        return type.name().toLowerCase(Locale.ROOT) + String.format(Locale.ROOT, " 0x%08x", data);
     }
 
     private static String filePath(ValueItem value, String resourceType) {

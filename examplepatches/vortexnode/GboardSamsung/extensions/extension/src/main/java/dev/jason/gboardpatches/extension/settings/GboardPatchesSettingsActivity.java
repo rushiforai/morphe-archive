@@ -48,6 +48,10 @@ import android.text.Editable;
 import android.text.InputType;
 import android.text.TextUtils;
 import android.text.TextWatcher;
+import android.text.SpannableStringBuilder;
+import android.text.Spanned;
+import android.text.style.ForegroundColorSpan;
+import android.text.style.RelativeSizeSpan;
 import android.util.Log;
 import android.util.TypedValue;
 import android.view.Gravity;
@@ -70,6 +74,7 @@ import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.ScrollView;
+import android.widget.SeekBar;
 import android.widget.Switch;
 import android.widget.TextView;
 import android.widget.VideoView;
@@ -392,6 +397,7 @@ public final class GboardPatchesSettingsActivity extends Activity
         if (feature == null) {
             return;
         }
+        GboardNewSettingsHighlight.markFeatureViewed(this, feature);
         GboardPatchesSettingsOrchestrator.State<GboardPatchesSettingsContract.Feature> state =
                 settingsOrchestrator.snapshot();
         scrollState.enterFeature(state.getCurrent() == null, currentScrollY());
@@ -816,6 +822,119 @@ public final class GboardPatchesSettingsActivity extends Activity
         } catch (Throwable throwable) {
             Log.w(TAG, "Failed to show positive integer dialog", throwable);
         }
+    }
+
+    @Override
+    public void showSliderDialog(String title, int minValue, int maxValue,
+            int defaultValue, int currentValue, String zeroLabel,
+            GboardPatchesSettingsContract.PositiveIntegerConsumer consumer) {
+        int safeMin = Math.max(0, minValue);
+        int safeMax = Math.max(safeMin + 1, maxValue);
+        int safeDefault = Math.max(safeMin, Math.min(safeMax, defaultValue));
+        int safeCurrent = Math.max(safeMin, Math.min(safeMax, currentValue));
+
+        LinearLayout container = new LinearLayout(this);
+        container.setOrientation(LinearLayout.VERTICAL);
+        container.setPadding(dp(24), dp(16), dp(24), dp(8));
+
+        TextView currentValueView = new TextView(this);
+        currentValueView.setTextColor(palette.textPrimary);
+        currentValueView.setTextSize(TypedValue.COMPLEX_UNIT_SP, 16f);
+        currentValueView.setTypeface(mediumTypeface());
+        currentValueView.setGravity(Gravity.CENTER_HORIZONTAL);
+        currentValueView.setText(formatSliderValue(safeCurrent, zeroLabel));
+        LinearLayout.LayoutParams valueParams = new LinearLayout.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT,
+                ViewGroup.LayoutParams.WRAP_CONTENT);
+        valueParams.bottomMargin = dp(12);
+        container.addView(currentValueView, valueParams);
+
+        LinearLayout sliderRow = new LinearLayout(this);
+        sliderRow.setOrientation(LinearLayout.HORIZONTAL);
+        sliderRow.setGravity(Gravity.CENTER_VERTICAL);
+
+        TextView minLabelView = new TextView(this);
+        minLabelView.setTextColor(palette.textSecondary);
+        minLabelView.setTextSize(TypedValue.COMPLEX_UNIT_SP, 13f);
+        minLabelView.setText(formatSliderValue(safeMin, zeroLabel));
+        sliderRow.addView(minLabelView);
+
+        SeekBar seekBar = new SeekBar(this);
+        seekBar.setMax(safeMax - safeMin);
+        seekBar.setProgress(safeCurrent - safeMin);
+        seekBar.setThumbTintList(ColorStateList.valueOf(palette.textPrimary));
+        seekBar.setProgressTintList(ColorStateList.valueOf(palette.textPrimary));
+        seekBar.setProgressBackgroundTintList(
+                ColorStateList.valueOf(blendAlpha(palette.textSecondary, 0.35f)));
+        LinearLayout.LayoutParams seekParams = new LinearLayout.LayoutParams(
+                0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f);
+        seekParams.setMarginStart(dp(12));
+        seekParams.setMarginEnd(dp(12));
+        sliderRow.addView(seekBar, seekParams);
+
+        TextView maxLabelView = new TextView(this);
+        maxLabelView.setTextColor(palette.textSecondary);
+        maxLabelView.setTextSize(TypedValue.COMPLEX_UNIT_SP, 13f);
+        maxLabelView.setText(Integer.toString(safeMax));
+        sliderRow.addView(maxLabelView);
+
+        container.addView(sliderRow, new LinearLayout.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT,
+                ViewGroup.LayoutParams.WRAP_CONTENT));
+
+        seekBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
+            @Override
+            public void onProgressChanged(SeekBar bar, int progress, boolean fromUser) {
+                currentValueView.setText(formatSliderValue(safeMin + progress, zeroLabel));
+            }
+
+            @Override
+            public void onStartTrackingTouch(SeekBar bar) {
+            }
+
+            @Override
+            public void onStopTrackingTouch(SeekBar bar) {
+            }
+        });
+
+        AlertDialog dialog = new AlertDialog.Builder(this)
+                .setTitle(title)
+                .setView(container)
+                .setNeutralButton(text(R.string.gboard_patches_dialog_reset), null)
+                .setNegativeButton(text(R.string.gboard_patches_dialog_cancel), null)
+                .setPositiveButton(android.R.string.ok, null)
+                .create();
+        dialog.setOnShowListener(ignored -> {
+            tintDialogButtons(dialog);
+            dialog.getButton(AlertDialog.BUTTON_NEUTRAL).setOnClickListener(view ->
+                    seekBar.setProgress(safeDefault - safeMin));
+            dialog.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener(view -> {
+                int selected = safeMin + seekBar.getProgress();
+                try {
+                    if (consumer != null) {
+                        consumer.accept(selected);
+                    }
+                    dialog.dismiss();
+                    renderCurrentScreenSafely();
+                } catch (Throwable throwable) {
+                    Log.w(TAG, "Failed to persist slider setting", throwable);
+                }
+            });
+        });
+        dialog.setOnDismissListener(ignored -> onManagedDialogDismissed());
+        try {
+            dialog.show();
+            onManagedDialogShown();
+        } catch (Throwable throwable) {
+            Log.w(TAG, "Failed to show slider dialog", throwable);
+        }
+    }
+
+    private static String formatSliderValue(int value, String zeroLabel) {
+        if (value <= 0 && zeroLabel != null && !zeroLabel.isEmpty()) {
+            return zeroLabel;
+        }
+        return Integer.toString(value);
     }
 
     @Override
@@ -3418,7 +3537,8 @@ public final class GboardPatchesSettingsActivity extends Activity
                         "Failed to resolve patches settings features",
                         throwable);
             }
-            featuresInitialized = true;
+            GboardNewSettingsHighlight.ensureVersionFirstSeenRecorded(this);
+        featuresInitialized = true;
         }
     }
 
@@ -4075,9 +4195,17 @@ public final class GboardPatchesSettingsActivity extends Activity
                             feature.getEntrySummary(),
                             true,
                             () -> feature.openRootEntry(host));
-            if (feature.getEntryIcon() != GboardPatchesIcons.NONE) {
-                navigationRow.setDecoration(new GboardPatchesSettingsContract.RowDecoration()
-                        .leadingIcon(feature.getEntryIcon(), feature.getEntryTone()));
+            boolean highlighted = GboardNewSettingsHighlight.isFeatureHighlighted(context, feature);
+            if (feature.getEntryIcon() != GboardPatchesIcons.NONE || highlighted) {
+                GboardPatchesSettingsContract.RowDecoration decoration =
+                        new GboardPatchesSettingsContract.RowDecoration();
+                if (feature.getEntryIcon() != GboardPatchesIcons.NONE) {
+                    decoration.leadingIcon(feature.getEntryIcon(), feature.getEntryTone());
+                }
+                if (highlighted) {
+                    decoration.highlightDot(true);
+                }
+                navigationRow.setDecoration(decoration);
             }
             featureRows.add(navigationRow);
         }
@@ -4292,7 +4420,7 @@ public final class GboardPatchesSettingsActivity extends Activity
         LinearLayout row = buildBaseRow();
         addLeadingIcon(row, rowModel);
         LinearLayout textColumn = buildRowTextColumn(true);
-        TextView titleView = buildRowTitle(rowModel.getTitle());
+        TextView titleView = buildRowTitle(rowModel.getTitle(), rowModel.getDecoration());
         TextView summaryView = buildRowSummary(rowModel.getSummary(), false);
         textColumn.addView(titleView);
         textColumn.addView(summaryView);
@@ -4323,7 +4451,7 @@ public final class GboardPatchesSettingsActivity extends Activity
         LinearLayout row = buildBaseRow();
         addLeadingIcon(row, rowModel);
         LinearLayout textColumn = buildRowTextColumn(true);
-        TextView titleView = buildRowTitle(rowModel.getTitle());
+        TextView titleView = buildRowTitle(rowModel.getTitle(), rowModel.getDecoration());
         TextView summaryView = buildRowSummary(rowModel.getSummary(), false);
         textColumn.addView(titleView);
         textColumn.addView(summaryView);
@@ -4369,7 +4497,7 @@ public final class GboardPatchesSettingsActivity extends Activity
         navigationParams.gravity = Gravity.CENTER_VERTICAL;
         navigationPart.setLayoutParams(navigationParams);
         LinearLayout textColumn = buildRowTextColumn(true);
-        TextView titleView = buildRowTitle(rowModel.getTitle());
+        TextView titleView = buildRowTitle(rowModel.getTitle(), rowModel.getDecoration());
         TextView summaryView = buildRowSummary(rowModel.getSummary(), false);
         textColumn.addView(titleView);
         textColumn.addView(summaryView);
@@ -4424,7 +4552,7 @@ public final class GboardPatchesSettingsActivity extends Activity
         LinearLayout row = buildBaseRow();
         addLeadingIcon(row, rowModel);
         LinearLayout textColumn = buildRowTextColumn(true);
-        TextView titleView = buildRowTitle(rowModel.getTitle());
+        TextView titleView = buildRowTitle(rowModel.getTitle(), rowModel.getDecoration());
         TextView summaryView = buildRowSummary(rowModel.getSummary(), false);
         textColumn.addView(titleView);
         textColumn.addView(summaryView);
@@ -4451,7 +4579,7 @@ public final class GboardPatchesSettingsActivity extends Activity
 
     private View createDetailRow(GboardPatchesSettingsContract.DetailRow rowModel) {
         LinearLayout row = buildDetailRowContainer();
-        TextView titleView = buildRowTitle(rowModel.getTitle());
+        TextView titleView = buildRowTitle(rowModel.getTitle(), rowModel.getDecoration());
         TextView summaryView = buildRowSummary(rowModel.getSummary(), rowModel.isMonospace());
         row.addView(titleView);
         row.addView(summaryView);
@@ -4465,7 +4593,7 @@ public final class GboardPatchesSettingsActivity extends Activity
         LinearLayout row = buildBaseRow();
         addLeadingIcon(row, rowModel);
         LinearLayout textColumn = buildRowTextColumn(true);
-        TextView titleView = buildRowTitle(rowModel.getTitle());
+        TextView titleView = buildRowTitle(rowModel.getTitle(), rowModel.getDecoration());
         TextView summaryView = buildRowSummary(rowModel.getSummary(), false);
         textColumn.addView(titleView);
         textColumn.addView(summaryView);
@@ -4792,6 +4920,11 @@ public final class GboardPatchesSettingsActivity extends Activity
     }
 
     private TextView buildRowTitle(CharSequence text) {
+        return buildRowTitle(text, null);
+    }
+
+    private TextView buildRowTitle(
+            CharSequence text, GboardPatchesSettingsContract.RowDecoration decoration) {
         TextView titleView = new TextView(this);
         titleView.setTextColor(palette.textPrimary);
         titleView.setTextSize(TypedValue.COMPLEX_UNIT_SP, ROW_TITLE_SP);
@@ -4799,7 +4932,25 @@ public final class GboardPatchesSettingsActivity extends Activity
         titleView.setLayoutParams(new LinearLayout.LayoutParams(
                 ViewGroup.LayoutParams.MATCH_PARENT,
                 ViewGroup.LayoutParams.WRAP_CONTENT));
-        titleView.setText(text);
+        if (decoration != null && decoration.hasHighlightDot() && text != null && text.length() > 0) {
+            SpannableStringBuilder styled = new SpannableStringBuilder(text);
+            styled.append(" ●");
+            int dotStart = styled.length() - 1;
+            int dotEnd = styled.length();
+            styled.setSpan(
+                    new ForegroundColorSpan(palette.highlightDot),
+                    dotStart,
+                    dotEnd,
+                    Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+            styled.setSpan(
+                    new RelativeSizeSpan(0.72f),
+                    dotStart,
+                    dotEnd,
+                    Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+            titleView.setText(styled);
+        } else {
+            titleView.setText(text);
+        }
         return titleView;
     }
 
@@ -5225,6 +5376,7 @@ public final class GboardPatchesSettingsActivity extends Activity
         final int previewMediaStroke;
         final int restartPending;
         final int onRestartPending;
+        final int highlightDot;
 
         private Palette(boolean nightMode) {
             this.nightMode = nightMode;
@@ -5257,6 +5409,7 @@ public final class GboardPatchesSettingsActivity extends Activity
             previewMediaStroke = pick("#24000000", "#33FFFFFF");
             restartPending = pick("#FFC55300", "#FFFFB874");
             onRestartPending = pick("#FFFFFFFF", "#FF4A2800");
+            highlightDot = pick("#FF00ACC1", "#FF26C6DA");
         }
 
         static Palette forConfiguration(Configuration configuration) {

@@ -160,6 +160,13 @@ final class StoriesCategory {
             stories.add(toggle(context, Settings.FILL_STORY_SCREEN, L10n.t("Stories fill the screen"),
                     L10n.t("On a tall screen a story covers the whole screen, with the reply bar on top of it like "
                             + "on shorter phones, instead of a rounded card above the bar.")));
+            // The menu row rides on Download any story's menu hooks (#845).
+            if (build.contains(PatchFamily.STORY_DOWNLOAD)) {
+                stories.add(toggle(context, Settings.WHOLE_STORY_IN_STORY_MENU, L10n.t("Whole story in the story menu"),
+                        L10n.t("Adds Show the whole story to the menu a story's three dots open while Stories fill the "
+                                + "screen is on. A tap fits that story inside the screen until the next one. Fill the "
+                                + "screen there fills it again.")));
+            }
         }
         if (build.contains(PatchFamily.AMBIENT_LIGHT)) {
             stories.add(onFlip(toggle(context, Settings.AMBIENT_LIGHT_STORIES, L10n.t("Ambient light in stories"),
@@ -285,6 +292,9 @@ final class StoriesCategory {
             stories.add(toggle(context, Settings.STORY_VIEWERS, L10n.t("Keep story viewers"),
                     L10n.t("Each time you open who viewed one of your stories, the list is kept on this phone and set "
                             + "beside your followers. Nothing extra is asked of Instagram. Turn it off and it stops at once.")));
+            stories.add(toggle(context, Settings.STORY_VIEWERS_SEARCH, L10n.t("Search bar in the viewer list"),
+                    L10n.t("Puts a Search viewers bar at the top of the list of who viewed your story. It searches "
+                            + "the viewers kept on this phone, the ones Instagram has listed so far.")));
             Preference viewers = storyViewersRow(context);
             stories.add(viewers);
             HushgramPreferenceFragment.Row clear = new HushgramPreferenceFragment.Row(context);

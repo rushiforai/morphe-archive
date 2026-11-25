@@ -1,15 +1,12 @@
 name: Deploy Website
 
 on:
-  push:
-    branches:
-      - main
-    paths:
-      - 'site/**'
-      - 'tools/asset-prep/**'
-      - 'scripts/asset-prep.ts'
-      - '.github/workflows/deploy-site.yml'
   workflow_call:
+    inputs:
+      ref:
+        description: Commit to build and deploy (defaults to the triggering SHA)
+        required: false
+        type: string
   workflow_dispatch:
 
 permissions:
@@ -18,6 +15,9 @@ permissions:
 jobs:
   build-and-deploy:
     name: Build & Deploy Website
+    # Deployment is only allowed for the stable release branch, either through
+    # the release/main handoff or a manual dispatch from release/main.
+    if: github.ref == 'refs/heads/release/main'
     runs-on: ubuntu-latest
     env:
       DEPLOY_ENABLED: ${{ secrets.CLOUDFLARE_API_TOKEN != '' }}
@@ -25,7 +25,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v7
         with:
-          ref: main
+          ref: ${{ inputs.ref || github.sha }}
 
       - name: Setup Bun
         uses: oven-sh/setup-bun@v2

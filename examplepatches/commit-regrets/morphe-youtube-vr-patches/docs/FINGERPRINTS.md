@@ -28,7 +28,7 @@ So after any fingerprint change, verify *which* method was modified:
 
 1. Apply the bundle with diagnostics on, so diagnostics-gated fingerprints (the innertube one) are
    exercised too:
-   `java -jar morphe-desktop-all.jar patch --patches patches-<version>.mpp -OenableDiagnostics=true --enable Extension -o out.apk youtube-vr.apk`
+   `java -jar morphe-desktop-<version>-all.jar patch --patches patches-<version>.mpp -OenableDiagnostics=true --enable Extension -o out.apk youtube-vr.apk`
 2. Extract the last `classes*.dex` from `out.apk` and decompile it (jadx).
 3. Confirm the injected calls are in the expected methods **and** that the set of patched classes is
    unchanged. At 1.88.10 that set is:

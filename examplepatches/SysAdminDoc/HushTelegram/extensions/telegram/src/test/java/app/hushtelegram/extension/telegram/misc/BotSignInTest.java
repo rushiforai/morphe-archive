@@ -252,7 +252,7 @@ public class BotSignInTest {
             String english = refusals[i][1] == null ? refusals[i][0] : String.format(Locale.ROOT, refusals[i][0], refusals[i][1]);
             assertEquals(english, BotSignIn.refusal(codes[i]));
             assertFitsATwoLineToast("en", english);
-            for (String language : new String[]{"bg", "de", "es", "in", "pt-rbr", "tr"}) {
+            for (String language : new String[]{"bg", "de", "es", "in", "it", "pt-rbr", "tr"}) {
                 Map<String, String> table = L10nTablesForTests.of(language);
                 String row = table.get(refusals[i][0]);
                 assertNotNull(language + " translates " + refusals[i][0], row);

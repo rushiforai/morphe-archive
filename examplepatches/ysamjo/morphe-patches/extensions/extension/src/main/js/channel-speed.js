@@ -6,7 +6,7 @@
 }(typeof window !== 'undefined' ? window : null, function () {
     'use strict';
     var KEY = 'ysamjo-tv-channel-speeds';
-    var SETTINGS_VERSION = 5;
+    var SETTINGS_VERSION = 6;
     var RTL_SPORT = { id: 'UC8WYi3XQXsf-6FNvqoEvxag', handle: '@RTLSport', name: 'RTL Sport', speed: 1 };
     var DEFAULT_CHANNELS = [
         { id: 'UCE0RhriywrL8XhXbo87tMKQ', handle: '@sportstudio', name: 'sportstudio', speed: 1 },
@@ -18,6 +18,7 @@
         { id: 'UCdi3n18zcIZeTk_x9qvSgZw', handle: '@dazn', name: 'DAZN', speed: 1 },
         { id: 'UC-XArLCeEw91r9gmaDi-Ajw', handle: '@daznde', name: 'DAZN DE', speed: 1 },
         { id: 'UClBFnQJMlinWDCvfSXj60CA', handle: '@daznfussball', name: 'DAZN Fußball', speed: 1 },
+        { id: 'UCB-GdMjyokO9lZkKU_oIK6g', handle: '@daznuefachampionsleague', name: 'DAZN UEFA Champions League', speed: 1 },
         RTL_SPORT,
         { id: 'UCK2izXoHvraUFaPMU5B7vMQ', handle: '@primevideosportde', name: 'Prime Video Sport', speed: 1 },
         { id: 'UCk452F_ypT9Q8b1S38-Ok8A', handle: '@eurosportdeutschland', name: 'Eurosport Deutschland', speed: 1 },
@@ -107,6 +108,61 @@
             { id: 'UC6UL29enLNe4mqwTfAyeNuw', speed: 1 },
             { id: 'UCfMo0xj-sbdzHuzxvKdu1hw', speed: 1 },
             { id: 'UCyGa1YEx9ST66rYrJTGIKOw', speed: 1 }
+        ],
+        [
+            { id: 'UC8WYi3XQXsf-6FNvqoEvxag', speed: 1 },
+            { id: 'UCE0RhriywrL8XhXbo87tMKQ', speed: 1 },
+            { id: 'UCRFsyeKu07-LnHDG44O6uCA', speed: 1 },
+            { id: 'UCAvNr5DMVncoJnJAotXOjOQ', speed: 1 },
+            { id: 'UCuOwl-VgqBHOzR8hWnonBcA', speed: 1 },
+            { id: 'UC5dCegXiWjE57wKrhWnCo0g', speed: 1 },
+            { id: 'UC_VsQmcsFWUhGn3DTwiO8bg', speed: 1 },
+            { id: 'UCdi3n18zcIZeTk_x9qvSgZw', speed: 1 },
+            { id: 'UC-XArLCeEw91r9gmaDi-Ajw', speed: 1 },
+            { id: 'UClBFnQJMlinWDCvfSXj60CA', speed: 1 },
+            { id: 'UCK2izXoHvraUFaPMU5B7vMQ', speed: 1 },
+            { id: 'UCk452F_ypT9Q8b1S38-Ok8A', speed: 1 },
+            { id: 'UCPj_Vtw0hKnhJapQuATBUrA', speed: 1 },
+            { id: 'UCiMAc_TN1kSO3ErMtxUXfMA', speed: 1 },
+            { id: 'UCQEHrmmI8kKJ6kAiQdQUjgg', speed: 1 },
+            { id: 'UChr7ZXDFiPOEl543HM4Aj8g', speed: 1 },
+            { id: 'UCDVYQ4Zhbm3S2dlz7P1GBDg', speed: 1 },
+            { id: 'UCWJ2lWNubArHWmf3FIHbfcQ', speed: 1 },
+            { id: 'UC8pYaQzbBBXg9GIOHRvTmDQ', speed: 1 },
+            { id: 'UCB_qr75-ydFVKSF9Dmo6izg', speed: 1 },
+            { id: 'UC6UL29enLNe4mqwTfAyeNuw', speed: 1 },
+            { id: 'UCfMo0xj-sbdzHuzxvKdu1hw', speed: 1 },
+            { id: 'UCyGa1YEx9ST66rYrJTGIKOw', speed: 1 },
+            { id: 'UC88p9kEf5mpvTeqmKU1_ENQ', speed: 1 },
+            { id: 'UCg4YgrMEO4Y5hg9FJce6Jag', speed: 1 },
+            { id: 'UCvXPupYUxWt5KeFgK1z0e3A', speed: 1 },
+            { id: 'UC-7qscJH_SncZvCm9Ty014Q', speed: 1 },
+            { id: 'UCRvCwDp_1DwOlOpnlJf9iYw', speed: 1 },
+            { id: 'UCG5qGWdu8nIRZqJ_GgDwQ-w', speed: 1 },
+            { id: 'UCTv-XvfzLX3i4IGWAm4sbmA', speed: 1 },
+            { id: 'UCBJeMCIeLQos7wacox4hmLQ', speed: 1 },
+            { id: 'UCQsH5XtIc9hONE1BQjucM0g', speed: 1 },
+            { id: 'UCTU_wC79Dgi9rh4e9-baTqA', speed: 1 },
+            { id: 'UClhp9g6TPiqCTOlcw0ROfNg', speed: 1 },
+            { id: 'UCiWLfSweyRNmLpgEHekhoAg', speed: 1 },
+            { id: 'UCpcTrCXblq78GZrTUTLWeBw', speed: 1 },
+            { id: 'UCTl3QQTvqHFjurroKxexy2Q', speed: 1 },
+            { id: 'UCvFDH2FJfTn1Fqaz2gUYWVg', speed: 1 },
+            { id: 'UCY_5h5zaSwN7Or4kIJDYNXA', speed: 1 },
+            { id: 'UCNa8NxMgSm7m4Ii9d4QGk1Q', speed: 1 },
+            { id: 'UCXbboag48Qlr78zzz6SkzkQ', speed: 1 },
+            { id: 'UCF3K1Jf8hjFW8qliei8fQ3A', speed: 1 },
+            { id: 'UCeTKJSW1NTAkf27nNmjWt5A', speed: 1 },
+            { id: 'UCoLrcjPV5PbUrUyXq5mjc_A', speed: 1 },
+            { id: 'UCqFMzb-4AUf6WAIbl132QKA', speed: 1 },
+            { id: 'UCvgfXK4nTYKudb0rFR6noLA', speed: 1 },
+            { id: 'UCuN9hYw2RpoAW8rZ3VK3isA', speed: 1 },
+            { id: 'UCy1F61QvUUQXAXi2Voa_fUw', speed: 1 },
+            { id: 'UC5G6kTnHXDz0WIBC2VGBOqg', speed: 1 },
+            { id: 'UCSpycUnuU0IVF7gGIhGojhg', speed: 1 },
+            { id: 'UCe10BxbsFg9Kbmkg-ean_Dg', speed: 1 },
+            { id: 'UCgl60be0ucr6WdpHqG6EA7A', speed: 1 },
+            { id: 'UCRfs7Y0wWMjl4pmdvEQgjVA', speed: 1 }
         ]
     ];
     function isLegacyDefault(channels) {
@@ -136,7 +192,7 @@
             if (globalSpeed === 1 && validSpeed(nativeConfig.videoSpeed) !== null) globalSpeed = Number(nativeConfig.videoSpeed);
         }
         // Unveränderte Altinstallationen erhalten den erweiterten Sport-Kanalsatz; eigene Regeln bleiben unangetastet.
-        if (saved && version < 5 && isLegacyDefault(channels)) channels = copy(DEFAULT_CHANNELS);
+        if (saved && version < 6 && isLegacyDefault(channels)) channels = copy(DEFAULT_CHANNELS);
         return { version: SETTINGS_VERSION, globalSpeed: globalSpeed, kidsNormalSpeed: !saved || saved.kidsNormalSpeed !== false, channels: channels };
     }
 

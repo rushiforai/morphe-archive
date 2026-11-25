@@ -19,7 +19,7 @@ Click the button below, or manually add this repo url to Morphe Manager: https:/
 ## 🩹 Patches list
 
 <!-- PATCHES_START EXPANDED -->
-> **[v1.9.0](https://github.com/AJcubes/morphe-patches/releases/tag/v1.9.0)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;8 patches total
+> **[v1.10.0](https://github.com/AJcubes/morphe-patches/releases/tag/v1.10.0)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;8 patches total
 <details open>
 <summary>📦 Cricbuzz&nbsp;&nbsp;•&nbsp;&nbsp;2 patches</summary>
 <br>
@@ -58,7 +58,7 @@ Click the button below, or manually add this repo url to Morphe Manager: https:/
 
 **🎯 Supported versions:**
 
-| 6.2.5 |
+| 6.2.6 |
 | :---: |
 
 | 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |

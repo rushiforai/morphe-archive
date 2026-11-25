@@ -1,3 +1,16 @@
+## [2.13.0](https://github.com/amfakh/fakh-patches/compare/v2.12.1...v2.13.0) (2026-11-25)
+
+### New Features
+
+* add themed icon for Smart Life, Tuya Smart, BARDI Smart Home, SYNC by Krisbow, CNN Indonesia, detikcom, DoDo Music, Genius, IDN, KOMPAS.com, Mazii: Japanese Dictionary, Todaii: Learn Japanese N5-N1, Todaii: Learn German A1-C1, Todaii Super and Warung Life Simulator ([ae9ac9f](https://github.com/amfakh/fakh-patches/commit/ae9ac9f65a3b803ce883dd5e7ff959f5f02e5d39))
+
+## [2.12.1](https://github.com/amfakh/fakh-patches/compare/v2.12.0...v2.12.1) (2026-11-25)
+
+### Updated App Support
+
+* **Smart Life:** add support for `7.13.3-887`, next to `7.12.6-880` ([d69e7c0](https://github.com/amfakh/fakh-patches/commit/d69e7c0efbf7ad883528bfd86d42607a800a6404))
+* **Tuya Smart:** update `7.13.3` target to build `877` ([d69e7c0](https://github.com/amfakh/fakh-patches/commit/d69e7c0efbf7ad883528bfd86d42607a800a6404))
+
 ## [2.12.0](https://github.com/amfakh/fakh-patches/compare/v2.11.3...v2.12.0) (2026-11-24)
 
 ### New Features

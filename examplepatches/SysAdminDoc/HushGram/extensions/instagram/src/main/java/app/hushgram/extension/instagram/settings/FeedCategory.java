@@ -43,6 +43,12 @@ import app.hushgram.extension.shared.L10n;
 final class FeedCategory {
     private FeedCategory() { }
 
+    /** What Time in the top corner does, which its row shows again once Time under the tags button goes off (#788). */
+    static String timeTopSummary() {
+        return L10n.t("Puts the time in the top corner of the video instead of over the bar, just below anything "
+                + "Instagram shows there, like its countdown.");
+    }
+
     static void add(HushgramPreferenceFragment page, PreferenceScreen screen, Context context, Set<PatchFamily> build) {
         boolean suggestions = build.contains(PatchFamily.FEED_SUGGESTIONS);
         boolean following = build.contains(PatchFamily.FOLLOWING_FEED);
@@ -77,6 +83,7 @@ final class FeedCategory {
         boolean expandCaptions = build.contains(PatchFamily.EXPAND_CAPTIONS);
         boolean feedAudioIcon = build.contains(PatchFamily.FEED_AUDIO_ICON);
         boolean feedAutoScroll = build.contains(PatchFamily.FEED_AUTO_SCROLL);
+        boolean blockedPosts = build.contains(PatchFamily.BLOCKED_POSTS);
         boolean homeTopBar = build.contains(PatchFamily.HOME_TOP_BAR);
         boolean activityBubbles = build.contains(PatchFamily.ACTIVITY_BUBBLES);
         boolean feedViewHistory = build.contains(PatchFamily.FEED_VIEW_HISTORY);
@@ -84,7 +91,7 @@ final class FeedCategory {
                 || askLike || askRefresh || saveTray || postTime || hiddenLikes || backHome || homePlace || feedSound || feedTapPause || feedHoldFast || feedSeekBar || longPressZoom
                 || roundedCorners || carouselArrows || ambientLight
                 || fullScreen || feedFollow || editsLabel || headerLine || homeReels || feedSave || watchAgain || hideCaptions || expandCaptions || feedAudioIcon || feedAutoScroll || homeTopBar
-                || activityBubbles || menuItems
+                || activityBubbles || menuItems || blockedPosts
                 ? category(screen, L10n.t("Feed"), SettingsIcons.FEED,
                         L10n.t("Choose what Home shows and how it behaves.")) : null;
         if (following) {
@@ -249,9 +256,9 @@ final class FeedCategory {
         }
         if (feedSound) {
             feed.addPreference(toggle(context, Settings.START_FEED_VIDEOS_WITH_SOUND, L10n.t("Start feed videos with sound"),
-                    L10n.t("Videos on Home play with their sound on, the same as tapping a video's speaker. Mute one and the "
-                            + "ones after it stay muted. Your phone's ringer and volume still count, so on silent or with "
-                            + "the volume down, they stay quiet.")));
+                    L10n.t("Videos on Home play with their sound on, the same as tapping a video's speaker, and so do songs on "
+                            + "photo posts. Mute one and the ones after it stay muted. Your phone's ringer and volume still count, "
+                            + "so on silent or with the volume down, they stay quiet.")));
             feed.addPreference(toggle(context, Settings.START_FEED_VIDEOS_ON_SILENT, L10n.t("Even on silent"),
                     L10n.t("Feed videos start with sound with the phone on silent or vibrate too. Only the media "
                             + "volume counts.")));
@@ -286,6 +293,9 @@ final class FeedCategory {
             feed.addPreference(toggle(context, Settings.HOLD_FEED_VIDEO_KEEP_LONG, L10n.t("Only after a long hold"),
                     L10n.t("Keeps 2x only when you hold the video for about 3 seconds. Let go sooner and it goes back "
                             + "to normal speed.")));
+            feed.addPreference(toggle(context, Settings.HOLD_FEED_VIDEO_KEEP_BADGE, L10n.t("Show 2x after you let go"),
+                    L10n.t("A feed video that keeps playing at 2x shows a 2x label at the top until it goes back to "
+                            + "normal speed.")));
             feed.addPreference(toggle(context, Settings.HOLD_FEED_VIDEO_KEEP_NAME, L10n.t("Keep the name while you hold"),
                     L10n.t("The name over a feed video stays while you hold it for 2x. Instagram's 2x and time labels "
                             + "don't show then.")));
@@ -319,6 +329,7 @@ final class FeedCategory {
                             + "A tap on the time switches back.")));
             feed.addPreference(toggle(context, Settings.FEED_SEEK_TIME_UNDER_TAGS, L10n.t("Time under the tags button"),
                     L10n.t("Puts the time in the corner under the tags button instead of the middle of the bar.")));
+            feed.addPreference(toggle(context, Settings.FEED_SEEK_TIME_TOP, L10n.t("Time in the top corner"), timeTopSummary()));
             feed.addPreference(toggle(context, Settings.FEED_DOUBLE_TAP_SKIP, L10n.t("Double tap to skip on feed videos"),
                     L10n.t("Double tap the left side of the video playing in a feed to go back, or the right side to go "
                             + "ahead, as far as Skip length says. A double tap in the middle works as before.")));
@@ -464,6 +475,11 @@ final class FeedCategory {
                     L10n.t("Moves Home on to the next post by itself. A video moves on when it ends, a photo or "
                             + "carousel after Time on each post. Touch the screen to hold it.")));
             feed.addPreference(feedAutoScrollTimeRow(context));
+        }
+        if (blockedPosts) {
+            feed.addPreference(toggle(context, Settings.HIDE_BLOCKED_POSTS, L10n.t("Hide posts when you block someone"),
+                    L10n.t("When you block someone, their posts in Home go away right away instead of after you "
+                            + "refresh it.")));
         }
     }
 }

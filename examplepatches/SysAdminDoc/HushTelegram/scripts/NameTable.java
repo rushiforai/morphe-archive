@@ -707,7 +707,7 @@ public class NameTable {
         try (InputStream in = new BufferedInputStream(zip.getInputStream(arsc))) {
             table = TableBlock.load(in, (read, total) -> { });
         }
-        for (PackageBlock block : table.listPackages())
+        for (PackageBlock block : table)
             for (SpecTypePair pair : block.listSpecTypePairs())
                 for (Iterator<ResourceEntry> it = pair.getResources(); it.hasNext(); ) {
                     ResourceEntry r = it.next();

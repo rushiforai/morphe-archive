@@ -1,6 +1,5 @@
 {
   "name": "Booking.com",
-  "workflow": "emulator-booking.yml",
   "patches": "patches/src/main/kotlin/app/jofslash/patches/booking",
   "extension": "extensions/booking",
   "docs": "docs/booking/README.md",

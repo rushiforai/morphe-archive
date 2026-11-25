@@ -1,0 +1,169 @@
+{
+  "date": "2026-11-24",
+  "timezone": "Asia/Tokyo",
+  "scope": "Owner-authorized anonymous live OAuth initiation; session revalidation and sanitized contract probe",
+  "realAnonymousHTTP": [
+    {
+      "path": "/",
+      "status": 200,
+      "mime": "text/html",
+      "setCookies": []
+    },
+    {
+      "path": "/api/auth/get-session",
+      "status": 200,
+      "bodyShape": "null",
+      "setCookies": []
+    },
+    {
+      "path": "/api/catalog",
+      "status": 302,
+      "redirectPath": "/",
+      "setCookies": []
+    },
+    {
+      "path": "/api/trial/trending",
+      "status": 200,
+      "mime": "application/json",
+      "setCookies": []
+    },
+    {
+      "path": "/auth/callback",
+      "status": 302,
+      "redirectPath": "/",
+      "setCookies": []
+    }
+  ],
+  "publicClientOAuth": {
+    "method": "signIn.social",
+    "callbackURL": "/auth/callback",
+    "errorCallbackURL": "/?error=failed",
+    "directHttpSocialStart": {
+      "discord": 403,
+      "twitter": 403,
+      "google": 403
+    },
+    "directHttp403Source": "Cloudflare",
+    "bypassAttempted": false
+  },
+  "realWebView": {
+    "officialSiteRendered": true,
+    "providerButtons": [
+      "X",
+      "Google",
+      "Discord"
+    ],
+    "discordCredentialEntryReached": true,
+    "observedControls": [
+      "Email or Phone Number",
+      "Password",
+      "Log In"
+    ],
+    "credentialInput": false,
+    "providerConsent": false,
+    "authenticatedCallback": false,
+    "realPosts": 0,
+    "initialANR": {
+      "observed": true,
+      "stack": "WebView.<init> -> Chromium AwContentsLifecycleNotifier -> ConnectivityManager.registerNetworkCallback -> listenForNetwork Binder wait",
+      "resolvedByOneAppRestart": true
+    }
+  },
+  "anonymousFirstPartyCookieMetadata": {
+    "observation": "Read-only SELECT of name/host/path/flags/expiration columns on app-owned WebView cookie database; no cookie values accessed or exported",
+    "cookie": {
+      "name": "__Secure-mebuki.state",
+      "host": "mebuki.moe",
+      "path": "/",
+      "secure": true,
+      "httpOnly": true,
+      "sameSite": "Lax (Chromium enum 1)",
+      "persistent": true,
+      "expiresUtc": "2026-11-24T09:40:52.016Z"
+    },
+    "analyticsCookieNames": [
+      "_ga",
+      "_ga_R9M4MJTZFD"
+    ],
+    "authenticatedCookieNameAndExpiry": "NOT OBSERVED"
+  },
+  "localSessionTest": {
+    "fixturePort": 18768,
+    "appUid": 10222,
+    "externalIPv4IPv6Blocked": true,
+    "fixtureOnly": true,
+    "results": [
+      {
+        "name": "no_saved",
+        "http": 200,
+        "mebuki": false,
+        "state": "NOT_SAVED"
+      },
+      {
+        "name": "fake_valid",
+        "http": 200,
+        "mebuki": true,
+        "state": "AUTHENTICATED"
+      },
+      {
+        "name": "after_restart",
+        "http": 200,
+        "mebuki": true,
+        "state": "AUTHENTICATED"
+      },
+      {
+        "name": "fake_expired",
+        "http": 200,
+        "mebuki": false,
+        "state": "ANONYMOUS"
+      }
+    ],
+    "contractProbeUI": {
+      "sessionHttp": 200,
+      "catalogHttp": 200,
+      "messagesHttp": 200,
+      "syntheticFieldsOnly": true,
+      "rawValuesAbsent": true
+    }
+  },
+  "artifacts": {
+    "testMpp": {
+      "bytes": 748030,
+      "sha256": "10ce1f98fdab30cccb507a6f0c6c35a31c5954cbfee7ff2c447d4fb81f3ae3b5"
+    },
+    "ownerLiveMpp": {
+      "bytes": 748064,
+      "sha256": "88dbc76d98f463aaf405f55a308f7556c3c25c15a40551e3de4db968cafa6e09"
+    },
+    "ownerLiveApk": {
+      "localPath": "apk-inspection/v04-mebuki-live-anonymous/owner-live-signed.apk",
+      "bytes": 69602014,
+      "installed": true
+    },
+    "ownerReadyScreen": {
+      "verifiedAtJst": "2026-11-24T18:49:00+09:00",
+      "officialSite": true,
+      "allProviderButtons": true,
+      "nativeSaveButton": true,
+      "contractProbeButton": true
+    }
+  },
+  "cleanup": {
+    "prefsRestoredHashMatch": true,
+    "temporaryIpv4Ipv6RulesRemoved": true,
+    "temporaryForward18767Removed": true,
+    "temporaryReverse18768Removed": true,
+    "fixture18768Stopped": true,
+    "existingReverse18766Preserved": true,
+    "productionHttpsRestored": true
+  },
+  "remaining": {
+    "actualOwnerLoginRequired": true,
+    "authenticatedSessionResponseShape": "NOT VERIFIED",
+    "authenticatedCatalogAndMessagesMapping": "NOT IMPLEMENTED; contract probe prepared",
+    "replySuccessResponse": "NOT VERIFIED",
+    "newThreadAndAttachments": "NOT IMPLEMENTED; await actual contracts",
+    "version": "0.3.0 unchanged",
+    "release": false
+  }
+}

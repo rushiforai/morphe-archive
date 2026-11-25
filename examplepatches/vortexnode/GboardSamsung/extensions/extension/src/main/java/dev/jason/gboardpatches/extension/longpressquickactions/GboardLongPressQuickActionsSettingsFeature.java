@@ -11,6 +11,7 @@ import dev.jason.gboardpatches.extension.R;
 import dev.jason.gboardpatches.extension.settings.GboardPatchesSettingsContract;
 import dev.jason.gboardpatches.extension.settings.GboardPatchesSettings;
 import dev.jason.gboardpatches.extension.settings.GboardPatchesFeatureAvailability;
+import dev.jason.gboardpatches.extension.settings.GboardNewSettingsHighlight;
 import dev.jason.gboardpatches.extension.settings.GboardSettingsText;
 
 public final class GboardLongPressQuickActionsSettingsFeature
@@ -31,6 +32,8 @@ public final class GboardLongPressQuickActionsSettingsFeature
     private final String globeDragSummary;
     private final String selectAllTitle;
     private final String selectAllSummary;
+    private final String disableEnterOneHandedTitle;
+    private final String disableEnterOneHandedSummary;
     private final String featureSectionTitle;
     private final String mappingsSectionTitle;
     private final String[] actionLabels;
@@ -60,6 +63,10 @@ public final class GboardLongPressQuickActionsSettingsFeature
                 GboardSettingsText.get(context,
                         R.string.gboard_patches_long_press_quick_actions_select_all_summary),
                 GboardSettingsText.get(context,
+                        R.string.gboard_patches_long_press_quick_actions_disable_enter_one_handed_title),
+                GboardSettingsText.get(context,
+                        R.string.gboard_patches_long_press_quick_actions_disable_enter_one_handed_summary),
+                GboardSettingsText.get(context,
                         R.string.gboard_patches_long_press_quick_actions_section_feature),
                 GboardSettingsText.get(context,
                         R.string.gboard_patches_long_press_quick_actions_section_mappings),
@@ -84,6 +91,20 @@ public final class GboardLongPressQuickActionsSettingsFeature
             String enabledSummary, String globeDragTitle, String globeDragSummary,
             String selectAllTitle, String selectAllSummary,
             String featureSectionTitle, String mappingsSectionTitle, String[] actionLabels) {
+        this(entryTitle, entrySummary, headerBadge, errorTitle, errorSummary, enabledTitle,
+                enabledSummary, globeDragTitle, globeDragSummary, selectAllTitle,
+                selectAllSummary,
+                "Disable long-press Enter one-handed mode",
+                "Prevent accidentally opening one-handed mode when holding the Enter key.",
+                featureSectionTitle, mappingsSectionTitle, actionLabels);
+    }
+
+    GboardLongPressQuickActionsSettingsFeature(String entryTitle, String entrySummary,
+            String headerBadge, String errorTitle, String errorSummary, String enabledTitle,
+            String enabledSummary, String globeDragTitle, String globeDragSummary,
+            String selectAllTitle, String selectAllSummary,
+            String disableEnterOneHandedTitle, String disableEnterOneHandedSummary,
+            String featureSectionTitle, String mappingsSectionTitle, String[] actionLabels) {
         this.entryTitle = entryTitle;
         this.entrySummary = entrySummary;
         this.headerBadge = headerBadge;
@@ -95,6 +116,8 @@ public final class GboardLongPressQuickActionsSettingsFeature
         this.globeDragSummary = globeDragSummary;
         this.selectAllTitle = selectAllTitle;
         this.selectAllSummary = selectAllSummary;
+        this.disableEnterOneHandedTitle = disableEnterOneHandedTitle;
+        this.disableEnterOneHandedSummary = disableEnterOneHandedSummary;
         this.featureSectionTitle = featureSectionTitle;
         this.mappingsSectionTitle = mappingsSectionTitle;
         this.actionLabels = actionLabels == null ? new String[0] : actionLabels.clone();
@@ -132,15 +155,30 @@ public final class GboardLongPressQuickActionsSettingsFeature
                     GboardLongPressQuickActionsSettings.readGlobeDragEnabled(preferences);
             boolean selectAllWhenUnselected =
                     GboardLongPressQuickActionsSettings.readSelectAllWhenUnselected(preferences);
+            boolean disableEnterOneHanded =
+                    GboardLongPressQuickActionsSettings.readDisableEnterOneHanded(preferences);
+            boolean highlightDisableEnterOneHanded =
+                    GboardNewSettingsHighlight.isItemHighlighted(
+                            context,
+                            GboardNewSettingsHighlight.ITEM_DISABLE_ENTER_ONE_HANDED);
             return buildScreenForState(
                     enabled,
                     globeDragEnabled,
                     selectAllWhenUnselected,
+                    disableEnterOneHanded,
+                    highlightDisableEnterOneHanded,
                     value -> GboardLongPressQuickActionsSettings.writeEnabled(context, value),
                     value -> GboardLongPressQuickActionsSettings.writeGlobeDragEnabled(
                             context, value),
                     value -> GboardLongPressQuickActionsSettings.writeSelectAllWhenUnselected(
-                            context, value));
+                            context, value),
+                    value -> {
+                        GboardNewSettingsHighlight.markItemViewed(
+                                context,
+                                GboardNewSettingsHighlight.ITEM_DISABLE_ENTER_ONE_HANDED);
+                        GboardLongPressQuickActionsSettings.writeDisableEnterOneHanded(
+                                context, value);
+                    });
         } catch (Throwable throwable) {
             Log.w(TAG, "Failed to render long-press quick action settings", throwable);
             return buildErrorScreen();
@@ -153,7 +191,31 @@ public final class GboardLongPressQuickActionsSettingsFeature
             GboardPatchesSettingsContract.ToggleAction toggleAction,
             GboardPatchesSettingsContract.ToggleAction globeDragToggleAction,
             GboardPatchesSettingsContract.ToggleAction selectAllToggleAction) {
+        return buildScreenForState(enabled, globeDragEnabled, selectAllWhenUnselected,
+                false, false, toggleAction, globeDragToggleAction, selectAllToggleAction,
+                value -> { });
+    }
+
+    GboardPatchesSettingsContract.Screen buildScreenForState(boolean enabled,
+            boolean globeDragEnabled,
+            boolean selectAllWhenUnselected,
+            boolean disableEnterOneHanded,
+            boolean highlightDisableEnterOneHanded,
+            GboardPatchesSettingsContract.ToggleAction toggleAction,
+            GboardPatchesSettingsContract.ToggleAction globeDragToggleAction,
+            GboardPatchesSettingsContract.ToggleAction selectAllToggleAction,
+            GboardPatchesSettingsContract.ToggleAction disableEnterOneHandedToggleAction) {
         String[] labels = normalizedActionLabels();
+        GboardPatchesSettingsContract.SwitchRow disableEnterOneHandedRow =
+                new GboardPatchesSettingsContract.SwitchRow(
+                        disableEnterOneHandedTitle,
+                        disableEnterOneHandedSummary,
+                        true,
+                        disableEnterOneHanded,
+                        disableEnterOneHandedToggleAction);
+        if (highlightDisableEnterOneHanded) {
+            disableEnterOneHandedRow.setDecoration(new GboardPatchesSettingsContract.RowDecoration().highlightDot(true));
+        }
         return new GboardPatchesSettingsContract.Screen(
                 entryTitle,
                 headerBadge,
@@ -182,7 +244,8 @@ public final class GboardLongPressQuickActionsSettingsFeature
                                                 selectAllSummary,
                                                 enabled,
                                                 selectAllWhenUnselected,
-                                                selectAllToggleAction))),
+                                                selectAllToggleAction),
+                                        disableEnterOneHandedRow)),
                         new GboardPatchesSettingsContract.Section(
                                 mappingsSectionTitle,
                                 Arrays.asList(

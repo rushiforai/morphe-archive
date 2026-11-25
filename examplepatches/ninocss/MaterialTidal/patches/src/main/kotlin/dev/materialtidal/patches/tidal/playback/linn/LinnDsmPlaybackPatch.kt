@@ -47,22 +47,23 @@ import dev.materialtidal.patches.shared.LINN_PLAYBACK_ADAPTER_CLASS
 import dev.materialtidal.patches.shared.LINN_PROVIDER_ADAPTER_CLASS
 import dev.materialtidal.patches.shared.LINN_VOLUME_CONTROL_ADAPTER_CLASS
 import dev.materialtidal.patches.shared.LINN_VOLUME_PROVIDER_ADAPTER_CLASS
+import dev.materialtidal.patches.shared.MATERIAL_YOU_CONFIG_CLASS
 
 private val LINN_AUDIO_QUALITY_CHOICES = mapOf(
-    "Hi-Res FLAC (up to 24-bit/192 kHz, Auto fallback)" to 0,
+    "Hi-Res FLAC (up to 24-bit/192 kHz, recommended)" to 0,
     "Lossless FLAC (16-bit/44.1 kHz)" to 1,
     "High (320 kbps AAC)" to 2,
 )
 
 private val LINN_STREAM_MODE_CHOICES = mapOf(
-    "Local HTTP Proxy (All Majik DSM models, recommended)" to 0,
-    "Direct CDN for Lossless BTS + Proxy for Hi-Res" to 1,
+    "Local HTTP Proxy (Recommended)" to 0,
+    "Direct Lossless + Hi-Res Proxy" to 1,
 )
 
 @Suppress("unused")
 val linnDsmPlaybackPatch = patch(
     name = "Linn Majik DSM Wi-Fi playback",
-    description = "Discovers Linn DS/DSM speakers (OpenHome) on the local Wi-Fi in TIDAL's Devices sheet and streams Lossless / Hi-Res FLAC playback with full transport, queue, hardware volume, and lockscreen controls.",
+    description = "Discovers Linn DS/DSM OpenHome speakers on your local Wi-Fi in TIDAL's Devices sheet and streams Lossless or Hi-Res FLAC audio with full transport, queue, hardware volume, and lockscreen controls.",
     default = false,
 ) {
     compatibleWith(COMPATIBILITY_TIDAL)
@@ -74,7 +75,7 @@ val linnDsmPlaybackPatch = patch(
         default = 0,
         values = LINN_AUDIO_QUALITY_CHOICES,
         title = "Preferred audio quality",
-        description = "Audio quality streamed to Linn Majik DSM over Wi-Fi (Hi-Res remuxes 24-bit/192 kHz DASH FLAC losslessly into native FLAC).",
+        description = "Audio quality streamed to Linn Majik DSM over Wi-Fi; Hi-Res remuxes 24-bit/192 kHz lossless audio cleanly (also adjustable live in Settings → MaterialTidal).",
         required = true,
     )
 
@@ -83,7 +84,7 @@ val linnDsmPlaybackPatch = patch(
         default = 0,
         values = LINN_STREAM_MODE_CHOICES,
         title = "Stream delivery mode",
-        description = "Local HTTP Proxy guarantees compatibility across all Linn DSM/1-5 generations and enables bit-perfect 24-bit/192 kHz DASH FLAC remuxing.",
+        description = "Local HTTP Proxy supports all Linn DSM/1–5 generations including bit-perfect 24-bit/192 kHz FLAC (also adjustable live in Settings → MaterialTidal).",
         required = true,
     )
 
@@ -91,7 +92,7 @@ val linnDsmPlaybackPatch = patch(
         key = "linnAutoWakeAndSwitch",
         default = true,
         title = "Auto-wake standby & switch input",
-        description = "Automatically wakes the Linn Majik DSM from standby and switches its active source to Playlist when selected in TIDAL.",
+        description = "Automatically wakes the Linn Majik DSM from standby and switches its source to Playlist when selected in TIDAL (also adjustable live in Settings → MaterialTidal).",
         required = true,
     )
 
@@ -99,17 +100,19 @@ val linnDsmPlaybackPatch = patch(
         key = "linnManualDeviceIp",
         default = "",
         title = "Manual Linn DSM IP (optional fallback)",
-        description = "Optional LAN IP address (e.g. 192.168.1.50 or 192.168.1.50:55178) if SSDP multicast discovery is blocked on your Wi-Fi network.",
+        description = "Optional LAN IP address (e.g. 192.168.1.50 or 192.168.1.50:55178) if automatic Wi-Fi discovery is blocked (also editable live in Settings → MaterialTidal).",
         required = false,
     )
 
     execute {
-        // 1. Apply patch options onto LinnConfig.
+        // 1. Apply patch options onto LinnConfig and mark patch installed.
+        mutableClassDefBy(MATERIAL_YOU_CONFIG_CLASS)
+            .methods.single { it.name == "isLinnDsmPatchInstalled" }.returnEarly(true)
         mutableClassDefBy(LINN_CONFIG_CLASS).apply {
-            methods.single { it.name == "getAudioQualityMode" }.returnEarly(audioQualityOption ?: 0)
-            methods.single { it.name == "getStreamDeliveryMode" }.returnEarly(streamModeOption ?: 0)
-            methods.single { it.name == "isAutoWakeAndSwitchEnabled" }.returnEarly(autoWakeAndSwitchOption ?: true)
-            methods.single { it.name == "getManualDeviceIp" }.returnEarly(manualDeviceIpOption?.trim().orEmpty())
+            methods.single { it.name == "defaultAudioQualityMode" }.returnEarly(audioQualityOption ?: 0)
+            methods.single { it.name == "defaultStreamDeliveryMode" }.returnEarly(streamModeOption ?: 0)
+            methods.single { it.name == "defaultAutoWakeAndSwitchEnabled" }.returnEarly(autoWakeAndSwitchOption ?: true)
+            methods.single { it.name == "defaultManualDeviceIp" }.returnEarly(manualDeviceIpOption?.trim().orEmpty())
         }
 
         // 2. Resolve TIDAL obfuscated Broadcast / Playback / Queue / Auth runtime types.

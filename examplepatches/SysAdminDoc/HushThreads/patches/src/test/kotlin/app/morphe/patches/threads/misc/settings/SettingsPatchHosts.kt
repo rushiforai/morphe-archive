@@ -11,6 +11,7 @@ import app.morphe.ExtensionDex
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructionsWithLabels
 import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod.Companion.toMutable
 import app.morphe.patches.threads.misc.extension.THREADS_APPLICATION
+import app.morphe.patches.threads.misc.extension.noteSmali
 import com.android.tools.smali.dexlib2.AccessFlags
 import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.builder.MutableMethodImplementation
@@ -100,15 +101,15 @@ internal object SettingsPatchHosts {
                 screen, AccessFlags.PUBLIC.value, "Ljava/lang/Object;", null, null, null, null,
                 listOf(
                     smali(screen, "row", rowParameters, "V", static, 10, """
-                        const-string v0, "${ROW_NOTE}1)"
+                        ${noteSmali(ROW_NOTE)}
                         return-void
                     """),
                     smali(screen, "accounts", accountsParameters, "V", static, 10, """
-                        const-string v0, "${ACCOUNTS_ROW_NOTE}1)"
+                        ${noteSmali(ACCOUNTS_ROW_NOTE)}
                         return-void
                     """),
                     smali(screen, "list", listOf("Ljava/lang/Object;", "Ljava/lang/Object;"), "V", static, 20, """
-                        const-string v0, "$LIST_NOTE (SettingsScreen.kt:1)"
+                        ${noteSmali(LIST_NOTE)}
                         move-object/from16 v2, p0
                         check-cast v2, $entry
                         move-object/from16 v1, p1

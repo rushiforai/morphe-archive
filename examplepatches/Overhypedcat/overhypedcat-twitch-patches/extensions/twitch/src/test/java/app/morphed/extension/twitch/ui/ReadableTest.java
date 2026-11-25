@@ -10,7 +10,7 @@ public class ReadableTest {
     public void routineRequestsThatWentFineAreLeftOut() {
         assertNull(Readable.of("16:19:01.123 Player https://video-edge-1.abs.hls.ttvnw.net/v1/segment/CqwFabc.ts -> 200 in 120ms"));
         assertNull(Readable.of("16:19:01.123 Playlist https://euc11.playlist.ttvnw.net/v1/playlist/Cr4FAAAAAAAAAA.m3u8 -> 200, "
-                + "download 106ms, waited 7ms, processing 44ms, 16993 -> 16993 bytes"));
+                + "answered in 100ms, body in 6ms, waited 7ms, processing 44ms, 16993 -> 16993 bytes"));
     }
 
     @Test
@@ -19,7 +19,7 @@ public class ReadableTest {
                 Readable.of("16:19:01.123 Player https://video-edge-1.abs.hls.ttvnw.net/v1/segment/x.ts -> 403 in 120ms"));
         assertEquals("16:19:01  a playlist (euc11) through the VPN failed: no answer",
                 Readable.of("16:19:01.123 VPN https://euc11.playlist.ttvnw.net/v1/playlist/a.m3u8 -> failed: no answer in 3000ms"));
-        assertNull(Readable.of("16:19:01.123 Playlist https://euc11.playlist.ttvnw.net/v1/playlist/a.m3u8 -> 200, download 106ms, "
+        assertNull(Readable.of("16:19:01.123 Playlist https://euc11.playlist.ttvnw.net/v1/playlist/a.m3u8 -> 200, answered in 100ms, body in 6ms, "
                 + "waited 7ms, processing 44ms, 16993 -> 15579 bytes (rewritten)"));
         assertNull(Readable.of("16:29:58.001 Playlist caedrel 1920x1080: sequence 11571, 14 segments, 0 ads, ad markers"));
         assertEquals("16:29:58  Playlist caedrel 1920x1080: sequence 11571, 14 segments, 3 ads",

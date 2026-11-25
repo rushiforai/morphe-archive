@@ -42,7 +42,8 @@ private const val REASON_HOOK = "Lapp/hushtelegram/extension/telegram/misc/Chann
 internal val FORWARD_HOSTS = setOf(
     "Lorg/telegram/messenger/SendMessagesHelper;", "Lorg/telegram/messenger/AccountInstance;", "Lorg/telegram/messenger/MessageObject;",
     "Lorg/telegram/tgnet/TLRPC\$Message;", "Lorg/telegram/tgnet/TLRPC\$Document;", "Lorg/telegram/messenger/FileLoader;",
-    "Lorg/telegram/messenger/DialogObject;", "Lorg/telegram/tgnet/TLObject;",
+    "Lorg/telegram/messenger/DialogObject;", "Lorg/telegram/tgnet/TLObject;", "Lorg/telegram/tgnet/TLRPC\$Photo;",
+    "Lorg/telegram/tgnet/TLRPC\$PhotoSize;", "Lorg/telegram/messenger/ImageLocation;", "Lorg/telegram/messenger/AndroidUtilities;",
 )
 
 private val FORWARD_GATE_OWNERS = ConcurrentHashMap<String, List<ClassDef>>()

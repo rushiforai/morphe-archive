@@ -58,7 +58,7 @@ with additional Projectivy Launcher 4.73 support.
 
 The Solid Explorer patch (patches/src/main/kotlin/dev/hyzor/patches/solidexplorer) is derived
 from hoo-dles/morphe-patches (https://github.com/hoo-dles/morphe-patches), GPLv3, with
-additional Solid Explorer 3.6.4 support.
+additional Solid Explorer 3.6.5 support.
 
 The nzb360 patch (patches/src/main/kotlin/dev/hyzor/patches/nzb360) is derived from
 rushiranpise/morphe-patches (https://github.com/rushiranpise/morphe-patches), GPLv3, with

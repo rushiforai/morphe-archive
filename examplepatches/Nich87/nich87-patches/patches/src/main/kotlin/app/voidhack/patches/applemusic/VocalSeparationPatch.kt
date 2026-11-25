@@ -3,6 +3,7 @@ package app.voidhack.patches.applemusic
 import app.morphe.patcher.Fingerprint
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructionsWithLabels
 import app.morphe.patcher.extensions.InstructionExtensions.getInstruction
+import app.morphe.patcher.extensions.InstructionExtensions.instructions
 import app.morphe.patcher.extensions.InstructionExtensions.replaceInstruction
 import app.morphe.patcher.patch.AppTarget
 import app.morphe.patcher.patch.Compatibility
@@ -10,15 +11,22 @@ import app.morphe.patcher.patch.SupportedAbi
 import app.morphe.patcher.patch.bytecodePatch
 import app.morphe.patcher.patch.resourcePatch
 import app.morphe.patcher.util.proxy.mutableTypes.MutableClass
+import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod
 import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod.Companion.toMutable
 import app.morphe.patcher.util.smali.ExternalLabel
 import com.android.tools.smali.dexlib2.AccessFlags
 import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.builder.MutableMethodImplementation
+import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
+import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
+import com.android.tools.smali.dexlib2.iface.reference.MethodReference
+import com.android.tools.smali.dexlib2.iface.reference.TypeReference
 import com.android.tools.smali.dexlib2.immutable.ImmutableMethod
 import com.android.tools.smali.dexlib2.immutable.ImmutableMethodParameter
 
 private const val RENDERER = "Lcom/apple/android/music/playback/renderer/SVAudioRendererV2;"
+private const val MEDIACODEC_RENDERER = "Lcom/apple/android/music/playback/renderer/SVMediaCodecAudioRenderer;"
+private const val BASE_MEDIACODEC_RENDERER = "Lcom/google/android/exoplayer2/audio/MediaCodecAudioRenderer;"
 private const val AUDIO_SINK = "Lcom/google/android/exoplayer2/audio/DefaultAudioSink;"
 private const val AUDIO_PROCESSORS = "[Lcom/google/android/exoplayer2/audio/AudioProcessor;"
 private const val SING_PROCESSOR = "Lapp/voidhack/extension/applemusic/sing/SingAudioProcessor;"
@@ -71,10 +79,27 @@ private object PlaybackSinkConstructor : Fingerprint(
     returnType = "V",
 )
 
+private object MediaCodecRendererConstructor : Fingerprint(
+    definingClass = MEDIACODEC_RENDERER,
+    name = "<init>",
+    parameters = listOf(
+        "Landroid/content/Context;",
+        "Lcom/google/android/exoplayer2/mediacodec/MediaCodecSelector;",
+        "Landroid/os/Handler;",
+        "Lcom/google/android/exoplayer2/audio/AudioRendererEventListener;",
+        "Lcom/google/android/exoplayer2/appleextersion/DecryptoProxyWrapper;",
+        "Lcom/google/android/exoplayer2/drm/appledrm/DrmManager;",
+        "Lcom/google/android/exoplayer2/audio/AudioCapabilities;",
+        "Z",
+        AUDIO_PROCESSORS,
+    ),
+    returnType = "V",
+)
+
 @Suppress("unused")
 val vocalSeparationPatch = bytecodePatch(
     name = "On-device vocal separation",
-    description = "Adds a vocal and accompaniment mix slider to the lyrics screen. Requires a one-time model download and compatible stereo playback.",
+    description = "Adds a vocal and accompaniment mix slider to the lyrics screen. Supports stereo and Dolby Atmos PCM after a one-time model download.",
     default = false,
 ) {
     compatibleWith(
@@ -84,6 +109,9 @@ val vocalSeparationPatch = bytecodePatch(
             apkFileType = appleMusicCompatibility.apkFileType,
             appIconColor = appleMusicCompatibility.appIconColor,
             targets = listOf(
+                AppTarget(version = "7.0.0", versionCodes = mapOf(SupportedAbi.ARM64_V8A to 1614)),
+                AppTarget(version = "7.0.1", versionCodes = mapOf(SupportedAbi.ARM64_V8A to 1622)),
+                AppTarget(version = "7.0.2", versionCodes = mapOf(SupportedAbi.ARM64_V8A to 1624)),
                 AppTarget(version = "7.0.3", versionCodes = mapOf(SupportedAbi.ARM64_V8A to 1626)),
             ),
         ),
@@ -109,6 +137,43 @@ val vocalSeparationPatch = bytecodePatch(
                 invoke-static {v0}, $SING_PROCESSOR->appendTo($AUDIO_PROCESSORS)$AUDIO_PROCESSORS
                 move-result-object v0
                 return-object v0
+            """,
+        )
+
+        val mediaCodecInit = MediaCodecRendererConstructor.method
+        val castIndex = mediaCodecInit.instructions.indexOfFirst { instruction ->
+            instruction.opcode == Opcode.CHECK_CAST &&
+                ((instruction as? ReferenceInstruction)?.reference as? TypeReference)?.type == AUDIO_PROCESSORS
+        }
+        check(castIndex >= 0) { "Missing AudioProcessor[] cast in SVMediaCodecAudioRenderer.<init>." }
+        val processorArrayReg = (mediaCodecInit.getInstruction(castIndex) as OneRegisterInstruction).registerA
+        mediaCodecInit.addInstructionsWithLabels(
+            castIndex + 1,
+            """
+                invoke-static {v$processorArrayReg}, $SING_PROCESSOR->appendTo($AUDIO_PROCESSORS)$AUDIO_PROCESSORS
+                move-result-object v$processorArrayReg
+            """,
+        )
+
+        val mediaCodecClass = MediaCodecRendererConstructor.classDef
+        check(mediaCodecClass.methods.none { it.name == "allowPassthrough" }) {
+            "Unexpected existing allowPassthrough override in SVMediaCodecAudioRenderer."
+        }
+        mediaCodecClass.addSingMethod(
+            name = "allowPassthrough",
+            parameters = listOf("I", "Ljava/lang/String;"),
+            returnType = "Z",
+            registers = 4,
+            body = """
+                invoke-static {p2}, $PLAYBACK->shouldAllowPassthrough(Ljava/lang/String;)Z
+                move-result v0
+                if-nez v0, :native
+                const/4 v0, 0x0
+                return v0
+                :native
+                invoke-super {p0, p1, p2}, $BASE_MEDIACODEC_RENDERER->allowPassthrough(ILjava/lang/String;)Z
+                move-result v0
+                return v0
             """,
         )
 
@@ -138,9 +203,38 @@ val vocalSeparationPatch = bytecodePatch(
 
         val lyrics = mutableClassDefBy(LYRICS)
         val parent = checkNotNull(lyrics.superclass)
-        lyrics.bindSingControlsFade(parent)
+        val parentClass = mutableClassDefBy(parent)
+        val setControlsVisibility = parentClass.methods.single {
+            it.parameterTypes == listOf("I", "[I") && it.returnType == "V"
+        }
+        val cancelFadeTimer = parentClass.methods.single {
+            it.parameterTypes.isEmpty() && it.returnType == "V" &&
+                it.callsMethod("Landroid/os/Handler;", "removeMessages")
+        }
+        val scheduleFadeTimer = parentClass.methods.single {
+            it.parameterTypes.isEmpty() && it.returnType == "V" &&
+                it.callsMethod("Landroid/os/Handler;", "obtainMessage")
+        }
+        lyrics.bindSingControlsFade(setControlsVisibility, cancelFadeTimer, scheduleFadeTimer)
 
-        val timer = mutableClassDefBy(parent.removeSuffix(";") + "\$b;")
+        val timerPrefix = parent.removeSuffix(";") + "\$"
+        val timerTypes = mutableListOf<String>()
+        classDefForEach { clazz ->
+            if (!clazz.type.startsWith(timerPrefix) || !clazz.interfaces.contains("Ljava/lang/Runnable;")) {
+                return@classDefForEach
+            }
+            val runsHide = clazz.methods.any { method ->
+                method.name == "run" && method.parameterTypes.isEmpty() && method.returnType == "V" &&
+                    method.implementation?.instructions?.any { instruction ->
+                        val ref = (instruction as? ReferenceInstruction)?.reference as? MethodReference
+                        ref?.definingClass == parent && ref.name == setControlsVisibility.name &&
+                            ref.parameterTypes == setControlsVisibility.parameterTypes &&
+                            ref.returnType == setControlsVisibility.returnType
+                    } == true
+            }
+            if (runsHide) timerTypes.add(clazz.type)
+        }
+        val timer = mutableClassDefBy(timerTypes.single())
         val owner = timer.instanceFields.single { it.type == parent }
         val hideControls = timer.methods.single {
             it.name == "run" && it.parameterTypes.isEmpty() && it.returnType == "V"
@@ -175,7 +269,17 @@ val vocalSeparationPatch = bytecodePatch(
     }
 }
 
-private fun MutableClass.bindSingControlsFade(parent: String) {
+private fun MutableMethod.callsMethod(definingClass: String, name: String): Boolean =
+    implementation != null && instructions.any { instruction ->
+        val ref = (instruction as? ReferenceInstruction)?.reference as? MethodReference
+        ref?.definingClass == definingClass && ref.name == name
+    }
+
+private fun MutableClass.bindSingControlsFade(
+    setControlsVisibility: MutableMethod,
+    cancelFadeTimer: MutableMethod,
+    scheduleFadeTimer: MutableMethod,
+) {
     interfaces.add(PLAYER_CONTROLS)
     addSingMethod(
         name = "voidhackShowControls",
@@ -183,11 +287,11 @@ private fun MutableClass.bindSingControlsFade(parent: String) {
         returnType = "V",
         registers = 3,
         body = """
-            invoke-virtual {p0}, $parent->O1()V
+            invoke-virtual {p0}, $cancelFadeTimer
             const/4 v0, 0x0
             filled-new-array {v0}, [I
             move-result-object v1
-            invoke-virtual {p0, v0, v1}, $parent->N1(I[I)V
+            invoke-virtual {p0, v0, v1}, $setControlsVisibility
             return-void
         """,
     )
@@ -197,8 +301,8 @@ private fun MutableClass.bindSingControlsFade(parent: String) {
         returnType = "V",
         registers = 1,
         body = """
-            invoke-virtual {p0}, $parent->O1()V
-            invoke-virtual {p0}, $parent->a2()V
+            invoke-virtual {p0}, $cancelFadeTimer
+            invoke-virtual {p0}, $scheduleFadeTimer
             return-void
         """,
     )

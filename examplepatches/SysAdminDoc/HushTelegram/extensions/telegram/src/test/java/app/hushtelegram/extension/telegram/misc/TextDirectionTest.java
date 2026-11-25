@@ -232,7 +232,7 @@ public class TextDirectionTest {
 
     @Test public void theToastFitsTwoLinesInEveryLanguage() {
         assertFitsATwoLineToast("en", FAILED);
-        for (String language : new String[]{"bg", "de", "es", "in", "pt-rbr", "tr"}) {
+        for (String language : new String[]{"bg", "de", "es", "in", "it", "pt-rbr", "tr"}) {
             String row = L10nTablesForTests.of(language).get(FAILED);
             assertNotNull(language, row);
             assertFitsATwoLineToast(language, row);

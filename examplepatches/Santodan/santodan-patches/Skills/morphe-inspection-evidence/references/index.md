@@ -13,7 +13,8 @@ are discovery hints. Recheck `E:\Morphe\OriginalApps` before choosing a target.
 | `.inspect-nuvio-beta8` … `-beta12` | Historical Nuvio fixtures and reports; Gradle regression tasks still read them. Comparison dumps archived. |
 | `.inspect-nuvio-mobile` | Upstream NuvioMobile checkout; not proof of TV release DEX. |
 | `.inspect-nuvio-ui` | Small historical UI contract note and helper. |
-| **`.inspect-monet-1.1.1`** | Latest Monet contracts and startup investigation. |
+| **`.inspect-monet-1.1.2`** | Latest Monet contracts and reusable port tools (type map, liveness, reaching definitions, alignment); start with `notes.md`. |
+| `.inspect-monet-1.1.1` | Monet 1.1.1 contracts and startup investigation. |
 | `.inspect-monet-1.1.0`, `.inspect-monet-1.0.97` | Historical Monet contracts, picker investigation, reports. |
 | **`.inspect-pillo-627-play`** | Authoritative Pillo 0.6.27 Google Play base and DEX fixtures. |
 | `.inspect-pillo-627` | APKPure-era Pillo notes and comparison tools; dumps archived. |

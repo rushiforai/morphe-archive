@@ -245,6 +245,7 @@ internal fun BytecodePatchContext.requireHiddenChatsRuntime() {
     controlHook(HIDDEN_CHATS, "menuChoice", listOf(HIDDEN_OBJECT, "I"), "I")
     controlHook(HIDDEN_CHATS, "addMenuItem", listOf(HIDDEN_OBJECT, "I", "I", "Ljava/lang/String;"), HIDDEN_OBJECT)
     controlHook(HIDDEN_CHATS, "selectedChats", listOf(HIDDEN_OBJECT), HIDDEN_LIST)
+    controlHook(HIDDEN_CHATS, "selectedOf", listOf(HIDDEN_OBJECT), HIDDEN_LIST)
     requireStatusMethod("hiddenUnread")
     controlHook(HIDDEN_CHATS, "uncounted", listOf(HIDDEN_OBJECT, "J"), "Z")
     controlHook(HIDDEN_CHATS, "recount", listOf("I"), "V")
@@ -1132,6 +1133,12 @@ internal fun BytecodePatchContext.writeHideMenuStubs(refs: HideMenuRefs) {
         :hush_read
         check-cast v0, ${refs.selected.substringBefore("->")}
         iget-object v0, v0, ${refs.selected}
+        return-object v0
+    """)
+    // The same list read straight off the chat list the menu hooks hand over, for Rename on this phone's item.
+    writeStub(HIDDEN_CHATS, "selectedOf", 2, """
+        check-cast p0, ${refs.selected.substringBefore("->")}
+        iget-object v0, p0, ${refs.selected}
         return-object v0
     """)
 }

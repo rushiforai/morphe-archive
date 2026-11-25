@@ -893,11 +893,12 @@ dependencies {
     // exact version at run time; this puts it on the test compile classpath as well.
     testImplementation("com.android.tools.build:apksig:9.1.1")
     // Reads the resource tables of the fixtures, for the Material You theme's colour table. This is
-    // the module and commit patcher 2.3.0 brings at run time; it puts that copy on the test compile
-    // classpath as well. REAndroid's own arsclib is a different module sharing most of its
-    // com.reandroid classes, so it sat beside the patcher's copy and won: 2.3.0's resource coder
-    // then failed on ApkModule.setTableReadProgress, which only 675bed2de3 has.
-    testImplementation("com.github.MorpheApp:ARSCLib:675bed2de3")
+    // the module and commit patcher 2.5.0 (like 2.4.0) brings at run time; it puts that copy on the test compile
+    // classpath as well. Gradle keeps whichever of two commits sorts higher, and 675bed2de3 (2.3.0's)
+    // sorts above 50418a07a8, so this pin moves with the patcher. REAndroid's own arsclib is a
+    // different module sharing most of its com.reandroid classes, so it sat beside the patcher's copy
+    // and won: the resource coder then failed on ApkModule.setTableReadProgress.
+    testImplementation("com.github.MorpheApp:ARSCLib:50418a07a8")
 }
 
 // The patch tests run in two parts. fixtureTest takes the ones that read the Threads fixtures,

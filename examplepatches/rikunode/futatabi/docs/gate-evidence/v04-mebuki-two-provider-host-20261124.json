@@ -1,0 +1,47 @@
+{
+  "date": "2026-11-24",
+  "scope": "X/Discord only; Google excluded by owner",
+  "deviceOperation": "NOT PERFORMED; MUSE exclusivity pending",
+  "changes": [
+    "Provider and first-party callback/error navigation classification",
+    "HTTP/network/TLS error reporting; explicit cancel to first-party site",
+    "Serialize save/erase/inspect/cancel; distinguish storage failure and session states",
+    "Refresh home status on return from login activity"
+  ],
+  "tests": {
+    "androidJavac": "PASS",
+    "hostJvmNavigationCases": 13,
+    "hostJvm": "PASS",
+    "localHttpFixtureUnittest": 3,
+    "localHttpFixture": "PASS",
+    "syntheticProviderSessions": [
+      "X",
+      "Discord"
+    ],
+    "checks": [
+      "get-session shape",
+      "fresh connection revalidation",
+      "catalog/messages",
+      "invalid/anonymous cookie",
+      "previous fixture contract"
+    ],
+    "realWebViewCallbacks": "NOT VERIFIED in current build",
+    "androidSaveAndRestore": "Prior common E2E PASS; not rerun on current build"
+  },
+  "build": {
+    "status": "BUILD SUCCESSFUL",
+    "bytes": 751051,
+    "sha256": "a1a6818c1905bde62f8a2a1722546fe8fb5e822a1d186710f622947f55d4dc0e",
+    "version": "0.3.0 unchanged",
+    "installed": false,
+    "release": false
+  },
+  "realProviderEvidence": {
+    "discord": "Credential-entry screen reached on earlier build",
+    "x": "Official button visible only; click not yet tested",
+    "google": "OUT OF SCOPE"
+  },
+  "credentialsEntered": false,
+  "realPosting": false,
+  "uaChanged": false
+}

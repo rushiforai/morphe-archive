@@ -87,7 +87,8 @@ public class QuickSetupKeysTest {
         Set<BooleanSetting> chosen = new HashSet<>(QuickSetupKeys.QUIET);
         chosen.addAll(QuickSetupKeys.PRIVACY);
         List<BooleanSetting> missed = Arrays.asList(
-                Settings.HIDE_REBLOGS, Settings.HIDE_OWN_REBLOGS, Settings.HIDE_REBLOGS_OF_YOURS, Settings.HIDE_LIKED_POSTS, Settings.HIDE_VIDEO_POSTS, Settings.HIDE_PHOTO_POSTS, Settings.HIDE_TEXT_POSTS,
+                Settings.HIDE_REBLOGS, Settings.HIDE_OWN_REBLOGS, Settings.HIDE_REBLOGS_OF_YOURS, Settings.HIDE_LIKED_POSTS,
+                Settings.HIDE_FOLLOWED_IN_FOR_YOU, Settings.HIDE_VIDEO_POSTS, Settings.HIDE_PHOTO_POSTS, Settings.HIDE_TEXT_POSTS,
                 Settings.HIDE_POSTS_WITH_WORDS, Settings.HIDE_FILTERED_POSTS, Settings.HIDE_TUMBLR_TV, Settings.HIDE_COMMUNITIES_TAB,
                 Settings.HIDE_EXPLORE_TAB, Settings.HIDE_NOTIFICATIONS_TAB, Settings.HIDE_LIKE_BUTTON,
                 Settings.HIDE_REBLOG_BUTTON, Settings.HIDE_COMMENT_BUTTON, Settings.HIDE_SHARE_BUTTON,

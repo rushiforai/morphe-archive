@@ -6,7 +6,9 @@
 #
 # Builds the patch bundle (.mpp) from the Gradle project, then applies it to the
 # given Instagram APK with the local Morphe CLI, producing ./oxbow.apk (./oxbow-clone.apk with --clone).
-#   --clone     install side-by-side as a separate package (com.instagram.android.feurstagram)
+#   --clone     install side-by-side as a separate package (com.instagram.android.oxbow;
+#               FEURSTAGRAM_CLONE_PACKAGE picks another name, e.g. to test a build next to one
+#               whose signing key differs)
 #   --install   install the result on the connected ADB device
 #   --debug     enable the Debug bridge patch: the settings become drivable over
 #               ADB broadcasts (see extensions/.../DebugBridge.java). Never ship it.
@@ -143,7 +145,7 @@ echo "==> [2/3] Applying to $(basename "$APK")"
 REPORT="$DIR/build/patch-report.json"
 mkdir -p "$DIR/build"
 ARGS=(-jar "$CLI" patch -p "$MPP" -f -r "$REPORT" -o "$OUT")
-[ "$CLONE" -eq 1 ] && ARGS+=(-e "Clone")
+[ "$CLONE" -eq 1 ] && ARGS+=(-e "Clone" -O "packageName=${FEURSTAGRAM_CLONE_PACKAGE:-com.instagram.android.oxbow}")
 [ "$DEBUG" -eq 1 ] && ARGS+=(-e "Debug bridge")
 
 # With a keystore password, defer signing to apksigner (the CLI can't read the
@@ -171,11 +173,13 @@ if [ "$SIGN_WITH_APKSIGNER" -eq 1 ]; then
     # Force v1+v2+v3 so the signature is accepted across the whole user base's
     # devices and matches the schemes prior releases shipped; v4 (the .idsig
     # sidecar) is only useful for adb incremental install, so leave it off.
+    # Passwords go through the environment: the command line is readable by every other process.
+    export FEURSTAGRAM_KEY_PASS="${FEURSTAGRAM_KEY_PASS:-$FEURSTAGRAM_KEYSTORE_PASS}"
     "$APKSIGNER" sign \
         --ks "$KEYSTORE" \
         --ks-key-alias "$KEY_ALIAS" \
-        --ks-pass "pass:$FEURSTAGRAM_KEYSTORE_PASS" \
-        --key-pass "pass:${FEURSTAGRAM_KEY_PASS:-$FEURSTAGRAM_KEYSTORE_PASS}" \
+        --ks-pass env:FEURSTAGRAM_KEYSTORE_PASS \
+        --key-pass env:FEURSTAGRAM_KEY_PASS \
         --v1-signing-enabled true \
         --v2-signing-enabled true \
         --v3-signing-enabled true \

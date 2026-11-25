@@ -151,6 +151,7 @@ public class GboardUpdateCheckReceiver extends BroadcastReceiver {
                     Log.i(TAG, "Update available: v" + remoteVersion + ". Notification posted.");
                 }
             }
+            GboardBetaManager.checkRemoteBetaReleaseInBackground(context);
         } catch (Throwable t) {
             Log.w(TAG, "Error checking for updates in background", t);
         } finally {

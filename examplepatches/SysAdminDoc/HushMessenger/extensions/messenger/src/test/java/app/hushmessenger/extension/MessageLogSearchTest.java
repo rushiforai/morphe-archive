@@ -77,13 +77,14 @@ public class MessageLogSearchTest {
     @Test public void directMessagesAndGroupChatsSplitByTheChatsKind() {
         MessageLog.Entry direct = new MessageLog.Entry(3000, "ONE_TO_ONE:3:4", "hi", "Ana", "", "mid.3", false);
         MessageLog.Entry encrypted = new MessageLog.Entry(2000, "ADVANCED_CRYPTO_ONE_TO_ONE:9", "hey", "Bo", "", "mid.2", false);
+        MessageLog.Entry marketplace = new MessageLog.Entry(1500, "MARKETPLACE:5:6", "still available?", "Cy", "", "mid.15", false);
         MessageLog.Entry group = new MessageLog.Entry(1000, "GROUP:7", "hello all", "Ben", "Trip Crew", "mid.1", false);
         MessageLog.Entry unknown = new MessageLog.Entry(500, "", "lost", "", "", "mid.0", false);
-        MessageLogSearch.Index index = new MessageLogSearch.Index(List.of(direct, encrypted, group, unknown));
-        assertEquals(List.of(direct, encrypted), index.find("", null, false, MessageLogSearch.DIRECT));
+        MessageLogSearch.Index index = new MessageLogSearch.Index(List.of(direct, encrypted, marketplace, group, unknown));
+        assertEquals(List.of(direct, encrypted, marketplace), index.find("", null, false, MessageLogSearch.DIRECT));
         assertEquals(List.of(group), index.find("", null, false, MessageLogSearch.GROUPS));
         // A message with no chat key isn't either kind, but every chat still shows it.
-        assertEquals(List.of(direct, encrypted, group, unknown), index.find("", null, false, MessageLogSearch.ALL));
+        assertEquals(List.of(direct, encrypted, marketplace, group, unknown), index.find("", null, false, MessageLogSearch.ALL));
     }
 
     @Test public void aPickedNameShowsForTheChatAndFindsItsMessages() {

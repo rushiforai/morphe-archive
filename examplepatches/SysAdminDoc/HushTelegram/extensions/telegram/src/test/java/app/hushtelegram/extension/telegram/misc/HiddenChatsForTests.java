@@ -125,6 +125,7 @@ public final class HiddenChatsForTests {
         }
 
         @Override public List<?> selectedChats(Object listener) { return picked; }
+        @Override public List<?> selectedOf(Object list) { return picked; }
 
         /** Each folder's chat ids, as "folder: ids" in folder order. */
         public List<String> lists() {

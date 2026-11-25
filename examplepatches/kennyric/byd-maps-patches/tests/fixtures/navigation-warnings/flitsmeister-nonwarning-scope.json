@@ -1,0 +1,75 @@
+{
+  "artifact_sha256": "17f622c8072c9fd8bd121b872a3733a9a22aaff041d57560f6f3dd59a33ce1b7",
+  "scope": "Direct exact DEX field references plus the pinned native announcement dispatch; serialized/reflection strings are not claimed to be incoming field references.",
+  "inspector_sha256": "9ae9d9818b98bf0ba1470be99b82e01d21575eb510163d7017fc9a0c76ef4cfe",
+  "native_dispatch": {
+    "method": "Lfc0;->x(Lnl/flitsmeister/fmcore/data/model/reports/BaseReport;)V",
+    "body_sha256": "8d9e92ec83418bf02f1096e95c8ea278bd9903e6706cac4576e4103bb89124bd"
+  },
+  "members": {
+    "BASEREPORT": {
+      "reason": "BaseReportListItem is an icon/text-empty list placeholder; the only other direct uses are rated-item DB conversion/default fallbacks. It has no native fc0.x speech dispatch arm.",
+      "direct_field_references": [
+        "classes2.dex:Lnl/flitsmeister/fmcore/data/model/reports/BaseReportType;->$values()[Lnl/flitsmeister/fmcore/data/model/reports/BaseReportType;@6",
+        "classes2.dex:Lnl/flitsmeister/fmcore/data/model/reports/BaseReportType;-><clinit>()V@41",
+        "classes2.dex:Lwze;->invoke(Ljava/lang/Object;)Ljava/lang/Object;@50",
+        "classes6.dex:Lnl/flitsmeister/fmcore/data/model/reports/BaseReportListItem;->getReportType()Lnl/flitsmeister/fmcore/data/model/reports/BaseReportType;@0",
+        "classes6.dex:Lpze$d;->invokeSuspend(Ljava/lang/Object;)Ljava/lang/Object;@28"
+      ],
+      "adapter_behavior": "State remains UPSERT/CLEAR with display_only category; bus snapshots never authorize speech."
+    },
+    "CITS_PARKING": {
+      "reason": "CitsParking extends BaseReport, not CitsBaseReport; it supplies parking capacity/price/display data and a null short description. Native fc0.x has no speech arm for it.",
+      "direct_field_references": [
+        "classes2.dex:Lnl/flitsmeister/fmcore/data/model/reports/BaseReportType;->$values()[Lnl/flitsmeister/fmcore/data/model/reports/BaseReportType;@12",
+        "classes2.dex:Lnl/flitsmeister/fmcore/data/model/reports/BaseReportType;-><clinit>()V@76",
+        "classes6.dex:Lnl/flitsmeister/fmcore/models/data/cits/CitsParking;->getReportType()Lnl/flitsmeister/fmcore/data/model/reports/BaseReportType;@0"
+      ],
+      "adapter_behavior": "State remains UPSERT/CLEAR with display_only category; bus snapshots never authorize speech."
+    },
+    "ENVIRONMENTAL_ZONE": {
+      "reason": "The enum field has only declaration/value-array uses in the exact original DEX inventory. No concrete native warning producer or fc0.x dispatch arm uses it.",
+      "direct_field_references": [
+        "classes2.dex:Lnl/flitsmeister/fmcore/data/model/reports/BaseReportType;->$values()[Lnl/flitsmeister/fmcore/data/model/reports/BaseReportType;@16",
+        "classes2.dex:Lnl/flitsmeister/fmcore/data/model/reports/BaseReportType;-><clinit>()V@96"
+      ],
+      "adapter_behavior": "State remains UPSERT/CLEAR with display_only category; bus snapshots never authorize speech."
+    },
+    "FM_OFFICE": {
+      "reason": "FMOfficeReport is the office marker, with a null short description and no native fc0.x speech dispatch arm.",
+      "direct_field_references": [
+        "classes2.dex:Lnl/flitsmeister/fmcore/data/model/reports/BaseReportType;->$values()[Lnl/flitsmeister/fmcore/data/model/reports/BaseReportType;@13",
+        "classes2.dex:Lnl/flitsmeister/fmcore/data/model/reports/BaseReportType;-><clinit>()V@81",
+        "classes6.dex:Lnl/flitsmeister/models/data/reports/FMOfficeReport;-><init>(DD)V@8",
+        "classes6.dex:Lnl/flitsmeister/models/data/reports/FMOfficeReport;-><init>(Landroid/os/Parcel;)V@9"
+      ],
+      "adapter_behavior": "State remains UPSERT/CLEAR with display_only category; bus snapshots never authorize speech."
+    },
+    "LBA": {
+      "reason": "The enum field has only its declaration/value-array uses. Actual LBA is a separate Parcelable with END_OF_TRIP/NONE notification types and its own location-based-content bus, outside native road-warning capture.",
+      "direct_field_references": [
+        "classes2.dex:Lnl/flitsmeister/fmcore/data/model/reports/BaseReportType;->$values()[Lnl/flitsmeister/fmcore/data/model/reports/BaseReportType;@5",
+        "classes2.dex:Lnl/flitsmeister/fmcore/data/model/reports/BaseReportType;-><clinit>()V@36"
+      ],
+      "adapter_behavior": "State remains UPSERT/CLEAR with display_only category; bus snapshots never authorize speech."
+    },
+    "PARKED_LOCATION": {
+      "reason": "The enum field has only declaration/value-array uses in the exact original DEX inventory. No concrete native warning producer or fc0.x dispatch arm uses it.",
+      "direct_field_references": [
+        "classes2.dex:Lnl/flitsmeister/fmcore/data/model/reports/BaseReportType;->$values()[Lnl/flitsmeister/fmcore/data/model/reports/BaseReportType;@14",
+        "classes2.dex:Lnl/flitsmeister/fmcore/data/model/reports/BaseReportType;-><clinit>()V@86"
+      ],
+      "adapter_behavior": "State remains UPSERT/CLEAR with display_only category; bus snapshots never authorize speech."
+    },
+    "TOLLING": {
+      "reason": "TollReport is a map/route toll marker with common_toll_gate title and empty description. It is outside every native fc0.x announcement dispatch arm; accepted bus state remains available.",
+      "direct_field_references": [
+        "classes2.dex:Lnl/flitsmeister/fmcore/data/model/reports/BaseReportType;->$values()[Lnl/flitsmeister/fmcore/data/model/reports/BaseReportType;@15",
+        "classes2.dex:Lnl/flitsmeister/fmcore/data/model/reports/BaseReportType;-><clinit>()V@91",
+        "classes6.dex:Lnl/flitsmeister/fmcore/data/model/reports/TollReport;->getReportType()Lnl/flitsmeister/fmcore/data/model/reports/BaseReportType;@0"
+      ],
+      "adapter_behavior": "State remains UPSERT/CLEAR with display_only category; bus snapshots never authorize speech."
+    }
+  },
+  "adapter_test": "NativeWarningsTest.nonWarningOrReservedModelsRemainDisplayStateAndNeverBecomeAnnouncements"
+}

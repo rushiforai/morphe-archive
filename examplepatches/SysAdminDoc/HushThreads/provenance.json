@@ -298,6 +298,49 @@
     },
     {
       "paths": [
+        "extensions/threads/src/main/java/app/morphe/extension/hushthreads/theme/HeaderLogo.java",
+        "patches/src/main/kotlin/app/morphe/patches/threads/misc/theme/HeaderLogoPatch.kt"
+      ],
+      "origin": "original",
+      "upstream": "https://github.com/SysAdminDoc/HushThreads",
+      "via": [],
+      "license": "GPL-3.0-only",
+      "changes": "HushThreads header logo for issue #26: the Compose lambdas that draw Threads' logo and wordmark at the top of the feed, found by their source notes in 457, ask the extension first and return when it drew HushThreads' logo into the same canvas, which is read the way Threads' own lambda reads it. Found by reading the pull-to-refresh indicator in 457, with no outside code."
+    },
+    {
+      "paths": [
+        "extensions/threads/src/main/java/app/morphe/extension/hushthreads/theme/CustomFont.java",
+        "patches/src/main/kotlin/app/morphe/patches/threads/misc/theme/CustomFontPatch.kt"
+      ],
+      "origin": "original",
+      "upstream": "https://github.com/SysAdminDoc/HushThreads",
+      "via": [],
+      "license": "GPL-3.0-only",
+      "changes": "Custom font for discussion #28: right after each of the three loads in Threads' font repository (asset, Android family and font resource), the typeface goes to the extension with what it was loaded by, and the extension answers with a picked font file for text fonts at Threads' weight and slant. The file is picked through HushThreads' settings file picker and copied into Threads' files. Found by reading TypefaceRepository in 457, with no outside code."
+    },
+    {
+      "paths": [
+        "patches/src/main/kotlin/app/morphe/patches/threads/misc/icon/HushThreadsLogo.kt"
+      ],
+      "origin": "original",
+      "upstream": "https://github.com/SysAdminDoc/HushThreads",
+      "via": [],
+      "license": "GPL-3.0-only",
+      "changes": "HushThreads' own logo, the H and its ribbon from the settings logo, traced into vector paths and scaled into an adaptive icon's safe circle for issue #26."
+    },
+    {
+      "paths": [
+        "patches/src/main/kotlin/app/morphe/patches/threads/misc/icon/CustomLauncherIconPatch.kt"
+      ],
+      "origin": "ported",
+      "upstream": "https://github.com/SysAdminDoc/Hushfacebook",
+      "commit": "f2ba4ca60e64d78a61725dc74a0a3ffda1d7e6ca",
+      "via": [],
+      "license": "GPL-3.0-only",
+      "changes": "Hushfacebook's Icon style resource patch (LauncherIconStyle.kt) cut down to one style for issue #26. It reads Threads' application icon from the manifest, finds its one adaptive-icon configuration and writes HushThreads' logo inline as the foreground on HushThreads blue, with a one-color H as the themed layer."
+    },
+    {
+      "paths": [
         "extensions/threads/src/main/java/app/morphe/extension/hushthreads/misc/FbnsProcess.java",
         "patches/src/main/kotlin/app/morphe/patches/threads/misc/fbns/**"
       ],
@@ -343,6 +386,17 @@
       "via": [],
       "license": "GPL-3.0-only",
       "changes": "Show exact post times: the static function that writes a post header's time asks the extension first thing, and while the switch is on the extension answers the date and time from Android's own date formatter, which the function returns instead of its relative text. Found by reading PostHeaderTimestamp and the formatter it calls in 454, with no outside code."
+    },
+    {
+      "paths": [
+        "extensions/threads/src/main/java/app/morphe/extension/hushthreads/feed/PostButtons.java",
+        "patches/src/main/kotlin/app/morphe/patches/threads/feed/postbuttons/HidePostButtonsPatch.kt"
+      ],
+      "origin": "original",
+      "upstream": "https://github.com/SysAdminDoc/HushThreads",
+      "via": [],
+      "license": "GPL-3.0-only",
+      "changes": "Hide post buttons: the like, reply, repost, share and save buttons' Compose functions under a post each ask the extension first thing whether to draw, and return before drawing anything while that button's switch is on. Found by reading PostDenseUfi and its button functions in 457, with no outside code."
     },
     {
       "paths": [
@@ -750,6 +804,17 @@
       "upstream": "https://github.com/SysAdminDoc/HushThreads",
       "license": "GPL-3.0-only",
       "changes": "Filter comments: an opened post's reply list, filtered before Threads parses it into rows, with each reply's text read through Threads' own post model."
+    },
+    {
+      "paths": [
+        "patches/src/main/kotlin/app/morphe/patches/threads/misc/extension/ComposeNotes.kt",
+        "patches/src/main/resources/app/morphe/patches/threads/misc/extension/compose-notes.tsv"
+      ],
+      "origin": "original",
+      "upstream": "https://github.com/SysAdminDoc/HushThreads",
+      "via": [],
+      "license": "GPL-3.0-only",
+      "changes": "Compose source notes: Threads 456 strips the note strings the patches used to find their composables, so this reads the group key its trace calls still carry and looks it up in a table of the notes each key had in 455."
     }
   ]
 }

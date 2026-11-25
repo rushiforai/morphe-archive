@@ -30,25 +30,34 @@ final class SettingsUi {
     /** The Record button's press, a white wash that shows on the red and on the dark glass alike. */
     static final int CALL_RIPPLE = 0x40ffffff;
 
+    SettingsUi(Context context, boolean light) { this(context, light, null); }
+
+    /**
+     * The message log's look: Messenger's chat surfaces from [look] in place of the settings page's, with the page's
+     * own layout, buttons and fields drawn in them. Its raised grey fills the cards and buttons without an outline.
+     */
+    SettingsUi(Context context, MessageLogLook look) { this(context, look.light, look); }
+
     // Ratios are WCAG contrast, measured against the page, card and dialog (dark: all black; light: page #f0f2f5, card white).
-    SettingsUi(Context context, boolean light) {
+    private SettingsUi(Context context, boolean light, MessageLogLook look) {
         this.context = context;
         this.light = light;
-        background = light ? 0xfff0f2f5 : 0xff000000;
+        background = look != null ? look.ground : light ? 0xfff0f2f5 : 0xff000000;
         // Cards and dialogs sit on the page's own black in the dark look, drawn out by their outline.
-        surface = light ? 0xffffffff : 0xff000000;
-        card = surface;
+        surface = look != null ? look.ground : light ? 0xffffffff : 0xff000000;
+        card = look != null ? look.raised : surface;
         dialog = surface;
-        text = light ? 0xff050505 : 0xfff3f5f9; // light 18.2 / 20.4, dark 19.2
-        muted = light ? 0xff65676b : 0xffa6afbe; // light 5.05 / 5.67, dark 9.50
-        hint = light ? 0xff686b71 : 0xff8b95a5; // light 4.76 / 5.35, dark 6.94
+        text = look != null ? look.text : light ? 0xff050505 : 0xfff3f5f9; // light 18.2 / 20.4, dark 19.2
+        muted = look != null ? look.muted : light ? 0xff65676b : 0xffa6afbe; // light 5.05 / 5.67, dark 9.50
+        hint = look != null ? look.muted : light ? 0xff686b71 : 0xff8b95a5; // light 4.76 / 5.35, dark 6.94
         // No one blue reads as text on both the page and under white text, so each job gets its own.
-        accent = light ? 0xff0064e0 : 0xff4599ff; // light 4.80 / 5.39, dark 7.25
+        accent = look != null ? look.link : light ? 0xff0064e0 : 0xff4599ff; // light 4.80 / 5.39, dark 7.25
         heading = accent;
-        accentFill = 0xff0866ff; // Messenger's launcher blue; white on it 4.82
-        onAccent = 0xffffffff;
-        line = light ? 0xff84878c : 0xff525c6c; // card outlines and dividers: light 3.21 / 3.60, dark 3.11
-        switchOff = light ? 0xff84878c : 0xff6b7584; // light 3.60 on white, dark 4.50; the off thumb on it light 5.65, dark 4.66
+        accentFill = look != null ? look.fill : 0xff0866ff; // Messenger's launcher blue; white on it 4.82
+        onAccent = look != null ? look.onFill : 0xffffffff;
+        line = look != null ? look.raised : light ? 0xff84878c : 0xff525c6c; // card outlines and dividers: light 3.21 / 3.60, dark 3.11
+        // light 3.60 on white, dark 4.50; the off thumb on it light 5.65, dark 4.66
+        switchOff = look != null ? look.muted : light ? 0xff84878c : 0xff6b7584;
         outline = switchOff;
         selected = accentFill;
         warning = light ? 0xff785100 : 0xffffcc67; // on warningSurface: light 6.19, dark 9.68
@@ -60,11 +69,11 @@ final class SettingsUi {
         thumb = light ? text : 0xffffffff;
         // The heading color at 20 percent.
         ripple = (accent & 0x00ffffff) | 0x33000000;
-        infoSurface = light ? 0xffe7f3ff : 0xff0f1c2e; // the heading color on it: light 4.79, dark 5.92
+        infoSurface = look != null ? look.raised : light ? 0xffe7f3ff : 0xff0f1c2e; // the heading color on it: light 4.79, dark 5.92
         iconSurface = infoSurface;
-        infoBorder = light ? 0xffcfe3fb : 0xff1d3350;
+        infoBorder = look != null ? look.raised : light ? 0xffcfe3fb : 0xff1d3350;
         selectedText = onAccent;
-        error = light ? 0xffb3261e : 0xffffb4ab; // light 5.83 / 6.54, dark 12.37
+        error = look != null ? look.error : light ? 0xffb3261e : 0xffffb4ab; // light 5.83 / 6.54, dark 12.37
         selection = (accent & 0x00ffffff) | 0x55000000;
         largeText = context.getResources().getConfiguration().fontScale > 1.3f ||
             context.getResources().getConfiguration().screenWidthDp < 360 ||

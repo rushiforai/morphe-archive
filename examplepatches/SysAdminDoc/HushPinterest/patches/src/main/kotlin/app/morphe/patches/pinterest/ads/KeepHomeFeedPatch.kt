@@ -25,6 +25,7 @@ import app.morphe.patches.pinterest.misc.extension.requireLocals
 import app.morphe.patches.pinterest.misc.extension.requireStatusMethod
 import app.morphe.patches.pinterest.misc.settings.settingsPatch
 import app.morphe.patches.pinterest.ui.instructions
+import app.morphe.patches.pinterest.ui.mutable
 import app.morphe.patches.pinterest.ui.one
 import app.morphe.patches.pinterest.ui.parameters
 import app.morphe.patches.shared.compat.AppCompatibilities
@@ -38,6 +39,7 @@ import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.TwoRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.WideLiteralInstruction
+import com.android.tools.smali.dexlib2.iface.reference.FieldReference
 import com.android.tools.smali.dexlib2.iface.reference.MethodReference
 
 private const val PATCH = "Keep Home feed"
@@ -68,8 +70,8 @@ val keepHomeFeedPatch = bytecodePatch(
     name = PATCH,
     description = "Keeps your Home feed where you left it when you come back to Pinterest or to the Home tab, " +
         "instead of loading new pins on its own. Pull down to refresh whenever you want new pins. A second switch " +
-        "lets Back leave Pinterest from a scrolled-down Home without jumping to the top first. Both start off. " +
-        "Turn them on in HushPinterest settings > Feed.",
+        "lets Back leave Pinterest from a scrolled-down Home without jumping to the top first, and a third hides " +
+        "the pill that offers new pins after you've been away. All start off. Turn them on in HushPinterest settings > Feed.",
 ) {
     category("Feed")
     dependsOn(settingsPatch, pinterestExtensionPatch)
@@ -89,6 +91,13 @@ val keepHomeFeedPatch = bytecodePatch(
             homeBack()
         } catch (missing: PatchException) {
             patchLog.warning("${missing.message}. Back on Home keeps jumping to the top first.")
+            null
+        }
+        requireStatusMethod("refreshPill")
+        val pill = try {
+            refreshPill()
+        } catch (missing: PatchException) {
+            patchLog.warning("${missing.message}. Home keeps its refresh pill.")
             null
         }
 
@@ -121,6 +130,17 @@ val keepHomeFeedPatch = bytecodePatch(
             enableCapability("homeBack")
         }
 
+        if (pill != null) {
+            val answer = "v${pill.answer}"
+            pill.method.addInstructionsWithLabels(pill.index, """
+                invoke-static {}, $HOME_FEED->hideRefreshPill()Z
+                move-result $answer
+                if-eqz $answer, :hush_refresh_pill
+                return-void
+            """, ExternalLabel("hush_refresh_pill", pill.method.getInstruction(pill.index)))
+            enableCapability("refreshPill")
+        }
+
         enableCapability("homeFeed")
         enableStatus("keepHomeFeed")
     }
@@ -128,6 +148,56 @@ val keepHomeFeedPatch = bytecodePatch(
 
 /** Home's Back handler, where its jump to the top starts, and the local the hook's answer borrows. */
 private class HomeBack(val method: MutableMethod, val branch: HomeBackBranch, val answer: Int)
+
+/** The R field of the stub Home inflates its refresh pill from. This build reads ids from R. */
+internal const val REFRESH_PROMPT_STUB = "stub_refresh_prompt"
+
+/** Where Home's time-away handler goes on once Pinterest has the event: the hook goes in at [index], borrowing [answer]. */
+private class RefreshPill(val method: MutableMethod, val index: Int, val answer: Int)
+
+private fun Instruction.readsId(name: String): Boolean {
+    if (opcode != Opcode.SGET) return false
+    val field = (this as ReferenceInstruction).reference as? FieldReference ?: return false
+    return field.name == name && field.type == "I"
+}
+
+/**
+ * Home's handler for the time-away event (#48), the one `onEventMainThread` (EventBus finds it by
+ * name) that reads [REFRESH_PROMPT_STUB]. It hands the event to the presenter first, a `(Object)V`
+ * call that takes the sticky event off the bus, then inflates and shows the pill. The hook goes in
+ * right after that call, so the event is still taken.
+ */
+internal fun BytecodePatchContext.refreshPillHandler(): Method {
+    val handlers = mutableListOf<Method>()
+    classDefForEach { owner ->
+        owner.methods.filterTo(handlers) { method ->
+            method.name == "onEventMainThread" && method.instructions().any { it.readsId(REFRESH_PROMPT_STUB) }
+        }
+    }
+    return handlers.one("$PATCH: Home's refresh pill handler")
+}
+
+/** The instruction right after [handler] hands its event to the presenter, where the hook goes. */
+internal fun refreshPillIndex(handler: Method): Int {
+    val body = handler.instructions()
+    val taken = body.indexOfFirst { instruction ->
+        val called = (instruction as? ReferenceInstruction)?.reference as? MethodReference
+        instruction.opcode == Opcode.INVOKE_VIRTUAL && called != null && called.returnType == "V" &&
+            called.parameterTypes.map { it.toString() } == listOf("Ljava/lang/Object;")
+    }
+    if (taken < 0) throw PatchException("$PATCH: Home's refresh pill handler hands its event to nothing")
+    if (body.drop(taken + 1).none { it.readsId(REFRESH_PROMPT_STUB) }) {
+        throw PatchException("$PATCH: Home's refresh pill handler builds the pill before taking its event")
+    }
+    return taken + 1
+}
+
+private fun BytecodePatchContext.refreshPill(): RefreshPill {
+    val handler = refreshPillHandler()
+    val index = refreshPillIndex(handler)
+    val answer = handler.freeLocalsAt("$PATCH: Home's refresh pill handler", index, 1, highest = 255).single()
+    return RefreshPill(mutable(handler), index, answer)
+}
 
 /**
  * Home's Back handler, the fragment's `()Z` that reads the scroll offset and, past Pinterest's

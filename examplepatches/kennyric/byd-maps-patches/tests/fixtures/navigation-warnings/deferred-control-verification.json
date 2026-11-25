@@ -1,0 +1,27 @@
+{
+  "format": 1,
+  "scope": "Deterministic actual source endpoint/actor/Binder callback tests under Robolectric. No claim of native receiver audio-engine or car acceptance.",
+  "cases": [
+    "parkedRecoveryInvalidatesTheOldViewAndKeepsVisualStateWithoutPlaybackAuthority",
+    "parkedRecoveryRefusesAReadyReceiverAndPreservesItsAuthority",
+    "expiredOwnerRevocationWaitsForAnInflightEventCallbackInsteadOfBeingLost"
+  ],
+  "observations": [
+    "Ready owner refuses parked reset without revoking its retained announcement authority.",
+    "Parked reset preserves current visual state, removes earlier playback authorities, invalidates old snapshot ACKs and eventually notifies a receiver whose event callback was busy.",
+    "A granted attempt whose lease expires while its callback is busy retains OWNER_REVOKED until delivery can resume; the source still refuses another audio claim with AUDIO_UNCERTAIN."
+  ],
+  "red_logs": [
+    ".analysis/native-warning-bindings/endpoint-recovery-red.log",
+    ".analysis/native-warning-bindings/endpoint-expired-revocation-red.log"
+  ],
+  "green_log": ".analysis/native-warning-bindings/endpoint-revocation-green-and-build.log",
+  "xml_test_count": 8,
+  "xml_failures": 0,
+  "runtime_source_candidate_sha256": "816e3f875d271c57b834c7e2f09a76bdcec367384dfe082e46f624bf5c1fd53a",
+  "mpp_sha256": "dac07ae0119719add426479280d572c006daddc892b435078398b5d3ab6ed4b9",
+  "source_sha256": {
+    "support/navigation-alerts/src/main/java/nl/johninnl/navigation/alerts/WarningEndpoint.java": "9a57ca3477e66ee5c6d224662314e55917cdad4c4fd1521a08f8a0a63b30a7d1",
+    "extensions/flitsmeister/src/test/java/nl/johninnl/navigation/alerts/WarningEndpointTest.java": "2529a960bd47b3b59869c4e02d7a1524ce6081b1cd6325787621d9e7faff0d46"
+  }
+}

@@ -17,8 +17,11 @@ import app.morphe.patcher.patch.BytecodePatchContext
 import app.morphe.patcher.patch.PatchException
 import app.morphe.patcher.util.smali.ExternalLabel
 import app.morphe.patches.threads.misc.extension.SETTINGS_STATUS
+import app.morphe.patches.threads.misc.extension.holdsNote
+import app.morphe.patches.threads.misc.extension.indexOfNote
+import app.morphe.patches.threads.misc.extension.noteAt
+import app.morphe.patches.threads.misc.extension.noteSmali
 import app.morphe.patches.threads.misc.extension.parameterRegisterNumber
-import app.morphe.patches.threads.misc.theme.holdsNote
 import app.morphe.util.argumentRegister
 import app.morphe.util.findMutableMethodOf
 import app.morphe.util.getReference
@@ -32,7 +35,6 @@ import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.RegisterRangeInstruction
 import com.android.tools.smali.dexlib2.iface.reference.FieldReference
 import com.android.tools.smali.dexlib2.iface.reference.MethodReference
-import com.android.tools.smali.dexlib2.iface.reference.StringReference
 import com.android.tools.smali.dexlib2.iface.reference.TypeReference
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
@@ -75,14 +77,12 @@ class HideGhostPostBubblesFixtureTest {
             val bubbleCall = bubbleBody.indices.single { bubbleBody[it].callsInto(animated) }
             assertEquals(where, register, bubbleBody[bubbleCall].flagRegister())
 
-            // The feed's row: one function, drawn by one main feed method, whose class one main feed
-            // AnimatedVisibility builds. There the flag is a boolean field of the lambda itself.
+            // The feed's row: one function, drawn from a content lambda, a three argument invoke, whose
+            // class one AnimatedVisibility caller builds. There the flag is a boolean field of the caller.
             val tray = methods.single { method -> FEED_TRAY_NOTES.any { method.holdsNote(it) } }
-            val feed = methods.filter { it.holdsNote(MAIN_FEED_NOTE) }
-            val drawer = feed.single { method -> method.body().any { it.calls(tray) } }
-            val wrapper = feed.single { method ->
-                method.body().any { it.opcode == Opcode.NEW_INSTANCE && it.getReference<TypeReference>()?.type == drawer.definingClass } &&
-                    method.body().any { it.callsInto(animated) }
+            val drawer = methods.single { it.drawsRow(tray) }
+            val wrapper = methods.single { method ->
+                method.builds(setOf(drawer.definingClass)) && method.body().any { it.callsInto(animated) }
             }
             val wrapperBody = wrapper.body()
             val trayCall = wrapperBody.indices.single { wrapperBody[it].callsInto(animated) }
@@ -173,9 +173,9 @@ class HideGhostPostBubblesFixtureTest {
         for (build in Fixtures.declaredBuilds()) {
             val context = context(build)
             val bubble = context.mutable(context.profileBubble().method)
-            val note = bubble.body().indexOfFirst { it.getReference<StringReference>()?.string?.startsWith(PROFILE_BUBBLE_NOTE) == true }
+            val note = bubble.body().indexOfNote(PROFILE_BUBBLE_NOTE)
             val register = (bubble.body()[note] as OneRegisterInstruction).registerA
-            bubble.addInstructions(note + 1, "const-string v$register, \"${PROFILE_BUBBLE_NOTE}94)\"")
+            bubble.addInstructions(note, noteSmali(PROFILE_BUBBLE_NOTE, register))
             val error = assertThrows(build.name, PatchException::class.java) { hideGhostPostBubblesPatch.execute(context) }
             assertTrue(error.message.orEmpty(), error.message.orEmpty().contains("expected exactly one match, found 2"))
             assertEquals(build.name, 0, status(context))
@@ -190,14 +190,12 @@ class HideGhostPostBubblesFixtureTest {
                 val profile = context.profileBubble()
                 val tray = classes(build).flatMap { it.methods }.single { method -> FEED_TRAY_NOTES.any { method.holdsNote(it) } }
                 val method = context.mutable(tray)
-                val note = method.body().indexOfFirst { instruction ->
-                    instruction.getReference<StringReference>()?.string?.let { text -> FEED_TRAY_NOTES.any { text.startsWith(it) } } == true
-                }
+                val note = FEED_TRAY_NOTES.map { method.body().indexOfNote(it) }.single { it >= 0 }
                 val register = (method.body()[note] as OneRegisterInstruction).registerA
                 if (duplicate) {
-                    method.addInstructions(note + 1, "const-string v$register, \"${FEED_TRAY_NOTE}112)\"")
+                    method.addInstructions(note, noteSmali(method.body().noteAt(note)!!, register))
                 } else {
-                    method.replaceInstruction(note, "const-string v$register, \"another tray\"")
+                    method.replaceInstruction(note, "const v$register, 0x1234567")
                 }
                 val error = assertThrows(build.name, PatchException::class.java) { hideGhostPostBubblesPatch.execute(context) }
                 assertTrue(error.message.orEmpty(), error.message.orEmpty().contains("expected exactly one match, found ${if (duplicate) 2 else 0}"))
@@ -216,6 +214,14 @@ class HideGhostPostBubblesFixtureTest {
 
     private fun Instruction.calls(method: Method) = calls(method.signature())
 
+    /** A content lambda's invoke that draws [tray]. */
+    private fun Method.drawsRow(tray: Method) = name == "invoke" && parameterTypes.size == 3 &&
+        implementation?.instructions?.any { it.calls(tray) } == true
+
+    private fun Method.builds(types: Set<String>) = implementation?.instructions?.any {
+        it.opcode == Opcode.NEW_INSTANCE && it.getReference<TypeReference>()?.type in types
+    } == true
+
     /** A static call into [type] that takes one boolean: an AnimatedVisibility function, when [type] holds them. */
     private fun Instruction.callsInto(type: String) =
         (opcode == Opcode.INVOKE_STATIC || opcode == Opcode.INVOKE_STATIC_RANGE) &&
@@ -232,16 +238,18 @@ class HideGhostPostBubblesFixtureTest {
     private fun context(build: File) = PatchContexts.of(ExtensionDex.classes() + classes(build))
 
     private fun classes(build: File): List<ClassDef> = fixtures.getOrPut(build) {
-        FixtureDex.classesWhere(build, { dex -> dex.stringSection.any { string -> NOTES.any { string.startsWith(it) } } }) { method ->
-            NOTES.any { method.holdsNote(it) }
-        }
+        val noted = FixtureDex.classesWhere(build, { true }) { method -> NOTES.any { method.holdsNote(it) } }
+        val tray = noted.flatMap { it.methods }.single { method -> FEED_TRAY_NOTES.any { method.holdsNote(it) } }
+        val drawers = FixtureDex.classesWhere(build, { true }) { it.drawsRow(tray) }
+        val types = drawers.map { it.type }.toSet()
+        (noted + drawers + FixtureDex.classesWhere(build, { true }) { it.builds(types) }).distinctBy { it.type }
     }
 
     private fun status(context: BytecodePatchContext) = (context.mutableClassDefBy(SETTINGS_STATUS).methods
         .single { it.name == "hideGhostPostBubbles" }.implementation!!.instructions.first() as NarrowLiteralInstruction).narrowLiteral
 
     private companion object {
-        val NOTES = listOf(PROFILE_BUBBLE_NOTE, MAIN_FEED_NOTE, ANIMATED_VISIBILITY_NOTE) + FEED_TRAY_NOTES
+        val NOTES = listOf(PROFILE_BUBBLE_NOTE, ANIMATED_VISIBILITY_NOTE) + FEED_TRAY_NOTES
 
         /** One read of each build serves every test; each test patches its own copy. */
         val fixtures = PerBuild<List<ClassDef>>()

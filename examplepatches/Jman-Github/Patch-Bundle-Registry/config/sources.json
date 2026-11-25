@@ -820,11 +820,6 @@
     "integrations": false,
     "disabled": false
   },
-  "ftl": {
-    "patches": "https://github.com/BlazeFTL/FTL-Patches",
-    "integrations": false,
-    "disabled": false
-  },
   "braintropy": {
     "patches": "https://github.com/braiNtropy/braintropy-patches",
     "integrations": false,
@@ -2215,11 +2210,6 @@
     "integrations": false,
     "disabled": false
   },
-  "facebook-lite-morphe": {
-    "patches": "https://github.com/BlazeFTL/FaceBook-Lite-Morphe",
-    "integrations": false,
-    "disabled": false
-  },
   "raid-judu": {
     "patches": "https://github.com/Vakarux12/raid-judu-patches",
     "integrations": false,
@@ -3350,11 +3340,6 @@
     "integrations": false,
     "disabled": false
   },
-  "np-morphe-patches": {
-    "patches": "https://github.com/prtmN5H1/NP-morphe-patches",
-    "integrations": false,
-    "disabled": false
-  },
   "kmmiio99o-reseam-patches": {
     "patches": "https://github.com/kmmiio99o/reseam-patches",
     "integrations": false,
@@ -4347,6 +4332,91 @@
   },
   "morphe-patches-13": {
     "patches": "https://github.com/josselinonduty/morphe-patches",
+    "integrations": false,
+    "disabled": false
+  },
+  "gboard-rambler-enhancements": {
+    "patches": "https://github.com/abotmaker/gboard-rambler-enhancements",
+    "integrations": false,
+    "disabled": false
+  },
+  "glyphchemy": {
+    "patches": "https://github.com/assc0d3r/GLYPHCHEMY",
+    "integrations": false,
+    "disabled": false
+  },
+  "byd-maps-patches": {
+    "patches": "https://github.com/kennyric/byd-maps-patches",
+    "integrations": false,
+    "disabled": false
+  },
+  "morphe-patches-14": {
+    "patches": "https://github.com/mben25/morphe-patches",
+    "integrations": false,
+    "disabled": false
+  },
+  "revanced-patches": {
+    "patches": "https://github.com/pumzia/revanced-patches",
+    "integrations": false,
+    "disabled": false
+  },
+  "revanced-hitster-db-patch": {
+    "patches": "https://github.com/Snupai/revanced-hitster-db-patch",
+    "integrations": false,
+    "disabled": false
+  },
+  "revanced-patches-archive": {
+    "patches": "https://github.com/AmpleReVanced/revanced-patches-archive",
+    "integrations": false,
+    "disabled": false
+  },
+  "morphe-patch-siagatani": {
+    "patches": "https://github.com/EryrizalH/Morphe-patch-Siagatani",
+    "integrations": false,
+    "disabled": false
+  },
+  "morphe-patches-15": {
+    "patches": "https://github.com/valonsodev/morphe-patches",
+    "integrations": false,
+    "disabled": false
+  },
+  "revanced-patches-tristan": {
+    "patches": "https://github.com/tristan23612/revanced-patches-tristan",
+    "integrations": false,
+    "disabled": false
+  },
+  "ekqimodyt": {
+    "patches": "https://github.com/FluxusScripts/ekqimodyt",
+    "integrations": false,
+    "disabled": false
+  },
+  "morphe-patches-16": {
+    "patches": "https://github.com/pomee4/morphe-patches",
+    "integrations": false,
+    "disabled": false
+  },
+  "sai-patches": {
+    "patches": "https://github.com/saiyupunch/sai-patches",
+    "integrations": false,
+    "disabled": false
+  },
+  "morphe-patches-17": {
+    "patches": "https://github.com/Darkaxt/morphe-patches",
+    "integrations": false,
+    "disabled": false
+  },
+  "mygate-surprise-delivery-morphe-patches": {
+    "patches": "https://github.com/chaosmanage/mygate-surprise-delivery-morphe-patches",
+    "integrations": false,
+    "disabled": false
+  },
+  "revanced-vot-patches": {
+    "patches": "https://github.com/KoromeloDev/revanced-vot-patches",
+    "integrations": false,
+    "disabled": false
+  },
+  "eurowag-patches": {
+    "patches": "https://gitlab.com/georgewoodall82/eurowag-patches",
     "integrations": false,
     "disabled": false
   }

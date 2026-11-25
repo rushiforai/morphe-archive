@@ -5,17 +5,22 @@ import android.content.Context;
 import android.content.ContextWrapper;
 import android.os.Handler;
 import android.os.Looper;
+import android.os.SystemClock;
 import android.util.Log;
 import android.view.View;
 
+import androidx.recyclerview.widget.ListAdapter;
 import androidx.recyclerview.widget.RecyclerView;
 
 import java.lang.ref.WeakReference;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 import dev.materialtidal.extension.tidal.navbar.ExpressiveMiniPlayerExpandOverlayView;
 import dev.materialtidal.extension.tidal.navbar.ExpressiveScaffoldBridge;
 import dev.materialtidal.extension.tidal.navbar.ExpressiveViewFactory;
+import dev.materialtidal.extension.tidal.player.lyrics.SyllableLyricsFetcher;
 
 /**
  * Bridge connecting TIDAL's Compose {@code PlayerScreenKt.PlayerScreenContent}
@@ -60,6 +65,10 @@ public final class ExpressivePlayerBridge {
     private static volatile Object latestOnOrientation;
 
     private static volatile boolean lastRemoveDialogShown;
+
+    private static volatile int lastNativePosMs = -1;
+    private static volatile int lastNativeDurMs = -1;
+    private static volatile long lastNativeElapsedMs = 0L;
 
     private static volatile WeakReference<ExpressivePlayerView> activePlayerRef =
             new WeakReference<>(null);
@@ -126,6 +135,19 @@ public final class ExpressivePlayerBridge {
         if (preview != null && latestContentState != null) {
             applyPlayerState(preview, latestContentState, latestProgressState);
         }
+    }
+
+    public static void refreshActivePlayer() {
+        MAIN_HANDLER.post(() -> {
+            ExpressivePlayerView pv = activePlayerRef.get();
+            if (pv != null) {
+                if (latestContentState != null) {
+                    applyPlayerState(pv, latestContentState, latestProgressState);
+                }
+                pv.requestLayout();
+                pv.invalidate();
+            }
+        });
     }
 
     private static void applyPlayerStateOnUiThread(
@@ -232,7 +254,33 @@ public final class ExpressivePlayerBridge {
                 }
             }
 
-            view.updateState(
+            String metaTrackId = null;
+            String metaAlbum = null;
+            String metaIsrc = null;
+            long metaDurMs = 0L;
+            try {
+                String[] trackMeta = nativeGetCurrentTrackMeta();
+                String candidateId = getStr(trackMeta, 0, null);
+                String candidateAlbum = getStr(trackMeta, 1, null);
+                String candidateTitle = getStr(trackMeta, 3, null);
+                long candidateDurMs = 0L;
+                String durStr = getStr(trackMeta, 2, null);
+                if (durStr != null && !durStr.isEmpty()) {
+                    try {
+                        candidateDurMs = Long.parseLong(durStr);
+                    } catch (NumberFormatException ignored) {
+                    }
+                }
+                if (SyllableLyricsFetcher.isMetaTitleCompatible(candidateTitle, title)) {
+                    metaTrackId = candidateId;
+                    metaAlbum = candidateAlbum;
+                    metaDurMs = candidateDurMs;
+                    metaIsrc = SyllableLyricsFetcher.getCachedIsrc(metaTrackId);
+                }
+            } catch (Throwable ignored) {
+            }
+
+            view.updateStateWithTrackMeta(
                     title,
                     artist,
                     coverId,
@@ -254,8 +302,23 @@ public final class ExpressivePlayerBridge {
                     isLyricsSynced,
                     lyricLines,
                     lyricTimesMs,
-                    highlightedLyricIndex
+                    highlightedLyricIndex,
+                    metaTrackId,
+                    metaAlbum,
+                    metaIsrc,
+                    metaDurMs
             );
+            ExpressivePlayQueueController.onPlaybackStateChanged(
+                    isShuffleOn,
+                    repeatMode,
+                    "PLAYING".equals(playState),
+                    sourceName
+            );
+
+            if (lastNativePosMs >= 0 && lastNativeElapsedMs > 0L
+                    && (SystemClock.elapsedRealtime() - lastNativeElapsedMs) < 1500L) {
+                view.onNativeProgressMs(lastNativePosMs, lastNativeDurMs, lastNativeElapsedMs, false);
+            }
         } catch (Throwable t) {
             Log.e(TAG, "Error extracting PlayerScreen ViewState", t);
         }
@@ -338,6 +401,37 @@ public final class ExpressivePlayerBridge {
         return null;
     }
 
+    // ---- Syllable Lyrics Clock & ISRC Hooks ----
+
+    public static void onPlaybackProgressTickMs(int positionMs, int durationMs) {
+        long now = SystemClock.elapsedRealtime();
+        lastNativePosMs = positionMs;
+        lastNativeDurMs = durationMs;
+        lastNativeElapsedMs = now;
+        ExpressivePlayerView pv = activePlayerRef.get();
+        if (pv != null) {
+            pv.onNativeProgressMs(positionMs, durationMs, now, false);
+        }
+    }
+
+    public static void onPlaybackStartedMs(int positionMs, int durationMs) {
+        long now = SystemClock.elapsedRealtime();
+        lastNativePosMs = positionMs;
+        lastNativeDurMs = durationMs;
+        lastNativeElapsedMs = now;
+        ExpressivePlayerView pv = activePlayerRef.get();
+        if (pv != null) {
+            pv.onNativeProgressMs(positionMs, durationMs, now, true);
+        }
+    }
+
+    public static void cacheTrackIsrc(String trackId, String isrc) {
+        try {
+            SyllableLyricsFetcher.cacheTrackIsrc(trackId, isrc);
+        } catch (Throwable ignored) {
+        }
+    }
+
     // ---- Play Queue & Suggested Tracks Hooks ----
 
     public static void onPlayQueueViewCreated(Object fragment, View rootView) {
@@ -388,7 +482,312 @@ public final class ExpressivePlayerBridge {
         }
     }
 
+    public static void onPlayQueueSyncMove(
+            ListAdapter<?, ?> adapter,
+            List<?> newList,
+            RecyclerView.ViewHolder source,
+            RecyclerView.ViewHolder target
+    ) {
+        try {
+            ExpressivePlayQueueController.onPlayQueueSyncMove(adapter, newList, source, target);
+        } catch (Throwable ignored) {
+        }
+    }
+
+    public static void onPlayQueueSelectedChanged(RecyclerView.ViewHolder vh, int actionState) {
+        try {
+            ExpressivePlayQueueController.onPlayQueueSelectedChanged(vh, actionState);
+        } catch (Throwable ignored) {
+        }
+    }
+
+    public static void onPlayQueueDragClearView(RecyclerView rv, RecyclerView.ViewHolder vh) {
+        try {
+            ExpressivePlayQueueController.onPlayQueueDragClearView(rv, vh);
+        } catch (Throwable ignored) {
+        }
+    }
+
+    // ---- Play Queue bottom sheet actions ----
+
+    private static volatile WeakReference<Object> navigatorRef = new WeakReference<>(null);
+    private static volatile WeakReference<Object> sleepTimerCtrlRef = new WeakReference<>(null);
+    private static java.lang.reflect.Field sleepTimerFlowField;
+    private static java.lang.reflect.Method stateFlowGetValueMethod;
+    private static boolean sleepTimerReflectResolved;
+
+    public static void registerNavigator(Object navigator) {
+        if (navigator != null) {
+            navigatorRef = new WeakReference<>(navigator);
+        }
+    }
+
+    public static void registerSleepTimerController(Object controller) {
+        if (controller != null) {
+            sleepTimerCtrlRef = new WeakReference<>(controller);
+        }
+    }
+
+    static boolean isSleepTimerActiveNow() {
+        Object ctrl = sleepTimerCtrlRef.get();
+        if (ctrl == null) {
+            return false;
+        }
+        try {
+            if (!sleepTimerReflectResolved) {
+                sleepTimerReflectResolved = true;
+                sleepTimerFlowField = ctrl.getClass().getDeclaredField("g");
+                sleepTimerFlowField.setAccessible(true);
+            }
+            if (sleepTimerFlowField == null) {
+                return false;
+            }
+            Object flow = sleepTimerFlowField.get(ctrl);
+            if (flow == null) {
+                return false;
+            }
+            if (stateFlowGetValueMethod == null) {
+                stateFlowGetValueMethod = flow.getClass().getMethod("getValue");
+            }
+            return stateFlowGetValueMethod.invoke(flow) != null;
+        } catch (Throwable ignored) {
+            return false;
+        }
+    }
+
+    static boolean isShuffleOnNow() {
+        try {
+            int direct = nativeGetQueueShuffleState();
+            if (direct >= 0) {
+                return direct != 0;
+            }
+        } catch (Throwable ignored) {
+        }
+        try {
+            Object c = latestContentState;
+            return c != null && (nativeGetPlayerFlags(c) & 2) != 0;
+        } catch (Throwable t) {
+            return false;
+        }
+    }
+
+    static String repeatModeNow() {
+        try {
+            String direct = nativeGetQueueRepeatMode();
+            if (direct != null && !direct.isEmpty()) {
+                return direct;
+            }
+        } catch (Throwable ignored) {
+        }
+        try {
+            Object c = latestContentState;
+            if (c == null) {
+                return "OFF";
+            }
+            return getStr(nativeGetPlayerStrings(c, latestProgressState), 4, "OFF");
+        } catch (Throwable t) {
+            return "OFF";
+        }
+    }
+
+    static boolean isPlayingNow() {
+        try {
+            Object c = latestContentState;
+            if (c != null) {
+                String st = getStr(nativeGetPlayerStrings(c, latestProgressState), 3, "");
+                if (!st.isEmpty()) {
+                    return "PLAYING".equals(st);
+                }
+            }
+            String mini = ExpressiveScaffoldBridge.getLatestMiniPlayerPlayState();
+            return mini != null && mini.toUpperCase(java.util.Locale.ROOT).contains("PLAY");
+        } catch (Throwable ignored) {
+            return false;
+        }
+    }
+
+    static String sourceLabelNow() {
+        try {
+            Object c = latestContentState;
+            if (c != null) {
+                String src = getStr(nativeGetPlayerStrings(c, latestProgressState), 8, "");
+                if (src != null && !src.trim().isEmpty()) {
+                    return src.trim();
+                }
+            }
+        } catch (Throwable ignored) {
+        }
+        return "";
+    }
+
+    static void toggleShuffleFromQueue() {
+        if (latestOnEvent != null) {
+            dispatchSimpleEvent(ACTION_SHUFFLE);
+            return;
+        }
+        try {
+            nativeToggleQueueShuffleDirect();
+        } catch (Throwable t) {
+            Log.e(TAG, "Direct shuffle toggle failed", t);
+        }
+    }
+
+    static void cycleRepeatFromQueue() {
+        if (latestOnEvent != null) {
+            dispatchSimpleEvent(ACTION_REPEAT);
+            return;
+        }
+        try {
+            nativeCycleQueueRepeatDirect();
+        } catch (Throwable t) {
+            Log.e(TAG, "Direct repeat cycle failed", t);
+        }
+    }
+
+    static void clearQueueExceptCurrent() {
+        try {
+            nativeClearQueue();
+        } catch (Throwable t) {
+            Log.e(TAG, "Clear queue failed", t);
+        }
+    }
+
+    static void saveQueueAsPlaylist() {
+        try {
+            nativeSaveQueueAsPlaylist();
+        } catch (Throwable t) {
+            Log.e(TAG, "Save queue as playlist failed", t);
+        }
+    }
+
+    static boolean showSleepTimer(Object activity) {
+        Object nav = navigatorRef.get();
+        if (nav == null || activity == null) {
+            return false;
+        }
+        try {
+            nativeShowSleepTimer(nav, activity);
+            return true;
+        } catch (Throwable t) {
+            Log.e(TAG, "Sleep timer failed", t);
+            return false;
+        }
+    }
+
+    // ---- Desktop & Tablet Play Queue + Audio Spec Helpers ----
+
+    public static DesktopQueuePanelRenderer.QueueSnapshot fetchPlayQueueSnapshot(int maxUpcoming) {
+        try {
+            Object[] snap = nativeGetPlayQueueSnapshot();
+            if (snap == null || snap.length < 2 || !(snap[0] instanceof List) || !(snap[1] instanceof Integer)) {
+                return null;
+            }
+            List<?> rawItems = (List<?>) snap[0];
+            int currentPos = (Integer) snap[1];
+            int totalSize = rawItems.size();
+            if (totalSize == 0) {
+                return new DesktopQueuePanelRenderer.QueueSnapshot(
+                        Collections.emptyList(), -1, 0, "empty");
+            }
+            int startIdx = (currentPos >= 0 && currentPos < totalSize) ? currentPos : 0;
+            int endIdx = Math.min(totalSize, startIdx + Math.max(1, maxUpcoming) + 1);
+            List<DesktopQueuePanelRenderer.QueueTrackItem> items = new ArrayList<>(endIdx - startIdx);
+            StringBuilder sig = new StringBuilder();
+            sig.append(currentPos).append(':').append(totalSize);
+
+            for (int i = startIdx; i < endIdx; i++) {
+                Object rawItem = rawItems.get(i);
+                String[] strs = rawItem != null ? nativeExtractQueueItemStrings(rawItem) : null;
+                String uid = getStr(strs, 0, String.valueOf(i));
+                String title = getStr(strs, 1, "");
+                String artist = getStr(strs, 2, "");
+                String cover = getStr(strs, 3, null);
+                int durSec = 0;
+                String durStr = getStr(strs, 4, null);
+                if (durStr != null && !durStr.isEmpty()) {
+                    try {
+                        durSec = Integer.parseInt(durStr);
+                    } catch (NumberFormatException ignored) {
+                    }
+                }
+                int itemFlags = 0;
+                String flagStr = getStr(strs, 5, null);
+                if (flagStr != null && !flagStr.isEmpty()) {
+                    try {
+                        itemFlags = Integer.parseInt(flagStr);
+                    } catch (NumberFormatException ignored) {
+                    }
+                }
+                boolean isExplicit = (itemFlags & 1) != 0;
+                boolean isActive = (itemFlags & 2) != 0;
+                boolean isCurrent = currentPos >= 0 && i == currentPos;
+
+                items.add(new DesktopQueuePanelRenderer.QueueTrackItem(
+                        i, uid, title, artist, cover, durSec, isExplicit, isActive, isCurrent
+                ));
+                sig.append('|').append(uid).append('#').append(isActive ? '1' : '0');
+            }
+            return new DesktopQueuePanelRenderer.QueueSnapshot(items, currentPos, totalSize, sig.toString());
+        } catch (Throwable t) {
+            Log.e(TAG, "Failed fetching play queue snapshot", t);
+            return null;
+        }
+    }
+
+    public static void playQueuePosition(int queueIndex) {
+        if (queueIndex < 0) {
+            return;
+        }
+        try {
+            nativePlayQueuePosition(queueIndex);
+        } catch (Throwable t) {
+            Log.e(TAG, "Failed playing queue position " + queueIndex, t);
+        }
+    }
+
+    public static void removeQueueItem(int queueIndex) {
+        if (queueIndex < 0) {
+            return;
+        }
+        try {
+            nativeRemoveQueueItem(queueIndex);
+        } catch (Throwable t) {
+            Log.e(TAG, "Failed removing queue item " + queueIndex, t);
+        }
+    }
+
+    public static String getAudioStreamSpecRaw() {
+        try {
+            return nativeGetAudioStreamSpec();
+        } catch (Throwable ignored) {
+            return null;
+        }
+    }
+
     // ---- Patch-time replaced Dalvik stubs ----
+
+    private static void nativeClearQueue() {
+    }
+
+    private static void nativeSaveQueueAsPlaylist() {
+    }
+
+    private static void nativeShowSleepTimer(Object navigator, Object activity) {
+    }
+
+    private static int nativeGetQueueShuffleState() {
+        return -1;
+    }
+
+    private static String nativeGetQueueRepeatMode() {
+        return null;
+    }
+
+    private static void nativeToggleQueueShuffleDirect() {
+    }
+
+    private static void nativeCycleQueueRepeatDirect() {
+    }
 
     private static void nativeMountPlayerAndroidView(Object factory, Object update, Object composer) {
     }
@@ -428,5 +827,27 @@ public final class ExpressivePlayerBridge {
     }
 
     private static void nativeDispatchLyricLineClicked(Object onEvent, long positionMs) {
+    }
+
+    private static String[] nativeGetCurrentTrackMeta() {
+        return null;
+    }
+
+    private static Object[] nativeGetPlayQueueSnapshot() {
+        return null;
+    }
+
+    private static String[] nativeExtractQueueItemStrings(Object item) {
+        return null;
+    }
+
+    private static void nativePlayQueuePosition(int position) {
+    }
+
+    private static void nativeRemoveQueueItem(int position) {
+    }
+
+    private static String nativeGetAudioStreamSpec() {
+        return null;
     }
 }

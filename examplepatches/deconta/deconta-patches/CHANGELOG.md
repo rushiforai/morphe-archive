@@ -1,3 +1,15 @@
+## [1.3.0](https://github.com/Deconta/deconta-patches/compare/v1.2.0...v1.3.0) (2026-11-24)
+
+### ✨ New Features
+
+* add deconta settings dialog, UI button, and coupon deactivation ([911aa9a](https://github.com/Deconta/deconta-patches/commit/911aa9af03732e6a2db6fb4383abde446832b07d))
+
+## [1.2.0](https://github.com/Deconta/deconta-patches/compare/v1.1.1...v1.2.0) (2026-11-24)
+
+### ✨ New Features
+
+* optimize speed, prevent 10% coupon conflict, and add progress feedback ([f615d36](https://github.com/Deconta/deconta-patches/commit/f615d36763c4dfc75b6e5ca63fa1d22d5b6ae3f8))
+
 ## [1.1.1](https://github.com/Deconta/deconta-patches/compare/v1.1.0...v1.1.1) (2026-11-20)
 
 ### 🐛 Bug Fixes

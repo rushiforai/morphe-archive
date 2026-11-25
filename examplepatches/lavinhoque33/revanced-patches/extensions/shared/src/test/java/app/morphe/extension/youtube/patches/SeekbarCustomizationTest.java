@@ -1,7 +1,7 @@
 /*
  * Copyright (C) 2026 lavinhoque33
  * Licensed under the GNU General Public License v3.0 or later.
- * Modified by lavinhoque33, 2026-11-17.
+ * Modified by lavinhoque33, 2026-11-24.
  * Written by lavinhoque33, 2026-11-17.
  */
 package app.morphe.extension.youtube.patches;
@@ -10,6 +10,7 @@ import static org.junit.Assert.*;
 
 import android.content.Context;
 import android.content.pm.PackageInfo;
+import android.content.res.Configuration;
 import android.graphics.Bitmap;
 import android.graphics.BitmapRegionDecoder;
 import android.graphics.Canvas;
@@ -17,6 +18,7 @@ import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.Rect;
 import android.net.Uri;
+import android.view.View;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -34,9 +36,12 @@ import java.io.FileOutputStream;
 import java.lang.reflect.Field;
 import java.nio.file.Files;
 
+import app.morphe.extension.shared.utils.BaseThemeUtils;
 import app.morphe.extension.shared.utils.Utils;
 import app.morphe.extension.youtube.settings.Settings;
 import app.morphe.extension.youtube.settings.preference.CustomSeekbarThumbPreference;
+import app.morphe.extension.youtube.shared.PlayerControlsVisibility;
+import app.morphe.extension.youtube.shared.PlayerType;
 
 @RunWith(RobolectricTestRunner.class)
 @Config(manifest = Config.NONE, sdk = 26)
@@ -124,6 +129,41 @@ public class SeekbarCustomizationTest {
 
         assertTrue("A genuinely non-square shape must stay non-square", oval.width() > oval.height());
         assertEquals(2, (double) oval.width() / oval.height(), 0.15);
+    }
+
+    @Test
+    @Config(sdk = 34)
+    @GraphicsMode(GraphicsMode.Mode.NATIVE)
+    public void collapsedThumbLeavesGradientEndIntactButVisibleControlsKeepTheirThumb() {
+        Configuration config = new Configuration(context.getResources().getConfiguration());
+        config.orientation = Configuration.ORIENTATION_PORTRAIT;
+        View seekbar = new View(context.createConfigurationContext(config));
+        Settings.ENABLE_CUSTOM_SEEKBAR_COLOR.save(true);
+        BaseThemeUtils.updateLightDarkModeStatus(2);
+        PlayerType.setFromString(PlayerType.WATCH_WHILE_MAXIMIZED.name());
+        PlayerControlsVisibility.setFromString(PlayerControlsVisibility.PLAYER_CONTROLS_VISIBILITY_HIDDEN.name());
+        CustomSeekbarThumbPatch.setSeekbarView(seekbar);
+
+        Bitmap bitmap = Bitmap.createBitmap(40, 40, Bitmap.Config.ARGB_8888);
+        Canvas canvas = new Canvas(bitmap);
+        Paint thumb = new Paint();
+        thumb.setColor(Color.MAGENTA);
+        bitmap.eraseColor(Color.YELLOW);
+        CustomSeekbarThumbPatch.drawCircle(canvas, 20, 20, Utils.dipToPixels(1), thumb);
+        assertEquals(Color.YELLOW, bitmap.getPixel(20, 20));
+
+        PlayerControlsVisibility.setFromString(PlayerControlsVisibility.PLAYER_CONTROLS_VISIBILITY_SHOWN.name());
+        CustomSeekbarThumbPatch.drawCircle(canvas, 20, 20, Utils.dipToPixels(6), thumb);
+        assertEquals(Color.MAGENTA, bitmap.getPixel(20, 20));
+
+        Settings.ENABLE_CUSTOM_SEEKBAR_COLOR.save(false);
+        PlayerControlsVisibility.setFromString(PlayerControlsVisibility.PLAYER_CONTROLS_VISIBILITY_HIDDEN.name());
+        bitmap.eraseColor(Color.YELLOW);
+        float collapsedRadius = Utils.dipToPixels(1);
+        CustomSeekbarThumbPatch.drawCircle(canvas, 20, 20, collapsedRadius, thumb);
+        canvas.drawCircle(10, 10, collapsedRadius, thumb);
+        assertNotEquals(Color.YELLOW, bitmap.getPixel(10, 10));
+        assertEquals(bitmap.getPixel(10, 10), bitmap.getPixel(20, 20));
     }
 
     private Rect importAndDrawThumb(Bitmap selected) throws Exception {

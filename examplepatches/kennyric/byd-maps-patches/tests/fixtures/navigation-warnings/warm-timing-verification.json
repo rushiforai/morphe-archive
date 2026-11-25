@@ -1,0 +1,266 @@
+{
+  "format": 1,
+  "scope": "Independent raw-authority audits retain failed frozen baselines and separately mark passing post-fix runs. Controlled emulator evidence only; full acceptance remains open.",
+  "percentile_method": "Nearest rank ceiling(p*n), all100 original ANNOUNCE identities retained, only separately named warmup excluded. UPSERT/CLEAR rows are raw diagnostic records, not extra announcement samples. Every STARTED is counted; latency uses the first start and cannot hide replay failures.",
+  "runs": [
+    {
+      "run": "maps-warm100-ordinary-voice",
+      "receiver_package": "com.google.android.apps.maps",
+      "serial": "emulator-5580",
+      "source_apk_sha256": "816e3f875d271c57b834c7e2f09a76bdcec367384dfe082e46f624bf5c1fd53a",
+      "receiver_apk_sha256": "ae2e238a76873c105a2364047bc03519e307a3aa3639e531051c60adcf243d31",
+      "source_helper_sha256": "a9e5cfb255d72230b969f7f859faeae604a7e2dcb2b87f9c42457349f3c37ea1",
+      "source_original_announcements": 100,
+      "warmup_excluded": true,
+      "priority": 1,
+      "all_source_owner_ready": true,
+      "actual_start_count": 103,
+      "one_start_per_authority": false,
+      "extra_starts": [
+        {
+          "index": 8,
+          "start_count": 2,
+          "stages": {
+            "SCHEDULER_STARTED": [
+              27276872,
+              27277251
+            ],
+            "SCHEDULER_INTERRUPTED": [
+              27276915
+            ],
+            "SCHEDULER_COMPLETED": [
+              27278631
+            ]
+          }
+        },
+        {
+          "index": 9,
+          "start_count": 2,
+          "stages": {
+            "SCHEDULER_STARTED": [
+              27278751,
+              27279093
+            ],
+            "SCHEDULER_INTERRUPTED": [
+              27278789
+            ],
+            "SCHEDULER_COMPLETED": [
+              27280411
+            ]
+          }
+        },
+        {
+          "index": 19,
+          "start_count": 2,
+          "stages": {
+            "SCHEDULER_STARTED": [
+              27294539,
+              27294882
+            ],
+            "SCHEDULER_INTERRUPTED": [
+              27294546
+            ],
+            "SCHEDULER_COMPLETED": [
+              27296212
+            ]
+          }
+        }
+      ],
+      "all_source_completed_acknowledgements": true,
+      "all_starts_before_original_deadline": true,
+      "source_and_receiver_cleanup_verified": true,
+      "delivery": {
+        "samples": 100,
+        "p50_ms": 1,
+        "p95_ms": 5,
+        "p99_ms": 8,
+        "maximum_ms": 10
+      },
+      "acceptance_to_first_actual_start": {
+        "samples": 100,
+        "p50_ms": 89,
+        "p95_ms": 450,
+        "p99_ms": 484,
+        "maximum_ms": 787
+      },
+      "source_disposition_counts": {
+        "GRANTED": 142,
+        "STARTED": 100,
+        "COMPLETED": 100,
+        "NOT_STARTED": 39,
+        "INTERRUPTED": 3
+      },
+      "receiver_stage_counts": {
+        "RECEIVER_ACCEPTED": 100,
+        "SCHEDULER_RECEIVED": 100,
+        "SCHEDULER_QUEUED": 100,
+        "SCHEDULER_STARTED": 103,
+        "SCHEDULER_COMPLETED": 100,
+        "SCHEDULER_NOT_STARTED": 39,
+        "SCHEDULER_INTERRUPTED": 3
+      },
+      "coordinator_complete": true,
+      "receiver_status": "observed",
+      "raw_source_result": ".analysis/native-warning-bindings/maps-warm100-ordinary-voice/source/4f0103c0-7946-4c5f-bdd3-7cc5058285d7/result.json",
+      "raw_source_sha256": "620d462aa80ce0f5879292521e411ccb8688bfb6f1439eda411b5ed229b14dc5",
+      "raw_receiver_result": ".analysis/native-warning-bindings/maps-warm100-ordinary-voice/receiver-result.json",
+      "raw_receiver_sha256": "d6782d22b35edc152a7a2bd96097ce77fb519930bec04f194e62e43969cf34d9",
+      "limitations": [
+        "R4 duplicate-prevention gate FAILED: three authorities have two actual starts. First-start-only latency metrics do not establish successful exactly-once output."
+      ]
+    },
+    {
+      "run": "vela-matrix-ordinary-100-attempt-aware",
+      "receiver_package": "app.vela",
+      "serial": "emulator-5582",
+      "source_apk_sha256": "816e3f875d271c57b834c7e2f09a76bdcec367384dfe082e46f624bf5c1fd53a",
+      "receiver_apk_sha256": "d29fd1a4d4be00848134739c352db296acb0b34e61f851d966bd9b8c122d0c8e",
+      "source_helper_sha256": "a9e5cfb255d72230b969f7f859faeae604a7e2dcb2b87f9c42457349f3c37ea1",
+      "source_original_announcements": 100,
+      "warmup_excluded": true,
+      "priority": 1,
+      "all_source_owner_ready": true,
+      "actual_start_count": 100,
+      "one_start_per_authority": true,
+      "extra_starts": [],
+      "all_source_completed_acknowledgements": true,
+      "all_starts_before_original_deadline": true,
+      "source_and_receiver_cleanup_verified": true,
+      "delivery": {
+        "samples": 100,
+        "p50_ms": 3,
+        "p95_ms": 24,
+        "p99_ms": 31,
+        "maximum_ms": 32
+      },
+      "acceptance_to_first_actual_start": {
+        "samples": 100,
+        "p50_ms": 455,
+        "p95_ms": 547,
+        "p99_ms": 660,
+        "maximum_ms": 854
+      },
+      "source_disposition_counts": {
+        "GRANTED": 100,
+        "STARTED": 100,
+        "COMPLETED": 100
+      },
+      "receiver_stage_counts": {
+        "RECEIVER_ACCEPTED": 100,
+        "SCHEDULER_RECEIVED": 100,
+        "SCHEDULER_QUEUED": 100,
+        "SCHEDULER_STARTED": 100,
+        "SCHEDULER_COMPLETED": 100
+      },
+      "coordinator_complete": false,
+      "receiver_status": "blocked",
+      "raw_source_result": ".analysis/native-warning-bindings/vela-matrix-ordinary-100-attempt-aware/source/a846aecc-0e8a-406f-8da5-fdf91fab799b/result.json",
+      "raw_source_sha256": "845022a884e6b13762b64187dc149e01120887f1958b5b7750a5c0c1437ee73d",
+      "raw_receiver_result": ".analysis/native-warning-bindings/vela-matrix-ordinary-100-attempt-aware/receiver-result.json",
+      "raw_receiver_sha256": "6eec5d32d671eb94da0dd951dd99018f4fe4f8de103b24bd24e5db33498c6567",
+      "limitations": [
+        "Original UI assertion expected warning text after genuine source CLEAR; transport/audio/timings are verified separately. No full-run UI pass claimed."
+      ]
+    },
+    {
+      "run": "vela-matrix-p0-100",
+      "receiver_package": "app.vela",
+      "serial": "emulator-5582",
+      "source_apk_sha256": "816e3f875d271c57b834c7e2f09a76bdcec367384dfe082e46f624bf5c1fd53a",
+      "receiver_apk_sha256": "d29fd1a4d4be00848134739c352db296acb0b34e61f851d966bd9b8c122d0c8e",
+      "source_helper_sha256": "a9e5cfb255d72230b969f7f859faeae604a7e2dcb2b87f9c42457349f3c37ea1",
+      "source_original_announcements": 100,
+      "warmup_excluded": true,
+      "priority": 0,
+      "all_source_owner_ready": true,
+      "actual_start_count": 100,
+      "one_start_per_authority": true,
+      "extra_starts": [],
+      "all_source_completed_acknowledgements": true,
+      "all_starts_before_original_deadline": true,
+      "source_and_receiver_cleanup_verified": true,
+      "delivery": {
+        "samples": 100,
+        "p50_ms": 5,
+        "p95_ms": 26,
+        "p99_ms": 31,
+        "maximum_ms": 79
+      },
+      "acceptance_to_first_actual_start": {
+        "samples": 100,
+        "p50_ms": 538,
+        "p95_ms": 602,
+        "p99_ms": 835,
+        "maximum_ms": 1052
+      },
+      "source_disposition_counts": {
+        "GRANTED": 100,
+        "STARTED": 100,
+        "COMPLETED": 100
+      },
+      "receiver_stage_counts": {
+        "RECEIVER_ACCEPTED": 100,
+        "SCHEDULER_RECEIVED": 100,
+        "SCHEDULER_QUEUED": 100,
+        "SCHEDULER_STARTED": 100,
+        "SCHEDULER_COMPLETED": 100
+      },
+      "coordinator_complete": true,
+      "receiver_status": "observed",
+      "raw_source_result": ".analysis/native-warning-bindings/vela-matrix-p0-100/source/7ba4980e-9819-4614-8f7e-f95034b9ab9b/result.json",
+      "raw_source_sha256": "7a2f36a7f2c2f03a90a1512e03bce8033f82431d70640739673f3dab39017fe4",
+      "raw_receiver_result": ".analysis/native-warning-bindings/vela-matrix-p0-100/receiver-result.json",
+      "raw_receiver_sha256": "affd15c85cbb4db2150d0991534cf4ca718d341be4e89fe5c351a2ea84683da1",
+      "limitations": [
+        "R2 P0 ready-idle timing gate FAILED on this candidate; urgent native lead correction and rerun remain required."
+      ],
+      "ready_idle_p0_start_p95_target_ms": 500,
+      "ready_idle_p0_start_target_met": false
+    },
+    {
+      "run": "vela-final-p0-100",
+      "phase": "post_fix",
+      "receiver_package": "app.vela",
+      "serial": "emulator-5582",
+      "source_apk_sha256": "3e3c2e987bb6e9b28bc5692e52828ee03d317cf925f719ed4aece29f11614ac8",
+      "receiver_apk_sha256": "8254e43848c3244753ebc89b657143cb2e8ef26232a0cfd220b9158661e1043f",
+      "source_original_announcements": 100,
+      "warmup_excluded": true,
+      "priority": 0,
+      "all_source_owner_ready": true,
+      "all_coordinates_absent": true,
+      "actual_start_count": 100,
+      "one_start_per_authority": true,
+      "extra_starts": [],
+      "all_source_completed_acknowledgements": true,
+      "all_starts_before_original_deadline": true,
+      "source_and_receiver_cleanup_verified": true,
+      "delivery": {
+        "samples": 100,
+        "p50_ms": 4,
+        "p95_ms": 22,
+        "p99_ms": 26,
+        "maximum_ms": 30
+      },
+      "acceptance_to_first_actual_start": {
+        "samples": 100,
+        "p50_ms": 128,
+        "p95_ms": 142,
+        "p99_ms": 185,
+        "maximum_ms": 202
+      },
+      "ready_idle_p0_start_p95_target_ms": 500,
+      "ready_idle_p0_start_target_met": true,
+      "raw_source_result": ".analysis/native-warning-bindings/vela-final-p0-100/source/dff9588f-b2a9-473c-b1f4-9757d26d376e/result.json",
+      "raw_source_sha256": "17baa835ce2af2a42b6ddb5f855981a313da80183aad069dff144a960001e8ff",
+      "raw_receiver_result": ".analysis/native-warning-bindings/vela-final-p0-100/receiver-result.json",
+      "raw_receiver_sha256": "5eb355b896397dc7a9663b632530d76119d75a57741a148348081f4e5374b082",
+      "coordinator_complete": true,
+      "receiver_status": "observed",
+      "limitations": [
+        "Controlled final-system-voice emulator test only; neural/Tone timing and physical/car routing are separate. External actor on another emulator was uncontrolled and disclosed."
+      ]
+    }
+  ],
+  "full_acceptance": false
+}

@@ -137,6 +137,11 @@ private fun sharedChecks(): List<WalkCheck> = listOf(
     inboundCopies, tempFolderChecks, configHolders, playoutSwitches, playoutWriters, recordHandovers, recentMediaDetectors,
     attributionUploads, instantCaptures, pinLimitLoaders, sharedFlagReaders, aiMentionShapes, headerRenders, logBars,
     ringMountClasses, roundingPrinterClasses, legacyRoundings, tileShapeFlags, messageDebugStrings,
+    profileMenuBuilders, profileCallRows, recoveryCodeRows, noteLimitMethods,
+    searchResultSources, searchSectionTypes, aiChatLaunchers,
+    storyTrayBuilders,
+    pinnedBarLoaders,
+    messageSoundPickers,
 )
 
 /** Match semantics first, then require the exact set the build's profile records. */
@@ -153,10 +158,9 @@ private fun findControlsIn(classes: Iterable<ClassDef>, community: CommunityInbo
     val peopleJewelKeys = findPeopleJewelKeys(classes)
     val storyCardKeys = findStoryCardKeys(classes)
     resolveMessageGetterNames(classes)
-    val appIconManagers = findAppIconManagers(classes)
     val stringTables = redexStringTables(classes)
     activeStringTables = stringTables
-    val scan = ControlScan(found, peopleJewelKeys, storyCardKeys, appIconManagers, stringTables)
+    val scan = ControlScan(found, peopleJewelKeys, storyCardKeys, stringTables)
     for (cls in classes) {
         val original = cls.fields.firstOrNull { it.name == "__redex_internal_original_name" }
             ?.initialValue.let { (it as? StringEncodedValue)?.value }
@@ -199,6 +203,7 @@ private fun findControlsIn(classes: Iterable<ClassDef>, community: CommunityInbo
     if (changedViewer) found.getValue("screenshot_viewers").clear() else screenshotViewerRefusal = null
     found.getValue(EMOJI_DRAWER).addAll(connectEmojiDrawer(scan.drawerReaders, scan.drawerAnchors, scan.drawerInterfaces))
     found.getValue(INBOX_SEARCH_BAR).addAll(connectSearchBar(scan.searchIconReaders, scan.searchIconAnchors))
+    found.getValue(LONGER_NOTES).addAll(findLongerNotes(classes))
     found.getValue(EMOJI_SEARCH).addAll(findEmojiSearch(classes))
     found.getValue(TAB_BADGES).addAll(findTabBadges(classes))
     found.getValue(FACEBOOK_BADGE).addAll(findFacebookBadge(classes))
@@ -232,10 +237,22 @@ private fun findControlsIn(classes: Iterable<ClassDef>, community: CommunityInbo
     val hiddenChats = findHiddenChats(classes)
     hiddenChats.forEach { (hook, methods) -> found.getValue(hook).addAll(methods) }
     found.getValue(CHAT_MENU_ITEMS).addAll(chatMenuRows(hiddenChats))
+    val profileMenus = findProfileMenuItems(classes)
+    found.getValue(PROFILE_MENU_ITEMS).addAll(profileMenus)
+    found.getValue(PROFILE_MENU_CALL).addAll(findProfileMenuCalls(classes, profileMenus, stringTables))
+    found.getValue(REACTION_READ).addAll(findReactionRead(classes, stringTables))
+    found.getValue(SEARCH_SECTIONS).addAll(findSearchSections(classes))
+    found.getValue(SEARCH_ITEMS).addAll(findSearchItems(classes))
+    found.getValue(AI_CHAT_OPEN).addAll(findAiChatOpen(classes))
+    found.getValue(STORY_CREATE_TILE).addAll(findStoryCreateTile(classes))
+    pinnedBarLoader = resolvePinnedBarLoader(classes)
+    found.getValue(PINNED_BAR).addAll(findPinnedBar(classes, pinnedBarLoader))
+    found.getValue(OPEN_CHAT_SOUND).addAll(findOpenChatSound(classes))
     found.getValue(NEARBY_SCANS).addAll(patchStage("Find nearby scans") { findNearbyScans(classes) })
     found.getValue(WIFI_IDENTITY).addAll(patchStage("Find Wi-Fi identity reads") { findWifiIdentityReads(classes) })
     found.getValue(PHONE_ID_SYNC).addAll(findPhoneIdSync(classes))
     found.getValue(PASSKEY_LOGIN).addAll(findPasskeyLogin(classes))
+    found.getValue(RECOVERY_CODE_ROW).addAll(findRecoveryCodeRow(classes))
     found.getValue(STORY_HOLD).addAll(findStoryHold(classes))
     found.getValue(CHAT_PREVIEW).addAll(findChatPreview(classes))
     found.getValue(CHAT_PREVIEW_SIZE).addAll(findChatPreviewSize(classes))
@@ -286,7 +303,6 @@ private fun findControlsIn(classes: Iterable<ClassDef>, community: CommunityInbo
     val (logBar, logClick) = findMessageLogButton(classes)
     found.getValue(MESSAGE_LOG_BUTTON).addAll(logBar)
     found.getValue(MESSAGE_LOG_CLICK).addAll(logClick)
-    found.getValue(APP_THEME_PICK).addAll(findAppThemePick(classes))
     found.getValue(SYSTEM_CAMERA).addAll(findSystemCamera(classes))
     found.getValue(EXTERNAL_GALLERY).addAll(findExternalGallery(classes))
     found.getValue(INSTANT_GALLERY).addAll(findInstantGallery(classes))
@@ -297,6 +313,7 @@ private fun findControlsIn(classes: Iterable<ClassDef>, community: CommunityInbo
     found.getValue(GALLERY_TO_CHAT).addAll(findGalleryToChat(classes))
     found.getValue(PASTE_PHOTO).addAll(findPastePhoto(classes))
     for ((hook, methods) in findCustomFont(classes)) found.getValue(hook).addAll(methods)
+    found.getValue(REFRESH_RATE).addAll(findRefreshRate(classes))
     return found
 }
 
@@ -429,7 +446,6 @@ private class ControlScan(
     val found: Map<String, MutableList<Method>>,
     val peopleJewelKeys: Set<String>,
     val storyCardKeys: Set<String>,
-    val appIconManagers: Set<String>,
     val stringTables: Map<String, Map<Int, String>>,
 ) {
     var searchFieldRender: Method? = null
@@ -483,8 +499,6 @@ private class ControlScan(
             for ((key, spec) in pluginGates) if (anchors.any { it in spec.anchors }) add(key)
         }
         if (gate && "com.facebook.messaging.friendsinboxunit.plugins.inboxunit.FriendsInboxUnitKillSwitch" in strings) add("stories")
-        if (cls.type in appIconManagers && method.isAppIconGate()) add(APP_ICONS)
-        if (method.isAppThemeGate()) add(APP_THEMES)
         if (gate) {
             val shortcuts = instructions.filter { it.opcode == Opcode.NEW_INSTANCE }
                 .mapNotNull { ((it as? ReferenceInstruction)?.reference as? TypeReference)?.type }
@@ -617,13 +631,14 @@ private class ControlScan(
             if (original == CHAT_FRAGMENT_NAME) add("chat_fragment")
             if (original == "M4TabNavigationFragment") add("chat_inbox")
         }
-        // Four controls open at the chat's own view handover: the jump menu, the screenshot block, the dimmer and the
-        // translucent bars.
+        // Five controls open at the chat's own view handover: the jump menu, the screenshot block, the dimmer, the
+        // translucent bars and the chat bar's + menu.
         if (original == CHAT_FRAGMENT_NAME && method.isChatJumpView()) {
             add(CHAT_JUMP)
             add(SECURE_CHAT)
             add(INVISIBLE_BUTTONS)
             add(IOS_BARS)
+            add(CHAT_BAR_PLUS)
         }
         // Chats on Messenger's older route open in this fragment, which loads its own animation.
         if (original == "ThreadViewFragment" && method.name == "onCreateAnimation" &&

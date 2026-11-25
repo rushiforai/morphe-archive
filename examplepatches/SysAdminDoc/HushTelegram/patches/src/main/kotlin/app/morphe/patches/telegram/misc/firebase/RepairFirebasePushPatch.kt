@@ -4,7 +4,11 @@
  */
 package app.morphe.patches.telegram.misc.firebase
 
+import app.morphe.patcher.patch.ApkArchitecture
+import app.morphe.patcher.patch.AvailabilityResolver
 import app.morphe.patcher.patch.BytecodePatchContext
+import app.morphe.patcher.patch.InstallerType
+import app.morphe.patcher.patch.PatchAvailability
 import app.morphe.patcher.patch.PatchException
 import app.morphe.patcher.patch.bytecodePatch
 import app.morphe.util.names.origRef
@@ -85,6 +89,17 @@ private const val TL_ERROR = "Lorg/telegram/tgnet/TLRPC\$TL_error;"
 private const val BOOL_TRUE = "Lorg/telegram/tgnet/TLRPC\$TL_boolTrue;"
 
 /**
+ * A root mount lays the patched APK over the installed Telegram, which keeps Telegram's own signature,
+ * so Firebase already gets the right certificate and there's nothing to repair (discussion #102).
+ * Morphe Manager starts the patch off for that install and on for every other, and it can still be
+ * picked by hand.
+ */
+internal val REPAIR_FIREBASE_AVAILABILITY = object : AvailabilityResolver {
+    override fun resolve(installer: InstallerType, architecture: ApkArchitecture) =
+        if (installer == InstallerType.MOUNT) PatchAvailability.DISABLED else PatchAvailability.ENABLED
+}
+
+/**
  * Fresh implementation from Firebase's documented header path. Telegram 12.10.6 inlines
  * getFingerprintHashForPackage into openHttpURLConnection, so only its header value is wrapped.
  * Reference: firebase/firebase-android-sdk FirebaseInstallationServiceClient.java.
@@ -96,12 +111,14 @@ val repairFirebasePushPatch = bytecodePatch(
         " Telegram's original certificate. If Telegram's server still turns the sign-up down, as it does with your own" +
         " API ID, it turns on Telegram's own Keep-Alive Service and Background Connection instead, unless you've set" +
         " either one yourself. While Keep-Alive Service is on, it runs with a quiet notification so Android doesn't stop" +
-        " it in the background. On by default. Turn it off in HushTelegram settings > Notifications.",
+        " it in the background. On by default, except for a root mount, which keeps Telegram's own certificate." +
+        " Turn it off in HushTelegram settings > Notifications.",
     default = true,
 ) {
     category("Fixes")
     dependsOn(settingsPatch, telegramExtensionPatch, keepAliveServicePatch)
     compatibleWith(*AppCompatibilities.telegram())
+    availability(REPAIR_FIREBASE_AVAILABILITY)
 
     execute {
         requireStatusMethod("repairFirebasePush")

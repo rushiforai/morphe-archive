@@ -594,6 +594,7 @@ Hide Repost under posts	隱藏貼文下方的轉發
 Hide Share under posts	隱藏貼文下方的分享
 # context: switch title under News feed; Send is Facebook's own button under a post that sends it in a chat
 Hide Send under posts	隱藏貼文下方的傳送
+Hide Stars and gifts under posts	隱藏貼文下方的星星和禮物
 Hide Save under posts	隱藏貼文下方的儲存
 # context: summary shared by those five switches
 Takes this button out of the row under posts in the feed. The other buttons stay, and a post with all of its buttons hidden shows no row.	從動態消息中貼文下方的按鈕列移除這個按鈕。其他按鈕保留，所有按鈕都隱藏的貼文不顯示按鈕列。
@@ -1008,6 +1009,7 @@ Hide the Create tab	隱藏建立分頁
 Hide the Explore tab	隱藏探索分頁
 Hide the Jobs tab	隱藏工作機會分頁
 Removes this tab from the tab bar. Its page is still in the Menu. Restart Facebook to see the change.	從分頁列移除此分頁。仍可在選單中找到其頁面。重新啟動 Facebook 後生效。
+Removes this tab from the tab bar. Its page is still in the Menu, unless you pick it in Menu tiles to hide. Restart Facebook to see the change.	從分頁列移除此分頁。仍可在選單中找到其頁面，除非你在「要隱藏的選單方塊」中選取它。重新啟動 Facebook 後生效。
 Facebook opens on Home while %1$s is on, since %2$s is off the tab bar. Your choice stays saved.	啟用 %1$s 時，由於 %2$s 已不在分頁列，Facebook 會開啟首頁。你的選擇仍會儲存。
 # context: summary of that switch; Video is Facebook's name for the tab on some accounts
 No dot or new count on the Reels tab, called Video on some accounts. Other tabs keep theirs.	不顯示 Reels 分頁（部分帳號稱為「影片」）上的提示點與新增數量。其他分頁不受影響。
@@ -1248,15 +1250,6 @@ Turn off haptics	停用觸覺回饋
 Stops the small vibrations Facebook makes when you tap or swipe. Your keyboard and phone vibrations aren't affected.	停止 Facebook 在點按或滑動時產生的輕微震動。鍵盤與手機本身的震動不受影響。
 Turn off screen transitions	停用畫面轉場動畫
 Tabs, the Menu, photos and screens that open over Facebook appear at once instead of sliding or zooming in. Swiping between tabs still works.	分頁、選單、相片與疊加在 Facebook 上的畫面會立即顯示，不再滑入或縮放。仍可滑動切換分頁。
-Unlock app icons	解鎖應用程式圖示
-Lets you pick the app icons Facebook keeps for Facebook Plus, on Facebook's App icon page. The Pick an app icon row opens that page. Your pick stays if you turn this off, so pick the blue one first to go back.	允許在 Facebook 的「應用程式圖示」頁面選擇原本限定 Facebook Plus 使用的圖示。「選擇應用程式圖示」可開啟該頁面。停用後仍會保留所選圖示，如要還原，請先選回藍色圖示。
-# context: settings row under Appearance, right below the Unlock app icons switch; opens Facebook's own App icon page, so use Facebook's name for that page in this language
-Pick an app icon	選擇應用程式圖示
-Opens Facebook's App icon page, even on accounts where Facebook doesn't list it in Settings and privacy.	開啟 Facebook 的「應用程式圖示」頁面，即使該帳號的「設定和隱私」未列出此頁面也可使用。
-Use the icon at the top of Home	在首頁頂端使用所選圖示
-Shows the app icon you picked at the top of Home instead of the Facebook wordmark. Needs Unlock app icons and a pick other than the blue one. Restart Facebook to see the change.	在首頁頂端顯示你選擇的應用程式圖示，取代 Facebook 文字標誌。需要啟用「解鎖應用程式圖示」並選擇藍色以外的圖示。重新啟動 Facebook 後生效。
-# context: toast when the row above finds no App icon page in this Facebook build
-This Facebook build has no App icon page.	此 Facebook 建置版本沒有「應用程式圖示」頁面。
 # context: switch title under Playback; Android's own name for the floating video window
 Picture-in-picture	子母畫面
 # context: summary of that switch
@@ -1986,8 +1979,10 @@ Show reactions on the Like button	在「讚」按鈕上顯示心情
 Moves a post's reaction faces from the end of its button row onto the Like button, right before the count. The Like button likes and reacts as before. A video showing its views there gets one Like face, or your own reaction once you react. Hide the reaction preview on posts overrules it. A change shows on the posts drawn after it.	把貼文的心情圖示從按鈕列的末端移到「讚」按鈕上，緊接在數字前面。「讚」按鈕仍像以前一樣按讚和表達心情。在那裡顯示觀看次數的影片會顯示一個「讚」圖示，你表達心情後則顯示你自己的心情。「隱藏貼文上的心情預覽」優先。變更會在之後顯示的貼文上生效。
 # context: switch title under Comments; the reaction preview is the stack of reaction icons in the corner of a comment
 Hide the reaction preview on comments	隱藏留言上的心情預覽
+Hide reaction counts on comments	隱藏留言上的心情數
 # context: summary of that switch; "reactions" are Facebook's Like, Love, Haha and other reactions
 Hides the stacked reaction icons in the corner of a comment. The space stays, so a tap where they were still opens the list of reactions.	隱藏留言角落重疊的心情圖示。空間仍會保留，點按原本的位置仍可開啟心情清單。
+Hides the number next to the reaction icons on a comment. The icons stay, and a tap on them still opens the list of reactions.	隱藏留言心情圖示旁的數字。圖示仍會保留，點按它們仍可開啟心情清單。
 # context: switch title under Downloads; "Download" is the post menu row "Download to phone" and "post menus" are the three-dot menus under posts
 Download first in post menus	在貼文選單優先顯示下載
 # context: summary of that switch; "Download to phone" and "Save photo" are the menu rows, translate them as elsewhere; "More options" is the title of Facebook's own page, use Facebook's wording
@@ -2732,7 +2727,9 @@ Your tab bar will go in this order: %1$s.	你的分頁列會依此順序排列�
 Show only watched stories	只顯示看過的限時動態
 The Stories tray keeps only the stories you've already watched, so you can find one again. Turn it off to see the new ones. Hide seen stories waits while this is on. Applies when Facebook next loads the tray.	限時動態列只保留你已經看過的限時動態，方便你再找到某一則。關閉後即可看到新的。開啟時「隱藏已看過的限時動態」會暫停。在 Facebook 下次載入限時動態列時生效。
 Show Posts in search	在搜尋中顯示貼文
+Show Videos in search	在搜尋中顯示影片
 Puts Posts back in the row over search results, after Reels, so you can see only posts for what you searched.	把「貼文」放回搜尋結果上方的那一列，排在 Reels 之後，讓你只看和搜尋內容相關的貼文。
+Puts Videos in the row over search results, next to Posts, so you can see only videos for what you searched.	把「影片」放進搜尋結果上方那一列，排在「貼文」旁邊，讓你只看搜尋內容的影片。
 Saved button in search	搜尋中的珍藏按鈕
 Puts a Saved button at the end of the search bar, so your saved posts and videos are one tap away. Restart Facebook to see the change.	在搜尋列尾端放一個「珍藏」按鈕，點一下就能看到你珍藏的貼文和影片。重新啟動 Facebook 後生效。
 Restore feed sound after opened videos	開啟影片後還原動態消息的聲音
@@ -3168,3 +3165,27 @@ All your notifications are marked as read.	你的所有通知都已標示為已�
 Nothing was marked, since Facebook didn't say who's signed in. Open the Notifications tab once, then try again.	沒有標示任何通知，因為 Facebook 沒有告知目前登入的是誰。請先開啟一次「通知」分頁，然後再試一次。
 This build can't mark notifications as read.	此建置版本無法將通知標示為已讀。
 Facebook couldn't mark your notifications as read. Try again in a moment.	Facebook 無法將你的通知標示為已讀。請稍後再試一次。
+# context: Share to Facebook chats, a switch on the Chats page and the share target it adds; the notes are short toasts
+Share to Facebook chats	分享到 Facebook 聊天
+Adds Facebook chats to Android's share menu. A photo or video you share there is saved to your gallery and text is copied, then your chats open so you can pick one and send it.	在 Android 的分享選單中加入 Facebook 聊天。分享到這裡的相片或影片會儲存到圖庫，文字會被複製，接著開啟你的聊天，選一個傳送即可。
+Share to Facebook chats is off.	分享到 Facebook 聊天已關閉。
+Nothing in it to send.	沒有可傳送的內容。
+Couldn't save it to your gallery.	無法儲存到圖庫。
+Copied and saved. Pick a chat.	已複製並儲存。請選擇聊天。
+In your gallery now. Pick a chat.	已在圖庫中。請選擇聊天。
+Copied. Pick a chat and paste it.	已複製。選擇聊天後貼上。
+Open your chats to pick one.	開啟聊天清單選擇一個。
+Post date after the caption	發佈日期放在說明後
+With Show the post date on reels on, puts the date at the end of the caption instead of under the name, where the song and other labels crowd it. A change shows from the next reel.	開啟「在 Reels 上顯示發佈日期」時，日期會放在說明結尾，而不是名稱下方那行（那裡擠著歌曲和其他標籤）。從下一則 Reels 起生效。
+Fill every reel	讓所有 Reels 填滿螢幕
+With Fill the screen with reels on, every reel fills the screen, even when that cuts a lot off the edges. Made for foldables and tablets, where most reels would keep their bars.	開啟「讓 Reels 填滿螢幕」時，每則 Reels 都會填滿螢幕，即使邊緣會被裁掉很多。適用於摺疊手機和平板，這些裝置上大多數 Reels 原本會保留黑邊。
+Chat background	聊天背景
+Last chat's background	最近聊天的背景
+A color code (#RRGGBB) for the space behind the messages in every chat, like #1E3A5F. Two codes, like #1E3A5F #6A1B9A, fade from one to the other. Only this phone sees it. Leave it blank for Facebook's own.	所有聊天中訊息後方區域的色碼（#RRGGBB），例如 #1E3A5F。填兩個色碼，例如 #1E3A5F #6A1B9A，會從一種顏色漸變到另一種。只有這支手機會顯示。留白則使用 Facebook 的背景。
+A color code (#RRGGBB) for %1$s only, like #1E3A5F. Two codes fade from one to the other. Leave it blank and it takes the chat background above.	僅用於 %1$s 的色碼（#RRGGBB），例如 #1E3A5F。填兩個色碼會從一種顏色漸變到另一種。留白則使用上方的聊天背景。
+Chats keep Facebook's background. Type a color code to change it on this phone only.	聊天維持 Facebook 的背景。輸入色碼即可僅在這支手機上變更。
+Chats are %1$s behind the messages, on this phone only. Nobody in the chat is told.	聊天中訊息後方為 %1$s，僅在這支手機上顯示。聊天中的其他人不會收到通知。
+Open a chat, then come back here to give it a color of its own.	先開啟一個聊天，再回到這裡為它設定專屬顏色。
+%1$s, the last chat you opened, takes the chat background above. Type a color code to give it its own.	%1$s 是你最近開啟的聊天，使用上方的聊天背景。輸入色碼即可為它設定專屬顏色。
+%1$s, the last chat you opened, is %2$s.	%1$s 是你最近開啟的聊天，顏色為 %2$s。
+Type one color code, or two for a fade from top to bottom.	輸入一個色碼，或輸入兩個以從上到下漸變。

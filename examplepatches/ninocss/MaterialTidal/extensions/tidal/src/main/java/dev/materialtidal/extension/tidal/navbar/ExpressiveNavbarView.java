@@ -213,6 +213,13 @@ public final class ExpressiveNavbarView extends View {
         startAnimationLoop();
     }
 
+    public void refreshFromConfig() {
+        rebuildTabList();
+        computeNormalizedTargetPillBounds(getActiveVisualTab());
+        resetSpringsImmediate();
+        invalidate();
+    }
+
     void onMiniPlayerPresenceChanged(boolean visible) {
         if (lastKnownMiniVisible == visible) {
             return;
@@ -227,12 +234,15 @@ public final class ExpressiveNavbarView extends View {
 
     void onMiniPlayerPullUp(float pullFraction) {
         float clamped = Math.max(0f, Math.min(1f, pullFraction));
-        float target = clamped * 4.5f * density;
-        setTranslationY(clamped * 20f * density);
-        float scale = 1f - 0.038f * clamped;
+        float t = Math.min(1f, clamped / 0.42f);
+        float inv = 1f - t;
+        float ease = 1f - inv * inv * inv;
+        float target = ease * 6f * density;
+        setTranslationY(ease * 28f * density);
+        float scale = 1f - 0.085f * ease;
         setScaleX(scale);
         setScaleY(scale);
-        setAlpha(1f - 0.65f * Math.min(1f, clamped * 1.6f));
+        setAlpha(1f - ease);
         if (Math.abs(target - pullUpOffsetY) > 0.1f) {
             pullUpOffsetY = target;
             invalidate();

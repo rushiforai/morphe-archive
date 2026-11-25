@@ -24,7 +24,7 @@ Citizen patch attribution
 =========================
 The Citizen patch source is adapted from rushiranpise/morphe-patches, commit
 92c0fca0ae103a419c7fc61f9c5b8b38b7d6b82a (GPL-3.0), with compatibility changes
-for Citizen 0.1318.0 (1151) and 0.1319.0 (1152). The build and release infrastructure comes from
+for Citizen 0.1320.0 (1153). The build and release infrastructure comes from
 MorpheApp/morphe-patches-template, commit 08719ad.
 
 This independently maintained source is not affiliated with Citizen or Morphe.

@@ -391,3 +391,31 @@ One pattern a line, or separated by commas. A shop's domain such as shopee.vn ta
 One pattern a line, or separated by commas. Matched whatever the letter case.	Ein Muster pro Zeile oder durch Kommas getrennt. Geprüft unabhängig von Groß- und Kleinschreibung.
 Hide comments with links	Kommentare mit Links ausblenden
 Replies with a web link are left out, whatever the patterns say. Add a bare site name such as shopee.vn as a pattern.	Antworten mit einem Weblink fehlen, unabhängig von den Mustern. Einen bloßen Seitennamen wie shopee.vn fügst du als Muster hinzu.
+Hide the like button	Gefällt-mir-Button ausblenden
+Takes the like button off posts and replies, with its count. Restart Threads to see the change.	Entfernt den Gefällt-mir-Button samt Zahl unter Beiträgen und Antworten. Starte Threads neu, damit die Änderung greift.
+Hide the reply button	Antworten-Button ausblenden
+Takes the reply button off posts and replies, with its count. Restart Threads to see the change.	Entfernt den Antworten-Button samt Zahl unter Beiträgen und Antworten. Starte Threads neu, damit die Änderung greift.
+Hide the repost button	Reposten-Button ausblenden
+Takes the repost button off posts and replies, with its count. Restart Threads to see the change.	Entfernt den Reposten-Button samt Zahl unter Beiträgen und Antworten. Starte Threads neu, damit die Änderung greift.
+Hide the share button	Teilen-Button ausblenden
+Takes the share button off posts and replies. Restart Threads to see the change.	Entfernt den Teilen-Button unter Beiträgen und Antworten. Starte Threads neu, damit die Änderung greift.
+Hide the save button	Speichern-Button ausblenden
+Takes the save button off posts and replies, so you can't tap it by mistake. Restart Threads to see the change.	Entfernt den Speichern-Button unter Beiträgen und Antworten, damit du ihn nicht aus Versehen antippst. Starte Threads neu, damit die Änderung greift.
+# The header logo switch under Appearance, then the row under Set when you patched for the launcher icon, and the launcher icon as one item of the list of what stays while HushThreads is paused
+Use the HushThreads logo	HushThreads-Logo verwenden
+Shows the HushThreads logo at the top of your feed in place of the Threads logo. It doesn't spin while the feed refreshes. Restart Threads to see the change.	Zeigt oben in deinem Feed das HushThreads-Logo statt des Threads-Logos. Es dreht sich nicht, während der Feed aktualisiert wird. Starte Threads neu, damit die Änderung greift.
+HushThreads icon	HushThreads-Symbol
+The app's icon on your home screen is the HushThreads logo.	Das App-Symbol auf deinem Startbildschirm ist das HushThreads-Logo.
+the HushThreads icon	das HushThreads-Symbol
+# Custom font's switch and its Font file row under Appearance, and what picking a font file says
+Custom font	Eigene Schriftart
+Shows Threads' text in the font file you pick below. Icons keep their own font. Restart Threads to see the change.	Zeigt den Text in Threads in der Schriftdatei, die du unten auswählst. Symbole behalten ihre eigene Schrift. Starte Threads neu, damit die Änderung greift.
+Font file	Schriftdatei
+No font picked yet. Pick a .ttf or .otf file.	Noch keine Schrift ausgewählt. Wähle eine .ttf- oder .otf-Datei.
+A font file is picked. Tap to pick another.	Eine Schriftdatei ist ausgewählt. Tippe, um eine andere zu wählen.
+%1$s is picked. Tap to pick another.	%1$s ist ausgewählt. Tippe, um eine andere zu wählen.
+Copying the font file	Schriftdatei wird kopiert
+Font file saved. Restart Threads to see it.	Schriftdatei gespeichert. Starte Threads neu, um sie zu sehen.
+Font file saved. Turn on Custom font to use it.	Schriftdatei gespeichert. Schalte Eigene Schriftart ein, um sie zu nutzen.
+That file is too large to be a font. Nothing was changed.	Diese Datei ist zu groß für eine Schriftart. Es wurde nichts geändert.
+That isn't a font file Android can use. Nothing was changed.	Das ist keine Schriftdatei, die Android verwenden kann. Es wurde nichts geändert.

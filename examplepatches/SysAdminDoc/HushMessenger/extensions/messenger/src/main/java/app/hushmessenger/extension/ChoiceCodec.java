@@ -67,6 +67,7 @@ final class ChoiceCodec {
         text(AutoReply.RULES, AutoReply.KEY),
         bool(AutoReply.GROUPS, AutoReply.KEY),
         text(ChatMenuItems.HIDDEN, ChatMenuItems.KEY),
+        text(ProfileMenu.HIDDEN, ProfileMenu.KEY),
         text(MenuRows.HIDDEN, MENU_ROW),
         bool(MenuRows.LOG_OUT, MENU_ROW),
         bool("hide_drawer_icon", MENU_ROW),

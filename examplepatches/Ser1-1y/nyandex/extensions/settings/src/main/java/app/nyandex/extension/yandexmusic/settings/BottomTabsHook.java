@@ -12,6 +12,7 @@ import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
 
+import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
@@ -28,11 +29,41 @@ public final class BottomTabsHook {
     /** Tabs the bar shows after filtering (0 until the bar has collected them). */
     private static volatile int visibleTabs;
 
+    /** The bottom bar view that collected the tabs last (the patch registers it on every collect). */
+    private static volatile WeakReference<View> bar;
+
     private static float savedX;
     private static float savedY;
     private static boolean saved;
 
     private BottomTabsHook() {
+    }
+
+    /** Called by the bar every time it collects its tabs, so a change can be applied right away. */
+    public static void register(View view) {
+        bar = new WeakReference<>(view);
+    }
+
+    /**
+     * Make the bar collect its tabs again, so tabs hidden or shown on the settings page change
+     * at once. The patch adds {@code nyandexRefreshTabs()} to the bar, which runs its own
+     * tab collection (and so {@link #filterTabs}) on the main thread.
+     */
+    static void refreshTabs() {
+        try {
+            WeakReference<View> reference = bar;
+            final View view = reference == null ? null : reference.get();
+            if (view == null) return;
+            view.post(() -> {
+                try {
+                    view.getClass().getMethod("nyandexRefreshTabs").invoke(view);
+                } catch (Throwable throwable) {
+                    Log.e(NyandexSettings.TAG, "Failed to refresh the bottom bar tabs", throwable);
+                }
+            });
+        } catch (Throwable throwable) {
+            Log.e(NyandexSettings.TAG, "Failed to refresh the bottom bar tabs", throwable);
+        }
     }
 
     /**

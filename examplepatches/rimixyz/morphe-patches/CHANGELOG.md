@@ -1,3 +1,15 @@
+## [1.7.0](https://github.com/rimixyz/morphe-patches/compare/v1.6.6...v1.7.0) (2026-11-25)
+
+### ✨ New Features
+
+* add HabitNow support with PairIP bypass and premium patches ([ee75496](https://github.com/rimixyz/morphe-patches/commit/ee75496fdba2c5f1b6cc6cb568c7873926ed48f1))
+
+## [1.7.0-dev.1](https://github.com/rimixyz/morphe-patches/compare/v1.6.6...v1.7.0-dev.1) (2026-11-25)
+
+### ✨ New Features
+
+* add HabitNow support with PairIP bypass and premium patches ([ee75496](https://github.com/rimixyz/morphe-patches/commit/ee75496fdba2c5f1b6cc6cb568c7873926ed48f1))
+
 ## [1.6.6](https://github.com/rimixyz/morphe-patches/compare/v1.6.5...v1.6.6) (2026-11-23)
 
 ### 🔧 Improvements

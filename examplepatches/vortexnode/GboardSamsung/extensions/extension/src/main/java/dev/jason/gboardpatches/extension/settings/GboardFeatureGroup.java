@@ -84,9 +84,18 @@ public final class GboardFeatureGroup implements GboardPatchesSettingsContract.F
                                 true,
                                 () -> child.openRootEntry(host));
                 GboardFeatureEntryState state = GboardFeatureEntryState.inspect(child, host);
-                if (state.getMasterToggle() != null) {
-                    row.setDecoration(new GboardPatchesSettingsContract.RowDecoration()
-                            .entryToggle(state.getMasterToggle()));
+                boolean highlighted = GboardNewSettingsHighlight.isFeatureHighlighted(
+                        host.getContext(), child);
+                if (state.getMasterToggle() != null || highlighted) {
+                    GboardPatchesSettingsContract.RowDecoration decoration =
+                            new GboardPatchesSettingsContract.RowDecoration();
+                    if (state.getMasterToggle() != null) {
+                        decoration.entryToggle(state.getMasterToggle());
+                    }
+                    if (highlighted) {
+                        decoration.highlightDot(true);
+                    }
+                    row.setDecoration(decoration);
                 }
                 rows.add(row);
             }

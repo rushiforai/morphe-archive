@@ -17,21 +17,17 @@ pluginManagement {
 }
 
 plugins {
-    // 2.1.0-dev.1: the settings-plugin model (the plugin applies PatchesPlugin to the `patches`
-    // subproject and ExtensionPlugin (AGP) to every `extensions/` dir carrying a build file -- of
-    // which this repo has none, so our javac+d8 extension pipeline in patches/build.gradle.kts
-    // keeps owning the extension dex). This is the version the official bundle builds with; the
-    // v2.0.0 tag was never published to the registry. Its only extra is opt-in bundle signing:
-    // buildAndroid signs only when MORPHE_SIGNING_KEY (or a root morphe-signing.key) exists, and
-    // passes the bundle through unsigned otherwise -- which is also fine, hosts do not require a
-    // signature yet (docs/INTERNALS.md, "The patcher 2.x alignment").
-    id("app.morphe.patches") version "2.1.0-dev.1"
+    // 2.1.1: the version the official bundle (morphe-patches v2.3.0) builds with. It applies
+    // PatchesPlugin to the `patches` subproject; no `extensions/` dir here carries a build
+    // file, so our javac+d8 pipeline in patches/build.gradle.kts keeps owning the extension
+    // dex. Bundle signing stays opt-in (MORPHE_SIGNING_KEY or a root morphe-signing.key).
+    id("app.morphe.patches") version "2.1.1"
 }
 
 // Include morphe-patcher as a composite build when a clone sits next to this repo AND its
 // version matches the catalog -- the official bundle's own pattern, tightened: the patcher and
-// the smali jar are a versioned PAIR (the catalog's smali pin is the compiled-against patcher's
-// own), and a sibling at a different patcher version substitutes 2.1.0 classes over the 2.0.0
+// the smali jar are a versioned PAIR (the catalog's smali pin is the official bundle's own),
+// and a sibling at a different patcher version substitutes 2.5.0 classes over the 2.4.0
 // pair, a mismatch that only bites at R8 (or later, silently). Version-matched substitution
 // keeps CI and local builds on the same pair; a mismatched sibling resolves from the registry
 // instead (needs read:packages on the GitHub token) with a loud note.

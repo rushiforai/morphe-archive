@@ -23,6 +23,7 @@ import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.ScrollView;
+import android.widget.SeekBar;
 import android.widget.Switch;
 import android.widget.TextView;
 import java.util.ArrayList;
@@ -48,6 +49,12 @@ public final class BinocularsMods {
         final boolean defaultBoolean;
         final String defaultChoice;
         final List<String> choiceValues;
+        final boolean isSlider;
+        final int sliderMin;
+        final int sliderMax;
+        final int sliderStep;
+        final String sliderUnit;
+        final int defaultInt;
 
         SettingEntry(
                 String key,
@@ -56,7 +63,13 @@ public final class BinocularsMods {
                 boolean isSwitch,
                 boolean defaultBoolean,
                 String defaultChoice,
-                List<String> choiceValues) {
+                List<String> choiceValues,
+                boolean isSlider,
+                int sliderMin,
+                int sliderMax,
+                int sliderStep,
+                String sliderUnit,
+                int defaultInt) {
             this.key = key;
             this.sectionId = sectionId;
             this.parentKey = parentKey != null && !parentKey.isEmpty() ? parentKey : null;
@@ -64,6 +77,12 @@ public final class BinocularsMods {
             this.defaultBoolean = defaultBoolean;
             this.defaultChoice = defaultChoice;
             this.choiceValues = Collections.unmodifiableList(choiceValues);
+            this.isSlider = isSlider;
+            this.sliderMin = sliderMin;
+            this.sliderMax = sliderMax;
+            this.sliderStep = sliderStep;
+            this.sliderUnit = sliderUnit;
+            this.defaultInt = defaultInt;
         }
     }
 
@@ -72,16 +91,19 @@ public final class BinocularsMods {
         final View rowView;
         final Switch switchView;
         final TextView choiceLabelView;
+        final SeekBar seekBar;
 
         RowViewHolder(
                 SettingEntry entry,
                 View rowView,
                 Switch switchView,
-                TextView choiceLabelView) {
+                TextView choiceLabelView,
+                SeekBar seekBar) {
             this.entry = entry;
             this.rowView = rowView;
             this.switchView = switchView;
             this.choiceLabelView = choiceLabelView;
+            this.seekBar = seekBar;
         }
     }
 
@@ -112,20 +134,42 @@ public final class BinocularsMods {
             String key = parts[0];
             String sectionId = parts[1];
             String parentKey = parts[2].isEmpty() ? null : parts[2];
-            boolean isSwitch = "S".equalsIgnoreCase(parts[3]);
+            String type = parts[3];
+            boolean isSlider = "N".equalsIgnoreCase(type);
+            boolean isSwitch = "S".equalsIgnoreCase(type);
             boolean defaultBoolean = false;
             String defaultChoice = null;
-            if (isSwitch) {
+            int defaultInt = 0;
+            int sliderMin = 0;
+            int sliderMax = 0;
+            int sliderStep = 0;
+            String sliderUnit = "";
+            List<String> choiceValues = new ArrayList<>();
+
+            if (isSlider) {
+                try {
+                    defaultInt = Integer.parseInt(parts[4]);
+                    String[] sliderParts = parts[5].split(",", -1);
+                    if (sliderParts.length < 3) {
+                        continue;
+                    }
+                    sliderMin = Integer.parseInt(sliderParts[0]);
+                    sliderMax = Integer.parseInt(sliderParts[1]);
+                    sliderStep = Integer.parseInt(sliderParts[2]);
+                    sliderUnit = sliderParts.length > 3 ? sliderParts[3] : "";
+                } catch (Throwable ignored) {
+                    continue;
+                }
+            } else if (isSwitch) {
                 defaultBoolean = "1".equals(parts[4]);
             } else {
                 defaultChoice = parts[4];
-            }
-            List<String> choiceValues = new ArrayList<>();
-            if (!parts[5].isEmpty()) {
-                String[] cv = parts[5].split(",");
-                for (String c : cv) {
-                    if (!c.isEmpty()) {
-                        choiceValues.add(c);
+                if (!parts[5].isEmpty()) {
+                    String[] cv = parts[5].split(",");
+                    for (String c : cv) {
+                        if (!c.isEmpty()) {
+                            choiceValues.add(c);
+                        }
                     }
                 }
             }
@@ -137,7 +181,13 @@ public final class BinocularsMods {
                             isSwitch,
                             defaultBoolean,
                             defaultChoice,
-                            choiceValues));
+                            choiceValues,
+                            isSlider,
+                            sliderMin,
+                            sliderMax,
+                            sliderStep,
+                            sliderUnit,
+                            defaultInt));
         }
         registryEntries = Collections.unmodifiableList(entries);
         return registryEntries;
@@ -198,10 +248,31 @@ public final class BinocularsMods {
         }
     }
 
+    public static int getInt(String key) {
+        SettingEntry entry = null;
+        try {
+            entry = findEntry(key);
+            if (entry == null || !entry.isSlider) {
+                return 0;
+            }
+            SharedPreferences prefs = getPrefs();
+            int val = prefs != null ? prefs.getInt(entry.key, entry.defaultInt) : entry.defaultInt;
+            if (val < entry.sliderMin) {
+                return entry.sliderMin;
+            }
+            if (val > entry.sliderMax) {
+                return entry.sliderMax;
+            }
+            return val;
+        } catch (Throwable ignored) {
+            return entry != null && entry.isSlider ? entry.defaultInt : 0;
+        }
+    }
+
     public static String getChoice(String key) {
         try {
             SettingEntry entry = findEntry(key);
-            if (entry == null || entry.isSwitch) {
+            if (entry == null || entry.isSwitch || entry.isSlider) {
                 return "";
             }
             String def = entry.defaultChoice != null ? entry.defaultChoice : "";
@@ -305,10 +376,15 @@ public final class BinocularsMods {
             if (h.entry.parentKey != null) {
                 boolean parentOn = isParentChecked(h.entry.parentKey, holders);
                 h.rowView.setEnabled(parentOn);
-                h.rowView.setClickable(parentOn);
+                if (!h.entry.isSlider) {
+                    h.rowView.setClickable(parentOn);
+                }
                 h.rowView.setAlpha(parentOn ? 1.0f : 0.38f);
                 if (h.switchView != null) {
                     h.switchView.setEnabled(parentOn);
+                }
+                if (h.seekBar != null) {
+                    h.seekBar.setEnabled(parentOn);
                 }
             }
         }
@@ -553,12 +629,14 @@ public final class BinocularsMods {
                 int startPadding = entry.parentKey != null ? dp(dialogContext, 32) : dp(dialogContext, 16);
                 row.setPadding(startPadding, dp(dialogContext, 12), dp(dialogContext, 16), dp(dialogContext, 12));
                 row.setPaddingRelative(startPadding, dp(dialogContext, 12), dp(dialogContext, 16), dp(dialogContext, 12));
-                row.setClickable(true);
-                row.setFocusable(true);
+                if (!entry.isSlider) {
+                    row.setClickable(true);
+                    row.setFocusable(true);
 
-                TypedValue selectableBg = new TypedValue();
-                if (dialogContext.getTheme().resolveAttribute(android.R.attr.selectableItemBackground, selectableBg, true)) {
-                    row.setBackgroundResource(selectableBg.resourceId);
+                    TypedValue selectableBg = new TypedValue();
+                    if (dialogContext.getTheme().resolveAttribute(android.R.attr.selectableItemBackground, selectableBg, true)) {
+                        row.setBackgroundResource(selectableBg.resourceId);
+                    }
                 }
 
                 LinearLayout textContainer = new LinearLayout(dialogContext);
@@ -616,7 +694,7 @@ public final class BinocularsMods {
                     switchView.setChecked(currentChecked);
                     row.addView(switchView);
 
-                    RowViewHolder holder = new RowViewHolder(entry, row, switchView, null);
+                    RowViewHolder holder = new RowViewHolder(entry, row, switchView, null, null);
                     viewHolders.add(holder);
 
                     row.setOnClickListener(v -> {
@@ -632,6 +710,66 @@ public final class BinocularsMods {
                         changed[0] = true;
                         restartBanner.setVisibility(View.VISIBLE);
                     });
+                } else if (entry.isSlider) {
+                    SeekBar seekBar = new SeekBar(dialogContext);
+                    LinearLayout.LayoutParams seekBarParams = new LinearLayout.LayoutParams(
+                            ViewGroup.LayoutParams.MATCH_PARENT,
+                            ViewGroup.LayoutParams.WRAP_CONTENT
+                    );
+                    seekBarParams.topMargin = dp(dialogContext, 8);
+                    seekBar.setLayoutParams(seekBarParams);
+                    int maxProgress = entry.sliderStep > 0
+                            ? (entry.sliderMax - entry.sliderMin) / entry.sliderStep
+                            : 0;
+                    seekBar.setMax(maxProgress);
+                    int currentValue = getInt(entry.key);
+                    int progress = entry.sliderStep > 0
+                            ? (currentValue - entry.sliderMin) / entry.sliderStep
+                            : 0;
+                    seekBar.setProgress(progress);
+                    textContainer.addView(seekBar);
+
+                    TextView valueLabel = new TextView(dialogContext);
+                    valueLabel.setLayoutParams(new LinearLayout.LayoutParams(
+                            ViewGroup.LayoutParams.WRAP_CONTENT,
+                            ViewGroup.LayoutParams.WRAP_CONTENT
+                    ));
+                    valueLabel.setMaxWidth((int) (dialogContext.getResources().getDisplayMetrics().widthPixels * 0.4f));
+                    valueLabel.setMaxLines(2);
+                    valueLabel.setEllipsize(TextUtils.TruncateAt.END);
+                    valueLabel.setGravity(Gravity.END);
+                    valueLabel.setPaddingRelative(dp(dialogContext, 12), 0, 0, 0);
+                    valueLabel.setTextSize(TypedValue.COMPLEX_UNIT_SP, 14);
+                    if (colorAccent != 0) {
+                        valueLabel.setTextColor(colorAccent);
+                    }
+                    valueLabel.setText(currentValue + entry.sliderUnit);
+                    row.addView(valueLabel);
+
+                    seekBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
+                        @Override
+                        public void onProgressChanged(SeekBar sb, int p, boolean fromUser) {
+                            int val = entry.sliderMin + p * entry.sliderStep;
+                            valueLabel.setText(val + entry.sliderUnit);
+                        }
+
+                        @Override
+                        public void onStartTrackingTouch(SeekBar sb) {
+                        }
+
+                        @Override
+                        public void onStopTrackingTouch(SeekBar sb) {
+                            int val = entry.sliderMin + sb.getProgress() * entry.sliderStep;
+                            if (prefs != null) {
+                                prefs.edit().putInt(entry.key, val).apply();
+                            }
+                            changed[0] = true;
+                            restartBanner.setVisibility(View.VISIBLE);
+                        }
+                    });
+
+                    RowViewHolder holder = new RowViewHolder(entry, row, null, null, seekBar);
+                    viewHolders.add(holder);
                 } else {
                     TextView choiceLabelView = new TextView(dialogContext);
                     choiceLabelView.setLayoutParams(new LinearLayout.LayoutParams(
@@ -655,7 +793,7 @@ public final class BinocularsMods {
                     choiceLabelView.setText(!initialLabel.isEmpty() ? initialLabel : initialVal);
                     row.addView(choiceLabelView);
 
-                    RowViewHolder holder = new RowViewHolder(entry, row, null, choiceLabelView);
+                    RowViewHolder holder = new RowViewHolder(entry, row, null, choiceLabelView, null);
                     viewHolders.add(holder);
 
                     row.setOnClickListener(v -> {

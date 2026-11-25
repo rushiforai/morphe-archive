@@ -585,6 +585,16 @@ public class Settings extends BaseSettings {
             new BooleanSetting("hushgram_hold_feed_video_keep_long", FALSE, parent(HOLD_FEED_VIDEO_KEEP));
 
     /**
+     * A feed video {@link #HOLD_FEED_VIDEO_KEEP} keeps at 2x after the lift wears HushGram's 2x label across its top,
+     * and keeps the look it has while held, until its speed goes back to normal
+     * ({@link app.hushgram.extension.instagram.feed.FeedHoldSpeed#keptLabel},
+     * {@link app.hushgram.extension.instagram.feed.FeedHoldSpeed#showsKept}). Read on every lift, so it needs no
+     * restart. Off to start (#860).
+     */
+    public static final BooleanSetting HOLD_FEED_VIDEO_KEEP_BADGE =
+            new BooleanSetting("hushgram_hold_feed_video_keep_badge", FALSE, parent(HOLD_FEED_VIDEO_KEEP));
+
+    /**
      * A feed video held for 2x under {@link #HOLD_FEED_VIDEO_FAST} keeps its look: the name over it
      * stays, and Instagram's 2x and time labels don't come up
      * ({@link app.hushgram.extension.instagram.feed.FeedHoldSpeed#keepsLook}). Read on every press, so
@@ -655,6 +665,24 @@ public class Settings extends BaseSettings {
             new BooleanSetting("hushgram_feed_seek_bar_time_under_tags", FALSE, parent(FEED_SEEK_TIME));
 
     /**
+     * The time over the feed seek bar sits in the video's top end corner instead, under anything
+     * Instagram shows there, like its countdown or a carousel's count (#788). Rests while
+     * {@link #FEED_SEEK_TIME_UNDER_TAGS} is on, which wins over it, so the two can't both look on.
+     * Read as the bar updates. Off to start.
+     */
+    public static final BooleanSetting FEED_SEEK_TIME_TOP =
+            new BooleanSetting("hushgram_feed_seek_bar_time_top", FALSE, new Setting.Availability() {
+                @Override public boolean isAvailable() {
+                    return FEED_SEEK_TIME.savedValue() && FEED_SEEK_TIME.isAvailable()
+                            && !FEED_SEEK_TIME_UNDER_TAGS.savedValue();
+                }
+
+                @Override public List<Setting<?>> getParentSettings() {
+                    return Collections.singletonList(FEED_SEEK_TIME);
+                }
+            });
+
+    /**
      * A double tap on the left or right third of the video playing in a feed moves it back or ahead
      * {@link #FEED_DOUBLE_TAP_SKIP_SECONDS} instead of liking the post (#562,
      * {@link app.hushgram.extension.instagram.feed.FeedDoubleTapSkip}). Off to start.
@@ -692,6 +720,13 @@ public class Settings extends BaseSettings {
     public static final IntegerSetting FEED_AUTO_SCROLL_SECONDS =
             new IntegerSetting("hushgram_feed_auto_scroll_seconds", 6, false, parent(FEED_AUTO_SCROLL))
                     .withRange(3, 30);
+
+    /**
+     * Blocking someone takes their posts out of Home as soon as the block goes through, instead of
+     * after Home is refreshed (#861, {@link app.hushgram.extension.instagram.feed.BlockedPosts}). Off to start.
+     */
+    public static final BooleanSetting HIDE_BLOCKED_POSTS =
+            new BooleanSetting("hushgram_hide_blocked_posts", FALSE);
 
     /**
      * A long press on a feed photo shows it zoomed in around the finger until the finger lifts, in
@@ -1216,6 +1251,14 @@ public class Settings extends BaseSettings {
      * Off to start.
      */
     public static final BooleanSetting EXPORT_CHAT = new BooleanSetting("hushgram_export_chat", FALSE);
+
+    /**
+     * Holding a chat message with link buttons, the kind automated accounts send under a text or a
+     * card, offers Copy link, which copies where a button goes without opening it
+     * ({@link app.hushgram.extension.instagram.direct.ChatButtonLinks}, #852). Read each time a
+     * message is held. Off to start.
+     */
+    public static final BooleanSetting COPY_CHAT_BUTTON_LINKS = new BooleanSetting("hushgram_copy_chat_button_links", FALSE);
 
     /**
      * A call started from a chat waits for a question first
@@ -2522,12 +2565,28 @@ public class Settings extends BaseSettings {
             new BooleanSetting("hushgram_accent_icons", FALSE, true, parent(ACCENT_COLOR));
 
     /**
+     * Under {@link #ACCENT_ICONS}: Instagram's primary text, names, captions and titles, takes the
+     * icons' shade of the picked color too (#187, {@link app.hushgram.extension.instagram.misc.AccentTheme}).
+     * Secondary text stays gray. A change shows after a restart. Off to start.
+     */
+    public static final BooleanSetting ACCENT_TEXT =
+            new BooleanSetting("hushgram_accent_text", FALSE, true, parent(ACCENT_ICONS));
+
+    /**
      * Under {@link #ACCENT_COLOR}: the buttons beside a reel and their counts, white over the video,
      * take the picked color too (#187, {@link app.hushgram.extension.instagram.misc.AccentTheme#reelButtons(int)}).
      * A change shows after a restart. Off to start.
      */
     public static final BooleanSetting ACCENT_REELS =
             new BooleanSetting("hushgram_accent_reels", FALSE, true, parent(ACCENT_COLOR));
+
+    /**
+     * Under {@link #ACCENT_COLOR}: Saved's filters take the picked color, a border and title on the
+     * others and a fill on the one you're on (#187,
+     * {@link app.hushgram.extension.instagram.misc.AccentTheme#savedFilter}). Off to start.
+     */
+    public static final BooleanSetting ACCENT_PILLS =
+            new BooleanSetting("hushgram_accent_pills", FALSE, true, parent(ACCENT_COLOR));
 
     /**
      * Under {@link #ACCENT_COLOR}: the gradient on story rings runs through the picked color instead
@@ -2772,6 +2831,23 @@ public class Settings extends BaseSettings {
      */
     public static final BooleanSetting NOTIFY_UNFOLLOWS =
             new BooleanSetting("hushgram_notify_unfollows", FALSE, parent(TRACK_UNFOLLOWERS));
+
+    /**
+     * Hold a tab at the top of a Followers or Following list to show everyone, only public accounts or
+     * only private accounts in it (#847) ({@link app.hushgram.extension.instagram.profile.FollowListFilter}).
+     * Off to start. Read each time Instagram binds a row or rebuilds the rows of a follow list.
+     */
+    public static final BooleanSetting FOLLOW_LIST_FILTER =
+            new BooleanSetting("hushgram_follow_list_filter", FALSE);
+
+    /**
+     * Since when each account on your own Followers and Following lists has followed you, or you them,
+     * counted from the first time HushGram saw the whole list (#847)
+     * ({@link app.hushgram.extension.instagram.profile.FollowDates}). Off to start. Read each time
+     * Instagram binds a row or rebuilds the rows of a follow list.
+     */
+    public static final BooleanSetting FOLLOW_DATES =
+            new BooleanSetting("hushgram_follow_dates", FALSE);
 
     /**
      * Suggested for you and the Discover people button on profiles
@@ -3237,6 +3313,62 @@ public class Settings extends BaseSettings {
                     .withRange(0, 100_000_000);
 
     /**
+     * Under {@link #HIDE_LOW_VIEW_REELS}: the most likes a reel can have and stay, and 0 for no
+     * maximum, the start (#780). A value control, not a switch.
+     */
+    public static final IntegerSetting MAX_REEL_LIKES =
+            new IntegerSetting("hushgram_max_reel_likes", 0, false, parent(HIDE_LOW_VIEW_REELS))
+                    .withRange(0, 999_999_999);
+
+    /**
+     * Under {@link #HIDE_LOW_VIEW_REELS}: the comments a reel needs to stay, and 0 to leave
+     * comments alone, the start (#780). A value control, not a switch.
+     */
+    public static final IntegerSetting MIN_REEL_COMMENTS =
+            new IntegerSetting("hushgram_min_reel_comments", 0, false, parent(HIDE_LOW_VIEW_REELS))
+                    .withRange(0, 100_000_000);
+
+    /**
+     * Under {@link #HIDE_LOW_VIEW_REELS}: the most comments a reel can have and stay, and 0 for no
+     * maximum, the start (#780). A value control, not a switch.
+     */
+    public static final IntegerSetting MAX_REEL_COMMENTS =
+            new IntegerSetting("hushgram_max_reel_comments", 0, false, parent(HIDE_LOW_VIEW_REELS))
+                    .withRange(0, 999_999_999);
+
+    /**
+     * Under {@link #HIDE_LOW_VIEW_REELS}: how many times a reel needs to have been shared to stay,
+     * and 0 to leave shares alone, the start (#780). A value control, not a switch.
+     */
+    public static final IntegerSetting MIN_REEL_SHARES =
+            new IntegerSetting("hushgram_min_reel_shares", 0, false, parent(HIDE_LOW_VIEW_REELS))
+                    .withRange(0, 100_000_000);
+
+    /**
+     * Under {@link #HIDE_LOW_VIEW_REELS}: the most times a reel can have been shared and stay, and 0
+     * for no maximum, the start (#780). A value control, not a switch.
+     */
+    public static final IntegerSetting MAX_REEL_SHARES =
+            new IntegerSetting("hushgram_max_reel_shares", 0, false, parent(HIDE_LOW_VIEW_REELS))
+                    .withRange(0, 999_999_999);
+
+    /**
+     * Under {@link #HIDE_LOW_VIEW_REELS}: how many times a reel needs to have been saved to stay,
+     * and 0 to leave saves alone, the start (#780). A value control, not a switch.
+     */
+    public static final IntegerSetting MIN_REEL_SAVES =
+            new IntegerSetting("hushgram_min_reel_saves", 0, false, parent(HIDE_LOW_VIEW_REELS))
+                    .withRange(0, 100_000_000);
+
+    /**
+     * Under {@link #HIDE_LOW_VIEW_REELS}: the most times a reel can have been saved and stay, and 0
+     * for no maximum, the start (#780). A value control, not a switch.
+     */
+    public static final IntegerSetting MAX_REEL_SAVES =
+            new IntegerSetting("hushgram_max_reel_saves", 0, false, parent(HIDE_LOW_VIEW_REELS))
+                    .withRange(0, 999_999_999);
+
+    /**
      * Under {@link #HIDE_LOW_VIEW_REELS}: the likes a reel needs for each 1,000 of its views, and 0
      * to leave this alone, the start. Only reels that carry a view count are judged by it (#780).
      */
@@ -3389,6 +3521,14 @@ public class Settings extends BaseSettings {
      */
     public static final BooleanSetting PROFILE_PICTURE_LONG_PRESS =
             new BooleanSetting("hushgram_profile_picture_long_press", FALSE);
+
+    /**
+     * A tap on the picture at the top of a profile with a story ring opens the story whenever
+     * Instagram has it, where Instagram sometimes opens the picture instead (#823,
+     * {@link app.hushgram.extension.instagram.download.ProfileRingTap}). Off until enabled.
+     */
+    public static final BooleanSetting RING_TAP_OPENS_STORY =
+            new BooleanSetting("hushgram_ring_tap_opens_story", FALSE);
 
     /**
      * A voice message's menu in a chat gets Save
@@ -3846,6 +3986,13 @@ public class Settings extends BaseSettings {
             new BooleanSetting("hushgram_hide_reel_comment_button", FALSE);
 
     /**
+     * The More (three dots) button at the bottom of the right-hand column of a reel, a paged card's
+     * one included. Its menu goes with it. Off to start (#647).
+     */
+    public static final BooleanSetting HIDE_REEL_MORE_BUTTON =
+            new BooleanSetting("hushgram_hide_reel_more_button", FALSE);
+
+    /**
      * The number under each button in the right-hand column of a reel, one switch per button, with
      * the button itself kept. The Like, Comment and Save button switches take their count too. Off to
      * start (#719).
@@ -4193,6 +4340,14 @@ public class Settings extends BaseSettings {
      */
     public static final BooleanSetting MENU_BUTTON_ON_HOME =
             new BooleanSetting("hushgram_menu_button_on_home", FALSE, true);
+
+    /**
+     * Log out last in the list of the menu button on Home's header (#850,
+     * {@link app.hushgram.extension.instagram.settings.HomeLogout}), which starts Instagram's own Log out.
+     * Read each time the list opens. Off to start.
+     */
+    public static final BooleanSetting LOGOUT_IN_HOME_MENU =
+            new BooleanSetting("hushgram_logout_in_home_menu", FALSE);
 
     /**
      * A clock on Home's header that opens the viewing history in one tap (#228,
@@ -4771,6 +4926,22 @@ public class Settings extends BaseSettings {
     public static final BooleanSetting SPEED_IN_REEL_MENU = new BooleanSetting("hushgram_speed_in_reel_menu", FALSE);
 
     /**
+     * A Show the whole reel row in the menu a reel's three dots open, whose tap fits that one reel
+     * inside the screen until it's swiped away, and Fill the screen there crops it again (#845,
+     * {@link app.hushgram.extension.instagram.reels.ReelWhole}). Starts off, so the menu stays
+     * Instagram's own.
+     */
+    public static final BooleanSetting WHOLE_REEL_IN_REEL_MENU = new BooleanSetting("hushgram_whole_reel_in_reel_menu", FALSE);
+
+    /**
+     * A Show the whole story row in the menu a story's three dots open while Stories fill the screen is
+     * on, whose tap fits that one story inside the screen until the next story, and Fill the screen
+     * there fills it again (#845, {@link app.hushgram.extension.instagram.reels.StoryWhole}). Starts off,
+     * so the menu stays Instagram's own.
+     */
+    public static final BooleanSetting WHOLE_STORY_IN_STORY_MENU = new BooleanSetting("hushgram_whole_story_in_story_menu", FALSE);
+
+    /**
      * A Full screen icon in the column beside a reel whose tap turns on Instagram's own Full screen,
      * its clear mode, for that reel (#480). Starts off, so the column stays Instagram's own.
      */
@@ -5260,6 +5431,14 @@ public class Settings extends BaseSettings {
      */
     public static final BooleanSetting STORY_VIEWERS =
             new BooleanSetting("hushgram_story_viewers", FALSE);
+
+    /**
+     * Under {@link #STORY_VIEWERS}: the list of who viewed one of your stories gets a Search viewers
+     * bar at its top (#833), as Instagram's own list had before its search asked for a subscription.
+     * It searches the viewers kept on this phone. Off to start.
+     */
+    public static final BooleanSetting STORY_VIEWERS_SEARCH =
+            new BooleanSetting("hushgram_story_viewers_search", FALSE, parent(STORY_VIEWERS));
 
     /**
      * The name a saved video gets: {date}, {video_id}, {owner} and {posted} fill in per save, the

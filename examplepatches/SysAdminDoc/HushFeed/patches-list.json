@@ -1,5 +1,5 @@
 {
-  "version": "v0.84.0",
+  "version": "v0.85.0",
   "appNames": {
     "com.zhiliaoapp.musically": "TikTok",
     "com.zhiliaoapp.musically.go": "TikTok Lite"
@@ -983,6 +983,15 @@
         {
           "key": "favorites_jump_to_date",
           "title": "Default: favorites jump to date",
+          "description": null,
+          "required": false,
+          "type": "kotlin.Boolean",
+          "default": false,
+          "values": null
+        },
+        {
+          "key": "remember_saved_videos",
+          "title": "Default: remember saved videos",
           "description": null,
           "required": false,
           "type": "kotlin.Boolean",

@@ -1,7 +1,9 @@
 package app.voidhack.extension.applemusic.lyrics;
 
 import android.content.Context;
+import android.content.Intent;
 import android.content.SharedPreferences;
+import android.net.Uri;
 import android.util.Log;
 
 import org.json.JSONException;
@@ -32,12 +34,17 @@ final class LrclibPrefs {
     private static final String KEY_ENABLED = "enabled";
     private static final String KEY_FALLBACK_MODE = "fallback_mode";
     private static final String KEY_WORD_SYNC = "word_sync";
+    private static final String KEY_ROMANIZATION = "romanization";
     private static final String KEY_ALLOW_PLAIN = "allow_plain";
     private static final String KEY_SEARCH_FALLBACK = "search_fallback";
     private static final String KEY_DEFAULT_OFFSET_MS = "default_offset_ms";
     private static final String KEY_SHOW_BUTTON_BADGE = "show_button_badge";
     private static final String KEY_SHOW_LYRICS_PILL = "show_lyrics_pill";
     private static final String KEY_OVERRIDES = "overrides_json";
+    private static final String KEY_LOCAL_FOLDER_URI = "local_lrc_folder_uri";
+    private static final String KEY_LOCAL_FOLDER_LABEL = "local_lrc_folder_label";
+    private static final String KEY_LOCAL_FOLDER_COUNT = "local_lrc_folder_count";
+    private static final String KEY_LOCAL_PRIORITY = "local_lrc_priority";
 
     private static final long CACHE_HIT_TTL_MS = 7L * 24L * 60L * 60L * 1000L;
     private static final long CACHE_MISS_TTL_MS = 6L * 60L * 60L * 1000L;
@@ -92,6 +99,14 @@ final class LrclibPrefs {
         prefs(context).edit().putBoolean(KEY_WORD_SYNC, value).apply();
     }
 
+    static boolean isRomanizationEnabled(Context context) {
+        return prefs(context).getBoolean(KEY_ROMANIZATION, false);
+    }
+
+    static void setRomanizationEnabled(Context context, boolean value) {
+        prefs(context).edit().putBoolean(KEY_ROMANIZATION, value).apply();
+    }
+
     static boolean isAllowPlainEnabled(Context context) {
         return prefs(context).getBoolean(KEY_ALLOW_PLAIN, true);
     }
@@ -130,6 +145,70 @@ final class LrclibPrefs {
 
     static void setShowLyricsPill(Context context, boolean value) {
         prefs(context).edit().putBoolean(KEY_SHOW_LYRICS_PILL, value).apply();
+    }
+
+    static String getLocalFolderUri(Context context) {
+        String val = prefs(context).getString(KEY_LOCAL_FOLDER_URI, "");
+        return val == null ? "" : val.trim();
+    }
+
+    static boolean hasLocalFolder(Context context) {
+        return context != null && !getLocalFolderUri(context).isEmpty();
+    }
+
+    static void setLocalFolder(Context context, String uri, String label) {
+        String prev = getLocalFolderUri(context);
+        if (!prev.isEmpty() && !prev.equals(uri)) {
+            releaseTreePermissionQuietly(context, prev);
+        }
+        prefs(context).edit()
+                .putString(KEY_LOCAL_FOLDER_URI, uri == null ? "" : uri.trim())
+                .putString(KEY_LOCAL_FOLDER_LABEL, label == null ? "" : label.trim())
+                .putInt(KEY_LOCAL_FOLDER_COUNT, 0)
+                .apply();
+    }
+
+    static void clearLocalFolder(Context context) {
+        String prev = getLocalFolderUri(context);
+        if (!prev.isEmpty()) {
+            releaseTreePermissionQuietly(context, prev);
+        }
+        prefs(context).edit()
+                .remove(KEY_LOCAL_FOLDER_URI)
+                .remove(KEY_LOCAL_FOLDER_LABEL)
+                .remove(KEY_LOCAL_FOLDER_COUNT)
+                .apply();
+    }
+
+    static String getLocalFolderLabel(Context context) {
+        String label = prefs(context).getString(KEY_LOCAL_FOLDER_LABEL, "");
+        return label == null ? "" : label.trim();
+    }
+
+    static int getLocalFolderCount(Context context) {
+        return Math.max(0, prefs(context).getInt(KEY_LOCAL_FOLDER_COUNT, 0));
+    }
+
+    static void setLocalFolderCount(Context context, int count) {
+        prefs(context).edit().putInt(KEY_LOCAL_FOLDER_COUNT, Math.max(0, count)).apply();
+    }
+
+    static LrclibModels.LocalLrcPriority getLocalLrcPriority(Context context) {
+        return LrclibModels.LocalLrcPriority.fromName(
+                prefs(context).getString(KEY_LOCAL_PRIORITY, LrclibModels.LocalLrcPriority.PREFER_LOCAL.name()));
+    }
+
+    static void setLocalLrcPriority(Context context, LrclibModels.LocalLrcPriority priority) {
+        prefs(context).edit().putString(KEY_LOCAL_PRIORITY,
+                (priority == null ? LrclibModels.LocalLrcPriority.PREFER_LOCAL : priority).name()).apply();
+    }
+
+    private static void releaseTreePermissionQuietly(Context context, String uriStr) {
+        try {
+            context.getApplicationContext().getContentResolver()
+                    .releasePersistableUriPermission(Uri.parse(uriStr), Intent.FLAG_GRANT_READ_URI_PERMISSION);
+        } catch (RuntimeException ignored) {
+        }
     }
 
     static int clampOffset(int value) {
@@ -315,10 +394,16 @@ final class LrclibPrefs {
         LrclibModels.TrackOverride ov = getOverride(context, trackKey);
         if (ov != null) {
             if (ov.mode == LrclibModels.OverrideMode.FORCE_OFFICIAL) return false;
+            if (ov.mode == LrclibModels.OverrideMode.FORCE_LOCAL_LRC) {
+                return LocalLrcStore.hasTrackLrc(context, trackKey);
+            }
             if (ov.mode == LrclibModels.OverrideMode.FORCE_LRCLIB_ID && ov.lrclibId > 0L) {
                 if (new File(pinnedDir(context), "id_" + ov.lrclibId + ".json").isFile()) return true;
                 if (new File(cacheDir(context), "id_" + ov.lrclibId + ".json").isFile()) return true;
             }
+        }
+        if (LocalLrcFolder.hasCachedMatch(trackKey)) {
+            return true;
         }
         if (autoCacheKey != null && !autoCacheKey.isEmpty()) {
             CacheLookup lookup = readTrackCache(context, autoCacheKey);
@@ -341,16 +426,21 @@ final class LrclibPrefs {
                 f.delete();
             }
         }
+        LocalLrcFolder.invalidateCache();
     }
 
     private static void pruneUnusedPinnedFiles(Context context) {
         Map<String, LrclibModels.TrackOverride> all = loadAllOverrides(context);
         Set<Long> usedIds = new HashSet<>();
+        Set<String> activeLocalKeys = new HashSet<>();
         for (LrclibModels.TrackOverride ov : all.values()) {
             if (ov.mode == LrclibModels.OverrideMode.FORCE_LRCLIB_ID && ov.lrclibId > 0L) {
                 usedIds.add(ov.lrclibId);
+            } else if (ov.mode == LrclibModels.OverrideMode.FORCE_LOCAL_LRC) {
+                activeLocalKeys.add(ov.trackKey);
             }
         }
+        LocalLrcStore.pruneUnused(context, activeLocalKeys);
         File[] files = pinnedDir(context).listFiles();
         if (files == null) return;
         for (File f : files) {

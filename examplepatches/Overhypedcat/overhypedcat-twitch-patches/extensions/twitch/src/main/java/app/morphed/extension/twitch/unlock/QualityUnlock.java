@@ -187,6 +187,13 @@ public final class QualityUnlock {
     public static void tunnelFailed(String why) {
         DebugLog.log("Quality unlock: the VPN failed a request: " + why);
         if (!TUNNEL_FAILURE_TOLD.compareAndSet(false, true)) return; // (told once for each unlocked stream)
+        // The stream leaves the tunnel at once: otherwise each of its requests would wait out the dead tunnel
+        // (10 seconds and more) before going direct, by when the player has given up. Opened again, the stream
+        // is decided afresh.
+        forgetAddresses();
+        String channel = lastChannel;
+        if (channel != null) DECIDED.remove(channel);
+        BACKGROUND.execute(QualityUnlock::closeTunnel); // (closing sends packets: never on this thread)
         String text = "The VPN stopped answering, the stream plays without the unlock";
         publish(new Status(text, true));
         // Said on screen too: the player's quality drops, and Options isn't where anyone looks then.

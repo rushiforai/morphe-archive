@@ -100,6 +100,14 @@
         <translation locale="en">Extend frosted glass into the bottom navigation area and adjust navigation button colors; turn this off if the buttons are hard to see or the bottom area displays incorrectly.</translation>
         <translation locale="ru">Продлевает эффект матового стекла на нижнюю панель навигации и подстраивает цвет кнопок; отключите, если кнопки плохо видны или нижняя область отображается некорректно.</translation>
     </string>
+    <string name="gboard_patches_amoled_black_title">
+        <translation locale="en">AMOLED black theme</translation>
+        <translation locale="ru">AMOLED-чёрная тема</translation>
+    </string>
+    <string name="gboard_patches_amoled_black_summary">
+        <translation locale="en">Use a pure #000000 black background and dark charcoal keys in dark mode while keeping Material You accent colors. Active when Frosted Glass is turned off.</translation>
+        <translation locale="ru">Включает чистый чёрный фон #000000 и тёмно-графитовые клавиши в тёмной теме с сохранением акцентов Material You. Работает при выключенном матовом стекле.</translation>
+    </string>
     <string name="gboard_patches_frosted_glass_faq_section">
         <translation locale="en">FAQ</translation>
         <translation locale="ru">Вопросы и ответы</translation>
@@ -662,6 +670,14 @@
         <translation locale="en">Save copied text as a single whole block, like Samsung Keyboard. Unlike the stock Google clipboard, Gboard will not split copied text into separate cards for links, phone numbers, addresses, or emails.</translation>
         <translation locale="ru">Сохранять скопированный текст одним цельным блоком, как в клавиатуре Samsung. В отличие от стандартного буфера Google, Gboard не будет разбивать текст на отдельные карточки со ссылками, телефонами, адресами и почтой.</translation>
     </string>
+    <string name="gboard_patches_clipboard_clear_all_button_title">
+        <translation locale="en">Clear unpinned clipboard button</translation>
+        <translation locale="ru">Кнопка очистки буфера обмена</translation>
+    </string>
+    <string name="gboard_patches_clipboard_clear_all_button_summary">
+        <translation locale="en">Show a trash button in the Clipboard header to delete all unpinned items in one tap while keeping pinned items intact.</translation>
+        <translation locale="ru">Добавляет кнопку корзины в шапку буфера обмена для удаления всех незакреплённых записей одним нажатием (закреплённые сохраняются).</translation>
+    </string>
     <string name="gboard_patches_clipboard_show_sensitive_content_title">
         <translation locale="en">Show sensitive clipboard contents</translation>
         <translation locale="ru">Показывать конфиденциальное содержимое буфера</translation>
@@ -1200,6 +1216,14 @@
         <translation locale="en">When no text is selected, long-press C/X or drag from Globe to C/X to copy or cut all text in the input field.</translation>
         <translation locale="ru">Если текст не выделен, удержание C/X или жест от глобуса к C/X скопирует или вырежет весь текст в поле ввода.</translation>
     </string>
+    <string name="gboard_patches_long_press_quick_actions_disable_enter_one_handed_title">
+        <translation locale="en">Disable long-press Enter one-handed mode</translation>
+        <translation locale="ru">Отключить режим одной руки по удержанию Enter</translation>
+    </string>
+    <string name="gboard_patches_long_press_quick_actions_disable_enter_one_handed_summary">
+        <translation locale="en">Block accidentally triggering one-handed mode when holding the Enter key. Normal Enter and the toolbar one-handed button stay untouched.</translation>
+        <translation locale="ru">Блокирует случайное включение режима одной руки при удержании клавиши Enter. Обычный Enter и кнопка в панели инструментов работают как обычно.</translation>
+    </string>
     <string name="gboard_patches_long_press_quick_actions_section_mappings">
         <translation locale="en">Mappings</translation>
         <translation locale="ru">Назначения</translation>
@@ -1307,6 +1331,14 @@
     <string name="gboard_patches_advanced_voice_zh_tw_punctuation_summary">
         <translation locale="en">Force-stop and restart Gboard for changes to take effect.</translation>
         <translation locale="ru">Принудительно остановите и перезапустите Gboard для применения.</translation>
+    </string>
+    <string name="gboard_patches_advanced_voice_disable_beep_title">
+        <translation locale="en">Disable microphone beep</translation>
+        <translation locale="ru">Отключить звук микрофона</translation>
+    </string>
+    <string name="gboard_patches_advanced_voice_disable_beep_summary">
+        <translation locale="en">Silence the start and stop beep when using voice typing, regardless of phone volume or sound mode.</translation>
+        <translation locale="ru">Полностью отключает звуковой сигнал начала и окончания голосового ввода независимо от громкости и режима звука телефона.</translation>
     </string>
     <string name="gboard_patches_advanced_voice_section_behavior">
         <translation locale="en">Behavior</translation>
@@ -2623,6 +2655,38 @@
     <string name="gboard_patches_group_more_empty_summary">
         <translation locale="en">This build does not include any additional settings features.</translation>
         <translation locale="ru">В этой сборке отсутствуют дополнительные функции настроек.</translation>
+    </string>
+    <string name="gboard_patches_highlight_new_settings_title">
+        <translation locale="en">Highlight new settings</translation>
+        <translation locale="ru">Подсвечивать новые настройки</translation>
+    </string>
+    <string name="gboard_patches_highlight_new_settings_summary">
+        <translation locale="en">Number of days a dot appears next to settings and options added in an update</translation>
+        <translation locale="ru">Количество дней, в течение которых точка отображается рядом с настройками и опциями, добавленными в обновлении</translation>
+    </string>
+    <string name="gboard_patches_highlight_new_settings_off">
+        <translation locale="en">Off</translation>
+        <translation locale="ru">Выключено</translation>
+    </string>
+    <string name="gboard_patches_highlight_new_settings_days_value">
+        <translation locale="en">%d d</translation>
+        <translation locale="ru">%d дн.</translation>
+    </string>
+    <string name="gboard_patches_mark_all_settings_viewed_title">
+        <translation locale="en">Mark all settings as viewed</translation>
+        <translation locale="ru">Отметить все настройки как просмотренные</translation>
+    </string>
+    <string name="gboard_patches_mark_all_settings_viewed_summary">
+        <translation locale="en">Remove the dot from all new settings and options</translation>
+        <translation locale="ru">Удалить точку из всех новых настроек и опций</translation>
+    </string>
+    <string name="gboard_patches_mark_all_settings_viewed_done">
+        <translation locale="en">All new settings marked as viewed</translation>
+        <translation locale="ru">Все новые настройки отмечены как просмотренные</translation>
+    </string>
+    <string name="gboard_patches_dialog_reset">
+        <translation locale="en">Reset</translation>
+        <translation locale="ru">Сбросить</translation>
     </string>
     <string name="language_models_observation_title">
         <translation locale="en">Detect loaded models</translation>

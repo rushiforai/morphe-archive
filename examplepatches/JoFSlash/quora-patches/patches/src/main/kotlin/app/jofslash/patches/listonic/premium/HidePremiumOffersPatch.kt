@@ -24,18 +24,13 @@ import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
 import com.android.tools.smali.dexlib2.iface.reference.TypeReference
 
 // The R8-renamed classes are found through text they keep. PremiumPromotionData (set id, category,
-// texts, end time) is one sale campaign, such as "Black Friday sale! -50%".
-internal object PromotionDataToStringFingerprint : Fingerprint(
-    name = "toString",
-    returnType = "Ljava/lang/String;",
-    parameters = listOf(),
-    strings = listOf("PremiumPromotionData(setId="),
-)
+// texts, end time) is one sale campaign, such as "Black Friday sale! -50%". Since 9.25.2 a second
+// class builds the same toString text, so every class that has it is a candidate.
+private const val PROMOTION_DATA_TO_STRING = "PremiumPromotionData(setId="
 
-// The promotion repository: it tags the user as a "FlashSaleUser" for the sale prices.
-internal object PromotionRepositoryFingerprint : Fingerprint(
-    strings = listOf("FlashSaleUser"),
-)
+// The promotion repository tags the user as a "FlashSaleUser" for the sale prices. Since 9.25.2 a
+// second class uses the text too.
+private const val FLASH_SALE_USER = "FlashSaleUser"
 
 // Onboarding: goes to the screen of a step (Slides, NotificationSoftAsk, Paywall, Main, ...). The
 // Paywall step opens the Premium offer with its introductory price.
@@ -77,25 +72,27 @@ val hidePremiumOffersPatch = bytecodePatch(
     compatibleWith(COMPATIBILITY_LISTONIC)
 
     execute {
-        val promotionData = PromotionDataToStringFingerprint.method.definingClass
-        val repository = PromotionRepositoryFingerprint.method.definingClass
+        val promotionData = methodsWithStrings(PROMOTION_DATA_TO_STRING)
+            .filter { it.name == "toString" && it.parameterTypes.isEmpty() }
+            .map { it.definingClass }.toSet()
+        val repositories = methodsWithStrings(FLASH_SALE_USER).map { it.definingClass }.toSet()
+        if (promotionData.isEmpty() || repositories.isEmpty()) {
+            throw PatchException("Couldn't find the promotion data ($promotionData) or repository ($repositories)")
+        }
 
         // The step that hands the current campaign to the screens (or null when there is none) is a
         // coroutine created with (campaign, repository, continuation). Start it with no campaign.
+        fun isEmitter(method: com.android.tools.smali.dexlib2.iface.Method) =
+            method.name == "<init>" && method.parameterTypes.size == 3 &&
+                    method.parameterTypes[0].toString() in promotionData &&
+                    method.parameterTypes[1].toString() in repositories
         val emitters = mutableListOf<String>()
         classDefForEach { classDef ->
-            if (classDef.methods.any { method ->
-                    method.name == "<init>" && method.parameterTypes.size == 3 &&
-                            method.parameterTypes[0].toString() == promotionData &&
-                            method.parameterTypes[1].toString() == repository
-                }) emitters += classDef.type
+            if (classDef.methods.any(::isEmitter)) emitters += classDef.type
         }
         if (emitters.size != 1) throw PatchException("Expected one promotion emitter, found ${emitters.size}")
 
-        mutableClassDefBy(emitters.single()).methods.single { method ->
-            method.name == "<init>" && method.parameterTypes.size == 3 &&
-                    method.parameterTypes[0].toString() == promotionData
-        }.addInstructions(0, "const/4 p1, 0x0")
+        mutableClassDefBy(emitters.single()).methods.single(::isEmitter).addInstructions(0, "const/4 p1, 0x0")
 
         // goToStep(navigator, step): for the Paywall step, go on as for the Main step, which calls the
         // navigator's only no-argument void method (finish the onboarding).

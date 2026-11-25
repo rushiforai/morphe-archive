@@ -8,6 +8,7 @@ import app.morphe.ExtensionDex
 import app.morphe.FixtureDex
 import app.morphe.Fixtures
 import app.morphe.PatchContexts
+import app.morphe.patches.telegram.misc.extension.PatchLogCapture
 import app.morphe.patches.telegram.misc.localcontrols.controlBody
 import app.morphe.patches.telegram.misc.localcontrols.controlRef
 import app.morphe.util.namedRegisters
@@ -20,6 +21,7 @@ import com.android.tools.smali.dexlib2.iface.instruction.RegisterRangeInstructio
 import com.android.tools.smali.dexlib2.iface.reference.FieldReference
 import com.android.tools.smali.dexlib2.iface.reference.MethodReference
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertNotNull
 import org.junit.Test
 
 /**
@@ -27,6 +29,7 @@ import org.junit.Test
  * three screens. MessageMenuFixtureTest slices these in too, since the whole patch must not warn.
  */
 internal fun Method.isScreenshotSlice(): Boolean {
+    if (definingClass == SECRET_VIEWER) return true
     val code = implementation?.instructions ?: return false
     return code.any { i ->
         val ref = (i as? ReferenceInstruction)?.reference
@@ -118,5 +121,35 @@ class ScreenshotsFixtureTest {
             assertEquals(build.name, "Lorg/telegram/tgnet/TLRPC\$Message;->noforwards:Z", after[hook - 1].controlRef())
             assertEquals(build.name, (after[hook - 1] as OneRegisterInstruction).registerA, (after[hook] as RegisterRangeInstruction).startRegister)
         }
+    }
+
+    @Test fun `the timed viewer hands its window and message over before anything else runs`() {
+        for (build in Fixtures.declaredBuilds()) {
+            val classes = FixtureDex.classesWhere(build, { true }) { it.isScreenshotSlice() }
+            val plan = PatchContexts.of(ExtensionDex.classes() + classes).resolveTimedViewer()
+            assertEquals("${build.name}: ${plan.missing}", null, plan.missing)
+            val method = plan.method!!
+            assertEquals(build.name, SECRET_VIEWER, method.definingClass)
+            assertEquals(build.name, "Landroid/view/WindowManager\$LayoutParams;", plan.params!!.type)
+            // Moving the code can add or drop the padding in front of its data tables.
+            fun stock(code: List<Instruction>) = code.filter { it.opcode != Opcode.NOP }.map(::operand)
+            val before = stock(method.controlBody())
+            plan.apply()
+            val after = method.controlBody()
+            assertEquals(build.name, listOf(Opcode.MOVE_OBJECT_FROM16, Opcode.IGET_OBJECT, Opcode.MOVE_OBJECT_FROM16, Opcode.INVOKE_STATIC),
+                after.take(4).map { it.opcode })
+            val self = method.implementation!!.registerCount - method.parameterTypes.size - 1
+            assertEquals("${build.name}: this", listOf(0, self), after[0].namedRegisters())
+            assertEquals("${build.name}: the window's params", plan.params.toString(), (after[1] as ReferenceInstruction).reference.toString())
+            assertEquals("${build.name}: the message", listOf(1, self + 1), after[2].namedRegisters())
+            assertEquals(build.name, SCREENSHOTS_TIMED, after[3].controlRef())
+            assertEquals("${build.name}: stock code stays", before, stock(after.drop(4)))
+        }
+    }
+
+    @Test fun `a build without the timed viewer's window says so and changes nothing`() {
+        val build = Fixtures.declaredBuilds().first()
+        val classes = FixtureDex.classesWhere(build, { true }) { it.isScreenshotSlice() }.filter { it.type != SECRET_VIEWER }
+        assertNotNull(PatchContexts.of(ExtensionDex.classes() + classes).resolveTimedViewer().missing)
     }
 }

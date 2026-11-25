@@ -240,7 +240,7 @@ public class TitleEmojiTest {
     @Test public void theTitleEditorsToastsFitTwoLinesInEveryLanguage() {
         for (String toast : new String[]{"That's too long. Try a shorter name.", "Couldn't save the title. Try again in a moment."}) {
             assertFitsATwoLineToast("en", toast);
-            for (String language : new String[]{"bg", "de", "es", "in", "pt-rbr", "tr"}) {
+            for (String language : new String[]{"bg", "de", "es", "in", "it", "pt-rbr", "tr"}) {
                 String row = L10nTablesForTests.of(language).get(toast);
                 assertNotNull(language + ": " + toast, row);
                 assertFitsATwoLineToast(language, row);

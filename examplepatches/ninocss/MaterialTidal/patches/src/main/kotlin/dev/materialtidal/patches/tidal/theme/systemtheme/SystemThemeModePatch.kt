@@ -41,8 +41,8 @@ import dev.materialtidal.patches.shared.MATERIAL_YOU_ENGINE_CLASS
 import dev.materialtidal.patches.tidal.theme.materialyou.materialYouThemePatch
 
 private val THEME_MODE_CHOICES = mapOf(
-    "Follow System (Light & Dark)" to "system",
-    "Light Mode (White)" to "light",
+    "Follow System (Recommended)" to "system",
+    "Light Mode" to "light",
     "Dark Mode" to "dark",
 )
 
@@ -172,7 +172,7 @@ private fun extractColorFieldRgbLiterals(
 @Suppress("unused")
 val systemThemeModePatch = patch(
     name = "System Light & Dark theme",
-    description = "Adds a Material 3 Expressive Monet Light (White) Mode and switches TIDAL automatically between Light and Dark themes based on your Android system setting (or forces Light/Dark), adapting all Compose surfaces, icons, text contrast, dialogs, and system bars.",
+    description = "Adds a Material You Light Mode and automatically switches TIDAL between Light and Dark themes following your Android system setting (or locks to Light or Dark), adapting surfaces, icons, text contrast, dialogs, and system bars.",
     default = true,
 ) {
     compatibleWith(COMPATIBILITY_TIDAL)
@@ -186,14 +186,14 @@ val systemThemeModePatch = patch(
         default = "system",
         values = THEME_MODE_CHOICES,
         title = "App theme mode",
-        description = "Automatically switch TIDAL between Material You Light (White) and Dark Mode following Android system settings, or lock to Light or Dark.",
+        description = "Switch TIDAL automatically between Light and Dark theme using Android's system setting, or lock it to Light or Dark (also switchable live in Settings → MaterialTidal).",
         required = true,
     )
 
     execute {
         val configClass = mutableClassDefBy(MATERIAL_YOU_CONFIG_CLASS)
         configClass.methods.single { it.name == "isSystemThemeModeEnabled" }.returnEarly(true)
-        configClass.methods.single { it.name == "getThemeMode" }.returnEarly(themeModeToCode(themeModeOption))
+        configClass.methods.single { it.name == "defaultThemeMode" }.returnEarly(themeModeToCode(themeModeOption))
 
         // 1. Wire TidalMarketThemeKt.<clinit> to pass official Light tokens (Llck;.a) as
         //    lightThemeColors and Dark tokens (Ls9k;.a) as darkThemeColors in MarketTheme(...).

@@ -1,0 +1,84 @@
+{
+  "name": "YouTube Kids",
+  "patches": "patches/src/main/kotlin/app/jofslash/patches/youtubekids",
+  "extension": "extensions/youtubekids",
+  "docs": "docs/youtubekids/README.md",
+  "readme": {
+    "style": "generated",
+    "order": [
+      "Ads",
+      "Privacy",
+      "App"
+    ],
+    "intro": {
+      "Ads": "The ads YouTube Kids plays before and during videos.",
+      "Privacy": "Statistics, tracking pings and permissions. Apart from the voice search button, they change nothing you see.",
+      "App": "What the app needs to play videos without Google Play services, prompts it shows by itself, and the Sign in tab."
+    }
+  },
+  "store": "https://play.google.com/store/apps/details?id=com.google.android.apps.youtube.kids",
+  "package": "com.google.android.apps.youtube.kids",
+  "summary": "Play YouTube Kids through MicroG-RE without its video ads, watch statistics and tracking pings, without an account.",
+  "owners": [
+    "YouTube",
+    "Google"
+  ],
+  "apk": {
+    "release": "youtubekids",
+    "version": "first",
+    "asset": "*.apk",
+    "file": "youtubekids.apk"
+  },
+  "android": {
+    "note": "YouTube Kids needs Android 7 (minSdk 24). The universal APK has x86_64 libraries, so the emulator runs it natively. The release tries the oldest Android version tested here, the newest stable one and the next one; a pull request the oldest and the newest stable.",
+    "pull_request": [
+      {
+        "api": "26",
+        "android": "8",
+        "channel": "stable"
+      },
+      {
+        "api": "36",
+        "android": "16",
+        "channel": "stable",
+        "gpu": "swangle_indirect"
+      }
+    ],
+    "full": [
+      {
+        "api": "26",
+        "android": "8",
+        "channel": "stable"
+      },
+      {
+        "api": "36",
+        "android": "16",
+        "channel": "stable",
+        "gpu": "swangle_indirect"
+      },
+      {
+        "api": "37.0",
+        "android": "17",
+        "channel": "canary",
+        "gpu": "swangle_indirect"
+      }
+    ]
+  },
+  "checks": {
+    "screen": "Get a parent to unlock the app|GET STARTED",
+    "screen_shown": "The start screen (Get a parent to unlock the app) is showing.",
+    "screen_missing": "The start screen (Get a parent to unlock the app) didn't show within a minute."
+  },
+  "check": [
+    "python3 .github/scripts/check_app.py youtubekids \"$APK\" --cli \"$CLI\" --install --expect-screen --compare-original --adb adb"
+  ],
+  "versions": {
+    "pattern": "\\d+(\\.\\d+)+",
+    "example": "11.47.541",
+    "source": "apkpure",
+    "apkpure": "https://apkpure.com/youtube-kids/com.google.android.apps.youtube.kids",
+    "file": "apk",
+    "shows": "shows its start screen",
+    "phone_test": "set it up signed out and play a few videos on a phone with MicroG-RE: the emulator test only starts the app."
+  }
+}

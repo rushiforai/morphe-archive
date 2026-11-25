@@ -4,7 +4,7 @@
   "patches": [
     {
       "name": "Auto claim Benefits tasks",
-      "description": "Presses the Benefits/task-center controls by CSS selector (watch-ad group, check-in, lucky bag) and shows what it clicked. Skips complete, subscribe, card-exchange and disabled controls, and drops an inert one for a minute. Closes the check-in page when done. Pair it with \"Auto reward ads\".",
+      "description": "Presses the Benefits/Gold-center controls and shows what it clicked: the daily video chain, claimable rewards, the watch-video task and the check-in pill. Share, save, game and purchase tasks are skipped, as are disabled controls. A control that does nothing is retried later, a task that never completes is left after three tries, and the check-in page closes itself when done. Pair it with \"Auto reward ads\".",
       "default": false,
       "category": null,
       "compatiblePackages": [
@@ -20,12 +20,12 @@
           "formFactor": "MOBILE",
           "targets": [
             {
-              "version": "4.28.5",
+              "version": "4.29.0",
               "versionCodes": {
-                "ARM64_V8A": 709,
-                "ARMEABI_V7A": 709,
-                "X86_64": 709,
-                "X86": 709
+                "ARM64_V8A": 710,
+                "ARMEABI_V7A": 710,
+                "X86_64": 710,
+                "X86": 710
               },
               "isExperimental": false,
               "minSdk": 23,
@@ -38,7 +38,7 @@
     },
     {
       "name": "Auto reward ads",
-      "description": "Closes a rewarded video as soon as the reward is granted, plus the native ad that follows, so completion stays server-valid and the Benefits page gets its callback.",
+      "description": "Closes a rewarded video as soon as the reward is granted, plus the native ad that follows, so completion stays server-valid and the Benefits page gets its callback. Each network is closed through its own close/skip control first, then BACK, then finish; splash ads are closed after their countdown, an ad no task asked for (interstitial, app-open) after a few seconds, and a rewarded ad that never reports a reward after 75s.",
       "default": true,
       "category": null,
       "compatiblePackages": [
@@ -54,12 +54,12 @@
           "formFactor": "MOBILE",
           "targets": [
             {
-              "version": "4.28.5",
+              "version": "4.29.0",
               "versionCodes": {
-                "ARM64_V8A": 709,
-                "ARMEABI_V7A": 709,
-                "X86_64": 709,
-                "X86": 709
+                "ARM64_V8A": 710,
+                "ARMEABI_V7A": 710,
+                "X86_64": 710,
+                "X86": 710
               },
               "isExperimental": false,
               "minSdk": 23,
@@ -88,15 +88,49 @@
           "formFactor": "MOBILE",
           "targets": [
             {
-              "version": "12.11.13",
+              "version": "12.11.19",
               "versionCodes": {
-                "ARM64_V8A": 260935,
-                "ARMEABI_V7A": 260935,
-                "X86_64": 260935,
-                "X86": 260935
+                "ARM64_V8A": 260938,
+                "ARMEABI_V7A": 260938,
+                "X86_64": 260938,
+                "X86": 260938
               },
               "isExperimental": false,
-              "minSdk": 24,
+              "minSdk": 32,
+              "description": null
+            }
+          ]
+        }
+      ],
+      "options": []
+    },
+    {
+      "name": "Block ad redirects",
+      "description": "Rewrites the Play Store, market: and intent: URLs inside the ad SDKs and stops the hybrid WebView client from handing a page off to the store or a browser, so an auto-opening or mis-tapped ad cannot leave TeraBox and stall the automation.",
+      "default": true,
+      "category": null,
+      "compatiblePackages": [
+        {
+          "packageName": "com.dubox.drive",
+          "name": "TeraBox",
+          "description": null,
+          "apkFileType": "APKM",
+          "appIconColor": "#226DF6",
+          "signatures": [
+            "b75fd2b70084d7e0813b8f74dd74b62ab79b2aa0ce1372331a1841bd88eed993"
+          ],
+          "formFactor": "MOBILE",
+          "targets": [
+            {
+              "version": "4.29.0",
+              "versionCodes": {
+                "ARM64_V8A": 710,
+                "ARMEABI_V7A": 710,
+                "X86_64": 710,
+                "X86": 710
+              },
+              "isExperimental": false,
+              "minSdk": 23,
               "description": null
             }
           ]
@@ -154,12 +188,12 @@
           "formFactor": "MOBILE",
           "targets": [
             {
-              "version": "4.28.5",
+              "version": "4.29.0",
               "versionCodes": {
-                "ARM64_V8A": 709,
-                "ARMEABI_V7A": 709,
-                "X86_64": 709,
-                "X86": 709
+                "ARM64_V8A": 710,
+                "ARMEABI_V7A": 710,
+                "X86_64": 710,
+                "X86": 710
               },
               "isExperimental": false,
               "minSdk": 23,
@@ -252,15 +286,15 @@
           "formFactor": "MOBILE",
           "targets": [
             {
-              "version": "12.11.13",
+              "version": "12.11.19",
               "versionCodes": {
-                "ARM64_V8A": 260935,
-                "ARMEABI_V7A": 260935,
-                "X86_64": 260935,
-                "X86": 260935
+                "ARM64_V8A": 260938,
+                "ARMEABI_V7A": 260938,
+                "X86_64": 260938,
+                "X86": 260938
               },
               "isExperimental": false,
-              "minSdk": 24,
+              "minSdk": 32,
               "description": null
             }
           ]
@@ -352,15 +386,15 @@
           "formFactor": "MOBILE",
           "targets": [
             {
-              "version": "12.11.13",
+              "version": "12.11.19",
               "versionCodes": {
-                "ARM64_V8A": 260935,
-                "ARMEABI_V7A": 260935,
-                "X86_64": 260935,
-                "X86": 260935
+                "ARM64_V8A": 260938,
+                "ARMEABI_V7A": 260938,
+                "X86_64": 260938,
+                "X86": 260938
               },
               "isExperimental": false,
-              "minSdk": 24,
+              "minSdk": 32,
               "description": null
             }
           ]
@@ -418,15 +452,15 @@
           "formFactor": "MOBILE",
           "targets": [
             {
-              "version": "12.11.13",
+              "version": "12.11.19",
               "versionCodes": {
-                "ARM64_V8A": 260935,
-                "ARMEABI_V7A": 260935,
-                "X86_64": 260935,
-                "X86": 260935
+                "ARM64_V8A": 260938,
+                "ARMEABI_V7A": 260938,
+                "X86_64": 260938,
+                "X86": 260938
               },
               "isExperimental": false,
-              "minSdk": 24,
+              "minSdk": 32,
               "description": null
             }
           ]
@@ -452,15 +486,15 @@
           "formFactor": "MOBILE",
           "targets": [
             {
-              "version": "12.11.13",
+              "version": "12.11.19",
               "versionCodes": {
-                "ARM64_V8A": 260935,
-                "ARMEABI_V7A": 260935,
-                "X86_64": 260935,
-                "X86": 260935
+                "ARM64_V8A": 260938,
+                "ARMEABI_V7A": 260938,
+                "X86_64": 260938,
+                "X86": 260938
               },
               "isExperimental": false,
-              "minSdk": 24,
+              "minSdk": 32,
               "description": null
             }
           ]
@@ -518,12 +552,12 @@
           "formFactor": "MOBILE",
           "targets": [
             {
-              "version": "4.28.5",
+              "version": "4.29.0",
               "versionCodes": {
-                "ARM64_V8A": 709,
-                "ARMEABI_V7A": 709,
-                "X86_64": 709,
-                "X86": 709
+                "ARM64_V8A": 710,
+                "ARMEABI_V7A": 710,
+                "X86_64": 710,
+                "X86": 710
               },
               "isExperimental": false,
               "minSdk": 23,
@@ -605,15 +639,15 @@
           "formFactor": "MOBILE",
           "targets": [
             {
-              "version": "12.11.13",
+              "version": "12.11.19",
               "versionCodes": {
-                "ARM64_V8A": 260935,
-                "ARMEABI_V7A": 260935,
-                "X86_64": 260935,
-                "X86": 260935
+                "ARM64_V8A": 260938,
+                "ARMEABI_V7A": 260938,
+                "X86_64": 260938,
+                "X86": 260938
               },
               "isExperimental": false,
-              "minSdk": 24,
+              "minSdk": 32,
               "description": null
             }
           ]
@@ -842,15 +876,15 @@
           "formFactor": "MOBILE",
           "targets": [
             {
-              "version": "12.11.13",
+              "version": "12.11.19",
               "versionCodes": {
-                "ARM64_V8A": 260935,
-                "ARMEABI_V7A": 260935,
-                "X86_64": 260935,
-                "X86": 260935
+                "ARM64_V8A": 260938,
+                "ARMEABI_V7A": 260938,
+                "X86_64": 260938,
+                "X86": 260938
               },
               "isExperimental": false,
-              "minSdk": 24,
+              "minSdk": 32,
               "description": null
             }
           ]

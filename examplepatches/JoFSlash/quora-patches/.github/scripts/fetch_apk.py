@@ -104,8 +104,14 @@ def release_page(app, version):
     for item in re.findall(r"<item>(.*?)</item>", feed, re.S):
         title = re.search(r"<title>([^<]*)</title>", item)
         link = re.search(r"<link>([^<]*)</link>", item)
-        if title and link and re.search(rf"\b{re.escape(version)}\b", title.group(1)) \
-                and not re.search(r"\b(beta|alpha)\b", title.group(1), re.I):
+        if not title or not link or re.search(r"\b(beta|alpha)\b", title.group(1), re.I):
+            continue
+        # With "feed_pattern" the feed names a release by its version code only.
+        if app.v.get("feed_pattern"):
+            named = app.feed_code(title.group(1)) == app.order(version)
+        else:
+            named = re.search(rf"\b{re.escape(version)}\b", title.group(1))
+        if named:
             return link.group(1).strip()
     return None
 

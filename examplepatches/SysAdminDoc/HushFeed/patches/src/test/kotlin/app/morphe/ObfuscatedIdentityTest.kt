@@ -37,6 +37,15 @@ class ObfuscatedIdentityTest {
     }
 
     @Test
+    fun `a date format's month pattern is not a member name`() {
+        assertTrue(
+            identitiesIn("""SimpleDateFormat monthName = new SimpleDateFormat("LLLL", locale);""", extensionTree = true)
+                .isEmpty(),
+        )
+        assertEquals(setOf("LLLL"), identitiesIn("""method.name == "LLLL"""", extensionTree = true))
+    }
+
+    @Test
     fun `short resource names containing underscores are inventoried`() {
         assertEquals(
             setOf("p_5"),
@@ -133,7 +142,7 @@ class ObfuscatedIdentityTest {
         val names = mutableSetOf<String>()
         OBFUSCATED_TYPE.findAll(line).forEach { names.add(it.value) }
         JAVA_BINARY_TYPE.findAll(line).forEach { names.add(it.value) }
-        MEMBER_LITERAL.findAll(line).forEach { names.add(it.groupValues[1]) }
+        MEMBER_LITERAL.findAll(DATE_PATTERN.replace(line, "")).forEach { names.add(it.groupValues[1]) }
         PREFIX_LITERAL.findAll(line).forEach { names.add(it.groupValues[1]) }
         SHORT_MEMBER_COMPARED.findAll(line).forEach { names.add(it.groupValues[1]) }
         SHORT_RESOURCE.findAll(line).forEach { names.add(it.groupValues[1]) }
@@ -158,6 +167,12 @@ class ObfuscatedIdentityTest {
         /** A member name of the shape R8 gives TikTok's: `"LIZ"`, `"LJFF"`, `"LLJJIJIIJIL"`. */
         val MEMBER_LITERAL = Regex(""""(L[IJLZF]{1,19})"""")
 
+        /**
+         * A date format's pattern, where `"LLLL"` is the stand-alone month name and nobody's member:
+         * `new SimpleDateFormat("LLLL", locale)`.
+         */
+        val DATE_PATTERN = Regex("""SimpleDateFormat\(\s*"[^"]*"""")
+
         /** A prefix standing in for such names: `"LX/"`, `Lkotlin/jvm/internal/AwS...`. */
         val PREFIX_LITERAL = Regex(""""(LX/|LY/|Lkotlin/jvm/internal/A[A-Za-z]{1,3}S)""")
 
@@ -178,9 +193,10 @@ class ObfuscatedIdentityTest {
 
         /**
          * Names that match a shape above and are nobody's invention: framework and interface
-         * members compared by name, the resource types handed to a lookup, file extensions and
-         * codec names.
+         * members compared by name, the resource types handed to a lookup, file extensions,
+         * codec names, and the word for monetization TikTok's own gate keys are written with
+         * (`m10n_coupon_for_pii_show`), which PaidGates matches.
          */
-        val REAL_NAMES = setOf("get", "put", "run", "key", "id", "raw", "mp3", "mp4", "m4a", "m4v", "jpg", "png", "h264")
+        val REAL_NAMES = setOf("get", "put", "run", "key", "id", "raw", "mp3", "mp4", "m4a", "m4v", "jpg", "png", "h264", "m10n")
     }
 }

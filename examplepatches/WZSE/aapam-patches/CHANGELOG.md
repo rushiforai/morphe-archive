@@ -1,3 +1,15 @@
+## [1.7.0](https://github.com/WZSE/aapam-patches/compare/v1.6.0...v1.7.0) (2026-11-25)
+
+### ✨ New Features
+
+* **sonyliv:** add SonyLIV ATV patches for ads, tracking, promo banners, and auto-skip ([00a9bd8](https://github.com/WZSE/aapam-patches/commit/00a9bd871c6babc4ffcd2b176b96a33a22db2be2))
+
+## [1.7.0-dev.1](https://github.com/WZSE/aapam-patches/compare/v1.6.0...v1.7.0-dev.1) (2026-11-24)
+
+### ✨ New Features
+
+* **sonyliv:** add SonyLIV ATV patches for ads, tracking, promo banners, and auto-skip ([00a9bd8](https://github.com/WZSE/aapam-patches/commit/00a9bd871c6babc4ffcd2b176b96a33a22db2be2))
+
 ## [1.6.0](https://github.com/WZSE/aapam-patches/compare/v1.5.0...v1.6.0) (2026-11-10)
 
 ### ✨ New Features

@@ -3,6 +3,18 @@ from http.server import ThreadingHTTPServer, BaseHTTPRequestHandler
 from PIL import Image
 from io import BytesIO
 import argparse, json
+from http.cookies import SimpleCookie, CookieError
+
+def valid_session(header):
+    cookies = SimpleCookie()
+    try:
+        cookies.load(header)
+    except CookieError:
+        return False
+    session = cookies.get("mock_session")
+    return session is not None and session.value in (
+        "offline-test", "x-fixture", "discord-fixture"
+    )
 
 class Handler(BaseHTTPRequestHandler):
     image = None
@@ -13,7 +25,16 @@ class Handler(BaseHTTPRequestHandler):
             mimetype = "text/html"
         elif self.path == "/api/auth/get-session":
             cookie = self.headers.get("Cookie", "")
-            body = (b'{"user":{"id":"fake"},"session":{"id":"fake"}}' if "mock_session=offline-test" in cookie else b'null')
+            body = (b'{"user":{"id":"fake"},"session":{"id":"fake"}}' if valid_session(cookie) else b'null')
+            mimetype = "application/json"
+        elif self.path in ("/api/catalog", "/api/thread/LOCALdemoA0/messages"):
+            if not valid_session(self.headers.get("Cookie", "")):
+                self.send_response(302)
+                self.send_header("Location", "/")
+                self.end_headers()
+                return
+            # Synthetic examples for shape capture only, not asserted as the real contract.
+            body = json.dumps({"fixtureOnly": True, "items": [{"id": "fake", "content": "synthetic"}]}).encode()
             mimetype = "application/json"
         elif self.path == "/api/trial/trending":
             body = json.dumps({"threads": [

@@ -80,7 +80,7 @@ public final class FeatureSwitches {
         Map<String, Claim> claims = new HashMap<>();
         // Tumblr's own requests to its ad networks, and the pop-up and full-screen ads the timeline
         // filter can't see. Ads the server puts in a page come whatever these say. The last two are
-        // the full-screen ad shown on opening a blog (47.0.0.108). With the first off, Tumblr's
+        // the full-screen ad shown on opening a blog (47.3.0.110). With the first off, Tumblr's
         // interstitial manager logs "Skipping: flag off" before it asks for or shows one, and never
         // sets the ad source up; every blog open, from the dashboard, a reblog or anywhere else, goes
         // through that check. The second only ends earlier the route that blog opens from

@@ -154,7 +154,8 @@ val settingsPatch = bytecodePatch(
     name = "HushPinterest settings",
     description = "Adds a HushPinterest page to Pinterest where you turn features on or off, pause HushPinterest, " +
         "back up your settings and read the licenses. Open it from Pinterest's settings, or by long-pressing " +
-        "the Pinterest logo at the top of your home feed or Pinterest's app icon. Works as soon as you patch it in, with no switch.",
+        "the Pinterest logo at the top of your home feed, the Home button in the bottom bar or Pinterest's app icon. " +
+        "Works as soon as you patch it in, with no switch.",
     default = true,
 ) {
     category("Settings")
@@ -208,5 +209,9 @@ val settingsPatch = bytecodePatch(
         // in, the extension gives the logo a long press that opens the screen. A build that finds
         // the header differently keeps its logo as it was.
         hookLogoLongPress()
+
+        // The Home tab in the bottom bar: its long press opens the screen too (#48). The other
+        // tabs keep Pinterest's, and a build that builds its tabs differently keeps them all.
+        hookHomeTabLongPress()
     }
 }

@@ -17,9 +17,9 @@ In Morphe Manager, add this repository as a patch source: https://github.com/bin
 ## 🩹 Patches list
 
 <!-- PATCHES_START EXPANDED -->
-> **[v1.13.0](https://github.com/bin0culars/bin0culars-patches/releases/tag/v1.13.0)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;18 patches total
+> **[v1.15.0](https://github.com/bin0culars/bin0culars-patches/releases/tag/v1.15.0)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;20 patches total
 <details open>
-<summary>📦 Reddit&nbsp;&nbsp;•&nbsp;&nbsp;18 patches</summary>
+<summary>📦 Reddit&nbsp;&nbsp;•&nbsp;&nbsp;20 patches</summary>
 <br>
 
 **Package name:** `com.reddit.frontpage`
@@ -43,9 +43,11 @@ In Morphe Manager, add this repository as a patch source: https://github.com/bin
 | [Download all from gallery](#download-all-from-gallery) | Tapping Download on a gallery post asks whether to save just the current item or every item in the gallery. |  |
 | [Feed auto-scroll](#feed-auto-scroll) | Adds a play button to the navigation bar that slowly scrolls the feed on screen. Speed is set in bin0culars mods. |  |
 | [Full-screen reply](#full-screen-reply) | Opens replies in the older full-screen editor that shows the comment you're replying to, so you can select and quote its text. Turn it on in Settings → bin0culars mods. |  |
+| [Glass navigation bar](#glass-navigation-bar) | Turns the bottom navigation bar (the side rail on tablets) into a floating see-through capsule. Turn it on in Settings → bin0culars mods. |  |
 | [Home feed tabs](#home-feed-tabs) | Adds swipeable For You, Following and Popular tabs to the home feed. Turn it on in Settings → bin0culars mods. |  |
 | [Post side panel](#post-side-panel) | On tablets in landscape, opens posts in a panel on the right while the feed stays visible. Can be turned off in Settings → bin0culars mods. |  |
 | [Same-subreddit full-screen media](#same-subreddit-full-screen-media) | Lets full-screen videos and images show only posts from the subreddit you opened. Turn it on in Settings → bin0culars mods. |  |
+| [See-through status bar](#see-through-status-bar) | Lets the home feed scroll up under the status bar, fading into it. Turn it on in Settings → bin0culars mods. |  |
 | [Share post content](#share-post-content) | App shortcuts and "Share via…" in the share sheet send the post's image, video or text instead of its link. |  |
 | [Swipe up for comments](#swipe-up-for-comments) | In the full-screen video player, swiping up opens the comments and the next video is a sideways swipe away. Turn it on in Settings → bin0culars mods. |  |
 | [Tablet grid feed](#tablet-grid-feed) | Shows the feed as a grid with 2 or 3 columns on tablets and other wide screens. Phones are unchanged. |  |
@@ -60,7 +62,7 @@ In Morphe Manager, add this repository as a patch source: https://github.com/bin
 
 - **Tablets:** a 2–3 column grid feed on wide screens, and posts that open in a side panel in landscape while the feed stays visible.
 - **Feed:** swipeable For You / Following / Popular tabs, a content-type filter, hands-free auto-scroll, Hide always available in the post menu, and no surprise reloads: Home keeps its place when you come back to the app or press back to exit.
-- **Navigation:** keep the bottom bar visible while you scroll.
+- **Navigation:** a floating see-through glass bar (side rail on tablets) with the feed scrolling underneath, in Auto, Light or Dark, Tinted or Frosted glass (a real blur of what's behind the bar with a light edge, Android 14 and newer), with sliders for opacity, blur strength, height and width and a choice of round ends or corners (on tablets the rail floats on the same background as the feed); a see-through status bar that lets the home feed scroll up under the clock and fade into it (phone layout); and keep the bottom bar visible while you scroll.
 - **Posts and comments:** a collapse/expand-all button next to the comment count (fold all comments, only replies, or only deep replies), the full-screen reply editor with the parent comment visible (select and quote its text), AutoModerator comments shown, collapsed or hidden, and coloured comment lines (one colour per reply level; Rainbow, Pastel or Muted).
 - **Media:** swipe up for comments in the video player, and full-screen media that stays in the subreddit you opened.
 - **Sharing:** share the post's image, video or text instead of its link, and download every item of a gallery at once.

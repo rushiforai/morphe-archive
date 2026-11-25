@@ -6,7 +6,6 @@
  */
 package app.morphe.patches.threads.profile
 
-import app.morphe.patcher.StringComparisonType
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructionsWithLabels
 import app.morphe.patcher.extensions.InstructionExtensions.getInstruction
 import app.morphe.patcher.patch.BytecodePatchContext
@@ -18,13 +17,14 @@ import app.morphe.patches.threads.download.IMAGE_URL
 import app.morphe.patches.threads.download.USER
 import app.morphe.patches.threads.download.pandoGetter
 import app.morphe.patches.threads.misc.extension.EXTENSION_PACKAGE
+import app.morphe.patches.threads.misc.extension.classesNoted
 import app.morphe.patches.threads.misc.extension.enableStatus
+import app.morphe.patches.threads.misc.extension.holdsNote
 import app.morphe.patches.threads.misc.extension.parameterRegister
 import app.morphe.patches.threads.misc.extension.requireLocals
 import app.morphe.patches.threads.misc.extension.requireStatusMethod
 import app.morphe.patches.threads.misc.extension.threadsExtensionPatch
 import app.morphe.patches.threads.misc.extension.writeStub
-import app.morphe.patches.threads.misc.settings.EXTENSION_ROOT
 import app.morphe.patches.threads.misc.settings.settingsPatch
 import app.morphe.util.findMutableMethodOf
 import app.morphe.util.getReference
@@ -34,7 +34,6 @@ import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.iface.Method
 import com.android.tools.smali.dexlib2.iface.instruction.Instruction
 import com.android.tools.smali.dexlib2.iface.reference.MethodReference
-import com.android.tools.smali.dexlib2.iface.reference.StringReference
 
 private const val PATCH = "Full size profile pictures"
 internal const val PROFILE_PICTURE = "$EXTENSION_PACKAGE/profile/ProfilePicture;"
@@ -125,10 +124,6 @@ val fullSizeProfilePicturePatch = bytecodePatch(
 /** A method's full signature. A Method is a MethodReference too. */
 private fun Method.signature() = "$definingClass->$name(${parameterTypes.joinToString("")})$returnType"
 
-internal fun Instruction.isFocusedPictureNote(): Boolean =
-    (opcode == Opcode.CONST_STRING || opcode == Opcode.CONST_STRING_JUMBO) &&
-        getReference<StringReference>()?.string?.startsWith(FOCUSED_PICTURE_NOTE) == true
-
 /**
  * A static call answering the account's session from one object argument and an int: how Compose
  * code reads it. 455's second ARMv7 build reads it through a helper taking the object alone.
@@ -145,13 +140,12 @@ private fun Instruction.readsSession(): MethodReference? {
 
 /** Threads' enlarged profile picture: the one static, void method outside the extension carrying its note. */
 internal fun BytecodePatchContext.focusedPicture(): FocusedPicture {
-    val method = classDefByStrings(FOCUSED_PICTURE_NOTE, StringComparisonType.STARTS_WITH)
-        .filterNot { it.type.startsWith(EXTENSION_ROOT) }
+    val method = classesNoted(FOCUSED_PICTURE_NOTE)
         .flatMap { it.methods }
         .distinctBy { it.signature() }
         .filter { method ->
             AccessFlags.STATIC.isSet(method.accessFlags) && method.returnType == "V" &&
-                method.implementation?.instructions?.any { it.isFocusedPictureNote() } == true
+                method.holdsNote(FOCUSED_PICTURE_NOTE)
         }
         // Read through the mutable copy, so what's checked is what the hook goes into.
         .map { mutableClassDefBy(it.definingClass).findMutableMethodOf(it) }

@@ -8,7 +8,7 @@ Patches for the [Listonic](https://play.google.com/store/apps/details?id=com.l) 
 list, applied with [Morphe](https://morphe.software). The patches take out the ads, the sale campaigns and the
 prompts that show up by themselves, and the analytics and marketing trackers.
 
-Works with Listonic <!-- VERSIONS_START -->9.25.1<!-- VERSIONS_END --> on Android 12L or newer. No root needed.
+Works with Listonic <!-- VERSIONS_START -->9.25.2 and 9.25.1<!-- VERSIONS_END --> on Android 12L or newer. No root needed.
 
 - **No ads:** no banners, no ads between your list items, no full-screen ads, no partner leaflets, and the ad
   networks aren't started when the app opens. The ads you choose to watch for Broccoli coins still work.
@@ -68,7 +68,7 @@ still be unlocked with Broccoli coins), and the patches don't change what your s
 ## Patches
 
 <!-- PATCHES_START -->
-Version 1.11.0, 14 patches. Supported Listonic versions: 9.25.1.
+Version 1.13.0, 14 patches. Supported Listonic versions: 9.25.2, 9.25.1.
 
 <details>
 <summary><b>Ads</b> (2)</summary>

@@ -72,16 +72,15 @@ public final class Runner extends Instrumentation {
     // extension first in the write request's six-argument constructor.
     private static final String PRESENCE_MODEL = "com.facebook.presence.model.upi.";
     private static final String[] PRESENCE_STATUSES = {"ACTIVE", "IDLE", "OFFLINE", "DISABLED"};
-    // Each 456.1.0.56.78 build's view-once receipt names, found from the handler's endpoint and
+    // Each 457.0.0.55.73 build's view-once receipt names, found from the handler's endpoint and
     // raven_media strings: the build, the visual and voice handlers, their shared method, the
     // visual and voice mutations, the mutation base, its analytics extras and the completion
-    // interface. A set is used only once Instagram's own code agrees with it. The four declared
-    // builds are all there is; 386215069 carries 386215122's names.
+    // interface. A set is used only once Instagram's own code agrees with it. 386314297 carries
+    // 386314341's names.
     private static final String[][] VISUAL_NAMES = {
-            {"386215122", "X.05qk", "X.05qn", "HII", "X.0IwB", "X.0IvI", "X.0Gsu", "X.02rz", "X.0RLz"},
-            {"386215121", "X.05zx", "X.06A0", "HIP", "X.0RfR", "X.0Rf4", "X.09EH", "X.02xh", "X.0iA6"},
-            {"386215123", "X.05rs", "X.05rv", "HIW", "X.0RRt", "X.0RRs", "X.09w1", "X.02te", "X.0ZAg"},
-            {"386215124", "X.05qk", "X.05qn", "HII", "X.0ItI", "X.0ItH", "X.0GsY", "X.02rz", "X.0RAf"},
+            {"386314341", "X.05tf", "X.05ti", "HCv", "X.0ISZ", "X.0ISU", "X.0ArI", "X.02sx", "X.0XoP"},
+            {"386314340", "X.05uf", "X.05ui", "HDM", "X.0JGy", "X.0JGr", "X.0BJC", "X.02ty", "X.0npc"},
+            {"386314286", "X.05tf", "X.05ti", "HD6", "X.0IXq", "X.0IXZ", "X.0AtI", "X.02sx", "X.0Znj"},
     };
     private static final String VISUAL_MUTATION = "send_visual_item_seen_marker";
     private static final String VOICE_MUTATION = "send_voice_item_seen_marker";

@@ -52,16 +52,6 @@ Custom Morphe patch bundle for [Zank Remote](https://play.google.com/store/apps/
 
 ### Method 3: Desktop Patcher (Morphe Desktop / CLI)
 Download the latest `patches-<version>.mpp` from [Releases](https://github.com/yogeshchavan-jd/zank-remote-morphe-patches/releases) and use Morphe Desktop to patch your Zank Remote APK.
-
----
-
-## 🌐 Submitting to `morphe-patches.software`
-
-Once the automated release completes:
-1. Navigate to [morphe-patches.software](https://morphe-patches.software).
-2. Click **Submit a bundle**.
-3. Submit repository URL: `https://github.com/yogeshchavan-jd/zank-remote-morphe-patches`.
-
 ---
 
 ## 📜 License

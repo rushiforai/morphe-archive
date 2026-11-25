@@ -16,7 +16,8 @@ public class HostBlocklistTest {
     public void blocksTwitchAdAndTrackingServers() {
         assertTrue(HostBlocklist.isBlocked("edge.ads.twitch.tv"));
         assertTrue(HostBlocklist.isBlocked("spade.twitch.tv"));
-        assertTrue(HostBlocklist.isBlocked("player.stats.live-video.net"));
+        assertFalse("the video player's own telemetry: refusing it blocks no ad",
+                HostBlocklist.isBlocked("player.stats.live-video.net"));
         assertTrue(HostBlocklist.isBlocked("sb.scorecardresearch.com"));
         assertTrue(HostBlocklist.isBlocked("Pubads.G.DoubleClick.net."));
     }

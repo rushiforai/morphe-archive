@@ -10,14 +10,12 @@ import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
 import app.morphe.patcher.patch.BytecodePatchContext
 import app.morphe.patcher.patch.PatchException
 import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod
-import app.morphe.patches.threads.comments.PERMALINK_REPOSITORY
 import app.morphe.patches.threads.comments.RepliesParseFingerprint
 import app.morphe.patches.threads.comments.responseListSite
 import app.morphe.patches.threads.misc.extension.EXTENSION_PACKAGE
 import app.morphe.util.ControlFlow
 import app.morphe.util.getReference
 import app.morphe.util.singleOrPatchException
-import com.android.tools.smali.dexlib2.AccessFlags
 import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.iface.Method
 import com.android.tools.smali.dexlib2.iface.instruction.FiveRegisterInstruction
@@ -99,21 +97,19 @@ internal fun Method.relatedThreadRow(): String {
  * Finds where an opened post takes in the suggested threads Threads fetches on their own.
  *
  * Since 455 the cards under an opened post's replies come from a query of their own rather than
- * the page of replies [relatedThreadsRead] hooks. A collector the permalink repository starts takes
- * each answer (the header's two lines and the threads), builds the same row the replies parse makes
- * of a related thread for each thread, and writes the rows into the post's state, where an answer
- * with no threads clears them. The collector is the one class holding the repository whose `emit`
- * builds that row. The answer is the type its first cast names, and the read is the answer's one
- * List field, walked with each entry cast to what the row is built from. Anything else, or a branch
- * onto the instruction after the read, and the patch refuses.
+ * the page of replies [relatedThreadsRead] hooks. A collector takes each answer (the header's two
+ * lines and the threads), builds the same row the replies parse makes of a related thread for each
+ * thread, and writes the rows into the post's state, where an answer with no threads clears them.
+ * On 455 the collector held the permalink repository, and 456 moved that to a class of its own, so
+ * it's found as the one `emit` that builds that row. The answer is the type its first cast names,
+ * and the read is the answer's one List field, walked with each entry cast to something the row is
+ * built from: the thread, which up to 456 was the row's only source and since 457 sits beside the
+ * header's own. Anything else, or a branch onto the instruction after the read, and the patch refuses.
  */
 internal fun BytecodePatchContext.relatedThreadsFetch(): RelatedThreadsFetch {
     val row = RepliesParseFingerprint.method.relatedThreadRow()
     val collectors = mutableListOf<Pair<String, String>>()
     classDefForEach { classDef ->
-        if (classDef.fields.none { !AccessFlags.STATIC.isSet(it.accessFlags) && it.type == PERMALINK_REPOSITORY }) {
-            return@classDefForEach
-        }
         classDef.methods.forEach { method ->
             if (method.name != "emit" || method.returnType != OBJECT || method.parameterTypes.size != 2) return@forEach
             val code = method.implementation?.instructions ?: return@forEach
@@ -132,17 +128,18 @@ internal fun BytecodePatchContext.relatedThreadsFetch(): RelatedThreadsFetch {
         body[at].opcode == Opcode.IGET_OBJECT && field.definingClass == answer && field.type == LIST
     }.singleOrPatchException("$PATCH: the threads $signature reads off $answer")
     val list = (body[read] as TwoRegisterInstruction).registerA
-    val source = body.mapNotNull { instruction ->
+    val constructor = body.mapNotNull { instruction ->
         val call = instruction.getReference<MethodReference>() ?: return@mapNotNull null
         if (instruction.opcode !in setOf(Opcode.INVOKE_DIRECT, Opcode.INVOKE_DIRECT_RANGE) ||
             call.definingClass != row || call.name != "<init>"
         ) {
             return@mapNotNull null
         }
-        call.parameterTypes.firstOrNull()?.toString()
-    }.toSet().singleOrPatchException("$PATCH: what $signature builds each $row from")
+        call.parameterTypes.map(CharSequence::toString)
+    }.toSet().singleOrPatchException("$PATCH: the $row constructor $signature calls")
+    val sources = constructor.filter { it.startsWith("L") && it != STRING }
     val walked = body.entryCast(read, list)
-    if (walked != source) throw PatchException("$PATCH: $signature walks $answer's threads as $walked, not $source")
+    if (walked !in sources) throw PatchException("$PATCH: $signature walks $answer's threads as $walked, not one of $sources")
     // The hook goes in front of the instruction after the read. A branch or handler landing there
     // would skip it and hand Threads the threads untouched, so that build is refused.
     val flow = ControlFlow.of(method)
@@ -200,4 +197,5 @@ internal fun hookRelatedThreadsFetch(fetch: RelatedThreadsFetch) {
 
 private const val LIST = "Ljava/util/List;"
 private const val OBJECT = "Ljava/lang/Object;"
+private const val STRING = "Ljava/lang/String;"
 private val MOVES = setOf(Opcode.MOVE_OBJECT, Opcode.MOVE_OBJECT_FROM16, Opcode.MOVE_OBJECT_16)

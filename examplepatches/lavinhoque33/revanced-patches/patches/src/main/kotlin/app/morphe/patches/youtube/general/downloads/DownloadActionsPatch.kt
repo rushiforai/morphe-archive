@@ -9,6 +9,7 @@
  * - inotia00 (https://github.com/inotia00)
  *
  * Licensed under the GNU General Public License v3.0.
+ * Modified by lavinhoque33, 2026-11-24.
  * Modified by lavinhoque33, 2026-11-20.
  * Modified by lavinhoque33, 2026-10-24.
  *
@@ -58,6 +59,7 @@ import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructionsWithLabels
 import app.morphe.patcher.extensions.InstructionExtensions.getInstruction
 import app.morphe.patcher.extensions.InstructionExtensions.instructions
+import app.morphe.patcher.extensions.InstructionExtensions.removeInstructions
 import app.morphe.patcher.fieldAccess
 import app.morphe.patcher.methodCall
 import app.morphe.patcher.patch.PatchException
@@ -76,6 +78,7 @@ import app.morphe.patches.shared.misc.portableexport.portableExportResources
 import app.morphe.patches.youtube.utils.compatibility.Constants.COMPATIBILITY_YOUTUBE
 import app.morphe.patches.youtube.utils.bottomsheet.bottomSheetFlyoutMenuPatch
 import app.morphe.patches.youtube.utils.extension.Constants.GENERAL_PATH
+import app.morphe.patches.youtube.utils.extension.sharedExtensionPatch
 import app.morphe.patches.youtube.utils.patch.PatchList.HOOK_DOWNLOAD_ACTIONS
 import app.morphe.patches.youtube.utils.playservice.is_21_04_or_greater
 import app.morphe.patches.youtube.utils.playservice.is_21_05_or_greater
@@ -126,13 +129,22 @@ private const val EXTENSION_OFFLINE_SCREENS =
 private const val EXTENSION_OFFLINE_PLAYER =
     "$GENERAL_PATH/offline/OfflinePlayer;"
 
+private const val EXTENSION_OFFLINE_ENGINE =
+    "$GENERAL_PATH/offline/OfflinePlaybackEngine;"
+
+private const val EXTENSION_OFFLINE_ENGINE_LISTENER =
+    "$GENERAL_PATH/offline/OfflinePlaybackEngine\$Listener;"
+
+private const val EXTENSION_OFFLINE_PCM_PLAYER =
+    "$GENERAL_PATH/offline/OfflinePcmPlayer;"
+
 private const val EXTENSION_NAVIGATION_BUTTONS =
     "$GENERAL_PATH/NavigationButtonsPatch;"
 
 private const val OFFLINE_PLAYLIST_ENDPOINT_OUTER_CLASS_DESCRIPTOR =
     $$"Lcom/google/protos/youtube/api/innertube/OfflinePlaylistEndpointOuterClass$OfflinePlaylistEndpoint;"
 
-private object FeedPopupWindowFlyoutFingerprint : Fingerprint(
+internal object FeedPopupWindowFlyoutFingerprint : Fingerprint(
     accessFlags = listOf(AccessFlags.PUBLIC, AccessFlags.FINAL),
     returnType = "V",
     parameters = emptyList(),
@@ -143,6 +155,42 @@ private object FeedPopupWindowFlyoutFingerprint : Fingerprint(
         ),
     ),
 )
+
+private val offlinePlayerExtension = bytecodePatch(description = "Offline PCM player extension") {
+    extendWith("extensions/offline-player.mpe")
+    val loader = object {}.javaClass.classLoader
+    val secondaryDex = generateSequence(2) { it + 1 }
+        .map { "extensions/offline-player$it.mpe" }
+        .takeWhile { loader.getResource(it) != null }
+        .map { resource ->
+            bytecodePatch(description = "Offline PCM player extension: $resource") {
+                extendWith(resource)
+            }
+        }
+        .toList()
+    dependsOn(sharedExtensionPatch, *secondaryDex.toTypedArray())
+
+    execute {
+        val factoryParameters = listOf("Landroid/content/Context;", "Z", EXTENSION_OFFLINE_ENGINE_LISTENER)
+        findMethodOrThrow(EXTENSION_OFFLINE_PLAYER) {
+            name == "createPlaybackEngine" &&
+                    parameterTypes == factoryParameters &&
+                    returnType == EXTENSION_OFFLINE_ENGINE
+        }.apply {
+            val parameters = factoryParameters.joinToString("")
+            val factory = "$EXTENSION_OFFLINE_PCM_PLAYER->create($parameters)$EXTENSION_OFFLINE_ENGINE"
+            removeInstructions(0, implementation!!.instructions.size)
+            addInstructions(
+                0,
+                """
+                    invoke-static/range { p0 .. p2 }, $factory
+                    move-result-object p0
+                    return-object p0
+                """,
+            )
+        }
+    }
+}
 
 @Suppress("unused")
 val downloadActionsPatch = bytecodePatch(
@@ -165,6 +213,7 @@ val downloadActionsPatch = bytecodePatch(
         // The offline player and the main player pause each other through the shared player
         // state; this also brings the PlayerType and VideoState hooks.
         videoInformationPatch,
+        offlinePlayerExtension,
     )
 
     execute {
@@ -401,7 +450,12 @@ val downloadActionsPatch = bytecodePatch(
 
         FeedPopupWindowFlyoutFingerprint.matchAll(2..4).forEach {
             it.method.apply {
-                val instructionIndex = it.instructionMatches.last().index
+                // Other popup hooks can already have inserted instructions before the dismissal listener.
+                val instructionIndex = indexOfFirstInstructionOrThrow {
+                    val reference = getReference<MethodReference>()
+                    reference != null && reference.definingClass == "Landroid/widget/PopupWindow;" &&
+                        reference.name == "setOnDismissListener"
+                }
                 val instructionRegister = getInstruction<FiveRegisterInstruction>(instructionIndex).registerC
 
                 addInstruction(

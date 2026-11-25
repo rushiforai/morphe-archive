@@ -117,10 +117,10 @@ class TabIconsFixtureTest {
             probe.requireLaunchFolderRuntime()
             val strip = probe.resolveLaunchFolder().refs!!.tabs.substringBefore("->")
             val tab = tabOf(probe, strip)
-            val hosts = (folderCounterHosts(build) + menuHosts(build) + allChatsPlaceHosts(build) + accountListHosts(build) + chatListAvatarHosts(build))
+            val hosts = (folderCounterHosts(build) + menuHosts(build) + accountListHosts(build) + chatListAvatarHosts(build) + bottomTabsHosts(build))
                 .distinctBy { it.type }.filterNot { it.type == tab }
             val context = PatchContexts.of((ExtensionDex.classes() + hosts).distinctBy { it.type })
-            val warnings = PatchLogCapture.warnings { hideFolderCountersPatch.execute(context) }
+            val warnings = PatchLogCapture.warnings { hideFolderCountersPatch.execute(context) } - listOfNotNull(bottomTabsWarning(build)).toSet()
             assertEquals("$name: $warnings", 1, warnings.size)
             assertTrue(warnings.single(), "the folder tab class is missing" in warnings.single() && "without folder tab icons" in warnings.single())
             assertEquals(0L, statusOf(context, "tabIcons"))
@@ -160,9 +160,11 @@ private const val TEXT_EQUALS = "Landroid/text/TextUtils;->equals(Ljava/lang/Cha
 internal fun tabIconsGap(build: File): String? =
     if (build.name.startsWith("plus-")) "the folder tab stores a title without checking the old one" else null
 
-/** What a whole run of the patch warns on [build] with nothing changed: only Plus Messenger's tab icons gap. */
-internal fun stockWarnings(build: File): List<String> =
-    listOfNotNull(tabIconsGap(build)?.let { "Hide folder tab counters: $it. The patch goes on without folder tab icons." })
+/** What a whole run of the patch warns on [build] with nothing changed: only Plus Messenger's tab icons and bottom tabs gaps. */
+internal fun stockWarnings(build: File): List<String> = listOfNotNull(
+    tabIconsGap(build)?.let { "Hide folder tab counters: $it. The patch goes on without folder tab icons." },
+    bottomTabsWarning(build),
+)
 
 /** The [warnings] a run gives beyond [build]'s stock ones, each of which it must give too. */
 internal fun beyondStock(build: File, warnings: List<String>): List<String> {

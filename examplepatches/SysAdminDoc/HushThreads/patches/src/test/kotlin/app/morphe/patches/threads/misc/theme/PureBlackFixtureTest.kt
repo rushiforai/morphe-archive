@@ -17,6 +17,8 @@ import app.morphe.patcher.patch.BytecodePatchContext
 import app.morphe.patcher.patch.PatchException
 import app.morphe.patcher.util.smali.ExternalLabel
 import app.morphe.patches.threads.misc.extension.SETTINGS_STATUS
+import app.morphe.patches.threads.misc.extension.holdsNote
+import app.morphe.patches.threads.misc.extension.indexOfNote
 import app.morphe.util.getReference
 import com.android.tools.smali.dexlib2.AccessFlags
 import com.android.tools.smali.dexlib2.Opcode
@@ -67,7 +69,8 @@ class PureBlackFixtureTest {
             assertTrue(build.name, loaders.isEmpty())
             assertEquals(build.name, 1, fixture.helpers.size)
             assertTrue(build.name, fixture.helpers.single().holdsNote(IG_PALETTE_GETTER))
-            assertEquals(build.name, 2, fixture.backgroundReads().size)
+            // Each of the two backgrounds, once for the scheme 456 copies and once for the palette.
+            assertEquals(build.name, 4, fixture.backgroundReads().size)
             val scheme = context(fixture).darkScheme(fixture.theme)
             assertEquals(build.name, fixture.holder, scheme.holder)
             // Threads 450 passes the gray twice: the screen's background and the feed's.
@@ -173,7 +176,7 @@ class PureBlackFixtureTest {
         for (build in Fixtures.declaredBuilds()) {
             val fixture = fixture(build)
             val context = context(fixture)
-            val index = fixture.backgroundReads(fixture.backgroundFields()[1]).single()
+            val index = fixture.backgroundReads(fixture.backgroundFields()[1]).first()
             val register = (fixture.theme.body()[index] as TwoRegisterInstruction).registerA
             context.mutableMethod(fixture.theme).addInstructions(index + 1, "const/4 v${register + 1}, 0x0")
             val error = assertThrows(build.name, PatchException::class.java) { pureBlackPatch.execute(context) }
@@ -187,7 +190,7 @@ class PureBlackFixtureTest {
             val fixture = fixture(build)
             val context = context(fixture)
             val theme = context.mutableMethod(fixture.theme)
-            val index = fixture.backgroundReads(fixture.backgroundFields()[1]).single()
+            val index = fixture.backgroundReads(fixture.backgroundFields()[1]).first()
             val register = (theme.body()[index] as TwoRegisterInstruction).registerA
             theme.addInstructionsWithLabels(index, """
                 const-wide/16 v$register, 0x0
@@ -204,9 +207,9 @@ class PureBlackFixtureTest {
             val fixture = fixture(build)
             val context = context(fixture)
             val getter = context.mutableMethod(fixture.helpers.single())
-            val index = getter.body().indexOfFirst { it.opcode == Opcode.CONST_STRING }
+            val index = getter.body().indexOfNote(IG_PALETTE_GETTER)
             val register = (getter.body()[index] as OneRegisterInstruction).registerA
-            getter.replaceInstruction(index, "const-string v$register, \"unrelated palette\"")
+            getter.replaceInstruction(index, "const v$register, 0x1234567")
             val error = assertThrows(build.name, PatchException::class.java) { pureBlackPatch.execute(context) }
             assertTrue(error.message.orEmpty(), error.message.orEmpty().contains("copies a known dark background"))
         }

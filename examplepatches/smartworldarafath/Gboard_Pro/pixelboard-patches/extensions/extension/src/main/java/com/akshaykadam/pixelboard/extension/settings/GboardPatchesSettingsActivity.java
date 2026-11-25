@@ -121,6 +121,12 @@ public final class GboardPatchesSettingsActivity extends Activity
     public static final String ACTION_PRO = "com.akshaykadam.pixelboard.action.PRO";
     public static final String ACTION_ADDITIONAL = "com.akshaykadam.pixelboard.action.ADDITIONAL";
     public static final String ACTION_HELP_FEEDBACK = "com.akshaykadam.pixelboard.action.HELP_FEEDBACK";
+    public static final String ACTION_NOTIFICATIONS = "com.akshaykadam.pixelboard.action.NOTIFICATIONS";
+    public static final String ACTION_BETA_PROGRAM = "com.akshaykadam.pixelboard.action.BETA_PROGRAM";
+    public static final String ACTION_BETA_TESTING = "com.akshaykadam.pixelboard.action.BETA_TESTING";
+    public static final String ACTION_BETA_FEATURES = "com.akshaykadam.pixelboard.action.BETA_FEATURES";
+    private static final int REQUEST_PICK_BETA_SCREENSHOTS = 1009;
+    private BetaScreenshotCallback pendingBetaScreenshotCallback;
     private boolean standaloneFeatureMode = false;
     public static final String EXTRA_NAVIGATION_PATH =
             "com.akshaykadam.pixelboard.extension.extra.PATCHES_NAVIGATION_PATH";
@@ -344,6 +350,14 @@ public final class GboardPatchesSettingsActivity extends Activity
             targetFeature = new GboardAdditionalFeature(this);
         } else if (ACTION_HELP_FEEDBACK.equals(action)) {
             targetFeature = new GboardHelpFeedbackFeature(this);
+        } else if (ACTION_NOTIFICATIONS.equals(action)) {
+            targetFeature = new GboardAdditionalFeature.NotificationSettingsFeature(this);
+        } else if (ACTION_BETA_PROGRAM.equals(action)) {
+            targetFeature = new GboardBetaProgramFeature(this);
+        } else if (ACTION_BETA_TESTING.equals(action)) {
+            targetFeature = new GboardBetaProgramFeature.BetaVersionTestingFeature(this);
+        } else if (ACTION_BETA_FEATURES.equals(action)) {
+            targetFeature = new GboardBetaProgramFeature.NewBetaFeaturesFeature(this);
         }
         if (targetFeature != null) {
             standaloneFeatureMode = true;
@@ -464,6 +478,7 @@ public final class GboardPatchesSettingsActivity extends Activity
             runOnUiThread(this::refreshAfterThemeChange);
             return;
         }
+        GboardM3Helper.invalidateCaches();
         m3Palette = GboardM3Helper.Palette.forContext(this);
         palette = Palette.forContext(this, getResources().getConfiguration());
         lastRenderedAmoled = GboardM3Helper.isAmoledBlackEnabled(this);
@@ -1401,7 +1416,73 @@ public final class GboardPatchesSettingsActivity extends Activity
         }
         if (requestCode == REQUEST_OPEN_BINARY_DOCUMENT) {
             handleOpenBinaryDocumentResult(resultCode, data);
+            return;
         }
+        if (requestCode == REQUEST_PICK_BETA_SCREENSHOTS) {
+            handleBetaScreenshotPickResult(resultCode, data);
+        }
+    }
+
+    public interface BetaScreenshotCallback {
+        void onPicked(List<Uri> uris);
+    }
+
+    @SuppressWarnings("deprecation")
+    public void launchBetaScreenshotPicker(BetaScreenshotCallback callback) {
+        pendingBetaScreenshotCallback = callback;
+        Intent docIntent = new Intent(Intent.ACTION_OPEN_DOCUMENT);
+        docIntent.addCategory(Intent.CATEGORY_OPENABLE);
+        docIntent.setType("image/*");
+        docIntent.putExtra(Intent.EXTRA_ALLOW_MULTIPLE, true);
+        docIntent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION | Intent.FLAG_GRANT_PERSISTABLE_URI_PERMISSION);
+        try {
+            startActivityForResult(Intent.createChooser(docIntent, "Select Screenshots (up to 5)"),
+                    REQUEST_PICK_BETA_SCREENSHOTS);
+        } catch (Throwable fallback) {
+            try {
+                Intent getIntent = new Intent(Intent.ACTION_GET_CONTENT);
+                getIntent.setType("image/*");
+                getIntent.putExtra(Intent.EXTRA_ALLOW_MULTIPLE, true);
+                startActivityForResult(Intent.createChooser(getIntent, "Select Screenshots (up to 5)"),
+                        REQUEST_PICK_BETA_SCREENSHOTS);
+            } catch (Throwable ignored) {
+                pendingBetaScreenshotCallback = null;
+                Toast.makeText(this, "No image picker available on device", Toast.LENGTH_SHORT).show();
+            }
+        }
+    }
+
+    private void handleBetaScreenshotPickResult(int resultCode, Intent data) {
+        BetaScreenshotCallback cb = pendingBetaScreenshotCallback;
+        pendingBetaScreenshotCallback = null;
+        if (cb == null || resultCode != Activity.RESULT_OK || data == null) {
+            return;
+        }
+        List<Uri> picked = new ArrayList<>();
+        try {
+            android.content.ClipData clip = data.getClipData();
+            if (clip != null) {
+                for (int i = 0; i < clip.getItemCount(); i++) {
+                    Uri u = clip.getItemAt(i).getUri();
+                    if (u != null) {
+                        try {
+                            getContentResolver().takePersistableUriPermission(u, Intent.FLAG_GRANT_READ_URI_PERMISSION);
+                        } catch (Throwable ignored) {
+                        }
+                        picked.add(u);
+                    }
+                }
+            } else if (data.getData() != null) {
+                Uri u = data.getData();
+                try {
+                    getContentResolver().takePersistableUriPermission(u, Intent.FLAG_GRANT_READ_URI_PERMISSION);
+                } catch (Throwable ignored) {
+                }
+                picked.add(u);
+            }
+        } catch (Throwable ignored) {
+        }
+        cb.onPicked(picked);
     }
 
     @Override
@@ -3113,6 +3194,13 @@ public final class GboardPatchesSettingsActivity extends Activity
                     ViewGroup.LayoutParams.WRAP_CONTENT);
             formLp.setMargins(dp(16), dp(8), dp(16), dp(16));
             panelContainer.addView(formView, formLp);
+        } else if (state.getCurrent() instanceof GboardBetaProgramFeature.BetaVersionTestingFeature betaTesting) {
+            View testingView = betaTesting.buildTestingView(this, m3Palette);
+            LinearLayout.LayoutParams testingLp = new LinearLayout.LayoutParams(
+                    ViewGroup.LayoutParams.MATCH_PARENT,
+                    ViewGroup.LayoutParams.WRAP_CONTENT);
+            testingLp.setMargins(dp(16), dp(8), dp(16), dp(16));
+            panelContainer.addView(testingView, testingLp);
         } else {
             List<GboardPatchesSettingsContract.Section> sections = screen.getSections();
             for (GboardPatchesSettingsContract.StatusBlock statusBlock : screen.getStatusBlocks()) {
@@ -3269,6 +3357,14 @@ public final class GboardPatchesSettingsActivity extends Activity
             targetFeatureClass = GboardAdditionalFeature.class;
         } else if (ACTION_HELP_FEEDBACK.equals(action)) {
             targetFeatureClass = GboardHelpFeedbackFeature.class;
+        } else if (ACTION_NOTIFICATIONS.equals(action)) {
+            targetFeatureClass = GboardAdditionalFeature.NotificationSettingsFeature.class;
+        } else if (ACTION_BETA_PROGRAM.equals(action)) {
+            targetFeatureClass = GboardBetaProgramFeature.class;
+        } else if (ACTION_BETA_TESTING.equals(action)) {
+            targetFeatureClass = GboardBetaProgramFeature.BetaVersionTestingFeature.class;
+        } else if (ACTION_BETA_FEATURES.equals(action)) {
+            targetFeatureClass = GboardBetaProgramFeature.NewBetaFeaturesFeature.class;
         }
 
         if (targetFeatureClass != null) {
@@ -3288,6 +3384,14 @@ public final class GboardPatchesSettingsActivity extends Activity
                 targetFeature = new GboardAdditionalFeature(this);
             } else if (ACTION_HELP_FEEDBACK.equals(action)) {
                 targetFeature = new GboardHelpFeedbackFeature(this);
+            } else if (ACTION_NOTIFICATIONS.equals(action)) {
+                targetFeature = new GboardAdditionalFeature.NotificationSettingsFeature(this);
+            } else if (ACTION_BETA_PROGRAM.equals(action)) {
+                targetFeature = new GboardBetaProgramFeature(this);
+            } else if (ACTION_BETA_TESTING.equals(action)) {
+                targetFeature = new GboardBetaProgramFeature.BetaVersionTestingFeature(this);
+            } else if (ACTION_BETA_FEATURES.equals(action)) {
+                targetFeature = new GboardBetaProgramFeature.NewBetaFeaturesFeature(this);
             }
 
             if (targetFeature != null) {
@@ -4203,7 +4307,7 @@ public final class GboardPatchesSettingsActivity extends Activity
             card.setPadding(dp(22), dp(26), dp(22), dp(24));
             card.setBackground(liquidGlass
                     ? GboardM3Helper.createLiquidGlassCardDrawable(this, m3Pal, 26, true)
-                    : buildCardDrawable(palette.surface, palette.surfaceStroke, dp(26)));
+                    : buildCardDrawable(palette.surface, palette.surfaceStroke, dp(18)));
             card.setElevation(0f);
 
             ImageView heroIcon = new ImageView(this);
@@ -4252,9 +4356,17 @@ public final class GboardPatchesSettingsActivity extends Activity
                     ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
             card.addView(summaryView, sumLp);
 
-            // Show "[ ↻ Check for Updates ]" 3D Liquid Glass pill button on BOTH About & Gboard Pro Updates
+            // Show "[ ↻ Check for Updates ]" 3D Liquid Glass pill or Material 3 Filled Button on About & Updates
             final GboardPatchesSettingsContract.Row primaryHeroActionRow = findFirstActionRow(screenSections);
-            int ctaInk = (m3Pal.isAmoled || m3Pal.isNight) ? m3Pal.accent : 0xFF2336F5;
+            final int ctaInk;
+            if (liquidGlass) {
+                ctaInk = (m3Pal.isAmoled || m3Pal.isNight) ? m3Pal.accent : 0xFF2336F5;
+            } else {
+                float accLum = (0.299f * Color.red(palette.accent)
+                        + 0.587f * Color.green(palette.accent)
+                        + 0.114f * Color.blue(palette.accent)) / 255f;
+                ctaInk = accLum > 0.58f ? 0xFF121318 : Color.WHITE;
+            }
             String ctaLabel = primaryHeroActionRow != null
                     ? primaryHeroActionRow.getTitle().toString()
                     : "Check for Updates";
@@ -4265,7 +4377,7 @@ public final class GboardPatchesSettingsActivity extends Activity
             ctaPill.setGravity(Gravity.CENTER);
             ctaPill.setBackground(liquidGlass
                     ? GboardM3Helper.createLiquidGlassPillButtonDrawable(this, m3Pal)
-                    : buildChipDrawable(palette.infoContainer, palette.surfaceStroke));
+                    : GboardM3Helper.createClickableCardDrawable(palette.accent, Color.TRANSPARENT, palette.pressedOverlay, dp(999)));
             ctaPill.setElevation(0f);
             ctaPill.setPadding(dp(26), dp(12), dp(28), dp(12));
             ctaPill.setMinimumHeight(dp(50));
@@ -4351,7 +4463,7 @@ public final class GboardPatchesSettingsActivity extends Activity
         card.setPadding(dp(18), dp(16), dp(18), dp(16));
         card.setBackground(liquidGlass
                 ? GboardM3Helper.createLiquidGlassCardDrawable(this, m3Pal, 24, false)
-                : buildCardDrawable(toneBackground(block.getTone()), palette.surfaceStroke, dp(24)));
+                : buildCardDrawable(toneBackground(block.getTone()), palette.surfaceStroke, dp(16)));
         card.setElevation(0f);
 
         TextView titleView = new TextView(this);
@@ -4444,7 +4556,7 @@ public final class GboardPatchesSettingsActivity extends Activity
                     actionCard.setOrientation(LinearLayout.VERTICAL);
                     actionCard.setBackground(liquidGlass
                             ? GboardM3Helper.createLiquidGlassCardDrawable(this, m3Pal, 22, false)
-                            : buildCardDrawable(palette.surface, palette.surfaceStroke, dp(22)));
+                            : buildCardDrawable(palette.surface, palette.surfaceStroke, dp(16)));
                     actionCard.setElevation(0f);
                     if (!liquidGlass && Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
                         actionCard.setClipToOutline(true);
@@ -4471,7 +4583,7 @@ public final class GboardPatchesSettingsActivity extends Activity
                 }
                 card.setBackground(liquidGlass
                         ? GboardM3Helper.createLiquidGlassCardDrawable(this, m3Pal, 24, false)
-                        : buildCardDrawable(palette.surface, palette.surfaceStroke, dp(24)));
+                        : buildCardDrawable(palette.surface, palette.surfaceStroke, dp(16)));
                 card.setElevation(0f);
                 if (!liquidGlass && Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
                     card.setClipToOutline(true);
@@ -4713,9 +4825,10 @@ public final class GboardPatchesSettingsActivity extends Activity
     }
 
     private View createRowOrbIconView(CharSequence title) {
-        if (title == null || !GboardM3Helper.isLiquidGlassUiEnabled(this)) {
+        if (title == null) {
             return null;
         }
+        final boolean liquidGlass = GboardM3Helper.isLiquidGlassUiEnabled(this);
         final String key = title.toString();
         final int iconKind = resolveRowIconKind(key);
         if (iconKind == 0) {
@@ -4731,7 +4844,6 @@ public final class GboardPatchesSettingsActivity extends Activity
             {
                 paint.setStrokeCap(Paint.Cap.ROUND);
                 paint.setStrokeJoin(Paint.Join.ROUND);
-                setLayerType(View.LAYER_TYPE_SOFTWARE, null);
             }
 
             private void drawSolidGitHubOctocat(Canvas canvas, float cx, float cy, float u, int bgColor, int fgColor) {
@@ -4772,8 +4884,12 @@ public final class GboardPatchesSettingsActivity extends Activity
                 float cx = getWidth() / 2f;
                 float cy = getHeight() / 2f;
                 float u = dpF(1f);
-                int primaryBlue = (m3Pal.isAmoled || m3Pal.isNight) ? m3Pal.accent : 0xFF2E40F5;
-                int cutoutBg = m3Pal.isAmoled ? 0xFF0A0E18 : (m3Pal.isNight ? 0xFF1F2436 : 0xFFF2F4FC);
+                int primaryBlue = liquidGlass
+                        ? ((m3Pal.isAmoled || m3Pal.isNight) ? m3Pal.accent : 0xFF2E40F5)
+                        : m3Pal.textSecondary;
+                int cutoutBg = liquidGlass
+                        ? (m3Pal.isAmoled ? 0xFF0A0E18 : (m3Pal.isNight ? 0xFF1F2436 : 0xFFF2F4FC))
+                        : palette.surface;
                 paint.setColor(primaryBlue);
                 paint.setStyle(Paint.Style.STROKE);
                 paint.setStrokeWidth(1.85f * u);
@@ -5009,13 +5125,17 @@ public final class GboardPatchesSettingsActivity extends Activity
                 }
             }
         };
-        orb.setBackground(GboardM3Helper.createLiquidGlassOrbDrawable(this, m3Pal));
+        orb.setBackground(liquidGlass
+                ? GboardM3Helper.createLiquidGlassOrbDrawable(this, m3Pal)
+                : null);
         orb.setElevation(0f);
-        LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(dp(44), dp(44));
+        int iconPx = liquidGlass ? dp(44) : dp(24);
+        int endMargin = liquidGlass ? dp(14) : dp(16);
+        LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(iconPx, iconPx);
         lp.gravity = Gravity.CENTER_VERTICAL;
-        lp.rightMargin = dp(14);
+        lp.rightMargin = endMargin;
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR1) {
-            lp.setMarginEnd(dp(14));
+            lp.setMarginEnd(endMargin);
         }
         orb.setLayoutParams(lp);
         return orb;
@@ -5035,16 +5155,17 @@ public final class GboardPatchesSettingsActivity extends Activity
         if (lower.contains("check for update") || lower.contains("download")
                 || lower.contains("install update")) return 6;
         if (lower.contains("native liquid glass") || lower.contains("3d liquid glass")
-                || lower.contains("choose ui") || lower.contains("classic ui")) return 7;
+                || lower.contains("choose ui") || lower.contains("classic")) return 7;
         if (lower.contains("multi-density") || lower.contains("density")) return 8;
         if (lower.contains("package icon") || lower.contains("in-app feedback") || lower.contains("feedback")) return 9;
         if ("amoled".equals(lower) || lower.contains("amoled")) return 10;
         if ("advanced settings".equals(lower)) return 11;
-        if ("notification".equals(lower)) return 12;
+        if (lower.contains("notification") || "new features notifications".equals(lower)) return 12;
         if ("permissions".equals(lower)) return 13;
-        if ("beta program".equals(lower) || lower.contains("testing mode")) return 14;
+        if ("beta program".equals(lower) || lower.contains("testing mode")
+                || lower.contains("beta version testing")) return 14;
         if ("reset".equals(lower)) return 15;
-        if (lower.contains("additional")) return 16;
+        if (lower.contains("additional") || lower.contains("new features (beta)")) return 16;
         return 0;
     }
 
@@ -5920,7 +6041,32 @@ public final class GboardPatchesSettingsActivity extends Activity
         }
 
         static Palette forContext(Context context, Configuration configuration) {
+            boolean liquidGlass = context != null && GboardM3Helper.isLiquidGlassUiEnabled(context);
             if (context != null && GboardM3Helper.isAmoledBlackEnabled(context)) {
+                if (!liquidGlass) {
+                    int accent = 0xFFA8C7FA;
+                    int infoContainer = 0xFF0842A0;
+                    if (Build.VERSION.SDK_INT >= 31) {
+                        try {
+                            accent = context.getColor(android.R.color.system_accent1_200);
+                            infoContainer = context.getColor(android.R.color.system_accent1_800);
+                        } catch (Throwable ignored) {
+                        }
+                    }
+                    return new Palette(
+                            0xFF000000,
+                            0xFF141518,
+                            0xFF1F2126,
+                            0x24FFFFFF,
+                            infoContainer,
+                            0xFF3F2D16,
+                            0xFF1F2126,
+                            0xFFE6E1E5,
+                            0xFFCAC4D0,
+                            0x66CAC4D0,
+                            accent,
+                            GboardM3Helper.blendAlpha(accent, 0.20f));
+                }
                 return new Palette(
                         0xFF000000,
                         0xFF0A0C12,
@@ -5947,70 +6093,75 @@ public final class GboardPatchesSettingsActivity extends Activity
                 }
             }
 
-                        if ("blush_lilac".equals(selectedTheme)) {
+            int m3Stroke = nightMode ? 0x1FFFFFFF : 0x14000000;
+            if ("blush_lilac".equals(selectedTheme)) {
+                int s = liquidGlass ? (nightMode ? 0x44D0BCFF : 0x33542983) : m3Stroke;
                 if (nightMode) {
                     return new Palette(
-                            0xFF181122, 0xFF241C2E, 0xFF322840, 0x44D0BCFF,
+                            0xFF181122, 0xFF241C2E, 0xFF322840, s,
                             0xFF4F378B, Color.parseColor("#3F2D16"), 0xFF322840,
                             0xFFF5EEFF, 0xFFCCC2DC, 0x77CCC2DC, 0xFFD0BCFF, 0x33D0BCFF);
                 } else {
                     return new Palette(
-                            0xFFF7EFFA, 0xFFFFFFFF, 0xFFEBD7FA, 0x33542983,
+                            0xFFF7EFFA, 0xFFFFFFFF, 0xFFEBD7FA, s,
                             0xFFEBD7FA, Color.parseColor("#FEF3C7"), 0xFFEBD7FA,
                             0xFF24152F, 0xFF5F4B6E, 0x775F4B6E, 0xFF542983, 0x26542983);
                 }
             } else if ("cotton_candy".equals(selectedTheme)) {
+                int s = liquidGlass ? (nightMode ? 0x44FF80AB : 0x33B80058) : m3Stroke;
                 if (nightMode) {
                     return new Palette(
-                            0xFF1F1117, 0xFF2E1922, 0xFF402330, 0x44FF80AB,
+                            0xFF1F1117, 0xFF2E1922, 0xFF402330, s,
                             0xFF880E4F, Color.parseColor("#3F2D16"), 0xFF402330,
                             0xFFFCE4EC, 0xFFF8BBD0, 0x77F8BBD0, 0xFFFF80AB, 0x33FF80AB);
                 } else {
                     return new Palette(
-                            0xFFFDE7E9, 0xFFFFFFFF, 0xFFF6B0CA, 0x33B80058,
+                            0xFFFDE7E9, 0xFFFFFFFF, 0xFFF6B0CA, s,
                             0xFFF6B0CA, Color.parseColor("#FEF3C7"), 0xFFF6B0CA,
                             0xFF2D121B, 0xFF6D4352, 0x776D4352, 0xFFB80058, 0x26B80058);
                 }
             } else if ("sunset_peach".equals(selectedTheme) || "rainbow".equals(selectedTheme)) {
+                int s = liquidGlass ? (nightMode ? 0x44FF8A65 : 0x33D35A2D) : m3Stroke;
                 if (nightMode) {
                     return new Palette(
-                            0xFF1C1310, 0xFF281C17, 0xFF372720, 0x44FF8A65,
+                            0xFF1C1310, 0xFF281C17, 0xFF372720, s,
                             0xFF5D2416, Color.parseColor("#3F2D16"), 0xFF372720,
                             0xFFFBE9E7, 0xFFFFCCBC, 0x77FFCCBC, 0xFFFF7043, 0x33FF7043);
                 } else {
                     return new Palette(
-                            0xFFFDE8E7, 0xFFFFFFFF, 0xFFFD987C, 0x33D35A2D,
+                            0xFFFDE8E7, 0xFFFFFFFF, 0xFFFD987C, s,
                             0xFFFD987C, Color.parseColor("#FEF3C7"), 0xFFFD987C,
                             0xFF2D1610, 0xFF6E443A, 0x776E443A, 0xFFD35A2D, 0x26D35A2D);
                 }
             } else if ("fresh_mint".equals(selectedTheme) || "botanical".equals(selectedTheme)) {
+                int s = liquidGlass ? (nightMode ? 0x4480CBC4 : 0x33046665) : m3Stroke;
                 if (nightMode) {
                     return new Palette(
-                            0xFF0E1815, 0xFF162520, 0xFF20342E, 0x4480CBC4,
+                            0xFF0E1815, 0xFF162520, 0xFF20342E, s,
                             0xFF0E3E37, Color.parseColor("#3F2D16"), 0xFF20342E,
                             0xFFE0F2F1, 0xFFB2DFDB, 0x77B2DFDB, 0xFF4DB6AC, 0x334DB6AC);
                 } else {
                     return new Palette(
-                            0xFFEFF5F5, 0xFFFFFFFF, 0xFFD4FAEF, 0x33046665,
+                            0xFFEFF5F5, 0xFFFFFFFF, 0xFFD4FAEF, s,
                             0xFFD4FAEF, Color.parseColor("#FEF3C7"), 0xFFD4FAEF,
                             0xFF0E1F1E, 0xFF3F5C5A, 0x773F5C5A, 0xFF046665, 0x26046665);
                 }
             } else if ("ocean".equals(selectedTheme)) {
+                int s = liquidGlass ? (nightMode ? 0x449FA8DA : 0x263949AB) : m3Stroke;
                 if (nightMode) {
                     return new Palette(
-                            0xFF101322, 0xFF191D32, 0xFF232845, 0x449FA8DA,
+                            0xFF101322, 0xFF191D32, 0xFF232845, s,
                             0xFF1E265C, Color.parseColor("#3F2D16"), 0xFF232845,
                             0xFFE8EAF6, 0xFFC5CAE9, 0x77C5CAE9, 0xFF7986CB, 0x337986CB);
                 } else {
                     return new Palette(
-                            0xFFF6F8FE, 0xFFEEF2FC, 0xFFE0E7FA, 0x263949AB,
+                            0xFFF6F8FE, 0xFFEEF2FC, 0xFFE0E7FA, s,
                             0xFFE8EAF6, Color.parseColor("#FEF3C7"), 0xFFE0E7FA,
                             0xFF12182E, 0xFF3F4A6A, 0x773F4A6A, 0xFF3949AB, 0x263949AB);
                 }
             }
 
             // Default: Auto-adapt to phone system dynamic colors (Material You / Monet on Android 12+)
-            // and system Dark/Light mode while preserving 3D Liquid Glass pearlescent shading.
             if (Build.VERSION.SDK_INT >= 31 && context != null) {
                 try {
                     int acc600 = context.getColor(android.R.color.system_accent1_600);
@@ -6019,8 +6170,39 @@ public final class GboardPatchesSettingsActivity extends Activity
                     int acc800 = context.getColor(android.R.color.system_accent1_800);
                     int neu10 = context.getColor(android.R.color.system_neutral1_10);
                     int neu50 = context.getColor(android.R.color.system_neutral1_50);
+                    int neu100 = context.getColor(android.R.color.system_neutral1_100);
                     int neu800 = context.getColor(android.R.color.system_neutral1_800);
                     int neu900 = context.getColor(android.R.color.system_neutral1_900);
+                    if (!liquidGlass) {
+                        if (nightMode) {
+                            return new Palette(
+                                    GboardM3Helper.blendColor(0xFF121316, neu900, 0.55f),
+                                    GboardM3Helper.blendColor(0xFF1E2025, neu800, 0.55f),
+                                    GboardM3Helper.blendColor(0xFF282B32, neu800, 0.35f),
+                                    0x1FFFFFFF,
+                                    acc800,
+                                    0xFF3F2D16,
+                                    GboardM3Helper.blendColor(0xFF282B32, neu800, 0.35f),
+                                    GboardM3Helper.blendColor(0xFFE5E4E9, neu50, 0.55f),
+                                    GboardM3Helper.blendColor(0xFFC4C6D0, neu100, 0.35f),
+                                    0x66C4C6D0,
+                                    acc200,
+                                    GboardM3Helper.blendAlpha(acc200, 0.18f));
+                        }
+                        return new Palette(
+                                GboardM3Helper.blendColor(0xFFF3F5F9, neu10, 0.55f),
+                                0xFFFFFFFF,
+                                GboardM3Helper.blendColor(neu100, neu50, 0.45f),
+                                0x14000000,
+                                acc100,
+                                0xFFFEF3C7,
+                                GboardM3Helper.blendColor(neu100, neu50, 0.45f),
+                                GboardM3Helper.blendColor(0xFF1B1C1F, neu900, 0.60f),
+                                GboardM3Helper.blendColor(0xFF5E626C, neu800, 0.40f),
+                                0x885E626C,
+                                acc600,
+                                GboardM3Helper.blendAlpha(acc600, 0.14f));
+                    }
                     if (nightMode) {
                         return new Palette(
                                 GboardM3Helper.blendColor(0xFF121520, neu900, 0.50f),
@@ -6051,6 +6233,19 @@ public final class GboardPatchesSettingsActivity extends Activity
                             GboardM3Helper.blendAlpha(acc600, 0.16f));
                 } catch (Throwable ignored) {
                 }
+            }
+
+            if (!liquidGlass) {
+                if (nightMode) {
+                    return new Palette(
+                            0xFF141519, 0xFF1E2026, 0xFF282B33, 0x1FFFFFFF,
+                            0xFF0842A0, 0xFF3F2D16, 0xFF282B33,
+                            0xFFE4E2E6, 0xFFC5C6D0, 0x66C5C6D0, 0xFFA8C7FA, 0x22A8C7FA);
+                }
+                return new Palette(
+                        0xFFF3F5F9, 0xFFFFFFFF, 0xFFE9EDF6, 0x14000000,
+                        0xFFD3E3FD, 0xFFFEF3C7, 0xFFE9EDF6,
+                        0xFF1B1C1F, 0xFF5E626C, 0x885E626C, 0xFF1A73E8, 0x1A1A73E8);
             }
 
             if (nightMode) {

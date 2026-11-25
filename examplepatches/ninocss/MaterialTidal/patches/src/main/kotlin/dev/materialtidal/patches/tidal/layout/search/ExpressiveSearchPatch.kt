@@ -29,8 +29,8 @@ import dev.materialtidal.patches.shared.MATERIAL_YOU_CONFIG_CLASS
 import dev.materialtidal.patches.tidal.theme.materialyou.materialYouThemePatch
 
 private val SEARCH_BAR_STYLE_CHOICES = mapOf(
-    "Expressive Pill (28dp)" to "pill",
-    "Expressive Squircle (18dp)" to "squircle",
+    "Pill (28dp, recommended)" to "pill",
+    "Squircle (18dp)" to "squircle",
 )
 
 private fun searchBarStyleToCode(value: String?): Int = when (value) {
@@ -142,8 +142,8 @@ private fun injectFloatBeforeRoundedCornerShape(
 
 @Suppress("unused")
 val expressiveSearchPatch = patch(
-    name = "Expressive Material 3 search",
-    description = "Redesigns TIDAL's Search & Explore landing page, default UnifiedSearchView, and refactored Compose Search screen with stadium-pill Monet search bars, frosted sticky glass headers, expressive filter pills, suggestion badges, and Monet-harmonized genre/tag cards.",
+    name = "M3 search",
+    description = "Redesigns Search & Explore with rounded Monet search bars, frosted sticky headers, expressive filter pills, and Monet-harmonized genre and browse cards.",
     default = true,
 ) {
     dependsOn(materialYouThemePatch)
@@ -156,8 +156,8 @@ val expressiveSearchPatch = patch(
         key = "searchBarPillStyle",
         default = "pill",
         values = SEARCH_BAR_STYLE_CHOICES,
-        title = "Search bar corner shape",
-        description = "Controls the corner style for the Search bar across Search Landing, Active Search, and Compose Search.",
+        title = "Search bar shape",
+        description = "Corner style used for the Search input bar across Explore and active search screens (also adjustable live in Settings → MaterialTidal).",
         required = true,
     )
 
@@ -165,27 +165,28 @@ val expressiveSearchPatch = patch(
         key = "expressiveSearchCards",
         default = true,
         title = "Expressive Genre & Explore cards",
-        description = "Style Browse/Explore genre tiles, cloud pill tags, and navigation rows as tonal Material 3 Expressive cards.",
+        description = "Style Browse/Explore genre tiles, pill tags, and navigation rows as tonal Material 3 cards (also adjustable live in Settings → MaterialTidal).",
         required = true,
     )
 
     val expressiveSearchHeaderBlurOption by booleanOption(
         key = "expressiveSearchHeaderBlur",
         default = true,
-        title = "Frosted glass Search header blur",
-        description = "Float scrolling Explore and Search results beneath a frosted GPU-blurred header backdrop (API 31+).",
+        title = "Frosted glass Search header",
+        description = "Float scrolling Explore and Search results smoothly beneath a frosted blurred header bar (also adjustable live in Settings → MaterialTidal).",
         required = true,
     )
 
     execute {
         // 1. Wire MaterialYouConfig Search options.
         val configClass = mutableClassDefBy(MATERIAL_YOU_CONFIG_CLASS)
+        configClass.methods.single { it.name == "isExpressiveSearchPatchInstalled" }.returnEarly(true)
         configClass.methods.single { it.name == "isExpressiveSearchEnabled" }.returnEarly(true)
-        configClass.methods.single { it.name == "getSearchBarCornerStyle" }
+        configClass.methods.single { it.name == "defaultSearchBarCornerStyle" }
             .returnEarly(searchBarStyleToCode(searchBarPillStyleOption))
-        configClass.methods.single { it.name == "isExpressiveSearchCardsEnabled" }
+        configClass.methods.single { it.name == "defaultExpressiveSearchCardsEnabled" }
             .returnEarly(expressiveSearchCardsOption ?: true)
-        configClass.methods.single { it.name == "isExpressiveSearchHeaderBlurEnabled" }
+        configClass.methods.single { it.name == "defaultExpressiveSearchHeaderBlurEnabled" }
             .returnEarly(expressiveSearchHeaderBlurOption ?: true)
 
         // 2. TidalSearchView.<init> -> immediate Monet pill styling (avoids white flash on first draw).

@@ -1,0 +1,88 @@
+name: Promote Release
+
+# The only supported way to write a protected release branch. Release-branch
+# rulesets allow updates only from the release app, so humans cannot merge or
+# cherry-pick directly. This workflow runs as that app, merges the reviewed
+# integration branch into its release branch, and pushes once. The push then
+# triggers Release. The `release-publication-<target>` concurrency group is
+# shared with release.yml, so promotions and releases for the same release
+# branch serialize.
+#
+# main -> release/main publishes a stable release.
+# dev  -> release/dev  publishes a prerelease.
+# Source and target are validated as a pair; the workflow never cherry-picks.
+
+on:
+  workflow_dispatch:
+    inputs:
+      source:
+        description: Integration branch to promote
+        required: true
+        type: choice
+        options:
+          - main
+          - dev
+      target:
+        description: Protected release branch to publish
+        required: true
+        type: choice
+        options:
+          - release/main
+          - release/dev
+
+permissions:
+  contents: read
+
+concurrency:
+  # Per-target with release.yml: promotions and releases for the same release
+  # branch serialize, while release/main and release/dev do not starve each
+  # other.
+  group: release-publication-${{ inputs.target }}
+  cancel-in-progress: false
+
+jobs:
+  promote:
+    name: Promote to release branch
+    runs-on: ubuntu-latest
+    steps:
+      # The app must be installed on the repository and listed as a bypass
+      # actor on both release-branch rulesets.
+      - name: Create release identity token
+        id: release-token
+        uses: actions/create-github-app-token@v2
+        with:
+          app-id: ${{ secrets.RELEASE_APP_ID }}
+          private-key: ${{ secrets.RELEASE_APP_PRIVATE_KEY }}
+          permission-contents: write
+          permission-workflows: write
+
+      - name: Checkout release target
+        uses: actions/checkout@v7
+        with:
+          ref: ${{ inputs.target }}
+          fetch-depth: 0
+          token: ${{ steps.release-token.outputs.token }}
+
+      - name: Merge source into target
+        env:
+          SOURCE: ${{ inputs.source }}
+          TARGET: ${{ inputs.target }}
+        run: |
+          set -euo pipefail
+
+          # Only the reviewed integration branch may publish to its release
+          # branch. Never promote dev code as stable.
+          case "$SOURCE:$TARGET" in
+            main:release/main|dev:release/dev) ;;
+            *)
+              echo "::error::source/target must be main->release/main or dev->release/dev"
+              exit 1
+              ;;
+          esac
+
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git fetch origin "$SOURCE" "$TARGET"
+          git checkout -B "$TARGET" "origin/$TARGET"
+          git merge --no-edit "origin/$SOURCE"
+          git push origin "HEAD:$TARGET"

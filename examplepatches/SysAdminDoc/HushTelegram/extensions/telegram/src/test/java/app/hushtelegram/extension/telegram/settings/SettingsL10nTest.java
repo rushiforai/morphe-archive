@@ -184,7 +184,7 @@ public class SettingsL10nTest {
      */
     @Test
     public void inEveryShippedLanguageNothingOnTheScreenStaysEnglish() throws Exception {
-        String[][] languages = {{"bg", "bg"}, {"de", "de"}, {"es", "es"}, {"in-rID", "in"}, {"pt-rBR", "pt-rbr"}, {"tr", "tr"},
+        String[][] languages = {{"bg", "bg"}, {"de", "de"}, {"es", "es"}, {"in-rID", "in"}, {"it", "it"}, {"pt-rBR", "pt-rbr"}, {"tr", "tr"},
                 {"zh-rCN", "zh-hans"}};
         for (String[] language : languages) {
             RuntimeEnvironment.setQualifiers("+" + language[0]);
@@ -273,7 +273,7 @@ public class SettingsL10nTest {
                 + "without that patch.";
         String other = "%1$s. They were set when you patched, so Pause can't turn them off. To get rid of one, patch "
                 + "again without the patch named in brackets after it.";
-        String[][] languages = {{"en", null}, {"bg", "bg"}, {"de", "de"}, {"es", "es"}, {"in-rID", "in"}, {"pt-rBR", "pt-rbr"},
+        String[][] languages = {{"en", null}, {"bg", "bg"}, {"de", "de"}, {"es", "es"}, {"in-rID", "in"}, {"it", "it"}, {"pt-rBR", "pt-rbr"},
                 {"tr", "tr"}, {"zh-rCN", "zh-hans"}};
         Map<PatchFamily, String> stand = new java.util.LinkedHashMap<>();
         stand.put(PatchFamily.HIDE_ADS, "Hide ads");
@@ -336,7 +336,7 @@ public class SettingsL10nTest {
                 "the sponsored message cache cleared when you patched");
         try {
             List<String> repeats = new ArrayList<>();
-            for (String language : new String[]{"en", "bg", "de", "es", "in-rID", "pt-rBR", "tr", "zh-rCN"}) {
+            for (String language : new String[]{"en", "bg", "de", "es", "in-rID", "it", "pt-rBR", "tr", "zh-rCN"}) {
                 RuntimeEnvironment.setQualifiers("+" + language);
                 String shown = PatchFamily.staysWhilePausedSummary(EnumSet.of(PatchFamily.HIDE_ADS));
                 if (repeatsItsName(shown, PatchFamily.HIDE_ADS.patchName)) repeats.add(language + ": " + shown);

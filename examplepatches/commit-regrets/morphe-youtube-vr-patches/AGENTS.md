@@ -395,6 +395,12 @@ Morphe registry from GitHub Packages. The failures that looked like an auth prob
 (`steps:` sharing a line with an env value), which makes the workflow unparseable and fails the run in
 0s with no log at all -- a zero-second run without a log means a broken workflow file, not a credential.
 
+**Actions are pinned to major version tags**, not exact patch tags: `actions/checkout@v7`,
+`actions/setup-java@v6`, `actions/upload-artifact@v7`. That is deliberate -- the monthly Dependabot
+`github-actions` run keeps the majors current, while patch-level fixes should reach CI without a
+hand edit, and a patch tag that exists today can be deleted or superseded. Pin a full commit SHA
+instead only if a workflow ever needs byte-for-byte reproducibility.
+
 **Artifact globs.** `actions/upload-artifact` uses `@actions/glob`, which understands only a leading `!`
 negation, not `!(a|b)` extglobs. Use a `path: |` list with `!...` exclusion lines.
 

@@ -1,3 +1,9 @@
+## [1.5.0](https://github.com/V4n1X/morphe-patches/compare/v1.4.1...v1.5.0) (2026-11-24)
+
+### ✨ New Features
+
+* **soundcloud:** rename Go+ patch to SoundCloud Go and support 2026.11.20 ([c6a14fd](https://github.com/V4n1X/morphe-patches/commit/c6a14fd783b014bcea13344816a63742bcf70414))
+
 ## [1.4.1](https://github.com/V4n1X/morphe-patches/compare/v1.4.0...v1.4.1) (2026-11-06)
 
 ### 🐛 Bug Fixes

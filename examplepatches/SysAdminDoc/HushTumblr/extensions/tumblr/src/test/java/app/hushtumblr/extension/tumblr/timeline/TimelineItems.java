@@ -28,6 +28,8 @@ import com.tumblr.rumblr.response.WrappedTimelineResponseJsonAdapter;
 import com.tumblr.rumblr.response.timeline.LikesResponseJsonAdapter;
 import com.tumblr.rumblr.response.timeline.PostsResponseJsonAdapter;
 
+import android.os.Bundle;
+
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -118,6 +120,10 @@ public final class TimelineItems {
     /** PausedHooksTest's probe for Hide Watch it rows. */
     public static boolean aPageLosesItsWatchItRow() {
         return aPageLoses(TimelineObjectType.VIDEO_HUBS_ROW);
+    }
+
+    public static boolean aPageLosesItsMorePostsRow() {
+        return aPageLoses(TimelineObjectType.CHICLET_ROW);
     }
 
     /** True when a page with an item of [type] between two posts comes back without it. */
@@ -219,6 +225,41 @@ public final class TimelineItems {
         return new TimelineObject(new Post(Arrays.asList(blocks), null, null, null, null) {
             @Override public boolean hushLiked() { return true; }
         }, false);
+    }
+
+    /** A post made of [blocks] from a blog Tumblr says the signed-in account follows. */
+    public static TimelineObject followedPostWith(Object... blocks) {
+        return new TimelineObject(new Post(Arrays.asList(blocks), null, null, null, null) {
+            @Override public boolean hushFollowed() { return true; }
+        }, false);
+    }
+
+    /** The address Tumblr 47.3.0.110's tab list gives For you, and the id it logs the tab under. */
+    public static final String FOR_YOU_ID = "stuff_for_you";
+    public static final String FOR_YOU_URI = "/v2/tabs/for_you?notes_info=false&reblog_info=true";
+
+    /**
+     * A dashboard tab the way Tumblr builds one from its tab list: a fragment whose arguments hold
+     * the tab's logging id and the address its pages load from, either left out when null.
+     * [dashboard] is what the dashboard marker answers, false for the same class under Explore.
+     */
+    public static final class Tab implements HushDashboardTimeline {
+        private final Bundle arguments = new Bundle();
+        private final boolean dashboard;
+
+        public Tab(String id, String uri, boolean dashboard) {
+            if (id != null) arguments.putString("tab_logging_id", id);
+            if (uri != null) arguments.putString("tab_timeline_uri", uri);
+            this.dashboard = dashboard;
+        }
+
+        public Bundle getArguments() { return arguments; }
+        @Override public boolean hushDashboard() { return dashboard; }
+    }
+
+    /** The dashboard's For you tab. */
+    public static Tab forYouTab() {
+        return new Tab(FOR_YOU_ID, FOR_YOU_URI, true);
     }
 
     /**
@@ -369,6 +410,12 @@ public final class TimelineItems {
     /** PausedHooksTest's probe for Hide liked posts. */
     public static boolean aPageLosesItsLikedPost() {
         return aDashboardScreenLoses(likedPostWith(new TextBlock("liked already")));
+    }
+
+    /** PausedHooksTest's probe for Hide followed blogs in For you. */
+    public static boolean aForYouPageLosesAFollowedBlogsPost() {
+        TimelineObject item = followedPostWith(new TextBlock("from a blog you follow"));
+        return RootPostMutes.dashboardPage(forYouTab(), Arrays.asList(post().getData(), item.getData(), post().getData())).size() == 2;
     }
 
     /**

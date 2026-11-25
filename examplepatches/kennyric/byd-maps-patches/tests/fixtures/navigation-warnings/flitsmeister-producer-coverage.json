@@ -1,0 +1,221 @@
+{
+  "format": 1,
+  "source_version": "14.17/1287",
+  "original_base_sha256": "17f622c8072c9fd8bd121b872a3733a9a22aaff041d57560f6f3dd59a33ce1b7",
+  "producer_capture_complete": true,
+  "native_detection_quality_claimed": false,
+  "phone_or_car_acceptance_claimed": false,
+  "model_candidate_sha256": "9da343b0f14835dbdf99ad01418fd3630852917857851e2a150a012fb2d18373",
+  "model_probe_sha256": "f8f0a3f36abe9389f954ec0e03be8918b238035b9ac7dee24d4d2afa2c456251",
+  "model_result_sha256": "0b9ef69656437861ccdf2e98729334f64102170a9912fdada9be8451f5ac7229",
+  "actual_capture_candidate_sha256": "58d5f1ae2a9f85b3494a956af93d6120d8c7a286b54b9980a636ae9b258fa803",
+  "actual_capture_probe_sha256": "d320c1efead0102e31409b4b1b6ecd4d6e90d71bfb1eb294ed8efc1c16b19bbe",
+  "actual_capture_result_sha256": "3f7991771f98c1ccea90cae9bf5f902510926454b6d06ff5a039aa08f25f0416",
+  "model_languages": [
+    "en",
+    "nl"
+  ],
+  "model_adapter_calls_per_language": 170,
+  "base_warning_families": {
+    "AVG_SPEED_CHECK": {
+      "status": "exported",
+      "native_dispatch": "fc0.J accepted trajectory start/end -> s6i.l",
+      "eligibility_boundary": "native B1/category state, fc0.A native trajectory repeat decision",
+      "real_model_text_evidence": "base_warning_models:AvgSpeedCheck",
+      "actual_root_evidence": "sound/point; same guarded s6i BaseReport ABI"
+    },
+    "TRAFFIC_JAM": {
+      "status": "exported",
+      "native_dispatch": "fc0.J accepted trajectory start/end -> s6i.l",
+      "eligibility_boundary": "native z1/category state, path/repeat decision; local text/sound selection is downstream",
+      "real_model_text_evidence": "base_warning_models:TrafficJam with real delay/road",
+      "actual_root_evidence": "sound/point; same guarded s6i BaseReport ABI"
+    },
+    "SPEED_TRAP": {
+      "status": "exported",
+      "native_dispatch": "fc0.J -> fc0.x -> s6i.l",
+      "eligibility_boundary": "native accepted point/ID/relevance logic; soundpack/local speech remain downstream",
+      "real_model_text_evidence": "base_warning_models:SpeedTrap",
+      "actual_root_evidence": "point/sound; same guarded native BaseReport dispatch"
+    },
+    "SPEED_CAM": {
+      "status": "exported",
+      "native_dispatch": "fc0.J -> fc0.x -> s6i.l",
+      "eligibility_boundary": "native A1, ID exclusions, muted categories and native repeat interval preserved",
+      "real_model_text_evidence": "cameras:all82",
+      "actual_root_evidence": "sound/point including native red-light category rejection"
+    },
+    "POLICEHOTSPOT": {
+      "status": "exported",
+      "native_dispatch": "fc0.J -> fc0.x -> s6i.l",
+      "eligibility_boundary": "native C1/effective feature selection and accepted point logic",
+      "real_model_text_evidence": "base_warning_models:PoliceHotspot",
+      "actual_root_evidence": "point/sound; same guarded native BaseReport dispatch"
+    },
+    "INCIDENT": {
+      "status": "exported",
+      "native_dispatch": "fc0.x -> fc0.y -> s6i.l; accepted resumed xl$c VOICE_ONLY bypass",
+      "eligibility_boundary": "native shouldSignal/category/ID/path/relevance and Dash suppression remain authoritative",
+      "real_model_text_evidence": "incidents:all35; early:both17variants; CitsRoadWorks concrete family",
+      "actual_root_evidence": "sound/voice/cits_direct/early_bus/cits"
+    },
+    "SERVICE_VEHICLE": {
+      "status": "exported",
+      "native_dispatch": "native m71/dz2 feature acceptance -> fc0.x -> s6i.l",
+      "eligibility_boundary": "native master/subtype DataStore checks; t6i is local sound only",
+      "real_model_text_evidence": "services:all6 native titles",
+      "actual_root_evidence": "sound; same guarded native BaseReport entry before local sound coroutine"
+    },
+    "SLOW_MOVING_VEHICLE": {
+      "status": "exported",
+      "native_dispatch": "native m71/ez2 feature acceptance -> fc0.x -> s6i.l",
+      "eligibility_boundary": "native slow feature flag/pref remains upstream; u6i local sound cannot veto capture",
+      "real_model_text_evidence": "base_warning_models:SlowMovingVehicle",
+      "actual_root_evidence": "sound; same guarded native BaseReport entry before local sound coroutine"
+    },
+    "CITS_BRIDE_CLOSED": {
+      "status": "exported",
+      "native_dispatch": "fc0.x accepted CitsBaseReport arm; native early bridge paths -> s6i.b",
+      "eligibility_boundary": "native accepted CITS/bridge feature decisions retained, raw misspelling preserved",
+      "real_model_text_evidence": "cits_kind_labels:BridgeClosed title/duration",
+      "actual_root_evidence": "cits_direct/early_bus; generic accepted CITS arm"
+    },
+    "CITS_WEATHER": {
+      "status": "exported",
+      "native_dispatch": "fc0.x accepted CitsBaseReport arm",
+      "eligibility_boundary": "native accepted source branch; preserve actual FOG/ICE enum and native title/care detail",
+      "real_model_text_evidence": "cits_kind_labels:Fog,IceOnTheRoad",
+      "actual_root_evidence": "cits_direct; same guarded CitsBaseReport entry"
+    },
+    "CITS_LANE_CLOSED": {
+      "status": "exported",
+      "native_dispatch": "fc0.J accepted lane branch -> s6i.l",
+      "eligibility_boundary": "native entitlement/lane preference and nearby native repeat decision retained",
+      "real_model_text_evidence": "lane_closed:all3 real enum/title/index/count cases",
+      "actual_root_evidence": "point/sound; same guarded native BaseReport entry"
+    },
+    "CITS_SPEED_ADVICE": {
+      "status": "exported",
+      "native_dispatch": "cz2.a/e/b accepted VRI wrapper publications -> UPSERT/CLEAR",
+      "eligibility_boundary": "native P source/VRI selection; this producer has no ANNOUNCE authority",
+      "real_model_text_evidence": "cits_kind_labels:SpeedAdvice native title, advice40 scalar",
+      "actual_root_evidence": "vri actual add/update50/remove and no ANNOUNCE"
+    }
+  },
+  "callback_roots": {
+    "Lcz2;->a(Lbemobile/cits/sdk/core/model/response/generalObjects/BaseEvent;)V": {
+      "status": "exported",
+      "actual_native_scenarios": [
+        "impact",
+        "vri"
+      ],
+      "static_body_sha256": "5f388528279cdf220efdb7dab48dcf516a9dcce0d32122abc4ec1486cf64f4bb"
+    },
+    "Lcz2;->b(Lbemobile/cits/sdk/core/model/response/generalObjects/BaseEvent;)V": {
+      "status": "exported",
+      "actual_native_scenarios": [
+        "impact",
+        "vri"
+      ],
+      "static_body_sha256": "7fc4d5db1191cd29ad79010843b0248806600766161b7420b767c016275b0993"
+    },
+    "Lcz2;->e(Lbemobile/cits/sdk/core/model/response/generalObjects/BaseEvent;)V": {
+      "status": "exported",
+      "actual_native_scenarios": [
+        "impact",
+        "vri"
+      ],
+      "static_body_sha256": "54170d87b65661ba3a6ed17a180957b4816fc8494508773a56134afd5c6eaca2"
+    },
+    "Lfc0;->J(Lnl/flitsmeister/fmcore/data/model/reports/BaseReport;Z)V": {
+      "status": "exported",
+      "actual_native_scenarios": [
+        "point"
+      ],
+      "static_body_sha256": "9065cdcad6ee95c0abb3e41298dd51b9037886f52a5d3ea80bba5eea4ce6c894"
+    },
+    "Lfc0;->O(Lnl/flitsmeister/fmcore/data/model/reports/BaseReport;)V": {
+      "status": "exported",
+      "actual_native_scenarios": [
+        "point"
+      ],
+      "static_body_sha256": "e75ab7dec8818e3a2876e515696252a43a176c8da8ddf82df13eb3ab545be3b2"
+    },
+    "Lfc0;->x(Lnl/flitsmeister/fmcore/data/model/reports/BaseReport;)V": {
+      "status": "exported",
+      "actual_native_scenarios": [
+        "cits_direct"
+      ],
+      "static_body_sha256": "8d9e92ec83418bf02f1096e95c8ea278bd9903e6706cac4576e4103bb89124bd"
+    },
+    "Lnh7$c;->onEarlyWarningNotificationUpdate(Landroid/location/Location;Lnl/flitsmeister/earlywarning/model/EarlyWarningNotification;)V": {
+      "status": "exported",
+      "actual_native_scenarios": [
+        "early_bus"
+      ],
+      "static_body_sha256": "e77040909eb79e32464fb8f16ee6ec9629280ae93890c98fb5b5700f2211e3b2"
+    },
+    "Ls6i;->b(Lnl/flitsmeister/earlywarning/model/EarlyWarningTypeEnum;Lnl/flitsmeister/fmcore/models/data/reports/EarlyWarningReport;Lnl/flitsmeister/earlywarning/model/EarlyWarningNotification;Ljava/lang/String;ZLz39;)V": {
+      "status": "exported",
+      "actual_native_scenarios": [
+        "sound"
+      ],
+      "static_body_sha256": "635877e2233453d21b7a3744e1254951909ccb1d115cb0710be66f3ac0f0aa8f"
+    },
+    "Ls6i;->l(Lnl/flitsmeister/fmcore/data/model/reports/BaseReport;ZZLjava/lang/String;Lz39;)V": {
+      "status": "exported",
+      "actual_native_scenarios": [
+        "sound"
+      ],
+      "static_body_sha256": "193ba138d18434b2c03d4ca6d7bbced6dfb013759de7493993cfd0ecf28b26b6"
+    },
+    "Lvz2$c;->invokeSuspend(Ljava/lang/Object;)Ljava/lang/Object;": {
+      "status": "exported",
+      "actual_native_scenarios": [
+        "cits"
+      ],
+      "static_body_sha256": "d8db19afcf84e89f6a8024471edc12cc31e28b7a1792632c5a8543f3c6721719"
+    },
+    "Lvz2;->J(Lbemobile/cits/sdk/core/model/response/generalObjects/BaseEvent;)Z": {
+      "status": "exported",
+      "actual_native_scenarios": [
+        "cits"
+      ],
+      "static_body_sha256": "f05f97fb941c98480677b6e9490c3f8a3258036ae17edd7733eb6b83b132fb2d"
+    },
+    "Lvz2;->K(Lbemobile/cits/sdk/core/model/response/generalObjects/BaseEvent;)Z": {
+      "status": "exported",
+      "actual_native_scenarios": [
+        "cits"
+      ],
+      "static_body_sha256": "02b187dda1995520534684bd397c3e29f03da1a28cfce5cfd3d6e659c6534817"
+    },
+    "Lvz2;->L(Lbemobile/cits/sdk/core/model/response/generalObjects/BaseEvent;)Z": {
+      "status": "exported",
+      "actual_native_scenarios": [
+        "cits"
+      ],
+      "static_body_sha256": "835f5e612622b85948c4683e2957e499afc76d485eeeb283cdadada825596bca"
+    },
+    "Lxl$c;->invokeSuspend(Ljava/lang/Object;)Ljava/lang/Object;": {
+      "status": "exported",
+      "actual_native_scenarios": [
+        "voice"
+      ],
+      "static_body_sha256": "d7d37b60961aa84fb70ceae77238980cd8a6fe11250204308537298a09282931"
+    },
+    "Lxl;->k(Landroid/content/Context;Lnl/flitsmeister/fmcore/models/data/earlywarnings/EarlyWarning;Z)V": {
+      "status": "exported",
+      "actual_native_scenarios": [
+        "impact"
+      ],
+      "static_body_sha256": "f84d743eaa86e0b2a3fbab4aff5ea1ac63e71e0bc790ac1bdbce822a9fc905cc"
+    }
+  },
+  "r8_separate_gates": [
+    "natural detection quality and source lead",
+    "capture-to-receiver-to-playback end-to-end timing",
+    "receiver output/phone/car acceptance"
+  ],
+  "limits": "Native over-capacity or malformed payload remains explicit/degraded; empty native text is diagnosed rather than invented. Completeness concerns the pinned producer paths/models, not unreported dangers or arbitrary server data."
+}

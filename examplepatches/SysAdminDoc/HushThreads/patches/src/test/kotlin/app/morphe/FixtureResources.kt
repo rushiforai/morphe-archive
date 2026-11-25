@@ -25,7 +25,7 @@ import javax.xml.transform.stream.StreamResult
  * comes back as a DOM parsed like the patcher's, with `android:` attributes as plain names.
  *
  * The coder is internal to the patcher, so it's reached by its JVM names, pinned to morphe-patcher
- * 2.3.0 as [PatchContexts] is: a bump that renames one fails here, naming it. Patcher 2.x decodes on
+ * 2.4.0 as [PatchContexts] is: a bump that renames one fails here, naming it. Patcher 2.x decodes on
  * request, as Manager does, so a file is decoded the first time a test asks for it (getFile's last
  * argument, as a patch's own get passes it).
  */
@@ -37,6 +37,14 @@ internal class FixtureResources private constructor(private val work: File, priv
         if (!file.isFile) throw AssertionError("the decoded build has no $path")
         return DocumentBuilderFactory.newInstance().newDocumentBuilder().parse(file)
     }
+
+    /**
+     * Decodes the files matching [globs], such as `res/mipmap-anydpi-v26/ic_launcher.xml`, as a resource
+     * patch's own `get` asks the patcher for them, and gives back the paths it decoded.
+     */
+    @Suppress("UNCHECKED_CAST")
+    fun decode(vararg globs: String): List<String> =
+        CODER.getMethod("decode", Collection::class.java, String::class.java).invoke(coder, globs.toList(), null) as List<String>
 
     override fun close() {
         coder.close()

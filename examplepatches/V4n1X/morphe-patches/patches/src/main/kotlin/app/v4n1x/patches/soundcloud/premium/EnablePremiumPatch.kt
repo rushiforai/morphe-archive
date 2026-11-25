@@ -11,8 +11,12 @@ import app.v4n1x.patches.soundcloud.shared.Constants.COMPATIBILITY_SOUNDCLOUD
 
 @Suppress("unused")
 val enablePremiumPatch = bytecodePatch(
-    name = "Enable SoundCloud Go+",
-    description = "Enables SoundCloud Go+ premium features, offline listening, HQ audio, and disables audio/visual ads.",
+    name = "Enable SoundCloud Go",
+    description = "Enables the local SoundCloud Go plan controls and the offline_sync, no_audio_ads and " +
+        "hq_audio feature switches, hides Go upsells and fan plan-transition screens, and disables client " +
+        "ad requests and display placements. SoundCloud's servers still decide which streams, downloads and " +
+        "audio quality the account may fetch: high-bitrate audio and encrypted offline copies require a real " +
+        "Go+ subscription.",
 ) {
     compatibleWith(COMPATIBILITY_SOUNDCLOUD)
 
@@ -24,17 +28,35 @@ val enablePremiumPatch = bytecodePatch(
         featureClass.methods.remove(featureConstructor)
         featureClass.methods.add(patchedConstructor)
 
-        // Override UserConsumerPlan to Go+ High Tier
+        // Override UserConsumerPlan to the Go+ High Tier. The plan type stays
+        // "go-plus" so the client features remain available; the title is the
+        // honest local label shown in the app.
         UserConsumerPlanConstructorFingerprint.method.addInstructions(
             0,
             """
                 const-string p1, "high_tier"
                 const-string p5, "go-plus"
-                const-string p6, "SoundCloud Go+"
+                const-string p6, "SoundCloud Go"
             """.trimIndent()
         )
 
-        // Prevent offboarding / downgrades
+        // Keep the cached plan and tier reads consistent with the parsed plan.
+        CurrentTierFingerprint.method.addInstructions(
+            0,
+            """
+                sget-object v0, Lcom/soundcloud/android/configuration/plans/Tier;->HIGH:Lcom/soundcloud/android/configuration/plans/Tier;
+                return-object v0
+            """.trimIndent()
+        )
+        CurrentConsumerPlanFingerprint.method.addInstructions(
+            0,
+            """
+                sget-object v0, Lcom/soundcloud/android/configuration/plans/ConsumerPlan;->GO_PLUS:Lcom/soundcloud/android/configuration/plans/ConsumerPlan;
+                return-object v0
+            """.trimIndent()
+        )
+
+        // Prevent offboarding / downgrades.
         GetDowngradeTierFingerprint.method.addInstructions(
             0,
             """
@@ -43,7 +65,7 @@ val enablePremiumPatch = bytecodePatch(
             """.trimIndent()
         )
 
-        // Disable upsells
+        // Disable upsells.
         MapToPlanFingerprint.method.addInstructions(
             0,
             """
@@ -52,13 +74,34 @@ val enablePremiumPatch = bytecodePatch(
             """.trimIndent()
         )
 
-        // Disable AdPlacements
+        // Suppress the fan-facing Go/Go+ onboarding and offboarding screens.
+        // The offboarding overload gained a RootActivity parameter in newer
+        // releases, so apply whichever signature this version has.
+        listOf(
+            SuppressOffboardingTransitionFingerprint,
+            SuppressOffboardingTransitionLegacyFingerprint,
+        ).forEach { fingerprint ->
+            fingerprint.matchOrNull()?.method?.addInstructions(0, "return-void")
+        }
+        SuppressOnboardingTransitionFingerprint.method.addInstructions(0, "return-void")
+
+        // The forced no_audio_ads switch already covers this, but keep the
+        // explicit ad gates off as well.
+        ShouldRequestAdsFingerprint.method.addInstructions(0, "const/4 v0, 0x0\nreturn v0")
+        MonetizableAdGeoFingerprint.method.addInstructions(0, "const/4 v0, 0x0\nreturn v0")
+
+        // Disable ad placements by clearing only the enabled flag. The GAM and
+        // Aditude configuration objects stay intact because they are still read
+        // elsewhere; nulling them risks a NullPointerException.
         AdPlacementConfigCtorFingerprint.matchAll().forEach { match ->
-            val parameterOffset = if (match.method.parameterTypes.firstOrNull() == "I") 1 else 0
-            match.method.addInstructions(
-                0,
-                listOf(1, 2, 3).joinToString("\n") { "const/4 p${parameterOffset + it}, 0x0" }
-            )
+            val method = match.method
+            val enabledIndex = method.parameterTypes.indexOfFirst { it == "Z" }
+            check(enabledIndex >= 0) {
+                "SoundCloud AdPlacementConfiguration constructor has no enabled flag: ${method.parameterTypes}"
+            }
+            // p0 is the receiver, so parameter index 0 is p1. Emitting the
+            // parameter-relative register avoids depending on the local count.
+            method.addInstructions(0, "const/4 p${enabledIndex + 1}, 0x0")
         }
     }
 }

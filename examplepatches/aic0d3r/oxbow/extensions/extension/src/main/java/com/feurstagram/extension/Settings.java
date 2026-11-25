@@ -35,8 +35,10 @@ import android.widget.LinearLayout;
 import android.widget.RadioButton;
 import android.widget.ScrollView;
 import android.widget.TextView;
+import android.widget.CompoundButton;
 import android.widget.Toast;
 
+import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -93,7 +95,6 @@ public final class Settings {
      */
     public static final int ERROR = 0xFFFFFFFF;
     public static final int ON_ERROR = 0xFF101010;
-    public static final int DIVIDER = 0xFF2A2A2A;
     public static final int RIPPLE = 0x26FFFFFF;
 
     // --- Shape: the M3 Expressive corner scale --------------------------------
@@ -109,6 +110,9 @@ public final class Settings {
     /** Gap between the rows of a connected group. */
     private static final int ROW_GAP_DP = 3;
 
+    /** The window root whose layout listeners are already installed: a tab bar Instagram rebuilds in the same window must not add them all again. */
+    private static WeakReference<ViewGroup> wiredRoot = new WeakReference<>(null);
+
     private Settings() {}
 
     /**
@@ -122,6 +126,8 @@ public final class Settings {
         // rebuilding its binder, and a detached bar's getRootView() is only its own stale subtree.
         View rootView = tabBar.getRootView();
         ViewGroup root = rootView instanceof ViewGroup ? (ViewGroup) rootView : tabBar;
+        if (wiredRoot.get() == root) return;
+        wiredRoot = new WeakReference<>(root);
         root.getViewTreeObserver().addOnGlobalLayoutListener(new HomeTabWatcher(root));
         Hiders.installAll(root);
         Context activity = getActivityContext(tabBar);
@@ -615,21 +621,14 @@ public final class Settings {
 
     // --- The overview and its sections -----------------------------------------
 
-    /** Keys behind the "Blocked surfaces" page, in display order. */
-    private static final String[] SURFACE_KEYS = {
-            "block_feed", "block_explore", "block_reels", "block_friends_lane", "block_stories",
-            "block_instants", "block_notes", "block_suggested", "block_ads", "block_meta_ai", "block_notifications",
-            "block_comments", "block_endless_scroll", "block_story_swipe_up",
-    };
-
     private static void buildOverview(Context context, LinearLayout column, Pages pages) {
         LinearLayout content = addSection(context, column, "Content");
         int hidden = 0;
-        for (String key : SURFACE_KEYS) {
-            if (isSurfaceHidden(key)) hidden++;
+        for (String key : Config.BLOCK_KEYS) {
+            if (Config.isSurfaceHidden(key)) hidden++;
         }
         addSectionRow(context, content, "eye_off", "Blocked surfaces",
-                hidden + " of " + SURFACE_KEYS.length + " hidden",
+                hidden + " of " + Config.BLOCK_KEYS.length + " hidden",
                 () -> pages.open("Blocked surfaces", "Hide parts of Instagram.", Settings::buildSurfaces));
         addSectionRow(context, content, "layout", "Navigation bar", navSummary(context),
                 () -> pages.open("Navigation bar", "Choose the icons on the bottom bar.", Settings::buildNav));
@@ -661,27 +660,6 @@ public final class Settings {
         sealGroup(context, app);
     }
 
-    /** Whether a surface is hidden, with that key's own default. */
-    private static boolean isSurfaceHidden(String key) {
-        switch (key) {
-            case "block_feed": return Config.isFeedBlocked();
-            case "block_explore": return Config.isExploreBlocked();
-            case "block_reels": return Config.isReelsBlocked();
-            case "block_friends_lane": return Config.isFriendsLaneBlocked();
-            case "block_stories": return Config.isStoriesBlocked();
-            case "block_instants": return Config.isInstantsBlocked();
-            case "block_notes": return Config.isNotesBlocked();
-            case "block_suggested": return Config.isSuggestedBlocked();
-            case "block_ads": return Config.isAdsBlocked();
-            case "block_meta_ai": return Config.isMetaAiBlocked();
-            case "block_notifications": return Config.isNotificationsButtonBlocked();
-            case "block_comments": return Config.isCommentsBlocked();
-            case "block_endless_scroll": return Config.isEndlessScrollBlocked();
-            case "block_story_swipe_up": return Config.isStorySwipeUpBlocked();
-            default: return Config.getBlocked(key, false);
-        }
-    }
-
     private static String surfaceLabel(String key) {
         switch (key) {
             case "block_feed": return "Home feed";
@@ -704,8 +682,8 @@ public final class Settings {
 
     private static void buildSurfaces(Context context, LinearLayout column) {
         LinearLayout surfaces = addGroup(context, column);
-        for (String key : SURFACE_KEYS) {
-            addRow(context, surfaces, surfaceLabel(key), key, isSurfaceHidden(key));
+        for (String key : Config.BLOCK_KEYS) {
+            addRow(context, surfaces, surfaceLabel(key), key, Config.isSurfaceHidden(key));
         }
         sealGroup(context, surfaces);
     }
@@ -1510,20 +1488,23 @@ public final class Settings {
         ExpressiveSwitch toggle = new ExpressiveSwitch(context);
         toggle.setChecked(value);
         toggle.setContentDescription(label);
+        // Snapping a refused tap back with setChecked fires this listener again; that run is not a change.
+        boolean[] reverting = {false};
         toggle.setOnCheckedChangeListener((btn, isChecked) -> {
+            if (reverting[0]) return;
             // Hardcore: a frozen surface cannot be revealed; snap it back to hidden.
             if (Config.isHardcoreMode() && Config.isLockable(key)
                     && !Config.hidesSurface(key, isChecked) && Config.wasHiddenAtBaseline(key)) {
-                btn.setChecked(!isChecked);
+                snapBack(btn, isChecked, reverting);
                 return;
             }
             if (Config.needsCooldown(key, isChecked)) {
-                btn.setChecked(!isChecked);
+                snapBack(btn, isChecked, reverting);
                 requestCooldown(context, key);
                 return;
             }
             if (Config.wouldLockOutSettings(key, isChecked)) {
-                btn.setChecked(!isChecked);
+                snapBack(btn, isChecked, reverting);
                 Toast.makeText(context, "Keep Home or Messages: long-press either one to open these settings.",
                         Toast.LENGTH_LONG).show();
                 return;
@@ -1546,6 +1527,13 @@ public final class Settings {
         }
     }
 
+    /** Undo a refused tap without the snap-back itself counting as a setting change. */
+    private static void snapBack(CompoundButton btn, boolean isChecked, boolean[] reverting) {
+        reverting[0] = true;
+        btn.setChecked(!isChecked);
+        reverting[0] = false;
+    }
+
     private static String supportText(String key) {
         if (key.equals("auto_update")) return "Check GitHub for a new version on launch.";
         if (key.equals("block_ads")) return "Block sponsored ads across Instagram.";
@@ -1564,7 +1552,7 @@ public final class Settings {
         if (key.equals("ghost_story_seen")) return "Watch stories without appearing in the viewer list.";
         if (key.equals("ghost_dm_seen")) return "Chats you open stay unread for the sender. They clear for you.";
         if (key.equals("ghost_typing")) return "Others don't see “typing…” while you write.";
-        if (key.equals("ghost_screenshot")) return "Don't tell people when you screenshot their disappearing photo or video.";
+        if (key.equals("ghost_screenshot")) return "Don't tell people when you screenshot their disappearing photo or video. Screens Instagram blocks screenshots on allow them too.";
         if (key.equals("ghost_shortcut")) return "Hold New message in the inbox to switch all four on or off.";
         if (key.equals("block_comments")) return "Hide comment buttons and never open comments.";
         if (key.equals("block_endless_scroll")) return "A reel you open stays one reel. No “more like this” feeds.";
@@ -1600,7 +1588,7 @@ public final class Settings {
             marks.add(mark);
 
             row.setOnClickListener(v -> {
-                if (!Config.isLandingAvailable(value)) return;
+                if (!Config.isLandingAvailable(value) || value.equals(Config.getLandingPage())) return;
                 Config.setLandingPage(value);
                 Config.setNeedsRestart();
                 if (landingSync[0] != null) landingSync[0].run();
@@ -1715,13 +1703,5 @@ public final class Settings {
                 ? ripple(RIPPLE, roundedRect(bgColor, CORNER_FULL, context))
                 : ripple(RIPPLE, roundedRect(Color.TRANSPARENT, CORNER_FULL, context)));
         return button;
-    }
-
-    public static View makeDivider(Context context, int color) {
-        View divider = new View(context);
-        divider.setBackgroundColor(color);
-        divider.setLayoutParams(new LinearLayout.LayoutParams(
-                ViewGroup.LayoutParams.MATCH_PARENT, dp(context, 1)));
-        return divider;
     }
 }

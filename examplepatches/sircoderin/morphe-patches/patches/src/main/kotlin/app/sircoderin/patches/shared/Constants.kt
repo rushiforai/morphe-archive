@@ -39,6 +39,8 @@ object Constants {
         apkFileType = ApkFileType.APKM,
         appIconColor = 0x1DB954,
         targets = listOf(
+            // Added automatically when a new release appeared (not hand-tested).
+            AppTarget(version = "9.2.4.2644"),
             // Developed and verified against this version.
             AppTarget(version = "9.2.0.2053"),
             // Class names are obfuscated, but the fingerprints key on string literals and androidx calls; may survive other versions.

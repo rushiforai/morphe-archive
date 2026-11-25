@@ -51,7 +51,7 @@ internal const val FRAGMENT = "Landroidx/fragment/app/Fragment;"
 internal val ROOT_DASHBOARDS = listOf("Lcom/tumblr/ui/fragment/GraywaterDashboardFragment;", DASHBOARD_TAB)
 private const val PAGE_LINKS = "Lcom/tumblr/timeline/model/link/TimelinePaginationLink;"
 private const val LIST = "Ljava/util/List;"
-private const val MODE = "Luxl;"
+private const val MODE = "Lk0m;"
 private const val TIMELINEABLE = "Lcom/tumblr/rumblr/model/Timelineable;"
 
 internal data class DashboardPagePlan(val delivery: MutableMethod, val wrapperConstructor: MutableMethod, val factsScratch: Int)
@@ -91,7 +91,7 @@ internal fun BytecodePatchContext.resolveDashboardPage(): DashboardPagePlan {
     val delivery = pageDelivery()
     val data = pageMethod(ROOT_TIMELINE_OBJECT, "getData", emptyList(), TIMELINEABLE)
     requireShape(PATCH, !data.isStatic() && AccessFlags.PUBLIC.isSet(data.accessFlags), "the timeline payload getter changed")
-    pageMethod("La2k;", "l", emptyList(), TIMELINEABLE).also {
+    pageMethod("Lb5k;", "l", emptyList(), TIMELINEABLE).also {
         requireShape(PATCH, !it.isStatic() && AccessFlags.PUBLIC.isSet(it.accessFlags), "the post card payload getter changed")
     }
     return DashboardPagePlan(delivery, wrapperConstructor, factsScratch)
@@ -160,10 +160,10 @@ internal fun BytecodePatchContext.applyDashboardPage(plan: DashboardPagePlan) {
     }
     plan.delivery.addInstructions(0, "invoke-static { p0, p2 }, $DASHBOARD_PAGE\nmove-result-object p2")
     writeStub(ROOT_MENU, "cardPayload", 2, """
-        instance-of v0, p0, Lr4g;
+        instance-of v0, p0, Lf3g;
         if-eqz v0, :timeline
-        check-cast p0, Lr4g;
-        invoke-virtual { p0 }, La2k;->l()$TIMELINEABLE
+        check-cast p0, Lf3g;
+        invoke-virtual { p0 }, Lb5k;->l()$TIMELINEABLE
         move-result-object v0
         return-object v0
         :timeline

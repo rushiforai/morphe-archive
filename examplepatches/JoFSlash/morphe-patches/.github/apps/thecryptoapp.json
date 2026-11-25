@@ -1,6 +1,5 @@
 {
   "name": "The Crypto App",
-  "workflow": "emulator-thecryptoapp.yml",
   "patches": "patches/src/main/kotlin/app/jofslash/patches/thecryptoapp",
   "extension": "extensions/thecryptoapp",
   "docs": "docs/thecryptoapp/README.md",

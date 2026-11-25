@@ -12,6 +12,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import app.template.extension.zalo.appearance.CustomFont;
+import app.template.extension.zalo.call.CallRecorder;
 import app.template.extension.zalo.chat.OnlineStatus;
 import app.template.extension.zalo.messages.OfficialAccounts;
 import app.template.extension.zalo.navigation.DiscoveryTab;
@@ -50,6 +51,10 @@ public final class NezumiSettingsPage {
     static final int FEATURE_DISCOVERY = 1 << 7;
 
     static final int FEATURE_CUSTOM_SOUNDS = 1 << 9;
+
+    static final int FEATURE_CALL_RECORDING = 1 << 14;
+
+    static final int FEATURE_CONVERSATION_PROTECTION = 1 << 15;
 
     static void attach(View root, View anchor, int feature) {
         if (root == null || anchor == null || !(anchor.getParent() instanceof ViewGroup)) return;
@@ -93,11 +98,12 @@ public final class NezumiSettingsPage {
         int features = state.features;
         boolean hasChatFeatures = (features & (FEATURE_ONLINE_STATUS | FEATURE_REACTION |
             FEATURE_TYPING | FEATURE_READ_RECEIPTS | FEATURE_DELIVERY_RECEIPTS |
-            FEATURE_RECALLED_MESSAGES)) != 0;
+            FEATURE_RECALLED_MESSAGES | FEATURE_CONVERSATION_PROTECTION)) != 0;
         String reactionLabel = vietnamese ? "Mở khóa biểu tượng cảm xúc" : "Unlock reaction icons";
         String typingLabel = vietnamese ? "Ẩn trạng thái đang nhập" : "Hide typing status";
         String readLabel = vietnamese ? "Ẩn trạng thái đã xem" : "Hide read receipts";
         String deliveryLabel = vietnamese ? "Ẩn trạng thái đã nhận" : "Hide delivery receipts";
+        String protectionLabel = vietnamese ? "Gỡ giới hạn hội thoại được bảo vệ" : "Bypass conversation protection";
         String mediaBoxLabel = vietnamese ? "Ẩn Media Box" : "Hide Media Box";
         String businessBoxLabel = vietnamese ? "Ẩn Business Box" : "Hide Business Box";
         String oaMessagesLabel = vietnamese ? "Ẩn tài khoản OA" : "Hide OA accounts";
@@ -160,6 +166,10 @@ public final class NezumiSettingsPage {
         if ((features & FEATURE_DELIVERY_RECEIPTS) != 0) {
             ZaloUi.toggleRow(list, context, deliveryLabel, "check_circle", prefs.getBoolean(NezumiPrefs.HIDE_DELIVERY_RECEIPTS, false),
                 darkMode, (button, checked) -> prefs.edit().putBoolean(NezumiPrefs.HIDE_DELIVERY_RECEIPTS, checked).apply());
+        }
+        if ((features & FEATURE_CONVERSATION_PROTECTION) != 0) {
+            ZaloUi.toggleRow(list, context, protectionLabel, "shield", prefs.getBoolean(NezumiPrefs.BYPASS_CONVERSATION_PROTECTION, true), darkMode,
+                (button, checked) -> prefs.edit().putBoolean(NezumiPrefs.BYPASS_CONVERSATION_PROTECTION, checked).apply());
         }
         if ((features & FEATURE_RECALLED_MESSAGES) != 0) {
             ZaloUi.toggleRow(list, context, recalledMessagesLabel, "recall",
@@ -232,6 +242,16 @@ public final class NezumiSettingsPage {
                 vietnamese ? "Âm báo tin nhắn" : "Notification sound", darkMode, vietnamese);
             addSoundRows(list, context, CustomSounds.RINGTONE, "call",
                 vietnamese ? "Nhạc chuông cuộc gọi" : "Incoming-call ringtone", darkMode, vietnamese);
+        }
+        if ((features & FEATURE_CALL_RECORDING) != 0) {
+            ZaloUi.addGroup(list, context, vietnamese ? "Cuộc gọi" : "Calls", darkMode);
+            ZaloUi.toggleRow(list, context, vietnamese ? "Hiện nút ghi âm" : "Show record button", "call",
+                prefs.getBoolean(NezumiPrefs.CALL_RECORDING, true), darkMode,
+                (button, checked) -> prefs.edit().putBoolean(NezumiPrefs.CALL_RECORDING, checked).apply());
+            View folder = ZaloUi.row(context, vietnamese ? "Mở thư mục bản ghi" : "Open recordings folder",
+                ZaloUi.zdsIcon(context, "grid_view", darkMode), true, darkMode, null);
+            folder.setOnClickListener(view -> CallRecorder.openFolder(context));
+            list.addView(folder);
         }
         ZaloUi.trimGroupDividers(list);
         page.show();

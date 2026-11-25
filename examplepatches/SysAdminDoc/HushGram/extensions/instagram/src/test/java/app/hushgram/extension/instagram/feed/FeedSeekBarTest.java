@@ -173,6 +173,7 @@ public class FeedSeekBarTest {
         Settings.FEED_SEEK_TIME.resetToDefault();
         Settings.FEED_SEEK_TIME_LEFT.resetToDefault();
         Settings.FEED_SEEK_TIME_UNDER_TAGS.resetToDefault();
+        Settings.FEED_SEEK_TIME_TOP.resetToDefault();
         HookStatus.clear();
     }
 
@@ -186,6 +187,7 @@ public class FeedSeekBarTest {
         Settings.FEED_SEEK_TIME.resetToDefault();
         Settings.FEED_SEEK_TIME_LEFT.resetToDefault();
         Settings.FEED_SEEK_TIME_UNDER_TAGS.resetToDefault();
+        Settings.FEED_SEEK_TIME_TOP.resetToDefault();
         TabSwipe.forgetForTests();
         Settings.FEED_SEEK_BAR.resetToDefault();
         Settings.FEED_SEEK_BUTTON.resetToDefault();
@@ -549,6 +551,133 @@ public class FeedSeekBarTest {
                 ((FrameLayout.LayoutParams) plain.getLayoutParams()).getMarginStart());
     }
 
+    /**
+     * #788: Time in the top corner moves the time from over the bar to the video's top end corner, just
+     * under Instagram's countdown there, its text ending where the countdown's does, and under the post's
+     * menu button when the name row lies over the video. Instagram's row then only clears the bar. Time
+     * under the tags button wins over it.
+     */
+    @Test
+    public void theTimeCanSitInTheTopCornerUnderInstagramsCountdown() {
+        assertEquals(Boolean.FALSE, Settings.FEED_SEEK_TIME_TOP.defaultValue);
+        assertEquals(Settings.FEED_SEEK_TIME, Settings.FEED_SEEK_TIME_TOP.getParentSettings().get(0));
+        Activity activity = controller.get();
+        Post post = new Post(activity);
+        // Instagram's countdown, wrapped in the post's media, in the video's top end corner.
+        FrameLayout states = new FrameLayout(activity);
+        TextView countdown = new TextView(activity);
+        countdown.setText("0:38");
+        countdown.setPadding(16, 8, 12, 8);
+        states.addView(countdown, new FrameLayout.LayoutParams(94, 66, Gravity.TOP | Gravity.END));
+        post.root.addView(states, 1, new FrameLayout.LayoutParams(720, 400));
+        // The post around its media, taller than the video, and its name row with the menu button.
+        FrameLayout item = new FrameLayout(activity);
+        FrameLayout.LayoutParams media = new FrameLayout.LayoutParams(720, 400);
+        item.addView(post.root, media);
+        FrameLayout names = new FrameLayout(activity);
+        View menu = new View(activity);
+        menu.setId(View.generateViewId());
+        FeedSeekBar.idForTests(activity, FeedSeekBar.MENU_BUTTON, menu.getId());
+        menu.setPadding(20, 24, 22, 24);
+        names.addView(menu, new FrameLayout.LayoutParams(88, 96, Gravity.END));
+        // A suggested post's Follow button left of the menu, a TextView over the video in its media.
+        TextView follow = new TextView(activity);
+        follow.setText("Follow");
+        follow.setPadding(24, 12, 24, 12);
+        FrameLayout.LayoutParams followAt = new FrameLayout.LayoutParams(180, 64, Gravity.TOP | Gravity.END);
+        followAt.topMargin = 16;
+        followAt.setMarginEnd(100);
+        follow.setVisibility(View.GONE);
+        post.root.addView(follow, followAt);
+        names.setVisibility(View.GONE);
+        item.addView(names, new FrameLayout.LayoutParams(720, 96, Gravity.TOP));
+        feed.addView(item, 0, new LinearLayout.LayoutParams(720, 600));
+        stand.plays(player, post.video);
+        idle();
+        Settings.FEED_SEEK_BAR.save(true);
+        Settings.FEED_SEEK_TIME.save(true);
+        FeedSeekBar.progress(player, 3000, 15000);
+        idle();
+        TextView time = FeedSeekBar.timeForTests();
+        assertNotNull(time);
+        FrameLayout.LayoutParams params = (FrameLayout.LayoutParams) time.getLayoutParams();
+        assertEquals("over the bar while it's off", Gravity.BOTTOM | Gravity.CENTER_HORIZONTAL, params.gravity);
+        assertSame(time, FeedSeekBar.shownTime());
+        int barHeight = FeedSeekBar.barHeight(post.video, bar());
+        assertTrue("the row clears the time too", -post.row.getTranslationY() > barHeight);
+
+        Settings.FEED_SEEK_TIME_TOP.save(true);
+        FeedSeekBar.progress(player, 4000, 15000);
+        idle();
+        assertSame("the same label, moved", time, FeedSeekBar.timeForTests());
+        params = (FrameLayout.LayoutParams) time.getLayoutParams();
+        assertEquals(Gravity.TOP | Gravity.END, params.gravity);
+        assertEquals("nothing under it to clear", 0, params.bottomMargin);
+        int gap = Math.round(FeedSeekBar.TIME_GAP_DP * post.video.getResources().getDisplayMetrics().density);
+        int[] clock = new int[2];
+        int[] chip = new int[2];
+        time.getLocationOnScreen(clock);
+        countdown.getLocationOnScreen(chip);
+        assertEquals("just under the countdown", chip[1] + 66 + gap, clock[1]);
+        assertEquals("its text ends where the countdown's does", chip[0] + 94 - 12,
+                clock[0] + time.getWidth() - time.getPaddingRight());
+        assertTrue("and stays in the video", clock[0] + time.getWidth() <= chip[0] + 94);
+        assertNull("the carousel pill has no time over the bar to clear", FeedSeekBar.shownTime());
+        assertEquals("the row only clears the bar", -barHeight, post.row.getTranslationY(), 0f);
+
+        // The name row over the top of the video, as Home lays out a reel: under its menu button too.
+        names.setVisibility(View.VISIBLE);
+        follow.setVisibility(View.VISIBLE);
+        idle();
+        FeedSeekBar.progress(player, 5000, 15000);
+        idle();
+        int[] dots = new int[2];
+        menu.getLocationOnScreen(dots);
+        time.getLocationOnScreen(clock);
+        assertEquals("under the menu button", dots[1] + 96 + gap, clock[1]);
+        assertEquals("still lined up with the countdown, the furthest out", chip[0] + 94 - 12,
+                clock[0] + time.getWidth() - time.getPaddingRight());
+        // No countdown showing: the text ends where the menu's icon does, not under the Follow button.
+        countdown.setVisibility(View.GONE);
+        idle();
+        FeedSeekBar.progress(player, 5500, 15000);
+        idle();
+        time.getLocationOnScreen(clock);
+        assertEquals("lined up with the menu's icon", dots[0] + 88 - 22,
+                clock[0] + time.getWidth() - time.getPaddingRight());
+        assertEquals("still under the menu button", dots[1] + 96 + gap, clock[1]);
+        countdown.setVisibility(View.VISIBLE);
+        follow.setVisibility(View.GONE);
+        idle();
+        // The name row above the video instead: only the countdown counts again.
+        media.topMargin = 96;
+        post.root.setLayoutParams(media);
+        idle();
+        FeedSeekBar.progress(player, 6000, 15000);
+        idle();
+        time.getLocationOnScreen(clock);
+        countdown.getLocationOnScreen(chip);
+        assertEquals("a menu above the video doesn't count", chip[1] + 66 + gap, clock[1]);
+
+        Settings.FEED_SEEK_TIME_UNDER_TAGS.save(true);
+        assertFalse("Time under the tags button wins", Settings.FEED_SEEK_TIME_TOP.isAvailable());
+        FeedSeekBar.progress(player, 7000, 15000);
+        idle();
+        params = (FrameLayout.LayoutParams) time.getLayoutParams();
+        assertEquals(Gravity.BOTTOM | Gravity.START, params.gravity);
+        assertEquals(0, params.topMargin);
+        assertEquals(0, params.getMarginEnd());
+        Settings.FEED_SEEK_TIME_UNDER_TAGS.save(false);
+
+        Settings.FEED_SEEK_TIME_TOP.save(false);
+        FeedSeekBar.progress(player, 9000, 15000);
+        idle();
+        params = (FrameLayout.LayoutParams) time.getLayoutParams();
+        assertEquals("off again, back over the bar", Gravity.BOTTOM | Gravity.CENTER_HORIZONTAL, params.gravity);
+        assertEquals(0, params.topMargin);
+        assertEquals(0, params.getMarginEnd());
+    }
+
     /** #711: a row's buttons give the corner its inset from either side, read as the toggle reads them, right to left too. */
     @Test
     public void theCornerLinesUpWithTheRowsButtons() {
@@ -707,6 +836,111 @@ public class FeedSeekBarTest {
         FrameLayout.LayoutParams at = buttonAt();
         assertEquals(Math.round(8 * density), at.getMarginStart());
         assertEquals(FeedSeekBar.barHeight(firstVideo, bar()) + Math.round(4 * density), at.bottomMargin);
+    }
+
+    /**
+     * A feed video as Instagram 456 and 457 lay it out on LustPriest's phone (#794, a 1080 px wide video
+     * at 2.625x): the sound button in a row as wide as the video, and the tags button not in that row
+     * but in a holder of its own beside it, across the start side up to the sound button's group. The
+     * tags button is three wrappers deep in it, the last drawing its 68 px round back 36 px in.
+     */
+    private static final class TaggedPost {
+        final FrameLayout root;
+        final View video;
+        final FrameLayout row;
+        final FrameLayout holder;
+        final FrameLayout back;
+
+        TaggedPost(Activity activity) {
+            root = new FrameLayout(activity);
+            FrameLayout media = new FrameLayout(activity);
+            FrameLayout frame = new FrameLayout(activity);
+            video = new View(activity);
+            frame.addView(video, new FrameLayout.LayoutParams(1080, 1350));
+            media.addView(frame, new FrameLayout.LayoutParams(1080, 1350));
+            root.addView(media, new FrameLayout.LayoutParams(1080, 1350));
+            holder = new FrameLayout(activity);
+            LinearLayout wrapper = new LinearLayout(activity);
+            FrameLayout indicator = new FrameLayout(activity);
+            back = new FrameLayout(activity);
+            back.setClickable(true);
+            back.addView(new View(activity), new FrameLayout.LayoutParams(30, 30, Gravity.CENTER));
+            indicator.addView(back, new FrameLayout.LayoutParams(68, 68, Gravity.TOP | Gravity.END));
+            wrapper.addView(indicator, new LinearLayout.LayoutParams(104, 104));
+            holder.addView(wrapper, new FrameLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT,
+                    ViewGroup.LayoutParams.WRAP_CONTENT, Gravity.BOTTOM | Gravity.START));
+            root.addView(holder, new FrameLayout.LayoutParams(940, 107, Gravity.BOTTOM | Gravity.START));
+            row = new FrameLayout(activity);
+            FrameLayout group = new FrameLayout(activity);
+            group.setClickable(true);
+            LinearLayout round = new LinearLayout(activity);
+            round.setGravity(Gravity.CENTER);
+            View sound = new View(activity);
+            int id = View.generateViewId();
+            sound.setId(id);
+            FeedSeekBar.idForTests(activity, FeedSeekBar.SOUND_BUTTON, id);
+            round.addView(sound, new LinearLayout.LayoutParams(34, 34));
+            group.addView(round, new FrameLayout.LayoutParams(68, 68, Gravity.TOP | Gravity.CENTER_HORIZONTAL));
+            row.addView(group, new FrameLayout.LayoutParams(140, 104, Gravity.END));
+            root.addView(row, new FrameLayout.LayoutParams(1080, 104, Gravity.BOTTOM));
+        }
+    }
+
+    /** Where [view]'s middle is on screen, across and down. */
+    private static int[] middle(View view) {
+        int[] at = new int[2];
+        view.getLocationOnScreen(at);
+        return new int[]{at[0] + view.getWidth() / 2, at[1] + view.getHeight() / 2};
+    }
+
+    /**
+     * #794 on 0.0.22: with the tags button in a holder beside the sound button's row, the toggle sat on
+     * the tags button at 8 dp in and the bar showed over it. Now the holder goes up with the row and the
+     * toggle sits a gap past the tags button's round back, level with it, the bar shown or hidden.
+     */
+    @Test
+    public void theTagsButtonBesideTheSoundRowGoesUpAndTheTogglePassesIt() {
+        TaggedPost post = new TaggedPost(controller.get());
+        feed.addView(post.root, 0, new LinearLayout.LayoutParams(1080, 1350));
+        stand.plays(player, post.video);
+        idle();
+        assertEquals("laid out", 107, post.holder.getHeight());
+        Settings.FEED_SEEK_BAR.save(true);
+        Settings.FEED_SEEK_BUTTON.save(true);
+        FeedSeekBar.progress(player, 3000, 15000);
+        idle();
+        int lift = FeedSeekBar.barHeight(post.video, bar());
+        assertEquals("the sound button's row sits over the bar", -lift, post.row.getTranslationY(), 0f);
+        assertEquals("and the tags button's holder with it", -lift, post.holder.getTranslationY(), 0f);
+        float density = post.video.getResources().getDisplayMetrics().density;
+        int size = Math.round(FeedSeekBar.BUTTON_DP * density);
+        int gap = Math.round(FeedSeekBar.BUTTON_GAP_DP * density);
+        FrameLayout.LayoutParams at = buttonAt();
+        assertEquals("a gap past the tags button's round back, 36 + 68", 104 + gap, at.getMarginStart());
+        assertEquals("level with its middle, 70 px over the video's bottom", 70 + lift - size / 2, at.bottomMargin);
+        int[] toggle = middle(FeedSeekBar.buttonForTests());
+        int[] tags = middle(post.back);
+        assertEquals("level with the tags button on screen", tags[1], toggle[1]);
+        assertEquals("beside it", tags[0] + 34 + gap + size / 2, toggle[0]);
+
+        assertTrue(FeedSeekBar.buttonForTests().performClick());
+        idle();
+        assertEquals("with the bar hidden the row is back", 0f, post.row.getTranslationY(), 0f);
+        assertEquals("and the holder", 0f, post.holder.getTranslationY(), 0f);
+        at = buttonAt();
+        assertEquals(104 + gap, at.getMarginStart());
+        assertEquals(70 - size / 2, at.bottomMargin);
+        assertEquals("still level with the tags button", middle(post.back)[1], middle(FeedSeekBar.buttonForTests())[1]);
+
+        assertTrue(FeedSeekBar.buttonForTests().performClick());
+        FeedSeekBar.progress(player, 4000, 15000);
+        tick();
+        assertEquals("lifted once, not again on each tick", -lift, post.holder.getTranslationY(), 0f);
+        assertEquals(-lift, post.row.getTranslationY(), 0f);
+        stand.plays(player, secondVideo);
+        FeedSeekBar.progress(player, 5000, 15000);
+        assertEquals("the post the bar left has both back", 0f, post.holder.getTranslationY(), 0f);
+        assertEquals(0f, post.row.getTranslationY(), 0f);
     }
 
     /** #472: like Instagram's own scrubber, the video pauses under the finger and plays on from where it lands. */

@@ -57,6 +57,8 @@ val hideWeeklyRankingPatch = bytecodePatch(
         description = "Hide weekly bookmark ranking announcements.",
     )
 
+    dependsOn(hoshioriSettingsEntryPatch)
+
     execute {
         // Disabled: leave the original method completely untouched.
         if (hideWeeklyRanking == false) return@execute
@@ -92,6 +94,10 @@ val hideWeeklyRankingPatch = bytecodePatch(
         method.addInstructionsWithLabels(
             0,
             """
+                const-string v0, "hideWeeklyRanking"
+                invoke-static { v0 }, Ldev/rikunode/settings/HoshioriRuntime;->enabled(Ljava/lang/String;)Z
+                move-result v0
+                if-eqz v0, :normal_announcement
                 invoke-virtual { p1 }, Lcom/hatena/client/model/Announcement;->getText()Ljava/lang/String;
                 move-result-object v0
                 if-eqz v0, :normal_announcement

@@ -6,13 +6,13 @@
  */
 package app.morphe.patches.threads.misc.settings
 
-import app.morphe.patcher.StringComparisonType
 import app.morphe.patcher.extensions.InstructionExtensions.addInstruction
 import app.morphe.patcher.patch.BytecodePatchContext
 import app.morphe.patcher.patch.PatchException
 import app.morphe.patches.threads.misc.extension.EXTENSION_PACKAGE
+import app.morphe.patches.threads.misc.extension.classesNoted
+import app.morphe.patches.threads.misc.extension.holdsNote
 import app.morphe.patches.threads.misc.extension.writeStub
-import app.morphe.patches.threads.misc.theme.holdsNote
 import app.morphe.util.findMutableMethodOf
 import app.morphe.util.getReference
 import app.morphe.util.singleOrPatchException
@@ -139,7 +139,7 @@ internal fun BytecodePatchContext.implementFunction0(type: String, patch: String
  * literals and calls the settings row.
  */
 internal fun BytecodePatchContext.settingsRowSite(): SettingsRowSite {
-    val row = classDefByStrings(ROW_NOTE, StringComparisonType.STARTS_WITH).flatMap { it.methods }
+    val row = classesNoted(ROW_NOTE).flatMap { it.methods }
         .filter { it.holdsNote(ROW_NOTE) }
         .distinctBy { it.signature() }
         .singleOrPatchException("$PATCH: Threads' settings row, the method holding \"$ROW_NOTE\"")
@@ -149,7 +149,7 @@ internal fun BytecodePatchContext.settingsRowSite(): SettingsRowSite {
         params.subList(4, 8).any { it != "I" } || params[8] != "Z"
     ) throw PatchException("$PATCH: Threads' settings row has changed shape: ${row.signature()}")
     val rowSignature = row.signature()
-    val accountsRow = classDefByStrings(ACCOUNTS_ROW_NOTE, StringComparisonType.STARTS_WITH).flatMap { it.methods }
+    val accountsRow = classesNoted(ACCOUNTS_ROW_NOTE).flatMap { it.methods }
         .filter { it.holdsNote(ACCOUNTS_ROW_NOTE) }
         .distinctBy { it.signature() }
         .singleOrPatchException("$PATCH: Threads' Accounts Center row, the method holding \"$ACCOUNTS_ROW_NOTE\"")
@@ -158,7 +158,7 @@ internal fun BytecodePatchContext.settingsRowSite(): SettingsRowSite {
         accountsParams != listOf(params[0], params[1], "Ljava/lang/String;", "Ljava/lang/String;", FUNCTION0, "I", "I", "I", "Z")
     ) throw PatchException("$PATCH: Threads' Accounts Center row has changed shape: ${accountsRow.signature()}")
 
-    val lists = classDefByStrings(LIST_NOTE, StringComparisonType.STARTS_WITH).flatMap { it.methods }
+    val lists = classesNoted(LIST_NOTE).flatMap { it.methods }
         .filter { it.holdsNote(LIST_NOTE) && it.body().any { i -> i.method()?.signature() == rowSignature } }
         .filter { it.body().any { i -> i.opcode == Opcode.PACKED_SWITCH } }
         .distinctBy { it.signature() }
@@ -224,13 +224,17 @@ internal fun BytecodePatchContext.settingsRowSite(): SettingsRowSite {
         }
         return at
     }
-    val composerAt = source(0)
-    val composerMove = body[composerAt]
-    if (composerMove !is TwoRegisterInstruction || composerMove.opcode !in OBJECT_MOVES ||
-        composerMove.registerB != composer
-    ) throw PatchException("$PATCH: Threads' settings row isn't passed the composer the $MORE_ENTRY case starts its group on")
-    // The hook reads the composer at the case's goto, so nothing after the group starts may change it.
-    if (path.subList(path.indexOf(startAt) + 1, path.indexOf(composerAt)).any { body[it].writes(composer) }) {
+    // Up to 455 the shared run copies the composer into the call's first register. 456 keeps it there
+    // the whole way. The hook reads it at the case's goto, so nothing after the group starts may change it.
+    val composerCopy = if (call.startRegister == composer) path.size else {
+        val composerAt = writer(call.startRegister, path.size)
+        val composerMove = composerAt?.let { body[it] }
+        if (composerMove !is TwoRegisterInstruction || composerMove.opcode !in OBJECT_MOVES ||
+            composerMove.registerB != composer
+        ) throw PatchException("$PATCH: Threads' settings row isn't passed the composer the $MORE_ENTRY case starts its group on")
+        path.indexOf(composerAt)
+    }
+    if (path.subList(path.indexOf(startAt) + 1, composerCopy).any { body[it].writes(composer) }) {
         throw PatchException("$PATCH: Threads' $MORE_ENTRY case overwrites its composer, v$composer")
     }
     val modifierAt = origin(1)

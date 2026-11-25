@@ -25,7 +25,7 @@ Local isolated test bundle:
 ```
 CATPPUCCIN_INCLUDE_NYT_GAMES=1 CATPPUCCIN_NYT_GAMES_TEST=1 \
 CATPPUCCIN_VERSION=0.7.0-nyt-games-test \
-JAVA_HOME=/opt/android-studio/jbr ANDROID_HOME=/home/jake/Android/Sdk \
+JAVA_HOME=/opt/android-studio/jbr ANDROID_HOME=$HOME/Android/Sdk \
 python3 tools/build_catppuccin.py
 ```
 

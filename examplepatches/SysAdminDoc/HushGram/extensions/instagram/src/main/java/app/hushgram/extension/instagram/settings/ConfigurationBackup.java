@@ -182,6 +182,13 @@ public final class ConfigurationBackup {
         if (PatchFamily.LOW_VIEW_REELS.inBuild()) {
             settings.put(Settings.MIN_REEL_VIEWS.key, Settings.MIN_REEL_VIEWS);
             settings.put(Settings.MIN_REEL_LIKES.key, Settings.MIN_REEL_LIKES);
+            settings.put(Settings.MAX_REEL_LIKES.key, Settings.MAX_REEL_LIKES);
+            settings.put(Settings.MIN_REEL_COMMENTS.key, Settings.MIN_REEL_COMMENTS);
+            settings.put(Settings.MAX_REEL_COMMENTS.key, Settings.MAX_REEL_COMMENTS);
+            settings.put(Settings.MIN_REEL_SHARES.key, Settings.MIN_REEL_SHARES);
+            settings.put(Settings.MAX_REEL_SHARES.key, Settings.MAX_REEL_SHARES);
+            settings.put(Settings.MIN_REEL_SAVES.key, Settings.MIN_REEL_SAVES);
+            settings.put(Settings.MAX_REEL_SAVES.key, Settings.MAX_REEL_SAVES);
             settings.put(Settings.MAX_REEL_VIEWS.key, Settings.MAX_REEL_VIEWS);
             settings.put(Settings.MIN_REEL_LIKES_PER_1000.key, Settings.MIN_REEL_LIKES_PER_1000);
             settings.put(Settings.MIN_REEL_COMMENTS_PER_1000.key, Settings.MIN_REEL_COMMENTS_PER_1000);
@@ -193,6 +200,9 @@ public final class ConfigurationBackup {
             if (PatchFamily.feedTypesInBuild()) settings.put(Settings.HIDE_LOW_VIEW_HOME.key, Settings.HIDE_LOW_VIEW_HOME);
         }
         if (PatchFamily.STORY_PRIORITY.inBuild()) settings.put(Settings.STORY_PRIORITY_ACCOUNTS.key, Settings.STORY_PRIORITY_ACCOUNTS);
+        if (PatchFamily.STORY_DOWNLOAD.inBuild() && PatchFamily.FULL_SCREEN_BARS.inBuild()) {
+            settings.put(Settings.WHOLE_STORY_IN_STORY_MENU.key, Settings.WHOLE_STORY_IN_STORY_MENU);
+        }
         if (PatchFamily.CALL_BLOCKER.inBuild()) {
             settings.put(Settings.CALL_BLOCK_MODE.key, Settings.CALL_BLOCK_MODE);
             settings.put(Settings.CALL_BLOCK_ACCOUNTS.key, Settings.CALL_BLOCK_ACCOUNTS);
@@ -265,6 +275,7 @@ public final class ConfigurationBackup {
             settings.put(Settings.FEED_SEEK_TIME.key, Settings.FEED_SEEK_TIME);
             settings.put(Settings.FEED_SEEK_TIME_LEFT.key, Settings.FEED_SEEK_TIME_LEFT);
             settings.put(Settings.FEED_SEEK_TIME_UNDER_TAGS.key, Settings.FEED_SEEK_TIME_UNDER_TAGS);
+            settings.put(Settings.FEED_SEEK_TIME_TOP.key, Settings.FEED_SEEK_TIME_TOP);
         }
         if (PatchFamily.REEL_DOUBLE_TAP_SKIP.inBuild()) {
             settings.put(Settings.DOUBLE_TAP_SKIP_REELS_SECONDS.key, Settings.DOUBLE_TAP_SKIP_REELS_SECONDS);
@@ -329,6 +340,7 @@ public final class ConfigurationBackup {
             // Also on Home: its row shows only with Home's reads in the build.
             if (PatchFamily.feedTypesInBuild()) settings.put(Settings.HIDE_SOUND_HOME.key, Settings.HIDE_SOUND_HOME);
             settings.put(Settings.TEXT_BUTTON_ON_REELS.key, Settings.TEXT_BUTTON_ON_REELS);
+            settings.put(Settings.WHOLE_REEL_IN_REEL_MENU.key, Settings.WHOLE_REEL_IN_REEL_MENU);
             if (PatchFamily.KEEP_REEL_SPEED.inBuild()) {
                 settings.put(Settings.SPEED_BUTTON_ON_REELS.key, Settings.SPEED_BUTTON_ON_REELS);
                 settings.put(Settings.SPEED_IN_REEL_MENU.key, Settings.SPEED_IN_REEL_MENU);

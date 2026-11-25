@@ -1,6 +1,7 @@
 package dev.rikunode.hatenabookmark
 
 import app.morphe.patcher.extensions.InstructionExtensions.replaceInstruction
+import app.morphe.patcher.extensions.InstructionExtensions.addInstructionsWithLabels
 import app.morphe.patcher.patch.ApkFileType
 import app.morphe.patcher.patch.AppTarget
 import app.morphe.patcher.patch.Compatibility
@@ -40,6 +41,8 @@ val preserveArticleWebStoragePatch = bytecodePatch(
         title = "Preserve article website preferences",
         description = "Keep cookies and website storage across article closes and app restarts. All article websites may retain login and tracking data.",
     )
+
+    dependsOn(hoshioriSettingsEntryPatch)
 
     execute {
         if (preserveArticleWebStorage != true) return@execute
@@ -95,13 +98,33 @@ val preserveArticleWebStoragePatch = bytecodePatch(
             0x60, Opcode.INVOKE_VIRTUAL,
         )
 
-        // Replace only the automatic destructive calls. The remaining Activity and
-        // Application initialization, including explicit clearing pathways, stays intact.
+        // Keep both original calls, but execute them only when the in-app setting
+        // is OFF. Existing cookies are not immediately deleted when toggling OFF.
         mutableClassDefBy(destroy.first).methods.single {
             it.name == "onDestroy" && it.parameterTypes.isEmpty()
-        }.replaceInstruction(destroy.second, "nop")
+        }.apply {
+            replaceInstruction(destroy.second, "nop")
+            addInstructionsWithLabels(destroy.second, """
+                invoke-static { p0 }, Ldev/rikunode/settings/HoshioriRuntime;->preserveWebStorage(Landroid/content/Context;)Z
+                move-result v1
+                if-nez v1, :skip_delete
+                invoke-virtual { v0 }, Lcom/hatena/android/bookmark/presentation/viewmodel/WebViewViewModel;->clearWebViewCookie()V
+                :skip_delete
+                nop
+            """.trimIndent())
+        }
         mutableClassDefBy(startup.first).methods.single {
             it.name == "onCreate" && it.parameterTypes.isEmpty()
-        }.replaceInstruction(startup.second, "nop")
+        }.apply {
+            replaceInstruction(startup.second, "nop")
+            addInstructionsWithLabels(startup.second, """
+                invoke-static { p0 }, Ldev/rikunode/settings/HoshioriRuntime;->preserveWebStorage(Landroid/content/Context;)Z
+                move-result v1
+                if-nez v1, :skip_delete
+                invoke-virtual { v0 }, Ljava/lang/Thread;->start()V
+                :skip_delete
+                nop
+            """.trimIndent())
+        }
     }
 }

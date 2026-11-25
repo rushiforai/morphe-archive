@@ -110,6 +110,10 @@ import app.hushtumblr.extension.tumblr.ui.OptionalNudges;
 import app.hushtumblr.extension.tumblr.ui.AppFontForTests;
 import app.hushtumblr.extension.tumblr.ui.PostLines;
 import app.hushtumblr.extension.tumblr.ui.StoreButtons;
+import app.hushtumblr.extension.tumblr.ui.MoreImages;
+import app.hushtumblr.extension.tumblr.ui.DarkControls;
+import app.hushtumblr.extension.tumblr.ui.ReadableText;
+import app.hushtumblr.extension.tumblr.ui.TextSizeForTests;
 import app.hushtumblr.extension.tumblr.ui.VideoFit;
 import app.hushtumblr.extension.tumblr.ui.FeedVideoTap;
 import app.hushtumblr.extension.tumblr.ui.HushFeedVideo;
@@ -250,6 +254,8 @@ public class PausedHooksTest {
         probes.put(Settings.HIDE_SUGGESTED_TAGS, Collections.singletonList(TimelineItems::aPageLosesItsTagCarousel));
         // A page with a Watch it row comes back without it.
         probes.put(Settings.HIDE_WATCH_IT_ROWS, Collections.singletonList(TimelineItems::aPageLosesItsWatchItRow));
+        // A page of More posts like this tiles comes back without them.
+        probes.put(Settings.HIDE_MORE_POSTS_LIKE_THIS, Collections.singletonList(TimelineItems::aPageLosesItsMorePostsRow));
         // A page with a post Tumblr's staff feature comes back without it.
         probes.put(Settings.HIDE_FEATURED_POSTS, Collections.singletonList(TimelineItems::aPageLosesItsFeaturedPost));
         // A post's tags are left out.
@@ -295,6 +301,9 @@ public class PausedHooksTest {
         probes.put(Settings.HIDE_REBLOGS_OF_YOURS, Collections.singletonList(TimelineItems::aPageLosesAReblogOfYourPost));
         // A dashboard page with a post you'd already liked comes back without it.
         probes.put(Settings.HIDE_LIKED_POSTS, Collections.singletonList(TimelineItems::aPageLosesItsLikedPost));
+        // A For you page with a post from a blog you follow comes back without it.
+        probes.put(Settings.HIDE_FOLLOWED_IN_FOR_YOU,
+                Collections.singletonList(TimelineItems::aForYouPageLosesAFollowedBlogsPost));
         // A page with a video post comes back without it.
         probes.put(Settings.HIDE_VIDEO_POSTS, Collections.singletonList(TimelineItems::aPageLosesItsVideoPost));
         // A page with a photo post comes back without it.
@@ -338,6 +347,19 @@ public class PausedHooksTest {
         probes.put(Settings.SHARE_VIDEO_LINKS, Collections.singletonList(() -> videoLinkMenu(context)));
         // A tall video opened full screen is fitted whole instead of filling the screen's height.
         probes.put(Settings.FIT_FULL_SCREEN_VIDEOS, Collections.singletonList(() -> !VideoFit.fillsHeight(true)));
+        // A Tumblr screen starts with its text at the picked size.
+        probes.put(Settings.TEXT_SIZE, Collections.singletonList(TextSizeForTests::aStartScales));
+        // The post editor's image limit is the website's 30.
+        probes.put(Settings.MORE_IMAGES_PER_POST, Collections.singletonList(() -> MoreImages.imageBlocks(10) != 10));
+        // A related tag grows to fit its text, and a blog's search box gets a shade behind what's typed.
+        probes.put(Settings.FIX_HARD_TO_READ_TEXT, Arrays.asList(
+                () -> ReadableText.relatedTagHeight(new android.widget.TextView(context), 47) != 47,
+                () -> ReadableText.blogSearchBox(new android.graphics.drawable.GradientDrawable(), 0xFFFFFFFF, 0x33FFFFFF)
+                        != 0x33FFFFFF));
+        // Explore's search bar turns dark and loses its label, and a blog's Follow button turns dark.
+        probes.put(Settings.DARK_SEARCH_BAR, Collections.singletonList(() -> searchBar(context, false)));
+        probes.put(Settings.HIDE_SEARCH_BAR_LABEL, Collections.singletonList(() -> searchBar(context, true)));
+        probes.put(Settings.DARK_BLOG_FOLLOW_BUTTON, Collections.singletonList(() -> followButton(context)));
         // A tap on a stopped feed video starts it where it sits.
         probes.put(Settings.TAP_TO_PLAY_FEED_VIDEOS, Collections.singletonList(() -> FeedVideoTap.onTap(new HushFeedVideo() {
             @Override public int hushPlayInPlace() { return 1; }
@@ -575,6 +597,25 @@ public class PausedHooksTest {
             switched.addAll(family.switches);
         }
         return switched;
+    }
+
+    /** Explore's search bar as its layout builds it, handed to the hook: whether the pill was tinted, or its label taken off. */
+    private static boolean searchBar(Context context, boolean label) {
+        android.widget.LinearLayout bar = new android.widget.LinearLayout(context);
+        android.widget.TextView text = new android.widget.TextView(context);
+        bar.addView(new android.widget.ImageView(context));
+        bar.addView(text);
+        DarkControls.exploreSearchBar(bar);
+        return label ? text.getVisibility() == android.view.View.GONE : bar.getBackgroundTintList() != null;
+    }
+
+    /** A blog's Follow item with its button, handed to the hook: whether the button was tinted. */
+    private static boolean followButton(Context context) {
+        android.widget.Button button = new android.widget.Button(context);
+        android.view.MenuItem item = new org.robolectric.fakes.RoboMenuItem(context);
+        item.setActionView(button);
+        DarkControls.blogFollowButton(item);
+        return button.getBackgroundTintList() != null;
     }
 
     /** Adds a line to [wrong] for every probe that didn't answer [changes]. */

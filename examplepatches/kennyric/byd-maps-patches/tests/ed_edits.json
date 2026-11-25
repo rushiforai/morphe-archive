@@ -1,0 +1,1057 @@
+[
+  {
+    "class": "com/kubusapp/analytics/ComscoreEventTransmitter",
+    "signature": "execute(Ljava/util/Map;)V",
+    "control": "tracking",
+    "prefix": [
+      "return-void"
+    ],
+    "sites": []
+  },
+  {
+    "class": "k73",
+    "signature": "a(Ljava/lang/String;)V",
+    "control": "tracking",
+    "prefix": [
+      "return-void"
+    ],
+    "sites": []
+  },
+  {
+    "class": "lyh",
+    "signature": "b(Lbe/persgroep/tracking/base/model/TrackingEvent;)V",
+    "control": "tracking",
+    "prefix": [
+      "return-void"
+    ],
+    "sites": []
+  },
+  {
+    "class": "r1i",
+    "signature": "c(Luwh;Ljo0;)V",
+    "control": "tracking",
+    "prefix": [
+      "return-void"
+    ],
+    "sites": []
+  },
+  {
+    "class": "r1i",
+    "signature": "d(Lllc;Ljo0;)V",
+    "control": "tracking",
+    "prefix": [
+      "return-void"
+    ],
+    "sites": []
+  },
+  {
+    "class": "keh",
+    "signature": "b(Lk4b;Ljava/lang/String;Ljava/lang/String;)V",
+    "control": "tracking",
+    "prefix": [
+      "return-void"
+    ],
+    "sites": []
+  },
+  {
+    "class": "xgf",
+    "signature": "run()V",
+    "control": "tracking",
+    "prefix": [
+      "return-void"
+    ],
+    "sites": []
+  },
+  {
+    "class": "e74",
+    "signature": "a()V",
+    "control": "tracking",
+    "prefix": [
+      "return-void"
+    ],
+    "sites": []
+  },
+  {
+    "class": "lm0",
+    "signature": "e(Ljava/lang/String;Ljava/lang/Double;Landroid/os/Bundle;ZLjava/util/UUID;Lh5c;)V",
+    "control": "tracking",
+    "prefix": [
+      "return-void"
+    ],
+    "sites": []
+  },
+  {
+    "class": "t9",
+    "signature": "c(Landroid/app/Application;Ljava/lang/String;)V",
+    "control": "tracking",
+    "prefix": [
+      "return-void"
+    ],
+    "sites": []
+  },
+  {
+    "class": "com/kubusapp/webview/TrackingEventJsListener",
+    "signature": "trackEvent(Ljava/lang/String;)V",
+    "control": "tracking",
+    "prefix": [
+      "return-void"
+    ],
+    "sites": []
+  },
+  {
+    "class": "x49",
+    "signature": "sendAnalytics(Ljava/lang/String;)V",
+    "control": "tracking",
+    "prefix": [
+      "return-void"
+    ],
+    "sites": []
+  },
+  {
+    "class": "ohi",
+    "signature": "c(Ljava/lang/String;)V",
+    "control": "tracking",
+    "prefix": [
+      "return-void"
+    ],
+    "sites": []
+  },
+  {
+    "class": "ohi",
+    "signature": "d(Ljava/util/Map;)V",
+    "control": "tracking",
+    "prefix": [
+      "return-void"
+    ],
+    "sites": []
+  },
+  {
+    "class": "rl0",
+    "signature": "c(Ltp6;)V",
+    "control": "tracking",
+    "prefix": [
+      "return-void"
+    ],
+    "sites": []
+  },
+  {
+    "class": "rl0",
+    "signature": "d(Ltp6;)V",
+    "control": "tracking",
+    "prefix": [
+      "return-void"
+    ],
+    "sites": []
+  },
+  {
+    "class": "be/dpgmedia/privacy/privacygatesdk/client/metrics/MetricsClient",
+    "signature": "sendErrorMetric$privacygatesdk_release(Lbe/dpgmedia/privacy/privacygatesdk/client/metrics/ErrorMessage;Lbe/dpgmedia/privacy/privacygatesdk/client/metrics/ErrorType;Ljava/lang/String;)V",
+    "control": "tracking",
+    "prefix": [
+      "return-void"
+    ],
+    "sites": []
+  },
+  {
+    "class": "be/persgroep/advertising/userprofile/IdManager",
+    "signature": "setExternalUserIds(Ljava/util/Map;)V",
+    "control": "tracking",
+    "prefix": [
+      "return-void"
+    ],
+    "sites": []
+  },
+  {
+    "class": "bw7",
+    "signature": "K(Landroid/content/Intent;)V",
+    "control": "tracking",
+    "prefix": [
+      "return-void"
+    ],
+    "sites": []
+  },
+  {
+    "class": "bw7",
+    "signature": "L(Ljava/lang/String;Landroid/os/Bundle;)V",
+    "control": "tracking",
+    "prefix": [
+      "return-void"
+    ],
+    "sites": []
+  },
+  {
+    "class": "l94",
+    "signature": "o()Z",
+    "control": "tracking",
+    "prefix": [
+      "const/4 v0, 0x0",
+      "return v0"
+    ],
+    "sites": []
+  },
+  {
+    "class": "be/persgroep/tracking/config/FeatureFlags",
+    "signature": "getSnowplowEnabled()Z",
+    "control": "tracking",
+    "prefix": [
+      "const/4 v0, 0x0",
+      "return v0"
+    ],
+    "sites": []
+  },
+  {
+    "class": "bw7",
+    "signature": "U(Landroid/content/Intent;)Z",
+    "control": "tracking",
+    "prefix": [
+      "const/4 v0, 0x0",
+      "return v0"
+    ],
+    "sites": []
+  },
+  {
+    "class": "bw7",
+    "signature": "v()Z",
+    "control": "tracking",
+    "prefix": [
+      "const/4 v0, 0x0",
+      "return v0"
+    ],
+    "sites": []
+  },
+  {
+    "class": "y0k",
+    "signature": "N2()Z",
+    "control": "tracking",
+    "prefix": [
+      "const/4 v0, 0x1",
+      "return v0"
+    ],
+    "sites": []
+  },
+  {
+    "class": "c74",
+    "signature": "invokeSuspend(Ljava/lang/Object;)Ljava/lang/Object;",
+    "control": "tracking",
+    "prefix": [
+      "sget-object v0, Lzdi;->a:Lzdi;",
+      "return-object v0"
+    ],
+    "sites": []
+  },
+  {
+    "class": "v1d",
+    "signature": "invokeSuspend(Ljava/lang/Object;)Ljava/lang/Object;",
+    "control": "tracking",
+    "prefix": [
+      "sget-object v0, Lzdi;->a:Lzdi;",
+      "return-object v0"
+    ],
+    "sites": []
+  },
+  {
+    "class": "be/persgroep/advertising/userprofile/IdManager$1",
+    "signature": "invokeSuspend(Ljava/lang/Object;)Ljava/lang/Object;",
+    "control": "tracking",
+    "prefix": [
+      "sget-object v0, Lzdi;->a:Lzdi;",
+      "return-object v0"
+    ],
+    "sites": []
+  },
+  {
+    "class": "be/persgroep/advertising/userprofile/IdManager$fetchUserIds$1",
+    "signature": "invokeSuspend(Ljava/lang/Object;)Ljava/lang/Object;",
+    "control": "tracking",
+    "prefix": [
+      "sget-object v0, Lzdi;->a:Lzdi;",
+      "return-object v0"
+    ],
+    "sites": []
+  },
+  {
+    "class": "ioc",
+    "signature": "j(Lrv0;ZLyg3;I)V",
+    "control": "premium",
+    "prefix": [
+      "return-void"
+    ],
+    "sites": []
+  },
+  {
+    "class": "ghc",
+    "signature": "r(Le9b;FLyg3;II)V",
+    "control": "premium",
+    "prefix": [
+      "return-void"
+    ],
+    "sites": []
+  },
+  {
+    "class": "k5c",
+    "signature": "r(Le9b;Ljava/lang/String;Luc2;Lkj5;Lyg3;II)V",
+    "control": "premium",
+    "prefix": [
+      "return-void"
+    ],
+    "sites": []
+  },
+  {
+    "class": "be/dpgmedia/privacy/privacygatesdk/ConsentService",
+    "signature": "collectConsent(Landroid/app/Activity;Ljava/lang/String;Lbe/dpgmedia/privacy/privacygatesdk/OpenModalOptions;Ljava/lang/String;Let3;)Ljava/lang/Object;",
+    "control": "consent",
+    "prefix": [
+      "sget-object v0, Lzdi;->a:Lzdi;",
+      "return-object v0"
+    ],
+    "sites": []
+  },
+  {
+    "class": "lt0",
+    "signature": "a(Ljava/lang/String;ZZLgt3;)Ljava/lang/Object;",
+    "control": "full",
+    "prefix": [
+      "const/4 v0, 0x0",
+      "move/16 p3, v0"
+    ],
+    "sites": []
+  },
+  {
+    "class": "ema",
+    "signature": "a(Ljava/lang/String;Lnet/persgroep/marketingtemplatessdk/core/types/Appearance;Ljava/util/List;Lyla;Lgt3;)Ljava/lang/Object;",
+    "control": "marketing",
+    "prefix": [
+      "new-instance v0, Lnet/persgroep/marketingtemplatessdk/core/models/ResolveResponse;",
+      "const/4 v1, 0x0",
+      "sget-object v2, Lnt5;->a:Lnt5;",
+      "invoke-direct {v0, v1, v2}, Lnet/persgroep/marketingtemplatessdk/core/models/ResolveResponse;-><init>(ZLjava/util/List;)V",
+      "return-object v0"
+    ],
+    "sites": []
+  },
+  {
+    "class": "lq8",
+    "signature": "l(Lcom/persgroep/temptationsdk/data/model/ResolveResponse;)Ljava/util/ArrayList;",
+    "control": "marketing",
+    "prefix": [
+      "new-instance v0, Ljava/util/ArrayList;",
+      "invoke-direct {v0}, Ljava/util/ArrayList;-><init>()V",
+      "return-object v0"
+    ],
+    "sites": []
+  },
+  {
+    "class": "l96",
+    "signature": "<init>(ZZZZZZ)V",
+    "control": "ads",
+    "prefix": [
+      "const/4 p1, 0x0",
+      "const/4 p2, 0x0",
+      "const/4 p3, 0x0",
+      "const/4 p4, 0x0"
+    ],
+    "sites": []
+  },
+  {
+    "class": "com/google/android/gms/ads/identifier/AdvertisingIdClient",
+    "signature": "getAdvertisingIdInfo(Landroid/content/Context;)Lcom/google/android/gms/ads/identifier/AdvertisingIdClient$Info;",
+    "control": "tracking",
+    "prefix": [
+      "invoke-static {}, Lcom/kubus/module/network/model/SectionResponse;->morpheAdvertisingInfo()Lcom/google/android/gms/ads/identifier/AdvertisingIdClient$Info;",
+      "move-result-object v0",
+      "return-object v0"
+    ],
+    "sites": []
+  },
+  {
+    "class": "com/google/android/gms/ads/identifier/AdvertisingIdClient",
+    "signature": "getInfo()Lcom/google/android/gms/ads/identifier/AdvertisingIdClient$Info;",
+    "control": "tracking",
+    "prefix": [
+      "invoke-static {}, Lcom/kubus/module/network/model/SectionResponse;->morpheAdvertisingInfo()Lcom/google/android/gms/ads/identifier/AdvertisingIdClient$Info;",
+      "move-result-object v0",
+      "return-object v0"
+    ],
+    "sites": []
+  },
+  {
+    "class": "be/persgroep/advertising/userprofile/IdManager",
+    "signature": "getCachedUserIds()Ljava/util/Map;",
+    "control": "tracking",
+    "prefix": [
+      "sget-object v0, Lpt5;->a:Lpt5;",
+      "return-object v0"
+    ],
+    "sites": []
+  },
+  {
+    "class": "be/persgroep/advertising/userprofile/IdManager",
+    "signature": "getUserIdsWithoutPrivacyCheck()Ljava/util/Map;",
+    "control": "tracking",
+    "prefix": [
+      "sget-object v0, Lpt5;->a:Lpt5;",
+      "return-object v0"
+    ],
+    "sites": []
+  },
+  {
+    "class": "be/persgroep/advertising/userprofile/IdManager",
+    "signature": "fetch-IoAF18A(Let3;)Ljava/lang/Object;",
+    "control": "tracking",
+    "prefix": [
+      "const-string v0, \"\"",
+      "return-object v0"
+    ],
+    "sites": []
+  },
+  {
+    "class": "com/kubus/module/network/model/SectionResponse",
+    "signature": "<init>(Ljava/util/List;Ljava/util/List;Ljava/util/List;Ljava/lang/String;)V",
+    "control": "filters",
+    "prefix": [
+      "invoke-static/range {p1 .. p1}, Lcom/kubus/module/network/model/SectionResponse;->morpheFilter(Ljava/util/List;)Ljava/util/List;",
+      "move-result-object p1"
+    ],
+    "sites": []
+  },
+  {
+    "class": "com/kubus/module/network/model/ArticleDetailResponse",
+    "signature": "<init>(Ljava/util/List;Lcom/kubus/module/network/model/Presentation;Lcom/kubus/module/network/model/Metadata;)V",
+    "control": "filters",
+    "prefix": [
+      "invoke-static {p1, p3}, Lcom/kubus/module/network/model/SectionResponse;->morpheArticleComponents(Ljava/util/List;Lcom/kubus/module/network/model/Metadata;)Ljava/util/List;",
+      "move-result-object p1"
+    ],
+    "sites": []
+  },
+  {
+    "class": "com/kubus/module/network/model/GroupComponent$Properties",
+    "signature": "<init>(Ljava/util/List;Ljava/lang/Boolean;)V",
+    "control": "filters",
+    "prefix": [
+      "invoke-static/range {p1 .. p1}, Lcom/kubus/module/network/model/SectionResponse;->morpheFilter(Ljava/util/List;)Ljava/util/List;",
+      "move-result-object p1"
+    ],
+    "sites": []
+  },
+  {
+    "class": "com/kubus/module/network/model/ListComponent$Properties",
+    "signature": "<init>(Ljava/util/List;Ljava/lang/String;)V",
+    "control": "filters",
+    "prefix": [
+      "invoke-static/range {p1 .. p1}, Lcom/kubus/module/network/model/SectionResponse;->morpheFilter(Ljava/util/List;)Ljava/util/List;",
+      "move-result-object p1"
+    ],
+    "sites": []
+  },
+  {
+    "class": "com/kubus/module/network/model/VideoNewsComponent$Properties",
+    "signature": "<init>(Ljava/util/List;)V",
+    "control": "filters",
+    "prefix": [
+      "invoke-static/range {p1 .. p1}, Lcom/kubus/module/network/model/SectionResponse;->morpheFilter(Ljava/util/List;)Ljava/util/List;",
+      "move-result-object p1"
+    ],
+    "sites": []
+  },
+  {
+    "class": "com/kubus/module/network/model/InlineArticleComponent$Content",
+    "signature": "<init>(Ljava/util/List;)V",
+    "control": "filters",
+    "prefix": [
+      "invoke-static/range {p1 .. p1}, Lcom/kubus/module/network/model/SectionResponse;->morpheFilter(Ljava/util/List;)Ljava/util/List;",
+      "move-result-object p1"
+    ],
+    "sites": []
+  },
+  {
+    "class": "com/kubus/module/network/model/Moment",
+    "signature": "<init>(Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/Boolean;Ljava/lang/Boolean;Ljava/util/List;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)V",
+    "control": "filters",
+    "prefix": [
+      "invoke-static/range {p7 .. p7}, Lcom/kubus/module/network/model/SectionResponse;->morpheFilter(Ljava/util/List;)Ljava/util/List;",
+      "move-result-object p7"
+    ],
+    "sites": []
+  },
+  {
+    "class": "com/kubus/module/network/model/EditorialTips$Properties",
+    "signature": "<init>(Ljava/util/List;)V",
+    "control": "filters",
+    "prefix": [
+      "invoke-static/range {p1 .. p1}, Lcom/kubus/module/network/model/SectionResponse;->morpheFilter(Ljava/util/List;)Ljava/util/List;",
+      "move-result-object p1"
+    ],
+    "sites": []
+  },
+  {
+    "class": "com/kubus/module/network/model/CrossPromotionTeasersResponse",
+    "signature": "<init>(Ljava/util/List;)V",
+    "control": "filters",
+    "prefix": [
+      "invoke-static/range {p1 .. p1}, Lcom/kubus/module/network/model/SectionResponse;->morpheFilter(Ljava/util/List;)Ljava/util/List;",
+      "move-result-object p1"
+    ],
+    "sites": []
+  },
+  {
+    "class": "com/kubus/module/network/model/TickerTeaser",
+    "signature": "<init>(Ljava/util/List;Lcom/kubus/module/network/model/TickerAction;)V",
+    "control": "filters",
+    "prefix": [
+      "invoke-static/range {p1 .. p1}, Lcom/kubus/module/network/model/SectionResponse;->morpheFilter(Ljava/util/List;)Ljava/util/List;",
+      "move-result-object p1"
+    ],
+    "sites": []
+  },
+  {
+    "class": "com/kubus/module/network/model/ArticlesCrossPromotion",
+    "signature": "<init>(Ljava/util/List;)V",
+    "control": "filters",
+    "prefix": [
+      "invoke-static/range {p1 .. p1}, Lcom/kubus/module/network/model/SectionResponse;->morpheFilter(Ljava/util/List;)Ljava/util/List;",
+      "move-result-object p1"
+    ],
+    "sites": []
+  },
+  {
+    "class": "com/kubus/module/network/model/ArticlesSectionsRecommendation",
+    "signature": "<init>(Ljava/util/List;)V",
+    "control": "filters",
+    "prefix": [
+      "invoke-static/range {p1 .. p1}, Lcom/kubus/module/network/model/SectionResponse;->morpheFilter(Ljava/util/List;)Ljava/util/List;",
+      "move-result-object p1"
+    ],
+    "sites": []
+  },
+  {
+    "class": "com/kubus/module/network/model/CarouselTeaser",
+    "signature": "<init>(Ljava/util/List;)V",
+    "control": "filters",
+    "prefix": [
+      "invoke-static/range {p1 .. p1}, Lcom/kubus/module/network/model/SectionResponse;->morpheFilter(Ljava/util/List;)Ljava/util/List;",
+      "move-result-object p1"
+    ],
+    "sites": []
+  },
+  {
+    "class": "com/kubus/module/network/model/TeaserTopList",
+    "signature": "<init>(Ljava/util/List;Ljava/lang/String;Ljava/lang/String;Lcom/kubus/module/network/model/TeaserListAction;)V",
+    "control": "filters",
+    "prefix": [
+      "invoke-static/range {p1 .. p1}, Lcom/kubus/module/network/model/SectionResponse;->morpheFilter(Ljava/util/List;)Ljava/util/List;",
+      "move-result-object p1"
+    ],
+    "sites": []
+  },
+  {
+    "class": "com/kubus/module/network/model/RecapTeaser",
+    "signature": "<init>(Ljava/util/List;Ljava/lang/String;Ljava/lang/String;Lcom/kubus/module/network/model/TeaserListAction;)V",
+    "control": "filters",
+    "prefix": [
+      "invoke-static/range {p1 .. p1}, Lcom/kubus/module/network/model/SectionResponse;->morpheFilter(Ljava/util/List;)Ljava/util/List;",
+      "move-result-object p1"
+    ],
+    "sites": []
+  },
+  {
+    "class": "com/kubus/module/network/model/CollectionsList",
+    "signature": "<init>(Ljava/util/List;Ljava/lang/String;Ljava/lang/String;Lcom/kubus/module/network/model/CollectionsAction;)V",
+    "control": "filters",
+    "prefix": [
+      "invoke-static/range {p1 .. p1}, Lcom/kubus/module/network/model/SectionResponse;->morpheFilter(Ljava/util/List;)Ljava/util/List;",
+      "move-result-object p1"
+    ],
+    "sites": []
+  },
+  {
+    "class": "com/kubus/module/network/model/VideoCrossPromotion",
+    "signature": "<init>(Ljava/util/List;)V",
+    "control": "filters",
+    "prefix": [
+      "invoke-static/range {p1 .. p1}, Lcom/kubus/module/network/model/SectionResponse;->morpheFilter(Ljava/util/List;)Ljava/util/List;",
+      "move-result-object p1"
+    ],
+    "sites": []
+  },
+  {
+    "class": "com/kubus/module/network/model/PromoBannerTeaser",
+    "signature": "<init>(Ljava/lang/String;Ljava/lang/String;Lcom/popular/core/model/data/PromoBannerAction;Ljava/util/List;)V",
+    "control": "filters",
+    "prefix": [
+      "invoke-static/range {p4 .. p4}, Lcom/kubus/module/network/model/SectionResponse;->morpheFilter(Ljava/util/List;)Ljava/util/List;",
+      "move-result-object p4"
+    ],
+    "sites": []
+  },
+  {
+    "class": "com/kubus/module/network/model/RegionPromotionTeaser",
+    "signature": "<init>(Lpge;Ljava/util/List;Lcom/popular/core/model/data/Title;Lcom/popular/core/model/data/Button;)V",
+    "control": "filters",
+    "prefix": [
+      "invoke-static/range {p2 .. p2}, Lcom/kubus/module/network/model/SectionResponse;->morpheFilter(Ljava/util/List;)Ljava/util/List;",
+      "move-result-object p2"
+    ],
+    "sites": []
+  },
+  {
+    "class": "com/kubus/module/network/model/LocalNewsTeaser",
+    "signature": "<init>(Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Lcom/popular/core/model/data/ArticleItem;Ljava/util/List;Ljava/util/List;)V",
+    "control": "filters",
+    "prefix": [
+      "invoke-static/range {p5 .. p5}, Lcom/kubus/module/network/model/SectionResponse;->morpheFilter(Ljava/util/List;)Ljava/util/List;",
+      "move-result-object p5",
+      "invoke-static/range {p6 .. p6}, Lcom/kubus/module/network/model/SectionResponse;->morpheFilter(Ljava/util/List;)Ljava/util/List;",
+      "move-result-object p6",
+      "invoke-static {p4, p5, p6}, Lcom/kubus/module/network/model/SectionResponse;->morphePrimary(Lcom/popular/core/model/data/ArticleItem;Ljava/util/List;Ljava/util/List;)Lcom/popular/core/model/data/ArticleItem;",
+      "move-result-object p4"
+    ],
+    "sites": []
+  },
+  {
+    "class": "com/kubus/module/network/model/BreakingNewsTeaser",
+    "signature": "<init>(Lcom/popular/core/model/data/ArticleItem;Ljava/util/List;Ljava/lang/String;Ljava/lang/String;)V",
+    "control": "filters",
+    "prefix": [
+      "invoke-static/range {p2 .. p2}, Lcom/kubus/module/network/model/SectionResponse;->morpheFilter(Ljava/util/List;)Ljava/util/List;",
+      "move-result-object p2",
+      "invoke-static {p1, p2, p2}, Lcom/kubus/module/network/model/SectionResponse;->morphePrimary(Lcom/popular/core/model/data/ArticleItem;Ljava/util/List;Ljava/util/List;)Lcom/popular/core/model/data/ArticleItem;",
+      "move-result-object p1"
+    ],
+    "sites": []
+  },
+  {
+    "class": "com/kubus/module/network/model/DossierTeaser",
+    "signature": "<init>(Lcom/popular/core/model/data/ArticleItem;Ljava/util/List;Ljava/lang/String;Ljava/lang/String;)V",
+    "control": "filters",
+    "prefix": [
+      "invoke-static/range {p2 .. p2}, Lcom/kubus/module/network/model/SectionResponse;->morpheFilter(Ljava/util/List;)Ljava/util/List;",
+      "move-result-object p2",
+      "invoke-static {p1, p2, p2}, Lcom/kubus/module/network/model/SectionResponse;->morphePrimary(Lcom/popular/core/model/data/ArticleItem;Ljava/util/List;Ljava/util/List;)Lcom/popular/core/model/data/ArticleItem;",
+      "move-result-object p1"
+    ],
+    "sites": []
+  },
+  {
+    "class": "com/kubus/module/network/model/VideoCarouselTeaser",
+    "signature": "<init>(Lcom/popular/core/model/data/Header;Lcom/popular/core/model/data/ArticleItem;Ljava/util/List;Lcom/popular/core/model/data/VideoTeaserAction;)V",
+    "control": "filters",
+    "prefix": [
+      "invoke-static/range {p3 .. p3}, Lcom/kubus/module/network/model/SectionResponse;->morpheFilter(Ljava/util/List;)Ljava/util/List;",
+      "move-result-object p3",
+      "invoke-static {p2, p3, p3}, Lcom/kubus/module/network/model/SectionResponse;->morphePrimary(Lcom/popular/core/model/data/ArticleItem;Ljava/util/List;Ljava/util/List;)Lcom/popular/core/model/data/ArticleItem;",
+      "move-result-object p2"
+    ],
+    "sites": []
+  },
+  {
+    "class": "com/kubus/module/network/model/MiniCarouselTeaser",
+    "signature": "<init>(Lcom/popular/core/model/data/Header;Lcom/popular/core/model/data/ArticleItem;Ljava/util/List;)V",
+    "control": "filters",
+    "prefix": [
+      "invoke-static/range {p3 .. p3}, Lcom/kubus/module/network/model/SectionResponse;->morpheFilter(Ljava/util/List;)Ljava/util/List;",
+      "move-result-object p3",
+      "invoke-static {p2, p3, p3}, Lcom/kubus/module/network/model/SectionResponse;->morphePrimary(Lcom/popular/core/model/data/ArticleItem;Ljava/util/List;Ljava/util/List;)Lcom/popular/core/model/data/ArticleItem;",
+      "move-result-object p2"
+    ],
+    "sites": []
+  },
+  {
+    "class": "com/kubus/module/network/model/MediaTopComponent$Properties",
+    "signature": "<init>(Lcom/kubus/module/network/model/ArticleComponent;Lcom/kubus/module/network/model/ArticleComponent;)V",
+    "control": "filters",
+    "prefix": [
+      "invoke-static {p2}, Lcom/kubus/module/network/model/SectionResponse;->morpheSingle(Lcom/kubus/module/network/model/ArticleComponent;)Lcom/kubus/module/network/model/ArticleComponent;",
+      "move-result-object p2"
+    ],
+    "sites": []
+  },
+  {
+    "class": "nl/dpgmedia/publishingservices/videosdk/internal/player/data/model/VideoProduction",
+    "signature": "<init>(ILjava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Lsk8;ZZZJJLnl/dpgmedia/publishingservices/videosdk/internal/player/data/model/VideoProduction$Resource;Lnl/dpgmedia/publishingservices/videosdk/internal/player/data/model/VideoProduction$Resource;Lnl/dpgmedia/publishingservices/videosdk/internal/player/data/model/VideoProduction$Resource;Lnl/dpgmedia/publishingservices/videosdk/internal/player/core/model/VideoClickout;Lnl/dpgmedia/publishingservices/videosdk/internal/player/core/model/VideoLiveEvent;Ljava/util/List;Lnl/dpgmedia/publishingservices/videosdk/core/player/VideoSdkPlaybackOptions;Ljava/util/List;)V",
+    "control": "flags",
+    "prefix": [],
+    "sites": [
+      {
+        "index": 26,
+        "old": [
+          "iput-boolean p2, p0, Lnl/dpgmedia/publishingservices/videosdk/internal/player/data/model/VideoProduction;->k:Z"
+        ],
+        "new": [
+          "const/4 p2, 0x0",
+          "iput-boolean p2, p0, Lnl/dpgmedia/publishingservices/videosdk/internal/player/data/model/VideoProduction;->k:Z"
+        ],
+        "control": "ads"
+      },
+      {
+        "index": 33,
+        "old": [
+          "iput-boolean p3, p0, Lnl/dpgmedia/publishingservices/videosdk/internal/player/data/model/VideoProduction;->l:Z"
+        ],
+        "new": [
+          "const/4 p3, 0x0",
+          "iput-boolean p3, p0, Lnl/dpgmedia/publishingservices/videosdk/internal/player/data/model/VideoProduction;->l:Z"
+        ],
+        "control": "tracking"
+      },
+      {
+        "index": 36,
+        "old": [
+          "iput-boolean p2, p0, Lnl/dpgmedia/publishingservices/videosdk/internal/player/data/model/VideoProduction;->l:Z"
+        ],
+        "new": [
+          "const/4 p2, 0x0",
+          "iput-boolean p2, p0, Lnl/dpgmedia/publishingservices/videosdk/internal/player/data/model/VideoProduction;->l:Z"
+        ],
+        "control": "tracking"
+      }
+    ]
+  },
+  {
+    "class": "nl/dpgmedia/publishingservices/videosdk/internal/player/data/model/VideoProduction",
+    "signature": "<init>(Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Lsk8;ZZZJJLnl/dpgmedia/publishingservices/videosdk/internal/player/data/model/VideoProduction$Resource;Lnl/dpgmedia/publishingservices/videosdk/internal/player/data/model/VideoProduction$Resource;Lnl/dpgmedia/publishingservices/videosdk/internal/player/data/model/VideoProduction$Resource;Lnl/dpgmedia/publishingservices/videosdk/internal/player/core/model/VideoClickout;Lnl/dpgmedia/publishingservices/videosdk/internal/player/core/model/VideoLiveEvent;Ljava/util/List;Lnl/dpgmedia/publishingservices/videosdk/core/player/VideoSdkPlaybackOptions;Ljava/util/List;)V",
+    "control": "flags",
+    "prefix": [],
+    "sites": [
+      {
+        "index": 18,
+        "old": [
+          "iput-boolean p11, p0, Lnl/dpgmedia/publishingservices/videosdk/internal/player/data/model/VideoProduction;->k:Z"
+        ],
+        "new": [
+          "const/4 p11, 0x0",
+          "iput-boolean p11, p0, Lnl/dpgmedia/publishingservices/videosdk/internal/player/data/model/VideoProduction;->k:Z"
+        ],
+        "control": "ads"
+      },
+      {
+        "index": 19,
+        "old": [
+          "iput-boolean p12, p0, Lnl/dpgmedia/publishingservices/videosdk/internal/player/data/model/VideoProduction;->l:Z"
+        ],
+        "new": [
+          "const/4 p12, 0x0",
+          "iput-boolean p12, p0, Lnl/dpgmedia/publishingservices/videosdk/internal/player/data/model/VideoProduction;->l:Z"
+        ],
+        "control": "tracking"
+      }
+    ]
+  },
+  {
+    "class": "zi7",
+    "signature": "<init>(Ljava/lang/String;Lvi7;Ljava/lang/String;Lkotlinx/serialization/json/JsonObject;ZLyi7;Lxi7;Lwi7;Lui7;Lti7;)V",
+    "control": "flags",
+    "prefix": [],
+    "sites": [
+      {
+        "index": 10,
+        "old": [
+          "iput-boolean p5, p0, Lzi7;->e:Z"
+        ],
+        "new": [
+          "const/4 p5, 0x0",
+          "iput-boolean p5, p0, Lzi7;->e:Z"
+        ],
+        "control": "ads"
+      }
+    ]
+  },
+  {
+    "class": "lyg",
+    "signature": "<init>(Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Lc8h;Lkotlinx/serialization/json/JsonObject;Lkyg;ZLjava/lang/String;ZZLjyg;ZZ)V",
+    "control": "flags",
+    "prefix": [],
+    "sites": [
+      {
+        "index": 16,
+        "old": [
+          "iput-boolean p12, p0, Llyg;->l:Z"
+        ],
+        "new": [
+          "const/4 p12, 0x0",
+          "iput-boolean p12, p0, Llyg;->l:Z"
+        ],
+        "control": "ads"
+      }
+    ]
+  },
+  {
+    "class": "q37",
+    "signature": "<init>(Lcom/google/ads/interactivemedia/v3/api/AdsLoader;Lcom/google/ads/interactivemedia/v3/api/AdsRequest;Lcom/google/ads/interactivemedia/v3/api/AdsRenderingSettings;Leb7;)V",
+    "control": "ads",
+    "prefix": [],
+    "sites": [
+      {
+        "index": 16,
+        "old": [
+          "invoke-interface {p1, p2}, Lcom/google/ads/interactivemedia/v3/api/AdsLoader;->requestAds(Lcom/google/ads/interactivemedia/v3/api/AdsRequest;)V"
+        ],
+        "new": [
+          "const-string p1, \"disabled\"",
+          "invoke-virtual {p0, p1}, Lq37;->b(Ljava/lang/String;)V"
+        ]
+      }
+    ]
+  },
+  {
+    "class": "com/kubusapp/MainApplication",
+    "signature": "onCreate()V",
+    "control": "tracking",
+    "prefix": [],
+    "sites": [
+      {
+        "index": 954,
+        "old": [
+          "invoke-virtual {v1}, Ljava/lang/Object;->getClass()Ljava/lang/Class;"
+        ],
+        "new": [
+          "nop"
+        ]
+      },
+      {
+        "index": 956,
+        "old": [
+          "iput-boolean v13, v1, Lif6;->c:Z"
+        ],
+        "new": [
+          "invoke-static {v1, v13}, Lcom/kubus/module/network/model/SectionResponse;->morpheSuppressFiam(Lif6;Z)V"
+        ]
+      }
+    ]
+  },
+  {
+    "class": "com/kubusapp/MainActivity",
+    "signature": "onCreate(Landroid/os/Bundle;)V",
+    "control": "tracking",
+    "prefix": [],
+    "sites": [
+      {
+        "index": 360,
+        "old": [
+          "invoke-virtual {v0}, Ljava/lang/Object;->getClass()Ljava/lang/Class;"
+        ],
+        "new": [
+          "nop"
+        ]
+      },
+      {
+        "index": 361,
+        "old": [
+          "iput-boolean v7, v0, Lif6;->c:Z"
+        ],
+        "new": [
+          "invoke-static {v0, v7}, Lcom/kubus/module/network/model/SectionResponse;->morpheSuppressFiam(Lif6;Z)V"
+        ]
+      }
+    ]
+  },
+  {
+    "class": "pyh",
+    "signature": "b(Lgt3;)Ljava/lang/Object;",
+    "control": "tracking",
+    "prefix": [],
+    "sites": [
+      {
+        "index": 123,
+        "old": [
+          "invoke-virtual {p1}, Ljava/lang/Object;->getClass()Ljava/lang/Class;"
+        ],
+        "new": [
+          "nop"
+        ]
+      },
+      {
+        "index": 124,
+        "old": [
+          "iput-boolean v2, p1, Lif6;->c:Z"
+        ],
+        "new": [
+          "invoke-static {p1, v2}, Lcom/kubus/module/network/model/SectionResponse;->morpheSuppressFiam(Lif6;Z)V"
+        ]
+      }
+    ]
+  },
+  {
+    "class": "ohi",
+    "signature": "a(Lgt3;)Ljava/lang/Object;",
+    "control": "tracking",
+    "prefix": [],
+    "sites": [
+      {
+        "index": 54,
+        "old": [
+          "invoke-virtual {p0, v4, p1}, Lcom/usabilla/sdk/ubform/Usabilla;->sendEvent(Landroid/content/Context;Ljava/lang/String;)V"
+        ],
+        "new": [
+          "nop"
+        ]
+      }
+    ]
+  },
+  {
+    "class": "kn0",
+    "signature": "<init>(Landroid/content/Context;)V",
+    "control": "tracking",
+    "prefix": [],
+    "sites": [
+      {
+        "index": 2,
+        "old": [],
+        "new": [
+          "return-void"
+        ]
+      }
+    ]
+  },
+  {
+    "class": "gk",
+    "signature": "<init>(Landroid/content/Context;Ljava/util/concurrent/ScheduledExecutorService;)V",
+    "control": "tracking",
+    "prefix": [],
+    "sites": [
+      {
+        "index": 10,
+        "old": [
+          "invoke-interface {p2, p1, v0, v1, p0}, Ljava/util/concurrent/ScheduledExecutorService;->schedule(Ljava/lang/Runnable;JLjava/util/concurrent/TimeUnit;)Ljava/util/concurrent/ScheduledFuture;"
+        ],
+        "new": [
+          "nop"
+        ]
+      }
+    ]
+  },
+  {
+    "class": "edj",
+    "signature": "b(Landroid/content/Context;Lcdj;Landroid/content/Intent;)V",
+    "control": "consent",
+    "prefix": [
+      "sget-object v0, Lcdj;->PUSH_NOTIFICATION_SCREEN:Lcdj;",
+      "if-ne p1, v0, @original",
+      "invoke-static {}, Ledj;->morpheSeedTopicChoices()V"
+    ],
+    "sites": [
+      {
+        "index": 43,
+        "old": [
+          "invoke-static {p0, v8, v3, v2}, Lhia;->y(Landroid/content/Context;ZLcom/dpg/auth/authentication/LoginDrivers;I)V"
+        ],
+        "new": [
+          "invoke-static {p0}, Ledj;->morpheContinueGuest(Landroid/content/Context;)V"
+        ]
+      },
+      {
+        "index": 116,
+        "old": [
+          "const-class p2, Lcom/kubusapp/onboarding/LoginSeductionActivity;"
+        ],
+        "new": [
+          "const-class p2, Lcom/kubusapp/onboarding/OnBoardingPushNotificationActivity;"
+        ]
+      },
+      {
+        "index": 121,
+        "old": [
+          "invoke-static {p0, v8, v3, v2}, Lhia;->y(Landroid/content/Context;ZLcom/dpg/auth/authentication/LoginDrivers;I)V"
+        ],
+        "new": [
+          "invoke-static {p0}, Ledj;->morpheContinueGuest(Landroid/content/Context;)V"
+        ]
+      }
+    ]
+  },
+  {
+    "class": "com/kubusapp/onboarding/OnBoardingPushNotificationActivity",
+    "signature": "onCreate(Landroid/os/Bundle;)V",
+    "control": "consent",
+    "prefix": [],
+    "sites": [
+      {
+        "index": 7,
+        "old": [
+          "invoke-virtual {p0}, Lcom/kubusapp/onboarding/OnBoardingPushNotificationActivity;->k()V"
+        ],
+        "new": [
+          "nop"
+        ]
+      },
+      {
+        "index": 55,
+        "old": [
+          "const p1, 0x7f0d00f7"
+        ],
+        "new": [
+          "invoke-virtual {p0}, Lcom/kubusapp/onboarding/OnBoardingPushNotificationActivity;->k()V",
+          "return-void"
+        ]
+      }
+    ]
+  },
+  {
+    "class": "gs6",
+    "signature": "invokeSuspend(Ljava/lang/Object;)Ljava/lang/Object;",
+    "control": "consent",
+    "prefix": [],
+    "sites": [
+      {
+        "index": 184,
+        "old": [
+          "invoke-direct/range {v8 .. v13}, Les6;-><init>(Lcom/kubusapp/region/Region;ZZLjava/lang/String;I)V"
+        ],
+        "new": [
+          "const/4 v11, 0x0",
+          "const/4 v13, 0x0",
+          "invoke-direct/range {v8 .. v13}, Les6;-><init>(Lcom/kubusapp/region/Region;ZZLjava/lang/String;Z)V"
+        ]
+      }
+    ]
+  },
+  {
+    "class": "com/kubusapp/onboarding/followablepush/FollowablePushActivity",
+    "signature": "onResume()V",
+    "control": "consent",
+    "prefix": [],
+    "sites": [
+      {
+        "index": 16,
+        "old": [
+          "const/16 v6, 0x19"
+        ],
+        "new": [
+          "const/16 v6, 0x1d"
+        ]
+      }
+    ]
+  },
+  {
+    "class": "cw7",
+    "signature": "c(IIILyg3;Lv07;)V",
+    "control": "consent",
+    "prefix": [
+      "move/from16 v0, p0",
+      "const v1, 0x7f1400ed",
+      "if-ne v0, v1, @original",
+      "return-void"
+    ],
+    "sites": []
+  },
+  {
+    "class": "com/kubusapp/MainActivity",
+    "signature": "E(Lcom/persgroep/temptationsdk/data/model/ContentType;Ljava/lang/String;Llmg;)Ljava/lang/Object;",
+    "control": "automaticMarketing",
+    "prefix": [
+      "sget-object v0, Lzdi;->a:Lzdi;",
+      "return-object v0"
+    ],
+    "sites": []
+  },
+  {
+    "class": "s99",
+    "signature": "g(Lix;IZLxe7;ZLyg3;I)V",
+    "control": "listening",
+    "prefix": [
+      "if-eqz p4, @original",
+      "return-void"
+    ],
+    "sites": []
+  }
+]

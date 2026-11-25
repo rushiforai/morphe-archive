@@ -88,7 +88,7 @@ class TimelinePagingFixtureTest {
             assertEquals("$name: null to start with", listOf(scratch, 0), hook[0].literal())
             assertEquals("$name: the links are asked only when there are some", links, (hook[1] as OneRegisterInstruction).registerA)
             assertEquals("$name: no links goes straight to the question", at + 4, body.landing(at + 1))
-            assertEquals("$name: the next link's getter", "$LINKS->d()$LINK", hook[2].methodRef()?.descriptor())
+            assertEquals("$name: the next link's getter", "$LINKS->c()$LINK", hook[2].methodRef()?.descriptor())
             assertEquals("$name: on the links", listOf(links), hook[2].registers())
             assertEquals("$name: the next link is kept", scratch, (hook[3] as OneRegisterInstruction).registerA)
 

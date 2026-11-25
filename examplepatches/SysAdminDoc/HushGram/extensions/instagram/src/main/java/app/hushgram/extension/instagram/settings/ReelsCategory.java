@@ -11,7 +11,14 @@ import static app.hushgram.extension.instagram.settings.HushgramPreferenceFragme
 import static app.hushgram.extension.instagram.settings.HushgramPreferenceFragment.commentsPerThousandRow;
 import static app.hushgram.extension.instagram.settings.HushgramPreferenceFragment.likesPerThousandRow;
 import static app.hushgram.extension.instagram.settings.HushgramPreferenceFragment.longestReelRow;
+import static app.hushgram.extension.instagram.settings.HushgramPreferenceFragment.maxCommentsRow;
+import static app.hushgram.extension.instagram.settings.HushgramPreferenceFragment.maxLikesRow;
+import static app.hushgram.extension.instagram.settings.HushgramPreferenceFragment.maxSavesRow;
+import static app.hushgram.extension.instagram.settings.HushgramPreferenceFragment.maxSharesRow;
 import static app.hushgram.extension.instagram.settings.HushgramPreferenceFragment.maxViewsRow;
+import static app.hushgram.extension.instagram.settings.HushgramPreferenceFragment.minCommentsRow;
+import static app.hushgram.extension.instagram.settings.HushgramPreferenceFragment.minSavesRow;
+import static app.hushgram.extension.instagram.settings.HushgramPreferenceFragment.minSharesRow;
 import static app.hushgram.extension.instagram.settings.HushgramPreferenceFragment.minLikesRow;
 import static app.hushgram.extension.instagram.settings.HushgramPreferenceFragment.minViewsRow;
 import static app.hushgram.extension.instagram.settings.HushgramPreferenceFragment.oldestReelRow;
@@ -115,8 +122,15 @@ final class ReelsCategory {
             reels.add(minViewsRow(context));
             reels.add(maxViewsRow(context));
             reels.add(minLikesRow(context));
+            reels.add(maxLikesRow(context));
             reels.add(likesPerThousandRow(context));
+            reels.add(minCommentsRow(context));
+            reels.add(maxCommentsRow(context));
             reels.add(commentsPerThousandRow(context));
+            reels.add(minSharesRow(context));
+            reels.add(maxSharesRow(context));
+            reels.add(minSavesRow(context));
+            reels.add(maxSavesRow(context));
             reels.add(shortestReelRow(context));
             reels.add(longestReelRow(context));
             reels.add(oldestReelRow(context));
@@ -210,6 +224,9 @@ final class ReelsCategory {
             reels.add(toggle(context, Settings.HIDE_REEL_SAVE_BUTTON, L10n.t("Hide the Save button on reels"),
                     L10n.t("Takes the Save button out of the column of buttons beside a reel, and the count under it. "
                             + "Posts in your feed keep theirs.")));
+            reels.add(toggle(context, Settings.HIDE_REEL_MORE_BUTTON, L10n.t("Hide the More button on reels"),
+                    L10n.t("Takes the three dots, and the menu they open, off the bottom of the column of buttons "
+                            + "beside a reel. Repost and Share have their own switches under Sharing.")));
             reels.add(toggle(context, Settings.HIDE_REEL_LIKE_COUNT, L10n.t("Hide like counts on reels"),
                     L10n.t("Takes away the number under the heart beside a reel. The heart stays.")));
             reels.add(toggle(context, Settings.HIDE_REEL_COMMENT_COUNT, L10n.t("Hide comment counts on reels"),
@@ -498,6 +515,9 @@ final class ReelsCategory {
                 reels.add(toggle(context, Settings.MUTE_BUTTON_IN_CLEAR_MODE, L10n.t("Mute button in clear mode"),
                         L10n.t("Keeps the speaker icon next to clear mode's exit button.")));
             }
+            reels.add(toggle(context, Settings.WHOLE_REEL_IN_REEL_MENU, L10n.t("Whole reel in the reel menu"),
+                    L10n.t("Adds Show the whole reel to the menu a reel's three dots open. A tap fits that reel inside "
+                            + "the screen until you swipe to the next one. Fill the screen there crops it again.")));
         }
         if (!reels.isEmpty()) {
             PreferenceCategory section = category(screen, L10n.t("Reels"), SettingsIcons.REELS,

@@ -50,6 +50,22 @@ https://github.com/MorpheApp/morphe-patches
 
 =============
 
+Offline PCM player
+
+The optional YouTube offline player includes AndroidX Media3 1.11.1,
+AndroidX ExifInterface 1.4.2, and Guava 33.3.1-android (including FailureAccess).
+Copyright The Android Open Source Project and Google LLC.
+Licensed under the Apache License, Version 2.0:
+https://www.apache.org/licenses/LICENSE-2.0
+https://github.com/androidx/media
+https://github.com/androidx/androidx
+https://github.com/google/guava
+
+RVX isolates the library packages from the host app and removes the built-in
+lower speed clamp from Media3's software rate path. This does not change pitch.
+
+=============
+
 GPLv3 Section 7b: Preservation of User Notices
 
 All derivative works (source code and binaries) must include this

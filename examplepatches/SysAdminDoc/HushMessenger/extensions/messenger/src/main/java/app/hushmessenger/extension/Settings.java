@@ -310,8 +310,10 @@ public final class Settings {
     static final String SHOW_PEOPLE_TAB = "tab_people_show";
     /** Puts Messenger's own settings tab in the bar on accounts whose gate for it says no. */
     static final String SHOW_SETTINGS_TAB = "tab_settings_show";
+    /** Puts Messenger's creation tab, the one Instants lives in, in the bar on accounts whose layout leaves it out. */
+    static final String SHOW_INSTANTS_TAB = "tab_instants_show";
     /** Bottom tabs with a switch of their own, held for the run like the Meta AI tab. */
-    static final List<String> BOTTOM_TABS = Collections.unmodifiableList(Arrays.asList("tab_people", "tab_notifications", "tab_stories", SHOW_PEOPLE_TAB, SHOW_SETTINGS_TAB));
+    static final List<String> BOTTOM_TABS = Collections.unmodifiableList(Arrays.asList("tab_people", "tab_notifications", "tab_stories", SHOW_PEOPLE_TAB, SHOW_SETTINGS_TAB, SHOW_INSTANTS_TAB));
     /** First answer this process gave for each of {@link #BOTTOM_TABS}, by key, once the bottom bar asked. */
     static final ConcurrentHashMap<String, Boolean> bottomTabs = new ConcurrentHashMap<>();
 
@@ -341,16 +343,18 @@ public final class Settings {
      * marks the open tab by its place in this full list, so a hidden tab ahead of it lit up its neighbor (with People
      * hidden, opening Notifications showed Menu as open). Dropping the hidden tabs here keeps the two in step; every other
      * tab and its order stay as Messenger built them. Show People tab puts People back right after Chats when the server
-     * left it out, unless Hide People tab is on too, and Show settings tab puts Messenger's settings tab at the end.
+     * left it out, unless Hide People tab is on too, Show settings tab puts Messenger's settings tab at the end, and Show
+     * Instants tab puts Instants in the middle once the others have had their say.
      */
     public static <T> List<T> visibleTabs(List<T> tabs) {
         try {
-            List<T> kept = new ArrayList<>(tabs.size() + 2);
-            boolean hasPeople = false, hasSettings = false;
+            List<T> kept = new ArrayList<>(tabs.size() + 3);
+            boolean hasPeople = false, hasSettings = false, hasInstants = false;
             for (T tab : tabs) {
                 String name = tab instanceof Enum ? ((Enum<?>) tab).name() : null;
                 if ("PEOPLE".equals(name)) hasPeople = true;
                 else if (SETTINGS_TAB.equals(name)) hasSettings = true;
+                else if (INSTANTS_TAB.equals(name)) hasInstants = true;
                 String key = name == null ? null : barTabKey(name);
                 if (key == null || !("meta_ai".equals(key) ? hideMetaAiTab() : hideBottomTab(key))) kept.add(tab);
             }
@@ -358,6 +362,10 @@ public final class Settings {
             if (added) activeAt.put(SHOW_PEOPLE_TAB, System.currentTimeMillis());
             if (!hasSettings && heldBottomTab(SHOW_SETTINGS_TAB) && addSettingsTab(kept)) {
                 activeAt.put(SHOW_SETTINGS_TAB, System.currentTimeMillis());
+                added = true;
+            }
+            if (!hasInstants && heldBottomTab(SHOW_INSTANTS_TAB) && addInstantsTab(kept)) {
+                activeAt.put(SHOW_INSTANTS_TAB, System.currentTimeMillis());
                 added = true;
             }
             return added || kept.size() != tabs.size() ? kept : tabs;
@@ -415,8 +423,32 @@ public final class Settings {
         return false;
     }
 
+    /** Messenger's own name for the tab Instants lives in, in its bottom-bar tab enum. */
+    static final String INSTANTS_TAB = "CREATION";
+
+    /**
+     * Puts the creation constant of the list's own tab enum in the middle of the bar. Messenger's own layouts with that tab
+     * put it third, after Chats and one more tab (Chats, Meta AI, Instants, Notifications, or Chats, Friends, Instants,
+     * Meta AI, Notifications), and the middle gives that place on both. False, with the list untouched, when the list
+     * holds no tab of that enum or the enum has no creation constant.
+     */
+    private static <T> boolean addInstantsTab(List<T> tabs) {
+        for (T tab : tabs) {
+            if (!(tab instanceof Enum)) continue;
+            for (Object constant : ((Enum<?>) tab).getDeclaringClass().getEnumConstants()) {
+                if (!INSTANTS_TAB.equals(((Enum<?>) constant).name())) continue;
+                @SuppressWarnings("unchecked") T instants = (T) constant;
+                tabs.add((tabs.size() + 1) / 2, instants);
+                return true;
+            }
+            break;
+        }
+        hookFailed(SHOW_INSTANTS_TAB, "Can't find the Instants tab", new IllegalStateException("no " + INSTANTS_TAB + " tab"));
+        return false;
+    }
+
     /** Every switch that changes the bottom bar's tabs, so each one's list goes through {@link #visibleTabs}. */
-    static final List<String> TAB_CONTROLS = Collections.unmodifiableList(Arrays.asList("tab_people", "tab_notifications", "tab_stories", "meta_ai", SHOW_PEOPLE_TAB, SHOW_SETTINGS_TAB));
+    static final List<String> TAB_CONTROLS = Collections.unmodifiableList(Arrays.asList("tab_people", "tab_notifications", "tab_stories", "meta_ai", SHOW_PEOPLE_TAB, SHOW_SETTINGS_TAB, SHOW_INSTANTS_TAB));
 
     /**
      * The switch that hides a bottom tab, by the tab's constant in Messenger's tab enum, or null for a tab with none. MUSE
@@ -474,6 +506,7 @@ public final class Settings {
         owners.put(ViewOnceSave.KEY, "allow_screenshot");
         owners.put(FloatingMenu.KEY, MenuBlur.KEY);
         owners.put(Settings.HIDE_DELIVERED, "hide_read_receipts");
+        owners.put(ChatJump.PAGES, ChatJump.KEY);
         SUB_SWITCHES = Collections.unmodifiableMap(owners);
     }
 
@@ -1261,13 +1294,26 @@ public final class Settings {
             hookFailed(AVATAR_SHAPE, "Can't change the profile picture shape", error);
             shape = AVATAR_CIRCLE;
         }
-        if (shape == AVATAR_CIRCLE) {
-            canvas.drawArc(oval, start, sweep, center, paint);
-            return;
+        // Thinner on both sides of the same line, so the ring keeps its place around the picture (#215). The paint is the
+        // ring's own, so its width goes back once the ring is drawn.
+        float width = paint.getStrokeWidth();
+        boolean thin = ring && width > 0 && paint.getStyle() == Paint.Style.STROKE && enabled(THIN_STORY_RINGS);
+        if (thin) paint.setStrokeWidth(width * THIN_RING);
+        try {
+            if (shape == AVATAR_CIRCLE) {
+                canvas.drawArc(oval, start, sweep, center, paint);
+                return;
+            }
+            float corner = shape == AVATAR_SQUARE ? 0f : Math.min(avatarCornerPx(), Math.min(oval.width(), oval.height()) / 2f);
+            canvas.drawPath(ringPath(oval, start, sweep, corner), paint);
+        } finally {
+            if (thin) paint.setStrokeWidth(width);
         }
-        float corner = shape == AVATAR_SQUARE ? 0f : Math.min(avatarCornerPx(), Math.min(oval.width(), oval.height()) / 2f);
-        canvas.drawPath(ringPath(oval, start, sweep, corner), paint);
     }
+
+    /** Thin story rings (#215): the colored ring around a picture with a story, drawn at this share of Messenger's width. */
+    static final String THIN_STORY_RINGS = "thin_story_rings";
+    static final float THIN_RING = 0.5f;
 
     /**
      * The square (or rounded square) outline of an arc's box, clockwise from its top middle the way angles run from 270,
@@ -1652,10 +1698,6 @@ public final class Settings {
         return preferences.getBoolean(BUBBLE_CHAT_HEADS, false) ? "chat_heads" : "native";
     }
     public static boolean allowScreenshot() { return enabled("allow_screenshot"); }
-    /** Messenger's subscription check for its built-in launcher icons. Off, paused or safe mode keeps Messenger's answer. */
-    public static boolean unlockAppIcons() { return enabled("app_icons"); }
-    /** Messenger's subscription check for its paid app themes (#132). Off, paused or safe mode keeps Messenger's answer. */
-    public static boolean unlockAppThemes() { return enabled("app_themes"); }
     public static void addScreenshotFlags(Window window, int flags) {
         window.addFlags(allowScreenshot() ? flags & ~WindowManager.LayoutParams.FLAG_SECURE : flags);
         ViewOnceSave.offer(window);
@@ -1709,6 +1751,19 @@ public final class Settings {
         }
         markChatReadLocally(thread);
         return true;
+    }
+
+    /**
+     * Hide read receipts: Messenger's reaction sender calls this first with the chat's key. A reaction shows you read
+     * the chat, as a reply does, so the Seen held back for that chat goes out (#223).
+     */
+    public static void reactionSent(Object thread) {
+        if (thread == null || MarkReadButton.replaying() || !enabled("hide_read_receipts")) return;
+        try {
+            MarkReadButton.reacted(thread);
+        } catch (Throwable error) {
+            hookFailed("hide_read_receipts", "Can't send Seen for the chat you reacted in", error);
+        }
     }
 
     /** Hide Delivered, the sub-option under Hide read receipts. */
@@ -3129,6 +3184,12 @@ public final class Settings {
             return null;
         }
     }
+
+    /** Whether Show the 40-character code option is on. */
+    public static boolean recoveryCodeRow() { return enabled("recovery_code_row"); }
+
+    /** Whether Write longer notes is on. */
+    public static boolean longerNotes() { return enabled("longer_notes"); }
 
     private Settings() { }
 }

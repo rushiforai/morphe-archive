@@ -176,7 +176,7 @@ public final class VpnServersPage {
                 refresh();
                 say("Put back " + name, false);
             } catch (Exception e) {
-                say(name + " couldn't be put back: " + e.getMessage(), true);
+                say(name + " couldn't be put back: " + app.morphed.extension.twitch.Messages.of(e), true);
             }
         });
     }
@@ -199,7 +199,7 @@ public final class VpnServersPage {
             refresh();
             say("Added " + kept, false);
         } catch (Exception e) {
-            say("Not added: " + e.getMessage(), true);
+            say("Not added: " + app.morphed.extension.twitch.Messages.of(e), true);
         }
     }
 

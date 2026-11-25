@@ -50,6 +50,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import app.hushtumblr.extension.shared.L10n;
 import app.hushtumblr.extension.shared.Logger;
 import app.hushtumblr.extension.shared.Utils;
+import app.hushtumblr.extension.tumblr.ui.TextSize;
 import app.hushtumblr.extension.shared.settings.preference.ReopenSettingsAfterRestart;
 
 /**
@@ -143,6 +144,7 @@ public final class SettingsEntry {
                 ((Application) context).registerActivityLifecycleCallbacks(new OpenWhenResumed());
                 callbacksRegistered = true;
             }
+            TextSize.application(context);
             // Before the settings are ready, reading the marker would load them with no context.
             if (Utils.settingsReady()) ReopenSettingsAfterRestart.reopenIfPending(SettingsEntry::reopenOn);
         } catch (Exception ex) {
@@ -420,6 +422,7 @@ public final class SettingsEntry {
         public void onActivityResumed(Activity activity) {
             resumed = new WeakReference<>(activity);
             Utils.setActivity(activity);
+            TextSize.activity(activity);
             if (openPending) openWhenSettled(activity);
             relabelIfStale(activity);
         }
@@ -429,13 +432,16 @@ public final class SettingsEntry {
             if (resumed != null && resumed.get() == activity) resumed = null;
         }
 
-        @Override public void onActivityCreated(Activity activity, Bundle state) { }
+        @Override public void onActivityCreated(Activity activity, Bundle state) {
+            TextSize.activity(activity);
+        }
         @Override public void onActivityStarted(Activity activity) { }
         @Override public void onActivityStopped(Activity activity) { }
         @Override public void onActivitySaveInstanceState(Activity activity, Bundle state) { }
         @Override
         public void onActivityDestroyed(Activity activity) {
             if (Utils.getActivity() == activity) Utils.setActivity(null);
+            TextSize.destroyed(activity);
             // The screen can land on an activity just before it clears itself for the next one.
             // If its host goes away before the person closed it, ask again.
             WeakReference<Activity> shownOver = host;

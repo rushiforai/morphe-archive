@@ -381,7 +381,7 @@ private fun BytecodePatchContext.replaceShortLinksAfterResume(
             if (method.key() in hooked || body.linkReads(types, getters).isEmpty()) continue
             if (body.any { it.isPlainFetch(ownFetch) }) {
                 fetchers += classDef.type to method.key()
-            } else if (method.isCoroutineBody()) {
+            } else if (method.isCoroutineBody() && !body.handsLinkStraightBack(classDef.type, types, getters)) {
                 coroutines += classDef.type to method.key()
             }
         }
@@ -656,6 +656,38 @@ private fun List<Instruction>.linkReads(types: Set<String>, getters: Set<String>
     val call = instruction.getReference<MethodReference>()!!
     call.definingClass in types && call.name in getters && call.parameterTypes.isEmpty() &&
         call.returnType == "Ljava/lang/String;" && getOrNull(index + 1)?.opcode == Opcode.MOVE_RESULT_OBJECT
+}
+
+/**
+ * A body that never holds a post and answers each link it reads as its own result. 456's route for
+ * opening a post in an Instagram story is one: it has only the post's server tree, and its link
+ * already lost its tracking where the parser stored it, so there's no post to rebuild a link from.
+ * Quick send's body looks the same once its cast to a post is gone, so every field of its own that
+ * such a body holds has to be cast to something on the spot.
+ */
+private fun List<Instruction>.handsLinkStraightBack(owner: String, types: Set<String>, getters: Set<String>): Boolean =
+    none { it.opcode == Opcode.CHECK_CAST && it.getReference<TypeReference>()!!.type == MEDIA } &&
+        linkReads(types, getters).all { read ->
+            val answer = getOrNull(read + 2)
+            answer?.opcode == Opcode.RETURN_OBJECT &&
+                (answer as OneRegisterInstruction).registerA == (this[read + 1] as OneRegisterInstruction).registerA &&
+                castsItsOwnFields(read, owner)
+        }
+
+/** Whether the run of code up to [read] reads Object fields of [owner] and casts each one right away. */
+private fun List<Instruction>.castsItsOwnFields(read: Int, owner: String): Boolean {
+    val start = (read - 1 downTo 0).firstOrNull { at ->
+        val opcode = this[at].opcode
+        !opcode.canContinue() || opcode == Opcode.PACKED_SWITCH || opcode == Opcode.SPARSE_SWITCH
+    }?.plus(1) ?: 0
+    val held = (start until read).filter { at ->
+        this[at].opcode == Opcode.IGET_OBJECT &&
+            this[at].getReference<FieldReference>()!!.let { it.definingClass == owner && it.type == "Ljava/lang/Object;" }
+    }
+    return held.isNotEmpty() && held.all { at ->
+        val cast = this[at + 1]
+        cast.opcode == Opcode.CHECK_CAST && (cast as OneRegisterInstruction).registerA == (this[at] as OneRegisterInstruction).registerA
+    }
 }
 
 private fun Method.readsLinkAsInstance(types: Set<String>, getters: Set<String>): Boolean =

@@ -92,9 +92,11 @@ class KeepDeletedFixtureTest {
             assertEquals("$name: eight instructions per branch and three per edit", updatesBefore.size + 16 + 6, updates.size)
             val editStarts = mutableListOf<Int>()
             for (edit in plan.edits) {
+                // 13.3.1 reads both edits' new message into the same register, so the hook is told apart by the read before it.
                 val start = updates.indices.single { i ->
                     updates[i].controlRef() == "$KEEP_EDITS->edited(Ljava/lang/Object;Ljava/lang/Object;)V" &&
-                        updates[i - 2].namedRegisters() == listOf(edit.scratch, edit.message)
+                        updates[i - 2].namedRegisters() == listOf(edit.scratch, edit.message) &&
+                        updates[i - 3].controlRef() == "${edit.type}->message:Lorg/telegram/tgnet/TLRPC\$Message;"
                 } - 2
                 editStarts += start
                 assertEquals("$name: ${edit.type} instructions", listOf(Opcode.MOVE_OBJECT_FROM16, Opcode.MOVE_OBJECT_FROM16, Opcode.INVOKE_STATIC_RANGE),

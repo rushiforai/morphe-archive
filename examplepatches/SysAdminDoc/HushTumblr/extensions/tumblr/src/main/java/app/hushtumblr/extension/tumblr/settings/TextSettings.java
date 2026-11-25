@@ -42,8 +42,12 @@ public final class TextSettings {
      * {@link #LONG_POST_SIZES}. Read wherever the switch is.
      */
     public static final StringSetting LONG_POST_SIZE = new StringSetting("hushtumblr_long_post_size", "40");
-    /** The lengths its row offers, shortest first: about half a screen, a screen and two screens. */
-    public static final List<String> LONG_POST_SIZES = Collections.unmodifiableList(Arrays.asList("20", "40", "80"));
+    /**
+     * The lengths its row offers, shortest first: about 5 lines, 10 lines, half a screen, a screen and
+     * two screens (#24).
+     */
+    public static final List<String> LONG_POST_SIZES = Collections.unmodifiableList(Arrays.asList(
+            "5", "10", "20", "40", "80"));
 
     /**
      * The font file chosen for {@link Settings#APP_FONT}, as {@link app.hushtumblr.extension.tumblr.ui.AppFont#install}
@@ -51,4 +55,13 @@ public final class TextSettings {
      * itself can't travel in one, and an imported switch on the next phone means the phone's font.
      */
     public static final StringSetting APP_FONT_FILE = new StringSetting("hushtumblr_app_font_file", "", true);
+
+    /**
+     * How big {@link Settings#TEXT_SIZE} makes Tumblr's text, as a percentage of the phone's font size:
+     * one of {@link #TEXT_SIZES}. A change waits for a restart while the switch is on.
+     */
+    public static final StringSetting TEXT_SIZE_PERCENT = new StringSetting("hushtumblr_text_size_percent", "115", true);
+    /** The sizes its row offers, smallest first. 100% is the switch off. */
+    public static final List<String> TEXT_SIZES = Collections.unmodifiableList(Arrays.asList(
+            "85", "90", "110", "115", "120", "130"));
 }

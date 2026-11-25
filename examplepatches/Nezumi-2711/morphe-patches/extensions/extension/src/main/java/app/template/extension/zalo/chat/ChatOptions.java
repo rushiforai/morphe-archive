@@ -23,4 +23,8 @@ public final class ChatOptions {
     public static boolean isDeliveryReceiptsHidden(Context context) {
         return NezumiPrefs.bool(context, NezumiPrefs.HIDE_DELIVERY_RECEIPTS, false);
     }
+
+    public static boolean isConversationProtectionBypassed(Context context) {
+        return NezumiPrefs.bool(context, NezumiPrefs.BYPASS_CONVERSATION_PROTECTION, true);
+    }
 }

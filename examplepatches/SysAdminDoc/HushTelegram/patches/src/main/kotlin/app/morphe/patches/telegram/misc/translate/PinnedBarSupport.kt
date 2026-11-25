@@ -92,6 +92,7 @@ internal class PinnedBar(
 internal fun BytecodePatchContext.resolvePinnedBar(screen: String): PinnedBar {
     controlHook(TRANSLATE_BAR, "pinnedBarHidden", emptyList(), "Z")
     controlHook(TRANSLATE_BAR, "pinnedBarChanged", listOf("Ljava/lang/Object;"), "Z")
+    controlHook(TRANSLATE_BAR, "decidePinnedBar", listOf("Ljava/lang/Object;"), "Z")
     requireStatusMethod("hidePinnedBar")
     fun missing(why: String) = PinnedBar(null, -1, -1, -1, why)
 
@@ -191,6 +192,24 @@ internal class PinnedResume(
             const/4 v$zero, 0x0
             $invoke {v$screen$args}, ${decision.definingClass}->${decision.name}(${decision.parameterTypes.joinToString("")})V
         """, ExternalLabel("hush_pinned_same", target.getInstruction(at)))
+    }
+
+    /**
+     * The extension's stub for the same decision, which runs when the settings dialog closes over a
+     * chat that never left the front. Null when the decision is private to the screen: the stub stays
+     * as it is, and the chat decides the next time it comes back.
+     */
+    fun decideStub(): String? {
+        val decision = decision!!
+        if (AccessFlags.PRIVATE.isSet(decision.accessFlags)) return null
+        val args = decision.parameterTypes.joinToString("") { if (it.toString() == "Z") ", v0" else ", v1" }
+        return """
+            check-cast p0, ${decision.definingClass}
+            const/4 v0, 0x1
+            const/4 v1, 0x0
+            invoke-virtual {p0$args}, ${decision.definingClass}->${decision.name}(${decision.parameterTypes.joinToString("")})V
+            return v0
+        """
     }
 
     /** The hook put into a copy, so a method that can't take it is known before anything changes. */

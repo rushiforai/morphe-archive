@@ -69,6 +69,7 @@ way_logo	Bu ayarları açmak için Sohbetler'in üstündeki Messenger logosuna u
 way_drawer	HushMessenger ayarlarını uygulama çekmecenden aç.
 way_shortcuts_hidden	'Patch controls' ve 'Restart Messenger', Messenger'ın ana ekran simgesinden gizlendi.
 drawer_search	Uygulama çekmecesi simgesi ayarları
+reset_search	Ayarları sıfırla
 drawer_root	Root Mount'ta 'Uygulama çekmecesi simgesini gizle' gerekmez. Gizlenecek ayrı bir ayarlar simgesi yok.
 drawer_missing	'Uygulama çekmecesi simgesini gizle' kullanılamıyor. Bu yama paketinde gizlenecek ayarlar simgesi yok.
 drawer_requires_menu	Uygulama çekmecesi simgesini gizlemek için önce 'Open settings from menu' yamasını ekle, böylece bu ayarları yine bulabilirsin. O olmadan simge kalır.
@@ -215,6 +216,7 @@ message_actions_got	Aldığın mesajlar
 message_actions_empty_sent	Gönderdiğin bir mesaja basılı tuttuğunda işlemleri burada görünür.
 message_actions_empty_got	Aldığın bir mesaja basılı tuttuğunda işlemleri burada görünür.
 chat_menu_items_empty	Sohbet listende bir sohbete basılı tuttuğunda menüsündeki öğeler burada görünür.
+profile_menu_items_empty	Sohbette birinin mesajının yanındaki fotoğrafına dokun, menüsündeki öğeler burada görünür.
 invisible_buttons_empty	Messenger'ı biraz kullan, sana gösterdiği her düğme burada görünür.
 invisible_buttons_level_choice	%2$s için %1$s
 invisible_buttons_invisible	Artık görünmez
@@ -252,6 +254,10 @@ facebook_keep_profile	Profil düğmesini koru
 facebook_keep_profile_help	Bir sohbetin ayrıntılar sayfasındaki Profil düğmesini ve yeni bir sohbetin üstündeki Profili gör düğmesini bırakır, böylece kişinin Facebook profilini yine açabilirsin. Diğer Facebook kısayolları gizli kalır.
 avatar_shape_rounded	Köşeleri yuvarlat
 avatar_shape_rounded_help	Karelere keskin köşeler yerine yuvarlak köşeler verir.
+refresh_rate_hz	%1$s Hz
+refresh_rate_single	Ekranın tek bir hızda çalışıyor, bu yüzden burada seçilecek bir şey yok.
+refresh_rate_picked	Messenger %1$s Hz isteyecek
+refresh_rate_help	Daha hızlısı daha akıcı kayar ve daha çok pil harcar. Yeni hız Messenger'a döndüğünde görünür.
 hidden_words_words	Gizlenecek kelimeler
 hidden_words_hint	En fazla %1$d karakter, virgülle ayrılmış
 hidden_words_help	Kelimenin tamamı eşleşmeli, bu yüzden "ok" kelimesi "okay" kelimesini gizlemez. Büyük küçük harf önemli değil.
@@ -356,6 +362,13 @@ theme_accent_red	Kırmızı
 theme_accent_orange	Turuncu
 theme_accent_green	Yeşil
 theme_accent_teal	Turkuaz
+theme_codes	Renk kodları
+theme_code_accent	Vurgu
+theme_code_neutral	Arka plan
+theme_codes_use	Bu renkleri kullan
+theme_codes_help	#E1306C gibi altı haneli kodlar yaz. Vurgu, Messenger'ın mavilerini, arka plan da grilerini renklendirir. Messenger'ın kendi rengini korumak için birini boş bırak.
+theme_codes_invalid	Bu bir renk kodu değil. #E1306C gibi bir kod dene.
+theme_codes_empty	Önce bir renk kodu yaz.
 theme_paste	Kopyalanan temayı kullan
 theme_copy	Temayı kopyala
 theme_clear	Duvar kağıdı renklerine dön
@@ -364,9 +377,17 @@ theme_paste_empty	Yapıştırılacak bir şey yok. Önce bir tema kopyala.
 theme_paste_invalid	Bu bir tema değil. Renklerin değişmedi.
 theme_copied	Tema kopyalandı
 theme_copy_failed	Tema kopyalanamadı. Tekrar dene.
+theme_file_save	Temayı dosyaya kaydet
+theme_file_open	Tema dosyası aç
+theme_file_saved	Tema dosyası kaydedildi
+theme_file_save_failed	Tema dosyası kaydedilemedi. Başka bir klasör dene.
+theme_file_no_picker	Bu telefonda bunun için bir dosya seçici yok.
+theme_file_unreadable	Bu dosya açılamadı. Tekrar dene.
+theme_file_invalid	Bu dosya bir tema değil. Renklerin değişmedi.
+ai_chat_blocked	Meta AI sohbetleri HushMessenger ayarlarında engellendi.
 theme_cleared	Duvar kağıdı renklerine dönüldü
 theme_change	tema değişikliği
-theme_file_help	Tema, {"name": "Gün batımı", "accent": "#E1306C", "neutral": "#1A1418", "pure_black": true} gibi kısa bir metindir. accent Messenger'ın mavilerini, neutral ise grilerini renklendirir. İkisi de Messenger'ın kendi parlaklığını korur, böylece metin kolay okunur. 'Temayı kopyala', kullanılan renkleri düzenlemen veya paylaşman için sana verir.
+theme_file_help	Tema, {"name": "Gün batımı", "accent": "#E1306C", "neutral": "#1A1418", "pure_black": true} gibi kısa bir metindir. accent Messenger'ın mavilerini, neutral ise grilerini renklendirir. İkisi de Messenger'ın kendi parlaklığını korur, böylece metin kolay okunur. 'Temayı kopyala', kullanılan renkleri düzenlemen veya paylaşman için sana verir. Temayı dosyaya kaydet onu bir .json dosyası olarak saklar, Tema dosyası aç ise birini kullanır.
 about	HushMessenger hakkında
 version	Sürüm
 installed	Yüklü kontroller
@@ -491,6 +512,8 @@ tab_people_show_pending_on	Kişiler sekmesi, Messenger yeniden başladıktan son
 tab_people_show_pending_off	Kişiler sekmesi, Messenger yeniden başladıktan sonra kaybolur
 tab_settings_show_pending_on	Ayarlar sekmesi, Messenger yeniden başladıktan sonra görünür
 tab_settings_show_pending_off	Ayarlar sekmesi, Messenger yeniden başladıktan sonra kaybolur
+tab_instants_show_pending_on	Instants sekmesi, Messenger yeniden başladıktan sonra görünür
+tab_instants_show_pending_off	Instants sekmesi, Messenger yeniden başladıktan sonra kaybolur
 tab_notifications_pending_on	Bildirimler sekmesi, Messenger yeniden başladıktan sonra gizlenir
 tab_notifications_pending_off	Bildirimler sekmesi, Messenger yeniden başladıktan sonra geri gelir
 tab_stories_pending_on	Hikayeler sekmesi, Messenger yeniden başladıktan sonra gizlenir
@@ -515,8 +538,8 @@ none_installed	Yüklü kontrol yok. Morphe Manager'da yamaları seç ve Messenge
 no_matches	Eşleşen kontrol yok.
 results_one	%d / %d yüklü kontrol
 results_many	%d / %d yüklü kontrol
-group_count_one	%d kontrol
-group_count_many	%d kontrol
+group_on	%1$d/%2$d
+group_on_help	%2$d ayardan %1$d tanesi açık
 open_help	Messenger'ı uygulama çekmecenden aç
 message_log_view	Kaydı görüntüle
 search_clear	Temizle
@@ -719,6 +742,10 @@ chat_jump_next	O gün mesaj yok, işte sonraki mesaj
 chat_jump_none	O gün veya sonrasında mesaj yok
 chat_jump_no_dates	Bu sohbetteki tarihler okunamıyor
 chat_jump_no_list	Bu sohbetin mesajları bulunamıyor
+chat_page_buttons	Sayfa yukarı ve sayfa aşağı düğmeleri
+chat_page_buttons_help	Okun üstüne, sohbeti her seferinde bir ekran yukarı veya aşağı kaydıran iki düğme koyar. Uzun bir sohbeti tekrar tekrar kaydırmadan geriye doğru okumak için.
+chat_page_up	Sayfa yukarı
+chat_page_down	Sayfa aşağı
 link_player_play	Oynat
 link_player_pause	Duraklat
 link_player_replay	Yeniden oynat
@@ -736,6 +763,8 @@ inbox_promotions.title	Gelen kutusu tanıtımlarını gizle
 inbox_promotions.description	Sohbet listendeki tanıtım afişlerini gizler.
 stories.title	Hikayeleri ve notları gizle
 stories.description	Sohbetlerinin üstündeki hikaye ve not satırını ve profil resimlerinin etrafındaki hikaye halkalarını gizler.
+story_create_tile.title	Hikaye oluştur'u gizle
+story_create_tile.description	Sohbetlerinin üstündeki hikaye ve not satırının başındaki Hikaye oluştur kutucuğunu kaldırır. Kendi hikayen ve notun o kutucukta durduğu için onlar da gider.
 instants_button.title	Instants düğmesini gizle
 instants_button.description	Sohbet listenin sağ kenarından kayarak gelen + düğmesini ve sohbet balonlarının altındakini gizler. İkisi de Instants'ı açar.
 subtabs.title	Gelen kutusu sekmelerini gizle
@@ -744,6 +773,12 @@ inbox_typing.title	Sohbet listende yazıyor bilgisi
 inbox_typing.description	Karşıdaki kişi yazarken, listendeki sohbetin son mesajının üzerine yazıyor bilgisini koyar, bunu yalnızca sohbete girdiğinde göstermek yerine. Messenger bunu zaten taşıyor ve Meta'nın sunucusu kapalı tutuyor. Başlaması için Messenger'ı yeniden başlat.
 inbox_search_bar.title	Arama çubuğunu koru
 inbox_search_bar.description	Messenger arama çubuğunu bir arama simgesiyle değiştirdiyse sohbet listenin üstündeki arama çubuğunu geri getirir. Değişikliği görmek için Messenger'ı yeniden başlat. Simge sende hiç çıkmadıysa hiçbir şey değişmez.
+search_suggested.title	Aramada Önerilenleri gizle
+search_suggested.description	Bir şey yazmadan önce aramanın üstünde çıkan önerilen kişileri gizler. Kişiler, onları aradığında yine çıkar.
+search_reels.title	Aramada son reels'leri gizle
+search_reels.description	Bir şey yazmadan önce son izlediğin reels'leri aramadan gizler.
+longer_notes.title	Daha uzun notlar yaz
+longer_notes.description	Notlara 60 yerine en fazla 500 karakter yazmanı sağlar. Uzun bir notun yayınlanıp yayınlanmayacağına Facebook karar verir.
 chat_preview.title	Uzun basınca sohbet önizlemesi
 chat_preview.description	Bir sohbete basılı tutarak, sohbeti açmadan Messenger'ın kendi önizlemesinde ona göz at. Sohbetin menüsü de önizlemenin altında olur.
 chat_preview_size.title	Daha büyük sohbet önizlemesi
@@ -758,10 +793,14 @@ special_contacts.title	Özel kişiler
 special_contacts.description	Tek kişiyle olan bir sohbete basılı tuttuğunda açılan menüye Bu kişiyi takip et seçeneğini ekler. HushMessenger, Messenger'ın sana zaten gösterdiklerinden bu kişinin ne zaman çevrimiçi olduğunu, çevrimdışı olduğunu, sana yazdığını ve adını değiştirdiğini kaydeder. Geçmiş bu telefonda kalır ve onu HushMessenger ayarlarından okuyabilirsin.
 chat_menu_items.title	Sohbet menüsü öğelerini gizle
 chat_menu_items.description	Sohbet listende bir sohbete basılı tuttuğunda açılan menüden seçtiğin öğeleri gizler. Herhangi bir sohbete bir kez basılı tut, o menünün öğeleri seçmen için bu anahtarın altında görünür.
+profile_menu_items.title	Profil menüsü öğelerini gizle
+profile_menu_items.description	Sohbette birinin mesajının yanındaki fotoğrafına dokununca açılan menüden seçtiğin öğeleri gizler. Bir fotoğrafa bir kez dokun, o menünün öğeleri seçmen için bu anahtarın altında görünür.
 facebook.title	Facebook kısayollarını gizle
 facebook.description	Facebook düğmelerini, profil ve paylaşım kısayollarını ve Menü sekmesindeki Meta'dan diğerleri ile Abonelikler bölümlerini gizler. Yalnızca Messenger kullanıyorsan işine yarar.
 meta_ai.title	Meta AI'ı gizle
 meta_ai.description	Meta AI'ın yüzen düğmesini, araç çubuğu düğmesini, sekmesini ve menü girişlerini, aramadaki ve @ önerilerindeki yapay zekayı ve bir sohbetin okunmamış mesajlarını özetleme teklifini gizler. Sekmenin kaybolduğunu görmek için Messenger'ı yeniden başlat.
+ai_chat_block.title	Meta AI sohbetlerini engelle
+ai_chat_block.description	Meta AI ve diğer yapay zekâ botlarıyla sohbetlerin aramadan, bir bağlantıdan veya sohbet listenden açılmasını engeller. İçinde yapay zekâ olan bir grup yine açılır.
 moments.title	Sohbet Anlarını gizle
 moments.description	Menüdeki Sohbet Anlarını gizler.
 reels_badge.title	Reels rozetini gizle
@@ -772,6 +811,8 @@ tab_people_show.title	Kişiler sekmesini göster
 tab_people_show.description	Messenger'ın Kişiler sekmesini kaldırdığı hesaplarda onu alttaki çubuğa, Sohbetler'in hemen sağına geri koyar. İkisi de açıksa 'Kişiler sekmesini gizle' geçerli olur. Sekmeyi görmek için Messenger'ı yeniden başlat.
 tab_settings_show.title	Ayarlar sekmesini göster
 tab_settings_show.description	Messenger'ın kendi ayarlar sekmesini, fotoğrafınla birlikte alttaki çubuğun sonuna koyar, böylece hesap ayarların tek dokunuş uzakta olur. Sekmeyi görmek için Messenger'ı yeniden başlat.
+tab_instants_show.title	Instants sekmesini göster
+tab_instants_show.description	Instants'ı alttaki çubuğun ortasına, Messenger'ın bazı hesaplarda koyduğu yere koyar. + düğmesini Sohbetler'den kaldırmak için 'Instants düğmesini gizle'yi de aç. Sekmeyi görmek için Messenger'ı yeniden başlat.
 tab_badges.title	Sekme rozetlerini gizle
 tab_badges.description	Alttaki sekmelerdeki ve üstteki Facebook düğmesindeki kırmızı noktaları ve sayıları gizler. Görmeye devam etmek istediğin rozetler için ilgili 'rozetini koru' anahtarını aç. Değişikliği görmek için Messenger'ı yeniden başlat.
 hide_tab_labels.title	Sekme adlarını gizle
@@ -832,8 +873,12 @@ local_chat_search.title	Kayıtlı mesajlarda ara
 local_chat_search.description	Bir sohbetin arama sonuçlarına, bu telefonda kayıtlı mesajlarda arayan bir düğme ekler. Messenger'ın kendi aramasının hiçbir şey bulamadığı eski sohbetlerde işe yarar. Uçtan uca şifreli olmayan sohbetlerde çalışır ve yalnızca telefonun yüklediğini bulabilir, bu yüzden önce sohbette yukarı kaydır.
 chat_jump.title	İlk mesaja veya bir tarihe git
 chat_jump.description	Sohbetin ilk mesajına veya seçtiğin bir güne gitmek için üstteki sohbet adına uzun bas. Sohbetin sol alt köşesindeki ok ilk mesaja götürür, oka uzun basarsan bir gün sorar. Messenger bir sohbeti sayfa sayfa yüklediği için oraya varana kadar ekranda bir sayaçla geriye kaydırır ve İptal bunu durdurur. Ancak Messenger'ın yükleyebildiği kadar geriye gidebilir.
+pinned_bar.title	Sabitlenmiş mesajları göster
+pinned_bar.description	Bir sohbetin sabitlenmiş mesajlarını adının altındaki bir çubukta gösterir. Messenger'da bu çubuk zaten var ama yalnızca bazı sohbetlerde açıyor.
 landscape.title	Yatay moda izin ver
 landscape.description	Daha geniş bir klavye ve daha büyük fotoğraf ve videolar için Messenger'ın telefonunla birlikte yan dönmesini sağlar. Telefonunun otomatik döndürme ayarına uyar. Aramalar, kamera, ödemeler ve birkaç ekran daha dik kalır. Değiştirdikten sonra Messenger'ı yeniden başlat.
+chat_bar_plus.title	Sohbet çubuğu düğmeleri + menüsünde
+chat_bar_plus.description	Mesaj kutusunun yanında yalnızca + kalır. Kamera, galeri ve mikrofon düğmeleri + ile açılan menüde satır olur ve oradan aynı şekilde çalışır. Android 10 veya sonrası gerekir.
 call_recording.title	Aramaları kaydet
 call_recording.description	Arama sırasında Messenger'ın üstüne bir Kaydı başlat düğmesi ekler. Arama, telefonundaki Recordings/Messenger Calls klasörüne tek bir ses dosyası olarak kaydedilir (Android 10 ve 11'de Music/Messenger Calls). Bu açıkken aramalar Messenger'ın kendi ses yolu yerine Android'in normal ses yolunu kullanır ve değiştirdikten sonra Messenger'ın yeniden başlatılması gerekir. Messenger diğer kişilere haber vermez ve kayıtla ilgili yasalar yerden yere değişir, bu yüzden önce herkesin onayını al.
 call_captions.title	Aramalarda canlı altyazı
@@ -841,7 +886,7 @@ call_captions.description	Arama sırasında karşı tarafın söylediklerini Mes
 hide_call_buttons.title	Arama düğmelerini gizle
 hide_call_buttons.description	Sesli ve görüntülü arama düğmelerini sohbetin üst çubuğundan, işletme sohbetlerinden ve Yeni mesaj ekranından kaldırır, böylece yanlışlıkla birine dokunamazsın. Aramalar yine çalar ve devam eden bir aramaya yine katılabilirsin.
 call_confirm.title	Aramadan önce sor
-call_confirm.description	Sesli veya görüntülü arama düğmesine dokunduğunda önce sorulur, böylece yanlış bir dokunuş kimseyi aramaz. Bu, sohbetin üst çubuğunu, işletme sohbetlerini ve Yeni mesaj ekranını kapsar. Ara aramayı başlatır, İptal başlatmaz. Gelen aramalar etkilenmez.
+call_confirm.description	Sesli veya görüntülü arama düğmesine dokunduğunda önce sorulur, böylece yanlış bir dokunuş kimseyi aramaz. Bu, sohbetin üst çubuğunu, birinin fotoğrafındaki menüyü, işletme sohbetlerini ve Yeni mesaj ekranını kapsar. Ara aramayı başlatır, İptal başlatmaz. Gelen aramalar etkilenmez.
 original_photo.title	Fotoğrafları orijinal kalitede gönder
 original_photo.description	HD açıkken JPEG fotoğrafları küçültülmüş bir kopya yerine tam boyutlarında gönderir. Konum bilgisi yine kaldırılır. 20 MB'tan büyük fotoğraflar yine küçültülür.
 original_video.title	Videoları yeniden kodlamadan gönder
@@ -899,7 +944,7 @@ secure_chat.description	Bu telefonda açık olan bir sohbetin ekran görüntüs�
 appear_offline.title	Çevrimdışı görün
 appear_offline.description	Messenger'ın başkalarına aktif olduğunuzu söylemesini engeller, siz ise kimin aktif olduğunu görmeye devam edersiniz. Messenger'ın kendi Aktiflik durumu ayarı açık kalır, bu yüzden sohbet listenizdeki ve Kişiler sekmesindeki yeşil noktalar her zamanki gibi çalışır ve yalnızca Messenger'ın sizinle ilgili bildirdiği şey değişir. Messenger bir sonraki kez arka plana geçtiğinde ya da geri döndüğünde devreye girer, bu yüzden uygulamayı yeniden başlatmak değişikliği hemen uygular.
 hide_read_receipts.title	Okundu bilgisini gizle
-hide_read_receipts.description	Bir sohbeti açmak artık kişilere mesajlarını okuduğunu bildirmez ve sohbet burada okunmamış kalır. Kendin okundu olarak işaretlersen veya yanıt verirsen sohbet, Messenger'daki gibi okundu olarak işaretlenir ve Görüldü gösterilir. Grup sohbetleri test edilmedi. Messenger'ın Gizlilik ve güvenlik altındaki kendi Okundu bilgisi ayarı, sohbetleri Görüldü göstermeden okundu olarak işaretler. Altındaki İletildi bilgisini gizle, sıradan sohbetlerde İletildi işaretini de tutar.
+hide_read_receipts.description	Bir sohbeti açmak artık kişilere mesajlarını okuduğunu bildirmez ve sohbet burada okunmamış kalır. Kendin okundu olarak işaretlersen, yanıt verirsen veya bir mesaja tepki verirsen sohbet, Messenger'daki gibi okundu olarak işaretlenir ve Görüldü gösterilir. Grup sohbetleri test edilmedi. Messenger'ın Gizlilik ve güvenlik altındaki kendi Okundu bilgisi ayarı, sohbetleri Görüldü göstermeden okundu olarak işaretler. Altındaki İletildi bilgisini gizle, sıradan sohbetlerde İletildi işaretini de tutar.
 mark_read_button.title	Okundu olarak işaretle düğmesi
 mark_read_button.description	'Okundu bilgisini gizle' açıkken Messenger'ın Okundu olarak işaretle simgesini sohbetin üst çubuğuna koyar. Sohbeti açmak yine hiçbir şey göndermez. Gönderenin Görüldü'yü görmesini istediğinde simgeye dokun, sohbet burada da okundu olur. Çubuk doluysa sohbet ayrıntıları düğmesinin yerini alır (sohbetin adına dokunmak aynı sayfayı açar) ya da sohbette o düğme yoksa arama için olmayan başka bir düğmenin yerini alır, böylece arama düğmeleri yerinde kalır.
 read_chats_locally.title	Sohbetleri bu telefonda okundu olarak işaretle
@@ -916,16 +961,18 @@ blocked_list_pictures.title	Engellenenler listesinde resimleri gizle
 blocked_list_pictures.description	Gizlilik ve güvenlik altındaki engellediğin kişiler listesinde profil resimlerini gizler. Adlar ve Engeli kaldır düğmesi kalır.
 restricted_notify.title	Kısıtlanan sohbetler için bildir
 restricted_notify.description	Kısıtladığın kişilerle olan sohbetler, uçtan uca şifreli olmadıkça diğer sohbetlerin gibi sana bildirim gönderir. Sessize aldığın bir sohbet sessiz kalır. Kısıtlanan kişiler yine de ne zaman aktif olduğunu veya mesajlarını ne zaman okuduğunu göremez.
+open_chat_sound.title	Açık sohbette ses
+open_chat_sound.description	Açık olan sohbetine bir mesaj geldiğinde Messenger'ın uygulama içi mesaj sesini çalar. Messenger bunu beğeniler ve çıkartmalar için zaten yapıyor. Telefon sessizdeyse ya da Messenger'ın kendi uygulama içi sesler ayarı kapalıysa yine ses çıkmaz.
 passkey_login.title	Geçiş anahtarıyla girişi atla
 passkey_login.description	Giriş yaparken bu telefondaki geçiş anahtarı artık sunulmaz, böylece Facebook girişi oturum açtığın başka bir cihazdan onaylamanı ister, geçiş anahtarı olmayan bir hesapta yaptığı gibi. Yamalı bir Messenger, Facebook'un geçiş anahtarı kontrolünü geçemez ve bazı girişlerin tarayıcı kontrolünde dönüp durmasının nedeni bu. Açıkken Messenger şifreli yedeklemeleri için de geçiş anahtarı kullanamaz, bu yüzden bir giriş takılmadıkça kapalı bırak. Oturum açmadan bu ayarlara ulaşmak için Messenger'ın ana ekran simgesine uzun bas.
+recovery_code_row.title	40 karakterlik kod seçeneğini göster
+recovery_code_row.description	Hesabında görünmediğinde, Messenger'ın 40 karakterlik kod oluşturma seçeneğini şifreli sohbet ayarlarında gösterir. Sayfanın geri kalanı değişmez.
 material_you.title	Material You teması
 material_you.description	Messenger'ın karanlık modunu Android 12 ve sonrasında duvar kağıdı renklerinle, Android 11'de sabit bir maviyle renklendirir. Önce Messenger'da karanlık modu aç. Açık mod, 'Açık modda vurgu rengi' seçeneğini açmadıkça kendi renklerini korur.
-app_icons.title	Uygulama simgelerinin kilidini aç
-app_icons.description	Messenger'ın Uygulama simgesi ayarında abonelik olmadan istediğin simgeyi seçmene izin verir. Bu ayarın sana gösterilip gösterilmeyeceğine Messenger karar verir. Bunu kapatmak varsayılan simgeyi geri getirebilir.
-app_themes.title	Uygulama temalarının kilidini aç
-app_themes.description	Messenger'ın Tema ayarında abonelik olmadan istediğin temayı seçmene izin verir, böylece açık mod da bir renk alabilir. Hesabına hangi temaları sunacağına yine Messenger karar verir.
 avatar_shape.title	Kare profil resimleri
 avatar_shape.description	Kişilerin profil resimlerini daire yerine kare olarak gösterir. Yuvarlatılmış kareler için aşağıdaki 'Köşeleri yuvarlat' seçeneğini aç. Değişikliği görmek için Messenger'ı yeniden başlat.
+thin_story_rings.title	İnce hikaye halkaları
+thin_story_rings.description	Hikayesi olan bir profil resminin etrafındaki renkli halkayı normal kalınlığının yarısında çizer, böylece daha az yer kaplar.
 home_header.title	Kendi ana sayfa başlığın
 home_header.description	Sohbet listesinin üstüne, Messenger'ın yazı logosu yerine kendi yazını veya resmini koyar. Yazıyı yaz veya resmi aşağıdan seç. İkisi de yoksa yazı logosu kalır. Değişikliği görmek için Messenger'ı yeniden başlat.
 custom_font.title	Kendi yazı tipini kullan
@@ -936,3 +983,5 @@ invisible_buttons.title	Görünmez düğmeler
 invisible_buttons.description	Aşağıda seçtiğin düğmeleri görünmez ya da yarı saydam yapar ama yeri, boyutu ve yaptığı iş aynı kalır, yani dokunuş hâlâ işler. Sohbet listesinde, sohbetin içinde ve menülerde çalışır, HushMessenger'ın kendi düğmeleri de dahil. Messenger'ın sana gösterdiği her düğme, ekran okuyucunun söylediği adla listelenir, bu yüzden listeyi doldurmak için Messenger'ı biraz kullan.
 ios_bars.title	Yarı saydam sohbet çubukları
 ios_bars.description	Sohbetin üst çubuğu ve mesaj kutusu yarı saydam olur, mesajlar altlarından kayar ve bulanık görünür, iPhone'daki çubuklar gibi. Android 12 veya sonrası gerekir.
+refresh_rate.title	Ekran yenileme hızı
+refresh_rate.description	Bir Messenger ekranı her açıldığında ekrandan aşağıda seçtiğin yenileme hızını ister, örneğin pil tasarrufu için 60 Hz ya da daha akıcı kaydırma için ekranının en yüksek hızı. Telefonun yine de bunu yok sayabilir, örneğin güç tasarrufu modunda ya da kendi hareket akıcılığı ayarı hızı sınırladığında.

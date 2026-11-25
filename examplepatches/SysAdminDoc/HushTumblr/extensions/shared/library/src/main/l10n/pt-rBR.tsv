@@ -253,6 +253,25 @@ Hide gift purchase popups	Ocultar pop-ups de compra de presentes
 Hides the pop-up suggesting you buy a gift for a blog. You can still open gifting yourself.	Oculta o pop-up que sugere comprar um presente para um blog. Você ainda pode abrir a opção de presentes por conta própria.
 Line between posts	Linha entre posts
 Draws a thin line in the gap between posts, so it's easier to see where one ends and the next begins.	Desenha uma linha fina no espaço entre os posts, para ficar mais fácil ver onde um termina e o próximo começa.
+# context: the Text size switch on the Interface page and the Size row under it, whose summary names a percentage of the phone's own text size, such as 115%.
+Text size	Tamanho do texto
+Makes Tumblr's text bigger or smaller than your phone's font size makes it. Pick how big below.	Deixa o texto do Tumblr maior ou menor do que o tamanho de fonte do seu celular. Escolha o tamanho abaixo.
+Size	Tamanho
+%1$s of your phone's text size. Tap to change.	%1$s do tamanho de texto do seu celular. Toque para mudar.
+Couldn't save the size. Try again.	Não foi possível salvar o tamanho. Tente de novo.
+# context: the More images per post switch on the Interface page (the post editor's image limit), and the name the settings backup preview gives the Text size row's percentage.
+More images per post	Mais imagens por post
+Lets you add up to 30 images to a post, as Tumblr's website does, instead of 10.	Permite adicionar até 30 imagens a um post, como no site do Tumblr, em vez de 10.
+Fix hard-to-read text	Corrigir texto difícil de ler
+Fits the related tags under a trending topic at bigger text sizes, where Tumblr cuts them in half, and shades the box you type in when you search a blog so the words show over a bright header.	Ajusta as tags relacionadas embaixo de um assunto em alta em tamanhos de texto maiores, onde o Tumblr corta pela metade, e põe um fundo na caixa em que você digita ao buscar em um blog para as palavras aparecerem sobre um cabeçalho claro.
+Dark search bar and Follow button	Barra de busca e botão Seguir escuros
+Dark search bar	Barra de busca escura
+Turns the white search bar on Explore dark.	Deixa escura a barra de busca branca do Explorar.
+Hide the Search Tumblr label	Ocultar o texto Buscar no Tumblr
+Takes the Search Tumblr text off Explore's search bar and leaves the icon.	Tira o texto Buscar no Tumblr da barra de busca do Explorar e deixa o ícone.
+Dark Follow button on blogs	Botão Seguir escuro nos blogs
+Turns the white Follow button at the top of a blog dark.	Deixa escuro o botão Seguir branco no topo de um blog.
+Text size percentage	Porcentagem do tamanho do texto
 App font	Fonte do app
 Replaces Tumblr's own font with your phone's font, or a font file you choose below. Fonts a post's author picked stay as they are.	Troca a fonte própria do Tumblr pela fonte do seu celular ou por um arquivo de fonte que você escolher abaixo. As fontes que o autor de um post escolheu continuam como estão.
 Choose a font file	Escolher um arquivo de fonte
@@ -288,6 +307,9 @@ Hide suggested tags	Ocultar tags sugeridas
 Takes the tags Tumblr suggests you follow, and their headings, out of your dashboard and other feeds.	Tira do seu painel e de outros feeds as tags que o Tumblr sugere que você siga, junto com os títulos delas.
 Hide Watch it rows	Ocultar linhas do Watch it
 Takes Tumblr TV's Watch it rows and video hub cards, and their headings, out of your dashboard and other feeds.	Tira do seu painel e de outros feeds as linhas do Watch it e os cards de vídeo do Tumblr TV, junto com os títulos deles.
+# context: the Hide More posts like this switch on the Interface page. More posts like this is the heading Tumblr shows over related posts under a post you open; use the words Tumblr shows in your language.
+Hide More posts like this	Ocultar Mais posts como este
+Takes the More posts like this grid out from under a post you open, along with its heading.	Tira a grade Mais posts como este, com o título, de baixo de um post que você abre.
 # context: the Hide Featured posts switch on the Feed page. Featured is the header Tumblr shows over posts its own staff promote; use the word Tumblr shows in your language.
 Hide Featured posts	Ocultar posts em destaque
 Takes the posts Tumblr's staff feature under a Featured header out of your dashboard and other feeds.	Tira do seu painel e de outros feeds os posts que a equipe do Tumblr mostra sob o título Em destaque.
@@ -404,6 +426,8 @@ Hide reblogs of your posts	Ocultar reblogs dos seus posts
 Takes other people's reblogs of your posts out of your dashboard. Your blog and the rest of Tumblr still show them.	Tira do seu painel os reblogs que outras pessoas fazem dos seus posts. Seu blog e o resto do Tumblr continuam mostrando esses reblogs.
 Hide liked posts	Ocultar posts curtidos
 Takes the posts you've already liked out of your dashboard. Your likes and the rest of Tumblr still show them.	Tira do seu painel os posts que você já curtiu. Suas curtidas e o resto do Tumblr continuam mostrando esses posts.
+Hide followed blogs in For you	Ocultar blogs seguidos em Para você
+Takes posts from blogs you follow out of the For you tab. Following still shows them.	Tira da aba Para você os posts dos blogs que você segue. Seguindo continua mostrando esses posts.
 Match current post text	Buscar no texto do post atual
 Match reblog trail text	Buscar no texto da cadeia de reblogs
 Match current post tags	Buscar nas tags do post atual
@@ -513,6 +537,8 @@ Collapse long posts	Recolher posts longos
 Cuts long posts with a Read more row, at the length below. Tap it to open the whole post.	Corta posts longos no tamanho abaixo, com uma linha de Ler mais. Toque nela para abrir o post inteiro.
 # context: the Collapsed post length row under that switch: its title, the lengths a tap moves through, its summary and the note when a save fails
 Collapsed post length	Tamanho dos posts recolhidos
+About 5 lines	Cerca de 5 linhas
+About 10 lines	Cerca de 10 linhas
 About half a screen	Cerca de meia tela
 About a screen	Cerca de uma tela
 About two screens	Cerca de duas telas

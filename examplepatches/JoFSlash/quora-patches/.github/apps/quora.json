@@ -1,6 +1,5 @@
 {
   "name": "Quora",
-  "workflow": "emulator.yml",
   "patches": "patches/src/main/kotlin/app/jofslash/patches/quora",
   "extension": "extensions/quora",
   "docs": "docs/quora/README.md",
@@ -91,7 +90,6 @@
     "phone_test": "try the feed on a phone: the page patches can't be checked without a signed-in account.",
     "check_flags": "--expect-login",
     "emulator_api": "34",
-    "pr_base": "dev",
     "bump_title": false
   }
 }

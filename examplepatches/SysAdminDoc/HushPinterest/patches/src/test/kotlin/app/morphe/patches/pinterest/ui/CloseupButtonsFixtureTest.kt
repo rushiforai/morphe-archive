@@ -391,6 +391,41 @@ class CloseupButtonsFixtureTest {
     }
 
     @Test
+    fun `Black buttons hands every styled GestaltButton over at the same spot, whichever patch goes in first`() {
+        for (build in Fixtures.declaredBuilds().map(::read)) {
+            for (order in listOf(listOf(hideCloseupButtonsPatch, amoledBlackPatch), listOf(amoledBlackPatch, hideCloseupButtonsPatch))) {
+                val first = if (order[0] === amoledBlackPatch) "AMOLED black first" else "Hide closeup buttons first"
+                val context = PatchContexts.of(ExtensionDex.classes() + build.classes)
+                order.forEach { it.execute(context) }
+                assertEquals("${build.name}, $first: blackButtons", 1, flag(context, "blackButtons"))
+                assertEquals("${build.name}, $first: closeupSaveButton", 1, flag(context, "closeupSaveButton"))
+                val (style, save) = hookSites(context, build.classes, CLOSEUP_SAVE_BUTTON_HOOK).single()
+                val (same, black) = hookSites(context, build.classes, BLACK_BUTTONS_HOOK).single()
+                assertEquals("${build.name}, $first: one style method", style, same)
+                val original = style.implementation!!.instructions.toList()
+                val body = patched(context, style)
+                val self = style.thisRegister()
+                val start = minOf(save, black)
+                assertEquals("${build.name}, $first: side by side", 1, maxOf(save, black) - start)
+                // Whichever went in second holds the label, so it runs first.
+                assertEquals("${build.name}, $first: the second patch's call runs first",
+                    if (order[0] === amoledBlackPatch) save else black, start)
+                assertEquals("${build.name}, $first: right after it pads its icon", COMPOUND_PADDING,
+                    (body[start - 1] as ReferenceInstruction).reference.toString())
+                for (at in listOf(save, black)) assertEquals("${build.name}, $first: the button itself", listOf(self), body[at].namedRegisters())
+                val kept = body.indices.filter { it != save && it != black }
+                val jumps = branchesTo(original, start).map { kept[it] }
+                assertTrue("${build.name}, $first: a branch skips the padding", jumps.isNotEmpty())
+                assertEquals("${build.name}, $first: the branches past the padding", jumps, branchesTo(body, start))
+                assertEquals("${build.name}, $first: nothing jumps between the calls", emptyList<Int>(), branchesTo(body, start + 1))
+                assertEquals("${build.name}, $first: nothing jumps past them", emptyList<Int>(), branchesTo(body, start + 2))
+                assertEquals("${build.name}, $first: every original instruction stays", original.opcodes(),
+                    kept.map { body[it] }.opcodes())
+            }
+        }
+    }
+
+    @Test
     fun `without a GestaltButton style method that keeps the button in its this register, the other switches stay`() {
         val build = read(Fixtures.declaredBuilds().last())
         val button = build.classes.single { it.type == GESTALT_BUTTON }

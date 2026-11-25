@@ -12,9 +12,12 @@ public final class GboardLongPressQuickActionsSettings {
             "pref_long_press_quick_actions_globe_drag_enabled";
     public static final String PREF_KEY_SELECT_ALL_WHEN_UNSELECTED =
             "pref_long_press_quick_actions_select_all_when_unselected";
+    public static final String PREF_KEY_DISABLE_ENTER_ONE_HANDED =
+            "pref_long_press_quick_actions_disable_enter_one_handed";
     public static final boolean DEFAULT_ENABLED = true;
     public static final boolean DEFAULT_GLOBE_DRAG_ENABLED = false;
     public static final boolean DEFAULT_SELECT_ALL_WHEN_UNSELECTED = false;
+    public static final boolean DEFAULT_DISABLE_ENTER_ONE_HANDED = false;
 
     private GboardLongPressQuickActionsSettings() {
     }
@@ -43,6 +46,11 @@ public final class GboardLongPressQuickActionsSettings {
     public static boolean readSelectAllWhenUnselected(SharedPreferences preferences) {
         return readBoolean(preferences, PREF_KEY_SELECT_ALL_WHEN_UNSELECTED,
                 DEFAULT_SELECT_ALL_WHEN_UNSELECTED);
+    }
+
+    public static boolean readDisableEnterOneHanded(SharedPreferences preferences) {
+        return readBoolean(preferences, PREF_KEY_DISABLE_ENTER_ONE_HANDED,
+                DEFAULT_DISABLE_ENTER_ONE_HANDED);
     }
 
     private static boolean readBoolean(SharedPreferences preferences, String key,
@@ -82,6 +90,11 @@ public final class GboardLongPressQuickActionsSettings {
         if (!preferences.contains(PREF_KEY_SELECT_ALL_WHEN_UNSELECTED)) {
             editor.putBoolean(PREF_KEY_SELECT_ALL_WHEN_UNSELECTED,
                     DEFAULT_SELECT_ALL_WHEN_UNSELECTED);
+            changed = true;
+        }
+        if (!preferences.contains(PREF_KEY_DISABLE_ENTER_ONE_HANDED)) {
+            editor.putBoolean(PREF_KEY_DISABLE_ENTER_ONE_HANDED,
+                    DEFAULT_DISABLE_ENTER_ONE_HANDED);
             changed = true;
         }
         if (changed) {
@@ -130,6 +143,17 @@ public final class GboardLongPressQuickActionsSettings {
             boolean enabled) {
         return preferences != null && preferences.edit()
                 .putBoolean(PREF_KEY_SELECT_ALL_WHEN_UNSELECTED, enabled)
+                .commit();
+    }
+
+    public static boolean writeDisableEnterOneHanded(Context context, boolean disabled) {
+        return writeBoolean(context, PREF_KEY_DISABLE_ENTER_ONE_HANDED, disabled);
+    }
+
+    public static boolean writeDisableEnterOneHanded(SharedPreferences preferences,
+            boolean disabled) {
+        return preferences != null && preferences.edit()
+                .putBoolean(PREF_KEY_DISABLE_ENTER_ONE_HANDED, disabled)
                 .commit();
     }
 }

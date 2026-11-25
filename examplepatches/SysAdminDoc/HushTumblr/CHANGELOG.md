@@ -2,11 +2,19 @@
 
 ## Unreleased
 
+* New **Fix hard-to-read text** switch on the Interface page, on by default. With bigger text, the related tags under a trending topic on Explore were cut in half, because Tumblr gives them a fixed height. They grow to fit now. Searching inside a blog with a bright header left what you typed nearly invisible, so the search box gets a shade behind it.
+* Three new switches on the Interface page, all off by default. **Dark search bar** turns the white search bar on Explore dark, and **Hide the Search Tumblr label** takes the text off it and leaves the icon. Both show after a restart. **Dark Follow button on blogs** turns the white Follow button at the top of a blog dark the next time you open one.
+* New **Hide followed blogs in For you** switch on the Feed page, off by default. For you mixes posts from blogs you already follow in with the ones Tumblr picks for you. With the switch on, those posts stay out of For you. Following still shows them, and so does the rest of Tumblr.
+* New **More images per post** switch on the Interface page, off by default. The app stops a post at 10 images while Tumblr's website takes 30. With it on, the editor takes up to 30, and so does sharing a batch of images into Tumblr from your gallery.
+* New **Text size** switch on the Interface page, off by default. It makes Tumblr's text bigger or smaller than your phone's font size, from 85% to 130%. The Size row under it picks how big, and a new size takes effect after a restart.
+* The patches move from 47.0.0.108 to Tumblr 47.3.0.110, the newest release. Every patch applies to it, so that's the version to patch.
+* New **Hide More posts like this** switch on the Interface page, off by default. When you open a post, Tumblr puts a grid of related posts under it with a "More posts like this" heading. With the switch on, the grid and its heading are gone and the post you opened stays.
+* Collapse long posts can fold much shorter now. Collapsed post length on the Posts page goes down to about 5 or about 10 lines, besides half a screen, a screen and two screens. At those lengths a post only needs a few more lines than fit before it's folded.
 * Settings with TalkBack and a keyboard: pressing Undo on the "HushTumblr is on" card keeps TalkBack on the card's button. When the Restart row went away above the row your keys were on, TalkBack used to jump to that row, usually Quick setups.
 * New **Keep reblogs in communities** option under Hide reblogs on the Feed page, off by default. Reblogs shared to a community stay in place even when the person added no text or tags, and every other reblog stays hidden.
 * New **Fit full-screen videos** switch on the Interface page, off by default. Tumblr stretches a tall video to the screen's full height in its full-screen player, and that can cut off the left and right sides. With the switch on you see the whole video.
 * New **Tap to play feed videos** switch on the Interface page, off by default. Tumblr sends any tap on a feed video to the full-screen player, even with auto-play off and a play button showing. With the switch on, tapping a stopped video plays it right there, and tapping it while it plays opens it full screen. Ads keep working the way they do now.
-* HushTumblr now builds on Morphe patcher 2.4.0, the one that comes with Morphe Manager 2.6.0 and Morphe Desktop 2.2.0. Update Manager to 2.6.0 or newer before you load the next release.
+* HushTumblr now builds on Morphe patcher 2.5.0, the one that comes with Morphe Manager 2.7.0 and Morphe Desktop 2.3.0. Update Manager to 2.7.0 or newer before you load the next release.
 * **Tooling:** The GitHub release notes carry the Tumblr bullets under What's new and the update steps now. The Tooling bullets stay here in the changelog, and a hand-written tail with a Validation section is refused.
 
 ## 0.0.11 (2026-11-14)

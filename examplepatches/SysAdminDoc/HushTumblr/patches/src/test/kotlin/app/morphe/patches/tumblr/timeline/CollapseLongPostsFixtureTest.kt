@@ -45,7 +45,7 @@ class CollapseLongPostsFixtureTest {
             val postBefore = post.method.instructionList().toList()
             // The patch edits these same instructions, so their prints and branch targets are read now.
             val postClean = Clean(postBefore.map(::fingerprint), targets(postBefore))
-            assertEquals("${build.name}: the post's every-row list", "g", postBefore[post.at - 2].methodRef()?.name)
+            assertEquals("${build.name}: the post's every-row list", "f", postBefore[post.at - 2].methodRef()?.name)
             assertEquals(build.name, listOf(post.composer, postBefore[post.at].namedRegisters()[1], post.rows),
                 postBefore[post.at].namedRegisters())
             val others = context.mutableClassDefBy(POST_COMPOSER).methods

@@ -1,0 +1,174 @@
+{
+  "format": 1,
+  "scope": "Bounded diagnostic reproduction only; source/receiver/TTS observation before stimuli, no timing acceptance or natural-detector/car claim",
+  "status": "diagnostic_complete_original_failure_unresolved",
+  "root_cause_established": false,
+  "product_fix_claimed": false,
+  "performance_claimed": false,
+  "permission_hypothesis": "Not established: denied-permission ordinary control03 completed all six measured warnings including sequence16;03 session retains terminal observer coverage failure",
+  "producer_apk_sha256": "19d40560cb885f868ffeeb936f12a0daa0e7fa666776acf1582e85e63b6c2ecd",
+  "maps_apk_sha256": "3285d836bfb7caefd361fec42d7ed080017021f885eabf331b02b88287fb8839",
+  "frida_version": "17.23.3",
+  "java_bridge_version": "7.0.13",
+  "cases": {
+    "prepared-ordinary-6": {
+      "exit_code": 0,
+      "measured_completed": 6,
+      "all_finish_sequence_outcomes": [
+        [
+          1,
+          "COMPLETED"
+        ],
+        [
+          4,
+          "COMPLETED"
+        ],
+        [
+          7,
+          "COMPLETED"
+        ],
+        [
+          10,
+          "COMPLETED"
+        ],
+        [
+          13,
+          "COMPLETED"
+        ],
+        [
+          16,
+          "COMPLETED"
+        ],
+        [
+          19,
+          "COMPLETED"
+        ]
+      ],
+      "tts_speak_return_values": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "hooks_ready_packages": [
+        "nl.flitsmeister",
+        "org.ungoogled.android.apps.maps",
+        "com.google.android.tts"
+      ],
+      "coverage_lost": false,
+      "trace_cleanup_required": false,
+      "abnormal_causal_events": [],
+      "crashes": [],
+      "source_trace_gate_passed_elapsed_ms": 41997,
+      "first_native_authority_issued_elapsed_ms": 47043,
+      "first_measured_authority_issued_elapsed_ms": 50697
+    },
+    "prepared-p0-6": {
+      "exit_code": 0,
+      "measured_completed": 6,
+      "all_finish_sequence_outcomes": [
+        [
+          1,
+          "COMPLETED"
+        ],
+        [
+          4,
+          "COMPLETED"
+        ],
+        [
+          7,
+          "COMPLETED"
+        ],
+        [
+          10,
+          "COMPLETED"
+        ],
+        [
+          13,
+          "COMPLETED"
+        ],
+        [
+          16,
+          "COMPLETED"
+        ],
+        [
+          19,
+          "COMPLETED"
+        ]
+      ],
+      "tts_speak_return_values": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "hooks_ready_packages": [
+        "nl.flitsmeister",
+        "org.ungoogled.android.apps.maps",
+        "com.google.android.tts"
+      ],
+      "coverage_lost": false,
+      "trace_cleanup_required": false,
+      "abnormal_causal_events": [],
+      "crashes": [],
+      "source_trace_gate_passed_elapsed_ms": 75825,
+      "first_native_authority_issued_elapsed_ms": 80986,
+      "first_measured_authority_issued_elapsed_ms": 89260
+    }
+  },
+  "tests": {
+    "python_full": {
+      "run": 562,
+      "skipped": 45,
+      "failures": 0
+    },
+    "affected_firewall_cleanup": {
+      "run": 12,
+      "failures": 0
+    },
+    "observer_compile": "Frida17.23.3 compiler with pinned Java bridge7.0.13 succeeded"
+  },
+  "cleanup": {
+    "original_app_settings_audio_launch_restored": true,
+    "independent_netd_changes_preserved": true,
+    "restore_required": false,
+    "snapshot_removed": true,
+    "frida_server_stopped": true,
+    "frida_forward_removed": true,
+    "frida_remote_storage_removed": true,
+    "helpers_removed": true,
+    "final_runtime_stopped": true,
+    "cleanup_required": false,
+    "media_volume_before": {
+      "index": 5,
+      "minimum": 0,
+      "maximum": 15
+    },
+    "media_volume_after": {
+      "index": 5,
+      "minimum": 0,
+      "maximum": 15
+    },
+    "known_netd_changes": {
+      "iptables": [
+        "Android netd interface marks/wakeup/idle-timer rules changed in *mangle; preserved",
+        "Android netd interface marks/wakeup/idle-timer rules changed in *raw; preserved"
+      ],
+      "ip6tables": [
+        "Android netd interface marks/wakeup/idle-timer rules changed in *mangle; preserved",
+        "Android netd interface marks/wakeup/idle-timer rules changed in *raw; preserved"
+      ]
+    }
+  },
+  "evidence_archive": {
+    "path": ".analysis/native-warning-bindings/fm15-port/frida-reproduction-04/evidence.tar.gz",
+    "sha256": "d80bbc622a14cab81ec107e64fc691c29c378849d16987d4af23a6612a872bbe",
+    "bytes": 354054
+  }
+}

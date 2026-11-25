@@ -1,9 +1,11 @@
-name: Retry Superseded Release
+name: Retry Release Failure
 
-# A Release run can fail after `@semantic-release/git` pushes the release commit
-# but before any tag is created, when another push lands during the build. That
-# failure is safe to re-run. This workflow re-runs at most one attempt, and only
-# when the remote state proves no tag was recorded for the computed version.
+# A Release run can fail before any tag is created. Re-running only the failed
+# release job (so the successful verify job is reused) is safe only while the
+# remote release branch still points at the exact revision that verify job
+# checked out. A moved or force-pushed branch is never retried: it needs a
+# fresh run that verifies the new tip. This workflow re-runs at most one
+# attempt, and only for runs targeting `release/main` or `release/dev`.
 #
 # workflow_run workflows are loaded from the default branch, so this file takes
 # effect once it reaches `main`.
@@ -27,7 +29,8 @@ jobs:
     if: >-
       github.event.workflow_run.conclusion == 'failure' &&
       github.event.workflow_run.run_attempt == 1 &&
-      github.event.workflow_run.head_branch != ''
+      (github.event.workflow_run.head_branch == 'release/main' ||
+      github.event.workflow_run.head_branch == 'release/dev')
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:

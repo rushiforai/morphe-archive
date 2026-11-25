@@ -254,7 +254,7 @@ public class TrackMuxerTest {
         @Implementation protected void release() { released = true; }
     }
 
-    private static final class Sample {
+    static final class Sample {
         final int track, flags;
         final long timeUs;
         final byte[] payload;

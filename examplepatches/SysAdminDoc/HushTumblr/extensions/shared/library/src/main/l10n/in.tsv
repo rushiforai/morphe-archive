@@ -256,6 +256,25 @@ Hide gift purchase popups	Sembunyikan pop-up pembelian hadiah
 Hides the pop-up suggesting you buy a gift for a blog. You can still open gifting yourself.	Menyembunyikan pop-up yang menyarankan untuk membeli hadiah bagi sebuah blog. Anda tetap dapat membuka fitur hadiah sendiri.
 Line between posts	Garis antar postingan
 Draws a thin line in the gap between posts, so it's easier to see where one ends and the next begins.	Menggambar garis tipis di celah antar postingan, sehingga lebih mudah melihat di mana satu postingan berakhir dan berikutnya dimulai.
+# context: the Text size switch on the Interface page and the Size row under it, whose summary names a percentage of the phone's own text size, such as 115%.
+Text size	Ukuran teks
+Makes Tumblr's text bigger or smaller than your phone's font size makes it. Pick how big below.	Membuat teks Tumblr lebih besar atau lebih kecil dari ukuran font ponselmu. Pilih ukurannya di bawah.
+Size	Ukuran
+%1$s of your phone's text size. Tap to change.	%1$s dari ukuran teks ponselmu. Ketuk untuk mengubah.
+Couldn't save the size. Try again.	Tidak dapat menyimpan ukuran. Coba lagi.
+# context: the More images per post switch on the Interface page (the post editor's image limit), and the name the settings backup preview gives the Text size row's percentage.
+More images per post	Lebih banyak gambar per postingan
+Lets you add up to 30 images to a post, as Tumblr's website does, instead of 10.	Memungkinkanmu menambahkan hingga 30 gambar ke postingan, seperti di situs web Tumblr, bukan 10.
+Fix hard-to-read text	Perbaiki teks yang sulit dibaca
+Fits the related tags under a trending topic at bigger text sizes, where Tumblr cuts them in half, and shades the box you type in when you search a blog so the words show over a bright header.	Menyesuaikan tag terkait di bawah topik yang sedang tren pada ukuran teks lebih besar, yang oleh Tumblr terpotong setengah, dan memberi latar pada kotak tempat kamu mengetik saat mencari di sebuah blog agar tulisannya terlihat di atas header yang terang.
+Dark search bar and Follow button	Bilah pencarian dan tombol Ikuti gelap
+Dark search bar	Bilah pencarian gelap
+Turns the white search bar on Explore dark.	Membuat bilah pencarian putih di Jelajahi menjadi gelap.
+Hide the Search Tumblr label	Sembunyikan label Cari Tumblr
+Takes the Search Tumblr text off Explore's search bar and leaves the icon.	Menghapus teks Cari Tumblr dari bilah pencarian Jelajahi dan menyisakan ikonnya.
+Dark Follow button on blogs	Tombol Ikuti gelap di blog
+Turns the white Follow button at the top of a blog dark.	Membuat tombol Ikuti putih di bagian atas blog menjadi gelap.
+Text size percentage	Persentase ukuran teks
 App font	Font aplikasi
 Replaces Tumblr's own font with your phone's font, or a font file you choose below. Fonts a post's author picked stay as they are.	Mengganti font bawaan Tumblr dengan font ponselmu atau file font yang kamu pilih di bawah. Font yang dipilih penulis postingan tetap seperti aslinya.
 Choose a font file	Pilih file font
@@ -291,6 +310,9 @@ Hide suggested tags	Sembunyikan tag yang disarankan
 Takes the tags Tumblr suggests you follow, and their headings, out of your dashboard and other feeds.	Menghapus tag yang disarankan Tumblr untuk kamu ikuti, beserta judulnya, dari dasbor dan feed lainnya.
 Hide Watch it rows	Sembunyikan baris Watch it
 Takes Tumblr TV's Watch it rows and video hub cards, and their headings, out of your dashboard and other feeds.	Menghapus baris Watch it dan kartu video hub dari Tumblr TV, beserta judulnya, dari dasbor dan feed lainnya.
+# context: the Hide More posts like this switch on the Interface page. More posts like this is the heading Tumblr shows over related posts under a post you open; use the words Tumblr shows in your language.
+Hide More posts like this	Sembunyikan Postingan lain seperti ini
+Takes the More posts like this grid out from under a post you open, along with its heading.	Menghapus kisi Postingan lain seperti ini beserta judulnya dari bawah postingan yang kamu buka.
 # context: the Hide Featured posts switch on the Feed page. Featured is the header Tumblr shows over posts its own staff promote; use the word Tumblr shows in your language.
 Hide Featured posts	Sembunyikan postingan unggulan
 Takes the posts Tumblr's staff feature under a Featured header out of your dashboard and other feeds.	Menghapus postingan yang ditampilkan tim Tumblr di bawah judul Unggulan dari dasbor dan feed lainnya.
@@ -407,6 +429,8 @@ Hide reblogs of your posts	Sembunyikan reblog postinganmu
 Takes other people's reblogs of your posts out of your dashboard. Your blog and the rest of Tumblr still show them.	Menghapus reblog orang lain atas postinganmu dari dasbor. Blogmu dan bagian lain Tumblr tetap menampilkannya.
 Hide liked posts	Sembunyikan postingan yang disukai
 Takes the posts you've already liked out of your dashboard. Your likes and the rest of Tumblr still show them.	Menghapus postingan yang sudah kamu sukai dari dasbor. Daftar sukamu dan bagian lain Tumblr tetap menampilkannya.
+Hide followed blogs in For you	Sembunyikan blog yang diikuti di Untuk Anda
+Takes posts from blogs you follow out of the For you tab. Following still shows them.	Menghapus postingan dari blog yang kamu ikuti dari tab Untuk Anda. Mengikuti tetap menampilkannya.
 Match current post text	Cocokkan teks postingan saat ini
 Match reblog trail text	Cocokkan teks rantai reblog
 Match current post tags	Cocokkan tag postingan saat ini
@@ -516,6 +540,8 @@ Collapse long posts	Ciutkan postingan panjang
 Cuts long posts with a Read more row, at the length below. Tap it to open the whole post.	Memotong postingan panjang sesuai panjang di bawah, dengan baris Baca selengkapnya. Ketuk untuk membuka postingan lengkap.
 # context: the Collapsed post length row under that switch: its title, the lengths a tap moves through, its summary and the note when a save fails
 Collapsed post length	Panjang postingan yang diciutkan
+About 5 lines	Sekitar 5 baris
+About 10 lines	Sekitar 10 baris
 About half a screen	Sekitar setengah layar
 About a screen	Sekitar satu layar
 About two screens	Sekitar dua layar

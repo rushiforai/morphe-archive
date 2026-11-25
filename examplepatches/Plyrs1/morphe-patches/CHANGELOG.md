@@ -1,3 +1,9 @@
+## [1.6.0-dev.11](https://github.com/Plyrs1/morphe-patches/compare/v1.6.0-dev.10...v1.6.0-dev.11) (2026-11-24)
+
+### 🐛 Bug Fixes
+
+* **com_gajihub_app:** cancel tracking notification and prevent recovery on clock-out ([cfb3ef9](https://github.com/Plyrs1/morphe-patches/commit/cfb3ef9755261ef882ca84ce4a4138a7b17ae863))
+
 ## [1.6.0-dev.10](https://github.com/Plyrs1/morphe-patches/compare/v1.6.0-dev.9...v1.6.0-dev.10) (2026-11-24)
 
 ### ✨ New Features

@@ -1857,3 +1857,9 @@ Preferred subtitles	Subtítulos preferidos
 Preferred dubs	Doblajes preferidos
 Always open on Home	Abrir siempre en Inicio
 PineDrama sometimes starts on Discover, like in the first days after an install. This starts it on Home instead.	PineDrama a veces se abre en Descubrir, por ejemplo en los primeros días tras instalarlo. Con esto se abre en Inicio.
+Search this list	Buscar en esta lista
+Nothing in this list matches	Nada de esta lista coincide
+Tap the tab you're on to go back to the top	Toca la pestaña en la que estás para volver arriba
+Tapping the tab you're already on in History or Favorites takes that list back to its first row.	Al tocar la pestaña en la que ya estás en Historial o Favoritos, esa lista vuelve a su primera fila.
+Search History and Favorites	Buscar en Historial y Favoritos
+Puts a search bar above these lists. It looks through the whole list, loading the rest as it goes, and tapping a result opens it.	Pone una barra de búsqueda encima de estas listas. Revisa la lista entera, cargando el resto sobre la marcha, y al tocar un resultado se abre.

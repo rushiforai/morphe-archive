@@ -4,7 +4,7 @@
  * https://github.com/hoo-dles/morphe-patches
  *
  * Ported from the 8.8.8 Nova Launcher patch in rushiranpise/morphe-patches and the 8.8.6
- * patch in hoo-dles/morphe-patches (both GPLv3), re-resolved for 8.9.7.
+ * patch in hoo-dles/morphe-patches (both GPLv3), re-resolved for 9.0.1.
  */
 
 package dev.hyzor.patches.nova.premium
@@ -19,21 +19,18 @@ import com.android.tools.smali.dexlib2.AccessFlags
 import com.android.tools.smali.dexlib2.Opcode
 
 /**
- * `ix.i1.b()Z` — the static "am I Prime?" gate in 8.9.7.
+ * `rw.e1.b()Z` — the static "am I Prime?" gate in 9.0.1.
  *
  * Its whole body is an OR of three sources:
  *
- *   `b10.k2.h`                  the runtime Prime boolean (read directly by 41 classes)
- *   `ix.i1.b`                   set when the separate Nova Prime unlocker APK is installed
- *   `xx.e0.a(Context)`          the time-limited "prime grant" from `nova_prime_grant`
+ *   `p00.i2.h`                  the runtime Prime boolean (read directly by many classes)
+ *   `rw.e1.b`                   set when the separate Nova Prime unlocker APK is installed
+ *   `lx.y0.a(Context)`          the time-limited "prime grant" from `nova_prime_grant`
  *
- * 17 call sites use it instead of reading `b10.k2.h`, among them `NovaApplication`,
- * `NovaLauncher`, `NovaFeedContentView` and the settings screens.
- *
- * Both filter anchors are unique to this method across all five DEX shards: the boolean read
+ * Both filter anchors are unique to this method across all six DEX shards: the boolean read
  * of the Prime field plus the call to the grant check. The fingerprint deliberately does not
- * pin its own class or method name (`ix/i1.b`): the two instruction anchors find it. They
- * still name the obfuscated `b10/k2` field and `xx/e0` grant check, so re-resolve those two
+ * pin its own class or method name (`rw/e1.b`): the two instruction anchors find it. They
+ * still name the obfuscated `p00/i2` field and `lx/y0` grant check, so re-resolve those two
  * anchors if a future obfuscation pass moves them; the rest of the shape is structural.
  */
 object IsPrimeFingerprint : Fingerprint(
@@ -41,26 +38,26 @@ object IsPrimeFingerprint : Fingerprint(
     accessFlags = listOf(AccessFlags.PUBLIC, AccessFlags.FINAL, AccessFlags.STATIC),
     parameters = emptyList(),
     filters = listOf(
-        // iget-boolean v0, v0, Lb10/k2;->h:Z
+        // iget-boolean v0, v0, Lp00/i2;->h:Z
         fieldAccess(
             opcode = Opcode.IGET_BOOLEAN,
-            definingClass = "Lb10/k2;",
+            definingClass = "Lp00/i2;",
             name = "h",
         ),
-        // invoke-static {v2}, Lxx/e0;->a(Landroid/content/Context;)Z
+        // invoke-static {v2}, Llx/y0;->a(Landroid/content/Context;)Z
         methodCall(
-            definingClass = "Lxx/e0;",
+            definingClass = "Llx/y0;",
             name = "a",
         ),
     ),
 )
 
 /**
- * `b10.k2.a(SharedPreferences)V` — the Prime state initialiser, called once from the
+ * `p00.i2.a(SharedPreferences)V` — the Prime state initialiser, called once from the
  * preference setup ("initPrefs") that runs during application startup.
  *
  * The method reads the persisted `"1"` integer (0 = not Prime, 0x200 = Prime) and derives
- * both `b10.k2.h` (Prime) and `b10.k2.c` (Prime came from a direct licence / the unlocker
+ * both `p00.i2.h` (Prime) and `p00.i2.c` (Prime came from a direct licence / the unlocker
  * APK) from it. The app writes 0x200 into `"1"` itself when it accepts the Prime unlocker.
  *
  * The `android.os.SystemProperties` lookup (the Razer device branch) is a globally unique
@@ -87,16 +84,26 @@ object PrimeStateInitFingerprint : Fingerprint(
 )
 
 /**
- * `xx.b0.w(Context)Z` — "is an active subscription on record?" in 8.9.7.
+ * `lx.v0.v(Context)Z` — "is an active subscription on record?" in 9.0.1.
  *
- * It reads `subActive` from the `nova_billing` preferences and returns false when
- * `last_verified` is older than 48 hours (`y(prefs)`). That is the same check upstream
- * patches as `lv/c0.w(Context)Z` in 8.8.8.
+ * It reads `subscription_active` from the `nova_billing` preferences and returns false when
+ * `last_verified` is older than 48 hours (`x(prefs)`). That is the same check upstream
+ * patches as `lv/c0.w(Context)Z` in 8.8.8 and this bundle patched as `xx/b0.w(Context)Z` in
+ * 8.9.7.
+ *
+ * 9.0.1 split the two tiers apart, and the method names moved with the split:
+ *
+ *   `v(Context)`  `subscription_active` and a fresh `last_verified` — Prime-level check
+ *   `w(Context)`  the same, but additionally requires `plus_active`, i.e. Nova Plus
+ *
+ * `rw.e1.c(Context)`, the revocation/refresh setup, returns immediately when `v()` is true;
+ * the delayed re-check that `rw.c0` and `rw.d1` post also re-enters through it. So `v()` is
+ * the method this patch has to force, not `w()`, otherwise the licence path starts again.
  *
  * The three anchors together are unique to this method:
  *   - the `"nova_billing"` and `"subscription_active"` literals (the method itself contains
- *     both; `"last_verified"` lives in the `y()` it calls),
- *   - `xor-int/lit8` — `w()` inverts `y()`'s result, `x()` next to it does not.
+ *     both; `"last_verified"` lives in the `x()` it calls),
+ *   - `xor-int/lit8` — `v()` inverts `x()`'s result, `w()` next to it does not.
  */
 object IsSubscriptionActiveFingerprint : Fingerprint(
     returnType = "Z",

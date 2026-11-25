@@ -590,6 +590,7 @@ Hide Repost under posts	Ẩn Đăng lại dưới bài viết
 Hide Share under posts	Ẩn Chia sẻ dưới bài viết
 # context: switch title under News feed; Send is Facebook's own button under a post that sends it in a chat
 Hide Send under posts	Ẩn Gửi dưới bài viết
+Hide Stars and gifts under posts	Ẩn Sao và quà tặng dưới bài viết
 Hide Save under posts	Ẩn Lưu dưới bài viết
 # context: summary shared by those five switches
 Takes this button out of the row under posts in the feed. The other buttons stay, and a post with all of its buttons hidden shows no row.	Bỏ nút này khỏi hàng dưới bài viết trong bảng tin. Các nút khác vẫn còn, và bài viết bị ẩn hết nút sẽ không hiện hàng nút.
@@ -1004,6 +1005,7 @@ Hide the Create tab	Ẩn tab Tạo
 Hide the Explore tab	Ẩn tab Khám phá
 Hide the Jobs tab	Ẩn tab Việc làm
 Removes this tab from the tab bar. Its page is still in the Menu. Restart Facebook to see the change.	Gỡ tab này khỏi thanh tab. Trang của tab vẫn có trong Menu. Khởi động lại Facebook để thấy thay đổi.
+Removes this tab from the tab bar. Its page is still in the Menu, unless you pick it in Menu tiles to hide. Restart Facebook to see the change.	Gỡ tab này khỏi thanh tab. Trang của tab vẫn có trong Menu, trừ khi bạn chọn nó trong Ô trong Menu cần ẩn. Khởi động lại Facebook để thấy thay đổi.
 Facebook opens on Home while %1$s is on, since %2$s is off the tab bar. Your choice stays saved.	Facebook mở ở Trang chủ khi %1$s đang bật, vì %2$s không còn trên thanh tab. Lựa chọn của bạn vẫn được lưu.
 # context: summary of that switch; Video is Facebook's name for the tab on some accounts
 No dot or new count on the Reels tab, called Video on some accounts. Other tabs keep theirs.	Không có chấm hay số mục mới trên tab Reels (một số tài khoản gọi là Video). Các tab khác vẫn giữ.
@@ -1244,15 +1246,6 @@ Turn off haptics	Tắt rung phản hồi
 Stops the small vibrations Facebook makes when you tap or swipe. Your keyboard and phone vibrations aren't affected.	Ngừng các rung nhẹ Facebook tạo ra khi bạn nhấn hoặc vuốt. Rung của bàn phím và điện thoại không bị ảnh hưởng.
 Turn off screen transitions	Tắt hiệu ứng chuyển màn hình
 Tabs, the Menu, photos and screens that open over Facebook appear at once instead of sliding or zooming in. Swiping between tabs still works.	Các tab, Menu, ảnh và màn hình mở đè lên Facebook xuất hiện ngay thay vì trượt hay phóng to vào. Vuốt giữa các tab vẫn hoạt động.
-Unlock app icons	Mở khóa biểu tượng ứng dụng
-Lets you pick the app icons Facebook keeps for Facebook Plus, on Facebook's App icon page. The Pick an app icon row opens that page. Your pick stays if you turn this off, so pick the blue one first to go back.	Cho phép bạn chọn các biểu tượng ứng dụng Facebook dành riêng cho Facebook Plus, trên trang Biểu tượng ứng dụng của Facebook. Dòng Chọn biểu tượng ứng dụng mở trang đó. Lựa chọn của bạn vẫn giữ nếu bạn tắt mục này, vì vậy hãy chọn biểu tượng màu xanh dương trước để quay lại.
-# context: settings row under Appearance, right below the Unlock app icons switch; opens Facebook's own App icon page, so use Facebook's name for that page in this language
-Pick an app icon	Chọn biểu tượng ứng dụng
-Opens Facebook's App icon page, even on accounts where Facebook doesn't list it in Settings and privacy.	Mở trang Biểu tượng ứng dụng của Facebook, kể cả với tài khoản mà Facebook không hiện trang này trong Cài đặt & quyền riêng tư.
-Use the icon at the top of Home	Dùng biểu tượng ở đầu Trang chủ
-Shows the app icon you picked at the top of Home instead of the Facebook wordmark. Needs Unlock app icons and a pick other than the blue one. Restart Facebook to see the change.	Hiển thị biểu tượng ứng dụng bạn đã chọn ở đầu Trang chủ thay cho chữ Facebook. Cần bật Mở khóa biểu tượng ứng dụng và chọn biểu tượng khác màu xanh dương. Khởi động lại Facebook để thấy thay đổi.
-# context: toast when the row above finds no App icon page in this Facebook build
-This Facebook build has no App icon page.	Bản Facebook này không có trang Biểu tượng ứng dụng.
 # context: switch title under Playback; Android's own name for the floating video window
 Picture-in-picture	Hình trong hình
 # context: summary of that switch
@@ -1984,8 +1977,10 @@ Show reactions on the Like button	Hiện biểu cảm trên nút Thích
 Moves a post's reaction faces from the end of its button row onto the Like button, right before the count. The Like button likes and reacts as before. A video showing its views there gets one Like face, or your own reaction once you react. Hide the reaction preview on posts overrules it. A change shows on the posts drawn after it.	Chuyển các biểu tượng cảm xúc của bài viết từ cuối hàng nút lên nút Thích, ngay trước con số. Nút Thích vẫn thích và bày tỏ cảm xúc như trước. Video hiển thị lượt xem ở đó sẽ có một biểu tượng Thích, hoặc cảm xúc của chính bạn khi bạn bày tỏ cảm xúc. Ẩn bản xem trước biểu cảm trên bài viết được ưu tiên hơn. Thay đổi sẽ hiện trên các bài viết được hiển thị sau đó.
 # context: switch title under Comments; the reaction preview is the stack of reaction icons in the corner of a comment
 Hide the reaction preview on comments	Ẩn bản xem trước biểu cảm trên bình luận
+Hide reaction counts on comments	Ẩn số lượt biểu cảm trên bình luận
 # context: summary of that switch; "reactions" are Facebook's Like, Love, Haha and other reactions
 Hides the stacked reaction icons in the corner of a comment. The space stays, so a tap where they were still opens the list of reactions.	Ẩn các biểu tượng cảm xúc xếp chồng ở góc bình luận. Khoảng trống vẫn còn, nên chạm vào chỗ đó vẫn mở danh sách cảm xúc.
+Hides the number next to the reaction icons on a comment. The icons stay, and a tap on them still opens the list of reactions.	Ẩn con số bên cạnh các biểu tượng cảm xúc trên bình luận. Các biểu tượng vẫn còn, và chạm vào chúng vẫn mở danh sách biểu cảm.
 # context: switch title under Downloads; "Download" is the post menu row "Download to phone" and "post menus" are the three-dot menus under posts
 Download first in post menus	Tải xuống lên đầu menu bài viết
 # context: summary of that switch; "Download to phone" and "Save photo" are the menu rows, translate them as elsewhere; "More options" is the title of Facebook's own page, use Facebook's wording
@@ -2728,7 +2723,9 @@ Your tab bar will go in this order: %1$s.	Thanh tab của bạn sẽ theo thứ 
 Show only watched stories	Chỉ hiện tin đã xem
 The Stories tray keeps only the stories you've already watched, so you can find one again. Turn it off to see the new ones. Hide seen stories waits while this is on. Applies when Facebook next loads the tray.	Khay Tin chỉ giữ những tin bạn đã xem, để bạn tìm lại được. Tắt đi để xem tin mới. Ẩn tin đã xem tạm dừng khi mục này bật. Áp dụng khi Facebook tải lại khay.
 Show Posts in search	Hiện Bài viết trong tìm kiếm
+Show Videos in search	Hiện Video trong tìm kiếm
 Puts Posts back in the row over search results, after Reels, so you can see only posts for what you searched.	Đưa Bài viết trở lại hàng phía trên kết quả tìm kiếm, sau Reels, để bạn chỉ xem bài viết cho nội dung đã tìm.
+Puts Videos in the row over search results, next to Posts, so you can see only videos for what you searched.	Đặt Video vào hàng phía trên kết quả tìm kiếm, cạnh Bài viết, để bạn chỉ xem video cho nội dung đã tìm.
 Saved button in search	Nút Đã lưu trong tìm kiếm
 Puts a Saved button at the end of the search bar, so your saved posts and videos are one tap away. Restart Facebook to see the change.	Đặt nút Đã lưu ở cuối thanh tìm kiếm, để bài viết và video bạn đã lưu chỉ cách một lần chạm. Hãy khởi động lại Facebook để thấy thay đổi.
 Restore feed sound after opened videos	Khôi phục âm thanh bảng tin sau khi mở video
@@ -3164,3 +3161,27 @@ All your notifications are marked as read.	Tất cả thông báo của bạn đ
 Nothing was marked, since Facebook didn't say who's signed in. Open the Notifications tab once, then try again.	Chưa đánh dấu gì vì Facebook không cho biết ai đang đăng nhập. Hãy mở tab Thông báo một lần rồi thử lại.
 This build can't mark notifications as read.	Bản dựng này không thể đánh dấu thông báo là đã đọc.
 Facebook couldn't mark your notifications as read. Try again in a moment.	Facebook không thể đánh dấu thông báo của bạn là đã đọc. Hãy thử lại sau giây lát.
+# context: Share to Facebook chats, a switch on the Chats page and the share target it adds; the notes are short toasts
+Share to Facebook chats	Chia sẻ vào chat của Facebook
+Adds Facebook chats to Android's share menu. A photo or video you share there is saved to your gallery and text is copied, then your chats open so you can pick one and send it.	Thêm chat của Facebook vào menu chia sẻ của Android. Ảnh hoặc video bạn chia sẻ vào đó được lưu vào thư viện và văn bản được sao chép, rồi các đoạn chat của bạn mở ra để bạn chọn một đoạn chat và gửi.
+Share to Facebook chats is off.	Chia sẻ vào chat của Facebook đang tắt.
+Nothing in it to send.	Không có gì để gửi.
+Couldn't save it to your gallery.	Không lưu được vào thư viện.
+Copied and saved. Pick a chat.	Đã sao chép và lưu. Chọn một đoạn chat.
+In your gallery now. Pick a chat.	Đã có trong thư viện. Chọn đoạn chat.
+Copied. Pick a chat and paste it.	Đã sao chép. Chọn đoạn chat rồi dán.
+Open your chats to pick one.	Mở các đoạn chat để chọn một.
+Post date after the caption	Ngày đăng sau chú thích
+With Show the post date on reels on, puts the date at the end of the caption instead of under the name, where the song and other labels crowd it. A change shows from the next reel.	Khi bật "Hiện ngày đăng trên reel", ngày đăng nằm ở cuối chú thích thay vì dưới tên, nơi bài hát và các nhãn khác chen chúc. Thay đổi hiện từ reel tiếp theo.
+Fill every reel	Cho mọi Reels lấp đầy màn hình
+With Fill the screen with reels on, every reel fills the screen, even when that cuts a lot off the edges. Made for foldables and tablets, where most reels would keep their bars.	Khi bật "Cho Reels lấp đầy màn hình", mọi reel đều lấp đầy màn hình, kể cả khi phải cắt bớt nhiều ở các cạnh. Dành cho máy gập và máy tính bảng, nơi hầu hết reel sẽ vẫn còn dải đen.
+Chat background	Nền đoạn chat
+Last chat's background	Nền đoạn chat gần nhất
+A color code (#RRGGBB) for the space behind the messages in every chat, like #1E3A5F. Two codes, like #1E3A5F #6A1B9A, fade from one to the other. Only this phone sees it. Leave it blank for Facebook's own.	Mã màu (#RRGGBB) cho khoảng phía sau tin nhắn trong mọi đoạn chat, ví dụ #1E3A5F. Hai mã, ví dụ #1E3A5F #6A1B9A, sẽ chuyển dần từ màu này sang màu kia. Chỉ điện thoại này hiển thị. Để trống để dùng nền của Facebook.
+A color code (#RRGGBB) for %1$s only, like #1E3A5F. Two codes fade from one to the other. Leave it blank and it takes the chat background above.	Mã màu (#RRGGBB) chỉ dành cho %1$s, ví dụ #1E3A5F. Hai mã sẽ chuyển dần từ màu này sang màu kia. Để trống thì đoạn chat dùng nền đoạn chat ở trên.
+Chats keep Facebook's background. Type a color code to change it on this phone only.	Các đoạn chat giữ nền của Facebook. Nhập mã màu để đổi nền chỉ trên điện thoại này.
+Chats are %1$s behind the messages, on this phone only. Nobody in the chat is told.	Phía sau tin nhắn trong các đoạn chat có màu %1$s, chỉ trên điện thoại này. Không ai trong đoạn chat được báo.
+Open a chat, then come back here to give it a color of its own.	Mở một đoạn chat, rồi quay lại đây để đặt màu riêng cho nó.
+%1$s, the last chat you opened, takes the chat background above. Type a color code to give it its own.	%1$s, đoạn chat bạn mở gần nhất, đang dùng nền đoạn chat ở trên. Nhập mã màu để đặt màu riêng cho nó.
+%1$s, the last chat you opened, is %2$s.	%1$s, đoạn chat bạn mở gần nhất, có màu %2$s.
+Type one color code, or two for a fade from top to bottom.	Nhập một mã màu, hoặc hai mã để chuyển màu từ trên xuống dưới.

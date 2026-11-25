@@ -196,11 +196,14 @@ internal fun logoutRouteMethod(body: String = "const-string v0, \"\"\nreturn-obj
 internal fun tabSwipeRouteMethod(body: String = "const-string v0, \"\"\nreturn-object v0", flags: Int = AccessFlags.STATIC.value) =
     fixtureMethod(TAB_SWIPE_ROUTE, body, 1, flags)
 
+internal fun aiUserRouteMethod(body: String = "const-string v0, \"\"\nreturn-object v0", flags: Int = AccessFlags.STATIC.value) =
+    fixtureMethod(AI_USER_ROUTE, body, 1, flags)
+
 /** The factory and the extension classes every settings run touches, as a supported APK plus the extension has them. */
 internal fun screenHostClasses() = listOf(
     fixtureClass(FACTORY_TYPE, listOf(factoryActivity(), factoryApplication())),
     fixtureClass(HOST_SCREENS, listOf(bundledControlsMethod(), originalBuildMethod(), nativeBubbleRoutesMethod(), inboxRefreshRouteMethod(),
-        logoutRouteMethod(), tabSwipeRouteMethod())),
+        logoutRouteMethod(), tabSwipeRouteMethod(), aiUserRouteMethod())),
     fixtureClass(INBOX_REFRESH, listOf(fixtureMethod(INBOX_ITEMS_CALL, "return-void", 1, AccessFlags.PUBLIC.value or AccessFlags.STATIC.value))),
 )
 

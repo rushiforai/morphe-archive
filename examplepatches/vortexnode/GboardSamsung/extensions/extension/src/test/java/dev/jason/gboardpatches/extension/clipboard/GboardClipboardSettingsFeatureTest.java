@@ -33,7 +33,7 @@ public final class GboardClipboardSettingsFeatureTest {
                 Arrays.asList("General", "Metadata", "Layout", "Retention"),
                 sectionTitles(sections));
         Assert.assertEquals("ToggleRow", sections.get(0).getItems().get(0).getClass().getSimpleName());
-        Assert.assertEquals(4, sections.get(0).getItems().size());
+        Assert.assertEquals(5, sections.get(0).getItems().size());
         GboardPatchesSettingsContract.ToggleRow samsungRow =
                 (GboardPatchesSettingsContract.ToggleRow) sections.get(0).getItems().get(1);
         Assert.assertEquals("Samsung Clipboard", samsungRow.getTitle());
@@ -42,6 +42,14 @@ public final class GboardClipboardSettingsFeatureTest {
                 GboardClipboardSettings.PREF_KEY_CLIPBOARD_SAMSUNG_MODE));
         samsungRow.getToggleAction().accept(true);
         Assert.assertTrue(GboardClipboardSettings.readClipboardSamsungMode(preferences));
+        GboardPatchesSettingsContract.ToggleRow clearAllRow =
+                (GboardPatchesSettingsContract.ToggleRow) sections.get(0).getItems().get(2);
+        Assert.assertEquals("Clear unpinned clipboard button", clearAllRow.getTitle());
+        Assert.assertFalse(clearAllRow.isChecked());
+        Assert.assertTrue(preferences.contains(
+                GboardClipboardSettings.PREF_KEY_CLIPBOARD_CLEAR_ALL_BUTTON));
+        clearAllRow.getToggleAction().accept(true);
+        Assert.assertTrue(GboardClipboardSettings.readClipboardClearAllButton(preferences));
         GboardPatchesSettingsContract.ToggleRow sensitiveRow =
                 (GboardPatchesSettingsContract.ToggleRow) findRow(
                         screen,

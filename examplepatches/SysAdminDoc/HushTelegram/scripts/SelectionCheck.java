@@ -30,8 +30,14 @@ import com.reandroid.arsc.container.SpecTypePair;
 import com.reandroid.arsc.model.ResourceEntry;
 import com.reandroid.arsc.chunk.xml.ResXmlAttribute;
 import com.reandroid.arsc.chunk.xml.ResXmlElement;
+import com.reandroid.arsc.value.DataType;
 import com.reandroid.json.JSONArray;
 import com.reandroid.json.JSONObject;
+import kotlinx.serialization.json.Json;
+import kotlinx.serialization.json.JsonElement;
+import kotlinx.serialization.json.JsonElementKt;
+import kotlinx.serialization.json.JsonObject;
+import kotlinx.serialization.json.JsonPrimitive;
 
 import java.io.File;
 import java.nio.charset.StandardCharsets;
@@ -69,19 +75,45 @@ public final class SelectionCheck {
         String apiHash, mapsKey;
         Map<String, Boolean> flags;
 
-        Expected(JSONObject input) {
-            settings = input.getBoolean("settings");
-            links = input.getBoolean("links");
-            api = input.getBoolean("api");
-            maps = input.getBoolean("maps");
-            icon = input.optBoolean("icon", false);
-            push = input.optBoolean("push", false);
-            apiId = input.optInt("apiId");
-            apiHash = input.optString("apiHash");
-            mapsKey = input.optString("mapsKey");
+        /**
+         * The desktop CLI's ARSCLib JSONObject has no optBoolean, getJSONObject or keySet since
+         * desktop 2.2.0, so the expectation is read with the kotlinx JSON the CLI also carries.
+         */
+        Expected(File file) throws java.io.IOException {
+            this(new String(Files.readAllBytes(file.toPath()), StandardCharsets.UTF_8));
+        }
+
+        Expected(String json) {
+            JsonObject input = JsonElementKt.getJsonObject(Json.Default.parseToJsonElement(json));
+            settings = flag(input, "settings");
+            links = flag(input, "links");
+            api = flag(input, "api");
+            maps = flag(input, "maps");
+            icon = Boolean.TRUE.equals(optional(input, "icon", JsonElementKt::getBooleanOrNull));
+            push = Boolean.TRUE.equals(optional(input, "push", JsonElementKt::getBooleanOrNull));
+            Integer id = optional(input, "apiId", JsonElementKt::getIntOrNull);
+            apiId = id == null ? 0 : id;
+            String hash = optional(input, "apiHash", JsonElementKt::getContentOrNull);
+            apiHash = hash == null ? "" : hash;
+            String key = optional(input, "mapsKey", JsonElementKt::getContentOrNull);
+            mapsKey = key == null ? "" : key;
             flags = new TreeMap<>();
-            JSONObject values = input.getJSONObject("flags");
-            for (String key : values.keySet()) flags.put(key, values.getBoolean(key));
+            JsonObject values = JsonElementKt.getJsonObject(require(input.get("flags"), "flags"));
+            for (String name : values.keySet()) flags.put(name, flag(values, name));
+        }
+
+        private static boolean flag(JsonObject input, String name) {
+            return JsonElementKt.getBoolean(JsonElementKt.getJsonPrimitive(require(input.get(name), name)));
+        }
+
+        private static <T> T optional(JsonObject input, String name, java.util.function.Function<JsonPrimitive, T> read) {
+            JsonElement value = input.get(name);
+            return value instanceof JsonPrimitive primitive ? read.apply(primitive) : null;
+        }
+
+        private static JsonElement require(JsonElement value, String name) {
+            if (value == null) throw new IllegalArgumentException("the expectation has no " + name);
+            return value;
         }
     }
 
@@ -390,15 +422,9 @@ public final class SelectionCheck {
         hook(calls, flags, "commercePremiumEffects", "misc/Commerce", "skipPremiumEffect");
         hook(calls, flags, "commercePremiumEmojiPacks", "misc/Commerce", "dropLockedEmojiPacks");
         hook(calls, flags, "commerceEmojiStatus", "misc/EmojiStatus", "hide");
-        // The App Icon list's tap, lock and filter each ask after reading an icon's Premium flag.
-        require(calls.getOrDefault(OWN + "telegram/misc/AppIcons;->premium", 0)
-                == (Boolean.TRUE.equals(flags.get("commercePremiumIcons")) ? 3 : 0));
-        // The chat list title reads its status and asks about Premium twice each, once for the
-        // stories strip's title and once for the action bar's; the account's own status send asks once.
-        boolean localStatus = Boolean.TRUE.equals(flags.get("commerceLocalEmojiStatus"));
-        require(calls.getOrDefault(OWN + "telegram/misc/LocalEmojiStatus;->documentId", 0) == (localStatus ? 2 : 0));
-        require(calls.getOrDefault(OWN + "telegram/misc/LocalEmojiStatus;->premium", 0) == (localStatus ? 2 : 0));
-        require(calls.getOrDefault(OWN + "telegram/misc/LocalEmojiStatus;->keep", 0) == (localStatus ? 1 : 0));
+        // AnimatedEmojiDrawable's play count asks once, right after it reads the cache type.
+        require(calls.getOrDefault(OWN + "telegram/misc/EmojiStatus;->statusRepeatType", 0)
+                == (Boolean.TRUE.equals(flags.get("commerceMovingEmojiStatus")) ? 1 : 0));
         // Both sticker targets ask premiumStickersBlocked: the two filters and the keyboard pass,
         // and the effect player's tooltip.
         int blocked = (Boolean.TRUE.equals(flags.get("commercePremiumStickers")) ? 3 : 0)
@@ -446,6 +472,7 @@ public final class SelectionCheck {
         hook(calls, flags, "videoOnlyFromButton", "misc/VideoUpright", "listenerOn", "listenerOff", "requested", "restore");
         hook(calls, flags, "videoStartsSilent", "misc/VideoSound", "setMute", "setVolume");
         hook(calls, flags, "videoTracks", "misc/VideoTracks", "menu", "menuChoice", "cues");
+        hook(calls, flags, "externalPlayer", "misc/ExternalVideo", "open", "pressed");
         hook(calls, flags, "swipeBackOnProfiles", "misc/SwipeBack", "touchBlocks");
         hook(calls, flags, "hidePhoneNumber", "misc/HidePhone", "shown");
         hook(calls, flags, "shareNumberUnticked", "misc/ContactShare", "startsTicked");
@@ -459,14 +486,14 @@ public final class SelectionCheck {
         hook(calls, flags, "reactionEffectsOff", "misc/ReactionEffects", "skipped");
         hook(calls, flags, "reactionSelection", "misc/DoubleTapReactions", "selection");
         hook(calls, flags, "emojiPackNote", "misc/DoubleTapReactions", "packNote");
-        hook(calls, flags, "storySave", "misc/StorySave", "shareable", "premium");
         hook(calls, flags, "allowScreenshots", "misc/Screenshots", "protectedContent", "storyAllowed", "secretChat");
+        hook(calls, flags, "timedScreenshots", "misc/Screenshots", "timedViewer");
         hook(calls, flags, "hideFolderCounters", "misc/FolderTabs", "countersHidden");
         hook(calls, flags, "launchFolder", "misc/LaunchFolder", "firstTabs");
         hook(calls, flags, "hideAllChats", "misc/LaunchFolder", "allChatsTab", "tabsAdded", "editing", "skipsDone");
-        hook(calls, flags, "allChatsPlace", "misc/AllChatsPlace", "keeps", "serverOrder", "loaded", "lockOrder");
         hook(calls, flags, "hiddenChats", "misc/HiddenChats", "prune");
         hook(calls, flags, "hiddenUnread", "misc/HiddenChats", "uncounted");
+        hook(calls, flags, "savedMediaFirst", "misc/SavedMedia", "viewAsChats");
         hook(calls, flags, "forwardHideSender", "misc/ForwardSender", "starts");
         hook(calls, flags, "voiceMusicPlayer", "misc/VoicePlayer", "music");
         hook(calls, flags, "silenceNonContacts", "misc/NonContacts", "silenced");
@@ -475,6 +502,8 @@ public final class SelectionCheck {
         hook(calls, flags, "hideGalleryCameraTile", "misc/GalleryCameraTile", "tile");
         hook(calls, flags, "hideStickerTime", "misc/StickerTime", "hidden");
         hook(calls, flags, "stickerSize", "misc/StickerSize", "size");
+        hook(calls, flags, "keepStickerCache", "misc/StickerCache", "kept");
+        hook(calls, flags, "stickerPanelSize", "misc/StickerPanel", "column", "cell", "height", "cap");
         hook(calls, flags, "ignoreMutedMentions", "misc/MutedMentions", "notifyDialog");
         hook(calls, flags, "hideBlockedInGroups", "misc/BlockedSenders", "type", "hideReply");
         hook(calls, flags, "hideFeaturesAndInvite", "misc/FeaturesInvite", "addFeaturesRow", "listShown");
@@ -494,7 +523,11 @@ public final class SelectionCheck {
         hook(calls, flags, "sideMenu", "misc/SideMenu", "swipeStarts", "back");
         hook(calls, flags, "hideNewMessage", "misc/MainTabs", "newMessageButton");
         hook(calls, flags, "barOutline", "misc/MainTabs", "barGlass", "barOutlineColor", "barOutlineWidth");
+        hook(calls, flags, "hideDownloadsButton", "misc/MainTabs", "downloadsButton", "downloadsDrawn");
+        hook(calls, flags, "alwaysShowDownloadsButton", "misc/MainTabs", "downloadsWanted", "downloadsKept");
         hook(calls, flags, "forwardDates", "misc/ForwardDates", "header", "compact");
+        hook(calls, flags, "localNames", "misc/LocalNames", "user", "chat", "updates", "storedUser", "storedChat", "outgoing",
+                "mentionName", "phoneBookUser");
         hook(calls, flags, "fasterDownloads", "misc/DownloadSpeed", "fast");
         hook(calls, flags, "dataSaverDownloads", "misc/DataSaverDownloads", "hold", "holdMask");
         hook(calls, flags, "fasterUploads", "misc/UploadSpeed", "requests");
@@ -523,6 +556,7 @@ public final class SelectionCheck {
         hook(calls, flags, "chatPreviewButtons", "misc/ChatPreview", "menu");
         hook(calls, flags, "chatRevealMenu", "misc/ChatReveal", "headerMenu", "headerClick");
         hook(calls, flags, "searchHitQuotes", "misc/ChatReveal", "searchHit");
+        hook(calls, flags, "revealTimedMedia", "misc/Spoilers", "blurred", "loadsPhoto");
         for (String[] bridge : List.of(
                 new String[]{"nativeTokenPresence", names.method("Lorg/telegram/messenger/SharedConfig;->hushTelegramTokenPresence()I")},
                 new String[]{"nativeAccountCounts", names.method("Lorg/telegram/messenger/UserConfig;->hushTelegramAccountCounts()I")})) {
@@ -704,10 +738,12 @@ public final class SelectionCheck {
         var attributes = element.getAttributes();
         while (attributes.hasNext()) {
             ResXmlAttribute attribute = attributes.next();
-            String type = attribute.getValueType().name();
+            // ARSCLib's DataType (desktop 2.2.0 on) names its constants as the old ValueType did.
+            DataType dataType = attribute.getDataType();
+            String type = dataType == null ? "TYPE_" + (attribute.dataType() & 0xff) : dataType.name();
             String value = switch (type) {
-                case "STRING" -> "STRING:" + attribute.getValueAsString();
-                case "BOOLEAN" -> "BOOL:" + attribute.getValueAsBoolean();
+                case "STRING" -> "STRING:" + attribute.getDataAsString();
+                case "BOOLEAN" -> "BOOL:" + attribute.getDataAsBoolean();
                 case "DEC", "HEX" -> "INT:" + attribute.getData();
                 default -> type + ":" + attribute.getData();
             };
@@ -748,7 +784,7 @@ public final class SelectionCheck {
             try (var input = new java.io.BufferedInputStream(zip.getInputStream(entry))) { table = TableBlock.load(input, (read, total) -> { }); }
         }
         int found = 0;
-        for (PackageBlock block : table.listPackages()) {
+        for (PackageBlock block : table) {
             for (SpecTypePair pair : block.listSpecTypePairs()) {
                 Iterator<ResourceEntry> resources = pair.getResources();
                 while (resources.hasNext()) {
@@ -901,7 +937,7 @@ public final class SelectionCheck {
     /** One case: {patched, expectation, evidence} and, for full-configured, the full catalog's build as baseline. */
     private static void answer(Side clean, String[] request) throws Exception {
         require(request.length == 3 || request.length == 4);
-        Expected expected = new Expected(new JSONObject(new File(request[1])));
+        Expected expected = new Expected(new File(request[1]));
         Side patched = new Side(new File(request[0]));
         Evidence evidence = check(clean, patched, expected, false);
         if (request.length == 4) check(new Side(new File(request[3])), patched, expected, true);

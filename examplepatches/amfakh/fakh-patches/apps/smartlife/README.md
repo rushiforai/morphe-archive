@@ -5,8 +5,8 @@ of them.
 
 | App | Package | Version | Source |
 |---|---|---|---|
-| Smart Life | `com.tuya.smartlife` | `7.12.3-877`, `7.12.6-880` | XAPK from APKPure, APKM from APKMirror ("SmartLife - Smart Living") |
-| Tuya Smart | `com.tuya.smart` | `7.12.3-870`, `7.12.6-872`, `7.13.0-875`, `7.13.3-876` | APKM from APKMirror |
+| Smart Life | `com.tuya.smartlife` | `7.12.3-877`, `7.12.6-880`, `7.13.3-887` | XAPK from APKPure, APKM from APKMirror ("SmartLife - Smart Living") |
+| Tuya Smart | `com.tuya.smart` | `7.12.3-870`, `7.12.6-872`, `7.13.0-875`, `7.13.3-877` | APKM from APKMirror |
 | BARDI Smart Home | `com.bardi.smart.home` | `1.5.3` | XAPK from APKPure |
 | SYNC by Krisbow | `com.kawanlama.smartklic` | `3.1.2` | XAPK from APKPure |
 
@@ -35,6 +35,7 @@ of them.
 | Feature | Swipe between tabs | all | Swipe sideways to go to the next or previous tab of the navigation bar, with a slide animation. Where Scene shows Automation and Tap-to-Run as tabs (BARDI), it switches between them first. Does not act where something under the finger can scroll sideways. |
 | Feature | Spoof signature | all | Lets the patched app start. Without it the app's integrity check closes it a few seconds after it opens. |
 | Feature | GmsCore support | Smart Life, Tuya Smart, BARDI | Makes "Sign in with Google" and location work by signing in through [microG RE](https://github.com/MorpheApp/microg-RE) instead of Google Play services. Needs microG RE installed and signed in to a Google account. Off by default. |
+| Theme | Themed icon | all | Adds the themed (monochrome) app icon of Android 13 and later, which follows the wallpaper colors. |
 
 Settings has a Fakh Patches row above About that opens a page with one switch for each of these patches, in sections by where they act. They are all on until turned off, and a change applies after the app restarts, except Dark Device Panels.
 

@@ -46,6 +46,8 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 import app.hushpinterest.extension.pinterest.actions.DownloadLedger;
 import app.hushpinterest.extension.pinterest.ui.PinterestToasts;
+import app.hushpinterest.extension.pinterest.ui.AmoledBlack;
+import app.hushpinterest.extension.pinterest.ui.CustomFont;
 import app.hushpinterest.extension.pinterest.ui.SplashLogo;
 import app.hushpinterest.extension.shared.L10n;
 import app.hushpinterest.extension.shared.Logger;
@@ -84,6 +86,8 @@ public final class SettingsEntry {
     /** The Pinterest logo in the home feed's greeting header, by its resource name. */
     static final String LOGO_ID = "home_feed_greeting_header_logotype";
     private static final View.OnLongClickListener LOGO_PRESS = SettingsEntry::openFromLogo;
+    /** The bottom bar's Home tab, by the id Pinterest gives it. */
+    static final String HOME_TAB_ID = "bottom_nav_home_icon";
     /** Logos that already open the screen, so a header bound again doesn't read ours as Pinterest's. */
     private static final Set<View> watchedLogos = Collections.newSetFromMap(new WeakHashMap<>());
 
@@ -122,12 +126,15 @@ public final class SettingsEntry {
         PinterestToasts.install();
         try {
             if (!Utils.isMainProcess()) return;
+            // Before any screen exists, so every text that never asks for a font draws in the picked one.
+            CustomFont.onPinterestStart(context);
             if (context instanceof Application && !callbacksRegistered) {
                 ((Application) context).registerActivityLifecycleCallbacks(new OpenWhenResumed());
                 callbacksRegistered = true;
             }
             ReopenSettingsAfterRestart.reopenIfPending(SettingsEntry::reopenOn);
             SplashLogo.install(context);
+            AmoledBlack.install(context);
         } catch (Exception ex) {
             Logger.printException(() -> "Settings entry: could not watch activities", ex);
         }
@@ -379,6 +386,47 @@ public final class SettingsEntry {
             Logger.printException(() -> "Settings entry: the long press on the Pinterest logo failed", t);
             return false;
         }
+    }
+
+    /**
+     * Injected where Pinterest's bottom bar gives each tab its long press, with Pinterest's listener.
+     * A long press on the Home tab opens the screen over that tab's activity (#48), since Pinterest's
+     * own only logs the press. Every other tab, and Home when the screen can't open, keeps Pinterest's.
+     * It works while HushPinterest is paused, like the logo. Never throws.
+     */
+    public static View.OnLongClickListener onTabLongPress(View.OnLongClickListener pinterests) {
+        return tab -> {
+            try {
+                if (isHomeTab(tab) && openFromHomeTab(tab)) return true;
+            } catch (Throwable t) {
+                Logger.printException(() -> "Settings entry: the long press on the Home tab failed", t);
+            }
+            return pinterests != null && pinterests.onLongClick(tab);
+        };
+    }
+
+    /** The Home tab's id in tests, which have no Pinterest resources; null reads it by name. */
+    static volatile Integer homeTabIdForTests;
+
+    /** Whether [tab] is the bottom bar's Home tab, by the id Pinterest gives it. */
+    static boolean isHomeTab(View tab) {
+        if (tab == null) return false;
+        Integer forced = homeTabIdForTests;
+        int id = forced != null ? forced : ResourceUtils.getIdentifier(tab.getContext(), ResourceType.ID, HOME_TAB_ID);
+        return id != 0 && tab.getId() == id;
+    }
+
+    /** The Home tab's long press: the screen over the tab's own activity. False leaves the press to Pinterest. */
+    static boolean openFromHomeTab(View tab) {
+        Activity activity = activityOf(tab.getContext());
+        if (activity == null) {
+            Logger.printInfo(() -> "Settings entry: the Home tab isn't in an activity");
+            return false;
+        }
+        requestedAt = SystemClock.elapsedRealtime();
+        requestedPage = null;
+        Logger.printInfo(() -> "Settings requested by a long press on the Home tab");
+        return open(activity);
     }
 
     private static Activity activityOf(Context context) {

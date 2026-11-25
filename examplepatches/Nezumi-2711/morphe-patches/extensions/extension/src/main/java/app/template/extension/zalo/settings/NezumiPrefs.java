@@ -12,6 +12,7 @@ public final class NezumiPrefs {
     public static final String HIDE_TYPING = "hide_text_typing";
     public static final String HIDE_READ_RECEIPTS = "hide_read_receipts";
     public static final String HIDE_DELIVERY_RECEIPTS = "hide_delivery_receipts";
+    public static final String BYPASS_CONVERSATION_PROTECTION = "bypass_conversation_protection";
     public static final String HIDE_MEDIA_BOX = "hide_media_box";
     public static final String HIDE_BUSINESS_BOX = "hide_business_box";
     public static final String HIDE_OA_MESSAGES = "hide_oa_messages";
@@ -23,6 +24,7 @@ public final class NezumiPrefs {
     public static final String KEEP_RECALLED_MESSAGES = "keep_recalled_messages";
     public static final String HIDE_ONLINE_STATUS = "hide_online_status";
     public static final String HIDE_DISCOVERY = "hide_discovery";
+    public static final String CALL_RECORDING = "call_recording_button";
     static final String SAVED_ONLINE_SHARING = "saved_online_sharing";
 
     public static SharedPreferences of(Context context) {

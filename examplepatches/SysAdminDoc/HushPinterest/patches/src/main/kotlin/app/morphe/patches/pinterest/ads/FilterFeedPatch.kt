@@ -34,7 +34,7 @@ private const val PATCH = "Filter feed"
 val filterFeedPatch = bytecodePatch(
     name = PATCH,
     description = "Lets you take video pins (photos and GIFs stay) and pins that mention words you mute out of your " +
-        "home feed, search, related pins and boards, pins you've already saved out of your home feed, search and More " +
+        "home feed, search, related pins and other people's boards, pins you've already saved out of your home feed, search and More " +
         "to explore, and Pinterest's suggestion rows out of your home feed. Starts off. Set it up in HushPinterest " +
         "settings > Feed.",
 ) {

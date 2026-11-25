@@ -25,7 +25,7 @@ private fun app.morphe.patcher.util.proxy.mutableTypes.MutableMethod.disableImaR
             const-string v$code, "ad-disabled"
             const-string v$message, "Ads are disabled by patch"
             const-string v$details, ""
-            invoke-direct {v$exception, v$code, v$message, v$details}, Lyr1;-><init>(Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)V
+            invoke-direct {v$exception, v$code, v$message, v$details}, Lyr1;-><init>(Ljava/lang/String;Ljava/lang/String;Ljava/lang/Object;)V
             throw v$exception
         """.trimIndent()
     )

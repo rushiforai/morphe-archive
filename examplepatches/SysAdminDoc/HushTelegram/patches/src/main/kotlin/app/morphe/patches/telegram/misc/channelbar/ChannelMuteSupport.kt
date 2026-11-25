@@ -16,6 +16,7 @@ import app.morphe.patches.telegram.misc.localcontrols.controlHook
 import app.morphe.patches.telegram.misc.localcontrols.controlRef
 import app.morphe.util.ControlFlow
 import app.morphe.util.namedRegisters
+import app.morphe.util.writesReaching
 import com.android.tools.smali.dexlib2.AccessFlags
 import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.iface.instruction.Instruction
@@ -78,8 +79,9 @@ internal class ChannelMuteBar(
         labelled.sortedDescending().forEach { update.addInstruction(it, "invoke-static {}, $MUTE_LABELLED") }
         update.addInstruction(0, "invoke-static {}, $MUTE_BEGIN")
         visibility.addInstructions(0, "invoke-static/range {p0 .. p1}, $MUTE_VISIBILITY\nmove-result p1")
-        val flag = bubble!!.flag
-        draw.addInstructions(bubble.at, "invoke-static {v${bubble.self}, v$flag}, $MUTE_BUBBLE\nmove-result v$flag")
+        bubble!!.tests.sortedByDescending { it.at }.forEach { test ->
+            draw.addInstructions(test.at, "invoke-static {v${test.self}, v${test.flag}}, $MUTE_BUBBLE\nmove-result v${test.flag}")
+        }
     }
 }
 
@@ -91,8 +93,13 @@ internal fun drawsBubble(call: Instruction, field: FieldReference): Boolean {
         ref.parameterTypes.map { it.toString() } == listOf("Landroid/graphics/Canvas;") && ref.returnType == "V"
 }
 
-/** In [draw], the bubble's show flag sits in register [flag] from just before [at], and `this` in [self]. */
-internal class MuteBubble(val draw: MutableMethod, val at: Int, val flag: Int, val self: Int)
+/** A test of the bubble's show flag: the flag sits in register [flag] from just before [at], and `this` in [self]. */
+internal class BubbleTest(val at: Int, val flag: Int, val self: Int)
+
+/** Every place [draw] tests the bubble's show flag, the bubble's own draw first among them. */
+internal class MuteBubble(val draw: MutableMethod, val tests: List<BubbleTest>)
+
+private val OBJECT_MOVES = setOf(Opcode.MOVE_OBJECT, Opcode.MOVE_OBJECT_FROM16, Opcode.MOVE_OBJECT_16)
 
 /**
  * Telegram 13 draws a rounded bubble behind the bar at the bottom of a chat, from the view that
@@ -115,11 +122,26 @@ private fun BytecodePatchContext.resolveMuteBubble(): MuteBubble? {
         body[it].opcode == Opcode.IGET_OBJECT && body[it].controlField() == faded && body.getOrNull(it + 1)?.let { next -> drawsBubble(next, faded) } == true
     } ?: return null
     if (read < 2 || body[read - 1].opcode != Opcode.IF_EQZ || body[read - 2].opcode != Opcode.IGET_BOOLEAN) return null
-    val flag = body[read - 1].namedRegisters().single()
+    val shown = body[read - 2].controlField() ?: return null
+    val flow = ControlFlow.of(draw)
     val self = draw.implementation!!.registerCount - 2
-    val flagRead = body[read - 2].namedRegisters()
-    if (flagRead != listOf(flag, self) || flag > 15 || self > 15) return null
-    return MuteBubble(draw, read - 1, flag, self)
+    // 13.3.1 draws more inside the bubble, each part behind its own test of the same flag, and reads
+    // the view from a copy of this. Every test goes through the switch, or none can.
+    val tests = body.indices.filter { body[it].opcode == Opcode.IGET_BOOLEAN && body[it].controlField() == shown }.map { at ->
+        val (flag, holder) = body[at].namedRegisters()
+        val test = body.getOrNull(at + 1)
+        val writes = flow.writesReaching(at, holder)
+        val holdsThis = if (holder == self) writes == setOf(-1) else writes.singleOrNull()?.let { copy ->
+            copy >= 0 && body[copy].opcode in OBJECT_MOVES && body[copy].namedRegisters() == listOf(holder, self) &&
+                flow.writesReaching(copy, self) == setOf(-1)
+        } == true
+        val enteredOnlyFromRead = flow.normal.indices.none { from -> from != at && at + 1 in flow.normal[from] + flow.exceptional[from] }
+        if (test == null || test.opcode != Opcode.IF_EQZ || test.namedRegisters() != listOf(flag) || !holdsThis || !enteredOnlyFromRead ||
+            flag > 15 || holder > 15) return null
+        BubbleTest(at + 1, flag, holder)
+    }
+    if (tests.none { it.at == read - 1 }) return null
+    return MuteBubble(draw, tests)
 }
 
 /**

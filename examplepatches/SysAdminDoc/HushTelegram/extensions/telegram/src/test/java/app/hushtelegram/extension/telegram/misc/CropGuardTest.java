@@ -149,7 +149,7 @@ public class CropGuardTest {
 
     @Test public void theToastFitsTwoLinesInEveryLanguage() {
         assertFitsATwoLineToast("en", TRY_AGAIN);
-        for (String language : new String[]{"bg", "de", "es", "in", "pt-rbr", "tr"}) {
+        for (String language : new String[]{"bg", "de", "es", "in", "it", "pt-rbr", "tr"}) {
             String row = L10nTablesForTests.of(language).get(TRY_AGAIN);
             assertNotNull(language, row);
             assertFitsATwoLineToast(language, row);

@@ -3,7 +3,7 @@
  * https://github.com/MorpheApp/morphe-patches/pull/2269
  *
  * See the included NOTICE file for GPLv3 Section 7 terms that apply to this code.
- * Modified by lavinhoque33, 2026-11-23.
+ * Modified by lavinhoque33, 2026-11-24.
  */
 
 package app.morphe.extension.music.patches.lyrics.ui;
@@ -673,15 +673,6 @@ final class LyricsLineView extends TextView {
     }
 
     /**
-     * Only one of the two ranges is set on a dual line, so this run is the reading's exactly when
-     * the reading's range is the one present.
-     */
-    private static boolean runHoldsWords(boolean smallRunHoldsWords, boolean romaPresent,
-            boolean isRoma) {
-        return smallRunHoldsWords ? isRoma == romaPresent : isRoma;
-    }
-
-    /**
      * A small run takes the reading's colour so it reads as a line of its own, and a wrapped one would
      * otherwise come out in two colours mid-word. What makes a run small is the main run beside it, not
      * whether it holds the words: a dual line hands those to the reading wherever the swap puts it, so a
@@ -852,64 +843,49 @@ final class LyricsLineView extends TextView {
         final float contentNow = contentReveal;
         final int mainAlpha = Math.round(((unsungColor != 0 && !wordTimings.isEmpty())
                 ? LyricsColors.UNSUNG_ALPHA * 255f : baseTextAlpha) * lineAlpha * contentNow);
-        final float secondaryBaseAlpha = activeLine
-                ? LyricsColors.ACTIVE_TRANSLATION_ALPHA * 255f
-                : Color.alpha(LyricsColors.secondaryTextColor());
-        final int secondaryAlpha = Math.round(lineAlpha * secondaryBaseAlpha * contentNow);
+
+        final int transFirst = rangeLine(layout, transStart, transEnd, true);
+        final int romaFirst = rangeLine(layout, romaStart, romaEnd, true);
+
+        final int textLength = layout.getText().length();
+        final boolean onlySecondaryRegion = transStart == 0 && transEnd == textLength
+                || romaStart == 0 && romaEnd == textLength;
+
+        if ((transFirst < 0 && romaFirst < 0) || onlySecondaryRegion) {
+            drawTextRun(canvas, layout, 0, lineCount - 1, mainAlpha, 0);
+            return true;
+        }
+
+        final int transAlpha = Math.round(lineAlpha * LyricsColors.translationBaseAlpha(activeLine) * contentNow);
         final float readingBaseAlpha = activeLine
                 ? (perWordReading && Settings.LYRICS_WORD_SYNC.get()
                    ? LyricsColors.UNSUNG_ALPHA * 255f
                    : LyricsColors.ACTIVE_READING_ALPHA * 255f)
                 : Color.alpha(LyricsColors.secondaryTextColor());
         final int romaAlpha = Math.round(lineAlpha * readingBaseAlpha * contentNow);
-
-        boolean[] secondaryLine = new boolean[lineCount];
-        markSecondaryLines(layout, transStart, transEnd, secondaryLine);
-        markSecondaryLines(layout, romaStart, romaEnd, secondaryLine);
-
-        boolean hasSecondary = false;
-        for (int i = 0; i < lineCount; i++) {
-            if (secondaryLine[i]) {
-                hasSecondary = true;
-                break;
-            }
-        }
-
-        final int textLength = layout.getText().length();
-        final boolean onlySecondaryRegion = transStart == 0 && transEnd == textLength
-                || romaStart == 0 && romaEnd == textLength;
-
-        if (!hasSecondary || onlySecondaryRegion) {
-            drawTextRun(canvas, layout, 0, lineCount - 1, mainAlpha, 0);
-            return true;
-        }
-
-        final int romaFirst = rangeLine(layout, romaStart, romaEnd, true);
+        final int transLast = rangeLine(layout, transStart, transEnd, false);
         final int romaLast = rangeLine(layout, romaStart, romaEnd, false);
 
+        // The two small regions can be adjacent; don't draw them with one region's alpha or reveal.
         int runStart = 0;
-        boolean runSecondary = secondaryLine[0];
-        for (int i = 1; i <= lineCount; i++) {
-            final boolean end = i == lineCount;
-            final boolean nextSecondary = !end && secondaryLine[i];
-            if (end || nextSecondary != runSecondary) {
-                final int runLast = i - 1;
-                if (runSecondary) {
-                    final boolean isRoma = romaFirst >= 0
-                            && runStart >= romaFirst && runLast <= romaLast;
-                    final boolean runHoldsWords = runHoldsWords(
-                            smallRunHoldsWords, romaFirst >= 0, isRoma);
-                    final float reveal = isRoma ? romaReveal : transReveal;
-            drawTextRun(canvas, layout, runStart, runLast,
-                    Math.round((runHoldsWords ? romaAlpha : secondaryAlpha) * reveal), 0);
-                } else {
-                    drawTextRun(canvas, layout, runStart, runLast, mainAlpha, 0);
-                }
-                if (!end) {
-                    runStart = i;
-                    runSecondary = nextSecondary;
-                }
+        while (runStart < lineCount) {
+            final int runLast;
+            final int alpha;
+            if (runStart == transFirst) {
+                runLast = transLast;
+                final int baseAlpha = smallRunHoldsWords && romaFirst < 0 ? romaAlpha : transAlpha;
+                alpha = Math.round(baseAlpha * transReveal);
+            } else if (runStart == romaFirst) {
+                runLast = romaLast;
+                alpha = Math.round(romaAlpha * romaReveal);
+            } else {
+                final int nextTrans = transFirst > runStart ? transFirst : lineCount;
+                final int nextRoma = romaFirst > runStart ? romaFirst : lineCount;
+                runLast = Math.min(nextTrans, nextRoma) - 1;
+                alpha = mainAlpha;
             }
+            drawTextRun(canvas, layout, runStart, runLast, alpha, 0);
+            runStart = runLast + 1;
         }
         return true;
     }
@@ -2212,10 +2188,8 @@ final class LyricsLineView extends TextView {
         // The unsung colours, as drawBaseText picks them.
         final int mainUnsungAlpha = Math.round(((unsungColor != 0 && !wordTimings.isEmpty())
                 ? LyricsColors.UNSUNG_ALPHA * 255f : baseTextAlpha) * lineAlpha * contentNow);
-        final float secondaryBaseAlpha = activeLine
-                ? LyricsColors.ACTIVE_TRANSLATION_ALPHA * 255f
-                : Color.alpha(LyricsColors.secondaryTextColor());
-        final int transAlpha = Math.round(lineAlpha * secondaryBaseAlpha * contentNow * transReveal);
+        final int transAlpha = Math.round(lineAlpha * LyricsColors.translationBaseAlpha(activeLine)
+                * contentNow * transReveal);
         final float readingBaseAlpha = activeLine
                 ? (Settings.LYRICS_WORD_SYNC.get() && unsungColor != 0 && !wordTimings.isEmpty()
                    ? LyricsColors.UNSUNG_ALPHA * 255f

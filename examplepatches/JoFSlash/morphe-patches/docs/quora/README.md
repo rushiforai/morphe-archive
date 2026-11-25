@@ -49,8 +49,8 @@ Long-press the Home tab in the patched app to open these settings.
 ## Updating
 
 - **New patches:** a new version of these patches comes out every Saturday when something changed. An
-  urgent fix can come out sooner. To get new patches on Wednesday already, turn on **Pre-release patches** for this source
-  in Morphe Manager; pre-releases are less tested, and you can turn it off again at any time. Morphe Manager then marks the patched app with an Update badge. Patch the same Quora file again and install it over the patched app. No need to uninstall:
+  urgent fix can come out sooner. There are no pre-releases: "Pre-release patches" in Morphe Manager gets the same
+  versions. Morphe Manager then marks the patched app with an Update badge. Patch the same Quora file again and install it over the patched app. No need to uninstall:
   you stay signed in and your patch settings stay. With **Update notice** patched in (off by default), Patch settings
   shows the version you have and whether newer patches are out; nothing pops up.
 - **New Quora version:** the patched app doesn't update from the Play Store. Wait until a release of these
@@ -111,7 +111,7 @@ Everything else can wait until something bothers you.
 ## Patches
 
 <!-- PATCHES_START -->
-Version 1.11.0, 83 patches. Supported Quora versions: 3.2.47, 3.2.42.
+Version 1.13.0, 83 patches. Supported Quora versions: 3.2.47, 3.2.42.
 
 <details>
 <summary><b>Privacy</b> (12)</summary>

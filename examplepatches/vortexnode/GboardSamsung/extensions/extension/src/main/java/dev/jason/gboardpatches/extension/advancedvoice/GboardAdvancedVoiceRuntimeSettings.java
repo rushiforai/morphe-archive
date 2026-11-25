@@ -20,6 +20,7 @@ public final class GboardAdvancedVoiceRuntimeSettings {
     private static volatile Boolean enabledOverrideForTest;
     private static volatile String backendOverrideForTest;
     private static volatile Boolean zhTwPunctuationEnabledOverrideForTest;
+    private static volatile Boolean disableVoiceBeepOverrideForTest;
     private static volatile Context applicationContext;
 
     private GboardAdvancedVoiceRuntimeSettings() {
@@ -61,6 +62,15 @@ public final class GboardAdvancedVoiceRuntimeSettings {
         }
     }
 
+    public static boolean isVoiceBeepDisabled() {
+        try {
+            Boolean override = disableVoiceBeepOverrideForTest;
+            return override != null ? override.booleanValue() : snapshot().disableVoiceBeep;
+        } catch (Throwable ignored) {
+            return false;
+        }
+    }
+
     static Snapshot snapshot() {
         Snapshot cached = cachedSnapshot;
         if (cached != null) {
@@ -89,6 +99,7 @@ public final class GboardAdvancedVoiceRuntimeSettings {
                     GboardAdvancedVoiceSettings.readEnabled(preferences),
                     GboardAdvancedVoiceSettings.readBackend(preferences),
                     GboardAdvancedVoiceSettings.readZhTwPunctuationEnabled(preferences),
+                    GboardAdvancedVoiceSettings.readDisableVoiceBeep(preferences),
                     "local");
         } catch (Throwable failure) {
             logFailure("failed to parse settings", failure);
@@ -104,6 +115,10 @@ public final class GboardAdvancedVoiceRuntimeSettings {
         zhTwPunctuationEnabledOverrideForTest = Boolean.valueOf(enabled);
     }
 
+    public static void setDisableVoiceBeepOverrideForTest(boolean disabled) {
+        disableVoiceBeepOverrideForTest = Boolean.valueOf(disabled);
+    }
+
     public static void setBackendOverrideForTest(String backend) {
         backendOverrideForTest = backend;
     }
@@ -112,6 +127,7 @@ public final class GboardAdvancedVoiceRuntimeSettings {
         enabledOverrideForTest = null;
         backendOverrideForTest = null;
         zhTwPunctuationEnabledOverrideForTest = null;
+        disableVoiceBeepOverrideForTest = null;
         cachedSnapshot = null;
         applicationContext = null;
         FAILURE_LOG_COUNT.set(0);
@@ -165,6 +181,7 @@ public final class GboardAdvancedVoiceRuntimeSettings {
                 GboardAdvancedVoiceSettings.DEFAULT_ENABLED,
                 GboardAdvancedVoiceSettings.DEFAULT_BACKEND,
                 GboardAdvancedVoiceSettings.DEFAULT_ZH_TW_PUNCTUATION_ENABLED,
+                GboardAdvancedVoiceSettings.DEFAULT_DISABLE_VOICE_BEEP,
                 source);
     }
 
@@ -216,10 +233,17 @@ public final class GboardAdvancedVoiceRuntimeSettings {
         final String backend;
         final GboardVoiceInputMode effectiveMode;
         final boolean zhTwPunctuationEnabled;
+        final boolean disableVoiceBeep;
         final String source;
 
         Snapshot(boolean enabled, String backend, boolean zhTwPunctuationEnabled,
                 String source) {
+            this(enabled, backend, zhTwPunctuationEnabled,
+                    GboardAdvancedVoiceSettings.DEFAULT_DISABLE_VOICE_BEEP, source);
+        }
+
+        Snapshot(boolean enabled, String backend, boolean zhTwPunctuationEnabled,
+                boolean disableVoiceBeep, String source) {
             this.enabled = enabled;
             this.backend = backend == null
                     ? GboardAdvancedVoiceSettings.DEFAULT_BACKEND : backend;
@@ -227,6 +251,7 @@ public final class GboardAdvancedVoiceRuntimeSettings {
                     ? GboardVoiceInputMode.ADVANCED
                     : GboardVoiceInputMode.STANDARD;
             this.zhTwPunctuationEnabled = zhTwPunctuationEnabled;
+            this.disableVoiceBeep = disableVoiceBeep;
             this.source = source == null ? "unknown" : source;
         }
 

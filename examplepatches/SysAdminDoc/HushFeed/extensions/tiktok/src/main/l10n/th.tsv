@@ -1737,6 +1737,8 @@ Long-press menu on every post	เมนูกดค้างบนทุกโ�
 TikTok's hold to speed up	การกดค้างเพื่อเพิ่มความเร็วของ TikTok
 TikTok's background play and Auto scroll	การเล่นในเบื้องหลังและการเลื่อนอัตโนมัติของ TikTok
 Post dates in the feed	วันที่ของโพสต์ในฟีด
+# context: a line of the Account facts sheet, the number of posts the account has
+Posts	โพสต์
 Show exact counts	แสดงจำนวนที่แน่นอน
 Show counts as full numbers, like 1,234,567 instead of 1.2M.	แสดงจำนวนเป็นตัวเลขเต็ม เช่น 1,234,567 แทนที่จะเป็น 1.2M
 Play SDR instead of HDR	เล่นแบบ SDR แทน HDR
@@ -3004,7 +3006,9 @@ Find and reopen the videos you liked only on this phone	ค้นหาและ
 Videos you like on this phone show up here	วิดีโอที่คุณถูกใจบนโทรศัพท์เครื่องนี้จะแสดงที่นี่
 Likes cleared	ล้างการถูกใจแล้ว
 Export followers and following	ส่งออกผู้ติดตามและที่กำลังติดตาม
-Saves the accounts that follow you, or the ones you follow, as a CSV file in Download/Hushfeed. They're read at about the pace of scrolling the list, up to %1$s at a time.	บันทึกบัญชีที่ติดตามคุณ หรือบัญชีที่คุณติดตาม เป็นไฟล์ CSV ใน Download/Hushfeed โดยอ่านด้วยความเร็วประมาณการเลื่อนดูรายการ ครั้งละไม่เกิน %1$s บัญชี
+Saves the accounts that follow you, or the ones you follow, as a CSV, JSON or plain text file in Download/Hushfeed. They're read at about the pace of scrolling the list, up to %1$s at a time.	บันทึกบัญชีที่ติดตามคุณ หรือบัญชีที่คุณติดตาม เป็นไฟล์ CSV, JSON หรือข้อความธรรมดา ใน Download/Hushfeed โดยอ่านด้วยความเร็วประมาณการเลื่อนดูรายการ ครั้งละไม่เกิน %1$s บัญชี
+# context: a file type on the Export followers and following list, as in "Followers (Plain text)"
+Plain text	ข้อความธรรมดา
 A list is already being read	กำลังอ่านรายการอยู่แล้ว
 Reading your followers (%1$s)	กำลังอ่านผู้ติดตามของคุณ (%1$s)
 Reading who you follow (%1$s)	กำลังอ่านบัญชีที่คุณติดตาม (%1$s)
@@ -3142,7 +3146,7 @@ Gives each video on profile grids rounded corners, on your own profile and on Li
 Gifter level	ระดับผู้ให้ของขวัญ
 SecUID	SecUID
 Unknown (TikTok didn't send it)	ไม่ทราบ (TikTok ไม่ได้ส่งมา)
-A profile's share sheet gets an Account facts button. It shows what TikTok already sent about the account: when it joined, its region and language, its gifter level and SecUID, when its username and display name last changed, whether it's private and whether its liked videos are public. Nothing extra is fetched.	แผ่นเมนูแชร์ของโปรไฟล์จะมีปุ่ม "ข้อมูลบัญชี" เพิ่มเข้ามา ซึ่งจะแสดงสิ่งที่ TikTok ส่งมาเกี่ยวกับบัญชีอยู่แล้ว ได้แก่ วันที่เข้าร่วม ภูมิภาคและภาษา ระดับผู้ให้ของขวัญและ SecUID เวลาที่ชื่อผู้ใช้และชื่อที่แสดงเปลี่ยนแปลงล่าสุด บัญชีเป็นแบบส่วนตัวหรือไม่ และวิดีโอที่ถูกใจเป็นสาธารณะหรือไม่ ไม่มีการดึงข้อมูลเพิ่มเติมใดๆ
+A profile's share sheet gets an Account facts button. It shows what TikTok already sent about the account: when it joined, its region and language, its gifter level and SecUID, how many posts, liked videos, favorites and reposts it has, when its username and display name last changed, whether it's private and whether its liked videos are public. Nothing extra is fetched.	แผ่นเมนูแชร์ของโปรไฟล์จะมีปุ่ม "ข้อมูลบัญชี" เพิ่มเข้ามา ซึ่งจะแสดงสิ่งที่ TikTok ส่งมาเกี่ยวกับบัญชีอยู่แล้ว ได้แก่ วันที่เข้าร่วม ภูมิภาคและภาษา ระดับผู้ให้ของขวัญและ SecUID จำนวนโพสต์ วิดีโอที่ถูกใจ รายการโปรด และรีโพสต์ เวลาที่ชื่อผู้ใช้และชื่อที่แสดงเปลี่ยนแปลงล่าสุด บัญชีเป็นแบบส่วนตัวหรือไม่ และวิดีโอที่ถูกใจเป็นสาธารณะหรือไม่ ไม่มีการดึงข้อมูลเพิ่มเติมใดๆ
 # context: LIVE controls: a small line in a LIVE room with the room ID and the viewer's own connection (ping, latency, download speed) from TikTok's player; a tap copies the room ID
 Show the room ID and your connection	แสดง ID ห้องและการเชื่อมต่อของคุณ
 Adds a small line to LIVE rooms with the room's ID and how your own connection to the stream is doing, as TikTok's player measures it: ping, latency and download speed. Tap the line to copy the room ID.	เพิ่มบรรทัดเล็กๆ ในห้อง LIVE ที่แสดง ID ห้องและสถานะการเชื่อมต่อของคุณเองกับสตรีม ตามที่เครื่องเล่นของ TikTok วัดได้ ได้แก่ ปิง ความหน่วง และความเร็วในการดาวน์โหลด แตะที่บรรทัดเพื่อคัดลอก ID ห้อง
@@ -3235,3 +3239,13 @@ Posts to delete: %1$d. Starting in %2$d	โพสต์ที่จะลบ: %1
 Posts deleted: %1$d of %2$d	ลบโพสต์แล้ว: %1$d จาก %2$d
 Swipe LIVEs in your Following row's order	ปัดดู LIVE ตามลำดับในแถวกำลังติดตาม
 After a LIVE you open from the row at the top of Following, swiping takes you through the row's other LIVEs in the order they sit there, starting with the next one. TikTok's own picks come after them.	หลังจาก LIVE ที่คุณเปิดจากแถวด้านบนของกำลังติดตาม การปัดจะพาคุณไปยัง LIVE อื่นในแถวนั้นตามลำดับที่เรียงอยู่ โดยเริ่มจากรายการถัดไป ตัวเลือกของ TikTok จะมาหลังจากนั้น
+Remember saved videos	จำวิดีโอที่บันทึกไว้
+Keeps the cover, creator, caption and post date of each video in your Favorites on this phone as the grid loads it. If one is later deleted or made private, its tile shows the kept cover and creator instead of a grey box, and a tap shows the rest. Videos that were already gone can't be recovered.	เก็บหน้าปก ครีเอเตอร์ คำบรรยาย และวันที่โพสต์ของวิดีโอแต่ละรายการในรายการโปรดของคุณไว้บนโทรศัพท์เครื่องนี้ขณะที่ตารางโหลดวิดีโอนั้น หากภายหลังวิดีโอถูกลบหรือถูกตั้งเป็นส่วนตัว ช่องของวิดีโอจะแสดงหน้าปกและครีเอเตอร์ที่เก็บไว้แทนกล่องสีเทา และแตะเพื่อดูส่วนที่เหลือ วิดีโอที่หายไปก่อนหน้านี้แล้วไม่สามารถกู้คืนได้
+Unavailable saved videos	วิดีโอที่บันทึกไว้ซึ่งไม่พร้อมใช้งาน
+See the saved videos that went away after Hushfeed remembered them	ดูวิดีโอที่บันทึกไว้ซึ่งหายไปหลังจากที่ Hushfeed จำไว้แล้ว
+Saved videos that go away show up here	วิดีโอที่บันทึกไว้ซึ่งหายไปจะแสดงที่นี่
+Unavailable saved videos cleared	ล้างรายการวิดีโอแล้ว
+Unavailable saved video	วิดีโอที่บันทึกไว้ซึ่งไม่พร้อมใช้งาน
+Posted %1$s	โพสต์เมื่อ %1$s
+Remembered %1$s	จำไว้เมื่อ %1$s
+Unavailable since %1$s	ไม่พร้อมใช้งานตั้งแต่ %1$s

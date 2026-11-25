@@ -1,6 +1,5 @@
 {
   "name": "IMDb",
-  "workflow": "emulator-imdb.yml",
   "patches": "patches/src/main/kotlin/app/jofslash/patches/imdb",
   "extension": "extensions/imdb",
   "docs": "docs/imdb/README.md",

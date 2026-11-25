@@ -144,11 +144,16 @@ final class HushfacebookPages {
         }
         if (build.contains(PatchFamily.HIDDEN_TABS)) {
             subheading(tabs, L10n.t("Tabs to hide"));
-            // Facebook builds the tab bar once, so a change waits for a restart.
+            // Facebook builds the tab bar once, so a change waits for a restart. The page stays in the
+            // Menu, which is the side panel on some accounts, so the summary names the row that takes
+            // it out of there too, where the build has it (#564).
+            String summary = build.contains(PatchFamily.MENU_PROMOTIONS)
+                    ? L10n.t("Removes this tab from the tab bar. Its page is still in the Menu, unless you pick it in "
+                            + "Menu tiles to hide. Restart Facebook to see the change.")
+                    : L10n.t("Removes this tab from the tab bar. Its page is still in the Menu. Restart Facebook to see the "
+                            + "change.");
             for (HiddenTabs.Tab tab : HiddenTabs.Tab.values()) {
-                tabs.addPreference(toggle(context, tab.setting(),
-                        L10n.t("Removes this tab from the tab bar. Its page is still in the Menu. Restart Facebook to see the "
-                                + "change.")));
+                tabs.addPreference(toggle(context, tab.setting(), summary));
             }
             // The tabs left on the bar, in the order you pick (#341). Also built once, so it waits too.
             tabs.addPreference(TabOrderRow.row(page, context));
@@ -303,19 +308,6 @@ final class HushfacebookPages {
                             + "zooming in. Swiping between tabs still works.")));
         }
         subheading(appearance, L10n.t("App icon and header"));
-        if (build.contains(PatchFamily.APP_ICONS)) {
-            // The App icon page asks as it opens. A picked icon is a launcher alias, so it outlives the switch.
-            appearance.addPreference(toggle(context, Settings.UNLOCK_APP_ICONS,
-                    L10n.t("Lets you pick the app icons Facebook keeps for Facebook Plus, on Facebook's App icon page. "
-                            + "The Pick an app icon row opens that page. Your pick stays if you turn this off, so pick the "
-                            + "blue one first to go back.")));
-            // Facebook builds the Home header once, so a change waits for a restart. Needs the unlock above.
-            appearance.addPreference(toggle(context, Settings.USE_APP_ICON_IN_HEADER,
-                    L10n.t("Shows the app icon you picked at the top of Home instead of the Facebook wordmark. Needs "
-                            + "Unlock app icons and a pick other than the blue one. Restart Facebook to see the change."))
-                    .needs(Settings.UNLOCK_APP_ICONS));
-            appearance.addPreference(AppIconScreen.row(context));
-        }
         if (build.contains(PatchFamily.HEADER_TEXT)) {
             // Facebook builds the Home header once, so a change waits for a restart.
             appearance.addPreference(HushfacebookPreferenceFragment.headerTextRow(context));

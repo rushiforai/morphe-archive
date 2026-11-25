@@ -40,8 +40,12 @@ def fetch(url):
         return response.read().decode("utf8", errors="replace")
 
 
-def apkmirror_versions(app):
-    """Release versions in the feed, newest first; betas and alphas are left out."""
+def apkmirror_versions(app, newest=(0,)):
+    """Release versions in the feed, newest first; betas and alphas are left out. With
+    "feed_pattern" the feed only has short release names: the version name of each release newer
+    than [newest] is read from its page, and older ones are listed by their short name."""
+    if app.v.get("feed_pattern"):
+        return feed_pattern_versions(app, newest)
     versions = []
     for title in re.findall(r"<title>([^<]*)</title>", fetch(app.feed)):
         if re.search(r"\b(beta|alpha)\b", title, re.I):
@@ -50,6 +54,28 @@ def apkmirror_versions(app):
         if version and version not in versions:
             versions.append(version)
     return sorted(versions, key=app.order, reverse=True)
+
+
+def feed_pattern_versions(app, newest):
+    versions = []
+    for item in re.findall(r"<item>(.*?)</item>", fetch(app.feed), re.S):
+        title = re.search(r"<title>([^<]*)</title>", item)
+        link = re.search(r"<link>([^<]*)</link>", item)
+        if not title or not link or re.search(r"\b(beta|alpha)\b", title.group(1), re.I):
+            continue
+        code = app.feed_code(title.group(1))
+        if not code:
+            continue
+        version = None
+        if code > newest:
+            version = app.find(fetch(link.group(1).strip()))
+            if version and app.order(version) != code:
+                version = None
+        name = version or str(code[0])
+        if name not in versions:
+            versions.append(name)
+    # Short names sort by their code as well; only full version names count as new.
+    return sorted(versions, key=lambda v: app.order(v) if app.valid(v) else (int(v),), reverse=True)
 
 
 def apkpure_latest(app):
@@ -92,11 +118,11 @@ def apkpure_page_version(app):
 
 def watch_apkmirror(app, newest):
     try:
-        mirror = apkmirror_versions(app)
+        mirror = apkmirror_versions(app, newest)
     except Exception as ex:  # The workflow then reports that the check itself failed.
         print(f"Could not read APKMirror: {ex}")
         sys.exit(2)
-    new = [v for v in mirror if app.order(v) > newest]
+    new = [v for v in mirror if app.valid(v) and app.order(v) > newest]
     print(f"APKMirror: {', '.join(mirror[:5]) or 'none found'}")
     outputs = {"new": new[0] if new else ""}
     if app.v.get("play_country"):

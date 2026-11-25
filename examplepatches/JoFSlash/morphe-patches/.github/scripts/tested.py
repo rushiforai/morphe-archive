@@ -12,9 +12,12 @@ Docs, other apps and the release files don't count. gradle.properties is left ou
 changes only its version.
 
 When an app passes, emulator-app.yml records the ref refs/tested/<app>/<fingerprint>. A ref can be
-read from any branch, so a test on dev counts for the release on main when the code is the same.
+read from any branch and any run, so the test after a merge into main counts for the release when
+the code is the same.
 
 python3 tested.py plan [--all]       JSON list of the apps without a passed test (all with --all)
+python3 tested.py changed <base>     JSON list of the apps whose test depends on a file changed
+                                     since <base> (a pull request's base; emulator-pr.yml)
 python3 tested.py fingerprint <app>  the app's fingerprint
 python3 tested.py record <app>       records that the app passed at HEAD
 
@@ -74,18 +77,26 @@ def own_paths(key, app):
     return paths
 
 
-def fingerprint(key, apps):
+def depends_on(key, apps):
+    """A test for whether the app's emulator test depends on a file (a path from the repo root)."""
     mine = own_paths(key, apps[key])
     others = [p for other, app in apps.items() if other != key for p in own_paths(other, app)
               if p.endswith("/")]
+
+    def counts(path):
+        return any(path == p or path.startswith(p) for p in mine) or (
+            any(path == p or path.startswith(p) for p in SHARED)
+            and not any(path.startswith(p) for p in others))
+    return counts
+
+
+def fingerprint(key, apps):
+    counts = depends_on(key, apps)
     lines = []
     for line in git("ls-files", "-s").splitlines():
         # "<mode> <blob> <stage>\t<path>": the blob hash stands for the file's content.
         meta, path = line.split("\t", 1)
-        counts = any(path == p or path.startswith(p) for p in mine) or (
-            any(path == p or path.startswith(p) for p in SHARED)
-            and not any(path.startswith(p) for p in others))
-        if counts:
+        if counts(path):
             lines.append(f"{meta.split()[1]} {path}")
     return hashlib.sha256("\n".join(sorted(lines)).encode()).hexdigest()[:32]
 
@@ -131,6 +142,15 @@ def main():
             print(f"{key}: {name} {'passed before' if done else 'to test'}", file=sys.stderr)
             if not done:
                 todo.append(key)
+        print(json.dumps(todo))
+    elif command == "changed" and len(sys.argv) == 3:
+        # The files the pull request changes, from where it left the base branch to HEAD. A change
+        # to the pull request workflow itself tests every app.
+        files = git("diff", "--name-only", f"{sys.argv[2]}...HEAD").split()
+        print("Changed: " + " ".join(files), file=sys.stderr)
+        everything = ".github/workflows/emulator-pr.yml" in files
+        todo = [key for key in apps
+                if everything or any(depends_on(key, apps)(f) for f in files)]
         print(json.dumps(todo))
     elif command == "feed-plan":
         day = feed_passed(apps)

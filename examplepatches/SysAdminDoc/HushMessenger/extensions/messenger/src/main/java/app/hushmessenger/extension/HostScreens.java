@@ -160,6 +160,11 @@ public final class HostScreens {
         return "";
     }
 
+    /** Rewritten with Messenger's own "is this user an AI bot", "Lowner;->name()Z", once the patch proves it (#204). */
+    static String aiUserRoute() {
+        return "";
+    }
+
     /** Rewritten with the home screen's open tab, its tab list and its tab switch once the patch proves all three. */
     static String tabSwipeRoute() {
         return "";

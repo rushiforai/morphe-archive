@@ -1,0 +1,312 @@
+{
+  "format": 1,
+  "scope": "Actual Vela system-voice receiver process killed after real native STARTED, live Maps-owner reset refusal, source durable started-record readback, uncertainty after lease expiry, positive receiver/TTS process and active-player stop checks, actual private parked recovery screen, and one fresh native warning after a new real receiver process connects. This does not prove source-process restart, Maps-owner death, other adapters or car output routing.",
+  "serial": "emulator-5584",
+  "avd": "native_warnings_car_api34",
+  "apps": {
+    "nl.flitsmeister": "3e3c2e987bb6e9b28bc5692e52828ee03d317cf925f719ed4aece29f11614ac8",
+    "com.google.android.apps.maps": "979dba530da9c9c09c0d7867288206a1aa357a27e3701c63f8123bbe72ba9815",
+    "app.vela": "72012bd0dd02ee3b3eb31a35df55d24de5fea79ba830906568c0d029c101aeab"
+  },
+  "helpers": {
+    "maps": "cb1b24d86c511c8f905076d51a2188758ffe7acea33e06c5ed6c2b1ec5107931",
+    "vela": "f283804ebf860950b843511dfd9e9db3b3ea7e79b8cc34bf7f3bff359926fd8d",
+    "source": "e2645a15dbeb8e7f158455e0751d8b3f918ff21379f0e0d69c32e8ad5f2d0897"
+  },
+  "live_owner_recovery_refused": {
+    "before": {
+      "code": "OK",
+      "owner_present": true,
+      "pending_present": false,
+      "provider_session": "d13f1e72-36de-4159-a44d-1bc1a5511285",
+      "owner_uid": 10195,
+      "owner_package": "com.google.android.apps.maps",
+      "owner_epoch": 1,
+      "owner_ready": true
+    },
+    "after": {
+      "code": "OK",
+      "owner_present": true,
+      "pending_present": false,
+      "provider_session": "d13f1e72-36de-4159-a44d-1bc1a5511285",
+      "owner_uid": 10195,
+      "owner_package": "com.google.android.apps.maps",
+      "owner_epoch": 1,
+      "owner_ready": true
+    },
+    "both_confirmations_required": true,
+    "activity_finished": false,
+    "actual_window_screenshot": "/storage/emulated/0/Android/data/nl.flitsmeister/files/probe-handover-e961607abeaf4c4abf8c6dc31392c587-refused.png",
+    "confirmations_screenshot": "/storage/emulated/0/Android/data/nl.flitsmeister/files/probe-handover-e961607abeaf4c4abf8c6dc31392c587-live-confirmations.png"
+  },
+  "death_recovery": {
+    "authority": {
+      "language_tag": "en-US",
+      "native_local_mute_bypass": false,
+      "issued_elapsed_ms": 5041417,
+      "latitude": 52.001,
+      "native_family": "SpeedCam",
+      "priority": 1,
+      "protocol_version": 1,
+      "native_announce_observed": true,
+      "position_observed_elapsed_ms": 5041416,
+      "relationship": "unknown",
+      "revision": 1,
+      "category": "speed_control",
+      "phase": "enter",
+      "relevance": "point_ahead",
+      "longitude": 5,
+      "position_estimated": false,
+      "capture_path": "regular",
+      "state_until_elapsed_ms": 5071417,
+      "native_subtype": "SPEED_50",
+      "message_origin": "native_text",
+      "native_text_key": "374708fff7719dd5979ec875d56cd2286f6d3cf7ec317a3b25632aab28ec37bb",
+      "message": "Speed cam 50",
+      "announcement_index": 1,
+      "native_point_target": true,
+      "provider_session": "d13f1e72-36de-4159-a44d-1bc1a5511285",
+      "sequence": 7,
+      "observed_elapsed_ms": 5041417,
+      "operation": "ANNOUNCE",
+      "native_type": "SPEED_CAM",
+      "position_clock_origin": "native_decision",
+      "warning_id": "SpeedCam:probe-handover-e961607abeaf4c4abf8c6dc31392c587-death",
+      "announce_until_elapsed_ms": 5051417
+    },
+    "source_dispositions_before_death": [
+      {
+        "receiver_uid": 10194,
+        "outcome": "GRANTED",
+        "started": false,
+        "mode": "VOICE"
+      },
+      {
+        "receiver_uid": 10194,
+        "outcome": "STARTED",
+        "started": true,
+        "mode": "VOICE"
+      }
+    ],
+    "before_death": {
+      "code": "OK",
+      "owner_present": true,
+      "pending_present": true,
+      "provider_session": "d13f1e72-36de-4159-a44d-1bc1a5511285",
+      "owner_uid": 10194,
+      "owner_package": "app.vela",
+      "owner_epoch": 2,
+      "owner_ready": true,
+      "pending_attempt": "06e704dc-a8ed-4db4-9bfa-0bc61964bd4d",
+      "pending_started": true,
+      "pending_outcome": "STARTED",
+      "pending_event_key": "2e78da30087e9175426b1c515f74ab54e862ed2f69330dccc7ae2c96a79a763d",
+      "stored_attempt": "06e704dc-a8ed-4db4-9bfa-0bc61964bd4d",
+      "stored_started": true,
+      "stored_outcome": "STARTED"
+    },
+    "after_death": {
+      "code": "AUDIO_UNCERTAIN",
+      "owner_present": true,
+      "pending_present": true,
+      "provider_session": "d13f1e72-36de-4159-a44d-1bc1a5511285",
+      "owner_uid": 10194,
+      "owner_package": "app.vela",
+      "owner_epoch": 2,
+      "owner_ready": false,
+      "pending_attempt": "06e704dc-a8ed-4db4-9bfa-0bc61964bd4d",
+      "pending_started": true,
+      "pending_outcome": "UNCERTAIN",
+      "pending_event_key": "2e78da30087e9175426b1c515f74ab54e862ed2f69330dccc7ae2c96a79a763d",
+      "stored_attempt": "06e704dc-a8ed-4db4-9bfa-0bc61964bd4d",
+      "stored_started": true,
+      "stored_outcome": "STARTED"
+    },
+    "after_lease_expiry": {
+      "code": "AUDIO_UNCERTAIN",
+      "owner_present": false,
+      "pending_present": true,
+      "provider_session": "d13f1e72-36de-4159-a44d-1bc1a5511285",
+      "pending_attempt": "06e704dc-a8ed-4db4-9bfa-0bc61964bd4d",
+      "pending_started": true,
+      "pending_outcome": "UNCERTAIN",
+      "pending_event_key": "2e78da30087e9175426b1c515f74ab54e862ed2f69330dccc7ae2c96a79a763d",
+      "stored_attempt": "06e704dc-a8ed-4db4-9bfa-0bc61964bd4d",
+      "stored_started": true,
+      "stored_outcome": "STARTED"
+    },
+    "after_recovery": {
+      "code": "UNOWNED",
+      "owner_present": false,
+      "pending_present": false,
+      "provider_session": "d13f1e72-36de-4159-a44d-1bc1a5511285"
+    },
+    "future_authority": {
+      "language_tag": "en-US",
+      "native_local_mute_bypass": false,
+      "issued_elapsed_ms": 5050763,
+      "latitude": 52.001,
+      "native_family": "SpeedCam",
+      "priority": 1,
+      "protocol_version": 1,
+      "native_announce_observed": true,
+      "position_observed_elapsed_ms": 5050763,
+      "relationship": "unknown",
+      "revision": 1,
+      "category": "speed_control",
+      "phase": "enter",
+      "relevance": "point_ahead",
+      "longitude": 5,
+      "position_estimated": false,
+      "capture_path": "regular",
+      "state_until_elapsed_ms": 5080763,
+      "native_subtype": "SPEED_50",
+      "message_origin": "native_text",
+      "native_text_key": "374708fff7719dd5979ec875d56cd2286f6d3cf7ec317a3b25632aab28ec37bb",
+      "message": "Speed cam 50",
+      "announcement_index": 1,
+      "native_point_target": true,
+      "provider_session": "d13f1e72-36de-4159-a44d-1bc1a5511285",
+      "sequence": 10,
+      "observed_elapsed_ms": 5050763,
+      "operation": "ANNOUNCE",
+      "native_type": "SPEED_CAM",
+      "position_clock_origin": "native_decision",
+      "warning_id": "SpeedCam:probe-handover-e961607abeaf4c4abf8c6dc31392c587-future",
+      "announce_until_elapsed_ms": 5060763
+    },
+    "future_source_dispositions": [
+      {
+        "receiver_uid": 10194,
+        "outcome": "GRANTED",
+        "started": false,
+        "mode": "VOICE"
+      },
+      {
+        "receiver_uid": 10194,
+        "outcome": "STARTED",
+        "started": true,
+        "mode": "VOICE"
+      },
+      {
+        "receiver_uid": 10194,
+        "outcome": "COMPLETED",
+        "started": true,
+        "mode": "VOICE"
+      }
+    ]
+  },
+  "uncertain_output_recovery": {
+    "before": {
+      "code": "AUDIO_UNCERTAIN",
+      "owner_present": false,
+      "pending_present": true,
+      "provider_session": "d13f1e72-36de-4159-a44d-1bc1a5511285",
+      "pending_attempt": "06e704dc-a8ed-4db4-9bfa-0bc61964bd4d",
+      "pending_started": true,
+      "pending_outcome": "UNCERTAIN",
+      "pending_event_key": "2e78da30087e9175426b1c515f74ab54e862ed2f69330dccc7ae2c96a79a763d",
+      "stored_attempt": "06e704dc-a8ed-4db4-9bfa-0bc61964bd4d",
+      "stored_started": true,
+      "stored_outcome": "STARTED"
+    },
+    "after": {
+      "code": "UNOWNED",
+      "owner_present": false,
+      "pending_present": false,
+      "provider_session": "d13f1e72-36de-4159-a44d-1bc1a5511285"
+    },
+    "both_confirmations_required": true,
+    "activity_finished": true,
+    "actual_window_screenshot": "/storage/emulated/0/Android/data/nl.flitsmeister/files/probe-handover-e961607abeaf4c4abf8c6dc31392c587-recovered.png",
+    "confirmations_screenshot": "/storage/emulated/0/Android/data/nl.flitsmeister/files/probe-handover-e961607abeaf4c4abf8c6dc31392c587-uncertain-confirmations.png"
+  },
+  "outputs_verified_stopped": {
+    "packages": [
+      "com.google.android.apps.maps",
+      "app.vela",
+      "com.google.android.tts"
+    ],
+    "relevant_uids": [
+      10148,
+      10193,
+      10194,
+      10195
+    ],
+    "active_relevant_players": 0
+  },
+  "reconnected_receiver_actual_starts": [
+    {
+      "preview": false,
+      "native_type": "SPEED_CAM",
+      "observed_ms": 5050763,
+      "priority": 1,
+      "issued_ms": 5050763,
+      "sequence": 10,
+      "provider_session": "d13f1e72-36de-4159-a44d-1bc1a5511285",
+      "deadline_ms": 5060763,
+      "stage": "SCHEDULER_STARTED",
+      "elapsed_ms": 5051801,
+      "category": "speed_control",
+      "event_key": "6743a6ff9958a1f2ac16833a1249d6e2b5de8dcd3ff6170c271e9754d4e09589"
+    }
+  ],
+  "reconnected_receiver_actual_completions": [
+    {
+      "preview": false,
+      "native_type": "SPEED_CAM",
+      "observed_ms": 5050763,
+      "priority": 1,
+      "issued_ms": 5050763,
+      "sequence": 10,
+      "provider_session": "d13f1e72-36de-4159-a44d-1bc1a5511285",
+      "deadline_ms": 5060763,
+      "stage": "SCHEDULER_COMPLETED",
+      "elapsed_ms": 5053416,
+      "category": "speed_control",
+      "event_key": "6743a6ff9958a1f2ac16833a1249d6e2b5de8dcd3ff6170c271e9754d4e09589"
+    }
+  ],
+  "only_fresh_authority_started_after_recovery": true,
+  "source_result": ".analysis/native-warning-bindings/death-recovery-actual-03/source/b1b878ee-aad4-4cb7-8336-95c067319206/result.json",
+  "raw_result": ".analysis/native-warning-bindings/death-recovery-actual-03/result.json",
+  "reconnected_receiver_result": ".analysis/native-warning-bindings/death-recovery-actual-03/vela-recovered-result.json",
+  "source_network_and_lease_restored": true,
+  "source_location_permissions_restored_exactly": true,
+  "all_three_app_preferences_restored_exactly": true,
+  "temporary_window_settings_restored_exactly": true,
+  "visual_inspection": "The refusal frame visibly shows the two checked controls and A receiver is still active. Stop it first. The uncertain confirmation frame shows the actual recovery layout but was captured before the checked-state redraw; real View assertions and the successful click establish the two-checkbox gate.",
+  "images": {
+    "live_owner_recovery_refused-confirmations.png": {
+      "path": ".analysis/native-warning-bindings/death-recovery-actual-03/live_owner_recovery_refused-confirmations.png",
+      "sha256": "7d26d4edee61f262eaad5cd2da5600f572888045000f1e8151c0067c0f0c4079"
+    },
+    "uncertain_output_recovery.png": {
+      "path": ".analysis/native-warning-bindings/death-recovery-actual-03/uncertain_output_recovery.png",
+      "sha256": "c73bacbe3631ba67dcf85a8e5420386a6454ceb6de58437fa7833be86921da9b"
+    },
+    "live_owner_recovery_refused.png": {
+      "path": ".analysis/native-warning-bindings/death-recovery-actual-03/live_owner_recovery_refused.png",
+      "sha256": "4a5883f60c0ef8feea737ae8fc8af988cfd734276073f8b23349e9531d9ad43b"
+    },
+    "uncertain_output_recovery-confirmations.png": {
+      "path": ".analysis/native-warning-bindings/death-recovery-actual-03/uncertain_output_recovery-confirmations.png",
+      "sha256": "d71c52a17e92b9a7b13e29b6a9a1dc7a8ac4d61062c0d12192b3af4ac3459fff"
+    }
+  },
+  "rejected_baselines": [
+    {
+      "path": ".analysis/native-warning-bindings/death-recovery-actual-01",
+      "reason": "Preflight rejected a legal Firebase preference filename before app launch or test-state mutation."
+    },
+    {
+      "path": ".analysis/native-warning-bindings/death-recovery-actual-02/result.json",
+      "reason": "Kill/fence/reset completed, but the test incorrectly waited for idle voice readiness before issuing a new language-bearing warning. Full exact cleanup passed; terminal failed result retained."
+    }
+  ],
+  "remaining": [
+    "Other output adapters, background navigation and car routing"
+  ],
+  "related_maps_verification": "tests/fixtures/navigation-warnings/maps-death-recovery-verification.json",
+  "related_provider_restart_verification": "tests/fixtures/navigation-warnings/provider-restart-verification.json"
+}

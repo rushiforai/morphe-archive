@@ -395,6 +395,22 @@ public class ChoiceBackupTest {
         }
     }
 
+    /** A backup saved before Unlock app icons and Unlock app themes were removed still restores everything else. */
+    @Test public void aBackupWithTheRemovedIconAndThemeSwitchesRestoresTheRest() {
+        try (var screen = Robolectric.buildActivity(SettingsActivity.class).setup()) {
+            Settings.installed = new HashSet<>(Set.of("stories", "typing"));
+            clipboard(ChoiceCodec.HEADER + "\nstories=true\napp_icons=true\ntyping=true\napp_themes=true\n");
+            screen.get().getWindow().getDecorView().findViewWithTag("import_choices").performClick();
+            assertTrue(Settings.preferences.getBoolean("stories", false));
+            assertTrue(Settings.preferences.getBoolean("typing", false));
+            assertFalse(Settings.preferences.contains("app_icons"));
+            assertFalse(Settings.preferences.contains("app_themes"));
+            TextView result = screen.get().getWindow().getDecorView().findViewWithTag("choices_restore_status");
+            SettingsText words = new SettingsText(screen.get());
+            assertEquals("Restored 2 choices. " + words.count("import_unknown", 2), result.getText().toString());
+        }
+    }
+
     /** With every note at once, the toast still fits the two lines Android 12+ shows, and the card holds the rest. */
     @Test public void aRestoreWithEveryNoteKeepsItsToastToTwoLines() {
         try (var screen = Robolectric.buildActivity(SettingsActivity.class).setup()) {

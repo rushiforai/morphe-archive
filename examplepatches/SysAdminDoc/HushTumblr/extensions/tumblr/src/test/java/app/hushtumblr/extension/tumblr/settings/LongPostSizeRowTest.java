@@ -59,8 +59,9 @@ public class LongPostSizeRowTest {
             Preference row = page.findPreference(ROW);
             assertEquals("About a screen. Tap to change.", String.valueOf(row.getSummary()));
             SettingsL10nTest.openPageOf(page, ROW);
-            String[] saved = {"80", "20", "40"};
-            String[] summaries = {"About two screens. Tap to change.", "About half a screen. Tap to change.",
+            String[] saved = {"80", "5", "10", "20", "40"};
+            String[] summaries = {"About two screens. Tap to change.", "About 5 lines. Tap to change.",
+                    "About 10 lines. Tap to change.", "About half a screen. Tap to change.",
                     "About a screen. Tap to change."};
             for (int tap = 0; tap < saved.length; tap++) {
                 row.getOnPreferenceClickListener().onPreferenceClick(row);
@@ -93,8 +94,8 @@ public class LongPostSizeRowTest {
             }
             for (Runnable save : queued) save.run();
             settle();
-            assertEquals("20", TextSettings.LONG_POST_SIZE.persistedValue());
-            assertEquals("About half a screen. Tap to change.", String.valueOf(page.findPreference(ROW).getSummary()));
+            assertEquals("5", TextSettings.LONG_POST_SIZE.persistedValue());
+            assertEquals("About 5 lines. Tap to change.", String.valueOf(page.findPreference(ROW).getSummary()));
         }
     }
 

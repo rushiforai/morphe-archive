@@ -3,7 +3,7 @@
  * https://github.com/MorpheApp/morphe-patches/pull/3769
  *
  * See the included NOTICE file for GPLv3 Section 7 terms that apply to this code.
- * Modified by lavinhoque33, 2026-10-24
+ * Modified by lavinhoque33, 2026-11-24
  */
 
 package app.morphe.patches.youtube.feed.cardlayout
@@ -18,6 +18,7 @@ import app.morphe.patcher.string
 import com.android.tools.smali.dexlib2.AccessFlags
 import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.iface.reference.MethodReference
+import com.android.tools.smali.dexlib2.iface.reference.FieldReference
 
 /**
  * Opens a regular video with the command of the tapped element.
@@ -132,6 +133,36 @@ internal class DividerItemOffsetsFingerprint(dividerInfoLookupMethod: MethodRefe
     filters = listOf(
         methodCall(reference = dividerInfoLookupMethod)
     )
+)
+
+/**
+ * The descriptor stores separate row and column gaps. Follow the fields read after their labels.
+ * The descriptor is absent on 21.13 and older.
+ */
+internal object SectionLayoutDescriptorToStringFingerprint : Fingerprint(
+    accessFlags = listOf(AccessFlags.PUBLIC, AccessFlags.FINAL),
+    returnType = "Ljava/lang/String;",
+    parameters = listOf(),
+    filters = listOf(
+        string("SectionLayoutDescriptor(columnCount="),
+        fieldAccess(opcode = Opcode.IGET, type = "I", location = MatchAfterWithin(4)),
+        string(", rowGapDp=", location = MatchAfterWithin(4)),
+        fieldAccess(opcode = Opcode.IGET, type = "F", location = MatchAfterWithin(4)),
+    ),
+)
+
+/**
+ * The flow layout's row gap provider reads the descriptor for an adapter position. Its other gap
+ * lookup reads the default descriptor for the same list.
+ */
+internal class SectionRowGapLookupFingerprint(rowGap: FieldReference) : Fingerprint(
+    accessFlags = listOf(AccessFlags.PUBLIC, AccessFlags.FINAL),
+    returnType = "I",
+    parameters = listOf("I"),
+    filters = listOf(
+        fieldAccess(reference = rowGap, opcode = Opcode.IGET),
+        opcode(Opcode.FLOAT_TO_INT, MatchAfterImmediately()),
+    ),
 )
 
 /**

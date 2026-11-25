@@ -150,8 +150,13 @@ public final class TrackPreference {
     public static String dubTarget(Object aweme, String stock) {
         HookStatus.bound(FAMILY, "dub pick");
         if (Settings.FORCE_ORIGINAL_DUB.get()) {
-            know(Reflect.string(aweme, "getAid", "aid"), null);
-            return "";
+            String video = Reflect.string(aweme, "getAid", "aid");
+            know(video, null);
+            if (!OriginalSound.carries(aweme)) return "";
+            // A copy made for the app's language plays its original sound as a track of its own.
+            remember(video, OriginalSound.CODE);
+            Logger.printDebug(() -> "Dub pick: " + video + " plays its original sound");
+            return OriginalSound.CODE;
         }
         List<String> wanted = wantedDubs();
         if (wanted.isEmpty()) return stock;
@@ -165,7 +170,8 @@ public final class TrackPreference {
 
     /** True plays a dub even with PineDrama's dubbing switch off or the language on its skip list. */
     public static boolean dubForced(Object aweme) {
-        if (!Settings.FORCE_DUB.get() || Settings.FORCE_ORIGINAL_DUB.get()) return false;
+        if (Settings.FORCE_ORIGINAL_DUB.get()) return OriginalSound.carries(aweme);
+        if (!Settings.FORCE_DUB.get()) return false;
         List<String> wanted = wantedDubs();
         if (wanted.isEmpty()) return true;
         String choice = chooseDub(aweme, wanted);
@@ -182,6 +188,10 @@ public final class TrackPreference {
         if (chosenByHand(handChoice)) {
             remember(video, null);
             return stock;
+        }
+        if (forceOriginal && OriginalSound.carries(aweme)) {
+            remember(video, OriginalSound.CODE);
+            return OriginalSound.CODE;
         }
         String own = originalCode(readSubtitles(captionModel(aweme)));
         String choice = forceOriginal ? ORIGINAL : chooseDub(aweme, wanted);
@@ -208,7 +218,9 @@ public final class TrackPreference {
         if (kind != AUDIO || video == null || !(tracks instanceof Map<?, ?>)) return NONE;
         if (SETTLED.put(video + '#' + System.identityHashCode(tracks), Boolean.TRUE) != null) return NONE;
         String language = ASKED.get(video);
-        if (language == null || Settings.FORCE_ORIGINAL_DUB.get() || wantedDubs().isEmpty()) return NONE;
+        if (language == null) return NONE;
+        boolean originalSound = OriginalSound.CODE.equals(language);
+        if (!originalSound && (Settings.FORCE_ORIGINAL_DUB.get() || wantedDubs().isEmpty())) return NONE;
         int track = trackFor((Map<?, ?>) tracks, language, playing);
         if (track != NONE) {
             Logger.printDebug(() -> "Dub track: " + video + " plays " + playing + ", " + language
@@ -511,7 +523,9 @@ public final class TrackPreference {
         Object infos = audio == null ? null : Reflect.invoke(audio, "getTtsInfos");
         if (infos instanceof List<?>) {
             for (Object info : (List<?>) infos) {
-                addDub(found, Reflect.readField(info, "languageCode"));
+                Object code = Reflect.readField(info, "languageCode");
+                // The original sound made for a copy is the video's own audio, not a dub.
+                if (!OriginalSound.CODE.equals(code)) addDub(found, code);
             }
         }
         Object translated = Reflect.invoke(aweme, "getTranslatedVideo");

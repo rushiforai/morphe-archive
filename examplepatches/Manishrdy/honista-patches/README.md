@@ -13,7 +13,7 @@ cd honista-patches
 ./gradlew :patches:buildAndroid
 ```
 
-The result is `honista-patches/patches/build/libs/patches-1.1.2.mpp`. JDK 17+ and Android SDK platform 36/build-tools 36.1.0 are required. Fresh GitHub Packages dependency downloads may require your own read-packages credentials as described in the guide.
+The result is `honista-patches/patches/build/libs/patches-1.1.3.mpp`. JDK 17+ and Android SDK platform 36/build-tools 36.1.0 are required. Fresh GitHub Packages dependency downloads may require your own read-packages credentials as described in the guide.
 
 ## Files excluded from Git
 
@@ -33,6 +33,14 @@ The Gradle wrapper JAR, baseline class fingerprints, helper DEX and frozen start
 ## Validation
 
 Morphe Desktop 1.18.1 successfully patched the original APK with its default mode. All 17 changed/added classes and the startup-module asset match the tested build. Existing modified inputs are rejected. Android Manager UI testing remains pending because the phone was disconnected during bundle preparation.
+
+## Startup crash investigation (local 1.1.3 candidate)
+
+The 1.1.2 bundle compiled successfully but still contained stale runtime references. The final audit flags 22 problems in the published 1.1.2 payload: 17 unresolved reference findings (including missing classes and startup retry/exception calls) and five native method replacements. It also replaced the current APK's native `LX/Ail9;->c()` loader with an old Java implementation. Compilation alone did not catch these problems.
+
+The local 1.1.3 candidate corrects the startup callback, exception logger, string decoder and interceptor utility references; uses the current stream module-provider interface; and leaves the native loader unchanged. Consequently, the legacy Java-loader hook that substituted the frozen startup module is no longer installed. That module recovery behavior is not claimed for this candidate. The four native UI overrides are also removed to preserve JNI registration; their forced switch/account-screen behavior is not retained. All native replacements are now rejected.
+
+Run `./gradlew :patches:verifyInput :patches:verifyReferences :patches:verifyOriginal` from `honista-patches`. The reference audit also runs inside patch execution for replacement methods. These checks cover direct app references and DEX compilation, not Android verification, reflection, native code, or successful launch. The final candidate passes input/reference checks, patches and compiles all 35 DEX files, and preserves the affected native declarations. The same audit rejects the published 1.1.2 payload. Device crash logs and a launch test are still required. The remote source remains on published 1.1.2; the local candidate is `honista-patches/patches/build/libs/patches-1.1.3.mpp`.
 
 ## Validation fix (1.1.2)
 

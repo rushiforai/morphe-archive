@@ -62,16 +62,16 @@ class ChatRevealFixtureTest {
             val context = PatchContexts.of(ExtensionDex.classes() + hosts(build))
             val site = context.resolveChatReveal()
             val menu = context.resolveChatMenu(site)
-            if (name.contains("-73039")) {
+            if (name.contains("-73469")) {
                 // Read from the build's own search marking, which opens a reply's quote, and the chat's search highlight.
-                assertEquals("Lorg/telegram/ui/Cells/s1;", site.cell)
-                assertEquals("t3", site.search.name)
-                assertEquals("Lorg/telegram/ui/Cells/s1;->x6:Z", site.highlight.toString())
-                assertEquals("Lorg/telegram/ui/Cells/s1;->Sa:Lorg/telegram/ui/Cells/n1;", site.delegate.toString())
-                assertEquals("Lorg/telegram/ui/Cells/n1;->x1(Lorg/telegram/ui/Cells/s1;Z)V", site.expand.toString())
+                assertEquals("Lorg/telegram/ui/Cells/q1;", site.cell)
+                assertEquals("v3", site.search.name)
+                assertEquals("Lorg/telegram/ui/Cells/q1;->x6:Z", site.highlight.toString())
+                assertEquals("Lorg/telegram/ui/Cells/q1;->Sa:Lorg/telegram/ui/Cells/l1;", site.delegate.toString())
+                assertEquals("Lorg/telegram/ui/Cells/l1;->w1(Lorg/telegram/ui/Cells/q1;Z)V", site.expand.toString())
                 assertEquals("y", site.blockSpoilers.name)
-                assertEquals("Lorg/telegram/ui/rn;", menu.chat)
-                assertEquals("Lorg/telegram/ui/rn;->L6:Ljava/util/ArrayList;", menu.messages.toString())
+                assertEquals("Lorg/telegram/ui/on;", menu.chat)
+                assertEquals("Lorg/telegram/ui/on;->M6:Ljava/util/ArrayList;", menu.messages.toString())
                 assertEquals("A0", menu.list.name)
             }
             val marks = searchMarks(site)

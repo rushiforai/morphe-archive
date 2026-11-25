@@ -25,6 +25,7 @@ val assemblePayload by tasks.registering(JavaExec::class) {
     outputs.file(output)
 }
 tasks.named("processResources") { dependsOn(assemblePayload) }
+tasks.named("sourcesJar") { dependsOn(assemblePayload) }
 
 val verifyBundle by tasks.registering(JavaExec::class) {
     dependsOn("testClasses", "buildAndroid")
@@ -78,6 +79,17 @@ val verifyOriginal by tasks.registering(JavaExec::class) {
     args(file("build/libs/patches-${project.version}.mpp").absolutePath,
         rootProject.file("../apk/Honista_v13.1__x64.apk").absolutePath,
         "unused", layout.buildDirectory.dir("verify-original").get().asFile.absolutePath, "apply")
+}
+
+val verifyReferences by tasks.registering(JavaExec::class) {
+    dependsOn("testClasses")
+    classpath = sourceSets["test"].runtimeClasspath
+    mainClass.set("local.honista.AuditReferencesKt")
+    maxHeapSize = "4g"
+    args(rootProject.file("../apk/Honista_v13.1__x64.apk").absolutePath,
+        file("src/main/resources/honista/methods.dex").absolutePath,
+        file("src/main/resources/honista/helpers.dex").absolutePath,
+        layout.buildDirectory.file("reference-audit.txt").get().asFile.absolutePath)
 }
 
 // Include the SDK and patcher classpath during D8 desugaring. The older plugin's

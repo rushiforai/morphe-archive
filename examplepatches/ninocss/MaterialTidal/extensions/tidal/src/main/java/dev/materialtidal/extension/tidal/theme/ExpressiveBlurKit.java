@@ -12,6 +12,7 @@ import android.graphics.RenderEffect;
 import android.graphics.RenderNode;
 import android.graphics.Shader;
 import android.os.Build;
+import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.ViewTreeObserver;
@@ -484,16 +485,17 @@ public final class ExpressiveBlurKit {
     }
 
     /**
-     * Frosted glass live backdrop blur layer mounted behind collapsing sticky toolbars on
-     * Playlists and Dynamic Media Pages. Accepts plain Views so no AndroidX RecyclerView import
-     * enters the extension dex.
+     * Top-down progressive blur layer mounted behind collapsing sticky toolbars on
+     * Playlists and Dynamic Media Pages (Albums, Mixes, Artists). Accepts plain Views so no
+     * AndroidX RecyclerView import enters the extension dex.
      */
     public static final class ExpressiveToolbarBlurView extends View {
 
+        private static final float[] TIER_RADII_DP = new float[]{4f, 11f, 24f, 44f};
+        private static final float[] TIER_STARTS = new float[]{0.00f, 0.24f, 0.50f, 0.72f};
+
         private final MultiTierProgressiveBlurRenderer renderer =
                 new MultiTierProgressiveBlurRenderer("toolbarBlur");
-        private final Paint borderPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
-        private final Paint fallbackPaint = new Paint();
         private final float density;
 
         private ViewGroup backdropRoot;
@@ -501,6 +503,7 @@ public final class ExpressiveBlurKit {
         private View toolbarTarget;
         private float collapseFraction = 0f;
         private int tintBaseColor;
+        private boolean lastLightMode;
         private boolean waitingForOwnDraw = false;
         private long lastInvalidateUptime = 0L;
         private boolean listenersAttached = false;
@@ -548,15 +551,14 @@ public final class ExpressiveBlurKit {
         public ExpressiveToolbarBlurView(Context context) {
             super(context);
             this.density = context.getResources().getDisplayMetrics().density;
-            this.tintBaseColor = MaterialYouColorEngine.getSurfaceContainer();
+            this.tintBaseColor = MaterialYouColorEngine.getSurfaceBase();
+            this.lastLightMode = MaterialYouColorEngine.isLightMode(context);
             setWillNotDraw(false);
             setForceDarkAllowed(false);
             setClickable(false);
             setFocusable(false);
             setFocusableInTouchMode(false);
             setImportantForAccessibility(IMPORTANT_FOR_ACCESSIBILITY_NO);
-            borderPaint.setStyle(Paint.Style.STROKE);
-            borderPaint.setStrokeWidth(Math.max(1f, 0.8f * density));
         }
 
         public void attach(ViewGroup backdropRoot, View toolbarTarget, View scrollTarget) {
@@ -573,8 +575,10 @@ public final class ExpressiveBlurKit {
 
         public void updateAppearance(float collapseFraction, int tintColor) {
             float clamped = clamp01(collapseFraction);
+            boolean lightMode = MaterialYouColorEngine.isLightMode(getContext());
             boolean changed = Math.abs(this.collapseFraction - clamped) > 0.01f
-                    || this.tintBaseColor != tintColor;
+                    || this.tintBaseColor != tintColor
+                    || this.lastLightMode != lightMode;
             this.collapseFraction = clamped;
             this.tintBaseColor = tintColor;
             if (changed) {
@@ -585,16 +589,16 @@ public final class ExpressiveBlurKit {
         }
 
         private void configureRenderer() {
-            float[] radii = new float[]{22f};
-            float[] starts = new float[]{0f};
+            boolean lightMode = MaterialYouColorEngine.isLightMode(getContext());
+            lastLightMode = lightMode;
             renderer.configure(
-                    MultiTierProgressiveBlurRenderer.DIR_UNIFORM,
-                    0f,
-                    radii,
-                    starts,
+                    MultiTierProgressiveBlurRenderer.DIR_TOP_DOWN,
+                    0.05f,
+                    TIER_RADII_DP,
+                    TIER_STARTS,
                     tintBaseColor,
-                    0f,
-                    0.76f * collapseFraction);
+                    0.16f,
+                    (lightMode ? 0.72f : 0.60f) * collapseFraction);
         }
 
         private void syncBoundsAndVisibility() {
@@ -619,10 +623,14 @@ public final class ExpressiveBlurKit {
                 int th = toolbarTarget.getHeight();
                 int tx = Math.round(toolbarTarget.getLeft() + toolbarTarget.getTranslationX());
                 int ty = Math.round(toolbarTarget.getTop() + toolbarTarget.getTranslationY());
+                int featherPx = Math.round(32f * density);
+                int parentH = backdropRoot.getHeight();
+                int maxH = parentH > 0 ? Math.max(th, parentH - Math.max(0, ty)) : (th + featherPx);
+                int targetH = Math.min(maxH, th + featherPx);
                 ViewGroup.LayoutParams lp = getLayoutParams();
-                if (lp != null && getParent() != null && (lp.width != tw || lp.height != th)) {
+                if (lp != null && getParent() != null && (lp.width != tw || lp.height != targetH)) {
                     lp.width = tw;
-                    lp.height = th;
+                    lp.height = targetH;
                     setLayoutParams(lp);
                 }
                 if (Math.abs(getTranslationX() - tx) > 0.5f) {
@@ -654,13 +662,17 @@ public final class ExpressiveBlurKit {
                         || MaterialYouColorEngine.isEffectiveAmoledBlack()) {
                     return;
                 }
+                boolean lightMode = MaterialYouColorEngine.isLightMode(getContext());
+                if (lightMode != lastLightMode) {
+                    configureRenderer();
+                }
 
+                float bleedPx = 24f * density;
                 if (renderer.canUseHardwareBlur(canvas)
                         && !CAPTURING_BACKDROP
                         && backdropRoot.isAttachedToWindow()) {
-                    float bleedPx = 16f * density;
                     RecordingCanvas rc = renderer.beginBackdropCapture(
-                            w, h, bleedPx, 0.5f, MaterialYouColorEngine.getSurfaceBase());
+                            w, h, bleedPx, 0.5f, tintBaseColor);
                     if (rc != null) {
                         int myIdx = backdropRoot.indexOfChild(this);
                         int tx = Math.round(getLeft() + getTranslationX());
@@ -696,23 +708,26 @@ public final class ExpressiveBlurKit {
                             renderer.endBackdropCapture(density);
                         }
                     }
-                    int layerAlpha = Math.max(0, Math.min(255, Math.round(255f * collapseFraction)));
-                    canvas.saveLayerAlpha(0f, 0f, w, h, layerAlpha);
-                    renderer.draw(canvas, w, h, bleedPx);
-                    canvas.restore();
-                } else {
-                    fallbackPaint.setColor(withAlpha(tintBaseColor, Math.round(224f * collapseFraction)));
-                    canvas.drawRect(0f, 0f, w, h, fallbackPaint);
                 }
-
-                int hairAlpha = Math.round(32f * collapseFraction);
-                if (hairAlpha > 2) {
-                    borderPaint.setColor(withAlpha(MaterialYouColorEngine.getOutlineVariant(), hairAlpha));
-                    float y = h - Math.max(0.5f, 0.5f * density);
-                    canvas.drawLine(0f, y, w, y, borderPaint);
+                int layerAlpha = Math.max(0, Math.min(255, Math.round(255f * collapseFraction)));
+                int sc = canvas.saveLayerAlpha(0f, 0f, w, h, layerAlpha);
+                try {
+                    renderer.draw(canvas, w, h, bleedPx);
+                } finally {
+                    canvas.restoreToCount(sc);
                 }
             } catch (Throwable ignored) {
             }
+        }
+
+        @Override
+        public boolean onTouchEvent(MotionEvent event) {
+            return false;
+        }
+
+        @Override
+        public boolean dispatchTouchEvent(MotionEvent event) {
+            return false;
         }
 
         private void attachListeners() {

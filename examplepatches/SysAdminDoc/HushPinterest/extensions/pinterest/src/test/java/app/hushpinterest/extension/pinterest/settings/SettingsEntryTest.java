@@ -496,6 +496,45 @@ public class SettingsEntryTest {
         assertNull("Pinterest's own long press opened the screen", dialogOver(activity.get()));
     }
 
+    /** #48: a long press on the bottom bar's Home tab opens the screen instead of Pinterest's long press. */
+    @Test public void longPressingTheHomeTabOpensTheScreen() {
+        ActivityController<Activity> activity = Robolectric.buildActivity(Activity.class).setup();
+        View home = logoIn(activity.get());
+        home.setId(View.generateViewId());
+        SettingsEntry.homeTabIdForTests = home.getId();
+        try {
+            int[] pinterests = {0};
+            home.setOnLongClickListener(SettingsEntry.onTabLongPress(view -> { pinterests[0]++; return true; }));
+            assertTrue("the Home tab took no long press", home.performLongClick());
+            ShadowLooper.idleMainLooper();
+            assertNotNull("the Home tab's long press didn't open the screen", dialogOver(activity.get()));
+            org.junit.Assert.assertEquals("Pinterest's long press ran too", 0, pinterests[0]);
+        } finally {
+            SettingsEntry.homeTabIdForTests = null;
+            SettingsEntry.onClosedByUser();
+        }
+    }
+
+    /** Every other tab keeps Pinterest's long press, and a tab Pinterest gave none stays without one. */
+    @Test public void otherTabsKeepPinterestsLongPress() {
+        ActivityController<Activity> activity = Robolectric.buildActivity(Activity.class).setup();
+        View search = logoIn(activity.get());
+        search.setId(View.generateViewId());
+        SettingsEntry.homeTabIdForTests = search.getId() + 1;
+        try {
+            int[] pinterests = {0};
+            search.setOnLongClickListener(SettingsEntry.onTabLongPress(view -> { pinterests[0]++; return true; }));
+            assertTrue(search.performLongClick());
+            ShadowLooper.idleMainLooper();
+            org.junit.Assert.assertEquals("Pinterest's long press didn't run", 1, pinterests[0]);
+            assertNull("another tab opened the screen", dialogOver(activity.get()));
+            org.junit.Assert.assertFalse("a tab with no listener of Pinterest's answered a long press",
+                    SettingsEntry.onTabLongPress(null).onLongClick(search));
+        } finally {
+            SettingsEntry.homeTabIdForTests = null;
+        }
+    }
+
     /** No header, or a header without the logo, changes nothing. */
     @Test public void aHomeScreenWithoutTheLogoIsLeftAlone() {
         ActivityController<Activity> activity = Robolectric.buildActivity(Activity.class).setup();

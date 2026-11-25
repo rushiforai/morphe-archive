@@ -1,0 +1,5 @@
+-keep class nl.johninnl.wuplaycar.** { *; }
+-keep class androidx.car.app.** { *; }
+-dontobfuscate
+-dontoptimize
+-dontwarn kotlin.**

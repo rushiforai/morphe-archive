@@ -83,6 +83,8 @@ public class SettingsScreenshotTest {
         HostScreens.failed = false;
         // The state renders reach rows in every section; the README pair opens only its own.
         OpenSections.all();
+        // The message log follows Messenger's theme once it has answered; these renders follow the page's Light switch.
+        MaterialYouTheme.forgetDarkModeAnswer();
     }
 
     @After public void restoreFixtureMetadata() {
@@ -133,6 +135,9 @@ public class SettingsScreenshotTest {
                 awaitText(root, "See you Saturday!");
                 layoutDialog(log);
                 write(root, "settings-message-log-filled-" + theme);
+                required(root, "message_log_by_chat").performClick();
+                layoutDialog(log);
+                write(root, "settings-message-log-by-chat-" + theme);
                 log.dismiss();
                 MessageLog.Vault working = MessageLog.vault;
                 MessageLog.vault = new MessageLog.Vault() {

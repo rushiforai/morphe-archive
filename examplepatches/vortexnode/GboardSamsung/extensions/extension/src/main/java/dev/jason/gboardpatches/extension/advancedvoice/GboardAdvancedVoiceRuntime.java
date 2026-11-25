@@ -603,4 +603,12 @@ public final class GboardAdvancedVoiceRuntime {
         return Boolean.TRUE.equals(GboardAdvancedVoicePolicy.maybeEnableExactZhTwFormatter(
                 locale, configDisabled, Boolean.valueOf(stockDisabled)));
     }
+
+    public static boolean shouldSuppressVoiceBeep() {
+        try {
+            return GboardAdvancedVoiceRuntimeSettings.isVoiceBeepDisabled();
+        } catch (Throwable ignored) {
+            return false;
+        }
+    }
 }

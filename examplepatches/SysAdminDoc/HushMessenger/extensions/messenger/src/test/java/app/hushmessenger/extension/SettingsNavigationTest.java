@@ -28,6 +28,58 @@ public class SettingsNavigationTest {
         OpenSections.all();
     }
 
+    /** #207: a heading counts its switches on out of those shown, follows every change, and counts a search's matches. */
+    @Test public void sectionHeadingsCountTheSwitchesOnOutOfThoseShown() {
+        int total = 0;
+        for (String[] spec : SettingsActivity.CONTROLS) if ("inbox".equals(spec[3]) && Settings.installed.contains(spec[0])) total++;
+        assertTrue(total > 1);
+        try (var screen = Robolectric.buildActivity(SettingsActivity.class).setup()) {
+            View root = screen.get().getWindow().getDecorView();
+            TextView tally = (TextView) ((android.view.ViewGroup) root.findViewWithTag("section_inbox")).getChildAt(1);
+            assertEquals("0/" + total, tally.getText().toString());
+            assertEquals("0 of " + total + " on", tally.getContentDescription().toString());
+            root.findViewWithTag("people").performClick();
+            assertEquals("1/" + total, tally.getText().toString());
+            assertEquals("1 of " + total + " on", tally.getContentDescription().toString());
+            // A change made anywhere else shows too.
+            Settings.preferences.edit().putBoolean("stories", true).commit();
+            Shadows.shadowOf(Looper.getMainLooper()).idle();
+            assertEquals("2/" + total, tally.getText().toString());
+            // A search counts out of what it found.
+            EditText search = root.findViewWithTag("find_control");
+            search.setText("People You May Know");
+            String[] counted = tally.getText().toString().split("/");
+            assertEquals("1", counted[0]);
+            assertTrue(tally.getText().toString(), Integer.parseInt(counted[1]) < total);
+            search.setText("");
+            assertEquals("2/" + total, tally.getText().toString());
+        }
+    }
+
+    /** #207: searching for a reset leads to Back to defaults on the App tab, and brings back a hidden Quick setups. */
+    @Test public void searchingResetLeadsToBackToDefaults() {
+        Settings.preferences.edit().putBoolean(SettingsActivity.HIDE_QUICK_SETUPS, true).commit();
+        try (var screen = Robolectric.buildActivity(SettingsActivity.class).setup()) {
+            View root = screen.get().getWindow().getDecorView();
+            View link = root.findViewWithTag("find_reset");
+            assertEquals(View.GONE, link.getVisibility());
+            EditText search = root.findViewWithTag("find_control");
+            for (String query : new String[] {"reset", "Reset settings", "back to defaults"}) {
+                search.setText(query);
+                assertEquals(query, View.VISIBLE, link.getVisibility());
+            }
+            search.setText("r");
+            assertEquals(View.GONE, link.getVisibility());
+            search.setText("reset");
+            link.performClick();
+            assertEquals(View.VISIBLE, root.findViewWithTag("app_page").getVisibility());
+            assertFalse(Settings.preferences.getBoolean(SettingsActivity.HIDE_QUICK_SETUPS, true));
+            assertTrue(root.findViewWithTag("quick_defaults").isShown());
+            search.setText("stickers");
+            assertEquals(View.GONE, link.getVisibility());
+        }
+    }
+
     /** HushFacebook's accordion: closed on a fresh install, one tap opens a section, and it stays open next time. */
     @Test public void sectionsStartClosedOpenOnTapAndStayOpen() {
         OpenSections.only();
@@ -121,7 +173,7 @@ public class SettingsNavigationTest {
                 assertTrue(key + " should sit in Photos and videos", inside(root.findViewWithTag(key), group));
             assertFalse(inside(root.findViewWithTag("typing"), group));
             assertEquals(View.VISIBLE, group.getVisibility());
-            assertEquals("14",((TextView) heading.getChildAt(1)).getText().toString());
+            assertEquals("0/14",((TextView) heading.getChildAt(1)).getText().toString());
         }
     }
 

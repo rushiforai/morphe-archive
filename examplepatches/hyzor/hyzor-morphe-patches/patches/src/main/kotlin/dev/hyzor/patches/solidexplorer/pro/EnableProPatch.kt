@@ -3,7 +3,7 @@
  * https://github.com/hoo-dles/morphe-patches
  *
  * Ported from the Solid Explorer 3.6.1 "Enable Pro" patch in hoo-dles/morphe-patches
- * (GPLv3), re-resolved for 3.6.4.
+ * (GPLv3), re-resolved for 3.6.4 and unchanged in 3.6.5.
  */
 
 package dev.hyzor.patches.solidexplorer.pro
@@ -49,7 +49,7 @@ import dev.hyzor.patches.solidexplorer.shared.Constants.SOLID_EXPLORER
  * `PREMIUM_PRO`. Records that are already licensed keep their state, so a subscriber still
  * gets the subscriber UI.
  *
- * The `LicenseState` field of `LicenseDetails` has a single-letter name (`a` in 3.6.4) that
+ * The `LicenseState` field of `LicenseDetails` has a single-letter name (`a` in 3.6.5) that
  * R8 is free to change, so the field is taken from the constructor's own `iput-object`
  * rather than hard-coded. Only the state is forged: the product id, trial dates and rest of
  * the record stay as the app received them, and nothing server-side changes.
