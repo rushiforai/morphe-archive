@@ -6137,6 +6137,134 @@
                 "sortOrder": 868,
                 "createdAt": 1795592029260,
                 "updatedAt": 1795592029260
+            },
+            {
+                "name": "morphe-patches",
+                "source": "https://raw.githubusercontent.com/2kshoka/morphe-patches/main/patches-bundle.json",
+                "autoUpdate": true,
+                "sortOrder": 869,
+                "createdAt": 1795678228280,
+                "updatedAt": 1795678228280
+            },
+            {
+                "name": "morphe-patches",
+                "source": "https://raw.githubusercontent.com/Darkaxt/morphe-patches/main/patches-bundle.json",
+                "autoUpdate": true,
+                "sortOrder": 870,
+                "createdAt": 1795678232254,
+                "updatedAt": 1795678232254
+            },
+            {
+                "name": "Morphe-patch-Siagatani",
+                "source": "https://raw.githubusercontent.com/EryrizalH/Morphe-patch-Siagatani/main/patches-bundle.json",
+                "autoUpdate": true,
+                "sortOrder": 871,
+                "createdAt": 1795678233387,
+                "updatedAt": 1795678233387
+            },
+            {
+                "name": "sadmod-patches",
+                "source": "https://raw.githubusercontent.com/NotRin7/sadmod-patches/main/patches-bundle.json",
+                "autoUpdate": true,
+                "sortOrder": 872,
+                "createdAt": 1795678239046,
+                "updatedAt": 1795678239046
+            },
+            {
+                "name": "macrofactor-patches",
+                "source": "https://raw.githubusercontent.com/Parideboy/macrofactor-patches/main/patches-bundle.json",
+                "autoUpdate": true,
+                "sortOrder": 873,
+                "createdAt": 1795678239732,
+                "updatedAt": 1795678239732
+            },
+            {
+                "name": "morphe-patches-template",
+                "source": "https://raw.githubusercontent.com/RoundSalmon4/morphe-patches-template/main/patches-bundle.json",
+                "autoUpdate": true,
+                "sortOrder": 874,
+                "createdAt": 1795678240807,
+                "updatedAt": 1795678240807
+            },
+            {
+                "name": "w3s-patches",
+                "source": "https://raw.githubusercontent.com/RyuuseiAkira/w3s-patches/main/patches-bundle.json",
+                "autoUpdate": true,
+                "sortOrder": 875,
+                "createdAt": 1795678241202,
+                "updatedAt": 1795678241202
+            },
+            {
+                "name": "allmorphe-patches",
+                "source": "https://raw.githubusercontent.com/Stabber14/allmorphe-patches/main/patches-bundle.json",
+                "autoUpdate": true,
+                "sortOrder": 876,
+                "createdAt": 1795678241814,
+                "updatedAt": 1795678241814
+            },
+            {
+                "name": "mygate-surprise-delivery-morphe-patches",
+                "source": "https://raw.githubusercontent.com/chaosmanage/mygate-surprise-delivery-morphe-patches/main/patches-bundle.json",
+                "autoUpdate": true,
+                "sortOrder": 877,
+                "createdAt": 1795678245981,
+                "updatedAt": 1795678245981
+            },
+            {
+                "name": "mergenv1-patches",
+                "source": "https://raw.githubusercontent.com/d0r4nn/mergenv1-patches/main/patches-bundle.json",
+                "autoUpdate": true,
+                "sortOrder": 878,
+                "createdAt": 1795678247095,
+                "updatedAt": 1795678247095
+            },
+            {
+                "name": "eurowag-patches",
+                "source": "https://gitlab.com/georgewoodall82/eurowag-patches/-/raw/main/patches-bundle.json",
+                "autoUpdate": true,
+                "sortOrder": 879,
+                "createdAt": 1795678250778,
+                "updatedAt": 1795678250778
+            },
+            {
+                "name": "mobile-de-morphe-patches",
+                "source": "https://raw.githubusercontent.com/itnaegele/mobile-de-morphe-patches/main/patches-bundle.json",
+                "autoUpdate": true,
+                "sortOrder": 880,
+                "createdAt": 1795678253113,
+                "updatedAt": 1795678253113
+            },
+            {
+                "name": "diskwala-patches",
+                "source": "https://raw.githubusercontent.com/kuntal-devrat/diskwala-patches/main/patches-bundle.json",
+                "autoUpdate": true,
+                "sortOrder": 881,
+                "createdAt": 1795678255380,
+                "updatedAt": 1795678255380
+            },
+            {
+                "name": "morphe-patches",
+                "source": "https://raw.githubusercontent.com/pomee4/morphe-patches/main/patches-bundle.json",
+                "autoUpdate": true,
+                "sortOrder": 882,
+                "createdAt": 1795678260388,
+                "updatedAt": 1795678260388
+            },
+            {
+                "name": "sai-patches",
+                "source": "https://raw.githubusercontent.com/saiyupunch/sai-patches/main/patches-bundle.json",
+                "autoUpdate": true,
+                "sortOrder": 883,
+                "createdAt": 1795678262242,
+                "updatedAt": 1795678262242
+            },
+            {
+                "name": "morphe-patches-smtgpm",
+                "source": "https://raw.githubusercontent.com/smtgpm/morphe-patches-smtgpm/main/patches-bundle.json",
+                "autoUpdate": true,
+                "sortOrder": 884,
+                "createdAt": 1795678262806,
+                "updatedAt": 1795678262806
             }
         ]
     }
